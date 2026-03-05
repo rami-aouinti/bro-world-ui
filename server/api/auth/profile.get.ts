@@ -8,6 +8,7 @@ export default defineEventHandler(async (event) => {
   applySessionCookie(event, sessionId)
 
   return {
+    authenticated: true,
     profile: nextSession.profile as UserProfile | null,
     roles: nextSession.roles,
     locale: nextSession.locale,

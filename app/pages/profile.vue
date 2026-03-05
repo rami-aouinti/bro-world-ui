@@ -25,11 +25,7 @@ const loadProfile = async () => {
   loading.value = true
 
   try {
-    const profile = await fetchProfile()
-
-    if (profile) {
-      authSession.setProfile(profile)
-    }
+    await fetchProfile()
   }
   catch {
     errorMessage.value = t('errors.profile.loadFailed')

@@ -1,5 +1,6 @@
 import { computed } from 'vue'
 import { useAuthSessionStore, type UserProfile } from '~/stores/authSession'
+import { FALLBACK_LOCALE, getProfilePreferredLocale, resolveLocale } from '~/utils/locale'
 
 interface SessionResponse {
   authenticated: boolean
@@ -16,16 +17,33 @@ interface LoginPayload {
 
 export const useAuth = () => {
   const authSession = useAuthSessionStore()
+  const nuxtApp = useNuxtApp()
 
   const token = useState<string | null>('auth-token', () => null)
   const initialized = useState<boolean>('auth-session-initialized', () => false)
 
-  const applySessionState = (session: SessionResponse) => {
+  const applyLocalePreference = async (preferredLocale: unknown) => {
+    const i18n = nuxtApp.$i18n
+    const availableLocales = i18n.localeCodes || []
+    const localeToApply = resolveLocale(preferredLocale, availableLocales, FALLBACK_LOCALE)
+
+    if (i18n.locale.value !== localeToApply) {
+      await i18n.setLocale(localeToApply)
+    }
+  }
+
+  const applySessionState = async (session: SessionResponse) => {
     token.value = session.authenticated ? '__server_session__' : null
     authSession.setSession({
       token: token.value,
       profile: session.profile,
     })
+
+    const preferredLocale = session.authenticated
+      ? (session.locale || getProfilePreferredLocale(session.profile))
+      : FALLBACK_LOCALE
+
+    await applyLocalePreference(preferredLocale)
   }
 
   const initSession = async () => {
@@ -37,10 +55,10 @@ export const useAuth = () => {
       const session = await $fetch<SessionResponse>('/api/auth/session', {
         method: 'GET',
       })
-      applySessionState(session)
+      await applySessionState(session)
     }
     catch {
-      applySessionState({ authenticated: false, profile: null, roles: [], locale: null })
+      await applySessionState({ authenticated: false, profile: null, roles: [], locale: null })
     }
     finally {
       initialized.value = true
@@ -61,7 +79,7 @@ export const useAuth = () => {
     })
 
     initialized.value = true
-    applySessionState(response)
+    await applySessionState(response)
 
     return response
   }
@@ -71,7 +89,7 @@ export const useAuth = () => {
       method: 'GET',
     })
 
-    applySessionState(response)
+    await applySessionState(response)
 
     return response.profile
   }
@@ -79,10 +97,8 @@ export const useAuth = () => {
   const logout = async () => {
     await $fetch('/api/auth/logout', { method: 'POST' })
     initialized.value = true
-    applySessionState({ authenticated: false, profile: null, roles: [], locale: null })
+    await applySessionState({ authenticated: false, profile: null, roles: [], locale: null })
   }
-
-  void initSession()
 
   return {
     token,
