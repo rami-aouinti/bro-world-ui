@@ -1,0 +1,35 @@
+{
+  "app": {
+    "name": "Bro World",
+    "navigation": {
+      "home": "Home",
+      "login": "Login",
+      "profile": "Profile",
+      "openMenu": "Open menu"
+    }
+  },
+  "login": {
+    "title": "Login",
+    "description": "Use your username or email to get a token.",
+    "usernameOrEmail": "Username or email",
+    "usernameOrEmailPlaceholder": "john-root",
+    "password": "Password",
+    "submit": "Sign in"
+  },
+  "profile": {
+    "title": "Profile",
+    "load": "Load profile",
+    "logout": "Logout",
+    "notAuthenticated": "You are not signed in. Please use the login page.",
+    "tokenHint": "The session token is automatically sent in the <code>Authorization: Bearer ...</code> header when calling the profile API."
+  },
+  "errors": {
+    "auth": {
+      "loginFailed": "Login failed. Please check your credentials."
+    },
+    "profile": {
+      "noToken": "No active token found. Please sign in.",
+      "loadFailed": "Unable to load profile. Please try again."
+    }
+  }
+}

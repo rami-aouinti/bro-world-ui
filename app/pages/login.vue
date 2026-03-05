@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 
 const router = useRouter()
+const { t } = useI18n()
 const { login } = useAuth()
 
 const usernameOrEmail = ref('')
@@ -17,9 +18,8 @@ const submit = async () => {
     await login(usernameOrEmail.value, password.value)
     await router.push('/profile')
   }
-  catch (error) {
-    const fallbackMessage = 'Échec de connexion. Vérifiez vos identifiants.'
-    errorMessage.value = error instanceof Error ? error.message : fallbackMessage
+  catch {
+    errorMessage.value = t('errors.auth.loginFailed')
   }
   finally {
     loading.value = false
@@ -30,9 +30,9 @@ const submit = async () => {
 <template>
   <v-container class="py-10" max-width="520">
     <v-card class="pa-6" rounded="xl" elevation="2">
-      <h1 class="text-h5 font-weight-bold mb-2">Connexion</h1>
+      <h1 class="text-h5 font-weight-bold mb-2">{{ t('login.title') }}</h1>
       <p class="text-body-2 text-medium-emphasis mb-6">
-        Utilisez votre username ou email pour récupérer un token.
+        {{ t('login.description') }}
       </p>
 
       <v-alert
@@ -48,15 +48,15 @@ const submit = async () => {
       <v-form @submit.prevent="submit">
         <v-text-field
           v-model="usernameOrEmail"
-          label="Username ou email"
-          placeholder="john-root"
+          :label="t('login.usernameOrEmail')"
+          :placeholder="t('login.usernameOrEmailPlaceholder')"
           required
           class="mb-3"
         />
 
         <v-text-field
           v-model="password"
-          label="Password"
+          :label="t('login.password')"
           type="password"
           required
           class="mb-6"
@@ -68,7 +68,7 @@ const submit = async () => {
           block
           :loading="loading"
         >
-          Se connecter
+          {{ t('login.submit') }}
         </v-btn>
       </v-form>
     </v-card>

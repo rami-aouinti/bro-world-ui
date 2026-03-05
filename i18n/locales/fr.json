@@ -1,0 +1,35 @@
+{
+  "app": {
+    "name": "Bro World",
+    "navigation": {
+      "home": "Accueil",
+      "login": "Connexion",
+      "profile": "Profil",
+      "openMenu": "Ouvrir le menu"
+    }
+  },
+  "login": {
+    "title": "Connexion",
+    "description": "Utilisez votre username ou email pour récupérer un token.",
+    "usernameOrEmail": "Username ou email",
+    "usernameOrEmailPlaceholder": "john-root",
+    "password": "Mot de passe",
+    "submit": "Se connecter"
+  },
+  "profile": {
+    "title": "Profil",
+    "load": "Charger le profil",
+    "logout": "Déconnexion",
+    "notAuthenticated": "Vous n'êtes pas connecté. Passez par la page de connexion.",
+    "tokenHint": "Le token de session sera automatiquement utilisé dans l'en-tête <code>Authorization: Bearer ...</code> pour appeler l'API profil."
+  },
+  "errors": {
+    "auth": {
+      "loginFailed": "Échec de connexion. Vérifiez vos identifiants."
+    },
+    "profile": {
+      "noToken": "Aucun token en session, connectez-vous.",
+      "loadFailed": "Impossible de charger le profil. Réessayez."
+    }
+  }
+}

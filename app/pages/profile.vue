@@ -14,6 +14,7 @@ interface UserProfile {
 }
 
 const router = useRouter()
+const { t } = useI18n()
 const { token, isAuthenticated, logout } = useAuth()
 const { apiFetch } = useApiClient()
 
@@ -23,7 +24,7 @@ const errorMessage = ref('')
 
 const loadProfile = async () => {
   if (!token.value) {
-    errorMessage.value = 'Aucun token en session, connectez-vous.'
+    errorMessage.value = t('errors.profile.noToken')
     return
   }
 
@@ -38,9 +39,8 @@ const loadProfile = async () => {
       },
     })
   }
-  catch (error) {
-    const fallbackMessage = 'Impossible de charger le profil.'
-    errorMessage.value = error instanceof Error ? error.message : fallbackMessage
+  catch {
+    errorMessage.value = t('errors.profile.loadFailed')
   }
   finally {
     loading.value = false
@@ -58,7 +58,7 @@ const signOut = async () => {
   <v-container class="py-10" max-width="840">
     <v-card class="pa-6" rounded="xl" elevation="2">
       <div class="d-flex align-center justify-space-between ga-3 mb-4 flex-wrap">
-        <h1 class="text-h5 font-weight-bold">Profil</h1>
+        <h1 class="text-h5 font-weight-bold">{{ t('profile.title') }}</h1>
 
         <div class="d-flex ga-2">
           <v-btn
@@ -67,7 +67,7 @@ const signOut = async () => {
             :disabled="!isAuthenticated"
             @click="loadProfile"
           >
-            Charger le profil
+            {{ t('profile.load') }}
           </v-btn>
 
           <v-btn
@@ -75,7 +75,7 @@ const signOut = async () => {
             :disabled="!isAuthenticated"
             @click="signOut"
           >
-            Déconnexion
+            {{ t('profile.logout') }}
           </v-btn>
         </div>
       </div>
@@ -86,7 +86,7 @@ const signOut = async () => {
         variant="tonal"
         class="mb-4"
       >
-        Vous n'êtes pas connecté. Passez par la page de connexion.
+        {{ t('profile.notAuthenticated') }}
       </v-alert>
 
       <v-alert
@@ -111,8 +111,7 @@ const signOut = async () => {
         v-else
         class="text-body-2 text-medium-emphasis"
       >
-        Le token de session sera automatiquement utilisé dans l'en-tête <code>Authorization: Bearer ...</code>
-        pour appeler l'API profil.
+        <span v-html="t('profile.tokenHint')" />
       </p>
     </v-card>
   </v-container>
