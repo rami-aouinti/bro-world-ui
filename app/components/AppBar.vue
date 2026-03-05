@@ -9,6 +9,7 @@ interface NavItem {
 
 const { t } = useI18n()
 const { can } = useAccessControl()
+const authSession = useAuthSessionStore()
 
 const siteName = computed(() => t('app.name'))
 
@@ -31,6 +32,14 @@ const navItems = computed<NavItem[]>(() => {
 
 const { mdAndUp } = useDisplay()
 const isDesktop = computed(() => mdAndUp.value)
+const profileName = computed(() => {
+  const profile = authSession.profile
+  if (!profile) {
+    return ''
+  }
+
+  return `${profile.firstName} ${profile.lastName}`.trim() || profile.username
+})
 </script>
 
 <template>
@@ -57,6 +66,20 @@ const isDesktop = computed(() => mdAndUp.value)
         class="text-none"
       >
         {{ t(item.key) }}
+      </v-btn>
+
+      <v-btn
+        v-if="can(['ROLE_USER', 'ROLE_ADMIN'])"
+        to="/profile"
+        variant="text"
+        class="text-none px-1"
+        :aria-label="t('app.navigation.profile')"
+      >
+        <UiAvatar
+          :name="profileName"
+          size="sm"
+          status="online"
+        />
       </v-btn>
     </div>
 

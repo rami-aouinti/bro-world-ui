@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 definePageMeta({
   middleware: ['role'],
@@ -14,6 +14,17 @@ const { isAuthenticated, fetchProfile, logout } = useAuth()
 
 const loading = ref(false)
 const errorMessage = ref('')
+
+const profileDisplayName = computed(() => {
+  const profile = authSession.profile
+  if (!profile) {
+    return 'Guest User'
+  }
+
+  return `${profile.firstName} ${profile.lastName}`.trim() || profile.username
+})
+
+const profileStatus = computed<'online' | 'offline'>(() => (isAuthenticated.value ? 'online' : 'offline'))
 
 const loadProfile = async () => {
   if (!isAuthenticated.value) {
@@ -62,6 +73,18 @@ const signOut = async () => {
         {{ t('profile.logout') }}
       </v-btn>
     </template>
+
+    <div class="d-flex align-center ga-3 mb-4">
+      <UiAvatar
+        :name="profileDisplayName"
+        size="lg"
+        :status="profileStatus"
+      />
+      <div>
+        <p class="text-subtitle-1 font-weight-bold mb-0">{{ profileDisplayName }}</p>
+        <p class="text-body-2 text-medium-emphasis mb-0">{{ t('profile.title') }}</p>
+      </div>
+    </div>
 
     <v-alert
       v-if="!isAuthenticated"
