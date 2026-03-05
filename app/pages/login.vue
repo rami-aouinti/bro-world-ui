@@ -65,15 +65,14 @@ const submit = async () => {
     :title="t('login.title')"
     :subtitle="t('login.description')"
   >
-    <v-alert
+    <UiStateAlert
       v-if="errorMessage"
       type="error"
       variant="tonal"
       density="comfortable"
       class="mb-4"
-    >
-      {{ errorMessage }}
-    </v-alert>
+      :message="errorMessage"
+    />
 
     <v-form @submit.prevent="submit">
       <v-text-field

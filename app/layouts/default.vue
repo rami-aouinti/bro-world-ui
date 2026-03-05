@@ -28,13 +28,12 @@ const routeMessage = computed(() => {
         v-if="routeMessage"
         class="pt-6 pb-0"
       >
-        <v-alert
+        <UiStateAlert
           type="warning"
           variant="tonal"
           density="comfortable"
-        >
-          {{ routeMessage }}
-        </v-alert>
+          :message="routeMessage"
+        />
       </v-container>
 
       <slot />
