@@ -22,6 +22,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     redisUrl: process.env.REDIS_URL || '',
     session: {
+      name: 'nuxt-session',
+      password: '',
       ttlSeconds: Number(process.env.SESSION_TTL_SECONDS || ONE_YEAR_IN_SECONDS),
       cookieName: process.env.SESSION_COOKIE_NAME || 'session_id',
       cookieSecure: process.env.SESSION_COOKIE_SECURE
