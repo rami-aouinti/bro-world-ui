@@ -16,6 +16,7 @@ const loading = ref(false)
 const submitting = ref(false)
 const errorMessage = ref('')
 const roles = ref<Role[]>([])
+const search = ref('')
 
 const formDialog = ref(false)
 const showDialog = ref(false)
@@ -100,24 +101,44 @@ await fetchRoles()
 
 <template>
   <UiPageSection max-width="1000">
+    <Teleport
+      defer
+      to="#app-bar-teleport-target"
+    >
+      <div class="roles-page-appbar-tools">
+        <v-text-field
+          v-model="search"
+          label="Rechercher"
+          prepend-inner-icon="mdi-magnify"
+          density="comfortable"
+          variant="underlined"
+          hide-details
+          class="roles-page-appbar-tools__search"
+        />
+
+        <v-btn
+          icon="mdi-plus"
+          color="primary"
+          :aria-label="'Créer'"
+          @click="openCreateDialog"
+        />
+
+        <v-btn
+          icon="mdi-refresh"
+          color="primary"
+          variant="outlined"
+          :loading="loading"
+          :aria-label="'Actualiser'"
+          @click="fetchRoles"
+        />
+      </div>
+    </Teleport>
+
     <template #header>
       <UiSectionHeader
         title="Gestion des rôles"
         subtitle="Données chargées depuis /api/v1/role"
-      >
-        <template #actions>
-          <v-btn color="primary" prepend-icon="mdi-plus" class="mr-2" @click="openCreateDialog">Créer</v-btn>
-          <v-btn
-            color="primary"
-            variant="outlined"
-            prepend-icon="mdi-refresh"
-            :loading="loading"
-            @click="fetchRoles"
-          >
-            Actualiser
-          </v-btn>
-        </template>
-      </UiSectionHeader>
+      />
     </template>
 
     <v-card rounded="xl" elevation="2" class="pa-4">
@@ -129,6 +150,7 @@ await fetchRoles()
         :headers="headers"
         :items="roles"
         :loading="loading"
+        :search="search"
         item-key="id"
         :items-per-page="10"
         empty-text="Aucun rôle trouvé."
@@ -171,3 +193,19 @@ await fetchRoles()
     </v-dialog>
   </UiPageSection>
 </template>
+
+
+<style scoped>
+.roles-page-appbar-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin-inline-start: 8px;
+}
+
+.roles-page-appbar-tools__search {
+  min-width: 200px;
+  max-width: 280px;
+}
+</style>

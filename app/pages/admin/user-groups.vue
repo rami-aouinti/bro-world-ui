@@ -16,6 +16,7 @@ const loading = ref(false)
 const submitting = ref(false)
 const errorMessage = ref('')
 const userGroups = ref<UserGroup[]>([])
+const search = ref('')
 
 const formDialog = ref(false)
 const showDialog = ref(false)
@@ -108,24 +109,44 @@ await fetchUserGroups()
 
 <template>
   <UiPageSection max-width="1100">
+    <Teleport
+      defer
+      to="#app-bar-teleport-target"
+    >
+      <div class="user-groups-page-appbar-tools">
+        <v-text-field
+          v-model="search"
+          label="Rechercher"
+          prepend-inner-icon="mdi-magnify"
+          density="comfortable"
+          variant="underlined"
+          hide-details
+          class="user-groups-page-appbar-tools__search"
+        />
+
+        <v-btn
+          icon="mdi-plus"
+          color="primary"
+          :aria-label="'Créer'"
+          @click="openCreateDialog"
+        />
+
+        <v-btn
+          icon="mdi-refresh"
+          color="primary"
+          variant="outlined"
+          :loading="loading"
+          :aria-label="'Actualiser'"
+          @click="fetchUserGroups"
+        />
+      </div>
+    </Teleport>
+
     <template #header>
       <UiSectionHeader
         title="Gestion des groupes utilisateurs"
         subtitle="Données chargées depuis /api/v1/user_group"
-      >
-        <template #actions>
-          <v-btn color="primary" prepend-icon="mdi-plus" class="mr-2" @click="openCreateDialog">Créer</v-btn>
-          <v-btn
-            color="primary"
-            variant="outlined"
-            prepend-icon="mdi-refresh"
-            :loading="loading"
-            @click="fetchUserGroups"
-          >
-            Actualiser
-          </v-btn>
-        </template>
-      </UiSectionHeader>
+      />
     </template>
 
     <v-card rounded="xl" elevation="2" class="pa-4">
@@ -137,6 +158,7 @@ await fetchUserGroups()
         :headers="headers"
         :items="tableItems"
         :loading="loading"
+        :search="search"
         item-key="id"
         :items-per-page="10"
         empty-text="Aucun groupe utilisateur trouvé."
@@ -175,3 +197,19 @@ await fetchUserGroups()
     </v-dialog>
   </UiPageSection>
 </template>
+
+
+<style scoped>
+.user-groups-page-appbar-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin-inline-start: 8px;
+}
+
+.user-groups-page-appbar-tools__search {
+  min-width: 200px;
+  max-width: 280px;
+}
+</style>

@@ -21,13 +21,8 @@ const search = ref('')
 
 const formMode = ref<'create' | 'edit' | 'patch'>('create')
 const formDialog = ref(false)
-const showDialog = ref(false)
-const rolesDialog = ref(false)
-const groupsDialog = ref(false)
 const selectedUser = ref<UserRead | null>(null)
-const selectedUserRoles = ref<string[]>([])
-const selectedUserGroups = ref<UserGroup[]>([])
-const groupToAttach = ref('')
+const userRelations = ref<Record<string, { roles: string[]; groups: UserGroup[] }>>({})
 
 const form = reactive<UserWrite>({
   username: '',
@@ -53,6 +48,7 @@ const headers = [
 const tableItems = computed(() => users.value.map(user => ({
   ...user,
   fullName: `${user.firstName} ${user.lastName}`.trim(),
+  relations: userRelations.value[user.id] ?? { roles: [], groups: [] },
 })))
 
 const formTitle = computed(() => {
@@ -73,6 +69,17 @@ const fetchUsers = async () => {
 
   try {
     users.value = await usersApi.list({ limit: 200 })
+
+    const relations = await Promise.all(users.value.map(async (user) => {
+      const [roles, groups] = await Promise.all([
+        usersApi.getRoles(user.id).catch(() => []),
+        usersApi.getGroups(user.id).catch(() => []),
+      ])
+
+      return [user.id, { roles, groups }] as const
+    }))
+
+    userRelations.value = Object.fromEntries(relations)
   }
   catch {
     errorMessage.value = 'Impossible de charger les utilisateurs depuis /api/v1/user.'
@@ -203,39 +210,47 @@ await fetchUsers()
 
 <template>
   <UiPageSection max-width="1200">
+    <Teleport
+      defer
+      to="#app-bar-teleport-target"
+    >
+      <div class="users-page-appbar-tools">
+        <v-text-field
+          v-model="search"
+          label="Rechercher"
+          prepend-inner-icon="mdi-magnify"
+          density="comfortable"
+          variant="underlined"
+          hide-details
+          class="users-page-appbar-tools__search"
+        />
+
+        <v-btn
+          icon="mdi-plus"
+          color="primary"
+          :aria-label="'Créer'"
+          @click="openCreateDialog"
+        />
+
+        <v-btn
+          icon="mdi-refresh"
+          color="primary"
+          variant="outlined"
+          :loading="loading"
+          :aria-label="'Actualiser'"
+          @click="fetchUsers"
+        />
+      </div>
+    </Teleport>
+
     <template #header>
       <UiSectionHeader
         title="Gestion des utilisateurs"
         subtitle="Données chargées depuis /api/v1/user"
-      >
-        <template #actions>
-          <v-btn color="primary" prepend-icon="mdi-plus" class="mr-2" @click="openCreateDialog">
-            Créer
-          </v-btn>
-          <v-btn
-            color="primary"
-            variant="outlined"
-            prepend-icon="mdi-refresh"
-            :loading="loading"
-            @click="fetchUsers"
-          >
-            Actualiser
-          </v-btn>
-        </template>
-      </UiSectionHeader>
+      />
     </template>
 
     <v-card rounded="xl" elevation="2" class="pa-4">
-      <v-text-field
-        v-model="search"
-        label="Rechercher"
-        prepend-inner-icon="mdi-magnify"
-        density="comfortable"
-        hide-details
-        class="mb-4"
-        max-width="360"
-      />
-
       <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
         {{ errorMessage }}
       </v-alert>
@@ -339,3 +354,18 @@ await fetchUsers()
 
   </UiPageSection>
 </template>
+
+<style scoped>
+.users-page-appbar-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin-inline-start: 8px;
+}
+
+.users-page-appbar-tools__search {
+  min-width: 200px;
+  max-width: 280px;
+}
+</style>
