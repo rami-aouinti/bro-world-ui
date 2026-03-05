@@ -1,19 +1,9 @@
 import { computed } from 'vue'
-import { useAuthSessionStore, type UserProfile } from '~/stores/authSession'
+import { useAuthSessionStore } from '~/stores/authSession'
 import { FALLBACK_LOCALE, getProfilePreferredLocale, normalizeLocaleCodes, resolveLocale } from '~/utils/locale'
 
-interface SessionResponse {
-  authenticated: boolean
-  profile: UserProfile | null
-  roles: string[]
-  locale: string | null
-  expiresAt?: string
-}
-
-interface LoginPayload {
-  username: string
-  password: string
-}
+import type { LoginPayload } from '~/types/api/common'
+import type { SessionResponse } from '~/types/api/user'
 
 export const useAuth = () => {
   const authSession = useAuthSessionStore()

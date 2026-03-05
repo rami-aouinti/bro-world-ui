@@ -1,17 +1,6 @@
 import { defineStore } from 'pinia'
+import type { UserProfile } from '~/types/api/user'
 import { getProfilePreferredLocale } from '~/utils/locale'
-
-export interface UserProfile {
-  id: string
-  username: string
-  firstName: string
-  lastName: string
-  email: string
-  language?: string
-  locale?: string
-  timezone: string
-  roles: string[]
-}
 
 export const useAuthSessionStore = defineStore('auth-session', () => {
   const token = ref<string | null>(null)

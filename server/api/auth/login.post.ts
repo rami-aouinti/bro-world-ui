@@ -1,16 +1,9 @@
-import type { UserProfile } from '../../../app/stores/authSession'
+import type { LoginPayload, TokenResponse } from '../../../app/types/api/common'
+import type { SessionResponse, UserProfile } from '../../../app/types/api/user'
 import { applySessionCookie, createSession } from '../../../server/utils/session'
 
-interface LoginPayload {
-  username: string
-  password: string
-}
 
-interface TokenResponse {
-  token: string
-}
-
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<SessionResponse> => {
   const config = useRuntimeConfig()
   const payload = await readBody<LoginPayload>(event)
 
