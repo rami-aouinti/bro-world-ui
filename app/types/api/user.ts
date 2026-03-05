@@ -37,6 +37,7 @@ export interface UserProfile {
   language?: string
   locale?: string
   timezone: string
+  photo?: string
   roles: string[]
   userGroups?: string[]
 }

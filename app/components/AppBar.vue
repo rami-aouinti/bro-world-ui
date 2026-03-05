@@ -76,6 +76,7 @@ const profileName = computed(() => {
         :aria-label="t('app.navigation.profile')"
       >
         <UiAvatar
+          :src="authSession.profile?.photo"
           :name="profileName"
           size="sm"
           status="online"

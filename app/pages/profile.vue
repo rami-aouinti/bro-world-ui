@@ -91,6 +91,7 @@ const signOut = async () => {
 
     <div class="d-flex align-center ga-3 mb-4">
       <UiAvatar
+        :src="authSession.profile?.photo"
         :name="profileDisplayName"
         size="lg"
         :status="profileStatus"
