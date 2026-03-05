@@ -40,6 +40,17 @@ const getSessionConfig = () => {
   }
 }
 
+const shouldUseSecureCookie = (event: H3Event, configuredSecure: boolean) => {
+  if (!configuredSecure) {
+    return false
+  }
+
+  const forwardedProto = getHeader(event, 'x-forwarded-proto')
+  const isHttps = event.node.req.socket.encrypted || forwardedProto?.split(',')[0]?.trim() === 'https'
+
+  return Boolean(isHttps)
+}
+
 export const createSession = async (payload: UserSessionPayload) => {
   const { ttlSeconds, redisEnabled } = getSessionConfig()
 
@@ -158,6 +169,7 @@ export const requireSession = async (event: H3Event) => {
 
 export const applySessionCookie = (event: H3Event, sessionId: string, session?: StoredSession) => {
   const { cookieName, ttlSeconds, cookieSecure, cookieSameSite, redisEnabled } = getSessionConfig()
+  const secure = shouldUseSecureCookie(event, cookieSecure)
 
   const cookieValue = redisEnabled
     ? sessionId
@@ -167,19 +179,20 @@ export const applySessionCookie = (event: H3Event, sessionId: string, session?: 
     path: '/',
     maxAge: ttlSeconds,
     httpOnly: true,
-    secure: cookieSecure,
+    secure,
     sameSite: cookieSameSite,
   })
 }
 
 export const clearSessionCookie = (event: H3Event) => {
   const { cookieName, cookieSecure, cookieSameSite } = getSessionConfig()
+  const secure = shouldUseSecureCookie(event, cookieSecure)
 
   setCookie(event, cookieName, '', {
     path: '/',
     maxAge: 0,
     httpOnly: true,
-    secure: cookieSecure,
+    secure,
     sameSite: cookieSameSite,
   })
 }
