@@ -11,9 +11,8 @@ const siteName = 'Bro World'
 
 const navItems: NavItem[] = [
   { label: 'Accueil', to: '/' },
-  { label: 'Dashboard', to: '/dashboard' },
+  { label: 'Connexion', to: '/login' },
   { label: 'Profil', to: '/profile' },
-  { label: 'Support', to: '/support' },
 ]
 
 const { mdAndUp } = useDisplay()
