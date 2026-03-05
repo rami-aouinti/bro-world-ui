@@ -29,7 +29,7 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
     locale: profile.locale || profile.language || 'en',
   })
 
-  applySessionCookie(event, sessionId)
+  applySessionCookie(event, sessionId, session)
 
   return {
     authenticated: true,

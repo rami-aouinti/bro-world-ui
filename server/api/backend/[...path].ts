@@ -43,12 +43,14 @@ export default defineEventHandler(async (event) => {
 
   let sessionId: string | undefined
   let bearerToken: string | undefined
+  let refreshedSession: Awaited<ReturnType<typeof refreshSession>> | undefined
 
   if (!isPublicRoute) {
     const { sessionId: currentSessionId, session } = await requireSession(event)
     const nextSession = await refreshSession(currentSessionId, session)
 
     sessionId = currentSessionId
+    refreshedSession = nextSession
     bearerToken = nextSession.token
   }
 
@@ -70,8 +72,8 @@ export default defineEventHandler(async (event) => {
       headers,
     })
 
-    if (sessionId) {
-      applySessionCookie(event, sessionId)
+    if (sessionId && refreshedSession) {
+      applySessionCookie(event, sessionId, refreshedSession)
     }
 
     return response
