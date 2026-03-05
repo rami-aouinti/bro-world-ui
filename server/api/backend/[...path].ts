@@ -1,4 +1,4 @@
-import { applySessionCookie, refreshSession, requireSession } from '~/server/utils/session'
+import { applySessionCookie, refreshSession, requireSession } from '../../../server/utils/session'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()

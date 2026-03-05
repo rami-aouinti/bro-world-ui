@@ -1,5 +1,5 @@
-import type { UserProfile } from '~/app/stores/authSession'
-import { applySessionCookie, createSession } from '~/server/utils/session'
+import type { UserProfile } from '../../../app/stores/authSession'
+import { applySessionCookie, createSession } from '../../../server/utils/session'
 
 interface LoginPayload {
   username: string

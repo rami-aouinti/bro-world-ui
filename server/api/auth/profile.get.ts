@@ -1,5 +1,5 @@
-import type { UserProfile } from '~/app/stores/authSession'
-import { applySessionCookie, refreshSession, requireSession } from '~/server/utils/session'
+import type { UserProfile } from '../../../app/stores/authSession'
+import { applySessionCookie, refreshSession, requireSession } from '../../../server/utils/session'
 
 export default defineEventHandler(async (event) => {
   const { sessionId, session } = await requireSession(event)

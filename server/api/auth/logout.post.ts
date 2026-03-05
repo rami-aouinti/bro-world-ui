@@ -1,4 +1,4 @@
-import { clearSession, clearSessionCookie, readSessionFromEvent } from '~/server/utils/session'
+import { clearSession, clearSessionCookie, readSessionFromEvent } from '../../../server/utils/session'
 
 export default defineEventHandler(async (event) => {
   const sessionContext = await readSessionFromEvent(event)

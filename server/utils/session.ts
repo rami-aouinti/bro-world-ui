@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { getRedisClient } from '~/server/utils/redis'
+import { getRedisClient } from '../../server/utils/redis'
 
 export interface StoredSession {
   token: string

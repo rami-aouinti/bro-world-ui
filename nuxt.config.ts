@@ -15,7 +15,7 @@ export default defineNuxtConfig({
       { code: 'fr', file: 'fr.json', name: 'Français' },
     ],
     lazy: true,
-    langDir: 'i18n/locales',
+    langDir: 'locales',
   },
   runtimeConfig: {
     redisUrl: process.env.REDIS_URL || '',
