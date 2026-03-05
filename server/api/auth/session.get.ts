@@ -1,10 +1,10 @@
 import type { SessionResponse, UserProfile } from '../../../app/types/api/user'
-import { applySessionCookie, refreshSession, readSessionFromEvent } from '../../../server/utils/session'
+import { readAuthCookie, setAuthCookie } from '../../../server/utils/authCookie'
 
 export default defineEventHandler(async (event): Promise<SessionResponse> => {
-  const sessionContext = await readSessionFromEvent(event)
+  const authCookie = readAuthCookie(event)
 
-  if (!sessionContext) {
+  if (!authCookie) {
     return {
       authenticated: false,
       profile: null,
@@ -13,14 +13,13 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
     }
   }
 
-  const nextSession = await refreshSession(sessionContext.sessionId, sessionContext.session)
-  applySessionCookie(event, sessionContext.sessionId, nextSession)
+  const nextAuthCookie = setAuthCookie(event, authCookie)
 
   return {
     authenticated: true,
-    profile: nextSession.profile as UserProfile | null,
-    roles: nextSession.roles,
-    locale: nextSession.locale,
-    expiresAt: nextSession.expiresAt,
+    profile: nextAuthCookie.profile as UserProfile | null,
+    roles: nextAuthCookie.roles,
+    locale: nextAuthCookie.locale,
+    expiresAt: nextAuthCookie.expiresAt,
   }
 })
