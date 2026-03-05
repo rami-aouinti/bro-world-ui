@@ -1,3 +1,5 @@
+const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
+
 export default defineNuxtConfig({
   modules: ['vuetify-nuxt-module', '@nuxtjs/i18n', '@pinia/nuxt'],
   css: [
@@ -20,7 +22,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     redisUrl: process.env.REDIS_URL || '',
     session: {
-      ttlSeconds: Number(process.env.SESSION_TTL_SECONDS || 1800),
+      ttlSeconds: Number(process.env.SESSION_TTL_SECONDS || ONE_YEAR_IN_SECONDS),
       cookieName: process.env.SESSION_COOKIE_NAME || 'session_id',
       cookieSecure: process.env.SESSION_COOKIE_SECURE !== 'false',
       cookieSameSite: (process.env.SESSION_COOKIE_SAME_SITE || 'lax') as 'lax' | 'strict',

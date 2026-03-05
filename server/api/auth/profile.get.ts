@@ -5,7 +5,7 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
   const { sessionId, session } = await requireSession(event)
   const nextSession = await refreshSession(sessionId, session)
 
-  applySessionCookie(event, sessionId)
+  applySessionCookie(event, sessionId, nextSession)
 
   return {
     authenticated: true,
