@@ -26,6 +26,8 @@ const profileDisplayName = computed(() => {
 
 const profileStatus = computed<'online' | 'offline'>(() => (isAuthenticated.value ? 'online' : 'offline'))
 
+const emptyProfileDescription = computed(() => `${t('profile.tokenHint')} ${t('profile.tokenHeader')} ${t('profile.tokenHintSuffix')}`)
+
 const loadProfile = async () => {
   if (!isAuthenticated.value) {
     errorMessage.value = t('errors.profile.noToken')
@@ -96,32 +98,33 @@ const signOut = async () => {
       </div>
     </div>
 
-    <v-alert
+    <UiStateAlert
       v-if="!isAuthenticated"
       type="warning"
       variant="tonal"
       class="mb-4"
-    >
-      {{ t('profile.notAuthenticated') }}
-    </v-alert>
+      :message="t('profile.notAuthenticated')"
+    />
 
-    <v-alert
+    <UiStateAlert
       v-else-if="loading"
       type="info"
       variant="tonal"
       class="mb-4"
     >
-      {{ t('profile.load') }}...
-    </v-alert>
+      <UiLoadingState
+        :message="`${t('profile.load')}...`"
+        mode="spinner"
+      />
+    </UiStateAlert>
 
-    <v-alert
+    <UiStateAlert
       v-if="errorMessage"
       type="error"
       variant="tonal"
       class="mb-4"
-    >
-      {{ errorMessage }}
-    </v-alert>
+      :message="errorMessage"
+    />
 
     <UiCard
       v-if="authSession.profile"
@@ -132,13 +135,11 @@ const signOut = async () => {
       <pre class="text-body-2">{{ authSession.profile }}</pre>
     </UiCard>
 
-    <p
+    <UiEmptyState
       v-else
-      class="text-body-2 text-medium-emphasis"
-    >
-      {{ t('profile.tokenHint') }}
-      <code>{{ t('profile.tokenHeader') }}</code>
-      {{ t('profile.tokenHintSuffix') }}
-    </p>
+      :title="t('profile.tokenHeader')"
+      :description="emptyProfileDescription"
+      icon="mdi-key-outline"
+    />
   </UiPageSection>
 </template>
