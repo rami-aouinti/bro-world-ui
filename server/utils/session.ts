@@ -15,7 +15,7 @@ const getSessionConfig = () => {
   const config = useRuntimeConfig()
 
   return {
-    ttlSeconds: Math.max(900, Number(config.session.ttlSeconds || 1800)),
+    ttlSeconds: Math.max(900, Number(config.session.ttlSeconds || 60 * 60 * 24 * 365)),
     cookieName: config.session.cookieName,
     cookieSecure: Boolean(config.session.cookieSecure),
     cookieSameSite: config.session.cookieSameSite,
