@@ -68,7 +68,7 @@ export const setAuthCookie = (event: H3Event, payload: AuthCookiePayload) => {
     expiresAt: new Date(Date.now() + ttlSeconds * 1000).toISOString(),
   }
 
-  setCookie(event,  'auth_token', encodeAuthCookie(nextCookiePayload), {
+  setCookie(event, cookieName, encodeAuthCookie(nextCookiePayload), {
     path: '/',
     maxAge: ttlSeconds,
     httpOnly: true,
