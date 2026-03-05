@@ -10,8 +10,6 @@ export interface StoredAuthCookie {
 
 export type AuthCookiePayload = Omit<StoredAuthCookie, 'expiresAt'>
 
-const AUTH_SESSION_STORAGE_BASE_KEY = 'auth:session:'
-
 const parseStoredAuthCookie = (value: string): StoredAuthCookie | null => {
   try {
     const parsed = JSON.parse(value) as StoredAuthCookie
@@ -26,6 +24,10 @@ const parseStoredAuthCookie = (value: string): StoredAuthCookie | null => {
     return null
   }
 }
+
+const encodeAuthCookie = (payload: StoredAuthCookie) => Buffer
+  .from(JSON.stringify(payload), 'utf-8')
+  .toString('base64url')
 
 const decodeAuthCookie = (raw: string): StoredAuthCookie | null => {
   const normalized = raw.trim().replace(/^"|"$/g, '')
@@ -84,9 +86,8 @@ const getAuthConfig = () => {
 
 const getSessionStorage = () => useStorage('data')
 
+const AUTH_SESSION_STORAGE_BASE_KEY = 'auth:session:'
 const buildSessionStorageKey = (sessionId: string) => `${AUTH_SESSION_STORAGE_BASE_KEY}${sessionId}`
-
-const buildSessionCookieValue = (sessionId: string) => `sid:${sessionId}`
 
 const parseSessionIdFromCookie = (rawCookie: string) => {
   const normalized = rawCookie.trim().replace(/^"|"$/g, '')
@@ -119,19 +120,13 @@ const shouldUseSecureCookie = (event: H3Event, configuredSecure: boolean) => {
 export const setAuthCookie = async (event: H3Event, payload: AuthCookiePayload) => {
   const { ttlSeconds, cookieName, cookieSecure, cookieSameSite } = getAuthConfig()
   const secure = shouldUseSecureCookie(event, cookieSecure)
-  const storage = getSessionStorage()
-  const sessionId = crypto.randomUUID()
 
   const nextCookiePayload: StoredAuthCookie = {
     ...payload,
     expiresAt: new Date(Date.now() + ttlSeconds * 1000).toISOString(),
   }
 
-  await storage.setItem(buildSessionStorageKey(sessionId), nextCookiePayload, {
-    ttl: ttlSeconds,
-  })
-
-  setCookie(event, cookieName, buildSessionCookieValue(sessionId), {
+  setCookie(event, cookieName, encodeAuthCookie(nextCookiePayload), {
     path: '/',
     maxAge: ttlSeconds,
     httpOnly: true,
