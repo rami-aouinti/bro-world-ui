@@ -6,6 +6,7 @@ import { useRolesApi } from '~/composables/api/useRolesApi'
 import type { Role } from '~/types/api/role'
 
 definePageMeta({
+  layout: 'admin',
   middleware: ['role'],
   requiredPermissions: ['admin.access'],
 })

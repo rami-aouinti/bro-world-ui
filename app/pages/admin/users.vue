@@ -6,6 +6,7 @@ import { useUsersApi } from '~/composables/api/useUsersApi'
 import type { UserRead } from '~/types/api/user'
 
 definePageMeta({
+  layout: 'admin',
   middleware: ['role'],
   requiredPermissions: ['admin.access'],
 })

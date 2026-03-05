@@ -6,6 +6,7 @@ import { useUserGroupsApi } from '~/composables/api/useUserGroupsApi'
 import type { UserGroup } from '~/types/api/userGroup'
 
 definePageMeta({
+  layout: 'admin',
   middleware: ['role'],
   requiredPermissions: ['admin.access'],
 })
