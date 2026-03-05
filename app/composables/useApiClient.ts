@@ -1,18 +1,9 @@
 export const useApiClient = () => {
-  const config = useRuntimeConfig()
-  const { token } = useAuth()
-
   const apiFetch = async <T>(url: string, options: Parameters<typeof $fetch<T>>[1] = {}) => {
-    const headers = new Headers(options?.headers as HeadersInit)
+    const normalizedUrl = url.replace(/^\/+/, '')
 
-    if (token.value) {
-      headers.set('Authorization', `Bearer ${token.value}`)
-    }
-
-    return $fetch<T>(url, {
+    return $fetch<T>(`/api/backend/${normalizedUrl}`, {
       ...options,
-      baseURL: config.public.apiBase,
-      headers,
     })
   }
 

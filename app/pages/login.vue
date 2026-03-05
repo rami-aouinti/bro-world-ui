@@ -17,14 +17,14 @@ const submit = async () => {
 
   try {
     const authResponse = await login(usernameOrEmail.value, password.value)
-    const profile = await fetchProfile()
+    const profile = authResponse.profile ?? await fetchProfile()
 
     authSession.setSession({
-      token: authResponse.token,
+      token: authResponse.authenticated ? '__server_session__' : null,
       profile,
     })
 
-    if (authResponse.token && profile) {
+    if (authResponse.authenticated && profile) {
       await router.push('/profile')
       return
     }

@@ -1,8 +1,12 @@
 import { computed } from 'vue'
 import { useAuthSessionStore, type UserProfile } from '~/stores/authSession'
 
-interface AuthResponse {
-  token: string
+interface SessionResponse {
+  authenticated: boolean
+  profile: UserProfile | null
+  roles: string[]
+  locale: string | null
+  expiresAt?: string
 }
 
 interface LoginPayload {
@@ -11,17 +15,37 @@ interface LoginPayload {
 }
 
 export const useAuth = () => {
-  const config = useRuntimeConfig()
   const authSession = useAuthSessionStore()
 
-  const tokenCookie = useCookie<string | null>('auth_token', {
-    sameSite: 'lax',
-    secure: false,
-  })
+  const token = useState<string | null>('auth-token', () => null)
+  const initialized = useState<boolean>('auth-session-initialized', () => false)
 
-  const token = useState<string | null>('auth-token', () => tokenCookie.value ?? null)
+  const applySessionState = (session: SessionResponse) => {
+    token.value = session.authenticated ? '__server_session__' : null
+    authSession.setSession({
+      token: token.value,
+      profile: session.profile,
+    })
+  }
 
-  authSession.setToken(token.value)
+  const initSession = async () => {
+    if (initialized.value) {
+      return
+    }
+
+    try {
+      const session = await $fetch<SessionResponse>('/api/auth/session', {
+        method: 'GET',
+      })
+      applySessionState(session)
+    }
+    catch {
+      applySessionState({ authenticated: false, profile: null, roles: [], locale: null })
+    }
+    finally {
+      initialized.value = true
+    }
+  }
 
   const isAuthenticated = computed(() => Boolean(token.value))
 
@@ -31,39 +55,34 @@ export const useAuth = () => {
       password,
     }
 
-    const response = await $fetch<AuthResponse>('/api/v1/auth/get_token', {
+    const response = await $fetch<SessionResponse>('/api/auth/login', {
       method: 'POST',
-      baseURL: config.public.apiBase,
       body: payload,
     })
 
-    token.value = response.token
-    tokenCookie.value = response.token
-    authSession.setToken(response.token)
+    initialized.value = true
+    applySessionState(response)
 
     return response
   }
 
   const fetchProfile = async () => {
-    if (!token.value) {
-      throw new Error('Missing auth token')
-    }
-
-    return $fetch<UserProfile>('/api/v1/profile', {
+    const response = await $fetch<SessionResponse>('/api/auth/profile', {
       method: 'GET',
-      baseURL: config.public.apiBase,
-      headers: {
-        accept: 'application/json',
-        Authorization: `Bearer ${token.value}`,
-      },
     })
+
+    applySessionState(response)
+
+    return response.profile
   }
 
-  const logout = () => {
-    token.value = null
-    tokenCookie.value = null
-    authSession.clearSession()
+  const logout = async () => {
+    await $fetch('/api/auth/logout', { method: 'POST' })
+    initialized.value = true
+    applySessionState({ authenticated: false, profile: null, roles: [], locale: null })
   }
+
+  void initSession()
 
   return {
     token,
