@@ -2,6 +2,8 @@ import type { UserProfile } from '~/stores/authSession'
 
 export const FALLBACK_LOCALE = 'en'
 
+type LocaleCodeCandidate = string | { code?: unknown }
+
 const sanitizeLocale = (value: unknown) => {
   if (typeof value !== 'string') {
     return null
@@ -34,6 +36,29 @@ export const resolveLocale = (preferredLocale: unknown, availableLocales: string
   }
 
   return fallback
+}
+
+export const normalizeLocaleCodes = (locales: unknown): string[] => {
+  const localeList = Array.isArray(locales)
+    ? locales
+    : (locales && typeof locales === 'object' && 'value' in locales && Array.isArray((locales as { value?: unknown }).value)
+        ? (locales as { value: unknown[] }).value
+        : [])
+
+  return localeList
+    .map((locale): unknown => {
+      if (typeof locale === 'string') {
+        return locale
+      }
+
+      if (locale && typeof locale === 'object' && 'code' in locale) {
+        return (locale as LocaleCodeCandidate).code
+      }
+
+      return null
+    })
+    .map(locale => sanitizeLocale(locale))
+    .filter((locale): locale is string => Boolean(locale))
 }
 
 export const getProfilePreferredLocale = (profile: UserProfile | null) => {
