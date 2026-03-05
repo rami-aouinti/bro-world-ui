@@ -20,6 +20,7 @@ const headers = [
   { title: 'Nom', key: 'name', sortable: true },
   { title: 'Rôle', key: 'roleId', sortable: true },
   { title: 'Description rôle', key: 'roleDescription', sortable: true },
+  { title: 'Actions', key: 'actions', sortable: false },
 ]
 
 const tableItems = computed(() => userGroups.value.map(group => ({
@@ -42,6 +43,42 @@ const fetchUserGroups = async () => {
   finally {
     loading.value = false
   }
+}
+
+const showEntity = async (id: string) => {
+  const entity = await userGroupsApi.getById(id)
+  window.alert(JSON.stringify(entity, null, 2))
+}
+
+const updateEntity = async (id: string) => {
+  const payloadRaw = window.prompt('Payload JSON pour PUT (edit):', '{\n  "name": "",\n  "role": ""\n}')
+
+  if (!payloadRaw) {
+    return
+  }
+
+  await userGroupsApi.update(id, JSON.parse(payloadRaw))
+  await fetchUserGroups()
+}
+
+const patchEntity = async (id: string) => {
+  const payloadRaw = window.prompt('Payload JSON pour PATCH:', '{\n  "name": ""\n}')
+
+  if (!payloadRaw) {
+    return
+  }
+
+  await userGroupsApi.patch(id, JSON.parse(payloadRaw))
+  await fetchUserGroups()
+}
+
+const deleteEntity = async (id: string) => {
+  if (!window.confirm(`Supprimer le groupe ${id} ?`)) {
+    return
+  }
+
+  await userGroupsApi.delete(id)
+  await fetchUserGroups()
 }
 
 await fetchUserGroups()
@@ -84,6 +121,15 @@ await fetchUserGroups()
       item-key="id"
       :items-per-page="10"
       empty-text="Aucun groupe utilisateur trouvé."
-    />
+    >
+      <template #item.actions="{ item }">
+        <div class="d-flex flex-wrap ga-1 py-1">
+          <v-btn size="x-small" variant="tonal" @click="showEntity(item.id)">Show</v-btn>
+          <v-btn size="x-small" variant="tonal" color="info" @click="updateEntity(item.id)">Edit</v-btn>
+          <v-btn size="x-small" variant="tonal" color="warning" @click="patchEntity(item.id)">Patch</v-btn>
+          <v-btn size="x-small" variant="tonal" color="error" @click="deleteEntity(item.id)">Delete</v-btn>
+        </div>
+      </template>
+    </UiDataTable>
   </UiPageSection>
 </template>
