@@ -35,7 +35,9 @@ export default defineNuxtConfig({
       name: 'nuxt-session',
       password: '',
       ttlSeconds: Number(process.env.SESSION_TTL_SECONDS || ONE_YEAR_IN_SECONDS),
-      cookieName: process.env.SESSION_COOKIE_NAME || 'session_id',
+      // Avoid collision with nuxt-auth-utils default cookie (`session_id` / `sid:*`).
+      // Our auth flow stores the whole auth payload in this cookie.
+      cookieName: process.env.SESSION_COOKIE_NAME || 'bro_world_auth_session',
       cookieSecure: process.env.SESSION_COOKIE_SECURE
         ? process.env.SESSION_COOKIE_SECURE !== 'false'
         : process.env.NODE_ENV === 'production',
