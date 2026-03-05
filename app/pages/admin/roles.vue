@@ -18,6 +18,7 @@ const roles = ref<Role[]>([])
 const headers = [
   { title: 'Identifiant', key: 'id', sortable: true },
   { title: 'Description', key: 'description', sortable: true },
+  { title: 'Actions', key: 'actions', sortable: false },
 ]
 
 const fetchRoles = async () => {
@@ -34,6 +35,11 @@ const fetchRoles = async () => {
   finally {
     loading.value = false
   }
+}
+
+const showEntity = async (id: string) => {
+  const entity = await rolesApi.getById(id)
+  window.alert(JSON.stringify(entity, null, 2))
 }
 
 await fetchRoles()
@@ -79,6 +85,12 @@ await fetchRoles()
     >
       <template #item.description="{ item }">
         {{ item.description || '—' }}
+      </template>
+
+      <template #item.actions="{ item }">
+        <v-btn size="x-small" variant="tonal" @click="showEntity(item.id)">
+          Show
+        </v-btn>
       </template>
     </UiDataTable>
   </UiPageSection>

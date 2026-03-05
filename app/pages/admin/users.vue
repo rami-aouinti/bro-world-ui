@@ -22,6 +22,7 @@ const headers = [
   { title: 'Email', key: 'email', sortable: true },
   { title: 'Timezone', key: 'timezone', sortable: true },
   { title: 'Rôles', key: 'rolesLabel', sortable: false },
+  { title: 'Actions', key: 'actions', sortable: false },
 ]
 
 const tableItems = computed(() => users.value.map(user => ({
@@ -44,6 +45,42 @@ const fetchUsers = async () => {
   finally {
     loading.value = false
   }
+}
+
+const showEntity = async (id: string) => {
+  const entity = await usersApi.getById(id)
+  window.alert(JSON.stringify(entity, null, 2))
+}
+
+const updateEntity = async (id: string) => {
+  const payloadRaw = window.prompt('Payload JSON pour PUT (edit):', '{\n  "username": "",\n  "firstName": "",\n  "lastName": "",\n  "email": "",\n  "timezone": "Europe/Paris",\n  "roles": [],\n  "userGroups": []\n}')
+
+  if (!payloadRaw) {
+    return
+  }
+
+  await usersApi.update(id, JSON.parse(payloadRaw))
+  await fetchUsers()
+}
+
+const patchEntity = async (id: string) => {
+  const payloadRaw = window.prompt('Payload JSON pour PATCH:', '{\n  "email": ""\n}')
+
+  if (!payloadRaw) {
+    return
+  }
+
+  await usersApi.patch(id, JSON.parse(payloadRaw))
+  await fetchUsers()
+}
+
+const deleteEntity = async (id: string) => {
+  if (!window.confirm(`Supprimer l\'utilisateur ${id} ?`)) {
+    return
+  }
+
+  await usersApi.delete(id)
+  await fetchUsers()
 }
 
 await fetchUsers()
@@ -100,6 +137,15 @@ await fetchUsers()
     >
       <template #item.rolesLabel="{ item }">
         <span class="text-body-2">{{ item.rolesLabel || '—' }}</span>
+      </template>
+
+      <template #item.actions="{ item }">
+        <div class="d-flex flex-wrap ga-1 py-1">
+          <v-btn size="x-small" variant="tonal" @click="showEntity(item.id)">Show</v-btn>
+          <v-btn size="x-small" variant="tonal" color="info" @click="updateEntity(item.id)">Edit</v-btn>
+          <v-btn size="x-small" variant="tonal" color="warning" @click="patchEntity(item.id)">Patch</v-btn>
+          <v-btn size="x-small" variant="tonal" color="error" @click="deleteEntity(item.id)">Delete</v-btn>
+        </div>
       </template>
     </UiDataTable>
   </UiPageSection>
