@@ -37,9 +37,11 @@ const submit = async () => {
     const authResponse = await login(usernameOrEmail.value, password.value)
     const profile = authResponse.profile ?? await fetchProfile()
 
-    authSession.setSession({
+    authSession.setUserSession({
       token: authResponse.authenticated ? '__server_session__' : null,
       profile,
+      roles: authResponse.roles,
+      locale: authResponse.locale,
     })
 
     if (!authResponse.authenticated || !profile) {
