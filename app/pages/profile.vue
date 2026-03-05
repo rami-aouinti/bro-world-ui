@@ -4,13 +4,13 @@ import { onMounted, ref } from 'vue'
 const router = useRouter()
 const { t } = useI18n()
 const authSession = useAuthSessionStore()
-const { token, isAuthenticated, fetchProfile, logout } = useAuth()
+const { isAuthenticated, fetchProfile, logout } = useAuth()
 
 const loading = ref(false)
 const errorMessage = ref('')
 
 const loadProfile = async () => {
-  if (!token.value) {
+  if (!isAuthenticated.value) {
     errorMessage.value = t('errors.profile.noToken')
     return
   }
@@ -20,7 +20,10 @@ const loadProfile = async () => {
 
   try {
     const profile = await fetchProfile()
-    authSession.setProfile(profile)
+
+    if (profile) {
+      authSession.setProfile(profile)
+    }
   }
   catch {
     errorMessage.value = t('errors.profile.loadFailed')
@@ -31,13 +34,13 @@ const loadProfile = async () => {
 }
 
 onMounted(async () => {
-  if (token.value && !authSession.profile) {
+  if (isAuthenticated.value && !authSession.profile) {
     await loadProfile()
   }
 })
 
 const signOut = async () => {
-  logout()
+  await logout()
   await router.push('/login')
 }
 </script>

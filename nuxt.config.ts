@@ -18,6 +18,13 @@ export default defineNuxtConfig({
     langDir: 'i18n/locales',
   },
   runtimeConfig: {
+    redisUrl: process.env.REDIS_URL || '',
+    session: {
+      ttlSeconds: Number(process.env.SESSION_TTL_SECONDS || 1800),
+      cookieName: process.env.SESSION_COOKIE_NAME || 'session_id',
+      cookieSecure: process.env.SESSION_COOKIE_SECURE !== 'false',
+      cookieSameSite: (process.env.SESSION_COOKIE_SAME_SITE || 'lax') as 'lax' | 'strict',
+    },
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost',
     },
