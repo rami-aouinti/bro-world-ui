@@ -2,6 +2,7 @@
 import UiDataTable from '~/components/ui/UiDataTable.vue'
 import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
+import { useUsersApi } from '~/composables/api/useUsersApi'
 import type { UserRead } from '~/types/api/user'
 
 definePageMeta({
