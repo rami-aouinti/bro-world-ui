@@ -1,7 +1,7 @@
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 
 export default defineNuxtConfig({
-  modules: ['vuetify-nuxt-module', '@nuxtjs/i18n', '@pinia/nuxt'],
+  modules: ['vuetify-nuxt-module', '@nuxtjs/i18n', '@pinia/nuxt', 'nuxt-auth-utils'],
   css: [
     'vuetify/styles',
     '~/assets/styles/material-dashboard.scss',
