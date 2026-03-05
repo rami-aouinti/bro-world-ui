@@ -86,6 +86,8 @@ export const useAuth = () => {
 
   return {
     token,
+    initialized,
+    initSession,
     isAuthenticated,
     login,
     fetchProfile,

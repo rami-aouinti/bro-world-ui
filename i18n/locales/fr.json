@@ -5,7 +5,8 @@
       "home": "Accueil",
       "login": "Connexion",
       "profile": "Profil",
-      "openMenu": "Ouvrir le menu"
+      "openMenu": "Ouvrir le menu",
+      "admin": "Administration"
     }
   },
   "login": {
@@ -25,11 +26,22 @@
   },
   "errors": {
     "auth": {
-      "loginFailed": "Échec de connexion. Vérifiez vos identifiants."
+      "loginFailed": "Échec de connexion. Vérifiez vos identifiants.",
+      "authRequired": "Vous devez être connecté pour accéder à cette page.",
+      "accessDenied": "Accès interdit: vous ne disposez pas des droits requis."
     },
     "profile": {
       "noToken": "Aucun token en session, connectez-vous.",
       "loadFailed": "Impossible de charger le profil. Réessayez."
     }
+  },
+  "home": {
+    "title": "Bienvenue sur Bro World",
+    "description": "Projet Nuxt 4 configuré avec Vuetify et le style Material Dashboard.",
+    "cta": "Commencer"
+  },
+  "admin": {
+    "title": "Espace administration",
+    "description": "Cette page est réservée aux utilisateurs ayant le rôle administrateur."
   }
 }
