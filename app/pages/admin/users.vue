@@ -42,13 +42,11 @@ const form = reactive<UserWrite>({
 })
 
 const headers = [
+  { title: '', key: 'photo', sortable: false },
   { title: 'Username', key: 'username', sortable: true },
   { title: 'Nom', key: 'fullName', sortable: true },
   { title: 'Email', key: 'email', sortable: true },
-  { title: 'Language', key: 'language', sortable: true },
-  { title: 'Locale', key: 'locale', sortable: true },
-  { title: 'Timezone', key: 'timezone', sortable: true },
-  { title: 'Photo', key: 'photo', sortable: false },
+  { title: 'Relations', key: 'relations', sortable: false },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
@@ -120,6 +118,7 @@ const openEditDialog = (user: UserRead, patch = false) => {
   selectedUser.value = user
   formDialog.value = true
 }
+
 
 const showEntity = async (id: string) => {
   selectedUser.value = await usersApi.getById(id)
@@ -256,14 +255,18 @@ await fetchUsers()
           </v-avatar>
         </template>
 
+        <template #item.relations="{ item }">
+          <div class="d-flex flex-nowrap ga-1 py-1">
+            <v-btn size="x-small" variant="tonal" color="secondary" @click="openRolesDialog(item)">Roles</v-btn>
+            <v-btn size="x-small" variant="tonal" color="secondary" @click="openGroupsDialog(item)">Groups</v-btn>
+          </div>
+        </template>
+
         <template #item.actions="{ item }">
-          <div class="d-flex flex-wrap ga-1 py-1">
-            <v-btn size="small" variant="tonal" rounded="pill" @click="showEntity(item.id)">Show</v-btn>
-            <v-btn size="small" variant="tonal" rounded="pill" color="secondary" @click="openRolesDialog(item)">Roles</v-btn>
-            <v-btn size="small" variant="tonal" rounded="pill" color="secondary" @click="openGroupsDialog(item)">Groups</v-btn>
-            <v-btn size="small" variant="tonal" rounded="pill" color="info" @click="openEditDialog(item)">Edit</v-btn>
-            <v-btn size="small" variant="tonal" rounded="pill" color="warning" @click="openEditDialog(item, true)">Patch</v-btn>
-            <v-btn size="small" variant="tonal" rounded="pill" color="error" @click="deleteEntity(item.id)">Delete</v-btn>
+          <div class="d-flex flex-nowrap ga-1 py-1">
+            <v-btn size="x-small" variant="tonal" icon="mdi-eye" :aria-label="`Show ${item.username}`" @click="showEntity(item.id)" />
+            <v-btn size="x-small" variant="tonal" color="warning" icon="mdi-file-edit-outline" :aria-label="`Patch ${item.username}`" @click="openEditDialog(item, true)" />
+            <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="`Delete ${item.username}`" @click="deleteEntity(item.id)" />
           </div>
         </template>
       </UiDataTable>
@@ -291,6 +294,7 @@ await fetchUsers()
         </v-card-actions>
       </v-card>
     </v-dialog>
+
 
     <v-dialog v-model="showDialog" max-width="700">
       <v-card rounded="xl">
@@ -332,5 +336,6 @@ await fetchUsers()
         </v-card-text>
       </v-card>
     </v-dialog>
+
   </UiPageSection>
 </template>
