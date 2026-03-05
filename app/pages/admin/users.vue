@@ -27,7 +27,7 @@ const headers = [
 const tableItems = computed(() => users.value.map(user => ({
   ...user,
   fullName: `${user.firstName} ${user.lastName}`.trim(),
-  rolesLabel: user.roles.map(role => role.id).join(', '),
+  rolesLabel: Array.isArray(user.roles) ? user.roles.map(role => role.id).join(', ') : '',
 })))
 
 const fetchUsers = async () => {
@@ -36,7 +36,7 @@ const fetchUsers = async () => {
 
   try {
     const response = await usersApi.list({ limit: 200 })
-    users.value = response.results
+    users.value = Array.isArray(response) ? response : (response.results ?? [])
   }
   catch {
     errorMessage.value = 'Impossible de charger les utilisateurs depuis /api/v1/user.'
