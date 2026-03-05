@@ -31,7 +31,7 @@ const resolveHeaderKey = (header: DataTableHeader) => header.key ?? header.value
 
 <template>
   <v-data-table
-    class="ui-data-table"
+    class="ui-data-table table thead-light table-striped row-height-auto"
     :headers="props.headers"
     :items="props.items"
     :loading="props.loading"
@@ -56,8 +56,20 @@ const resolveHeaderKey = (header: DataTableHeader) => header.key ?? header.value
 
     <template #no-data>
       <slot name="empty">
-        <div class="py-8 text-center text-medium-emphasis">{{ props.emptyText }}</div>
+        <div class="ui-data-table__empty py-8 text-center text-medium-emphasis">{{ props.emptyText }}</div>
       </slot>
     </template>
   </v-data-table>
 </template>
+
+
+<style scoped>
+.ui-data-table {
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.ui-data-table__empty {
+  font-weight: 500;
+}
+</style>

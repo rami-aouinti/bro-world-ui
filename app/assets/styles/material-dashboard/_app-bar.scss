@@ -1,4 +1,44 @@
+@use "variables" as *;
+
 .toolbar-content-padding-y-none .v-toolbar__content {
   padding-top: 0;
   padding-bottom: 0;
+}
+
+.md-app-bar {
+  backdrop-filter: saturate(180%) blur(14px);
+  background: linear-gradient(195deg, rgba($white, 0.94), rgba($gray-100, 0.9)) !important;
+  border-bottom: 1px solid rgba($gray-300, 0.7) !important;
+  box-shadow: 0 8px 20px rgba($gray-900, 0.06);
+
+  .v-toolbar__content {
+    min-height: 64px !important;
+  }
+
+  .md-app-bar__title {
+    letter-spacing: 0.02em;
+    font-size: 1rem;
+  }
+
+  .md-app-bar__nav-btn {
+    color: $gray-700 !important;
+
+    &:hover {
+      color: $primary !important;
+      background-color: rgba($primary, 0.08);
+    }
+  }
+
+  .md-app-bar__avatar-btn:hover {
+    background-color: rgba($primary, 0.08);
+  }
+
+  .md-app-bar__menu-item {
+    color: $gray-700;
+
+    &:hover {
+      background-color: rgba($primary, 0.08);
+      color: $primary;
+    }
+  }
 }
