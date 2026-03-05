@@ -46,7 +46,7 @@
     "title": "Espace administration",
     "description": "Cette page est réservée aux utilisateurs ayant le rôle administrateur."
   },
-  "vuetify": {
+  "$vuetify": {
     "badge": "Badge"
   }
 }
