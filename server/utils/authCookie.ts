@@ -12,11 +12,11 @@ export type AuthCookiePayload = Omit<StoredAuthCookie, 'expiresAt'>
 
 const encodeAuthCookie = (payload: StoredAuthCookie) => Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64url')
 
-const decodeAuthCookie = (raw: string): StoredAuthCookie | null => {
+const parseStoredAuthCookie = (value: string): StoredAuthCookie | null => {
   try {
-    const parsed = JSON.parse(Buffer.from(raw, 'base64url').toString('utf-8')) as StoredAuthCookie
+    const parsed = JSON.parse(value) as StoredAuthCookie
 
-    if (!parsed || typeof parsed !== 'object') {
+    if (!parsed || typeof parsed !== 'object' || typeof parsed.token !== 'string') {
       return null
     }
 
@@ -27,10 +27,38 @@ const decodeAuthCookie = (raw: string): StoredAuthCookie | null => {
   }
 }
 
-const decodeLegacyTokenCookie = (raw: string): string | null => {
-  const token = raw.trim().replace(/^Bearer\s+/i, '')
+const decodeAuthCookie = (raw: string): StoredAuthCookie | null => {
+  const normalized = raw.trim().replace(/^"|"$/g, '')
 
-  return token || null
+  if (!normalized) {
+    return null
+  }
+
+  const fromBase64 = parseStoredAuthCookie(Buffer.from(normalized, 'base64url').toString('utf-8'))
+
+  if (fromBase64) {
+    return fromBase64
+  }
+
+  return parseStoredAuthCookie(normalized)
+}
+
+const decodeLegacyTokenCookie = (raw: string): string | null => {
+  const normalized = raw.trim().replace(/^"|"$/g, '')
+  const directToken = normalized.replace(/^Bearer\s+/i, '')
+
+  if (directToken) {
+    return directToken
+  }
+
+  try {
+    const decoded = Buffer.from(normalized, 'base64url').toString('utf-8').trim()
+
+    return decoded.replace(/^Bearer\s+/i, '') || null
+  }
+  catch {
+    return null
+  }
 }
 
 const isExpired = (expiresAt: string) => {
@@ -100,10 +128,11 @@ export const readAuthCookie = (event: H3Event): StoredAuthCookie | null => {
     return null
   }
 
-  const payload = decodeAuthCookie(rawCookie)
+  const decodedCookie = decodeURIComponent(rawCookie)
+  const payload = decodeAuthCookie(decodedCookie)
 
   if (!payload) {
-    const legacyToken = decodeLegacyTokenCookie(rawCookie)
+    const legacyToken = decodeLegacyTokenCookie(decodedCookie)
 
     if (!legacyToken) {
       return null
