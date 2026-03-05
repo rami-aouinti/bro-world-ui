@@ -1,6 +1,16 @@
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 
 export default defineNuxtConfig({
+  app: {
+    head: {
+      meta: [
+        {
+          name: 'description',
+          content: 'Bro World platform',
+        },
+      ],
+    },
+  },
   modules: ['vuetify-nuxt-module', '@nuxtjs/i18n', '@pinia/nuxt', 'nuxt-auth-utils'],
   css: [
     'vuetify/styles',
