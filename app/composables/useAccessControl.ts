@@ -1,4 +1,8 @@
 import { computed } from 'vue'
+import { BUSINESS_PERMISSIONS } from '~/constants/permissions'
+
+import type { BusinessPermission, PermissionContext } from '~/constants/permissions'
+import type { UUID } from '~/types/api/common'
 
 const normalizeRoles = (roles: string | string[] | undefined | null): string[] => {
   if (!roles) {
@@ -6,6 +10,16 @@ const normalizeRoles = (roles: string | string[] | undefined | null): string[] =
   }
 
   return Array.isArray(roles) ? roles : [roles]
+}
+
+const normalizePermissions = (
+  permissions: BusinessPermission | BusinessPermission[] | undefined | null,
+): BusinessPermission[] => {
+  if (!permissions) {
+    return []
+  }
+
+  return Array.isArray(permissions) ? permissions : [permissions]
 }
 
 export const useAccessControl = () => {
@@ -24,23 +38,55 @@ export const useAccessControl = () => {
     return requiredRoles.some(role => userRoles.value.includes(role))
   }
 
-  const can = (roles?: string | string[]) => {
+  const isSelf = (userId?: UUID | null) => {
+    if (!userId || !authSession.profile) {
+      return false
+    }
+
+    return authSession.profile.id === userId
+  }
+
+  const canPermission = (permission: BusinessPermission, context?: PermissionContext) => {
     if (!isAuthenticated.value) {
       return false
     }
 
-    const requiredRoles = normalizeRoles(roles)
+    const rule = BUSINESS_PERMISSIONS[permission]
+    const roleCheck = rule.rolesAny ? hasRole(rule.rolesAny) : false
+    const conditionCheck = rule.condition
+      ? rule.condition({
+          context,
+          isSelf,
+          isAuthenticated: isAuthenticated.value,
+        })
+      : false
 
-    if (requiredRoles.length === 0) {
+    if (!rule.rolesAny && !rule.condition) {
       return true
     }
 
-    return hasRole(requiredRoles)
+    return roleCheck || conditionCheck
+  }
+
+  const can = (permissions?: BusinessPermission | BusinessPermission[], context?: PermissionContext) => {
+    if (!isAuthenticated.value) {
+      return false
+    }
+
+    const requiredPermissions = normalizePermissions(permissions)
+
+    if (requiredPermissions.length === 0) {
+      return true
+    }
+
+    return requiredPermissions.some(permission => canPermission(permission, context))
   }
 
   return {
     userRoles,
     hasRole,
+    isSelf,
+    canPermission,
     can,
   }
 }
