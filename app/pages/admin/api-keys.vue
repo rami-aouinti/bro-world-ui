@@ -2,6 +2,7 @@
 import UiDataTable from '~/components/ui/UiDataTable.vue'
 import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
+import { useApiKeysApi } from '~/composables/api/useApiKeysApi'
 import type { ApiKey } from '~/types/api/apiKey'
 
 definePageMeta({

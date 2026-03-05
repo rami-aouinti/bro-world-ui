@@ -3,15 +3,6 @@ import type { SessionResponse, UserProfile } from '../../../app/types/api/user'
 import { applySessionCookie, createSession } from '../../../server/utils/session'
 
 
-const buildSessionProfile = (profile: UserProfile): Pick<UserProfile, 'id' | 'username' | 'firstName' | 'lastName' | 'email' | 'photo'> => ({
-  id: profile.id,
-  username: profile.username,
-  firstName: profile.firstName,
-  lastName: profile.lastName,
-  email: profile.email,
-  photo: profile.photo,
-})
-
 export default defineEventHandler(async (event): Promise<SessionResponse> => {
   const config = useRuntimeConfig()
   const payload = await readBody<LoginPayload>(event)
@@ -31,11 +22,9 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
     },
   })
 
-  const sessionProfile = buildSessionProfile(profile)
-
   const { sessionId, session } = await createSession({
     token: authResponse.token,
-    profile: sessionProfile,
+    profile,
     roles: profile.roles ?? [],
     locale: profile.locale || profile.language || 'en',
   })
@@ -43,7 +32,7 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
 
   return {
     authenticated: true,
-    profile: session.profile as UserProfile,
+    profile,
     roles: session.roles,
     locale: session.locale,
     expiresAt: session.expiresAt,

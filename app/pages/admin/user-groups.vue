@@ -2,6 +2,7 @@
 import UiDataTable from '~/components/ui/UiDataTable.vue'
 import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
+import { useUserGroupsApi } from '~/composables/api/useUserGroupsApi'
 import type { UserGroup } from '~/types/api/userGroup'
 
 definePageMeta({
