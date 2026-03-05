@@ -6,6 +6,7 @@ import { useApiKeysApi } from '~/composables/api/useApiKeysApi'
 import type { ApiKey } from '~/types/api/apiKey'
 
 definePageMeta({
+  layout: 'admin',
   middleware: ['role'],
   requiredPermissions: ['admin.access'],
 })
