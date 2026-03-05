@@ -21,7 +21,13 @@ const search = ref('')
 
 const formMode = ref<'create' | 'edit' | 'patch'>('create')
 const formDialog = ref(false)
+const showDialog = ref(false)
+const rolesDialog = ref(false)
+const groupsDialog = ref(false)
 const selectedUser = ref<UserRead | null>(null)
+const selectedUserRoles = ref<string[]>([])
+const selectedUserGroups = ref<UserGroup[]>([])
+const groupToAttach = ref('')
 const userRelations = ref<Record<string, { roles: string[]; groups: UserGroup[] }>>({})
 
 const form = reactive<UserWrite>({
