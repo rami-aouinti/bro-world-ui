@@ -18,13 +18,15 @@ export const useAuthSessionStore = defineStore('auth-session', () => {
     locale.value = nextProfile ? getProfilePreferredLocale(nextProfile) : null
   }
 
-  const setSession = (payload: { token: string | null, profile: UserProfile | null }) => {
+  const setUserSession = (payload: { token: string | null, profile: UserProfile | null }) => {
     setToken(payload.token)
     setProfile(payload.profile)
   }
 
+  const setSession = setUserSession
+
   const clearSession = () => {
-    setSession({ token: null, profile: null })
+    setUserSession({ token: null, profile: null })
   }
 
   return {
@@ -34,6 +36,7 @@ export const useAuthSessionStore = defineStore('auth-session', () => {
     locale,
     setToken,
     setProfile,
+    setUserSession,
     setSession,
     clearSession,
   }
