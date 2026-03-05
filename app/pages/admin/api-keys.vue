@@ -13,9 +13,16 @@ definePageMeta({
 
 const apiKeysApi = useApiKeysApi()
 const loading = ref(false)
+const submitting = ref(false)
 const errorMessage = ref('')
 const apiKeys = ref<ApiKey[]>([])
 const selectedVersion = ref<'v1' | 'v2'>('v1')
+
+const formDialog = ref(false)
+const showDialog = ref(false)
+const formMode = ref<'create' | 'edit' | 'patch'>('create')
+const selectedItem = ref<ApiKey | null>(null)
+const form = reactive({ token: '', description: '' })
 
 const headers = [
   { title: 'ID', key: 'id', sortable: true },
@@ -43,6 +50,8 @@ const tableItems = computed(() => apiKeys.value.map(key => ({
   tokenMasked: maskToken(key.token),
 })))
 
+const formTitle = computed(() => (formMode.value === 'create' ? 'Créer une clé API' : formMode.value === 'edit' ? 'Éditer une clé API' : 'Patch clé API'))
+
 const fetchApiKeys = async () => {
   loading.value = true
   errorMessage.value = ''
@@ -60,30 +69,42 @@ const fetchApiKeys = async () => {
 }
 
 const showEntity = async (id: string) => {
-  const entity = await currentClient.value.getById(id)
-  window.alert(JSON.stringify(entity, null, 2))
+  selectedItem.value = await currentClient.value.getById(id)
+  showDialog.value = true
 }
 
-const updateEntity = async (id: string) => {
-  const payloadRaw = window.prompt('Payload JSON pour PUT (edit):', '{\n  "token": "",\n  "description": ""\n}')
-
-  if (!payloadRaw) {
-    return
-  }
-
-  await currentClient.value.update(id, JSON.parse(payloadRaw))
-  await fetchApiKeys()
+const openCreateDialog = () => {
+  formMode.value = 'create'
+  Object.assign(form, { token: '', description: '' })
+  formDialog.value = true
 }
 
-const patchEntity = async (id: string) => {
-  const payloadRaw = window.prompt('Payload JSON pour PATCH:', '{\n  "description": ""\n}')
+const openEditDialog = (item: ApiKey, patch = false) => {
+  selectedItem.value = item
+  formMode.value = patch ? 'patch' : 'edit'
+  Object.assign(form, { token: item.token, description: item.description })
+  formDialog.value = true
+}
 
-  if (!payloadRaw) {
-    return
+const submitForm = async () => {
+  submitting.value = true
+  try {
+    if (formMode.value === 'create') {
+      await currentClient.value.create({ token: form.token, description: form.description })
+    }
+    else if (formMode.value === 'edit' && selectedItem.value) {
+      await currentClient.value.update(selectedItem.value.id, { token: form.token, description: form.description })
+    }
+    else if (formMode.value === 'patch' && selectedItem.value) {
+      await currentClient.value.patch(selectedItem.value.id, { description: form.description, token: form.token })
+    }
+
+    formDialog.value = false
+    await fetchApiKeys()
   }
-
-  await currentClient.value.patch(id, JSON.parse(payloadRaw))
-  await fetchApiKeys()
+  finally {
+    submitting.value = false
+  }
 }
 
 const deleteEntity = async (id: string) => {
@@ -118,6 +139,7 @@ await fetchApiKeys()
             <v-btn value="v1">v1</v-btn>
             <v-btn value="v2">v2</v-btn>
           </v-btn-toggle>
+          <v-btn color="primary" prepend-icon="mdi-plus" class="mr-2" @click="openCreateDialog">Créer</v-btn>
           <v-btn
             color="primary"
             variant="outlined"
@@ -131,35 +153,55 @@ await fetchApiKeys()
       </UiSectionHeader>
     </template>
 
-    <v-alert
-      v-if="errorMessage"
-      type="error"
-      variant="tonal"
-      class="mb-4"
-    >
-      {{ errorMessage }}
-    </v-alert>
+    <v-card rounded="xl" elevation="2" class="pa-4">
+      <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
+        {{ errorMessage }}
+      </v-alert>
 
-    <UiDataTable
-      :headers="headers"
-      :items="tableItems"
-      :loading="loading"
-      item-key="id"
-      :items-per-page="10"
-      empty-text="Aucune clé API trouvée."
-    >
-      <template #item.tokenMasked="{ item }">
-        <code>{{ item.tokenMasked }}</code>
-      </template>
+      <UiDataTable
+        :headers="headers"
+        :items="tableItems"
+        :loading="loading"
+        item-key="id"
+        :items-per-page="10"
+        empty-text="Aucune clé API trouvée."
+      >
+        <template #item.tokenMasked="{ item }">
+          <code>{{ item.tokenMasked }}</code>
+        </template>
 
-      <template #item.actions="{ item }">
-        <div class="d-flex flex-wrap ga-1 py-1">
-          <v-btn size="x-small" variant="tonal" @click="showEntity(item.id)">Show</v-btn>
-          <v-btn size="x-small" variant="tonal" color="info" @click="updateEntity(item.id)">Edit</v-btn>
-          <v-btn size="x-small" variant="tonal" color="warning" @click="patchEntity(item.id)">Patch</v-btn>
-          <v-btn size="x-small" variant="tonal" color="error" @click="deleteEntity(item.id)">Delete</v-btn>
-        </div>
-      </template>
-    </UiDataTable>
+        <template #item.actions="{ item }">
+          <div class="d-flex flex-wrap ga-1 py-1">
+            <v-btn size="small" variant="tonal" rounded="pill" @click="showEntity(item.id)">Show</v-btn>
+            <v-btn size="small" variant="tonal" rounded="pill" color="info" @click="openEditDialog(item)">Edit</v-btn>
+            <v-btn size="small" variant="tonal" rounded="pill" color="warning" @click="openEditDialog(item, true)">Patch</v-btn>
+            <v-btn size="small" variant="tonal" rounded="pill" color="error" @click="deleteEntity(item.id)">Delete</v-btn>
+          </div>
+        </template>
+      </UiDataTable>
+    </v-card>
+
+    <v-dialog v-model="formDialog" max-width="560" persistent>
+      <v-card rounded="xl">
+        <v-card-title>{{ formTitle }}</v-card-title>
+        <v-card-text>
+          <v-text-field v-model="form.description" label="Description" class="mb-2" />
+          <v-text-field v-model="form.token" label="Token" :disabled="formMode === 'patch'" />
+        </v-card-text>
+        <v-card-actions class="justify-end">
+          <v-btn variant="text" @click="formDialog = false">Annuler</v-btn>
+          <v-btn color="primary" :loading="submitting" @click="submitForm">Enregistrer</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="showDialog" max-width="700">
+      <v-card rounded="xl">
+        <v-card-title>Détails clé API</v-card-title>
+        <v-card-text>
+          <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selectedItem, null, 2) }}</pre>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </UiPageSection>
 </template>
