@@ -53,6 +53,11 @@ const profileName = computed(() => {
       {{ siteName }}
     </v-toolbar-title>
 
+    <div
+      id="app-bar-teleport-target"
+      class="md-app-bar__teleport-target"
+    />
+
     <v-spacer />
 
     <div
@@ -129,5 +134,11 @@ const profileName = computed(() => {
 
 .md-app-bar__avatar-btn {
   border-radius: 9999px;
+}
+
+.md-app-bar__teleport-target {
+  display: flex;
+  align-items: center;
+  min-width: 0;
 }
 </style>
