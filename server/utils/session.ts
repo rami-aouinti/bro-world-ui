@@ -64,6 +64,16 @@ const parseRedisCookieValue = (raw: string) => {
   }
 }
 
+const isSessionExpired = (session: StoredSession) => {
+  const expiresAt = new Date(session.expiresAt).getTime()
+
+  if (Number.isNaN(expiresAt)) {
+    return true
+  }
+
+  return expiresAt <= Date.now()
+}
+
 const getSessionConfig = () => {
   const config = useRuntimeConfig()
 
@@ -212,7 +222,7 @@ export const readSessionFromEvent = async (event: H3Event) => {
     return null
   }
 
-  if (!redisEnabled && new Date(session.expiresAt).getTime() <= Date.now()) {
+  if (isSessionExpired(session)) {
     return null
   }
 
