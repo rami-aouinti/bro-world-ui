@@ -37,6 +37,8 @@ export const useAuth = () => {
     authSession.setUserSession({
       token: token.value,
       profile: session.profile,
+      roles: session.roles,
+      locale: session.locale,
     })
 
     const preferredLocale = session.authenticated

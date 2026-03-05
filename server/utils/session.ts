@@ -40,7 +40,7 @@ const getSessionConfig = () => {
   }
 }
 
-export const createSession = async (payload: Omit<StoredSession, 'expiresAt'>) => {
+export const createSession = async (payload: UserSessionPayload) => {
   const { ttlSeconds, redisEnabled } = getSessionConfig()
 
   const session: StoredSession = {
@@ -64,6 +64,15 @@ export const createSession = async (payload: Omit<StoredSession, 'expiresAt'>) =
   return { sessionId: cookieSession, session }
 }
 
+
+export type UserSessionPayload = Omit<StoredSession, 'expiresAt'>
+
+export const setUserSession = async (event: H3Event, payload: UserSessionPayload) => {
+  const { sessionId, session } = await createSession(payload)
+  applySessionCookie(event, sessionId, session)
+
+  return session
+}
 export const getSession = async (sessionId: string) => {
   const { redisEnabled } = getSessionConfig()
 
