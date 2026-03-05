@@ -96,14 +96,19 @@ export const createSession = async (payload: UserSessionPayload) => {
   }
 
   if (redisEnabled) {
-    const redis = await getRedisClient()
-    const sessionId = randomUUID()
+    try {
+      const redis = await getRedisClient()
+      const sessionId = randomUUID()
 
-    await redis.set(buildSessionKey(sessionId), JSON.stringify(session), {
-      EX: ttlSeconds,
-    })
+      await redis.set(buildSessionKey(sessionId), JSON.stringify(session), {
+        EX: ttlSeconds,
+      })
 
-    return { sessionId, session }
+      return { sessionId, session }
+    }
+    catch {
+      return { sessionId: encodeCookieSession(session), session }
+    }
   }
 
   const cookieSession = encodeCookieSession(session)
@@ -125,6 +130,10 @@ export const getSession = async (sessionId: string) => {
 
   if (!redisEnabled) {
     return decodeCookieSession(sessionId)
+  }
+
+  if (!sessionId || sessionId.includes('.')) {
+    return null
   }
 
   const redis = await getRedisClient()
@@ -149,11 +158,16 @@ export const refreshSession = async (sessionId: string, session: StoredSession) 
     return nextSession
   }
 
-  const redis = await getRedisClient()
+  try {
+    const redis = await getRedisClient()
 
-  await redis.set(buildSessionKey(sessionId), JSON.stringify(nextSession), {
-    EX: ttlSeconds,
-  })
+    await redis.set(buildSessionKey(sessionId), JSON.stringify(nextSession), {
+      EX: ttlSeconds,
+    })
+  }
+  catch {
+    return nextSession
+  }
 
   return nextSession
 }
@@ -181,7 +195,14 @@ export const readSessionFromEvent = async (event: H3Event) => {
     ? parseRedisCookieValue(rawCookieValue)
     : { sessionId: rawCookieValue, fallbackSession: null as StoredSession | null }
 
-  let session = await getSession(parsedCookie.sessionId)
+  let session: StoredSession | null = null
+
+  try {
+    session = await getSession(parsedCookie.sessionId)
+  }
+  catch {
+    session = null
+  }
 
   if (!session && parsedCookie.fallbackSession) {
     session = parsedCookie.fallbackSession
