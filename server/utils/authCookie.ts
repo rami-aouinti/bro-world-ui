@@ -27,6 +27,12 @@ const decodeAuthCookie = (raw: string): StoredAuthCookie | null => {
   }
 }
 
+const decodeLegacyTokenCookie = (raw: string): string | null => {
+  const token = raw.trim().replace(/^Bearer\s+/i, '')
+
+  return token || null
+}
+
 const isExpired = (expiresAt: string) => {
   const expiresAtValue = new Date(expiresAt).getTime()
 
@@ -83,7 +89,7 @@ export const setAuthCookie = (event: H3Event, payload: AuthCookiePayload) => {
 }
 
 export const readAuthCookie = (event: H3Event): StoredAuthCookie | null => {
-  const { cookieName } = getAuthConfig()
+  const { cookieName, ttlSeconds } = getAuthConfig()
   const rawCookie = getCookie(event, cookieName)
 
   if (!rawCookie) {
@@ -92,7 +98,23 @@ export const readAuthCookie = (event: H3Event): StoredAuthCookie | null => {
 
   const payload = decodeAuthCookie(rawCookie)
 
-  if (!payload || isExpired(payload.expiresAt)) {
+  if (!payload) {
+    const legacyToken = decodeLegacyTokenCookie(rawCookie)
+
+    if (!legacyToken) {
+      return null
+    }
+
+    return {
+      token: legacyToken,
+      profile: null,
+      roles: [],
+      locale: null,
+      expiresAt: new Date(Date.now() + ttlSeconds * 1000).toISOString(),
+    }
+  }
+
+  if (isExpired(payload.expiresAt)) {
     return null
   }
 
