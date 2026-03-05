@@ -14,7 +14,7 @@ const decodeAuthCookie = (raw: string): StoredAuthCookie | null => {
   try {
     const parsed = JSON.parse(Buffer.from(raw, 'base64url').toString('utf-8')) as StoredAuthCookie
 
-    if (!parsed || typeof parsed !== 'object' || typeof parsed.token !== 'string') {
+    if (!parsed || typeof parsed !== 'object') {
       return null
     }
 
