@@ -46,10 +46,10 @@ const profileName = computed(() => {
 <template>
   <v-app-bar
     flat
-    class="app-bar px-2 px-sm-4 py-1 bg-white"
+    class="app-bar md-app-bar px-2 px-sm-4 py-1"
     border="b"
   >
-    <v-toolbar-title class="font-weight-bold text-primary d-flex align-center ga-2">
+    <v-toolbar-title class="md-app-bar__title font-weight-bold d-flex align-center ga-2">
       {{ siteName }}
     </v-toolbar-title>
 
@@ -64,7 +64,7 @@ const profileName = computed(() => {
         :key="item.to"
         :to="item.to"
         variant="text"
-        class="text-none"
+        class="text-none md-app-bar__nav-btn"
       >
         {{ t(item.key) }}
       </v-btn>
@@ -73,7 +73,7 @@ const profileName = computed(() => {
         v-if="can(['ROLE_USER', 'ROLE_ADMIN'])"
         to="/profile"
         variant="text"
-        class="text-none px-1"
+        class="text-none px-1 md-app-bar__avatar-btn"
         :aria-label="t('app.navigation.profile')"
       >
         <UiAvatar
@@ -105,7 +105,7 @@ const profileName = computed(() => {
           :to="item.to"
           :title="t(item.key)"
           rounded="lg"
-          class="mx-2 my-1"
+          class="mx-2 my-1 md-app-bar__menu-item"
         />
       </v-list>
     </v-menu>
@@ -116,5 +116,18 @@ const profileName = computed(() => {
 .app-bar {
   padding-inline: var(--ui-spacing-md);
   min-height: calc(56px + var(--ui-spacing-xs));
+}
+
+.md-app-bar__title {
+  color: rgb(var(--v-theme-default));
+}
+
+.md-app-bar__nav-btn {
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.md-app-bar__avatar-btn {
+  border-radius: 9999px;
 }
 </style>

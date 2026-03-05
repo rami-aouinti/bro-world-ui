@@ -1,10 +1,15 @@
 @use "variables" as *;
 
 .table {
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid rgba($gray-300, 0.6);
+  background: $white;
+
   &.thead-light .v-data-table-header,
   .thead-light th {
     color: $gray-600 !important;
-    background-color: $gray-100;
+    background: linear-gradient(195deg, rgba($gray-100, 0.95), $white);
   }
 
   &.thead-light .v-data-table-header th {
@@ -40,6 +45,8 @@
 
   &.v-data-table .v-data-footer {
     border: none;
+    padding: 0.75rem 1rem;
+    background-color: rgba($gray-100, 0.45);
   }
 
   thead th {
@@ -51,8 +58,13 @@
     padding-bottom: $thead-th-p !important;
   }
 
+  tbody td {
+    color: $gray-700;
+    font-weight: 500;
+  }
+
   tbody tr:hover {
-    background: transparent !important;
+    background-color: rgba($primary, 0.04) !important;
   }
 
   &.table-border-dark thead th {
