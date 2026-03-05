@@ -1,7 +1,16 @@
 import type { LoginPayload, TokenResponse } from '../../../app/types/api/common'
 import type { SessionResponse, UserProfile } from '../../../app/types/api/user'
-import { applySessionCookie, createSession } from '../../../server/utils/session'
+import { setUserSession } from '../../../server/utils/session'
 
+
+const buildSessionProfile = (profile: UserProfile): Pick<UserProfile, 'id' | 'username' | 'firstName' | 'lastName' | 'email' | 'photo'> => ({
+  id: profile.id,
+  username: profile.username,
+  firstName: profile.firstName,
+  lastName: profile.lastName,
+  email: profile.email,
+  photo: profile.photo,
+})
 
 export default defineEventHandler(async (event): Promise<SessionResponse> => {
   const config = useRuntimeConfig()
@@ -22,18 +31,18 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
     },
   })
 
-  const { sessionId, session } = await createSession({
+  const sessionProfile = buildSessionProfile(profile)
+
+  const session = await setUserSession(event, {
     token: authResponse.token,
-    profile,
+    profile: sessionProfile,
     roles: profile.roles ?? [],
     locale: profile.locale || profile.language || 'en',
   })
 
-  applySessionCookie(event, sessionId, session)
-
   return {
     authenticated: true,
-    profile,
+    profile: session.profile as UserProfile,
     roles: session.roles,
     locale: session.locale,
     expiresAt: session.expiresAt,
