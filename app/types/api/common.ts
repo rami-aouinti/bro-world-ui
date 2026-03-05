@@ -21,3 +21,16 @@ export interface LoginPayload {
 export interface TokenResponse {
   token: string
 }
+
+export interface ListQueryParams {
+  limit?: number
+  offset?: number
+  page?: number
+  pageSize?: number
+  search?: string
+  ordering?: string
+}
+
+export type QueryValue = string | number | boolean | null | undefined
+
+export type QueryParams = Record<string, QueryValue>
