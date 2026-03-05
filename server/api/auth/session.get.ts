@@ -2,7 +2,7 @@ import type { SessionResponse, UserProfile } from '../../../app/types/api/user'
 import { readAuthCookie, setAuthCookie } from '../../../server/utils/authCookie'
 
 export default defineEventHandler(async (event): Promise<SessionResponse> => {
-  const authCookie = readAuthCookie(event)
+  const authCookie = await readAuthCookie(event)
 
   if (!authCookie) {
     return {
@@ -13,7 +13,7 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
     }
   }
 
-  const nextAuthCookie = setAuthCookie(event, authCookie)
+  const nextAuthCookie = await setAuthCookie(event, authCookie)
 
   return {
     authenticated: true,

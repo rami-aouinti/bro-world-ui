@@ -55,7 +55,7 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
 
   const sessionProfile = buildSessionProfile(profile)
 
-  const authCookie = setAuthCookie(event, {
+  const authCookie = await setAuthCookie(event, {
     token,
     profile: sessionProfile,
     roles: profile.roles ?? [],

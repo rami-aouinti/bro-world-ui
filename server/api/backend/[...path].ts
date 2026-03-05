@@ -42,10 +42,10 @@ export default defineEventHandler(async (event) => {
   const isPublicRoute = PUBLIC_BACKEND_PATHS.has(targetPath)
 
   let bearerToken: string | undefined
-  let authCookiePayload: ReturnType<typeof requireAuthCookie> | undefined
+  let authCookiePayload: Awaited<ReturnType<typeof requireAuthCookie>> | undefined
 
   if (!isPublicRoute) {
-    authCookiePayload = requireAuthCookie(event)
+    authCookiePayload = await requireAuthCookie(event)
     bearerToken = authCookiePayload.token
   }
 
@@ -68,7 +68,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (authCookiePayload) {
-      setAuthCookie(event, authCookiePayload)
+      await setAuthCookie(event, authCookiePayload)
     }
 
     return response

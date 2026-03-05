@@ -10,7 +10,7 @@ export interface StoredAuthCookie {
 
 export type AuthCookiePayload = Omit<StoredAuthCookie, 'expiresAt'>
 
-const encodeAuthCookie = (payload: StoredAuthCookie) => Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64url')
+const AUTH_SESSION_STORAGE_BASE_KEY = 'auth:session:'
 
 const parseStoredAuthCookie = (value: string): StoredAuthCookie | null => {
   try {
@@ -82,6 +82,22 @@ const getAuthConfig = () => {
   }
 }
 
+const getSessionStorage = () => useStorage('data')
+
+const buildSessionStorageKey = (sessionId: string) => `${AUTH_SESSION_STORAGE_BASE_KEY}${sessionId}`
+
+const buildSessionCookieValue = (sessionId: string) => `sid:${sessionId}`
+
+const parseSessionIdFromCookie = (rawCookie: string) => {
+  const normalized = rawCookie.trim().replace(/^"|"$/g, '')
+
+  if (!normalized.startsWith('sid:')) {
+    return null
+  }
+
+  return normalized.slice(4).trim() || null
+}
+
 const shouldUseSecureCookie = (event: H3Event, configuredSecure: boolean) => {
   if (!configuredSecure) {
     return false
@@ -100,16 +116,22 @@ const shouldUseSecureCookie = (event: H3Event, configuredSecure: boolean) => {
   return protocol === 'https'
 }
 
-export const setAuthCookie = (event: H3Event, payload: AuthCookiePayload) => {
+export const setAuthCookie = async (event: H3Event, payload: AuthCookiePayload) => {
   const { ttlSeconds, cookieName, cookieSecure, cookieSameSite } = getAuthConfig()
   const secure = shouldUseSecureCookie(event, cookieSecure)
+  const storage = getSessionStorage()
+  const sessionId = crypto.randomUUID()
 
   const nextCookiePayload: StoredAuthCookie = {
     ...payload,
     expiresAt: new Date(Date.now() + ttlSeconds * 1000).toISOString(),
   }
 
-  setCookie(event, cookieName, encodeAuthCookie(nextCookiePayload), {
+  await storage.setItem(buildSessionStorageKey(sessionId), nextCookiePayload, {
+    ttl: ttlSeconds,
+  })
+
+  setCookie(event, cookieName, buildSessionCookieValue(sessionId), {
     path: '/',
     maxAge: ttlSeconds,
     httpOnly: true,
@@ -120,7 +142,7 @@ export const setAuthCookie = (event: H3Event, payload: AuthCookiePayload) => {
   return nextCookiePayload
 }
 
-export const readAuthCookie = (event: H3Event): StoredAuthCookie | null => {
+export const readAuthCookie = async (event: H3Event): Promise<StoredAuthCookie | null> => {
   const { cookieName, ttlSeconds } = getAuthConfig()
   const rawCookie = getCookie(event, cookieName)
 
@@ -129,6 +151,20 @@ export const readAuthCookie = (event: H3Event): StoredAuthCookie | null => {
   }
 
   const decodedCookie = decodeURIComponent(rawCookie)
+  const sessionId = parseSessionIdFromCookie(decodedCookie)
+
+  if (sessionId) {
+    const storage = getSessionStorage()
+    const storedSession = await storage.getItem<StoredAuthCookie>(buildSessionStorageKey(sessionId))
+
+    if (!storedSession || isExpired(storedSession.expiresAt)) {
+      await storage.removeItem(buildSessionStorageKey(sessionId))
+      return null
+    }
+
+    return storedSession
+  }
+
   const payload = decodeAuthCookie(decodedCookie)
 
   if (!payload) {
@@ -154,8 +190,8 @@ export const readAuthCookie = (event: H3Event): StoredAuthCookie | null => {
   return payload
 }
 
-export const requireAuthCookie = (event: H3Event) => {
-  const authCookie = readAuthCookie(event)
+export const requireAuthCookie = async (event: H3Event) => {
+  const authCookie = await readAuthCookie(event)
 
   if (!authCookie) {
     throw createError({
@@ -167,9 +203,20 @@ export const requireAuthCookie = (event: H3Event) => {
   return authCookie
 }
 
-export const clearAuthCookie = (event: H3Event) => {
+export const clearAuthCookie = async (event: H3Event) => {
   const { cookieName, cookieSecure, cookieSameSite } = getAuthConfig()
   const secure = shouldUseSecureCookie(event, cookieSecure)
+  const rawCookie = getCookie(event, cookieName)
+
+  if (rawCookie) {
+    const decodedCookie = decodeURIComponent(rawCookie)
+    const sessionId = parseSessionIdFromCookie(decodedCookie)
+
+    if (sessionId) {
+      const storage = getSessionStorage()
+      await storage.removeItem(buildSessionStorageKey(sessionId))
+    }
+  }
 
   setCookie(event, cookieName, '', {
     path: '/',
