@@ -45,5 +45,27 @@
   "admin": {
     "title": "Administration area",
     "description": "This page is restricted to users with the administrator role."
+  },
+  "$vuetify": {
+    "dataFooter": {
+      "itemsPerPageText": "Items per page:",
+      "itemsPerPageAll": "All",
+      "nextPage": "Next page",
+      "prevPage": "Previous page",
+      "firstPage": "First page",
+      "lastPage": "Last page",
+      "pageText": "{0}-{1} of {2}"
+    },
+    "pagination": {
+      "ariaLabel": {
+        "root": "Pagination Navigation",
+        "next": "Next page",
+        "previous": "Previous page",
+        "page": "Go to page {0}",
+        "currentPage": "Page {0}, Current page",
+        "first": "First page",
+        "last": "Last page"
+      }
+    }
   }
 }
