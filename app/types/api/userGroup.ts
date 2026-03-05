@@ -1,5 +1,6 @@
 import type { UUID } from './common'
 import type { Role } from './role'
+import type { UserRead } from './user'
 
 export interface UserGroup {
   id: UUID
@@ -15,3 +16,5 @@ export interface CreateUserGroupPayload {
 export type UpdateUserGroupPayload = CreateUserGroupPayload
 
 export type PatchUserGroupPayload = Partial<UpdateUserGroupPayload>
+
+export type UserGroupUsersResponse = UserRead[]

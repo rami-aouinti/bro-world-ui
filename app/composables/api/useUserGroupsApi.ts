@@ -13,6 +13,7 @@ import type {
   PatchUserGroupPayload,
   UpdateUserGroupPayload,
   UserGroup,
+  UserGroupUsersResponse,
 } from '~/types/api/userGroup'
 
 export const useUserGroupsApi = () => {
@@ -40,6 +41,15 @@ export const useUserGroupsApi = () => {
     },
     getById(id: UUID) {
       return apiFetch<UserGroup>(`${basePath}/${id}`, { method: 'GET' })
+    },
+    getUsers(userGroup: UUID) {
+      return apiFetch<UserGroupUsersResponse>(`${basePath}/${userGroup}/users`, { method: 'GET' })
+    },
+    attachUser(userGroup: UUID, user: UUID) {
+      return apiFetch<void>(`${basePath}/${userGroup}/user/${user}`, { method: 'POST' })
+    },
+    detachUser(userGroup: UUID, user: UUID) {
+      return apiFetch<void>(`${basePath}/${userGroup}/user/${user}`, { method: 'DELETE' })
     },
     create(payload: CreateUserGroupPayload) {
       return apiFetch<UserGroup>(basePath, {
