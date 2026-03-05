@@ -3,6 +3,7 @@ import UiDataTable from '~/components/ui/UiDataTable.vue'
 import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import { useUsersApi } from '~/composables/api/useUsersApi'
+import type { UserGroup } from '~/types/api/userGroup'
 import type { UserRead, UserWrite } from '~/types/api/user'
 
 definePageMeta({
@@ -21,7 +22,12 @@ const search = ref('')
 const formMode = ref<'create' | 'edit' | 'patch'>('create')
 const formDialog = ref(false)
 const showDialog = ref(false)
+const rolesDialog = ref(false)
+const groupsDialog = ref(false)
 const selectedUser = ref<UserRead | null>(null)
+const selectedUserRoles = ref<string[]>([])
+const selectedUserGroups = ref<UserGroup[]>([])
+const groupToAttach = ref('')
 
 const form = reactive<UserWrite>({
   username: '',
@@ -32,43 +38,24 @@ const form = reactive<UserWrite>({
   language: 'fr',
   locale: 'fr_FR',
   timezone: 'Europe/Paris',
-  roles: [],
-  userGroups: [],
+  photo: '',
 })
 
 const headers = [
   { title: 'Username', key: 'username', sortable: true },
   { title: 'Nom', key: 'fullName', sortable: true },
   { title: 'Email', key: 'email', sortable: true },
+  { title: 'Language', key: 'language', sortable: true },
+  { title: 'Locale', key: 'locale', sortable: true },
   { title: 'Timezone', key: 'timezone', sortable: true },
-  { title: 'Rôles', key: 'rolesLabel', sortable: false },
+  { title: 'Photo', key: 'photo', sortable: false },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
 const tableItems = computed(() => users.value.map(user => ({
   ...user,
   fullName: `${user.firstName} ${user.lastName}`.trim(),
-  rolesLabel: Array.isArray(user.roles) ? user.roles.map(role => role.id).join(', ') : '',
 })))
-
-const parseIds = (value: string) => value
-  .split(',')
-  .map(item => item.trim())
-  .filter(Boolean)
-
-const rolesInput = computed({
-  get: () => form.roles.join(', '),
-  set: (value: string) => {
-    form.roles = parseIds(value)
-  },
-})
-
-const userGroupsInput = computed({
-  get: () => form.userGroups.join(', '),
-  set: (value: string) => {
-    form.userGroups = parseIds(value)
-  },
-})
 
 const formTitle = computed(() => {
   if (formMode.value === 'create') {
@@ -87,8 +74,7 @@ const fetchUsers = async () => {
   errorMessage.value = ''
 
   try {
-    const response = await usersApi.list({ limit: 200 })
-    users.value = Array.isArray(response) ? response : (response.results ?? [])
+    users.value = await usersApi.list({ limit: 200 })
   }
   catch {
     errorMessage.value = 'Impossible de charger les utilisateurs depuis /api/v1/user.'
@@ -108,8 +94,7 @@ const resetForm = () => {
     language: 'fr',
     locale: 'fr_FR',
     timezone: 'Europe/Paris',
-    roles: [],
-    userGroups: [],
+    photo: '',
   })
 }
 
@@ -130,8 +115,7 @@ const openEditDialog = (user: UserRead, patch = false) => {
     language: user.language ?? 'fr',
     locale: user.locale ?? 'fr_FR',
     timezone: user.timezone,
-    roles: Array.isArray(user.roles) ? user.roles.map(role => role.id) : [],
-    userGroups: Array.isArray(user.userGroups) ? user.userGroups.map(group => group.id) : [],
+    photo: user.photo ?? '',
   })
   selectedUser.value = user
   formDialog.value = true
@@ -140,6 +124,37 @@ const openEditDialog = (user: UserRead, patch = false) => {
 const showEntity = async (id: string) => {
   selectedUser.value = await usersApi.getById(id)
   showDialog.value = true
+}
+
+const openRolesDialog = async (user: UserRead) => {
+  selectedUser.value = user
+  selectedUserRoles.value = await usersApi.getRoles(user.id)
+  rolesDialog.value = true
+}
+
+const openGroupsDialog = async (user: UserRead) => {
+  selectedUser.value = user
+  selectedUserGroups.value = await usersApi.getGroups(user.id)
+  groupsDialog.value = true
+}
+
+const attachGroup = async () => {
+  if (!selectedUser.value || !groupToAttach.value.trim()) {
+    return
+  }
+
+  await usersApi.attachGroup(selectedUser.value.id, groupToAttach.value.trim())
+  groupToAttach.value = ''
+  selectedUserGroups.value = await usersApi.getGroups(selectedUser.value.id)
+}
+
+const detachGroup = async (groupId: string) => {
+  if (!selectedUser.value) {
+    return
+  }
+
+  await usersApi.detachGroup(selectedUser.value.id, groupId)
+  selectedUserGroups.value = await usersApi.getGroups(selectedUser.value.id)
 }
 
 const submitForm = async () => {
@@ -161,8 +176,9 @@ const submitForm = async () => {
         lastName: form.lastName,
         email: form.email,
         timezone: form.timezone,
-        roles: form.roles,
-        userGroups: form.userGroups,
+        language: form.language,
+        locale: form.locale,
+        photo: form.photo,
       })
     }
 
@@ -234,13 +250,17 @@ await fetchUsers()
         :items-per-page="10"
         empty-text="Aucun utilisateur trouvé."
       >
-        <template #item.rolesLabel="{ item }">
-          <span class="text-body-2">{{ item.rolesLabel || '—' }}</span>
+        <template #item.photo="{ item }">
+          <v-avatar size="32">
+            <v-img :src="item.photo" :alt="item.username" />
+          </v-avatar>
         </template>
 
         <template #item.actions="{ item }">
           <div class="d-flex flex-wrap ga-1 py-1">
             <v-btn size="small" variant="tonal" rounded="pill" @click="showEntity(item.id)">Show</v-btn>
+            <v-btn size="small" variant="tonal" rounded="pill" color="secondary" @click="openRolesDialog(item)">Roles</v-btn>
+            <v-btn size="small" variant="tonal" rounded="pill" color="secondary" @click="openGroupsDialog(item)">Groups</v-btn>
             <v-btn size="small" variant="tonal" rounded="pill" color="info" @click="openEditDialog(item)">Edit</v-btn>
             <v-btn size="small" variant="tonal" rounded="pill" color="warning" @click="openEditDialog(item, true)">Patch</v-btn>
             <v-btn size="small" variant="tonal" rounded="pill" color="error" @click="deleteEntity(item.id)">Delete</v-btn>
@@ -262,8 +282,7 @@ await fetchUsers()
             <v-col cols="12" md="6"><v-text-field v-model="form.timezone" label="Timezone" /></v-col>
             <v-col cols="12" md="6"><v-text-field v-model="form.language" label="Language" /></v-col>
             <v-col cols="12" md="6"><v-text-field v-model="form.locale" label="Locale" /></v-col>
-            <v-col cols="12"><v-text-field v-model="rolesInput" label="IDs des rôles (séparés par virgule)" /></v-col>
-            <v-col cols="12"><v-text-field v-model="userGroupsInput" label="IDs des groupes (séparés par virgule)" /></v-col>
+            <v-col cols="12"><v-text-field v-model="form.photo" label="Photo URL" /></v-col>
           </v-row>
         </v-card-text>
         <v-card-actions class="justify-end">
@@ -278,6 +297,38 @@ await fetchUsers()
         <v-card-title>Détails utilisateur</v-card-title>
         <v-card-text>
           <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selectedUser, null, 2) }}</pre>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="rolesDialog" max-width="560">
+      <v-card rounded="xl">
+        <v-card-title>Rôles utilisateur</v-card-title>
+        <v-card-text>
+          <v-chip v-for="role in selectedUserRoles" :key="role" class="mr-2 mb-2">{{ role }}</v-chip>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="groupsDialog" max-width="700">
+      <v-card rounded="xl">
+        <v-card-title>Groupes utilisateur</v-card-title>
+        <v-card-text>
+          <v-text-field
+            v-model="groupToAttach"
+            label="ID du groupe à attacher"
+            append-inner-icon="mdi-plus"
+            @click:append-inner="attachGroup"
+          />
+          <div class="d-flex flex-column ga-2">
+            <div v-for="group in selectedUserGroups" :key="group.id" class="d-flex align-center justify-space-between border rounded px-3 py-2">
+              <div>
+                <div class="text-body-1">{{ group.name }}</div>
+                <div class="text-caption">{{ group.id }} • {{ group.role?.id }}</div>
+              </div>
+              <v-btn size="small" color="error" variant="tonal" @click="detachGroup(group.id)">Detach</v-btn>
+            </div>
+          </div>
         </v-card-text>
       </v-card>
     </v-dialog>

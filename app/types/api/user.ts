@@ -1,5 +1,4 @@
 import type { UUID } from './common'
-import type { Role } from './role'
 import type { UserGroup } from './userGroup'
 
 export interface UserRead {
@@ -11,8 +10,7 @@ export interface UserRead {
   language?: string
   locale?: string
   timezone: string
-  roles: Role[]
-  userGroups: UserGroup[]
+  photo?: string
 }
 
 export interface UserWrite {
@@ -24,9 +22,17 @@ export interface UserWrite {
   language?: string
   locale?: string
   timezone: string
-  roles: UUID[]
-  userGroups: UUID[]
+  photo?: string
 }
+
+export interface AttachUserGroupPayload {
+  user: UUID
+  userGroup: UUID
+}
+
+export type UserRolesResponse = string[]
+
+export type UserGroupsResponse = UserGroup[]
 
 export interface UserProfile {
   id: UUID

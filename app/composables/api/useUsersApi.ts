@@ -4,11 +4,17 @@ import type {
   CountResponse,
   IdsResponse,
   ListQueryParams,
-  PaginatedResponse,
   QueryParams,
   UUID,
 } from '~/types/api/common'
-import type { CreateUserPayload, PatchUserPayload, UpdateUserPayload, UserRead } from '~/types/api/user'
+import type {
+  CreateUserPayload,
+  PatchUserPayload,
+  UpdateUserPayload,
+  UserGroupsResponse,
+  UserRead,
+  UserRolesResponse,
+} from '~/types/api/user'
 
 export const useUsersApi = () => {
   const { apiFetch } = useApiClient()
@@ -16,7 +22,7 @@ export const useUsersApi = () => {
 
   return {
     list(query: ListQueryParams = {}, extraQuery: QueryParams = {}) {
-      return apiFetch<PaginatedResponse<UserRead>>(basePath, {
+      return apiFetch<UserRead[]>(basePath, {
         method: 'GET',
         query: buildListQuery(query, extraQuery),
       })
@@ -35,6 +41,18 @@ export const useUsersApi = () => {
     },
     getById(id: UUID) {
       return apiFetch<UserRead>(`${basePath}/${id}`, { method: 'GET' })
+    },
+    getGroups(user: UUID) {
+      return apiFetch<UserGroupsResponse>(`${basePath}/${user}/groups`, { method: 'GET' })
+    },
+    getRoles(user: UUID) {
+      return apiFetch<UserRolesResponse>(`${basePath}/${user}/roles`, { method: 'GET' })
+    },
+    attachGroup(user: UUID, userGroup: UUID) {
+      return apiFetch<void>(`${basePath}/${user}/group/${userGroup}`, { method: 'POST' })
+    },
+    detachGroup(user: UUID, userGroup: UUID) {
+      return apiFetch<void>(`${basePath}/${user}/group/${userGroup}`, { method: 'DELETE' })
     },
     create(payload: CreateUserPayload) {
       return apiFetch<UserRead>(basePath, {
