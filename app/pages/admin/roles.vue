@@ -18,6 +18,7 @@ const roles = ref<Role[]>([])
 const headers = [
   { title: 'Identifiant', key: 'id', sortable: true },
   { title: 'Description', key: 'description', sortable: true },
+  { title: 'Actions', key: 'actions', sortable: false },
 ]
 
 const fetchRoles = async () => {
@@ -26,14 +27,19 @@ const fetchRoles = async () => {
 
   try {
     const response = await rolesApi.list({ limit: 200 })
-    roles.value = response.results
+    roles.value = Array.isArray(response) ? response : (response.results ?? [])
   }
   catch {
-    errorMessage.value = 'Impossible de charger les rôles depuis /api/v1/roles.'
+    errorMessage.value = 'Impossible de charger les rôles depuis /api/v1/role.'
   }
   finally {
     loading.value = false
   }
+}
+
+const showEntity = async (id: string) => {
+  const entity = await rolesApi.getById(id)
+  window.alert(JSON.stringify(entity, null, 2))
 }
 
 await fetchRoles()
@@ -44,7 +50,7 @@ await fetchRoles()
     <template #header>
       <UiSectionHeader
         title="Gestion des rôles"
-        subtitle="Données chargées depuis /api/v1/roles"
+        subtitle="Données chargées depuis /api/v1/role"
       >
         <template #actions>
           <v-btn
@@ -79,6 +85,12 @@ await fetchRoles()
     >
       <template #item.description="{ item }">
         {{ item.description || '—' }}
+      </template>
+
+      <template #item.actions="{ item }">
+        <v-btn size="x-small" variant="tonal" @click="showEntity(item.id)">
+          Show
+        </v-btn>
       </template>
     </UiDataTable>
   </UiPageSection>

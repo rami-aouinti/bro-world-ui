@@ -12,7 +12,7 @@ import type { CreateRolePayload, PatchRolePayload, Role, UpdateRolePayload } fro
 
 export const useRolesApi = () => {
   const { apiFetch } = useApiClient()
-  const basePath = '/api/v1/roles'
+  const basePath = '/api/v1/role'
 
   return {
     list(query: ListQueryParams = {}, extraQuery: QueryParams = {}) {
