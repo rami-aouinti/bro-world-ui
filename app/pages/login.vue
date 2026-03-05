@@ -7,7 +7,6 @@ definePageMeta({
 })
 
 const route = useRoute()
-const router = useRouter()
 const { t } = useI18n()
 const authSession = useAuthSessionStore()
 const { login, fetchProfile } = useAuth()
@@ -16,6 +15,16 @@ const usernameOrEmail = ref('')
 const password = ref('')
 const loading = ref(false)
 const errorMessage = ref('')
+
+const resolveRedirectTarget = () => {
+  const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : ''
+
+  if (!redirect || redirect.startsWith('/login')) {
+    return '/profile'
+  }
+
+  return redirect
+}
 
 const submit = async () => {
   errorMessage.value = ''
@@ -30,15 +39,18 @@ const submit = async () => {
       profile,
     })
 
-    if (authResponse.authenticated && profile) {
-      const redirectTarget = typeof route.query.redirect === 'string' ? route.query.redirect : '/profile'
-      await router.push(redirectTarget)
+    if (!authResponse.authenticated || !profile) {
+      errorMessage.value = t('errors.auth.loginFailed')
       return
     }
 
-    throw new Error('Incomplete session state')
+    await navigateTo(resolveRedirectTarget(), { replace: true })
   }
-  catch {
+  catch (error) {
+    if (import.meta.dev) {
+      console.error('Login failed', error)
+    }
+
     errorMessage.value = t('errors.auth.loginFailed')
   }
   finally {
