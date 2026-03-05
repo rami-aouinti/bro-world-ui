@@ -29,7 +29,10 @@ const breadcrumbs = computed(() => {
     <AppBar />
 
     <v-main>
-      <Teleport to="#app-bar-teleport-target">
+      <Teleport
+        defer
+        to="#app-bar-teleport-target"
+      >
         <v-breadcrumbs
           :items="breadcrumbs"
           density="comfortable"
