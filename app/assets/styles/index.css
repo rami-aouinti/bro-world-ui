@@ -1,0 +1,283 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  min-height: 100%;
+}
+
+body {
+  min-height: 100%;
+}
+
+body {
+  font-family: var(
+    --v-font-family-base,
+    "Plus Jakarta Sans",
+    "Space Grotesk",
+    "system-ui",
+    "-apple-system",
+    "BlinkMacSystemFont",
+    "Segoe UI",
+    "Helvetica Neue",
+    Arial,
+    sans-serif
+  );
+  --ui-radius: var(--radius, var(--ui-radius-md));
+  --v-radius-md: var(--radius, var(--v-radius-md));
+  --v-btn-border-radius: var(--radius, var(--ui-radius));
+  --v-field-border-radius: var(--radius, var(--ui-radius));
+  --v-list-border-radius: var(--radius, var(--ui-radius));
+  --v-card-border-radius: var(--radius, var(--ui-card-radius));
+  --v-sheet-border-radius: var(--radius, var(--ui-radius));
+  --v-navigation-drawer-border-radius: var(--radius, var(--ui-card-radius));
+}
+
+body.ltr {
+  direction: ltr;
+}
+
+body.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+body.rtl .v-application,
+body.rtl .v-application * {
+  direction: inherit;
+}
+
+body.rtl .v-card,
+body.rtl .v-sheet,
+body.rtl .v-navigation-drawer,
+body.rtl .v-list,
+body.rtl .v-table,
+body.rtl .v-data-table,
+body.rtl .v-toolbar,
+body.rtl .v-footer,
+body.rtl .v-dialog,
+body.rtl .v-menu > .v-overlay__content {
+  text-align: inherit;
+}
+
+body.rtl .text-left {
+  text-align: right !important;
+}
+
+body.rtl .text-right {
+  text-align: left !important;
+}
+
+:root {
+  /* Radius */
+  --ui-radius-none: var(--v-radius-none);
+  --ui-radius-xs: var(--v-radius-xs);
+  --ui-radius-sm: var(--v-radius-sm);
+  --ui-radius-md: var(--v-radius-md);
+  --ui-radius-lg: var(--v-radius-lg);
+  --ui-radius-xl: var(--v-radius-xl);
+  --ui-radius-pill: var(--v-radius-pill);
+  --ui-radius: var(--ui-radius-md);
+  --v-btn-border-radius: var(--ui-radius);
+  --v-field-border-radius: var(--ui-radius);
+  --v-list-border-radius: var(--ui-radius);
+  --v-card-border-radius: var(--ui-card-radius);
+  --v-sheet-border-radius: var(--ui-radius);
+  --v-navigation-drawer-border-radius: var(--ui-card-radius);
+  --ui-card-radius: calc(var(--ui-radius) + 8px);
+  --ui-overlay-radius: calc(var(--ui-card-radius) + 4px);
+  --ui-surface-radius: calc(var(--ui-radius) + 4px);
+
+  /* Focus */
+  --ui-focus: 0 0 0 3px rgba(var(--v-theme-primary), 0.35);
+
+  /* Scrollbars */
+  --ui-scrollbar-size: 8px;
+  --ui-scrollbar-thumb-color: rgba(149, 149, 149, 0.4);
+  --ui-scrollbar-thumb-border-width: 2px;
+  --ui-scrollbar-thumb-border-color: transparent;
+  --ui-scrollbar-thumb-radius: 4px;
+
+  /* Spacing */
+  --ui-spacing-0: var(--v-space-0);
+  --ui-spacing-1: var(--v-space-1);
+  --ui-spacing-2: var(--v-space-2);
+  --ui-spacing-3: var(--v-space-3);
+  --ui-spacing-4: var(--v-space-4);
+  --ui-spacing-5: var(--v-space-5);
+  --ui-spacing-6: var(--v-space-6);
+  --ui-spacing-7: var(--v-space-7);
+  --ui-spacing-8: var(--v-space-8);
+  --ui-spacing-xs: var(--ui-spacing-1);
+  --ui-spacing-sm: var(--ui-spacing-2);
+  --ui-spacing-md: var(--ui-spacing-3);
+  --ui-spacing-lg: var(--ui-spacing-4);
+  --ui-spacing-xl: var(--ui-spacing-6);
+}
+
+form,
+.v-form,
+button,
+[type="button"],
+[type="reset"],
+[type="submit"],
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  border-radius: var(--radius, var(--ui-radius));
+}
+
+.btn,
+button.btn,
+a.btn,
+input.btn,
+label.btn {
+  border-radius: var(--radius, var(--ui-radius)) !important;
+}
+
+:where(.rounded-sm) {
+  border-radius: var(--radius, var(--ui-radius-sm)) !important;
+}
+
+:where(.rounded, .rounded-md) {
+  border-radius: var(--radius, var(--ui-radius)) !important;
+}
+
+:where(.rounded-lg) {
+  border-radius: var(--radius, var(--ui-surface-radius)) !important;
+}
+
+:where(.rounded-xl, .rounded-2xl) {
+  border-radius: var(--radius, var(--ui-card-radius)) !important;
+}
+
+:where(.rounded-3xl) {
+  border-radius: var(--radius, var(--ui-overlay-radius)) !important;
+}
+
+.v-btn {
+  border-radius: var(--v-btn-border-radius);
+}
+
+.v-field:not(.v-field--variant-plain):not(.v-field--variant-underlined),
+.v-input:not(.v-input--variant-plain):not(.v-input--variant-underlined) .v-field {
+  border-radius: var(--v-field-border-radius);
+}
+
+.v-list {
+  border-radius: var(--v-list-border-radius);
+}
+
+.v-list-item {
+  border-radius: inherit;
+}
+
+.v-card,
+.v-sheet:not(.v-sheet--tile),
+.v-navigation-drawer,
+.v-dialog > .v-overlay__content,
+.v-menu > .v-overlay__content {
+  border-radius: var(--radius, var(--ui-card-radius));
+}
+
+:where(#__nuxt, .v-application) {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+html {
+  overflow-y: auto;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+.v-card--variant-elevated:not(.v-card--flat) {
+  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.14);
+}
+
+.v-theme--light.v-icon--clickable,
+.v-theme--light.v-btn--icon {
+  color: rgba(0, 0, 0, 0.54);
+}
+
+.v-theme--light {
+  --v-border-opacity: 0.09 !important;
+  --v-theme-background: 243, 243, 243 !important;
+}
+
+.v-app-bar,
+.v-navigation-drawer,
+.v-footer {
+  background-color: rgb(var(--v-theme-background)) !important;
+}
+
+.v-overlay__content > .v-card {
+  overflow-y: overlay !important;
+}
+
+.v-btn {
+  text-transform: initial !important;
+}
+
+.v-data-table-footer .v-field__input {
+  min-height: 36px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.v-tab {
+  border-radius: 0 !important;
+}
+
+.v-list-item-title {
+  text-overflow: unset !important;
+}
+
+.v-breadcrumbs-divider {
+  opacity: 0.5;
+}
+
+.v-icon .iconify {
+  width: 100%;
+  height: 100%;
+}
+::-webkit-scrollbar {
+  width: var(--ui-scrollbar-size);
+  height: var(--ui-scrollbar-size);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--ui-scrollbar-thumb-color);
+  background-clip: content-box;
+  min-height: 28px;
+  border: var(--ui-scrollbar-thumb-border-width) solid var(--ui-scrollbar-thumb-border-color);
+  border-radius: var(--ui-scrollbar-thumb-radius);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--ui-scrollbar-thumb-color);
+  border-width: max(1px, calc(var(--ui-scrollbar-thumb-border-width) - 1px));
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+body.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+body.ltr {
+  direction: ltr;
+  text-align: left;
+}
+
+body:is(.rtl, .ltr) .text-align-auto {
+  text-align: inherit !important;
+  direction: inherit !important;
+}
+@source "../../../modules";
