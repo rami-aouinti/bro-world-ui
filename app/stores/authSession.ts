@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { getProfilePreferredLocale } from '~/utils/locale'
 
 export interface UserProfile {
   id: string
@@ -6,8 +7,8 @@ export interface UserProfile {
   firstName: string
   lastName: string
   email: string
-  language: string
-  locale: string
+  language?: string
+  locale?: string
   timezone: string
   roles: string[]
 }
@@ -25,7 +26,7 @@ export const useAuthSessionStore = defineStore('auth-session', () => {
   const setProfile = (nextProfile: UserProfile | null) => {
     profile.value = nextProfile
     roles.value = nextProfile?.roles ?? []
-    locale.value = nextProfile?.locale ?? null
+    locale.value = nextProfile ? getProfilePreferredLocale(nextProfile) : null
   }
 
   const setSession = (payload: { token: string | null, profile: UserProfile | null }) => {

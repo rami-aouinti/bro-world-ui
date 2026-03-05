@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
     token: authResponse.token,
     profile,
     roles: profile.roles ?? [],
-    locale: profile.locale ?? null,
+    locale: profile.locale || profile.language || 'en',
   })
 
   applySessionCookie(event, sessionId)
