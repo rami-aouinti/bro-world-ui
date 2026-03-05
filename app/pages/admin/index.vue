@@ -52,8 +52,13 @@ const statusColor = (status: AdminUser['status']) => {
 </script>
 
 <template>
-  <UiPageSection max-width="1200" :title="t('admin.title')" card>
-    <p class="text-body-1 text-medium-emphasis mb-4">{{ t('admin.description') }}</p>
+  <UiPageSection max-width="1200" card>
+    <template #header>
+      <UiSectionHeader
+        :title="t('admin.title')"
+        :subtitle="t('admin.description')"
+      />
+    </template>
 
     <div class="d-flex flex-wrap ga-4 mb-4">
       <v-text-field
