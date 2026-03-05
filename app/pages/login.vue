@@ -3,7 +3,8 @@ import { ref } from 'vue'
 
 const router = useRouter()
 const { t } = useI18n()
-const { login } = useAuth()
+const authSession = useAuthSessionStore()
+const { login, fetchProfile } = useAuth()
 
 const usernameOrEmail = ref('')
 const password = ref('')
@@ -15,8 +16,20 @@ const submit = async () => {
   loading.value = true
 
   try {
-    await login(usernameOrEmail.value, password.value)
-    await router.push('/profile')
+    const authResponse = await login(usernameOrEmail.value, password.value)
+    const profile = await fetchProfile()
+
+    authSession.setSession({
+      token: authResponse.token,
+      profile,
+    })
+
+    if (authResponse.token && profile) {
+      await router.push('/profile')
+      return
+    }
+
+    throw new Error('Incomplete session state')
   }
   catch {
     errorMessage.value = t('errors.auth.loginFailed')

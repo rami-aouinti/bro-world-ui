@@ -1,24 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-
-interface UserProfile {
-  id: string
-  username: string
-  firstName: string
-  lastName: string
-  email: string
-  language: string
-  locale: string
-  timezone: string
-  roles: string[]
-}
+import { onMounted, ref } from 'vue'
 
 const router = useRouter()
 const { t } = useI18n()
-const { token, isAuthenticated, logout } = useAuth()
-const { apiFetch } = useApiClient()
+const authSession = useAuthSessionStore()
+const { token, isAuthenticated, fetchProfile, logout } = useAuth()
 
-const profile = ref<UserProfile | null>(null)
 const loading = ref(false)
 const errorMessage = ref('')
 
@@ -32,12 +19,8 @@ const loadProfile = async () => {
   loading.value = true
 
   try {
-    profile.value = await apiFetch<UserProfile>('/api/v1/profile', {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-      },
-    })
+    const profile = await fetchProfile()
+    authSession.setProfile(profile)
   }
   catch {
     errorMessage.value = t('errors.profile.loadFailed')
@@ -47,9 +30,14 @@ const loadProfile = async () => {
   }
 }
 
+onMounted(async () => {
+  if (token.value && !authSession.profile) {
+    await loadProfile()
+  }
+})
+
 const signOut = async () => {
   logout()
-  profile.value = null
   await router.push('/login')
 }
 </script>
@@ -61,15 +49,6 @@ const signOut = async () => {
         <h1 class="text-h5 font-weight-bold">{{ t('profile.title') }}</h1>
 
         <div class="d-flex ga-2">
-          <v-btn
-            color="primary"
-            :loading="loading"
-            :disabled="!isAuthenticated"
-            @click="loadProfile"
-          >
-            {{ t('profile.load') }}
-          </v-btn>
-
           <v-btn
             variant="outlined"
             :disabled="!isAuthenticated"
@@ -90,6 +69,15 @@ const signOut = async () => {
       </v-alert>
 
       <v-alert
+        v-else-if="loading"
+        type="info"
+        variant="tonal"
+        class="mb-4"
+      >
+        {{ t('profile.load') }}...
+      </v-alert>
+
+      <v-alert
         v-if="errorMessage"
         type="error"
         variant="tonal"
@@ -99,12 +87,12 @@ const signOut = async () => {
       </v-alert>
 
       <v-card
-        v-if="profile"
+        v-if="authSession.profile"
         variant="tonal"
         rounded="lg"
         class="pa-4"
       >
-        <pre class="text-body-2">{{ profile }}</pre>
+        <pre class="text-body-2">{{ authSession.profile }}</pre>
       </v-card>
 
       <p

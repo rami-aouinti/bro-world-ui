@@ -1,5 +1,5 @@
 export default defineNuxtConfig({
-  modules: ['vuetify-nuxt-module', '@nuxtjs/i18n'],
+  modules: ['vuetify-nuxt-module', '@nuxtjs/i18n', '@pinia/nuxt'],
   css: [
     'vuetify/styles',
     '~/assets/styles/material-dashboard.scss',
