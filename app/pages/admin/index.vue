@@ -19,7 +19,7 @@ const adminModules = [
   },
   {
     title: 'Rôles',
-    description: 'Consulter et administrer les rôles exposés par /api/v1/roles.',
+    description: 'Consulter et administrer les rôles exposés par /api/v1/role.',
     to: '/admin/roles',
     icon: 'mdi-shield-account-outline',
   },
@@ -31,7 +31,7 @@ const adminModules = [
   },
   {
     title: 'Clés API',
-    description: 'Lister et gérer les clés API disponibles sur /api/v1/api-keys.',
+    description: 'Lister et gérer les clés API disponibles sur /api/v1/api_key.',
     to: '/admin/api-keys',
     icon: 'mdi-key-outline',
   },

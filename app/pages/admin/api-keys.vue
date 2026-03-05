@@ -47,7 +47,7 @@ const fetchApiKeys = async () => {
     apiKeys.value = response.results
   }
   catch {
-    errorMessage.value = 'Impossible de charger les clés API depuis /api/v1/api-keys.'
+    errorMessage.value = 'Impossible de charger les clés API depuis /api/v1/api_key.'
   }
   finally {
     loading.value = false
@@ -62,7 +62,7 @@ await fetchApiKeys()
     <template #header>
       <UiSectionHeader
         title="Gestion des clés API"
-        subtitle="Données chargées depuis /api/v1/api-keys"
+        subtitle="Données chargées depuis /api/v1/api_key"
       >
         <template #actions>
           <v-btn

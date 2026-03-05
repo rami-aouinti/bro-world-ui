@@ -66,7 +66,7 @@ const createApiKeysVersionClient = (basePath: string) => {
 
 export const useApiKeysApi = () => {
   return {
-    v1: createApiKeysVersionClient('/api/v1/api-keys'),
-    v2: createApiKeysVersionClient('/api/v2/api-keys'),
+    v1: createApiKeysVersionClient('/api/v1/api_key'),
+    v2: createApiKeysVersionClient('/api/v2/api_key'),
   }
 }

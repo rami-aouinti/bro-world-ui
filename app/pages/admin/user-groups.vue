@@ -37,7 +37,7 @@ const fetchUserGroups = async () => {
     userGroups.value = response.results
   }
   catch {
-    errorMessage.value = 'Impossible de charger les groupes depuis /api/v1/user-groups.'
+    errorMessage.value = 'Impossible de charger les groupes depuis /api/v1/user_group.'
   }
   finally {
     loading.value = false
@@ -52,7 +52,7 @@ await fetchUserGroups()
     <template #header>
       <UiSectionHeader
         title="Gestion des groupes utilisateurs"
-        subtitle="Données chargées depuis /api/v1/user-groups"
+        subtitle="Données chargées depuis /api/v1/user_group"
       >
         <template #actions>
           <v-btn

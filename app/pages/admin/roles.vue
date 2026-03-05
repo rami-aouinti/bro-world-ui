@@ -29,7 +29,7 @@ const fetchRoles = async () => {
     roles.value = response.results
   }
   catch {
-    errorMessage.value = 'Impossible de charger les rôles depuis /api/v1/roles.'
+    errorMessage.value = 'Impossible de charger les rôles depuis /api/v1/role.'
   }
   finally {
     loading.value = false
@@ -44,7 +44,7 @@ await fetchRoles()
     <template #header>
       <UiSectionHeader
         title="Gestion des rôles"
-        subtitle="Données chargées depuis /api/v1/roles"
+        subtitle="Données chargées depuis /api/v1/role"
       >
         <template #actions>
           <v-btn
