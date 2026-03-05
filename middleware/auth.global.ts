@@ -1,11 +1,7 @@
-import { storeToRefs } from 'pinia'
-import { useAuthStore} from "../app/stores/auth";
-
 export default defineNuxtRouteMiddleware(async (to) => {
-  const authStore = useAuthStore()
-  const { isAuthenticated } = storeToRefs(authStore)
+  const { initSession, isAuthenticated } = useAuth()
 
-  console.log(isAuthenticated)
+  await initSession()
 
   const isPublicRoute = to.meta.public === true
   const requiresAuth = to.meta.requiresAuth !== false && !isPublicRoute
