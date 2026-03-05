@@ -39,7 +39,6 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
     roles: profile.roles ?? [],
     locale: profile.locale || profile.language || 'en',
   })
-
   applySessionCookie(event, sessionId, session)
 
   return {
