@@ -10,6 +10,7 @@ export interface StoredSession {
 }
 
 const buildSessionKey = (sessionId: string) => `session:${sessionId}`
+const REDIS_COOKIE_PREFIX = 'r:'
 
 const encodeCookieSession = (session: StoredSession) => Buffer.from(JSON.stringify(session), 'utf-8').toString('base64url')
 
@@ -28,6 +29,41 @@ const decodeCookieSession = (raw: string): StoredSession | null => {
   }
 }
 
+const encodeRedisCookieValue = (sessionId: string, session?: StoredSession) => {
+  if (!session) {
+    return `${REDIS_COOKIE_PREFIX}${sessionId}`
+  }
+
+  return `${REDIS_COOKIE_PREFIX}${sessionId}.${encodeCookieSession(session)}`
+}
+
+const parseRedisCookieValue = (raw: string) => {
+  if (!raw.startsWith(REDIS_COOKIE_PREFIX)) {
+    return {
+      sessionId: raw,
+      fallbackSession: null as StoredSession | null,
+    }
+  }
+
+  const rawPayload = raw.slice(REDIS_COOKIE_PREFIX.length)
+  const separatorIndex = rawPayload.indexOf('.')
+
+  if (separatorIndex === -1) {
+    return {
+      sessionId: rawPayload,
+      fallbackSession: null as StoredSession | null,
+    }
+  }
+
+  const sessionId = rawPayload.slice(0, separatorIndex)
+  const encodedSession = rawPayload.slice(separatorIndex + 1)
+
+  return {
+    sessionId,
+    fallbackSession: decodeCookieSession(encodedSession),
+  }
+}
+
 const getSessionConfig = () => {
   const config = useRuntimeConfig()
 
@@ -40,6 +76,17 @@ const getSessionConfig = () => {
   }
 }
 
+const shouldUseSecureCookie = (event: H3Event, configuredSecure: boolean) => {
+  if (!configuredSecure) {
+    return false
+  }
+
+  const forwardedProto = getHeader(event, 'x-forwarded-proto')
+  const isHttps = event.node.req.socket.encrypted || forwardedProto?.split(',')[0]?.trim() === 'https'
+
+  return Boolean(isHttps)
+}
+
 export const createSession = async (payload: UserSessionPayload) => {
   const { ttlSeconds, redisEnabled } = getSessionConfig()
 
@@ -49,14 +96,19 @@ export const createSession = async (payload: UserSessionPayload) => {
   }
 
   if (redisEnabled) {
-    const redis = await getRedisClient()
-    const sessionId = randomUUID()
+    try {
+      const redis = await getRedisClient()
+      const sessionId = randomUUID()
 
-    await redis.set(buildSessionKey(sessionId), JSON.stringify(session), {
-      EX: ttlSeconds,
-    })
+      await redis.set(buildSessionKey(sessionId), JSON.stringify(session), {
+        EX: ttlSeconds,
+      })
 
-    return { sessionId, session }
+      return { sessionId, session }
+    }
+    catch {
+      return { sessionId: encodeCookieSession(session), session }
+    }
   }
 
   const cookieSession = encodeCookieSession(session)
@@ -78,6 +130,10 @@ export const getSession = async (sessionId: string) => {
 
   if (!redisEnabled) {
     return decodeCookieSession(sessionId)
+  }
+
+  if (!sessionId || sessionId.includes('.')) {
+    return null
   }
 
   const redis = await getRedisClient()
@@ -102,11 +158,16 @@ export const refreshSession = async (sessionId: string, session: StoredSession) 
     return nextSession
   }
 
-  const redis = await getRedisClient()
+  try {
+    const redis = await getRedisClient()
 
-  await redis.set(buildSessionKey(sessionId), JSON.stringify(nextSession), {
-    EX: ttlSeconds,
-  })
+    await redis.set(buildSessionKey(sessionId), JSON.stringify(nextSession), {
+      EX: ttlSeconds,
+    })
+  }
+  catch {
+    return nextSession
+  }
 
   return nextSession
 }
@@ -124,13 +185,28 @@ export const clearSession = async (sessionId: string) => {
 
 export const readSessionFromEvent = async (event: H3Event) => {
   const { cookieName, redisEnabled } = getSessionConfig()
-  const sessionId = getCookie(event, cookieName)
+  const rawCookieValue = getCookie(event, cookieName)
 
-  if (!sessionId) {
+  if (!rawCookieValue) {
     return null
   }
 
-  const session = await getSession(sessionId)
+  const parsedCookie = redisEnabled
+    ? parseRedisCookieValue(rawCookieValue)
+    : { sessionId: rawCookieValue, fallbackSession: null as StoredSession | null }
+
+  let session: StoredSession | null = null
+
+  try {
+    session = await getSession(parsedCookie.sessionId)
+  }
+  catch {
+    session = null
+  }
+
+  if (!session && parsedCookie.fallbackSession) {
+    session = parsedCookie.fallbackSession
+  }
 
   if (!session) {
     return null
@@ -140,7 +216,7 @@ export const readSessionFromEvent = async (event: H3Event) => {
     return null
   }
 
-  return { sessionId, session }
+  return { sessionId: parsedCookie.sessionId, session }
 }
 
 export const requireSession = async (event: H3Event) => {
@@ -158,28 +234,30 @@ export const requireSession = async (event: H3Event) => {
 
 export const applySessionCookie = (event: H3Event, sessionId: string, session?: StoredSession) => {
   const { cookieName, ttlSeconds, cookieSecure, cookieSameSite, redisEnabled } = getSessionConfig()
+  const secure = shouldUseSecureCookie(event, cookieSecure)
 
   const cookieValue = redisEnabled
-    ? sessionId
+    ? encodeRedisCookieValue(sessionId, session)
     : (session ? encodeCookieSession(session) : sessionId)
 
   setCookie(event, cookieName, cookieValue, {
     path: '/',
     maxAge: ttlSeconds,
     httpOnly: true,
-    secure: cookieSecure,
+    secure,
     sameSite: cookieSameSite,
   })
 }
 
 export const clearSessionCookie = (event: H3Event) => {
   const { cookieName, cookieSecure, cookieSameSite } = getSessionConfig()
+  const secure = shouldUseSecureCookie(event, cookieSecure)
 
   setCookie(event, cookieName, '', {
     path: '/',
     maxAge: 0,
     httpOnly: true,
-    secure: cookieSecure,
+    secure,
     sameSite: cookieSameSite,
   })
 }
