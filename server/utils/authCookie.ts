@@ -49,14 +49,17 @@ const getAuthConfig = () => {
 }
 
 const shouldUseSecureCookie = (event: H3Event, configuredSecure: boolean) => {
+  if (!configuredSecure) {
+    return false
+  }
+
   const forwardedProto = getHeader(event, 'x-forwarded-proto')
 
   if (forwardedProto) {
     return forwardedProto.split(',')[0]?.trim().toLowerCase() === 'https'
   }
 
-  const host = getHeader(event, 'host') ?? ''
-  return !host.includes('localhost') && !host.includes('127.0.0.1')
+  return true
 }
 
 export const setAuthCookie = (event: H3Event, payload: AuthCookiePayload) => {
