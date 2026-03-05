@@ -39,7 +39,7 @@ const fetchUsers = async () => {
     users.value = response.results
   }
   catch {
-    errorMessage.value = 'Impossible de charger les utilisateurs depuis /api/v1/users.'
+    errorMessage.value = 'Impossible de charger les utilisateurs depuis /api/v1/user.'
   }
   finally {
     loading.value = false
@@ -54,7 +54,7 @@ await fetchUsers()
     <template #header>
       <UiSectionHeader
         title="Gestion des utilisateurs"
-        subtitle="Données chargées depuis /api/v1/users"
+        subtitle="Données chargées depuis /api/v1/user"
       >
         <template #actions>
           <v-btn

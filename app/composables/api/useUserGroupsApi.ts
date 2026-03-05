@@ -17,7 +17,7 @@ import type {
 
 export const useUserGroupsApi = () => {
   const { apiFetch } = useApiClient()
-  const basePath = '/api/v1/user-groups'
+  const basePath = '/api/v1/user_group'
 
   return {
     list(query: ListQueryParams = {}, extraQuery: QueryParams = {}) {

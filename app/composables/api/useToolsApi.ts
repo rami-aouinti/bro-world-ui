@@ -12,7 +12,7 @@ import type { CreateToolPayload, PatchToolPayload, Tool, UpdateToolPayload } fro
 
 export const useToolsApi = () => {
   const { apiFetch } = useApiClient()
-  const basePath = '/api/v1/tools'
+  const basePath = '/api'
 
   return {
     list(query: ListQueryParams = {}, extraQuery: QueryParams = {}) {

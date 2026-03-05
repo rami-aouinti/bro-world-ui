@@ -12,7 +12,7 @@ import type { CreateUserPayload, PatchUserPayload, UpdateUserPayload, UserRead }
 
 export const useUsersApi = () => {
   const { apiFetch } = useApiClient()
-  const basePath = '/api/v1/users'
+  const basePath = '/api/v1/user'
 
   return {
     list(query: ListQueryParams = {}, extraQuery: QueryParams = {}) {
