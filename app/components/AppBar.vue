@@ -8,14 +8,26 @@ interface NavItem {
 }
 
 const { t } = useI18n()
+const { can } = useAccessControl()
 
 const siteName = computed(() => t('app.name'))
 
-const navItems: NavItem[] = [
-  { key: 'app.navigation.home', to: '/' },
-  { key: 'app.navigation.login', to: '/login' },
-  { key: 'app.navigation.profile', to: '/profile' },
-]
+const navItems = computed<NavItem[]>(() => {
+  const items: NavItem[] = [{ key: 'app.navigation.home', to: '/' }]
+
+  if (!can()) {
+    items.push({ key: 'app.navigation.login', to: '/login' })
+    return items
+  }
+
+  items.push({ key: 'app.navigation.profile', to: '/profile' })
+
+  if (can('ROLE_ADMIN')) {
+    items.push({ key: 'app.navigation.admin', to: '/admin' })
+  }
+
+  return items
+})
 
 const { mdAndUp } = useDisplay()
 const isDesktop = computed(() => mdAndUp.value)

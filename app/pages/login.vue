@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
+definePageMeta({
+  public: true,
+  requiresAuth: false,
+})
+
+const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const authSession = useAuthSessionStore()
@@ -25,7 +31,8 @@ const submit = async () => {
     })
 
     if (authResponse.authenticated && profile) {
-      await router.push('/profile')
+      const redirectTarget = typeof route.query.redirect === 'string' ? route.query.redirect : '/profile'
+      await router.push(redirectTarget)
       return
     }
 

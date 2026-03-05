@@ -5,7 +5,8 @@
       "home": "Home",
       "login": "Login",
       "profile": "Profile",
-      "openMenu": "Open menu"
+      "openMenu": "Open menu",
+      "admin": "Admin"
     }
   },
   "login": {
@@ -25,11 +26,22 @@
   },
   "errors": {
     "auth": {
-      "loginFailed": "Login failed. Please check your credentials."
+      "loginFailed": "Login failed. Please check your credentials.",
+      "authRequired": "You must be signed in to access this page.",
+      "accessDenied": "Access denied: you do not have the required permissions."
     },
     "profile": {
       "noToken": "No active token found. Please sign in.",
       "loadFailed": "Unable to load profile. Please try again."
     }
+  },
+  "home": {
+    "title": "Welcome to Bro World",
+    "description": "Nuxt 4 project configured with Vuetify and the Material Dashboard style.",
+    "cta": "Get started"
+  },
+  "admin": {
+    "title": "Administration area",
+    "description": "This page is restricted to users with the administrator role."
   }
 }
