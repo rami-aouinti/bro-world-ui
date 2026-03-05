@@ -55,8 +55,8 @@ export const useAuth = () => {
     await applyLocalePreference(preferredLocale)
   }
 
-  const initSession = async () => {
-    if (initialized.value) {
+  const initSession = async (force = false) => {
+    if (initialized.value && !force) {
       return
     }
 
