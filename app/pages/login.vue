@@ -11,7 +11,6 @@ definePageMeta({
 
 const route = useRoute()
 const { t } = useI18n()
-const authSession = useAuthSessionStore()
 const { login, fetchProfile } = useAuth()
 
 const usernameOrEmail = ref('')
@@ -36,13 +35,6 @@ const submit = async () => {
   try {
     const authResponse = await login(usernameOrEmail.value, password.value)
     const profile = authResponse.profile ?? await fetchProfile()
-
-    authSession.setUserSession({
-      token: authResponse.authenticated ? '__server_session__' : null,
-      profile,
-      roles: authResponse.roles,
-      locale: authResponse.locale,
-    })
 
     if (!authResponse.authenticated || !profile) {
       errorMessage.value = t('errors.auth.loginFailed')

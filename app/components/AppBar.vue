@@ -33,7 +33,6 @@ const navItems = computed<NavItem[]>(() => {
 
 const { mdAndUp } = useDisplay()
 const isDesktop = computed(() => mdAndUp.value)
-console.log(authSession)
 const profileName = computed(() => {
   const profile = authSession.profile
   if (!profile) {
