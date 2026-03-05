@@ -3,13 +3,13 @@ import { onMounted, ref } from 'vue'
 
 definePageMeta({
   middleware: ['role'],
-  requiredRoles: ['ROLE_USER', 'ROLE_ADMIN'],
+  requiredPermissions: ['profile.readOwn'],
 })
 
 const router = useRouter()
 const { t } = useI18n()
 const authSession = useAuthSessionStore()
-const { can } = useAccessControl()
+const { canPermission } = useAccessControl()
 const { isAuthenticated, fetchProfile, logout } = useAuth()
 
 const loading = ref(false)
@@ -18,6 +18,11 @@ const errorMessage = ref('')
 const loadProfile = async () => {
   if (!isAuthenticated.value) {
     errorMessage.value = t('errors.profile.noToken')
+    return
+  }
+
+  if (!canPermission('profile.readOwn', { userId: authSession.profile?.id })) {
+    errorMessage.value = t('profile.notAuthenticated')
     return
   }
 
@@ -42,6 +47,11 @@ onMounted(async () => {
 })
 
 const signOut = async () => {
+  if (!canPermission('profile.logout')) {
+    errorMessage.value = t('profile.notAuthenticated')
+    return
+  }
+
   await logout()
   await router.push('/login')
 }
@@ -54,7 +64,7 @@ const signOut = async () => {
   >
     <template #actions>
       <v-btn
-        v-if="can(['ROLE_USER', 'ROLE_ADMIN'])"
+        v-if="canPermission('profile.logout')"
         variant="outlined"
         :disabled="!isAuthenticated"
         @click="signOut"

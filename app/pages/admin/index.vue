@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({
   middleware: ['role'],
-  requiredRoles: ['ROLE_ADMIN'],
+  requiredPermissions: ['admin.access'],
 })
 
 const { t } = useI18n()

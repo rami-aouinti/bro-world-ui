@@ -8,7 +8,7 @@ interface NavItem {
 }
 
 const { t } = useI18n()
-const { can } = useAccessControl()
+const { can, canPermission } = useAccessControl()
 
 const siteName = computed(() => t('app.name'))
 
@@ -22,7 +22,7 @@ const navItems = computed<NavItem[]>(() => {
 
   items.push({ key: 'app.navigation.profile', to: '/profile' })
 
-  if (can('ROLE_ADMIN')) {
+  if (canPermission('admin.access')) {
     items.push({ key: 'app.navigation.admin', to: '/admin' })
   }
 
