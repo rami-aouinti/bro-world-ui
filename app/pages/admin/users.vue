@@ -21,13 +21,8 @@ const search = ref('')
 
 const formMode = ref<'create' | 'edit' | 'patch'>('create')
 const formDialog = ref(false)
-const showDialog = ref(false)
-const rolesDialog = ref(false)
-const groupsDialog = ref(false)
 const selectedUser = ref<UserRead | null>(null)
-const selectedUserRoles = ref<string[]>([])
-const selectedUserGroups = ref<UserGroup[]>([])
-const groupToAttach = ref('')
+const userRelations = ref<Record<string, { roles: string[]; groups: UserGroup[] }>>({})
 
 const form = reactive<UserWrite>({
   username: '',
@@ -45,16 +40,15 @@ const headers = [
   { title: 'Username', key: 'username', sortable: true },
   { title: 'Nom', key: 'fullName', sortable: true },
   { title: 'Email', key: 'email', sortable: true },
-  { title: 'Language', key: 'language', sortable: true },
-  { title: 'Locale', key: 'locale', sortable: true },
-  { title: 'Timezone', key: 'timezone', sortable: true },
-  { title: 'Photo', key: 'photo', sortable: false },
+  { title: '', key: 'photo', sortable: false },
+  { title: 'Relations', key: 'relations', sortable: false },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
 const tableItems = computed(() => users.value.map(user => ({
   ...user,
   fullName: `${user.firstName} ${user.lastName}`.trim(),
+  relations: userRelations.value[user.id] ?? { roles: [], groups: [] },
 })))
 
 const formTitle = computed(() => {
@@ -75,6 +69,17 @@ const fetchUsers = async () => {
 
   try {
     users.value = await usersApi.list({ limit: 200 })
+
+    const relations = await Promise.all(users.value.map(async (user) => {
+      const [roles, groups] = await Promise.all([
+        usersApi.getRoles(user.id).catch(() => []),
+        usersApi.getGroups(user.id).catch(() => []),
+      ])
+
+      return [user.id, { roles, groups }] as const
+    }))
+
+    userRelations.value = Object.fromEntries(relations)
   }
   catch {
     errorMessage.value = 'Impossible de charger les utilisateurs depuis /api/v1/user.'
@@ -119,42 +124,6 @@ const openEditDialog = (user: UserRead, patch = false) => {
   })
   selectedUser.value = user
   formDialog.value = true
-}
-
-const showEntity = async (id: string) => {
-  selectedUser.value = await usersApi.getById(id)
-  showDialog.value = true
-}
-
-const openRolesDialog = async (user: UserRead) => {
-  selectedUser.value = user
-  selectedUserRoles.value = await usersApi.getRoles(user.id)
-  rolesDialog.value = true
-}
-
-const openGroupsDialog = async (user: UserRead) => {
-  selectedUser.value = user
-  selectedUserGroups.value = await usersApi.getGroups(user.id)
-  groupsDialog.value = true
-}
-
-const attachGroup = async () => {
-  if (!selectedUser.value || !groupToAttach.value.trim()) {
-    return
-  }
-
-  await usersApi.attachGroup(selectedUser.value.id, groupToAttach.value.trim())
-  groupToAttach.value = ''
-  selectedUserGroups.value = await usersApi.getGroups(selectedUser.value.id)
-}
-
-const detachGroup = async (groupId: string) => {
-  if (!selectedUser.value) {
-    return
-  }
-
-  await usersApi.detachGroup(selectedUser.value.id, groupId)
-  selectedUserGroups.value = await usersApi.getGroups(selectedUser.value.id)
 }
 
 const submitForm = async () => {
@@ -264,14 +233,47 @@ await fetchUsers()
           </v-avatar>
         </template>
 
+        <template #item.relations="{ item }">
+          <div class="d-flex flex-wrap ga-1 py-1">
+            <v-chip
+              v-for="role in item.relations.roles"
+              :key="`role-${item.id}-${role}`"
+              size="small"
+              color="secondary"
+              variant="tonal"
+            >
+              {{ role }}
+            </v-chip>
+            <v-chip
+              v-for="group in item.relations.groups"
+              :key="`group-${item.id}-${group.id}`"
+              size="small"
+              color="info"
+              variant="tonal"
+            >
+              {{ group.name }}
+            </v-chip>
+          </div>
+        </template>
+
         <template #item.actions="{ item }">
           <div class="d-flex flex-wrap ga-1 py-1">
-            <v-btn size="small" variant="tonal" rounded="pill" @click="showEntity(item.id)">Show</v-btn>
-            <v-btn size="small" variant="tonal" rounded="pill" color="secondary" @click="openRolesDialog(item)">Roles</v-btn>
-            <v-btn size="small" variant="tonal" rounded="pill" color="secondary" @click="openGroupsDialog(item)">Groups</v-btn>
-            <v-btn size="small" variant="tonal" rounded="pill" color="info" @click="openEditDialog(item)">Edit</v-btn>
-            <v-btn size="small" variant="tonal" rounded="pill" color="warning" @click="openEditDialog(item, true)">Patch</v-btn>
-            <v-btn size="small" variant="tonal" rounded="pill" color="error" @click="deleteEntity(item.id)">Delete</v-btn>
+            <v-btn
+              size="small"
+              variant="tonal"
+              color="warning"
+              icon="mdi-file-edit-outline"
+              :aria-label="`Patch ${item.username}`"
+              @click="openEditDialog(item, true)"
+            />
+            <v-btn
+              size="small"
+              variant="tonal"
+              color="error"
+              icon="mdi-delete"
+              :aria-label="`Delete ${item.username}`"
+              @click="deleteEntity(item.id)"
+            />
           </div>
         </template>
       </UiDataTable>
@@ -300,46 +302,6 @@ await fetchUsers()
       </v-card>
     </v-dialog>
 
-    <v-dialog v-model="showDialog" max-width="700">
-      <v-card rounded="xl">
-        <v-card-title>Détails utilisateur</v-card-title>
-        <v-card-text>
-          <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selectedUser, null, 2) }}</pre>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
-
-    <v-dialog v-model="rolesDialog" max-width="560">
-      <v-card rounded="xl">
-        <v-card-title>Rôles utilisateur</v-card-title>
-        <v-card-text>
-          <v-chip v-for="role in selectedUserRoles" :key="role" class="mr-2 mb-2">{{ role }}</v-chip>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
-
-    <v-dialog v-model="groupsDialog" max-width="700">
-      <v-card rounded="xl">
-        <v-card-title>Groupes utilisateur</v-card-title>
-        <v-card-text>
-          <v-text-field
-            v-model="groupToAttach"
-            label="ID du groupe à attacher"
-            append-inner-icon="mdi-plus"
-            @click:append-inner="attachGroup"
-          />
-          <div class="d-flex flex-column ga-2">
-            <div v-for="group in selectedUserGroups" :key="group.id" class="d-flex align-center justify-space-between border rounded px-3 py-2">
-              <div>
-                <div class="text-body-1">{{ group.name }}</div>
-                <div class="text-caption">{{ group.id }} • {{ group.role?.id }}</div>
-              </div>
-              <v-btn size="small" color="error" variant="tonal" @click="detachGroup(group.id)">Detach</v-btn>
-            </div>
-          </div>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
   </UiPageSection>
 </template>
 
