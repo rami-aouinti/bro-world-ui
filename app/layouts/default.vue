@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import UiStateAlert from '~/components/ui/state/UiStateAlert.vue'
 
 const route = useRoute()
 const { t } = useI18n()
