@@ -16,6 +16,7 @@ const loading = ref(false)
 const submitting = ref(false)
 const errorMessage = ref('')
 const apiKeys = ref<ApiKey[]>([])
+const search = ref('')
 const selectedVersion = ref<'v1' | 'v2'>('v1')
 
 const formDialog = ref(false)
@@ -121,6 +122,39 @@ await fetchApiKeys()
 
 <template>
   <UiPageSection max-width="1100">
+    <Teleport
+      defer
+      to="#app-bar-teleport-target"
+    >
+      <div class="api-keys-page-appbar-tools">
+        <v-text-field
+          v-model="search"
+          label="Rechercher"
+          prepend-inner-icon="mdi-magnify"
+          density="comfortable"
+          variant="underlined"
+          hide-details
+          class="api-keys-page-appbar-tools__search"
+        />
+
+        <v-btn
+          icon="mdi-plus"
+          color="primary"
+          :aria-label="'Créer'"
+          @click="openCreateDialog"
+        />
+
+        <v-btn
+          icon="mdi-refresh"
+          color="primary"
+          variant="outlined"
+          :loading="loading"
+          :aria-label="'Actualiser'"
+          @click="fetchApiKeys"
+        />
+      </div>
+    </Teleport>
+
     <template #header>
       <UiSectionHeader
         title="Gestion des clés API"
@@ -139,16 +173,6 @@ await fetchApiKeys()
             <v-btn value="v1">v1</v-btn>
             <v-btn value="v2">v2</v-btn>
           </v-btn-toggle>
-          <v-btn color="primary" prepend-icon="mdi-plus" class="mr-2" @click="openCreateDialog">Créer</v-btn>
-          <v-btn
-            color="primary"
-            variant="outlined"
-            prepend-icon="mdi-refresh"
-            :loading="loading"
-            @click="fetchApiKeys"
-          >
-            Actualiser
-          </v-btn>
         </template>
       </UiSectionHeader>
     </template>
@@ -162,6 +186,7 @@ await fetchApiKeys()
         :headers="headers"
         :items="tableItems"
         :loading="loading"
+        :search="search"
         item-key="id"
         :items-per-page="10"
         empty-text="Aucune clé API trouvée."
@@ -205,3 +230,19 @@ await fetchApiKeys()
     </v-dialog>
   </UiPageSection>
 </template>
+
+
+<style scoped>
+.api-keys-page-appbar-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin-inline-start: 8px;
+}
+
+.api-keys-page-appbar-tools__search {
+  min-width: 200px;
+  max-width: 280px;
+}
+</style>
