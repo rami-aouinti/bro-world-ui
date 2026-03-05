@@ -1,6 +1,6 @@
 import { computed } from 'vue'
 import { useAuthSessionStore, type UserProfile } from '~/stores/authSession'
-import { FALLBACK_LOCALE, getProfilePreferredLocale, resolveLocale } from '~/utils/locale'
+import { FALLBACK_LOCALE, getProfilePreferredLocale, normalizeLocaleCodes, resolveLocale } from '~/utils/locale'
 
 interface SessionResponse {
   authenticated: boolean
@@ -24,7 +24,7 @@ export const useAuth = () => {
 
   const applyLocalePreference = async (preferredLocale: unknown) => {
     const i18n = nuxtApp.$i18n
-    const availableLocales = i18n.localeCodes || []
+    const availableLocales = normalizeLocaleCodes(i18n.localeCodes)
     const localeToApply = resolveLocale(preferredLocale, availableLocales, FALLBACK_LOCALE)
 
     if (i18n.locale.value !== localeToApply) {
