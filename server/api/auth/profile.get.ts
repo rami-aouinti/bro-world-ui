@@ -1,17 +1,15 @@
 import type { SessionResponse, UserProfile } from '../../../app/types/api/user'
-import { applySessionCookie, refreshSession, requireSession } from '../../../server/utils/session'
+import { requireAuthCookie, setAuthCookie } from '../../../server/utils/authCookie'
 
 export default defineEventHandler(async (event): Promise<SessionResponse> => {
-  const { sessionId, session } = await requireSession(event)
-  const nextSession = await refreshSession(sessionId, session)
-
-  applySessionCookie(event, sessionId, nextSession)
+  const authCookie = requireAuthCookie(event)
+  const nextAuthCookie = setAuthCookie(event, authCookie)
 
   return {
     authenticated: true,
-    profile: nextSession.profile as UserProfile | null,
-    roles: nextSession.roles,
-    locale: nextSession.locale,
-    expiresAt: nextSession.expiresAt,
+    profile: nextAuthCookie.profile as UserProfile | null,
+    roles: nextAuthCookie.roles,
+    locale: nextAuthCookie.locale,
+    expiresAt: nextAuthCookie.expiresAt,
   }
 })

@@ -1,13 +1,7 @@
-import { clearSession, clearSessionCookie, readSessionFromEvent } from '../../../server/utils/session'
+import { clearAuthCookie } from '../../../server/utils/authCookie'
 
 export default defineEventHandler(async (event) => {
-  const sessionContext = await readSessionFromEvent(event)
-
-  if (sessionContext) {
-    await clearSession(sessionContext.sessionId)
-  }
-
-  clearSessionCookie(event)
+  clearAuthCookie(event)
 
   return {
     success: true,
