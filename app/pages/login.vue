@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import UiPageSection from '~/components/ui/UiPageSection.vue'
+import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
+import UiStateAlert from '~/components/ui/state/UiStateAlert.vue'
 import { ref } from 'vue'
 
 definePageMeta({

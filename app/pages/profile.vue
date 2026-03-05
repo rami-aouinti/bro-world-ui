@@ -1,4 +1,11 @@
 <script setup lang="ts">
+import UiAvatar from '~/components/ui/UiAvatar.vue'
+import UiCard from '~/components/ui/UiCard.vue'
+import UiPageSection from '~/components/ui/UiPageSection.vue'
+import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
+import UiEmptyState from '~/components/ui/state/UiEmptyState.vue'
+import UiLoadingState from '~/components/ui/state/UiLoadingState.vue'
+import UiStateAlert from '~/components/ui/state/UiStateAlert.vue'
 import { computed, onMounted, ref } from 'vue'
 
 definePageMeta({
