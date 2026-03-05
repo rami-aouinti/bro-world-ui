@@ -93,7 +93,11 @@ const shouldUseSecureCookie = (event: H3Event, configuredSecure: boolean) => {
     return forwardedProto.split(',')[0]?.trim().toLowerCase() === 'https'
   }
 
-  return true
+  const protocol = getRequestProtocol(event, {
+    xForwardedProto: false,
+  })
+
+  return protocol === 'https'
 }
 
 export const setAuthCookie = (event: H3Event, payload: AuthCookiePayload) => {
