@@ -1,4 +1,4 @@
-import { requireAuthCookie, setAuthCookie } from '../../../server/utils/authCookie'
+import { requireAuthCookie, setAuthCookie } from '~~/server/utils/authCookie'
 
 const PUBLIC_BACKEND_PATHS = new Set([
   '/api/health',

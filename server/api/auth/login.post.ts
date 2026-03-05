@@ -1,6 +1,6 @@
 import type { LoginPayload, TokenResponse } from '../../../app/types/api/common'
 import type { SessionResponse, UserProfile } from '../../../app/types/api/user'
-import { setAuthCookie } from '../../../server/utils/authCookie'
+import { setAuthCookie } from '#server/utils/authCookie'
 
 
 function normalizeBearerToken(rawToken: string | undefined) {
