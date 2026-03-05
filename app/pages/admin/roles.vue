@@ -13,16 +13,15 @@ definePageMeta({
 
 const rolesApi = useRolesApi()
 const loading = ref(false)
-const submitting = ref(false)
 const errorMessage = ref('')
 const roles = ref<Role[]>([])
 const search = ref('')
+const rolesCount = ref<number | null>(null)
 
-const formDialog = ref(false)
 const showDialog = ref(false)
-const formMode = ref<'create' | 'edit' | 'patch'>('create')
 const selectedRole = ref<Role | null>(null)
-const form = reactive({ id: '', description: '' })
+const selectedRoleInherited = ref<string[]>([])
+const loadingRoleDetails = ref(false)
 
 const headers = [
   { title: 'Identifiant', key: 'id', sortable: true },
@@ -30,15 +29,18 @@ const headers = [
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
-const formTitle = computed(() => (formMode.value === 'create' ? 'Créer un rôle' : formMode.value === 'edit' ? 'Éditer un rôle' : 'Patch rôle'))
-
 const fetchRoles = async () => {
   loading.value = true
   errorMessage.value = ''
 
   try {
-    const response = await rolesApi.list({ limit: 200 })
-    roles.value = Array.isArray(response) ? response : (response.results ?? [])
+    const [listResponse, countResponse] = await Promise.all([
+      rolesApi.list({ limit: 200 }),
+      rolesApi.count(),
+    ])
+
+    roles.value = Array.isArray(listResponse) ? listResponse : (listResponse.results ?? [])
+    rolesCount.value = countResponse.count
   }
   catch {
     errorMessage.value = 'Impossible de charger les rôles depuis /api/v1/role.'
@@ -49,51 +51,24 @@ const fetchRoles = async () => {
 }
 
 const showEntity = async (id: string) => {
-  selectedRole.value = await rolesApi.getById(id)
-  showDialog.value = true
-}
+  loadingRoleDetails.value = true
 
-const openCreateDialog = () => {
-  formMode.value = 'create'
-  Object.assign(form, { id: '', description: '' })
-  formDialog.value = true
-}
-
-const openEditDialog = (role: Role, patch = false) => {
-  selectedRole.value = role
-  formMode.value = patch ? 'patch' : 'edit'
-  Object.assign(form, { id: role.id, description: role.description ?? '' })
-  formDialog.value = true
-}
-
-const submitForm = async () => {
-  submitting.value = true
   try {
-    if (formMode.value === 'create') {
-      await rolesApi.create({ id: form.id, description: form.description || undefined })
-    }
-    else if (formMode.value === 'edit' && selectedRole.value) {
-      await rolesApi.update(selectedRole.value.id, { id: form.id, description: form.description || undefined })
-    }
-    else if (formMode.value === 'patch' && selectedRole.value) {
-      await rolesApi.patch(selectedRole.value.id, { id: form.id, description: form.description || undefined })
-    }
+    const [role, inherited] = await Promise.all([
+      rolesApi.getById(id),
+      rolesApi.inherited(id),
+    ])
 
-    formDialog.value = false
-    await fetchRoles()
+    selectedRole.value = role
+    selectedRoleInherited.value = inherited
+    showDialog.value = true
+  }
+  catch {
+    errorMessage.value = `Impossible de charger les détails du rôle ${id}.`
   }
   finally {
-    submitting.value = false
+    loadingRoleDetails.value = false
   }
-}
-
-const deleteEntity = async (id: string) => {
-  if (!window.confirm(`Supprimer le rôle ${id} ?`)) {
-    return
-  }
-
-  await rolesApi.delete(id)
-  await fetchRoles()
 }
 
 await fetchRoles()
@@ -117,13 +92,6 @@ await fetchRoles()
         />
 
         <v-btn
-          icon="mdi-plus"
-          color="primary"
-          :aria-label="'Créer'"
-          @click="openCreateDialog"
-        />
-
-        <v-btn
           icon="mdi-refresh"
           color="primary"
           variant="outlined"
@@ -137,7 +105,7 @@ await fetchRoles()
     <template #header>
       <UiSectionHeader
         title="Gestion des rôles"
-        subtitle="Données chargées depuis /api/v1/role"
+        :subtitle="`Données en lecture seule depuis /api/v1/role${rolesCount !== null ? ` • ${rolesCount} rôles` : ''}`"
       />
     </template>
 
@@ -161,33 +129,29 @@ await fetchRoles()
 
         <template #item.actions="{ item }">
           <div class="d-flex flex-nowrap ga-1 py-1">
-            <v-btn size="x-small" variant="tonal" icon="mdi-eye" :aria-label="`Show ${item.id}`" @click="showEntity(item.id)" />
-            <v-btn size="x-small" variant="tonal" color="warning" icon="mdi-file-edit-outline" :aria-label="`Patch ${item.id}`" @click="openEditDialog(item, true)" />
-            <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="`Delete ${item.id}`" @click="deleteEntity(item.id)" />
+            <v-btn size="x-small" variant="tonal" icon="mdi-eye" :loading="loadingRoleDetails" :aria-label="`Voir ${item.id}`" @click="showEntity(item.id)" />
           </div>
         </template>
       </UiDataTable>
     </v-card>
 
-    <v-dialog v-model="formDialog" max-width="560" persistent>
-      <v-card rounded="xl">
-        <v-card-title>{{ formTitle }}</v-card-title>
-        <v-card-text>
-          <v-text-field v-model="form.id" label="ID rôle" :disabled="formMode === 'patch'" class="mb-2" />
-          <v-text-field v-model="form.description" label="Description" />
-        </v-card-text>
-        <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="formDialog = false">Annuler</v-btn>
-          <v-btn color="primary" :loading="submitting" @click="submitForm">Enregistrer</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
     <v-dialog v-model="showDialog" max-width="700">
       <v-card rounded="xl">
         <v-card-title>Détails rôle</v-card-title>
         <v-card-text>
-          <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selectedRole, null, 2) }}</pre>
+          <pre class="text-body-2 mb-4" style="white-space: pre-wrap;">{{ JSON.stringify(selectedRole, null, 2) }}</pre>
+
+          <div class="text-subtitle-2 mb-2">Rôles hérités</div>
+          <div class="d-flex flex-wrap ga-2">
+            <v-chip
+              v-for="role in selectedRoleInherited"
+              :key="role"
+              size="small"
+            >
+              {{ role }}
+            </v-chip>
+            <span v-if="!selectedRoleInherited.length" class="text-body-2">Aucun rôle hérité.</span>
+          </div>
         </v-card-text>
       </v-card>
     </v-dialog>
