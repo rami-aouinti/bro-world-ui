@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import UiCard from '~/components/ui/UiCard.vue'
 
 interface Props {
   maxWidth?: string | number
