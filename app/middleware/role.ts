@@ -1,18 +1,25 @@
-const normalizeRequiredRoles = (roles: unknown): string[] => {
-  if (!roles) {
+import { isKnownPermission } from '~/constants/permissions'
+
+const normalizeRequiredPermissions = (permissions: unknown) => {
+  if (!permissions) {
     return []
   }
 
-  return Array.isArray(roles) ? roles : [roles]
+  const rawPermissions = Array.isArray(permissions) ? permissions : [permissions]
+
+  return rawPermissions
+    .filter((permission): permission is string => typeof permission === 'string')
+    .filter(isKnownPermission)
 }
 
 export default defineNuxtRouteMiddleware(async (to) => {
   const { initSession, isAuthenticated } = useAuth()
   const authSession = useAuthSessionStore()
+  const { canPermission } = useAccessControl()
 
   await initSession()
 
-  const requiredRoles = normalizeRequiredRoles(to.meta.requiredRoles)
+  const requiredPermissions = normalizeRequiredPermissions(to.meta.requiredPermissions)
 
   if (!isAuthenticated.value) {
     return navigateTo({
@@ -21,11 +28,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
     })
   }
 
-  if (requiredRoles.length === 0) {
+  if (requiredPermissions.length === 0) {
     return
   }
 
-  const hasAccess = requiredRoles.some(role => authSession.roles.includes(role))
+  const hasAccess = requiredPermissions.some(permission => canPermission(permission, { userId: authSession.profile?.id }))
 
   if (!hasAccess) {
     return navigateTo('/profile')
