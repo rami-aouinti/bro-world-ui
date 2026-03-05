@@ -1,5 +1,5 @@
 import { computed } from 'vue'
-import { BUSINESS_PERMISSIONS } from '~/constants/permissions'
+import { BUSINESS_PERMISSIONS, isKnownPermission } from '~/constants/permissions'
 
 import type { BusinessPermission, PermissionContext } from '~/constants/permissions'
 import type { UUID } from '~/types/api/common'
@@ -46,8 +46,12 @@ export const useAccessControl = () => {
     return authSession.profile.id === userId
   }
 
-  const canPermission = (permission: BusinessPermission, context?: PermissionContext) => {
+  const canPermission = (permission: string, context?: PermissionContext) => {
     if (!isAuthenticated.value) {
+      return false
+    }
+
+    if (!isKnownPermission(permission)) {
       return false
     }
 
