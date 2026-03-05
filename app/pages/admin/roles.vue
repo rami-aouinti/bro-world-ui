@@ -70,6 +70,12 @@ await fetchRoles()
       <template #item.actions="{ item }">
         <v-btn size="x-small" variant="tonal" :loading="actionLoading" @click="openShowDialog(item.id)">Show</v-btn>
       </template>
+
+      <template #item.actions="{ item }">
+        <v-btn size="x-small" variant="tonal" @click="showEntity(item.id)">
+          Show
+        </v-btn>
+      </template>
     </UiDataTable>
 
     <v-dialog v-model="showDialog" max-width="600">

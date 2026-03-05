@@ -48,5 +48,23 @@
   },
   "$vuetify": {
     "badge": "Badge"
+  },
+  "errorPage": {
+    "badge": "Erreur",
+    "notFound": {
+      "title": "Page introuvable",
+      "subtitle": "Oups… cette adresse n'existe pas (ou plus).",
+      "description": "Vérifiez l’URL ou retournez à l’accueil pour continuer votre visite de Bro World."
+    },
+    "generic": {
+      "title": "Une erreur est survenue",
+      "subtitle": "Notre équipe a été notifiée automatiquement.",
+      "description": "Veuillez réessayer dans quelques instants."
+    },
+    "actions": {
+      "home": "Retour à l'accueil",
+      "back": "Page précédente"
+    },
+    "localeHint": "Langue active : {locale}"
   }
 }

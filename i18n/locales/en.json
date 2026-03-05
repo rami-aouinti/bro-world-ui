@@ -68,5 +68,23 @@
       }
     },
     "badge": "Badge"
+  },
+  "errorPage": {
+    "badge": "Error",
+    "notFound": {
+      "title": "Page not found",
+      "subtitle": "Oops… this address does not exist (or no longer does).",
+      "description": "Check the URL or return to the homepage to continue exploring Bro World."
+    },
+    "generic": {
+      "title": "Something went wrong",
+      "subtitle": "Our team has been notified automatically.",
+      "description": "Please try again in a few moments."
+    },
+    "actions": {
+      "home": "Back to home",
+      "back": "Previous page"
+    },
+    "localeHint": "Active language: {locale}"
   }
 }

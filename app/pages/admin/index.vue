@@ -4,6 +4,7 @@ import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 
 definePageMeta({
+  layout: 'admin',
   middleware: ['role'],
   requiredPermissions: ['admin.access'],
 })

@@ -15,8 +15,15 @@ export const useAuth = () => {
   const authFetch = <T>(url: string, options: Parameters<typeof $fetch<T>>[1] = {}) => {
     if (import.meta.server) {
       const requestFetch = useRequestFetch()
+      const requestHeaders = useRequestHeaders(['cookie'])
 
-      return requestFetch<T>(url, options)
+      return requestFetch<T>(url, {
+        ...options,
+        headers: {
+          ...requestHeaders,
+          ...(options.headers || {}),
+        },
+      })
     }
 
     return $fetch<T>(url, options)
