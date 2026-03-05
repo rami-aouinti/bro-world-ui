@@ -196,11 +196,10 @@ await fetchApiKeys()
         </template>
 
         <template #item.actions="{ item }">
-          <div class="d-flex flex-wrap ga-1 py-1">
-            <v-btn size="small" variant="tonal" rounded="pill" @click="showEntity(item.id)">Show</v-btn>
-            <v-btn size="small" variant="tonal" rounded="pill" color="info" @click="openEditDialog(item)">Edit</v-btn>
-            <v-btn size="small" variant="tonal" rounded="pill" color="warning" @click="openEditDialog(item, true)">Patch</v-btn>
-            <v-btn size="small" variant="tonal" rounded="pill" color="error" @click="deleteEntity(item.id)">Delete</v-btn>
+          <div class="d-flex flex-nowrap ga-1 py-1">
+            <v-btn size="x-small" variant="tonal" icon="mdi-eye" :aria-label="`Show ${item.id}`" @click="showEntity(item.id)" />
+            <v-btn size="x-small" variant="tonal" color="warning" icon="mdi-file-edit-outline" :aria-label="`Patch ${item.id}`" @click="openEditDialog(item, true)" />
+            <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="`Delete ${item.id}`" @click="deleteEntity(item.id)" />
           </div>
         </template>
       </UiDataTable>
