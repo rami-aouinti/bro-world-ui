@@ -22,7 +22,9 @@
     "load": "Charger le profil",
     "logout": "Déconnexion",
     "notAuthenticated": "Vous n'êtes pas connecté. Passez par la page de connexion.",
-    "tokenHint": "Le token de session sera automatiquement utilisé dans l'en-tête <code>Authorization: Bearer ...</code> pour appeler l'API profil."
+    "tokenHint": "Le token de session sera automatiquement utilisé dans l'en-tête",
+    "tokenHeader": "Authorization: Bearer ...",
+    "tokenHintSuffix": "pour appeler l'API profil."
   },
   "errors": {
     "auth": {

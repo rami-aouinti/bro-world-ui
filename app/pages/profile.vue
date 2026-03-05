@@ -105,7 +105,9 @@ const signOut = async () => {
         v-else
         class="text-body-2 text-medium-emphasis"
       >
-        <span v-html="t('profile.tokenHint')" />
+        {{ t('profile.tokenHint') }}
+        <code>{{ t('profile.tokenHeader') }}</code>
+        {{ t('profile.tokenHintSuffix') }}
       </p>
     </v-card>
   </v-container>

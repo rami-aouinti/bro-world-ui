@@ -22,7 +22,9 @@
     "load": "Load profile",
     "logout": "Logout",
     "notAuthenticated": "You are not signed in. Please use the login page.",
-    "tokenHint": "The session token is automatically sent in the <code>Authorization: Bearer ...</code> header when calling the profile API."
+    "tokenHint": "The session token is automatically sent in the",
+    "tokenHeader": "Authorization: Bearer ...",
+    "tokenHintSuffix": "header when calling the profile API."
   },
   "errors": {
     "auth": {
