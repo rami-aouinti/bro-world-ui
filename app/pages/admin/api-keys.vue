@@ -246,15 +246,6 @@ await fetchApiKeys()
           <v-btn size="x-small" variant="tonal" color="error" @click="openDeleteDialog(item)">Delete</v-btn>
         </div>
       </template>
-
-      <template #item.actions="{ item }">
-        <div class="d-flex flex-wrap ga-1 py-1">
-          <v-btn size="x-small" variant="tonal" @click="showEntity(item.id)">Show</v-btn>
-          <v-btn size="x-small" variant="tonal" color="info" @click="updateEntity(item.id)">Edit</v-btn>
-          <v-btn size="x-small" variant="tonal" color="warning" @click="patchEntity(item.id)">Patch</v-btn>
-          <v-btn size="x-small" variant="tonal" color="error" @click="deleteEntity(item.id)">Delete</v-btn>
-        </div>
-      </template>
     </UiDataTable>
 
     <v-dialog v-model="createDialog" max-width="600">

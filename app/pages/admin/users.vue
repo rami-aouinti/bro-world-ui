@@ -234,14 +234,6 @@ await fetchUsers()
         </div>
       </template>
 
-      <template #item.actions="{ item }">
-        <div class="d-flex flex-wrap ga-1 py-1">
-          <v-btn size="x-small" variant="tonal" @click="showEntity(item.id)">Show</v-btn>
-          <v-btn size="x-small" variant="tonal" color="info" @click="updateEntity(item.id)">Edit</v-btn>
-          <v-btn size="x-small" variant="tonal" color="warning" @click="patchEntity(item.id)">Patch</v-btn>
-          <v-btn size="x-small" variant="tonal" color="error" @click="deleteEntity(item.id)">Delete</v-btn>
-        </div>
-      </template>
     </UiDataTable>
 
     <v-dialog v-model="createDialog" max-width="700"><v-card title="Créer un utilisateur"><v-card-text><v-alert v-if="dialogError" type="error" variant="tonal" class="mb-4">{{ dialogError }}</v-alert><v-text-field v-model="createForm.username" label="Username"/><v-text-field v-model="createForm.firstName" label="Prénom"/><v-text-field v-model="createForm.lastName" label="Nom"/><v-text-field v-model="createForm.email" label="Email"/><v-text-field v-model="createForm.timezone" label="Timezone"/><v-text-field v-model="createForm.roles" label="Rôles (IDs séparés par virgule)"/><v-text-field v-model="createForm.userGroups" label="Groupes (IDs séparés par virgule)"/></v-card-text><v-card-actions><v-spacer/><v-btn variant="text" @click="createDialog = false">Annuler</v-btn><v-btn color="primary" :loading="actionLoading" @click="submitCreate">Créer</v-btn></v-card-actions></v-card></v-dialog>
