@@ -26,7 +26,7 @@ const fetchRoles = async () => {
 
   try {
     const response = await rolesApi.list({ limit: 200 })
-    roles.value = response.results
+    roles.value = Array.isArray(response) ? response : (response.results ?? [])
   }
   catch {
     errorMessage.value = 'Impossible de charger les rôles depuis /api/v1/role.'
