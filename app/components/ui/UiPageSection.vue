@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+
 interface Props {
   maxWidth?: string | number
   title?: string
@@ -18,16 +20,32 @@ const props = withDefaults(defineProps<Props>(), {
   rounded: 'xl',
   padding: 'pa-6',
 })
+
+const cardPaddingClass = computed(() => (props.padding === 'pa-6' ? undefined : props.padding))
 </script>
 
 <template>
   <v-container class="py-10" :max-width="props.maxWidth">
-    <component
-      :is="props.card ? 'v-card' : 'div'"
-      :class="props.padding"
-      :rounded="props.card ? props.rounded : undefined"
-      :elevation="props.card ? props.elevation : undefined"
+    <UiCard
+      v-if="props.card"
+      :title="props.title"
+      :subtitle="props.subtitle"
+      :rounded="props.rounded"
+      :elevation="props.elevation"
+      :class="cardPaddingClass"
     >
+      <template v-if="$slots.header" #header>
+        <slot name="header" />
+      </template>
+
+      <template v-if="$slots.actions" #actions>
+        <slot name="actions" />
+      </template>
+
+      <slot />
+    </UiCard>
+
+    <div v-else :class="props.padding">
       <slot name="header">
         <div
           v-if="props.title || props.subtitle || $slots.actions"
@@ -47,6 +65,6 @@ const props = withDefaults(defineProps<Props>(), {
       </slot>
 
       <slot />
-    </component>
+    </div>
   </v-container>
 </template>

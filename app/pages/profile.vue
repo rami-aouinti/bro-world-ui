@@ -90,14 +90,14 @@ const signOut = async () => {
       {{ errorMessage }}
     </v-alert>
 
-    <v-card
+    <UiCard
       v-if="authSession.profile"
       variant="tonal"
       rounded="lg"
-      class="pa-4"
+      compact
     >
       <pre class="text-body-2">{{ authSession.profile }}</pre>
-    </v-card>
+    </UiCard>
 
     <p
       v-else
