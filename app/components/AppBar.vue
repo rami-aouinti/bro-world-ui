@@ -3,16 +3,18 @@ import { computed } from 'vue'
 import { useDisplay } from 'vuetify'
 
 interface NavItem {
-  label: string
+  key: string
   to: string
 }
 
-const siteName = 'Bro World'
+const { t } = useI18n()
+
+const siteName = computed(() => t('app.name'))
 
 const navItems: NavItem[] = [
-  { label: 'Accueil', to: '/' },
-  { label: 'Connexion', to: '/login' },
-  { label: 'Profil', to: '/profile' },
+  { key: 'app.navigation.home', to: '/' },
+  { key: 'app.navigation.login', to: '/login' },
+  { key: 'app.navigation.profile', to: '/profile' },
 ]
 
 const { mdAndUp } = useDisplay()
@@ -42,7 +44,7 @@ const isDesktop = computed(() => mdAndUp.value)
         variant="text"
         class="text-none"
       >
-        {{ item.label }}
+        {{ t(item.key) }}
       </v-btn>
     </div>
 
@@ -55,7 +57,7 @@ const isDesktop = computed(() => mdAndUp.value)
           icon="mdi-menu"
           variant="text"
           v-bind="props"
-          aria-label="Ouvrir le menu"
+          :aria-label="t('app.navigation.openMenu')"
         />
       </template>
 
@@ -64,7 +66,7 @@ const isDesktop = computed(() => mdAndUp.value)
           v-for="item in navItems"
           :key="item.to"
           :to="item.to"
-          :title="item.label"
+          :title="t(item.key)"
           rounded="lg"
           class="mx-2 my-1"
         />
