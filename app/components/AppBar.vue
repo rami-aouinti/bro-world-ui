@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import UiAvatar from '~/components/ui/UiAvatar.vue'
 import { computed } from 'vue'
 import { useDisplay } from 'vuetify'
 

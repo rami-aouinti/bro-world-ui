@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import UiDataTable from '~/components/ui/UiDataTable.vue'
+import UiPageSection from '~/components/ui/UiPageSection.vue'
+import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 definePageMeta({
   middleware: ['role'],
   requiredPermissions: ['admin.access'],
