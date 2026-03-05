@@ -34,7 +34,7 @@ export const useAuth = () => {
 
   const applySessionState = async (session: SessionResponse) => {
     token.value = session.authenticated ? '__server_session__' : null
-    authSession.setSession({
+    authSession.setUserSession({
       token: token.value,
       profile: session.profile,
     })

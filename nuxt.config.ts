@@ -24,7 +24,9 @@ export default defineNuxtConfig({
     session: {
       ttlSeconds: Number(process.env.SESSION_TTL_SECONDS || ONE_YEAR_IN_SECONDS),
       cookieName: process.env.SESSION_COOKIE_NAME || 'session_id',
-      cookieSecure: process.env.SESSION_COOKIE_SECURE !== 'false',
+      cookieSecure: process.env.SESSION_COOKIE_SECURE
+        ? process.env.SESSION_COOKIE_SECURE !== 'false'
+        : process.env.NODE_ENV === 'production',
       cookieSameSite: (process.env.SESSION_COOKIE_SAME_SITE || 'lax') as 'lax' | 'strict',
     },
     public: {
