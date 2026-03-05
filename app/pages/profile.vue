@@ -48,67 +48,64 @@ const signOut = async () => {
 </script>
 
 <template>
-  <v-container class="py-10" max-width="840">
-    <v-card class="pa-6" rounded="xl" elevation="2">
-      <div class="d-flex align-center justify-space-between ga-3 mb-4 flex-wrap">
-        <h1 class="text-h5 font-weight-bold">{{ t('profile.title') }}</h1>
-
-        <div class="d-flex ga-2">
-          <v-btn
-            v-if="can(['ROLE_USER', 'ROLE_ADMIN'])"
-            variant="outlined"
-            :disabled="!isAuthenticated"
-            @click="signOut"
-          >
-            {{ t('profile.logout') }}
-          </v-btn>
-        </div>
-      </div>
-
-      <v-alert
-        v-if="!isAuthenticated"
-        type="warning"
-        variant="tonal"
-        class="mb-4"
+  <UiPageSection
+    max-width="840"
+    :title="t('profile.title')"
+  >
+    <template #actions>
+      <v-btn
+        v-if="can(['ROLE_USER', 'ROLE_ADMIN'])"
+        variant="outlined"
+        :disabled="!isAuthenticated"
+        @click="signOut"
       >
-        {{ t('profile.notAuthenticated') }}
-      </v-alert>
+        {{ t('profile.logout') }}
+      </v-btn>
+    </template>
 
-      <v-alert
-        v-else-if="loading"
-        type="info"
-        variant="tonal"
-        class="mb-4"
-      >
-        {{ t('profile.load') }}...
-      </v-alert>
+    <v-alert
+      v-if="!isAuthenticated"
+      type="warning"
+      variant="tonal"
+      class="mb-4"
+    >
+      {{ t('profile.notAuthenticated') }}
+    </v-alert>
 
-      <v-alert
-        v-if="errorMessage"
-        type="error"
-        variant="tonal"
-        class="mb-4"
-      >
-        {{ errorMessage }}
-      </v-alert>
+    <v-alert
+      v-else-if="loading"
+      type="info"
+      variant="tonal"
+      class="mb-4"
+    >
+      {{ t('profile.load') }}...
+    </v-alert>
 
-      <v-card
-        v-if="authSession.profile"
-        variant="tonal"
-        rounded="lg"
-        class="pa-4"
-      >
-        <pre class="text-body-2">{{ authSession.profile }}</pre>
-      </v-card>
+    <v-alert
+      v-if="errorMessage"
+      type="error"
+      variant="tonal"
+      class="mb-4"
+    >
+      {{ errorMessage }}
+    </v-alert>
 
-      <p
-        v-else
-        class="text-body-2 text-medium-emphasis"
-      >
-        {{ t('profile.tokenHint') }}
-        <code>{{ t('profile.tokenHeader') }}</code>
-        {{ t('profile.tokenHintSuffix') }}
-      </p>
+    <v-card
+      v-if="authSession.profile"
+      variant="tonal"
+      rounded="lg"
+      class="pa-4"
+    >
+      <pre class="text-body-2">{{ authSession.profile }}</pre>
     </v-card>
-  </v-container>
+
+    <p
+      v-else
+      class="text-body-2 text-medium-emphasis"
+    >
+      {{ t('profile.tokenHint') }}
+      <code>{{ t('profile.tokenHeader') }}</code>
+      {{ t('profile.tokenHintSuffix') }}
+    </p>
+  </UiPageSection>
 </template>
