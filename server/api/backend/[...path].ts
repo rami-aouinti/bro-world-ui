@@ -1,4 +1,4 @@
-import { applySessionCookie, refreshSession, requireSession } from '../../../server/utils/session'
+import { requireAuthCookie, setAuthCookie } from '../../../server/utils/authCookie'
 
 const PUBLIC_BACKEND_PATHS = new Set([
   '/api/health',
@@ -41,17 +41,12 @@ export default defineEventHandler(async (event) => {
   const targetPath = `/${path}`
   const isPublicRoute = PUBLIC_BACKEND_PATHS.has(targetPath)
 
-  let sessionId: string | undefined
   let bearerToken: string | undefined
-  let refreshedSession: Awaited<ReturnType<typeof refreshSession>> | undefined
+  let authCookiePayload: ReturnType<typeof requireAuthCookie> | undefined
 
   if (!isPublicRoute) {
-    const { sessionId: currentSessionId, session } = await requireSession(event)
-    const nextSession = await refreshSession(currentSessionId, session)
-
-    sessionId = currentSessionId
-    refreshedSession = nextSession
-    bearerToken = nextSession.token
+    authCookiePayload = requireAuthCookie(event)
+    bearerToken = authCookiePayload.token
   }
 
   const method = getMethod(event)
@@ -72,8 +67,8 @@ export default defineEventHandler(async (event) => {
       headers,
     })
 
-    if (sessionId && refreshedSession) {
-      applySessionCookie(event, sessionId, refreshedSession)
+    if (authCookiePayload) {
+      setAuthCookie(event, authCookiePayload)
     }
 
     return response

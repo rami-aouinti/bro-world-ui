@@ -1,28 +1,7 @@
-import type { H3Event } from 'h3'
 import type { LoginPayload, TokenResponse } from '../../../app/types/api/common'
 import type { SessionResponse, UserProfile } from '../../../app/types/api/user'
-import { setUserSession } from '../../../server/utils/session'
+import { setAuthCookie } from '../../../server/utils/authCookie'
 
-
-function clearLegacyClientCookie(event: H3Event, secure: boolean) {
-  deleteCookie(event, 'auth_token', {
-    path: '/',
-    sameSite: 'lax',
-    secure,
-    maxAge: 0,
-  })
-}
-
-function isSecureCookie(event: H3Event) {
-  const forwardedProto = getHeader(event, 'x-forwarded-proto')
-
-  if (forwardedProto) {
-    return forwardedProto.split(',')[0]?.trim().toLowerCase() === 'https'
-  }
-
-  const host = getHeader(event, 'host') ?? ''
-  return !host.includes('localhost') && !host.includes('127.0.0.1')
-}
 
 function normalizeBearerToken(rawToken: string | undefined) {
   if (!rawToken) {
@@ -58,20 +37,11 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
   })
 
   const token = normalizeBearerToken(authResponse?.token)
-  const secure = isSecureCookie(event)
-
-  if (token) {
-    setCookie(event, 'auth_token', encodeURIComponent(token), {
-      path: '/',
-      httpOnly: true,
-      secure,
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 8,
+  if (!token) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Invalid authentication token',
     })
-
-  }
-  else {
-    clearLegacyClientCookie(event, secure)
   }
 
   const profile = await $fetch<UserProfile>('/api/v1/profile', {
@@ -79,14 +49,14 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
     baseURL: config.public.apiBase,
     headers: {
       accept: 'application/json',
-      Authorization: `Bearer ${authResponse.token}`,
+      Authorization: `Bearer ${token}`,
     },
   })
 
   const sessionProfile = buildSessionProfile(profile)
 
-  const session = await setUserSession(event, {
-    token: authResponse.token,
+  const authCookie = setAuthCookie(event, {
+    token,
     profile: sessionProfile,
     roles: profile.roles ?? [],
     locale: profile.locale || profile.language || 'en',
@@ -94,9 +64,9 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
 
   return {
     authenticated: true,
-    profile: session.profile as UserProfile,
-    roles: session.roles,
-    locale: session.locale,
-    expiresAt: session.expiresAt,
+    profile: authCookie.profile as UserProfile,
+    roles: authCookie.roles,
+    locale: authCookie.locale,
+    expiresAt: authCookie.expiresAt,
   }
 })
