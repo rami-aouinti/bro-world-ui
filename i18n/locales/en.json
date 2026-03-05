@@ -45,5 +45,8 @@
   "admin": {
     "title": "Administration area",
     "description": "This page is restricted to users with the administrator role."
+  },
+  "vuetify": {
+    "badge": "Badge"
   }
 }
