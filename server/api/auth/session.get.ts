@@ -1,7 +1,7 @@
-import type { UserProfile } from '../../../app/stores/authSession'
+import type { SessionResponse, UserProfile } from '../../../app/types/api/user'
 import { applySessionCookie, refreshSession, readSessionFromEvent } from '../../../server/utils/session'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<SessionResponse> => {
   const sessionContext = await readSessionFromEvent(event)
 
   if (!sessionContext) {

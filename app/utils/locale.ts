@@ -1,4 +1,4 @@
-import type { UserProfile } from '~/stores/authSession'
+import type { UserProfile } from '~/types/api/user'
 
 export const FALLBACK_LOCALE = 'en'
 
