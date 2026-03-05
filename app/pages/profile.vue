@@ -73,17 +73,20 @@ const signOut = async () => {
 <template>
   <UiPageSection
     max-width="840"
-    :title="t('profile.title')"
   >
-    <template #actions>
-      <v-btn
-        v-if="canPermission('profile.logout')"
-        variant="outlined"
-        :disabled="!isAuthenticated"
-        @click="signOut"
-      >
-        {{ t('profile.logout') }}
-      </v-btn>
+    <template #header>
+      <UiSectionHeader :title="t('profile.title')">
+        <template #actions>
+          <v-btn
+            v-if="canPermission('profile.logout')"
+            variant="outlined"
+            :disabled="!isAuthenticated"
+            @click="signOut"
+          >
+            {{ t('profile.logout') }}
+          </v-btn>
+        </template>
+      </UiSectionHeader>
     </template>
 
     <div class="d-flex align-center ga-3 mb-4">

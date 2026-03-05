@@ -62,9 +62,14 @@ const submit = async () => {
 <template>
   <UiPageSection
     max-width="520"
-    :title="t('login.title')"
-    :subtitle="t('login.description')"
   >
+    <template #header>
+      <UiSectionHeader
+        :title="t('login.title')"
+        :subtitle="t('login.description')"
+        dense
+      />
+    </template>
     <UiStateAlert
       v-if="errorMessage"
       type="error"
