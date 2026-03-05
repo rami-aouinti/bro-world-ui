@@ -3,8 +3,8 @@ import UiAvatar from '~/components/ui/UiAvatar.vue'
 import UiCard from '~/components/ui/UiCard.vue'
 import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
-import UiEmptyState from '~/components/ui/state/UiEmptyState.vue'
-import UiLoadingState from '~/components/ui/state/UiLoadingState.vue'
+import UiStateEmptyState from '~/components/ui/state/UiEmptyState.vue'
+import UiStateLoadingState from '~/components/ui/state/UiLoadingState.vue'
 import UiStateAlert from '~/components/ui/state/UiStateAlert.vue'
 import { computed, onMounted, ref } from 'vue'
 
@@ -123,7 +123,7 @@ const signOut = async () => {
       variant="tonal"
       class="mb-4"
     >
-      <UiLoadingState
+      <UiStateLoadingState
         :message="`${t('profile.load')}...`"
         mode="spinner"
       />
@@ -146,7 +146,7 @@ const signOut = async () => {
       <pre class="text-body-2">{{ authSession.profile }}</pre>
     </UiCard>
 
-    <UiEmptyState
+    <UiStateEmptyState
       v-else
       :title="t('profile.tokenHeader')"
       :description="emptyProfileDescription"
