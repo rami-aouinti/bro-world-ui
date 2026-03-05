@@ -12,6 +12,16 @@ export const useAuth = () => {
   const token = useState<string | null>('auth-token', () => null)
   const initialized = useState<boolean>('auth-session-initialized', () => false)
 
+  const authFetch = <T>(url: string, options: Parameters<typeof $fetch<T>>[1] = {}) => {
+    if (import.meta.server) {
+      const requestFetch = useRequestFetch()
+
+      return requestFetch<T>(url, options)
+    }
+
+    return $fetch<T>(url, options)
+  }
+
   const applyLocalePreference = async (preferredLocale: unknown) => {
     const i18n = nuxtApp.$i18n
     const availableLocales = normalizeLocaleCodes(i18n.localeCodes)
@@ -42,7 +52,7 @@ export const useAuth = () => {
     }
 
     try {
-      const session = await $fetch<SessionResponse>('/api/auth/session', {
+      const session = await authFetch<SessionResponse>('/api/auth/session', {
         method: 'GET',
       })
       await applySessionState(session)
@@ -63,7 +73,7 @@ export const useAuth = () => {
       password,
     }
 
-    const response = await $fetch<SessionResponse>('/api/auth/login', {
+    const response = await authFetch<SessionResponse>('/api/auth/login', {
       method: 'POST',
       body: payload,
     })
@@ -75,7 +85,7 @@ export const useAuth = () => {
   }
 
   const fetchProfile = async () => {
-    const response = await $fetch<SessionResponse>('/api/auth/profile', {
+    const response = await authFetch<SessionResponse>('/api/auth/profile', {
       method: 'GET',
     })
 
@@ -85,7 +95,7 @@ export const useAuth = () => {
   }
 
   const logout = async () => {
-    await $fetch('/api/auth/logout', { method: 'POST' })
+    await authFetch('/api/auth/logout', { method: 'POST' })
     initialized.value = true
     await applySessionState({ authenticated: false, profile: null, roles: [], locale: null })
   }
