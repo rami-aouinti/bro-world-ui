@@ -44,7 +44,7 @@ const fetchApiKeys = async () => {
 
   try {
     const response = await apiKeysApi.v1.list({ limit: 200 })
-    apiKeys.value = response.results
+    apiKeys.value = Array.isArray(response) ? response : (response.results ?? [])
   }
   catch {
     errorMessage.value = 'Impossible de charger les clés API depuis /api/v1/api_key.'

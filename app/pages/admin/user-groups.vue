@@ -34,7 +34,7 @@ const fetchUserGroups = async () => {
 
   try {
     const response = await userGroupsApi.list({ limit: 200 })
-    userGroups.value = response.results
+    userGroups.value = Array.isArray(response) ? response : (response.results ?? [])
   }
   catch {
     errorMessage.value = 'Impossible de charger les groupes depuis /api/v1/user_group.'
