@@ -1,3 +1,5 @@
+import type { H3Event } from 'h3'
+
 export interface StoredAuthCookie {
   token: string
   profile: Record<string, unknown> | null
@@ -47,14 +49,14 @@ const getAuthConfig = () => {
 }
 
 const shouldUseSecureCookie = (event: H3Event, configuredSecure: boolean) => {
-  if (!configuredSecure) {
-    return false
+  const forwardedProto = getHeader(event, 'x-forwarded-proto')
+
+  if (forwardedProto) {
+    return forwardedProto.split(',')[0]?.trim().toLowerCase() === 'https'
   }
 
-  const forwardedProto = getHeader(event, 'x-forwarded-proto')
-  const isHttps = event.node.req.socket.encrypted || forwardedProto?.split(',')[0]?.trim() === 'https'
-
-  return Boolean(isHttps)
+  const host = getHeader(event, 'host') ?? ''
+  return !host.includes('localhost') && !host.includes('127.0.0.1')
 }
 
 export const setAuthCookie = (event: H3Event, payload: AuthCookiePayload) => {
@@ -66,7 +68,7 @@ export const setAuthCookie = (event: H3Event, payload: AuthCookiePayload) => {
     expiresAt: new Date(Date.now() + ttlSeconds * 1000).toISOString(),
   }
 
-  setCookie(event, cookieName, encodeAuthCookie(nextCookiePayload), {
+  setCookie(event,  'auth_token', encodeAuthCookie(nextCookiePayload), {
     path: '/',
     maxAge: ttlSeconds,
     httpOnly: true,
