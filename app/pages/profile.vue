@@ -1,9 +1,15 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 
+definePageMeta({
+  middleware: ['role'],
+  requiredRoles: ['ROLE_USER', 'ROLE_ADMIN'],
+})
+
 const router = useRouter()
 const { t } = useI18n()
 const authSession = useAuthSessionStore()
+const { can } = useAccessControl()
 const { isAuthenticated, fetchProfile, logout } = useAuth()
 
 const loading = ref(false)
@@ -53,6 +59,7 @@ const signOut = async () => {
 
         <div class="d-flex ga-2">
           <v-btn
+            v-if="can(['ROLE_USER', 'ROLE_ADMIN'])"
             variant="outlined"
             :disabled="!isAuthenticated"
             @click="signOut"
