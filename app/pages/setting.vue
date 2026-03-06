@@ -1,25 +1,12 @@
 <script setup lang="ts">
-import UiPageSection from '~/components/ui/UiPageSection.vue'
-
 definePageMeta({
   public: true,
   requiresAuth: false,
 })
 
-const { t } = useI18n()
+await navigateTo('/settings', { redirectCode: 301, replace: true })
 </script>
 
 <template>
-  <UiPageSection max-width="700">
-    <template #header>
-      <h1 class="text-h4 font-weight-bold mb-3">{{ t('setting.title') }}</h1>
-      <p class="text-body-1 text-medium-emphasis mb-4">
-        {{ t('setting.description') }}
-      </p>
-    </template>
-
-    <v-alert type="info" variant="tonal">
-      {{ t('setting.notice') }}
-    </v-alert>
-  </UiPageSection>
+  <div />
 </template>

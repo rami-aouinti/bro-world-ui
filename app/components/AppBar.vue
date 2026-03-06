@@ -25,7 +25,7 @@ const mainHeaderItems = computed<NavItem[]>(() => [
   { key: 'app.navigation.about', to: '/about', icon: 'mdi-information-outline' },
   { key: 'app.navigation.contact', to: '/contact', icon: 'mdi-email-outline' },
   { key: 'app.navigation.faq', to: '/faq', icon: 'mdi-frequently-asked-questions' },
-  { key: 'app.navigation.setting', to: '/setting', icon: 'mdi-cog-outline' },
+  { key: 'app.navigation.settings', to: '/settings', icon: 'mdi-cog-outline' },
 ])
 
 const adminHeaderItems = computed<NavItem[]>(() => [])

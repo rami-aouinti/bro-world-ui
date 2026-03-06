@@ -21,7 +21,7 @@
       "adminRoles": "Roles",
       "adminGroups": "Groups",
       "adminApiKeys": "API keys",
-      "setting": "Setting"
+      "settings": "Settings"
     }
   },
   "login": {
@@ -324,8 +324,8 @@
     "phoneLabel": "Phone",
     "phoneValue": "+33 1 23 45 67 89"
   },
-  "setting": {
-    "title": "Platform setting",
+  "settings": {
+    "title": "Platform settings",
     "description": "Configure your personal preferences and platform behavior.",
     "notice": "More setting options will be available soon."
   }
