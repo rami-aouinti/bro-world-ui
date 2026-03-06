@@ -129,27 +129,28 @@ onMounted(async () => {
                 v-model="search"
                 :label="t('admin.common.search')"
                 prepend-inner-icon="mdi-magnify"
-                density="comfortable"
-                variant="underlined"
+                density="compact"
+                variant="outlined"
                 hide-details
                 class="user-groups-page-appbar-tools__search"
             />
 
             <v-btn
-                icon="mdi-plus"
+                prepend-icon="mdi-plus"
                 color="primary"
+                variant="outlined"
                 :aria-label="t('admin.common.create')"
                 @click="openCreateDialog"
-            />
+            >New</v-btn>
 
             <v-btn
-                icon="mdi-refresh"
+                prepend-icon="mdi-refresh"
                 color="primary"
                 variant="outlined"
                 :loading="loading"
                 :aria-label="t('admin.common.refresh')"
                 @click="fetchUserGroups"
-            />
+            >Refresh</v-btn>
           </div>
         </template>
       </UiSectionHeader>

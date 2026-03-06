@@ -81,7 +81,8 @@ onMounted(async () => {
       >
         <template #actions>
           <div class="roles-page-appbar-tools">
-            <v-text-field v-model="search" label="Rechercher" prepend-inner-icon="mdi-magnify" density="comfortable" variant="underlined" hide-details class="roles-page-appbar-tools__search" />
+            <v-text-field v-model="search" label="Rechercher" prepend-inner-icon="mdi-magnify" density="compact"
+                          variant="outlined" hide-details class="roles-page-appbar-tools__search" />
             <v-btn icon="mdi-refresh" color="primary" variant="outlined" :loading="loading" :aria-label="'Actualiser'" @click="fetchRoles" />
           </div>
         </template>
