@@ -26,6 +26,11 @@ export const usePlatformsApi = () => {
         query: buildListQuery(query, extraQuery),
       })
     },
+    listPublic() {
+      return apiFetch<PlatformRead[]>(`${basePath}/public`, {
+        method: 'GET',
+      })
+    },
     count(query: ListQueryParams = {}, extraQuery: QueryParams = {}) {
       return apiFetch<CountResponse>(`${basePath}/count`, {
         method: 'GET',

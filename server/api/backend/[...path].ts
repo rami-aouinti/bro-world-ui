@@ -8,6 +8,9 @@ const PUBLIC_BACKEND_PATHS = new Set([
   '/api/v1/localization/locale',
   '/api/v1/localization/timezone',
   '/api/v1/auth/get_token',
+  '/api/v1/application/public',
+  '/api/v1/platform/public',
+  '/api/v1/plugin/public',
 ])
 
 const LOCALIZATION_CACHE_PATHS = new Set([
@@ -22,6 +25,9 @@ const ENTITY_CACHE_PREFIXES = [
   '/api/v1/role',
   '/api/v1/api_key',
   '/api/v2/api_key',
+  '/api/v1/application/public',
+  '/api/v1/platform/public',
+  '/api/v1/plugin/public',
 ]
 
 const ONE_DAY_IN_SECONDS = 60 * 60 * 24

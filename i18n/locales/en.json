@@ -333,7 +333,9 @@
     "cta": "Contact us",
     "newPlatform": {
       "title": "+ New Platform",
-      "description": "Create a new user application and configure its plugins."
+      "description": "Create a new user application and configure its plugins.",
+      "connectTitle": "Connect to create one",
+      "connectDescription": "You must be signed in to create a new platform."
     },
     "status": {
       "active": "Active",
@@ -360,6 +362,28 @@
       "school": {
         "title": "School Principal",
         "description": "School module to organize classes, plan lessons, and monitor learner progress."
+      }
+    },
+    "wizard": {
+      "steps": {
+        "platform": "Platform",
+        "plugins": "Plugins"
+      },
+      "platformTitle": "Choose a platform",
+      "pluginTitle": "Choose a plugin",
+      "fields": {
+        "title": "Title",
+        "private": "Private",
+        "active": "Active",
+        "theme": "Theme",
+        "cacheSeconds": "Cache (seconds)"
+      },
+      "next": "Next",
+      "prev": "Prev",
+      "create": "Create",
+      "errors": {
+        "load": "Unable to load wizard data.",
+        "create": "Unable to create platform."
       }
     }
   },

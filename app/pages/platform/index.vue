@@ -5,76 +5,61 @@ definePageMeta({
 })
 
 const { t } = useI18n()
+const router = useRouter()
+const { isAuthenticated, initSession } = useAuth()
+const applicationsStore = useApplicationsStore()
 
-interface PlatformCard {
-  initials: string
-  titleKey: string
-  descriptionKey: string
-  status: 'active' | 'inactive'
-  colorClass: string
+await initSession()
+await useAsyncData('platform-applications-public', () => applicationsStore.fetchPublic())
+
+const goToNewPlatform = () => {
+  if (isAuthenticated.value) {
+    router.push('/platform/new')
+    return
+  }
+
+  router.push('/login')
 }
 
-const platformCards: PlatformCard[] = [
-  {
-    initials: 'CR',
-    titleKey: 'platform.cards.crm1.title',
-    descriptionKey: 'platform.cards.crm1.description',
-    status: 'active',
-    colorClass: 'platform-page__logo--blue',
-  },
-  {
-    initials: 'CR',
-    titleKey: 'platform.cards.crm2.title',
-    descriptionKey: 'platform.cards.crm2.description',
-    status: 'active',
-    colorClass: 'platform-page__logo--blue',
-  },
-  {
-    initials: 'SH',
-    titleKey: 'platform.cards.shop.title',
-    descriptionKey: 'platform.cards.shop.description',
-    status: 'active',
-    colorClass: 'platform-page__logo--green',
-  },
-  {
-    initials: 'RE',
-    titleKey: 'platform.cards.recruit.title',
-    descriptionKey: 'platform.cards.recruit.description',
-    status: 'active',
-    colorClass: 'platform-page__logo--purple',
-  },
-  {
-    initials: 'SC',
-    titleKey: 'platform.cards.school.title',
-    descriptionKey: 'platform.cards.school.description',
-    status: 'inactive',
-    colorClass: 'platform-page__logo--red',
-  },
-]
+const getInitials = (name: string) => {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  return parts.slice(0, 2).map(part => part[0]?.toUpperCase() ?? '').join('') || 'AP'
+}
 </script>
 
 <template>
   <section class="platform-page">
     <div class="platform-page__grid">
-      <article class="platform-page__card platform-page__card--new">
+      <article class="platform-page__card platform-page__card--new" role="button" tabindex="0" @click="goToNewPlatform">
         <div class="platform-page__add-icon">+</div>
-        <h2 class="platform-page__new-title">{{ t('platform.newPlatform.title') }}</h2>
-        <p class="platform-page__new-description">{{ t('platform.newPlatform.description') }}</p>
+        <h2 class="platform-page__new-title">
+          {{ isAuthenticated ? t('platform.newPlatform.title') : t('platform.newPlatform.connectTitle') }}
+        </h2>
+        <p class="platform-page__new-description">
+          {{ isAuthenticated ? t('platform.newPlatform.description') : t('platform.newPlatform.connectDescription') }}
+        </p>
       </article>
 
       <article
-        v-for="card in platformCards"
-        :key="card.titleKey"
+        v-for="card in applicationsStore.items"
+        :key="card.id"
         class="platform-page__card"
       >
+        <v-btn
+          class="platform-page__card-dot"
+          icon="mdi-dots-vertical"
+          variant="text"
+          density="compact"
+        />
+
         <div class="platform-page__card-top">
           <div class="platform-page__card-brand">
-            <div class="platform-page__logo" :class="card.colorClass">{{ card.initials }}</div>
+            <div class="platform-page__logo">{{ getInitials(card.platformName) }}</div>
             <div>
-              <h2 class="platform-page__card-title">{{ t(card.titleKey) }}</h2>
+              <h2 class="platform-page__card-title">{{ card.title }}</h2>
               <v-chip
                 :color="card.status === 'active' ? 'success' : undefined"
-                :variant="card.status === 'active' ? 'tonal' : 'tonal'"
+                variant="tonal"
                 size="small"
                 class="text-capitalize"
               >
@@ -82,10 +67,9 @@ const platformCards: PlatformCard[] = [
               </v-chip>
             </div>
           </div>
-          <v-btn icon="mdi-dots-vertical" variant="text" density="compact" />
         </div>
 
-        <p class="platform-page__card-description">{{ t(card.descriptionKey) }}</p>
+        <p class="platform-page__card-description">{{ card.platformName }}</p>
       </article>
     </div>
 
@@ -108,6 +92,7 @@ const platformCards: PlatformCard[] = [
 }
 
 .platform-page__card {
+  position: relative;
   background: #ededee;
   border-radius: 12px;
   border: 1px solid #d2d2d5;
@@ -118,11 +103,18 @@ const platformCards: PlatformCard[] = [
   flex-direction: column;
 }
 
+.platform-page__card-dot {
+  position: absolute;
+  right: 0.7rem;
+  top: 0.7rem;
+}
+
 .platform-page__card--new {
   border: 3px dashed #2f3033;
   align-items: center;
   justify-content: center;
   text-align: center;
+  cursor: pointer;
 }
 
 .platform-page__add-icon {
@@ -140,7 +132,7 @@ const platformCards: PlatformCard[] = [
 
 .platform-page__new-title,
 .platform-page__card-title {
-  font-size: 2rem;
+  font-size: 1.6rem;
   line-height: 1.2;
   font-weight: 700;
   color: #25262c;
@@ -174,16 +166,12 @@ const platformCards: PlatformCard[] = [
   height: 76px;
   border-radius: 12px;
   color: white;
-  font-size: 2.8rem;
+  background: #5955e0;
+  font-size: 2rem;
   display: grid;
   place-items: center;
-  font-weight: 500;
+  font-weight: 600;
 }
-
-.platform-page__logo--blue { background: #158ec5; }
-.platform-page__logo--green { background: #08a16f; }
-.platform-page__logo--purple { background: #5955e0; }
-.platform-page__logo--red { background: #ea2a2a; }
 
 .platform-page__card-description {
   margin-top: 1.2rem;
@@ -206,23 +194,5 @@ const platformCards: PlatformCard[] = [
   justify-content: center;
   gap: 0.45rem;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-}
-
-@media (max-width: 1200px) {
-  .platform-page__card,
-  .platform-page__card--new {
-    min-height: 220px;
-  }
-
-  .platform-page__new-title,
-  .platform-page__card-title {
-    font-size: 1.75rem;
-  }
-
-  .platform-page__logo {
-    width: 66px;
-    height: 66px;
-    font-size: 2.2rem;
-  }
 }
 </style>
