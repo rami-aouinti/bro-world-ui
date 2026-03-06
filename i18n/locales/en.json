@@ -50,7 +50,8 @@
       "create": "Create",
       "refresh": "Refresh",
       "cancel": "Cancel",
-      "save": "Save"
+      "save": "Save",
+      "delete": "Delete"
     },
     "users": {
       "headers": {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import UiDataTable from '~/components/ui/UiDataTable.vue'
+import UiActionConfirmDialog from '~/components/ui/UiActionConfirmDialog.vue'
 import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import { useUsersStore } from '~/stores/users'
@@ -22,10 +23,12 @@ const search = ref('')
 
 const formMode = ref<'create' | 'edit' | 'patch'>('create')
 const formDialog = ref(false)
+const deleteDialog = ref(false)
 const showDialog = ref(false)
 const rolesDialog = ref(false)
 const groupsDialog = ref(false)
 const selectedUser = ref<UserRead | null>(null)
+const userToDeleteId = ref('')
 const selectedUserRoles = ref<string[]>([])
 const selectedUserGroups = ref<UserGroup[]>([])
 const groupToAttach = ref('')
@@ -145,6 +148,11 @@ const openGroupsDialog = async (user: UserRead) => {
   groupsDialog.value = true
 }
 
+const openDeleteDialog = (id: string) => {
+  userToDeleteId.value = id
+  deleteDialog.value = true
+}
+
 const attachGroup = async () => {
   if (!selectedUser.value || !groupToAttach.value.trim()) {
     return
@@ -197,13 +205,21 @@ const submitForm = async () => {
   }
 }
 
-const deleteEntity = async (id: string) => {
-  if (!window.confirm(t('admin.users.confirmDelete', { id }))) {
+const deleteEntity = async () => {
+  if (!userToDeleteId.value) {
     return
   }
 
-  await usersStore.remove(id)
-  await fetchUsers()
+  submitting.value = true
+  try {
+    await usersStore.remove(userToDeleteId.value)
+    deleteDialog.value = false
+    userToDeleteId.value = ''
+    await fetchUsers()
+  }
+  finally {
+    submitting.value = false
+  }
 }
 
 await fetchUsers()
@@ -274,10 +290,20 @@ await fetchUsers()
         <div class="d-flex flex-nowrap ga-1 py-1">
           <v-btn size="x-small" variant="tonal" icon="mdi-eye" :aria-label="t('admin.users.aria.show', { name: item.username })" @click="showEntity(item.id)" />
           <v-btn size="x-small" variant="tonal" color="warning" icon="mdi-file-edit-outline" :aria-label="t('admin.users.aria.patch', { name: item.username })" @click="openEditDialog(item, true)" />
-          <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="t('admin.users.aria.delete', { name: item.username })" @click="deleteEntity(item.id)" />
+          <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="t('admin.users.aria.delete', { name: item.username })" @click="openDeleteDialog(item.id)" />
         </div>
       </template>
     </UiDataTable>
+
+    <UiActionConfirmDialog
+      v-model="deleteDialog"
+      :title="t('admin.common.delete')"
+      :message="t('admin.users.confirmDelete', { id: userToDeleteId })"
+      :confirm-label="t('admin.common.delete')"
+      :cancel-label="t('admin.common.cancel')"
+      :loading="submitting"
+      @confirm="deleteEntity"
+    />
 
     <v-dialog v-model="formDialog" max-width="760" persistent>
       <v-card rounded="xl" class="pa-2">
