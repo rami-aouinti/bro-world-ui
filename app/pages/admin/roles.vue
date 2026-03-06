@@ -119,7 +119,7 @@ await fetchRoles()
 </script>
 
 <template>
-  <UiPageSection max-width="1000">
+  <UiPageSection>
     <Teleport defer to="#app-bar-teleport-target">
       <div class="roles-page-appbar-tools">
         <v-text-field v-model="search" label="Rechercher" prepend-inner-icon="mdi-magnify" density="comfortable" variant="underlined" hide-details class="roles-page-appbar-tools__search" />
@@ -127,13 +127,6 @@ await fetchRoles()
         <v-btn icon="mdi-refresh" color="primary" variant="outlined" :loading="loading" :aria-label="'Actualiser'" @click="fetchRoles" />
       </div>
     </Teleport>
-
-    <template #header>
-      <UiSectionHeader
-        title="Gestion des rôles"
-        :subtitle="`Données CRUD depuis /api/v1/role${rolesCount !== null ? ` • ${rolesCount} rôles` : ''}`"
-      />
-    </template>
 
     <v-card rounded="xl" elevation="2" class="pa-4">
       <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>

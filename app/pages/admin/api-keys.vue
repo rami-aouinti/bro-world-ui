@@ -123,7 +123,7 @@ await fetchApiKeys()
 </script>
 
 <template>
-  <UiPageSection max-width="1100">
+  <UiPageSection>
     <Teleport
       defer
       to="#app-bar-teleport-target"
@@ -159,8 +159,6 @@ await fetchApiKeys()
 
     <template #header>
       <UiSectionHeader
-        title="Gestion des clés API"
-        :subtitle="`Données chargées depuis /api/${selectedVersion}/api_key`"
       >
         <template #actions>
           <v-btn-toggle
