@@ -4,6 +4,7 @@ import UiActionConfirmDialog from '~/components/ui/UiActionConfirmDialog.vue'
 import UiActionDialog from '~/components/ui/UiActionDialog.vue'
 import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
+import UiTableToolbar from '~/components/ui/UiTableToolbar.vue'
 import { useApiKeysStore } from '~/stores/apiKeys'
 import type { ApiKey } from '~/types/api/apiKey'
 
@@ -147,46 +148,30 @@ onMounted(async () => {
       <UiSectionHeader
       >
         <template #actions>
-          <v-btn-toggle
-            v-model="selectedVersion"
-            mandatory
-            color="primary"
-            variant="outlined"
-            density="comfortable"
-            class="mr-2 pa-2"
-            @update:model-value="fetchApiKeys"
+          <UiTableToolbar
+            :search="search"
+            :search-label="t('admin.common.search')"
+            :create-label="t('admin.common.create')"
+            :refresh-label="t('admin.common.refresh')"
+            :loading="loading"
+            @update:search="search = $event"
+            @create="openCreateDialog"
+            @refresh="fetchApiKeys"
           >
-            <v-btn value="v1">v1</v-btn>
-            <v-btn value="v2">v2</v-btn>
-          </v-btn-toggle>
-          <div class="api-keys-page-appbar-tools pa-2">
-            <v-text-field
-                v-model="search"
-                :label="t('admin.common.search')"
-                prepend-inner-icon="mdi-magnify"
-                density="compact"
-                variant="outlined"
-                hide-details
-                class="api-keys-page-appbar-tools__search"
-            />
-
-            <v-btn
-                prepend-icon="mdi-plus"
+            <template #prepend>
+              <v-btn-toggle
+                v-model="selectedVersion"
+                mandatory
                 color="primary"
                 variant="outlined"
-                :aria-label="t('admin.common.create')"
-                @click="openCreateDialog"
-            >New</v-btn>
-
-            <v-btn
-                prepend-icon="mdi-refresh"
-                color="primary"
-                variant="outlined"
-                :loading="loading"
-                :aria-label="t('admin.common.refresh')"
-                @click="fetchApiKeys"
-            >Refresh</v-btn>
-          </div>
+                density="comfortable"
+                @update:model-value="fetchApiKeys"
+              >
+                <v-btn value="v1">v1</v-btn>
+                <v-btn value="v2">v2</v-btn>
+              </v-btn-toggle>
+            </template>
+          </UiTableToolbar>
         </template>
       </UiSectionHeader>
     </template>
@@ -253,17 +238,3 @@ onMounted(async () => {
 </template>
 
 
-<style scoped>
-.api-keys-page-appbar-tools {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  margin-inline-start: 8px;
-}
-
-.api-keys-page-appbar-tools__search {
-  min-width: 200px;
-  max-width: 280px;
-}
-</style>
