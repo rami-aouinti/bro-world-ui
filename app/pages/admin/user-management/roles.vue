@@ -80,7 +80,7 @@ onMounted(async () => {
       <UiSectionHeader
       >
         <template #actions>
-          <div class="roles-page-appbar-tools">
+          <div class="roles-page-appbar-tools pa-2">
             <v-text-field v-model="search" label="Rechercher" prepend-inner-icon="mdi-magnify" density="compact"
                           variant="outlined" hide-details class="roles-page-appbar-tools__search" />
             <v-btn prepend-icon="mdi-refresh" color="primary" variant="outlined" :loading="loading" :aria-label="'Actualiser'" @click="fetchRoles" >Refresh</v-btn>

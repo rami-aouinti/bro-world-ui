@@ -234,7 +234,7 @@ onMounted(async () => {
       <UiSectionHeader
       >
         <template #actions>
-          <div class="users-page-appbar-tools">
+          <div class="users-page-appbar-tools pa-2">
             <v-text-field
                 v-model="search"
                 :label="t('admin.common.search')"

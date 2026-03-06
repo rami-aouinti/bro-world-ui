@@ -153,13 +153,13 @@ onMounted(async () => {
             color="primary"
             variant="outlined"
             density="comfortable"
-            class="mr-2"
+            class="mr-2 pa-2"
             @update:model-value="fetchApiKeys"
           >
             <v-btn value="v1">v1</v-btn>
             <v-btn value="v2">v2</v-btn>
           </v-btn-toggle>
-          <div class="api-keys-page-appbar-tools">
+          <div class="api-keys-page-appbar-tools pa-2">
             <v-text-field
                 v-model="search"
                 :label="t('admin.common.search')"
