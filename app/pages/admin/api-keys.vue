@@ -12,6 +12,7 @@ definePageMeta({
 })
 
 const apiKeysStore = useApiKeysStore()
+const { t } = useI18n()
 const loading = ref(false)
 const submitting = ref(false)
 const errorMessage = ref('')
@@ -30,11 +31,12 @@ const formMode = ref<'create' | 'edit' | 'patch'>('create')
 const selectedItem = ref<ApiKey | null>(null)
 const form = reactive({ token: '', description: '' })
 
-const headers = [
-  { title: 'Description', key: 'description', sortable: true },
-  { title: 'Token', key: 'tokenMasked', sortable: false },
-  { title: 'Actions', key: 'actions', sortable: false },
-]
+const headers = computed(() => [
+  { title: t('admin.apiKeys.headers.id'), key: 'id', sortable: true },
+  { title: t('admin.apiKeys.headers.description'), key: 'description', sortable: true },
+  { title: t('admin.apiKeys.headers.token'), key: 'tokenMasked', sortable: false },
+  { title: t('admin.apiKeys.headers.actions'), key: 'actions', sortable: false },
+])
 
 const maskToken = (token: string) => {
   if (!token) {
@@ -53,7 +55,7 @@ const tableItems = computed(() => apiKeys.value.map(key => ({
   tokenMasked: maskToken(key.token),
 })))
 
-const formTitle = computed(() => (formMode.value === 'create' ? 'Créer une clé API' : formMode.value === 'edit' ? 'Éditer une clé API' : 'Patch clé API'))
+const formTitle = computed(() => (formMode.value === 'create' ? t('admin.apiKeys.form.createTitle') : formMode.value === 'edit' ? t('admin.apiKeys.form.editTitle') : t('admin.apiKeys.form.patchTitle')))
 
 const fetchApiKeys = async () => {
   loading.value = true
@@ -63,7 +65,7 @@ const fetchApiKeys = async () => {
     apiKeys.value = await apiKeysStore.fetchAll()
   }
   catch {
-    errorMessage.value = `Impossible de charger les clés API depuis /api/${selectedVersion.value}/api_key.`
+    errorMessage.value = t('admin.apiKeys.errors.load', { version: selectedVersion.value })
   }
   finally {
     loading.value = false
@@ -110,7 +112,7 @@ const submitForm = async () => {
 }
 
 const deleteEntity = async (id: string) => {
-  if (!window.confirm(`Supprimer la clé API ${id} ?`)) {
+  if (!window.confirm(t('admin.apiKeys.confirmDelete', { id }))) {
     return
   }
 
@@ -130,7 +132,7 @@ await fetchApiKeys()
       <div class="api-keys-page-appbar-tools">
         <v-text-field
           v-model="search"
-          label="Rechercher"
+          :label="t('admin.common.search')"
           prepend-inner-icon="mdi-magnify"
           density="comfortable"
           variant="underlined"
@@ -141,7 +143,7 @@ await fetchApiKeys()
         <v-btn
           icon="mdi-plus"
           color="primary"
-          :aria-label="'Créer'"
+          :aria-label="t('admin.common.create')"
           @click="openCreateDialog"
         />
 
@@ -150,7 +152,7 @@ await fetchApiKeys()
           color="primary"
           variant="outlined"
           :loading="loading"
-          :aria-label="'Actualiser'"
+          :aria-label="t('admin.common.refresh')"
           @click="fetchApiKeys"
         />
       </div>
@@ -188,7 +190,7 @@ await fetchApiKeys()
         :search="search"
         item-key="id"
         :items-per-page="10"
-        empty-text="Aucune clé API trouvée."
+        :empty-text="t('admin.apiKeys.empty')"
       >
         <template #item.tokenMasked="{ item }">
           <code>{{ item.tokenMasked }}</code>
@@ -196,9 +198,9 @@ await fetchApiKeys()
 
         <template #item.actions="{ item }">
           <div class="d-flex flex-nowrap ga-1 py-1">
-            <v-btn size="x-small" variant="tonal" icon="mdi-eye" :aria-label="`Show ${item.id}`" @click="showEntity(item.id)" />
-            <v-btn size="x-small" variant="tonal" color="warning" icon="mdi-file-edit-outline" :aria-label="`Patch ${item.id}`" @click="openEditDialog(item, true)" />
-            <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="`Delete ${item.id}`" @click="deleteEntity(item.id)" />
+            <v-btn size="x-small" variant="tonal" icon="mdi-eye" :aria-label="t('admin.apiKeys.aria.show', { id: item.id })" @click="showEntity(item.id)" />
+            <v-btn size="x-small" variant="tonal" color="warning" icon="mdi-file-edit-outline" :aria-label="t('admin.apiKeys.aria.patch', { id: item.id })" @click="openEditDialog(item, true)" />
+            <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="t('admin.apiKeys.aria.delete', { id: item.id })" @click="deleteEntity(item.id)" />
           </div>
         </template>
       </UiDataTable>
@@ -208,19 +210,19 @@ await fetchApiKeys()
       <v-card rounded="xl">
         <v-card-title>{{ formTitle }}</v-card-title>
         <v-card-text>
-          <v-text-field v-model="form.description" label="Description" class="mb-2" />
-          <v-text-field v-model="form.token" label="Token" :disabled="formMode === 'patch'" />
+          <v-text-field v-model="form.description" :label="t('admin.apiKeys.form.description')" class="mb-2" />
+          <v-text-field v-model="form.token" :label="t('admin.apiKeys.form.token')" :disabled="formMode === 'patch'" />
         </v-card-text>
         <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="formDialog = false">Annuler</v-btn>
-          <v-btn color="primary" :loading="submitting" @click="submitForm">Enregistrer</v-btn>
+          <v-btn variant="text" @click="formDialog = false">{{ t('admin.common.cancel') }}</v-btn>
+          <v-btn color="primary" :loading="submitting" @click="submitForm">{{ t('admin.common.save') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
     <v-dialog v-model="showDialog" max-width="700">
       <v-card rounded="xl">
-        <v-card-title>Détails clé API</v-card-title>
+        <v-card-title>{{ t('admin.apiKeys.dialogs.details') }}</v-card-title>
         <v-card-text>
           <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selectedItem, null, 2) }}</pre>
         </v-card-text>
