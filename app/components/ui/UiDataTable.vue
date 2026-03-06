@@ -85,6 +85,17 @@ const skeletonRowsCount = computed(() => Math.max(1, props.skeletonRows))
 .ui-data-table {
   border-radius: 1rem;
   overflow: hidden;
+  background-color: transparent !important;
+}
+
+.ui-data-table :deep(.v-table__wrapper),
+.ui-data-table :deep(table),
+.ui-data-table :deep(thead),
+.ui-data-table :deep(tbody),
+.ui-data-table :deep(tr),
+.ui-data-table :deep(th),
+.ui-data-table :deep(td) {
+  background-color: transparent !important;
 }
 
 .ui-data-table__empty {
