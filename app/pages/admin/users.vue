@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import UiDataTable from '~/components/ui/UiDataTable.vue'
+import UiActionConfirmDialog from '~/components/ui/UiActionConfirmDialog.vue'
+import UiActionDialog from '~/components/ui/UiActionDialog.vue'
 import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import { useUsersStore } from '~/stores/users'
@@ -22,10 +24,12 @@ const search = ref('')
 
 const formMode = ref<'create' | 'edit' | 'patch'>('create')
 const formDialog = ref(false)
+const deleteDialog = ref(false)
 const showDialog = ref(false)
 const rolesDialog = ref(false)
 const groupsDialog = ref(false)
 const selectedUser = ref<UserRead | null>(null)
+const userToDeleteId = ref('')
 const selectedUserRoles = ref<string[]>([])
 const selectedUserGroups = ref<UserGroup[]>([])
 const groupToAttach = ref('')
@@ -145,6 +149,11 @@ const openGroupsDialog = async (user: UserRead) => {
   groupsDialog.value = true
 }
 
+const openDeleteDialog = (id: string) => {
+  userToDeleteId.value = id
+  deleteDialog.value = true
+}
+
 const attachGroup = async () => {
   if (!selectedUser.value || !groupToAttach.value.trim()) {
     return
@@ -197,13 +206,21 @@ const submitForm = async () => {
   }
 }
 
-const deleteEntity = async (id: string) => {
-  if (!window.confirm(t('admin.users.confirmDelete', { id }))) {
+const deleteEntity = async () => {
+  if (!userToDeleteId.value) {
     return
   }
 
-  await usersStore.remove(id)
-  await fetchUsers()
+  submitting.value = true
+  try {
+    await usersStore.remove(userToDeleteId.value)
+    deleteDialog.value = false
+    userToDeleteId.value = ''
+    await fetchUsers()
+  }
+  finally {
+    submitting.value = false
+  }
 }
 
 await fetchUsers()
@@ -274,43 +291,53 @@ await fetchUsers()
         <div class="d-flex flex-nowrap ga-1 py-1">
           <v-btn size="x-small" variant="tonal" icon="mdi-eye" :aria-label="t('admin.users.aria.show', { name: item.username })" @click="showEntity(item.id)" />
           <v-btn size="x-small" variant="tonal" color="warning" icon="mdi-file-edit-outline" :aria-label="t('admin.users.aria.patch', { name: item.username })" @click="openEditDialog(item, true)" />
-          <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="t('admin.users.aria.delete', { name: item.username })" @click="deleteEntity(item.id)" />
+          <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="t('admin.users.aria.delete', { name: item.username })" @click="openDeleteDialog(item.id)" />
         </div>
       </template>
     </UiDataTable>
 
-    <v-dialog v-model="formDialog" max-width="760" persistent>
-      <v-card rounded="xl" class="pa-2">
-        <v-card-title class="text-h6">{{ formTitle }}</v-card-title>
-        <v-card-text>
-          <v-row>
-            <v-col cols="12" md="6"><v-text-field v-model="form.username" :label="t('admin.users.form.username')" :disabled="formMode === 'patch'" /></v-col>
-            <v-col cols="12" md="6"><v-text-field v-model="form.email" :label="t('admin.users.form.email')" /></v-col>
-            <v-col cols="12" md="6"><v-text-field v-model="form.firstName" :label="t('admin.users.form.firstName')" /></v-col>
-            <v-col cols="12" md="6"><v-text-field v-model="form.lastName" :label="t('admin.users.form.lastName')" /></v-col>
-            <v-col cols="12" md="6"><v-text-field v-model="form.password" type="password" :label="t('admin.users.form.password')" :hint="t('admin.users.form.passwordHint')" persistent-hint /></v-col>
-            <v-col cols="12" md="6"><v-text-field v-model="form.timezone" :label="t('admin.users.form.timezone')" /></v-col>
-            <v-col cols="12" md="6"><v-text-field v-model="form.language" :label="t('admin.users.form.language')" /></v-col>
-            <v-col cols="12" md="6"><v-text-field v-model="form.locale" :label="t('admin.users.form.locale')" /></v-col>
-            <v-col cols="12"><v-text-field v-model="form.photo" :label="t('admin.users.form.photoUrl')" /></v-col>
-          </v-row>
-        </v-card-text>
-        <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="formDialog = false">{{ t('admin.common.cancel') }}</v-btn>
-          <v-btn color="primary" :loading="submitting" @click="submitForm">{{ t('admin.common.save') }}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <UiActionConfirmDialog
+      v-model="deleteDialog"
+      :title="t('admin.common.delete')"
+      :message="t('admin.users.confirmDelete', { id: userToDeleteId })"
+      :confirm-label="t('admin.common.delete')"
+      :cancel-label="t('admin.common.cancel')"
+      :loading="submitting"
+      @confirm="deleteEntity"
+    />
+
+    <UiActionDialog
+      v-model="formDialog"
+      :title="formTitle"
+      max-width="760"
+      persistent
+    >
+      <v-row>
+        <v-col cols="12" md="6"><v-text-field v-model="form.username" :label="t('admin.users.form.username')" :disabled="formMode === 'patch'" /></v-col>
+        <v-col cols="12" md="6"><v-text-field v-model="form.email" :label="t('admin.users.form.email')" /></v-col>
+        <v-col cols="12" md="6"><v-text-field v-model="form.firstName" :label="t('admin.users.form.firstName')" /></v-col>
+        <v-col cols="12" md="6"><v-text-field v-model="form.lastName" :label="t('admin.users.form.lastName')" /></v-col>
+        <v-col cols="12" md="6"><v-text-field v-model="form.password" type="password" :label="t('admin.users.form.password')" :hint="t('admin.users.form.passwordHint')" persistent-hint /></v-col>
+        <v-col cols="12" md="6"><v-text-field v-model="form.timezone" :label="t('admin.users.form.timezone')" /></v-col>
+        <v-col cols="12" md="6"><v-text-field v-model="form.language" :label="t('admin.users.form.language')" /></v-col>
+        <v-col cols="12" md="6"><v-text-field v-model="form.locale" :label="t('admin.users.form.locale')" /></v-col>
+        <v-col cols="12"><v-text-field v-model="form.photo" :label="t('admin.users.form.photoUrl')" /></v-col>
+      </v-row>
+
+      <template #actions>
+        <v-btn variant="text" @click="formDialog = false">{{ t('admin.common.cancel') }}</v-btn>
+        <v-btn color="primary" :loading="submitting" @click="submitForm">{{ t('admin.common.save') }}</v-btn>
+      </template>
+    </UiActionDialog>
 
 
-    <v-dialog v-model="showDialog" max-width="700">
-      <v-card rounded="xl">
-        <v-card-title>{{ t('admin.users.dialogs.userDetails') }}</v-card-title>
-        <v-card-text>
-          <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selectedUser, null, 2) }}</pre>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+    <UiActionDialog
+      v-model="showDialog"
+      :title="t('admin.users.dialogs.userDetails')"
+      max-width="700"
+    >
+      <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selectedUser, null, 2) }}</pre>
+    </UiActionDialog>
 
     <v-dialog v-model="rolesDialog" max-width="560">
       <v-card rounded="xl">

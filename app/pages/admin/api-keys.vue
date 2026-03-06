@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import UiDataTable from '~/components/ui/UiDataTable.vue'
+import UiActionConfirmDialog from '~/components/ui/UiActionConfirmDialog.vue'
+import UiActionDialog from '~/components/ui/UiActionDialog.vue'
 import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import { useApiKeysStore } from '~/stores/apiKeys'
@@ -26,9 +28,11 @@ const selectedVersion = computed({
 })
 
 const formDialog = ref(false)
+const deleteDialog = ref(false)
 const showDialog = ref(false)
 const formMode = ref<'create' | 'edit' | 'patch'>('create')
 const selectedItem = ref<ApiKey | null>(null)
+const apiKeyToDeleteId = ref('')
 const form = reactive({ token: '', description: '' })
 
 const headers = computed(() => [
@@ -110,13 +114,26 @@ const submitForm = async () => {
   }
 }
 
-const deleteEntity = async (id: string) => {
-  if (!window.confirm(t('admin.apiKeys.confirmDelete', { id }))) {
+const openDeleteDialog = (id: string) => {
+  apiKeyToDeleteId.value = id
+  deleteDialog.value = true
+}
+
+const deleteEntity = async () => {
+  if (!apiKeyToDeleteId.value) {
     return
   }
 
-  await apiKeysStore.remove(id)
-  await fetchApiKeys()
+  submitting.value = true
+  try {
+    await apiKeysStore.remove(apiKeyToDeleteId.value)
+    deleteDialog.value = false
+    apiKeyToDeleteId.value = ''
+    await fetchApiKeys()
+  }
+  finally {
+    submitting.value = false
+  }
 }
 
 await fetchApiKeys()
@@ -198,33 +215,43 @@ await fetchApiKeys()
         <div class="d-flex flex-nowrap ga-1 py-1">
           <v-btn size="x-small" variant="tonal" icon="mdi-eye" :aria-label="t('admin.apiKeys.aria.show', { id: item.id })" @click="showEntity(item.id)" />
           <v-btn size="x-small" variant="tonal" color="warning" icon="mdi-file-edit-outline" :aria-label="t('admin.apiKeys.aria.patch', { id: item.id })" @click="openEditDialog(item, true)" />
-          <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="t('admin.apiKeys.aria.delete', { id: item.id })" @click="deleteEntity(item.id)" />
+          <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="t('admin.apiKeys.aria.delete', { id: item.id })" @click="openDeleteDialog(item.id)" />
         </div>
       </template>
     </UiDataTable>
 
-    <v-dialog v-model="formDialog" max-width="560" persistent>
-      <v-card rounded="xl">
-        <v-card-title>{{ formTitle }}</v-card-title>
-        <v-card-text>
-          <v-text-field v-model="form.description" :label="t('admin.apiKeys.form.description')" class="mb-2" />
-          <v-text-field v-model="form.token" :label="t('admin.apiKeys.form.token')" :disabled="formMode === 'patch'" />
-        </v-card-text>
-        <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="formDialog = false">{{ t('admin.common.cancel') }}</v-btn>
-          <v-btn color="primary" :loading="submitting" @click="submitForm">{{ t('admin.common.save') }}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <UiActionConfirmDialog
+      v-model="deleteDialog"
+      :title="t('admin.common.delete')"
+      :message="t('admin.apiKeys.confirmDelete', { id: apiKeyToDeleteId })"
+      :confirm-label="t('admin.common.delete')"
+      :cancel-label="t('admin.common.cancel')"
+      :loading="submitting"
+      @confirm="deleteEntity"
+    />
 
-    <v-dialog v-model="showDialog" max-width="700">
-      <v-card rounded="xl">
-        <v-card-title>{{ t('admin.apiKeys.dialogs.details') }}</v-card-title>
-        <v-card-text>
-          <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selectedItem, null, 2) }}</pre>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+    <UiActionDialog
+      v-model="formDialog"
+      :title="formTitle"
+      max-width="560"
+      persistent
+    >
+      <v-text-field v-model="form.description" :label="t('admin.apiKeys.form.description')" class="mb-2" />
+      <v-text-field v-model="form.token" :label="t('admin.apiKeys.form.token')" :disabled="formMode === 'patch'" />
+
+      <template #actions>
+        <v-btn variant="text" @click="formDialog = false">{{ t('admin.common.cancel') }}</v-btn>
+        <v-btn color="primary" :loading="submitting" @click="submitForm">{{ t('admin.common.save') }}</v-btn>
+      </template>
+    </UiActionDialog>
+
+    <UiActionDialog
+      v-model="showDialog"
+      :title="t('admin.apiKeys.dialogs.details')"
+      max-width="700"
+    >
+      <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selectedItem, null, 2) }}</pre>
+    </UiActionDialog>
   </UiPageSection>
 </template>
 
