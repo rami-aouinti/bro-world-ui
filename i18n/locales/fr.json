@@ -218,7 +218,19 @@
         "title": "Clés API",
         "description": "Lister et gérer les clés API disponibles sur /api/v1/api_key."
       },
-      "open": "Ouvrir"
+      "open": "Ouvrir",
+      "platforms": {
+        "title": "Plateformes",
+        "description": "Consulter et gérer les plateformes et leurs métadonnées."
+      },
+      "plugins": {
+        "title": "Plugins",
+        "description": "Gérer le catalogue des plugins, leurs états et intégrations."
+      },
+      "configurations": {
+        "title": "Configurations",
+        "description": "Visualiser et maintenir les jeux de configuration disponibles."
+      }
     },
     "navigation": {
       "dashboard": {
@@ -232,6 +244,14 @@
       "userManagement": {
         "title": "Gestion des utilisateurs",
         "description": "Accéder à l’administration des utilisateurs, rôles, groupes et clés API."
+      },
+      "platformManagement": {
+        "title": "Gestion des plateformes",
+        "description": "Gérez les plateformes et plugins utilisés par l’application."
+      },
+      "configurationManagement": {
+        "title": "Gestion de la configuration",
+        "description": "Accédez aux modules globaux de configuration et listes de paramètres."
       }
     },
     "dashboard": {
@@ -256,6 +276,14 @@
     "userManagement": {
       "title": "Gestion des utilisateurs",
       "description": "Choisissez une section pour administrer les utilisateurs et les droits d’accès."
+    },
+    "platformManagement": {
+      "title": "Gestion des plateformes",
+      "description": "Choisissez une section pour administrer les plateformes et plugins."
+    },
+    "configurationManagement": {
+      "title": "Gestion de la configuration",
+      "description": "Choisissez une section pour administrer les ressources de configuration."
     }
   },
   "$vuetify": {

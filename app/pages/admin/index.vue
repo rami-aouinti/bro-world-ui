@@ -30,6 +30,18 @@ const adminModules = computed(() => [
     to: '/admin/user-management',
     icon: 'mdi-account-cog-outline',
   },
+  {
+    title: t('admin.navigation.platformManagement.title'),
+    description: t('admin.navigation.platformManagement.description'),
+    to: '/admin/platform-management',
+    icon: 'mdi-layers-outline',
+  },
+  {
+    title: t('admin.navigation.configurationManagement.title'),
+    description: t('admin.navigation.configurationManagement.description'),
+    to: '/admin/configuration-management',
+    icon: 'mdi-tune-variant',
+  },
 ])
 </script>
 
@@ -50,7 +62,7 @@ const adminModules = computed(() => [
         v-for="module in adminModules"
         :key="module.to"
         cols="12"
-        md="4"
+        md="6"
       >
         <UiCard
           variant="tonal"
