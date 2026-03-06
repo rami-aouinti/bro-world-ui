@@ -20,6 +20,13 @@ yarn install
 bun install
 ```
 
+## Environment Variables
+
+Session encryption for `nuxt-auth-utils` requires a password.
+
+- Set `NUXT_SESSION_PASSWORD` to a long random secret in production.
+- In local development, this project falls back to an internal dev-only password if `NUXT_SESSION_PASSWORD` is not set.
+
 ## Development Server
 
 Start the development server on `http://localhost:3000`:

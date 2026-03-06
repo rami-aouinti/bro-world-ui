@@ -1,4 +1,8 @@
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
+const DEV_SESSION_PASSWORD = 'dev-session-password-change-me-please-32chars'
+const sessionPassword =
+  process.env.NUXT_SESSION_PASSWORD
+  || (process.env.NODE_ENV !== 'production' ? DEV_SESSION_PASSWORD : '')
 
 export default defineNuxtConfig({
   app: {
@@ -33,7 +37,7 @@ export default defineNuxtConfig({
     redisUrl: process.env.REDIS_URL || '',
     session: {
       name: 'nuxt-session',
-      password: '',
+      password: sessionPassword,
       ttlSeconds: Number(process.env.SESSION_TTL_SECONDS || ONE_YEAR_IN_SECONDS),
       // Avoid collision with nuxt-auth-utils default cookie (`session_id` / `sid:*`).
       // Our auth flow stores the whole auth payload in this cookie.
