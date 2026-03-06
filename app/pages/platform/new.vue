@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { PluginRead } from '~/types/api/plugin'
 import type { PlatformRead } from '~/types/api/platform'
+import { usePlatformsApi } from '~/composables/api/usePlatformsApi'
+import { usePluginsApi } from '~/composables/api/usePluginsApi'
+import { useProfileApi } from '~/composables/api/useProfileApi'
 
 definePageMeta({
   public: false,
