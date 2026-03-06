@@ -346,6 +346,7 @@
     },
     "wizard": {
       "steps": {
+        "title": "Titre",
         "platform": "Plateforme",
         "plugins": "Plugins"
       },
@@ -364,7 +365,8 @@
       "errors": {
         "load": "Impossible de charger les données du wizard.",
         "create": "Impossible de créer la plateforme."
-      }
+      },
+      "titleStepTitle": "Saisissez le titre de l'application"
     }
   },
   "about": {
