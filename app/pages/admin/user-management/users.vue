@@ -286,16 +286,16 @@ onMounted(async () => {
 
       <template #item.relations="{ item }">
         <div class="d-flex flex-nowrap ga-1 py-1">
-          <v-btn size="x-small" variant="tonal" color="secondary" @click="openRolesDialog(item)">{{ t('admin.users.buttons.roles') }}</v-btn>
-          <v-btn size="x-small" variant="tonal" color="secondary" @click="openGroupsDialog(item)">{{ t('admin.users.buttons.groups') }}</v-btn>
+          <v-btn size="x-small" variant="outlined" color="secondary" @click="openRolesDialog(item)">{{ t('admin.users.buttons.roles') }}</v-btn>
+          <v-btn size="x-small" variant="outlined" color="secondary" @click="openGroupsDialog(item)">{{ t('admin.users.buttons.groups') }}</v-btn>
         </div>
       </template>
 
       <template #item.actions="{ item }">
         <div class="d-flex justify-end flex-nowrap ga-1 py-1">
-          <v-btn size="x-small" variant="tonal" icon="mdi-eye" :aria-label="t('admin.users.aria.show', { name: item.username })" @click="showEntity(item.id)" />
-          <v-btn size="x-small" variant="tonal" color="warning" icon="mdi-file-edit-outline" :aria-label="t('admin.users.aria.patch', { name: item.username })" @click="openEditDialog(item, true)" />
-          <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="t('admin.users.aria.delete', { name: item.username })" @click="openDeleteDialog(item.id)" />
+          <v-btn size="x-small" variant="text" icon="mdi-eye" :aria-label="t('admin.users.aria.show', { name: item.username })" @click="showEntity(item.id)" />
+          <v-btn size="x-small" variant="text" color="warning" icon="mdi-file-edit-outline" :aria-label="t('admin.users.aria.patch', { name: item.username })" @click="openEditDialog(item, true)" />
+          <v-btn size="x-small" variant="text" color="error" icon="mdi-delete" :aria-label="t('admin.users.aria.delete', { name: item.username })" @click="openDeleteDialog(item.id)" />
         </div>
       </template>
     </UiDataTable>
