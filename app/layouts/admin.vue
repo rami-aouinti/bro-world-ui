@@ -6,11 +6,11 @@ const labelMap: Record<string, string> = {
   dashboard: 'Dashboard',
   settings: 'Settings',
   'user-management': 'User Management',
-  users: 'Utilisateurs',
-  groups: 'Groupes',
-  roles: 'Rôles',
-  'user-groups': 'Groupes utilisateurs',
-  'api-keys': 'Clés API',
+  users: 'Users',
+  groups: 'Groups',
+  roles: 'Roles',
+  'user-groups': 'Groups',
+  'api-keys': 'API Keys',
 }
 
 const breadcrumbs = computed(() => {
