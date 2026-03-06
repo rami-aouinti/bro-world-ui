@@ -15,25 +15,25 @@ const modules = computed(() => [
   {
     title: t('admin.modules.users.title'),
     description: t('admin.modules.users.description'),
-    to: '/admin/users',
+    to: '/admin/user-management/users',
     icon: 'mdi-account-multiple-outline',
   },
   {
     title: t('admin.modules.roles.title'),
     description: t('admin.modules.roles.description'),
-    to: '/admin/roles',
+    to: '/admin/user-management/roles',
     icon: 'mdi-shield-account-outline',
   },
   {
     title: t('admin.modules.groups.title'),
     description: t('admin.modules.groups.description'),
-    to: '/admin/user-groups',
+    to: '/admin/user-management/user-groups',
     icon: 'mdi-account-group-outline',
   },
   {
     title: t('admin.modules.apiKeys.title'),
     description: t('admin.modules.apiKeys.description'),
-    to: '/admin/api-keys',
+    to: '/admin/user-management/api-keys',
     icon: 'mdi-key-outline',
   },
 ])
