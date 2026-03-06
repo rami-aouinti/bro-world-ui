@@ -135,10 +135,23 @@ const getInvalidationCachePrefixes = (targetPath: string) => {
   return cachePrefix ? [cachePrefix] : []
 }
 
-const buildForwardHeaders = (event: any): Record<string, string> => ({
-  accept: getHeader(event, 'accept') || 'application/json',
-  'content-type': getHeader(event, 'content-type') || 'application/json',
-})
+const buildForwardHeaders = (event: any): Record<string, string> => {
+  const headers: Record<string, string> = {
+    accept: getHeader(event, 'accept') || 'application/json',
+  }
+
+  const contentType = getHeader(event, 'content-type')
+  if (contentType) {
+    headers['content-type'] = contentType
+  }
+
+  const contentLength = getHeader(event, 'content-length')
+  if (contentLength) {
+    headers['content-length'] = contentLength
+  }
+
+  return headers
+}
 
 const handleBackendError = (error: any) => {
   const statusCode = error?.statusCode || error?.response?.status
@@ -176,7 +189,13 @@ export default defineEventHandler(async (event) => {
   }
 
   const method = getMethod(event)
-  const body = ['GET', 'HEAD'].includes(method) ? undefined : await readBody(event)
+  const contentType = getHeader(event, 'content-type') || ''
+  const isMultipartRequest = contentType.startsWith('multipart/form-data')
+  const body = ['GET', 'HEAD'].includes(method)
+    ? undefined
+    : isMultipartRequest
+      ? await readRawBody(event, false)
+      : await readBody(event)
   const query = getQuery(event)
 
   const shouldCacheLocalization = method === 'GET' && LOCALIZATION_CACHE_PATHS.has(targetPath)
