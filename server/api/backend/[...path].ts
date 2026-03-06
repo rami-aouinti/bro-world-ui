@@ -28,9 +28,17 @@ const ENTITY_CACHE_PREFIXES = [
   '/api/v1/configuration',
   '/api/v1/platform',
   '/api/v1/plugin',
+  '/api/v1/application/private',
   '/api/v1/application/public',
   '/api/v1/platform/public',
   '/api/v1/plugin/public',
+]
+
+const ENTITY_CACHE_INVALIDATION_RULES: Array<{ routePrefix: string, cachePrefixes: string[] }> = [
+  {
+    routePrefix: '/api/v1/profile/applications',
+    cachePrefixes: ['/api/v1/application/public', '/api/v1/application/private'],
+  },
 ]
 
 const ONE_DAY_IN_SECONDS = 60 * 60 * 24
@@ -113,6 +121,18 @@ const clearCacheByPrefix = async (prefix: string) => {
   } catch (error) {
     console.warn('Entity cache invalidation failed', error)
   }
+}
+
+const getInvalidationCachePrefixes = (targetPath: string) => {
+  const rule = ENTITY_CACHE_INVALIDATION_RULES.find(({ routePrefix }) => targetPath.startsWith(routePrefix))
+
+  if (rule) {
+    return rule.cachePrefixes
+  }
+
+  const cachePrefix = ENTITY_CACHE_PREFIXES.find(prefix => targetPath.startsWith(prefix))
+
+  return cachePrefix ? [cachePrefix] : []
 }
 
 const buildForwardHeaders = (event: any): Record<string, string> => ({
@@ -207,8 +227,8 @@ export default defineEventHandler(async (event) => {
 
     const shouldInvalidateEntityCache = ['POST', 'PATCH', 'DELETE', 'PUT'].includes(method)
     if (shouldInvalidateEntityCache) {
-      const cachePrefix = ENTITY_CACHE_PREFIXES.find(prefix => targetPath.startsWith(prefix))
-      if (cachePrefix) {
+      const cachePrefixes = getInvalidationCachePrefixes(targetPath)
+      for (const cachePrefix of cachePrefixes) {
         await clearCacheByPrefix(cachePrefix)
       }
     }
