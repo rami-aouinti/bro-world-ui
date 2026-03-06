@@ -150,14 +150,8 @@ const signOut = async () => {
 
         <v-menu location="bottom end" v-model="isProfileMenuOpen">
           <template #activator="{ props }">
-            <v-btn
-              variant="text"
-              class="text-none px-2 app-bar__avatar-btn"
-              :aria-label="t('app.navigation.profile')"
-              v-bind="props"
-            >
-              <UiAvatar :src="authSession.profile?.photo" :name="profileName" size="sm" status="online" />
-            </v-btn>
+            <UiAvatar :aria-label="t('app.navigation.profile')"
+                      v-bind="props" :src="authSession.profile?.photo" size="sm" :name="profileName" status="online" />
           </template>
 
           <v-list class="py-1 app-bar__menu" min-width="220">
@@ -215,15 +209,10 @@ const signOut = async () => {
           </v-list>
         </v-menu>
 
-        <v-btn
-          icon
-          variant="flat"
-          class="app-bar__theme-btn"
-          :aria-label="t('app.navigation.toggleTheme')"
-          @click="toggleTheme"
-        >
-          <v-icon :icon="isDark ? 'mdi-weather-night' : 'mdi-white-balance-sunny'" size="18" />
-        </v-btn>
+        <v-icon
+            class="mx-4"
+            :aria-label="t('app.navigation.toggleTheme')"
+            @click="toggleTheme" :icon="isDark ? 'mdi-weather-night' : 'mdi-white-balance-sunny'" />
       </div>
     </template>
 
