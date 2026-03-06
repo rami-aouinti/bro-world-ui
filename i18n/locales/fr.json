@@ -354,6 +354,8 @@
       "pluginTitle": "Choisissez un plugin",
       "fields": {
         "title": "Titre",
+        "description": "Description",
+        "photo": "Photo",
         "private": "Privée",
         "active": "Active",
         "theme": "Thème",

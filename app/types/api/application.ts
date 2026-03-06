@@ -39,6 +39,8 @@ export interface ApplicationPluginPayload {
 export interface CreateApplicationPayload {
   platformId: UUID
   title: string
+  description?: string
+  photo?: string
   status: 'active' | 'inactive' | string
   private: boolean
   configurations: ApplicationConfiguration[]
