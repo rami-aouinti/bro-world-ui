@@ -115,12 +115,11 @@ await fetchUserGroups()
       </div>
     </Teleport>
 
-    <v-card rounded="xl" elevation="2" class="pa-4">
-      <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
-        {{ errorMessage }}
-      </v-alert>
+    <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
+      {{ errorMessage }}
+    </v-alert>
 
-      <UiDataTable
+    <UiDataTable
         :headers="headers"
         :items="userGroups"
         :loading="loading"
@@ -128,16 +127,15 @@ await fetchUserGroups()
         item-key="id"
         :items-per-page="10"
         :empty-text="t('admin.userGroups.empty')"
-      >
-        <template #item.actions="{ item }">
-          <div class="d-flex flex-nowrap ga-1 py-1">
-            <v-btn size="x-small" variant="tonal" icon="mdi-eye" :aria-label="t('admin.userGroups.aria.show', { id: item.id })" @click="showEntity(item.id)" />
-            <v-btn size="x-small" variant="tonal" color="warning" icon="mdi-file-edit-outline" :aria-label="t('admin.userGroups.aria.patch', { id: item.id })" @click="openEditDialog(item, true)" />
-            <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="t('admin.userGroups.aria.delete', { id: item.id })" @click="deleteEntity(item.id)" />
-          </div>
-        </template>
-      </UiDataTable>
-    </v-card>
+    >
+      <template #item.actions="{ item }">
+        <div class="d-flex flex-nowrap ga-1 py-1">
+          <v-btn size="x-small" variant="tonal" icon="mdi-eye" :aria-label="t('admin.userGroups.aria.show', { id: item.id })" @click="showEntity(item.id)" />
+          <v-btn size="x-small" variant="tonal" color="warning" icon="mdi-file-edit-outline" :aria-label="t('admin.userGroups.aria.patch', { id: item.id })" @click="openEditDialog(item, true)" />
+          <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="t('admin.userGroups.aria.delete', { id: item.id })" @click="deleteEntity(item.id)" />
+        </div>
+      </template>
+    </UiDataTable>
 
     <v-dialog v-model="formDialog" max-width="560" persistent>
       <v-card rounded="xl">

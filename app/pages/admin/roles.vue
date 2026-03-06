@@ -81,18 +81,16 @@ await fetchRoles()
       </div>
     </Teleport>
 
-    <v-card rounded="xl" elevation="2" class="pa-4">
-      <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
+    <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
 
-      <UiDataTable :headers="headers" :items="roles" :loading="loading" :search="search" item-key="id" :items-per-page="10" :empty-text="t('admin.roles.empty')">
-        <template #item.description="{ item }">{{ item.description || '—' }}</template>
-        <template #item.actions="{ item }">
-          <div class="d-flex flex-nowrap ga-1 py-1">
-            <v-btn size="x-small" variant="tonal" icon="mdi-eye" :loading="loadingRoleDetails" :aria-label="`Voir ${item.id}`" @click="showEntity(item.id)" />
-          </div>
-        </template>
-      </UiDataTable>
-    </v-card>
+    <UiDataTable :headers="headers" :items="roles" :loading="loading" :search="search" item-key="id" :items-per-page="10" :empty-text="t('admin.roles.empty')">
+      <template #item.description="{ item }">{{ item.description || '—' }}</template>
+      <template #item.actions="{ item }">
+        <div class="d-flex flex-nowrap ga-1 py-1">
+          <v-btn size="x-small" variant="tonal" icon="mdi-eye" :loading="loadingRoleDetails" :aria-label="`Voir ${item.id}`" @click="showEntity(item.id)" />
+        </div>
+      </template>
+    </UiDataTable>
 
     <v-dialog v-model="showDialog" max-width="700">
       <v-card rounded="xl">
