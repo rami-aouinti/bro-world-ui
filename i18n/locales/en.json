@@ -218,7 +218,19 @@
         "title": "API keys",
         "description": "List and manage API keys available on /api/v1/api_key."
       },
-      "open": "Open"
+      "open": "Open",
+      "platforms": {
+        "title": "Platforms",
+        "description": "Browse and manage platform entries and metadata."
+      },
+      "plugins": {
+        "title": "Plugins",
+        "description": "Manage plugin catalog, states and integrations."
+      },
+      "configurations": {
+        "title": "Configurations",
+        "description": "View and maintain available configuration sets."
+      }
     },
     "navigation": {
       "dashboard": {
@@ -232,6 +244,14 @@
       "userManagement": {
         "title": "User Management",
         "description": "Access users, roles, groups and API key administration."
+      },
+      "platformManagement": {
+        "title": "Platform Management",
+        "description": "Manage platforms and plugins used by the application."
+      },
+      "configurationManagement": {
+        "title": "Configuration Management",
+        "description": "Access global configuration modules and settings lists."
       }
     },
     "dashboard": {
@@ -256,6 +276,14 @@
     "userManagement": {
       "title": "User management",
       "description": "Choose a section to administer users and access rights."
+    },
+    "platformManagement": {
+      "title": "Platform management",
+      "description": "Choose a section to administer platforms and plugins."
+    },
+    "configurationManagement": {
+      "title": "Configuration management",
+      "description": "Choose a section to administer configuration resources."
     }
   },
   "$vuetify": {

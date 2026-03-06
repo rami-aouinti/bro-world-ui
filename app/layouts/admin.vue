@@ -15,6 +15,7 @@ const adminMenu = computed(() => [
   },
   {
     title: t('admin.navigation.userManagement.title'),
+    value: 'user-management',
     icon: 'mdi-account-group-outline',
     children: [
       {
@@ -39,14 +40,45 @@ const adminMenu = computed(() => [
       },
     ],
   },
+  {
+    title: t('admin.navigation.platformManagement.title'),
+    value: 'platform-management',
+    icon: 'mdi-layers-outline',
+    children: [
+      {
+        title: t('admin.modules.platforms.title'),
+        to: '/admin/platform-management/platforms',
+        icon: 'mdi-view-grid-outline',
+      },
+      {
+        title: t('admin.modules.plugins.title'),
+        to: '/admin/platform-management/plugins',
+        icon: 'mdi-puzzle-outline',
+      },
+    ],
+  },
+  {
+    title: t('admin.navigation.configurationManagement.title'),
+    value: 'configuration-management',
+    icon: 'mdi-tune-variant',
+    children: [
+      {
+        title: t('admin.modules.configurations.title'),
+        to: '/admin/configuration-management/configurations',
+        icon: 'mdi-cog-sync-outline',
+      },
+    ],
+  },
 ])
 
 const openGroups = computed(() => {
-  if (route.path.startsWith('/admin/user-management')) {
-    return ['user-management']
-  }
+  const groups = []
 
-  return []
+  if (route.path.startsWith('/admin/user-management')) groups.push('user-management')
+  if (route.path.startsWith('/admin/platform-management')) groups.push('platform-management')
+  if (route.path.startsWith('/admin/configuration-management')) groups.push('configuration-management')
+
+  return groups
 })
 </script>
 
@@ -80,7 +112,7 @@ const openGroups = computed(() => {
 
                   <v-list-group
                     v-else
-                    value="user-management"
+                    :value="item.value"
                   >
                     <template #activator="{ props }">
                       <v-list-item
