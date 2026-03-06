@@ -22,7 +22,7 @@ const resolveRedirectTarget = () => {
   const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : ''
 
   if (!redirect || redirect.startsWith('/login')) {
-    return '/profile'
+    return '/'
   }
 
   return redirect

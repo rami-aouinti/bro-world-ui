@@ -13,11 +13,10 @@ definePageMeta({
   requiredPermissions: ['profile.readOwn'],
 })
 
-const router = useRouter()
 const { t } = useI18n()
 const authSession = useAuthSessionStore()
 const { canPermission } = useAccessControl()
-const { isAuthenticated, fetchProfile, logout } = useAuth()
+const { isAuthenticated, fetchProfile } = useAuth()
 
 const loading = ref(false)
 const errorMessage = ref('')
@@ -65,16 +64,6 @@ onMounted(async () => {
     await loadProfile()
   }
 })
-
-const signOut = async () => {
-  if (!canPermission('profile.logout')) {
-    errorMessage.value = t('profile.notAuthenticated')
-    return
-  }
-
-  await logout()
-  await router.push('/login')
-}
 </script>
 
 <template>
@@ -82,18 +71,7 @@ const signOut = async () => {
     max-width="840"
   >
     <template #header>
-      <UiSectionHeader :title="t('profile.title')">
-        <template #actions>
-          <v-btn
-            v-if="canPermission('profile.logout')"
-            variant="outlined"
-            :disabled="!isAuthenticated"
-            @click="signOut"
-          >
-            {{ t('profile.logout') }}
-          </v-btn>
-        </template>
-      </UiSectionHeader>
+      <UiSectionHeader :title="t('profile.title')" />
     </template>
 
     <div class="d-flex align-center ga-3 mb-4">

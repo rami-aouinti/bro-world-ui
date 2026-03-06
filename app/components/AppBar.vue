@@ -8,9 +8,11 @@ interface NavItem {
   to: string
 }
 
+const router = useRouter()
 const { t } = useI18n()
 const authSession = useAuthSessionStore()
 const { can, canPermission } = useAccessControl()
+const { isAuthenticated, logout } = useAuth()
 
 const siteName = computed(() => t('app.name'))
 
@@ -41,6 +43,15 @@ const profileName = computed(() => {
 
   return `${profile.firstName} ${profile.lastName}`.trim() || profile.username
 })
+
+const signOut = async () => {
+  if (!canPermission('profile.logout')) {
+    return
+  }
+
+  await logout()
+  await router.push('/login')
+}
 </script>
 
 <template>
@@ -80,6 +91,16 @@ const profileName = computed(() => {
       </v-btn>
 
       <v-btn
+        v-if="canPermission('profile.logout')"
+        variant="text"
+        class="text-none"
+        :disabled="!isAuthenticated"
+        @click="signOut"
+      >
+        {{ t('profile.logout') }}
+      </v-btn>
+
+      <v-btn
         v-if="can(['ROLE_USER', 'ROLE_ADMIN'])"
         to="/profile"
         variant="text"
@@ -116,6 +137,13 @@ const profileName = computed(() => {
           :title="t(item.key)"
           rounded="lg"
           class="mx-2 my-1 md-app-bar__menu-item"
+        />
+        <v-list-item
+          v-if="canPermission('profile.logout')"
+          :title="t('profile.logout')"
+          rounded="lg"
+          class="mx-2 my-1 md-app-bar__menu-item"
+          @click="signOut"
         />
       </v-list>
     </v-menu>
