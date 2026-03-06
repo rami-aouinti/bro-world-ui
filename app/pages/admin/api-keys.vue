@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import UiDataTable from '~/components/ui/UiDataTable.vue'
 import UiActionConfirmDialog from '~/components/ui/UiActionConfirmDialog.vue'
+import UiActionDialog from '~/components/ui/UiActionDialog.vue'
 import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import { useApiKeysStore } from '~/stores/apiKeys'
@@ -229,28 +230,28 @@ await fetchApiKeys()
       @confirm="deleteEntity"
     />
 
-    <v-dialog v-model="formDialog" max-width="560" persistent>
-      <v-card rounded="xl">
-        <v-card-title>{{ formTitle }}</v-card-title>
-        <v-card-text>
-          <v-text-field v-model="form.description" :label="t('admin.apiKeys.form.description')" class="mb-2" />
-          <v-text-field v-model="form.token" :label="t('admin.apiKeys.form.token')" :disabled="formMode === 'patch'" />
-        </v-card-text>
-        <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="formDialog = false">{{ t('admin.common.cancel') }}</v-btn>
-          <v-btn color="primary" :loading="submitting" @click="submitForm">{{ t('admin.common.save') }}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <UiActionDialog
+      v-model="formDialog"
+      :title="formTitle"
+      max-width="560"
+      persistent
+    >
+      <v-text-field v-model="form.description" :label="t('admin.apiKeys.form.description')" class="mb-2" />
+      <v-text-field v-model="form.token" :label="t('admin.apiKeys.form.token')" :disabled="formMode === 'patch'" />
 
-    <v-dialog v-model="showDialog" max-width="700">
-      <v-card rounded="xl">
-        <v-card-title>{{ t('admin.apiKeys.dialogs.details') }}</v-card-title>
-        <v-card-text>
-          <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selectedItem, null, 2) }}</pre>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+      <template #actions>
+        <v-btn variant="text" @click="formDialog = false">{{ t('admin.common.cancel') }}</v-btn>
+        <v-btn color="primary" :loading="submitting" @click="submitForm">{{ t('admin.common.save') }}</v-btn>
+      </template>
+    </UiActionDialog>
+
+    <UiActionDialog
+      v-model="showDialog"
+      :title="t('admin.apiKeys.dialogs.details')"
+      max-width="700"
+    >
+      <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selectedItem, null, 2) }}</pre>
+    </UiActionDialog>
   </UiPageSection>
 </template>
 

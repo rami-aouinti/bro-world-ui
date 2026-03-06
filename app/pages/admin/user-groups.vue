@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import UiDataTable from '~/components/ui/UiDataTable.vue'
 import UiActionConfirmDialog from '~/components/ui/UiActionConfirmDialog.vue'
+import UiActionDialog from '~/components/ui/UiActionDialog.vue'
 import UiPageSection from '~/components/ui/UiPageSection.vue'
 import { useUserGroupsStore } from '~/stores/userGroups'
 import type { UserGroup } from '~/types/api/userGroup'
@@ -14,14 +15,18 @@ definePageMeta({
 const userGroupsStore = useUserGroupsStore()
 const { t } = useI18n()
 const loading = ref(false)
+const submitting = ref(false)
 const errorMessage = ref('')
 const userGroups = ref<UserGroup[]>([])
 const search = ref('')
 
+const formDialog = ref(false)
 const showDialog = ref(false)
 const deleteDialog = ref(false)
+const formMode = ref<'create' | 'edit' | 'patch'>('create')
 const selectedGroup = ref<UserGroup | null>(null)
 const groupToDeleteId = ref('')
+const form = reactive({ name: '', role: '' })
 
 const headers = computed(() => [
   { title: t('admin.userGroups.headers.name'), key: 'name', sortable: true },
@@ -48,6 +53,20 @@ const fetchUserGroups = async () => {
 const showEntity = async (id: string) => {
   selectedGroup.value = await userGroupsStore.getById(id)
   showDialog.value = true
+}
+
+const openCreateDialog = () => {
+  formMode.value = 'create'
+  selectedGroup.value = null
+  Object.assign(form, { name: '', role: '' })
+  formDialog.value = true
+}
+
+const openEditDialog = (group: UserGroup, patch = false) => {
+  selectedGroup.value = group
+  formMode.value = patch ? 'patch' : 'edit'
+  Object.assign(form, { name: group.name, role: group.role?.id ?? '' })
+  formDialog.value = true
 }
 
 const submitForm = async () => {
@@ -163,28 +182,28 @@ await fetchUserGroups()
       @confirm="deleteEntity"
     />
 
-    <v-dialog v-model="formDialog" max-width="560" persistent>
-      <v-card rounded="xl">
-        <v-card-title>{{ formTitle }}</v-card-title>
-        <v-card-text>
-          <v-text-field v-model="form.name" :label="t('admin.userGroups.form.groupName')" class="mb-2" />
-          <v-text-field v-model="form.role" :label="t('admin.userGroups.form.roleId')" />
-        </v-card-text>
-        <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="formDialog = false">{{ t('admin.common.cancel') }}</v-btn>
-          <v-btn color="primary" :loading="submitting" @click="submitForm">{{ t('admin.common.save') }}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <UiActionDialog
+      v-model="formDialog"
+      :title="formTitle"
+      max-width="560"
+      persistent
+    >
+      <v-text-field v-model="form.name" :label="t('admin.userGroups.form.groupName')" class="mb-2" />
+      <v-text-field v-model="form.role" :label="t('admin.userGroups.form.roleId')" />
 
-    <v-dialog v-model="showDialog" max-width="700">
-      <v-card rounded="xl">
-        <v-card-title>{{ t('admin.userGroups.dialogs.groupDetails') }}</v-card-title>
-        <v-card-text>
-          <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selectedGroup, null, 2) }}</pre>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+      <template #actions>
+        <v-btn variant="text" @click="formDialog = false">{{ t('admin.common.cancel') }}</v-btn>
+        <v-btn color="primary" :loading="submitting" @click="submitForm">{{ t('admin.common.save') }}</v-btn>
+      </template>
+    </UiActionDialog>
+
+    <UiActionDialog
+      v-model="showDialog"
+      :title="t('admin.userGroups.dialogs.groupDetails')"
+      max-width="700"
+    >
+      <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selectedGroup, null, 2) }}</pre>
+    </UiActionDialog>
   </UiPageSection>
 </template>
 

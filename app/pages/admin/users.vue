@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import UiDataTable from '~/components/ui/UiDataTable.vue'
 import UiActionConfirmDialog from '~/components/ui/UiActionConfirmDialog.vue'
+import UiActionDialog from '~/components/ui/UiActionDialog.vue'
 import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import { useUsersStore } from '~/stores/users'
@@ -305,38 +306,38 @@ await fetchUsers()
       @confirm="deleteEntity"
     />
 
-    <v-dialog v-model="formDialog" max-width="760" persistent>
-      <v-card rounded="xl" class="pa-2">
-        <v-card-title class="text-h6">{{ formTitle }}</v-card-title>
-        <v-card-text>
-          <v-row>
-            <v-col cols="12" md="6"><v-text-field v-model="form.username" :label="t('admin.users.form.username')" :disabled="formMode === 'patch'" /></v-col>
-            <v-col cols="12" md="6"><v-text-field v-model="form.email" :label="t('admin.users.form.email')" /></v-col>
-            <v-col cols="12" md="6"><v-text-field v-model="form.firstName" :label="t('admin.users.form.firstName')" /></v-col>
-            <v-col cols="12" md="6"><v-text-field v-model="form.lastName" :label="t('admin.users.form.lastName')" /></v-col>
-            <v-col cols="12" md="6"><v-text-field v-model="form.password" type="password" :label="t('admin.users.form.password')" :hint="t('admin.users.form.passwordHint')" persistent-hint /></v-col>
-            <v-col cols="12" md="6"><v-text-field v-model="form.timezone" :label="t('admin.users.form.timezone')" /></v-col>
-            <v-col cols="12" md="6"><v-text-field v-model="form.language" :label="t('admin.users.form.language')" /></v-col>
-            <v-col cols="12" md="6"><v-text-field v-model="form.locale" :label="t('admin.users.form.locale')" /></v-col>
-            <v-col cols="12"><v-text-field v-model="form.photo" :label="t('admin.users.form.photoUrl')" /></v-col>
-          </v-row>
-        </v-card-text>
-        <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="formDialog = false">{{ t('admin.common.cancel') }}</v-btn>
-          <v-btn color="primary" :loading="submitting" @click="submitForm">{{ t('admin.common.save') }}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <UiActionDialog
+      v-model="formDialog"
+      :title="formTitle"
+      max-width="760"
+      persistent
+    >
+      <v-row>
+        <v-col cols="12" md="6"><v-text-field v-model="form.username" :label="t('admin.users.form.username')" :disabled="formMode === 'patch'" /></v-col>
+        <v-col cols="12" md="6"><v-text-field v-model="form.email" :label="t('admin.users.form.email')" /></v-col>
+        <v-col cols="12" md="6"><v-text-field v-model="form.firstName" :label="t('admin.users.form.firstName')" /></v-col>
+        <v-col cols="12" md="6"><v-text-field v-model="form.lastName" :label="t('admin.users.form.lastName')" /></v-col>
+        <v-col cols="12" md="6"><v-text-field v-model="form.password" type="password" :label="t('admin.users.form.password')" :hint="t('admin.users.form.passwordHint')" persistent-hint /></v-col>
+        <v-col cols="12" md="6"><v-text-field v-model="form.timezone" :label="t('admin.users.form.timezone')" /></v-col>
+        <v-col cols="12" md="6"><v-text-field v-model="form.language" :label="t('admin.users.form.language')" /></v-col>
+        <v-col cols="12" md="6"><v-text-field v-model="form.locale" :label="t('admin.users.form.locale')" /></v-col>
+        <v-col cols="12"><v-text-field v-model="form.photo" :label="t('admin.users.form.photoUrl')" /></v-col>
+      </v-row>
+
+      <template #actions>
+        <v-btn variant="text" @click="formDialog = false">{{ t('admin.common.cancel') }}</v-btn>
+        <v-btn color="primary" :loading="submitting" @click="submitForm">{{ t('admin.common.save') }}</v-btn>
+      </template>
+    </UiActionDialog>
 
 
-    <v-dialog v-model="showDialog" max-width="700">
-      <v-card rounded="xl">
-        <v-card-title>{{ t('admin.users.dialogs.userDetails') }}</v-card-title>
-        <v-card-text>
-          <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selectedUser, null, 2) }}</pre>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+    <UiActionDialog
+      v-model="showDialog"
+      :title="t('admin.users.dialogs.userDetails')"
+      max-width="700"
+    >
+      <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selectedUser, null, 2) }}</pre>
+    </UiActionDialog>
 
     <v-dialog v-model="rolesDialog" max-width="560">
       <v-card rounded="xl">
