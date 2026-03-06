@@ -31,7 +31,6 @@ const selectedItem = ref<ApiKey | null>(null)
 const form = reactive({ token: '', description: '' })
 
 const headers = [
-  { title: 'ID', key: 'id', sortable: true },
   { title: 'Description', key: 'description', sortable: true },
   { title: 'Token', key: 'tokenMasked', sortable: false },
   { title: 'Actions', key: 'actions', sortable: false },
