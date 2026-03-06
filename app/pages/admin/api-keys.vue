@@ -32,7 +32,6 @@ const selectedItem = ref<ApiKey | null>(null)
 const form = reactive({ token: '', description: '' })
 
 const headers = computed(() => [
-  { title: t('admin.apiKeys.headers.id'), key: 'id', sortable: true },
   { title: t('admin.apiKeys.headers.description'), key: 'description', sortable: true },
   { title: t('admin.apiKeys.headers.token'), key: 'tokenMasked', sortable: false },
   { title: t('admin.apiKeys.headers.actions'), key: 'actions', sortable: false },
