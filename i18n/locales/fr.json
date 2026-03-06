@@ -282,7 +282,38 @@
   "platform": {
     "title": "Plateforme",
     "description": "Découvrez le point d'entrée principal de Bro World et naviguez vers les sections clés.",
-    "cta": "Nous contacter"
+    "cta": "Nous contacter",
+    "newPlatform": {
+      "title": "+ Nouvelle plateforme",
+      "description": "Créez une nouvelle user-application et configurez ses plugins."
+    },
+    "status": {
+      "active": "Actif",
+      "inactive": "Inactif"
+    },
+    "assistant": "Assistant de plateforme",
+    "cards": {
+      "crm1": {
+        "title": "CRM 1",
+        "description": "Module CRM complet pour centraliser les relations clients, suivre les opportunités et structurer l'activité commerciale."
+      },
+      "crm2": {
+        "title": "CRM 2",
+        "description": "Module CRM complet pour centraliser les relations clients, suivre les opportunités et structurer l'activité commerciale."
+      },
+      "shop": {
+        "title": "Shop Principal",
+        "description": "Suite e-commerce pour gérer le catalogue produits, les commandes, les paiements et les performances de vente."
+      },
+      "recruit": {
+        "title": "Recruit Principal",
+        "description": "Espace recrutement pour publier des offres, qualifier les candidatures et piloter les entretiens efficacement."
+      },
+      "school": {
+        "title": "School Principal",
+        "description": "Module scolaire pour organiser les classes, planifier les enseignements et suivre les progressions des apprenants."
+      }
+    }
   },
   "about": {
     "title": "À propos",
