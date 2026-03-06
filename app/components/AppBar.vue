@@ -154,7 +154,7 @@ const signOut = async () => {
           </template>
 
           <v-list class="py-1 app-bar__menu" min-width="220">
-            <v-list-item :to="can(['ROLE_USER', 'ROLE_ADMIN']) ? '/profile' : '/login'" :title="t('app.navigation.profile')" prepend-icon="mdi-account-outline" rounded="lg" class="mx-2 my-1" />
+            <v-list-item to="/profile" :title="t('app.navigation.profile')" prepend-icon="mdi-account-outline" rounded="lg" class="mx-2 my-1" />
             <v-list-item
               v-if="canPermission('admin.access')"
               to="/admin"
