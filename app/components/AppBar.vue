@@ -1,37 +1,39 @@
 <script setup lang="ts">
 import UiAvatar from '~/components/ui/UiAvatar.vue'
-import { computed } from 'vue'
-import { useDisplay } from 'vuetify'
+import { computed, ref } from 'vue'
+import { useDisplay, useTheme } from 'vuetify'
 
 interface NavItem {
   key: string
-  to: string
+  to?: string
+  icon: string
 }
 
 const router = useRouter()
-const { t } = useI18n()
+const { t, locale, locales, setLocale } = useI18n()
 const authSession = useAuthSessionStore()
 const { can, canPermission } = useAccessControl()
-const { isAuthenticated, logout } = useAuth()
+const { logout } = useAuth()
+const theme = useTheme()
 
-const siteName = computed(() => t('app.name'))
+const isProfileMenuOpen = ref(false)
 
-const navItems = computed<NavItem[]>(() => {
-  const items: NavItem[] = []
-
-  if (!can()) {
-    items.push({ key: 'app.navigation.login', to: '/login' })
-    return items
-  }
-
-  items.push({ key: 'app.navigation.profile', to: '/profile' })
-
-  if (canPermission('admin.access')) {
-    items.push({ key: 'app.navigation.admin', to: '/admin' })
-  }
+const headerItems = computed<NavItem[]>(() => {
+  const items: NavItem[] = [
+    { key: 'app.navigation.platform', to: '/', icon: 'mdi-view-grid-outline' },
+    { key: 'app.navigation.about', icon: 'mdi-information-outline' },
+    { key: 'app.navigation.contact', icon: 'mdi-email-outline' },
+    { key: 'app.navigation.faq', icon: 'mdi-frequently-asked-questions' },
+  ]
 
   return items
 })
+
+const actionItems = computed<NavItem[]>(() => [
+  { key: 'app.navigation.calendar', icon: 'mdi-calendar-month-outline' },
+  { key: 'app.navigation.messages', icon: 'mdi-message-processing-outline' },
+  { key: 'app.navigation.notifications', icon: 'mdi-bell-outline' },
+])
 
 const { mdAndUp } = useDisplay()
 const isDesktop = computed(() => mdAndUp.value)
@@ -43,6 +45,40 @@ const profileName = computed(() => {
 
   return `${profile.firstName} ${profile.lastName}`.trim() || profile.username
 })
+
+const currentLocaleLabel = computed(() => locale.value.toUpperCase())
+const isDark = computed(() => theme.global.name.value === 'dark')
+
+const availableLocales = computed(() => locales.value
+  .map((item) => {
+    if (typeof item === 'string') {
+      return item
+    }
+
+    if (item && typeof item === 'object' && 'code' in item) {
+      return item.code
+    }
+
+    return null
+  })
+  .filter((value): value is string => Boolean(value)))
+
+const cycleLocale = async () => {
+  if (!availableLocales.value.length) {
+    return
+  }
+
+  const currentIndex = availableLocales.value.findIndex(item => item === locale.value)
+  const nextIndex = currentIndex >= 0
+    ? (currentIndex + 1) % availableLocales.value.length
+    : 0
+
+  await setLocale(availableLocales.value[nextIndex])
+}
+
+const toggleTheme = () => {
+  theme.global.name.value = isDark.value ? 'light' : 'dark'
+}
 
 const signOut = async () => {
   if (!canPermission('profile.logout')) {
@@ -58,91 +94,128 @@ const signOut = async () => {
   <v-app-bar
     flat
     rounded="xl"
-    class="app-bar md-app-bar px-3 px-sm-5 py-2"
+    class="app-bar px-3 px-sm-5 py-2"
   >
-    <v-toolbar-title class="md-app-bar__title font-weight-bold d-flex align-center ga-2 text-truncate">
-      <NuxtLink
-        to="/"
-        class="md-app-bar__title-link"
-      >
-        {{ siteName }}
+    <v-toolbar-title class="app-bar__brand d-flex align-center ga-3 text-truncate">
+      <NuxtLink to="/" class="app-bar__title-link d-flex align-center ga-2">
+        <v-icon icon="mdi-alpha-v-circle-outline" size="32" class="app-bar__brand-icon" />
+        <span class="text-truncate">
+          <span class="app-bar__brand-bro">Bro</span><span class="app-bar__brand-world">World</span>
+        </span>
       </NuxtLink>
     </v-toolbar-title>
 
-    <div
-      id="app-bar-teleport-target"
-      class="md-app-bar__teleport-target"
-    />
+    <div id="app-bar-teleport-target" class="app-bar__teleport-target" />
 
-    <v-spacer />
+    <v-spacer v-if="!isDesktop" />
 
-    <div
-      v-if="isDesktop"
-      class="d-flex align-center ga-1 ga-sm-2"
-    >
-      <v-btn
-        v-for="item in navItems"
-        :key="item.to"
-        :to="item.to"
-        variant="text"
-        class="text-none md-app-bar__nav-btn"
-      >
-        {{ t(item.key) }}
-      </v-btn>
-
-      <v-btn
-        v-if="canPermission('profile.logout')"
-        variant="text"
-        class="text-none"
-        :disabled="!isAuthenticated"
-        @click="signOut"
-      >
-        {{ t('profile.logout') }}
-      </v-btn>
-
-      <v-btn
-        v-if="can(['ROLE_USER', 'ROLE_ADMIN'])"
-        to="/profile"
-        variant="text"
-        class="text-none px-1 md-app-bar__avatar-btn"
-        :aria-label="t('app.navigation.profile')"
-      >
-        <UiAvatar
-          :src="authSession.profile?.photo"
-          :name="profileName"
-          size="sm"
-          status="online"
-        />
-      </v-btn>
-    </div>
-
-    <v-menu
-      v-else
-      location="bottom end"
-    >
-      <template #activator="{ props }">
+    <template v-if="isDesktop">
+      <div class="d-flex align-center ga-1 ga-sm-2 app-bar__center-links">
         <v-btn
-          icon="mdi-menu"
+          v-for="item in headerItems"
+          :key="item.key"
+          :to="item.to"
           variant="text"
-          v-bind="props"
-          :aria-label="t('app.navigation.openMenu')"
-        />
+          class="text-none app-bar__link-btn"
+          :prepend-icon="item.icon"
+        >
+          {{ t(item.key) }}
+        </v-btn>
+      </div>
+
+      <v-spacer />
+
+      <div class="d-flex align-center ga-1 ga-sm-2">
+        <v-btn
+          v-for="action in actionItems"
+          :key="action.key"
+          icon
+          variant="text"
+          class="app-bar__icon-btn"
+          :aria-label="t(action.key)"
+        >
+          <v-icon :icon="action.icon" />
+        </v-btn>
+
+        <v-menu location="bottom end" v-model="isProfileMenuOpen">
+          <template #activator="{ props }">
+            <v-btn
+              variant="text"
+              class="text-none px-2 app-bar__avatar-btn"
+              :aria-label="t('app.navigation.profile')"
+              v-bind="props"
+            >
+              <UiAvatar :src="authSession.profile?.photo" :name="profileName" size="sm" status="online" />
+            </v-btn>
+          </template>
+
+          <v-list class="py-1 app-bar__menu" min-width="220">
+            <v-list-item :to="can(['ROLE_USER', 'ROLE_ADMIN']) ? '/profile' : '/login'" :title="t('app.navigation.profile')" prepend-icon="mdi-account-outline" rounded="lg" class="mx-2 my-1" />
+            <v-list-item
+              v-if="canPermission('admin.access')"
+              to="/admin"
+              :title="t('app.navigation.admin')"
+              prepend-icon="mdi-shield-account-outline"
+              rounded="lg"
+              class="mx-2 my-1"
+            />
+            <v-list-item
+              v-if="canPermission('profile.logout')"
+              :title="t('profile.logout')"
+              prepend-icon="mdi-logout"
+              rounded="lg"
+              class="mx-2 my-1"
+              @click="signOut"
+            />
+          </v-list>
+        </v-menu>
+
+        <v-btn
+          icon
+          variant="text"
+          class="app-bar__icon-btn"
+          :aria-label="t('app.navigation.language')"
+          @click="cycleLocale"
+        >
+          <span class="app-bar__lang-label">{{ currentLocaleLabel }}</span>
+        </v-btn>
+
+        <v-btn
+          icon
+          variant="flat"
+          class="app-bar__theme-btn"
+          :aria-label="t('app.navigation.toggleTheme')"
+          @click="toggleTheme"
+        >
+          <v-icon :icon="isDark ? 'mdi-weather-night' : 'mdi-white-balance-sunny'" size="18" />
+        </v-btn>
+      </div>
+    </template>
+
+    <v-menu v-else location="bottom end">
+      <template #activator="{ props }">
+        <v-btn icon="mdi-menu" variant="text" v-bind="props" :aria-label="t('app.navigation.openMenu')" />
       </template>
 
       <v-list class="py-1">
         <v-list-item
-          v-for="item in navItems"
-          :key="item.to"
+          v-for="item in headerItems"
+          :key="item.key"
           :to="item.to"
           :title="t(item.key)"
+          :prepend-icon="item.icon"
           rounded="lg"
-          class="mx-2 my-1 md-app-bar__menu-item"
+          class="mx-2 my-1"
         />
+        <v-divider class="my-1" />
+        <v-list-item :title="t('app.navigation.language')" prepend-icon="mdi-translate" rounded="lg" class="mx-2 my-1" @click="cycleLocale" />
+        <v-list-item :title="t('app.navigation.toggleTheme')" prepend-icon="mdi-theme-light-dark" rounded="lg" class="mx-2 my-1" @click="toggleTheme" />
         <v-list-item
           v-if="canPermission('profile.logout')"
           :title="t('profile.logout')"
+          prepend-icon="mdi-logout"
           rounded="lg"
-          class="mx-2 my-1 md-app-bar__menu-item"
+          class="mx-2 my-1"
           @click="signOut"
         />
       </v-list>
@@ -154,39 +227,71 @@ const signOut = async () => {
 .app-bar {
   margin: var(--ui-spacing-sm) var(--ui-spacing-md);
   padding-inline: var(--ui-spacing-lg);
-  min-height: 72px;
-  background: rgb(var(--v-theme-surface));
+  min-height: 76px;
+  background: #f5f5f7;
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
 }
 
-.md-app-bar__title {
-  color: rgb(var(--v-theme-default));
+.app-bar__brand {
   min-width: 0;
 }
 
-.md-app-bar__title-link {
-  color: inherit;
+.app-bar__title-link {
+  color: #24262d;
   text-decoration: none;
-  transition: opacity 0.2s ease;
+  font-weight: 700;
 }
 
-.md-app-bar__title-link:hover {
-  opacity: 0.72;
+.app-bar__brand-icon {
+  color: #ec407a;
 }
 
-.md-app-bar__nav-btn {
-  font-weight: 600;
-  opacity: 0.9;
-  border-radius: 10px;
-  padding-inline: 12px;
+.app-bar__brand-bro {
+  color: #24262d;
 }
 
-.md-app-bar__avatar-btn {
-  border-radius: 9999px;
+.app-bar__brand-world {
+  color: #ec407a;
 }
 
-.md-app-bar__teleport-target {
+.app-bar__center-links {
+  margin-inline-start: 1rem;
+}
+
+.app-bar__link-btn {
+  font-weight: 500;
+  color: #2f3136;
+  border-radius: 12px;
+}
+
+.app-bar__icon-btn {
+  color: #4a4d55;
+}
+
+.app-bar__avatar-btn {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.app-bar__menu {
+  background-color: #f7f5f7;
+}
+
+.app-bar__lang-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.app-bar__theme-btn {
+  border-radius: 999px;
+  min-width: 42px;
+  background-color: #7f8188;
+  color: #ffffff;
+}
+
+.app-bar__teleport-target {
   display: flex;
   align-items: center;
   min-width: 0;
