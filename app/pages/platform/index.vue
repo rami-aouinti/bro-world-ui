@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import UiPageSection from "~/components/ui/UiPageSection.vue";
+
 definePageMeta({
   public: true,
   requiresAuth: false,
@@ -106,108 +108,110 @@ const disableApplication = async () => {
 </script>
 
 <template>
-  <section class="platform-page">
-    <div class="platform-page__grid">
-      <article class="platform-page__card platform-page__card--new" role="button" tabindex="0" @click="goToNewPlatform">
-        <div class="platform-page__add-icon">+</div>
-        <h2 class="platform-page__new-title">
-          {{ isAuthenticated ? t('platform.newPlatform.title') : t('platform.newPlatform.connectTitle') }}
-        </h2>
-        <p class="platform-page__new-description">
-          {{ isAuthenticated ? t('platform.newPlatform.description') : t('platform.newPlatform.connectDescription') }}
-        </p>
-      </article>
+  <UiPageSection>
+    <section class="platform-page">
+      <div class="platform-page__grid">
+        <article class="platform-page__card platform-page__card--new" role="button" tabindex="0" @click="goToNewPlatform">
+          <div class="platform-page__add-icon">+</div>
+          <h2 class="platform-page__new-title">
+            {{ isAuthenticated ? t('platform.newPlatform.title') : t('platform.newPlatform.connectTitle') }}
+          </h2>
+          <p class="platform-page__new-description">
+            {{ isAuthenticated ? t('platform.newPlatform.description') : t('platform.newPlatform.connectDescription') }}
+          </p>
+        </article>
 
-      <article
-        v-for="card in applicationsStore.items"
-        :key="card.id"
-        class="platform-page__card"
-      >
-        <v-menu v-if="card.isOwner" location="bottom end">
-          <template #activator="{ props }">
-            <v-btn
-              class="platform-page__card-dot"
-              icon="mdi-dots-vertical"
-              variant="text"
-              density="compact"
-              v-bind="props"
-            />
-          </template>
+        <article
+            v-for="card in applicationsStore.items"
+            :key="card.id"
+            class="platform-page__card"
+        >
+          <v-menu v-if="card.isOwner" location="bottom end">
+            <template #activator="{ props }">
+              <v-btn
+                  class="platform-page__card-dot"
+                  icon="mdi-dots-vertical"
+                  variant="text"
+                  density="compact"
+                  v-bind="props"
+              />
+            </template>
 
-          <v-list density="compact">
-            <v-list-item :title="t('platform.actions.edit')" @click="openEditModal(card)" />
-            <v-list-item :title="t('platform.actions.delete')" @click="openDeleteModal(card)" />
-          </v-list>
-        </v-menu>
+            <v-list density="compact">
+              <v-list-item :title="t('platform.actions.edit')" @click="openEditModal(card)" />
+              <v-list-item :title="t('platform.actions.delete')" @click="openDeleteModal(card)" />
+            </v-list>
+          </v-menu>
 
-        <div class="platform-page__card-top">
-          <div class="platform-page__card-brand">
-            <img :src="card?.photo" :alt="card.title" class="platform-page__logo">
-            <div class="platform-page__card-heading">
-              <h3 class="platform-page__card-title">{{ card.title }}</h3>
+          <div class="platform-page__card-top">
+            <div class="platform-page__card-brand">
+              <img :src="card?.photo" :alt="card.title" class="platform-page__logo">
+              <div class="platform-page__card-heading">
+                <h3 class="platform-page__card-title">{{ card.title }}</h3>
+              </div>
             </div>
+
           </div>
+          <div class="platform-page__card-brand py-4">
+            <img :src="authorAvatar(card)" :alt="authorFullName(card)" class="user__logo">
+            <p class="platform-page__card-author">{{ authorFullName(card) }}</p>
+            <v-chip
+                :color="card.status === 'active' ? 'success' : undefined"
+                variant="tonal"
+                size="small"
+                class="text-capitalize"
+            >
+              {{ card.status === 'active' ? t('platform.status.active') : t('platform.status.inactive') }}
+            </v-chip>
+          </div>
+          <p class="platform-page__card-description">{{ card.description }}</p>
 
-        </div>
-        <div class="platform-page__card-brand py-4">
-          <img :src="authorAvatar(card)" :alt="authorFullName(card)" class="user__logo">
-          <p class="platform-page__card-author">{{ authorFullName(card) }}</p>
-          <v-chip
-              :color="card.status === 'active' ? 'success' : undefined"
-              variant="tonal"
-              size="small"
-              class="text-capitalize"
-          >
-            {{ card.status === 'active' ? t('platform.status.active') : t('platform.status.inactive') }}
-          </v-chip>
-        </div>
-        <p class="platform-page__card-description">{{ card.description }}</p>
+          <div class="platform-page__card-footer">
+            <span>{{ card.platformName }}</span>
+            <span>{{ formatDate(card.createdAt) }}</span>
+          </div>
+        </article>
+      </div>
 
-        <div class="platform-page__card-footer">
-          <span>{{ card.platformName }}</span>
-          <span>{{ formatDate(card.createdAt) }}</span>
-        </div>
-      </article>
-    </div>
-
-    <UiActionDialog v-model="editDialog" :title="t('platform.actions.editTitle')" max-width="560" persistent>
-      <template v-if="selectedApp">
-        <v-text-field v-model="selectedApp.title" :label="t('platform.wizard.fields.title')" class="mb-3" />
-        <v-select
-          v-model="selectedApp.status"
-          :label="t('platform.wizard.fields.active')"
-          :items="[
+      <UiActionDialog v-model="editDialog" :title="t('platform.actions.editTitle')" max-width="560" persistent>
+        <template v-if="selectedApp">
+          <v-text-field v-model="selectedApp.title" :label="t('platform.wizard.fields.title')" class="mb-3" />
+          <v-select
+              v-model="selectedApp.status"
+              :label="t('platform.wizard.fields.active')"
+              :items="[
             { title: t('platform.status.active'), value: 'active' },
             { title: t('platform.status.inactive'), value: 'inactive' },
           ]"
-          item-title="title"
-          item-value="value"
-          class="mb-3"
-        />
-        <v-switch v-model="selectedApp.private" :label="t('platform.wizard.fields.private')" inset hide-details />
-      </template>
+              item-title="title"
+              item-value="value"
+              class="mb-3"
+          />
+          <v-switch v-model="selectedApp.private" :label="t('platform.wizard.fields.private')" inset hide-details />
+        </template>
 
-      <template #actions>
-        <v-btn variant="text" :disabled="submitting" @click="editDialog = false">{{ t('admin.common.cancel') }}</v-btn>
-        <v-btn color="primary" :loading="submitting" @click="saveApplication">{{ t('admin.common.save') }}</v-btn>
-      </template>
-    </UiActionDialog>
+        <template #actions>
+          <v-btn variant="text" :disabled="submitting" @click="editDialog = false">{{ t('admin.common.cancel') }}</v-btn>
+          <v-btn color="primary" :loading="submitting" @click="saveApplication">{{ t('admin.common.save') }}</v-btn>
+        </template>
+      </UiActionDialog>
 
-    <UiActionConfirmDialog
-      v-model="deleteDialog"
-      :title="t('platform.actions.deleteTitle')"
-      :message="t('platform.actions.deleteMessage', { title: selectedApp?.title || '' })"
-      :confirm-label="t('platform.actions.delete')"
-      :cancel-label="t('admin.common.cancel')"
-      :loading="submitting"
-      @confirm="disableApplication"
-    />
+      <UiActionConfirmDialog
+          v-model="deleteDialog"
+          :title="t('platform.actions.deleteTitle')"
+          :message="t('platform.actions.deleteMessage', { title: selectedApp?.title || '' })"
+          :confirm-label="t('platform.actions.delete')"
+          :cancel-label="t('admin.common.cancel')"
+          :loading="submitting"
+          @confirm="disableApplication"
+      />
 
-    <button type="button" class="platform-page__assistant" :aria-label="t('platform.assistant')">
-      <v-icon icon="mdi-message-outline" size="22" />
-      <v-icon icon="mdi-format-list-bulleted" size="22" />
-    </button>
-  </section>
+      <button type="button" class="platform-page__assistant" :aria-label="t('platform.assistant')">
+        <v-icon icon="mdi-message-outline" size="22" />
+        <v-icon icon="mdi-format-list-bulleted" size="22" />
+      </button>
+    </section>
+  </UiPageSection>
 </template>
 
 <style scoped>
