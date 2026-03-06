@@ -6,6 +6,7 @@ import UiPageSection from '~/components/ui/UiPageSection.vue'
 import { useUserGroupsStore } from '~/stores/userGroups'
 import type { UserGroup } from '~/types/api/userGroup'
 import UiSectionHeader from "~/components/ui/UiSectionHeader.vue"
+import UiEntityActionButtons from '~/components/ui/UiEntityActionButtons.vue'
 import UiTableToolbar from "~/components/ui/UiTableToolbar.vue"
 
 definePageMeta({
@@ -152,11 +153,14 @@ onMounted(async () => {
         :empty-text="t('admin.userGroups.empty')"
     >
       <template #item.actions="{ item }">
-        <div class="d-flex justify-end flex-nowrap ga-1 py-1">
-          <v-btn size="x-small" variant="text" color="success" icon="mdi-eye" :aria-label="t('admin.userGroups.aria.show', { id: item.id })" @click="showEntity(item.id)" />
-          <v-btn size="x-small" variant="text" color="warning" icon="mdi-file-edit-outline" :aria-label="t('admin.userGroups.aria.patch', { id: item.id })" @click="openEditDialog(item, true)" />
-          <v-btn size="x-small" variant="text" color="red" icon="mdi-delete" :aria-label="t('admin.userGroups.aria.delete', { id: item.id })" @click="openDeleteDialog(item.id)" />
-        </div>
+        <UiEntityActionButtons
+          :show-label="t('admin.userGroups.aria.show', { id: item.id })"
+          :patch-label="t('admin.userGroups.aria.patch', { id: item.id })"
+          :delete-label="t('admin.userGroups.aria.delete', { id: item.id })"
+          @show="showEntity(item.id)"
+          @patch="openEditDialog(item, true)"
+          @delete="openDeleteDialog(item.id)"
+        />
       </template>
     </UiDataTable>
 
