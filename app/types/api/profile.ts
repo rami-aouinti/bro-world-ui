@@ -21,3 +21,23 @@ export interface UpdateProfilePayload {
 }
 
 export type PatchProfilePayload = Partial<UpdateProfilePayload>
+
+
+export interface ApplicationConfigurationPayload {
+  configurationKey: string
+  configurationValue: Record<string, unknown>
+}
+
+export interface ApplicationPluginPayload {
+  pluginId: UUID
+  configurations: ApplicationConfigurationPayload[]
+}
+
+export interface CreateApplicationPayload {
+  platformId: UUID
+  title: string
+  status: 'active' | 'inactive' | string
+  private: boolean
+  configurations: ApplicationConfigurationPayload[]
+  plugins: ApplicationPluginPayload[]
+}

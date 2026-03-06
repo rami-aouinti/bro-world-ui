@@ -1,7 +1,12 @@
 import { buildListQuery } from './query'
 import { useApiClient } from '../useApiClient'
 import type { ListQueryParams, QueryParams } from '~/types/api/common'
-import type { PatchProfilePayload, Profile, UpdateProfilePayload } from '~/types/api/profile'
+import type {
+  CreateApplicationPayload,
+  PatchProfilePayload,
+  Profile,
+  UpdateProfilePayload,
+} from '~/types/api/profile'
 
 export const useProfileApi = () => {
   const { apiFetch } = useApiClient()
@@ -26,6 +31,12 @@ export const useProfileApi = () => {
     patch(payload: PatchProfilePayload) {
       return apiFetch<Profile>(basePath, {
         method: 'PATCH',
+        body: payload,
+      })
+    },
+    createApplication(payload: CreateApplicationPayload) {
+      return apiFetch('/api/v1/profile/applications', {
+        method: 'POST',
         body: payload,
       })
     },
