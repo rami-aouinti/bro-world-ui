@@ -26,13 +26,7 @@ const mainHeaderItems = computed<NavItem[]>(() => [
   { key: 'app.navigation.faq', icon: 'mdi-frequently-asked-questions' },
 ])
 
-const adminHeaderItems = computed<NavItem[]>(() => [
-  { key: 'app.navigation.adminOverview', to: '/admin', icon: 'mdi-view-dashboard-outline' },
-  { key: 'app.navigation.adminUsers', to: '/admin/users', icon: 'mdi-account-multiple-outline' },
-  { key: 'app.navigation.adminRoles', to: '/admin/roles', icon: 'mdi-shield-account-outline' },
-  { key: 'app.navigation.adminGroups', to: '/admin/user-groups', icon: 'mdi-account-group-outline' },
-  { key: 'app.navigation.adminApiKeys', to: '/admin/api-keys', icon: 'mdi-key-outline' },
-])
+const adminHeaderItems = computed<NavItem[]>(() => [])
 
 const headerItems = computed<NavItem[]>(() => route.path.startsWith('/admin')
   ? adminHeaderItems.value
