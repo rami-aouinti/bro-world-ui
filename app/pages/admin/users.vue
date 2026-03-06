@@ -76,7 +76,11 @@ const fetchUsers = async () => {
 
   try {
     users.value = await usersStore.fetchAll()
-    userRelations.value = usersStore.relations
+    userRelations.value = { ...usersStore.relations }
+
+    void usersStore.fetchRelations(users.value.map(user => user.id)).then(() => {
+      userRelations.value = { ...usersStore.relations }
+    })
   }
   catch {
     errorMessage.value = t('admin.users.errors.load')

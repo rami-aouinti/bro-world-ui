@@ -1,7 +1,5 @@
 export default defineNuxtRouteMiddleware(async (to) => {
-  const { initSession, isAuthenticated } = useAuth()
-
-  await initSession()
+  const { isAuthenticated } = useAuth()
 
   const isPublicRoute = to.meta.public === true
   const requiresAuth = to.meta.requiresAuth !== false && !isPublicRoute
