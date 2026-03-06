@@ -29,13 +29,25 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const resolveHeaderKey = (header: DataTableHeader) => header.key ?? header.value ?? ''
+const normalizedHeaders = computed(() => props.headers.map((header) => {
+  const headerKey = resolveHeaderKey(header)
+
+  if (headerKey !== 'actions') {
+    return header
+  }
+
+  return {
+    ...header,
+    align: 'end',
+  }
+}))
 const skeletonRowsCount = computed(() => Math.max(1, props.skeletonRows))
 </script>
 
 <template>
   <v-data-table
     class="ui-data-table table thead-light table-striped row-height-auto"
-    :headers="props.headers"
+    :headers="normalizedHeaders"
     :items="props.items"
     :loading="props.loading"
     :search="props.search"
