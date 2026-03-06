@@ -20,18 +20,22 @@ const adminMenu = computed(() => [
       {
         title: t('admin.modules.users.title'),
         to: '/admin/user-management/users',
+        icon: 'mdi-account-outline',
       },
       {
         title: t('admin.modules.roles.title'),
         to: '/admin/user-management/roles',
+        icon: 'mdi-shield-account-outline',
       },
       {
         title: t('admin.modules.groups.title'),
         to: '/admin/user-management/user-groups',
+        icon: 'mdi-account-multiple-outline',
       },
       {
         title: t('admin.modules.apiKeys.title'),
         to: '/admin/user-management/api-keys',
+        icon: 'mdi-key-outline',
       },
     ],
   },
@@ -54,7 +58,7 @@ const openGroups = computed(() => {
       <v-container fluid class="py-6">
         <v-row>
           <v-col cols="12" md="3">
-            <v-card class="admin-layout__menu-card" rounded="xl" variant="outlined">
+            <v-card class="admin-layout__menu-card" rounded="xl" elevation="6">
               <v-list
                 :opened="openGroups"
                 nav
@@ -92,6 +96,7 @@ const openGroups = computed(() => {
                       v-for="child in item.children"
                       :key="child.to"
                       :to="child.to"
+                      :prepend-icon="child.icon"
                       rounded="lg"
                       class="admin-layout__submenu-item"
                     >
@@ -123,6 +128,9 @@ const openGroups = computed(() => {
 }
 
 .admin-layout__submenu-item {
-  padding-inline-start: 52px;
+  margin: 6px 0 6px 14px;
+  padding-inline-start: 14px;
+  background-color: rgb(var(--v-theme-surface));
+  box-shadow: 0 8px 18px rgb(0 0 0 / 10%);
 }
 </style>
