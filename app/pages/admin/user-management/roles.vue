@@ -94,7 +94,7 @@ onMounted(async () => {
       <template #item.description="{ item }">{{ item.description || '—' }}</template>
       <template #item.actions="{ item }">
         <div class="d-flex justify-end flex-nowrap ga-1 py-1">
-          <v-btn size="x-small" variant="text" icon="mdi-eye" :loading="loadingRoleDetails" :aria-label="`Voir ${item.id}`" @click="showEntity(item.id)" />
+          <v-btn size="x-small" variant="text" color="success" icon="mdi-eye" :loading="loadingRoleDetails" :aria-label="`Voir ${item.id}`" @click="showEntity(item.id)" />
         </div>
       </template>
     </UiDataTable>
