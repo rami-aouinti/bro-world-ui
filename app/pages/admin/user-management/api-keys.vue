@@ -214,7 +214,7 @@ onMounted(async () => {
       </template>
 
       <template #item.actions="{ item }">
-        <div class="d-flex flex-nowrap ga-1 py-1">
+        <div class="d-flex justify-end flex-nowrap ga-1 py-1">
           <v-btn size="x-small" variant="tonal" icon="mdi-eye" :aria-label="t('admin.apiKeys.aria.show', { id: item.id })" @click="showEntity(item.id)" />
           <v-btn size="x-small" variant="tonal" color="warning" icon="mdi-file-edit-outline" :aria-label="t('admin.apiKeys.aria.patch', { id: item.id })" @click="openEditDialog(item, true)" />
           <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="t('admin.apiKeys.aria.delete', { id: item.id })" @click="openDeleteDialog(item.id)" />
