@@ -108,7 +108,7 @@ const disableApplication = async () => {
 </script>
 
 <template>
-  <UiPageSection>
+  <UiPageSection max-width="1200">
     <section class="platform-page">
       <div class="platform-page__grid">
         <article class="platform-page__card platform-page__card--new" role="button" tabindex="0" @click="goToNewPlatform">
