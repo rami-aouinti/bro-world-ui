@@ -26,8 +26,8 @@ const errorMessage = ref('')
 const availablePlatforms = ref<PlatformRead[]>([])
 const availablePlugins = ref<PluginRead[]>([])
 const selectedPlatformId = ref<string | null>(null)
-const selectedPluginId = ref<string | null>(null)
-const pluginCacheSeconds = ref<number>(120)
+const selectedPluginIds = ref<string[]>([])
+const pluginConfigurations = reactive<Record<string, { cacheSeconds: number }>>({})
 
 const form = reactive({
   title: '',
@@ -38,7 +38,7 @@ const form = reactive({
 
 const canContinueToStep2 = computed(() => Boolean(form.title.trim()))
 const canContinueToStep3 = computed(() => Boolean(selectedPlatformId.value))
-const canCreate = computed(() => Boolean(canContinueToStep2.value && canContinueToStep3.value && selectedPluginId.value))
+const canCreate = computed(() => Boolean(canContinueToStep2.value && canContinueToStep3.value))
 
 const loadWizardData = async () => {
   loading.value = true
@@ -63,8 +63,21 @@ const loadWizardData = async () => {
 
 await loadWizardData()
 
+const togglePlugin = (pluginId: string) => {
+  if (selectedPluginIds.value.includes(pluginId)) {
+    selectedPluginIds.value = selectedPluginIds.value.filter(id => id !== pluginId)
+    delete pluginConfigurations[pluginId]
+    return
+  }
+
+  selectedPluginIds.value = [...selectedPluginIds.value, pluginId]
+  pluginConfigurations[pluginId] = {
+    cacheSeconds: 120,
+  }
+}
+
 const submit = async () => {
-  if (!selectedPlatformId.value || !selectedPluginId.value || !form.title.trim()) {
+  if (!selectedPlatformId.value || !form.title.trim()) {
     return
   }
 
@@ -85,19 +98,17 @@ const submit = async () => {
           },
         },
       ],
-      plugins: [
-        {
-          pluginId: selectedPluginId.value,
-          configurations: [
-            {
-              configurationKey: 'plugin.cache.ttl',
-              configurationValue: {
-                seconds: pluginCacheSeconds.value,
-              },
+      plugins: selectedPluginIds.value.map(pluginId => ({
+        pluginId,
+        configurations: [
+          {
+            configurationKey: 'plugin.cache.ttl',
+            configurationValue: {
+              seconds: pluginConfigurations[pluginId]?.cacheSeconds ?? 120,
             },
-          ],
-        },
-      ],
+          },
+        ],
+      })),
     })
 
     applicationsStore.items = []
@@ -190,8 +201,8 @@ const submit = async () => {
             :key="plugin.id"
             type="button"
             class="wizard-option"
-            :class="{ 'wizard-option--selected': selectedPluginId === plugin.id }"
-            @click="selectedPluginId = plugin.id"
+            :class="{ 'wizard-option--selected': selectedPluginIds.includes(plugin.id) }"
+            @click="togglePlugin(plugin.id)"
           >
             <img :src="plugin.photo || ''" :alt="plugin.name" class="wizard-option__photo">
             <div class="wizard-option__body">
@@ -201,13 +212,24 @@ const submit = async () => {
           </button>
         </div>
 
-        <v-text-field
-          v-if="selectedPluginId"
-          v-model.number="pluginCacheSeconds"
-          type="number"
-          min="1"
-          :label="t('platform.wizard.fields.cacheSeconds')"
-        />
+        <v-expansion-panels v-if="selectedPluginIds.length" class="mb-4" variant="accordion">
+          <v-expansion-panel
+            v-for="plugin in availablePlugins.filter(item => selectedPluginIds.includes(item.id))"
+            :key="plugin.id"
+          >
+            <v-expansion-panel-title>
+              {{ plugin.name }} - {{ t('platform.wizard.fields.configuration') }}
+            </v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <v-text-field
+                v-model.number="pluginConfigurations[plugin.id].cacheSeconds"
+                type="number"
+                min="1"
+                :label="t('platform.wizard.fields.cacheSeconds')"
+              />
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
 
         <div class="d-flex justify-space-between">
           <v-btn variant="outlined" @click="step = 2">{{ t('platform.wizard.prev') }}</v-btn>

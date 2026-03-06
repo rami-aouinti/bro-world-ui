@@ -3,11 +3,19 @@ import type { UUID } from './common'
 export interface ApplicationRead {
   id: UUID
   title: string
+  description?: string
   status: 'active' | 'inactive' | string
   private: boolean
   platformId: UUID
   platformName: string
-  ownerId: UUID
+  ownerId?: UUID
+  author?: {
+    id: UUID
+    firstName: string
+    lastName: string
+    photo?: string
+  }
+  createdAt?: string
   isOwner?: boolean
 }
 
