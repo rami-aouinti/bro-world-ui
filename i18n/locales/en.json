@@ -366,6 +366,7 @@
     },
     "wizard": {
       "steps": {
+        "title": "Title",
         "platform": "Platform",
         "plugins": "Plugins"
       },
@@ -384,7 +385,8 @@
       "errors": {
         "load": "Unable to load wizard data.",
         "create": "Unable to create platform."
-      }
+      },
+      "titleStepTitle": "Enter the application title"
     }
   },
   "about": {

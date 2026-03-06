@@ -4,6 +4,7 @@ import type { PlatformRead } from '~/types/api/platform'
 import { usePlatformsApi } from '~/composables/api/usePlatformsApi'
 import { usePluginsApi } from '~/composables/api/usePluginsApi'
 import { useProfileApi } from '~/composables/api/useProfileApi'
+import { useApplicationsStore } from '~/stores/applications'
 
 definePageMeta({
   public: false,
@@ -15,6 +16,7 @@ const router = useRouter()
 const platformsApi = usePlatformsApi()
 const pluginsApi = usePluginsApi()
 const profileApi = useProfileApi()
+const applicationsStore = useApplicationsStore()
 
 const step = ref(1)
 const loading = ref(false)
@@ -34,14 +36,9 @@ const form = reactive({
   theme: 'light',
 })
 
-const canContinueToStep2 = computed(() => Boolean(selectedPlatformId.value && form.title.trim()))
-const canCreate = computed(() => Boolean(canContinueToStep2.value && selectedPluginId.value))
-
-watch(canContinueToStep2, (value) => {
-  if (value && step.value === 1) {
-    step.value = 2
-  }
-})
+const canContinueToStep2 = computed(() => Boolean(form.title.trim()))
+const canContinueToStep3 = computed(() => Boolean(selectedPlatformId.value))
+const canCreate = computed(() => Boolean(canContinueToStep2.value && canContinueToStep3.value && selectedPluginId.value))
 
 const loadWizardData = async () => {
   loading.value = true
@@ -103,6 +100,9 @@ const submit = async () => {
       ],
     })
 
+    applicationsStore.items = []
+    clearNuxtData('platform-applications-public')
+
     await router.push('/platform')
   }
   catch {
@@ -115,14 +115,18 @@ const submit = async () => {
 </script>
 
 <template>
-  <section class="platform-new">
+  <section class="platform-new pa-6">
     <div class="wizard-header">
       <div class="wizard-step" :class="{ 'wizard-step--active': step === 1 }">
         <span>1</span>
-        <small>{{ t('platform.wizard.steps.platform') }}</small>
+        <small>{{ t('platform.wizard.steps.title') }}</small>
       </div>
       <div class="wizard-step" :class="{ 'wizard-step--active': step === 2 }">
         <span>2</span>
+        <small>{{ t('platform.wizard.steps.platform') }}</small>
+      </div>
+      <div class="wizard-step" :class="{ 'wizard-step--active': step === 3 }">
+        <span>3</span>
         <small>{{ t('platform.wizard.steps.plugins') }}</small>
       </div>
     </div>
@@ -131,6 +135,16 @@ const submit = async () => {
 
     <v-card v-if="!loading" class="pa-5">
       <template v-if="step === 1">
+        <h2 class="text-h5 mb-4">{{ t('platform.wizard.titleStepTitle') }}</h2>
+
+        <v-text-field v-model="form.title" :label="t('platform.wizard.fields.title')" density="comfortable" />
+
+        <div class="d-flex justify-end">
+          <v-btn :disabled="!canContinueToStep2" color="primary" @click="step = 2">{{ t('platform.wizard.next') }}</v-btn>
+        </div>
+      </template>
+
+      <template v-else-if="step === 2">
         <h2 class="text-h5 mb-4">{{ t('platform.wizard.platformTitle') }}</h2>
         <div class="wizard-grid mb-4">
           <button
@@ -148,8 +162,6 @@ const submit = async () => {
             </div>
           </button>
         </div>
-
-        <v-text-field v-model="form.title" :label="t('platform.wizard.fields.title')" density="comfortable" />
         <v-checkbox v-model="form.private" :label="t('platform.wizard.fields.private')" />
         <v-checkbox v-model="form.active" :label="t('platform.wizard.fields.active')" />
 
@@ -164,8 +176,9 @@ const submit = async () => {
           item-value="value"
         />
 
-        <div class="d-flex justify-end">
-          <v-btn :disabled="!canContinueToStep2" color="primary" @click="step = 2">{{ t('platform.wizard.next') }}</v-btn>
+        <div class="d-flex justify-space-between">
+          <v-btn variant="outlined" @click="step = 1">{{ t('platform.wizard.prev') }}</v-btn>
+          <v-btn :disabled="!canContinueToStep3" color="primary" @click="step = 3">{{ t('platform.wizard.next') }}</v-btn>
         </div>
       </template>
 
@@ -197,7 +210,7 @@ const submit = async () => {
         />
 
         <div class="d-flex justify-space-between">
-          <v-btn variant="outlined" @click="step = 1">{{ t('platform.wizard.prev') }}</v-btn>
+          <v-btn variant="outlined" @click="step = 2">{{ t('platform.wizard.prev') }}</v-btn>
           <v-btn color="primary" :disabled="!canCreate || creating" :loading="creating" @click="submit">
             {{ t('platform.wizard.create') }}
           </v-btn>
@@ -208,7 +221,7 @@ const submit = async () => {
 </template>
 
 <style scoped>
-.platform-new { padding: 1rem; }
+.platform-new { margin: 0 auto; }
 .wizard-header { background: linear-gradient(90deg, #df1f7f, #ef3f8e); color: white; border-radius: 14px; display: flex; justify-content: space-around; padding: 1rem; margin-bottom: 1.5rem; }
 .wizard-step { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; opacity: 0.75; }
 .wizard-step span { width: 32px; height: 32px; border-radius: 50%; background: #304e79; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; }
