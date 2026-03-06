@@ -11,32 +11,32 @@ definePageMeta({
 
 const { t } = useI18n()
 
-const adminModules = [
+const adminModules = computed(() => [
   {
-    title: 'Utilisateurs',
-    description: 'Gérer les comptes utilisateurs (lecture, recherche et actions API).',
+    title: t('admin.modules.users.title'),
+    description: t('admin.modules.users.description'),
     to: '/admin/users',
     icon: 'mdi-account-multiple-outline',
   },
   {
-    title: 'Rôles',
-    description: 'Consulter et administrer les rôles exposés par /api/v1/role.',
+    title: t('admin.modules.roles.title'),
+    description: t('admin.modules.roles.description'),
     to: '/admin/roles',
     icon: 'mdi-shield-account-outline',
   },
   {
-    title: 'Groupes utilisateurs',
-    description: 'Superviser les user groups et leurs rôles associés.',
+    title: t('admin.modules.groups.title'),
+    description: t('admin.modules.groups.description'),
     to: '/admin/user-groups',
     icon: 'mdi-account-group-outline',
   },
   {
-    title: 'Clés API',
-    description: 'Lister et gérer les clés API disponibles sur /api/v1/api_key.',
+    title: t('admin.modules.apiKeys.title'),
+    description: t('admin.modules.apiKeys.description'),
     to: '/admin/api-keys',
     icon: 'mdi-key-outline',
   },
-]
+])
 </script>
 
 <template>
@@ -81,7 +81,7 @@ const adminModules = [
                 :to="module.to"
                 append-icon="mdi-arrow-right"
               >
-                Ouvrir
+                {{ t('admin.modules.open') }}
               </v-btn>
             </div>
           </div>

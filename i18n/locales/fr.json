@@ -15,7 +15,12 @@
       "messages": "Messages",
       "notifications": "Notifications",
       "language": "Langue",
-      "toggleTheme": "Changer de thème"
+      "toggleTheme": "Changer de thème",
+      "adminOverview": "Dashboard admin",
+      "adminUsers": "Utilisateurs",
+      "adminRoles": "Rôles",
+      "adminGroups": "Groupes",
+      "adminApiKeys": "Clés API"
     }
   },
   "login": {
@@ -194,6 +199,25 @@
         "inheritedRoles": "Rôles hérités",
         "noInheritedRoles": "Aucun rôle hérité."
       }
+    },
+    "modules": {
+      "users": {
+        "title": "Utilisateurs",
+        "description": "Gérer les comptes utilisateurs (lecture, recherche et actions API)."
+      },
+      "roles": {
+        "title": "Rôles",
+        "description": "Consulter et administrer les rôles exposés par /api/v1/role."
+      },
+      "groups": {
+        "title": "Groupes utilisateurs",
+        "description": "Superviser les user groups et leurs rôles associés."
+      },
+      "apiKeys": {
+        "title": "Clés API",
+        "description": "Lister et gérer les clés API disponibles sur /api/v1/api_key."
+      },
+      "open": "Ouvrir"
     }
   },
   "$vuetify": {

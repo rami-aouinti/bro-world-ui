@@ -15,7 +15,12 @@
       "messages": "Messages",
       "notifications": "Notifications",
       "language": "Language",
-      "toggleTheme": "Toggle theme"
+      "toggleTheme": "Toggle theme",
+      "adminOverview": "Admin dashboard",
+      "adminUsers": "Users",
+      "adminRoles": "Roles",
+      "adminGroups": "Groups",
+      "adminApiKeys": "API keys"
     }
   },
   "login": {
@@ -194,6 +199,25 @@
         "inheritedRoles": "Inherited roles",
         "noInheritedRoles": "No inherited roles."
       }
+    },
+    "modules": {
+      "users": {
+        "title": "Users",
+        "description": "Manage user accounts (read, search, and API actions)."
+      },
+      "roles": {
+        "title": "Roles",
+        "description": "Browse and manage roles exposed by /api/v1/role."
+      },
+      "groups": {
+        "title": "User groups",
+        "description": "Monitor user groups and their associated roles."
+      },
+      "apiKeys": {
+        "title": "API keys",
+        "description": "List and manage API keys available on /api/v1/api_key."
+      },
+      "open": "Open"
     }
   },
   "$vuetify": {
