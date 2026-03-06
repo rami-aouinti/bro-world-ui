@@ -39,7 +39,14 @@
     "notAuthenticated": "You are not signed in. Please use the login page.",
     "tokenHint": "The session token is automatically sent in the",
     "tokenHeader": "Authorization: Bearer ...",
-    "tokenHintSuffix": "header when calling the profile API."
+    "tokenHintSuffix": "header when calling the profile API.",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "timezone": "Timezone",
+    "photo": "Photo",
+    "saveChanges": "Save changes",
+    "updateSuccess": "Profile updated successfully.",
+    "photoUpdateSuccess": "Profile photo updated successfully."
   },
   "errors": {
     "auth": {
@@ -49,7 +56,9 @@
     },
     "profile": {
       "noToken": "No active token found. Please sign in.",
-      "loadFailed": "Unable to load profile. Please try again."
+      "loadFailed": "Unable to load profile. Please try again.",
+      "updateFailed": "Unable to update profile. Please try again.",
+      "photoUploadFailed": "Unable to upload profile photo. Please try again."
     }
   },
   "home": {

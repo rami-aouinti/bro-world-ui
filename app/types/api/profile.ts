@@ -9,6 +9,7 @@ export interface Profile {
   language?: string
   locale?: string
   timezone: string
+  photo?: string
 }
 
 export interface UpdateProfilePayload {
@@ -21,6 +22,10 @@ export interface UpdateProfilePayload {
 }
 
 export type PatchProfilePayload = Partial<UpdateProfilePayload>
+
+export interface UploadProfilePhotoResponse {
+  photo: string
+}
 
 
 export interface ApplicationConfigurationPayload {
