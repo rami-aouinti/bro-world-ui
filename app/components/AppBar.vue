@@ -298,34 +298,6 @@ const signOut = async () => {
   color: #4a4d55;
 }
 
-.app-bar__avatar-btn {
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.9);
-}
-
-.app-bar__menu {
-  background-color: #f7f5f7;
-}
-
-.app-bar__lang-btn {
-  border-radius: 12px;
-  text-transform: none;
-  min-width: 92px;
-}
-
-.app-bar__lang-label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-
-.app-bar__theme-btn {
-  border-radius: 999px;
-  min-width: 42px;
-  background-color: #7f8188;
-  color: #ffffff;
-}
-
 .app-bar__teleport-target {
   display: flex;
   align-items: center;
