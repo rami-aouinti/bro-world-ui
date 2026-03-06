@@ -223,7 +223,9 @@ const deleteEntity = async () => {
   }
 }
 
-await fetchUsers()
+onMounted(async () => {
+  await fetchUsers()
+})
 </script>
 
 <template>

@@ -136,7 +136,9 @@ const deleteEntity = async () => {
   }
 }
 
-await fetchApiKeys()
+onMounted(async () => {
+  await fetchApiKeys()
+})
 </script>
 
 <template>

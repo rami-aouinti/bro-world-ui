@@ -69,7 +69,9 @@ const showEntity = async (id: string) => {
   }
 }
 
-await fetchRoles()
+onMounted(async () => {
+  await fetchRoles()
+})
 </script>
 
 <template>

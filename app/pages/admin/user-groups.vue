@@ -112,7 +112,9 @@ const deleteEntity = async () => {
   }
 }
 
-await fetchUserGroups()
+onMounted(async () => {
+  await fetchUserGroups()
+})
 </script>
 
 <template>
