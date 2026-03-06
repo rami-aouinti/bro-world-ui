@@ -26,9 +26,33 @@ const goToNewPlatform = () => {
   router.push('/login')
 }
 
-const getInitials = (name: string) => {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  return parts.slice(0, 2).map(part => part[0]?.toUpperCase() ?? '').join('') || 'AP'
+const formatDate = (value?: string) => {
+  if (!value) {
+    return ''
+  }
+
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: '2-digit',
+  }).format(new Date(value))
+}
+
+const authorFullName = (application: (typeof applicationsStore.items.value)[number]) => {
+  const firstName = application.author?.firstName ?? ''
+  const lastName = application.author?.lastName ?? ''
+  const fullName = `${firstName} ${lastName}`.trim()
+
+  return fullName || '—'
+}
+
+const authorAvatar = (application: (typeof applicationsStore.items.value)[number]) => {
+  if (application.author?.photo) {
+    return application.author.photo
+  }
+
+  const name = encodeURIComponent(authorFullName(application))
+  return `https://ui-avatars.com/api/?name=${name}`
 }
 
 const openEditModal = (application: (typeof applicationsStore.items.value)[number]) => {
@@ -118,9 +142,10 @@ const disableApplication = async () => {
 
         <div class="platform-page__card-top">
           <div class="platform-page__card-brand">
-            <div class="platform-page__logo">{{ getInitials(card.platformName) }}</div>
-            <div>
+            <img :src="authorAvatar(card)" :alt="authorFullName(card)" class="platform-page__logo">
+            <div class="platform-page__card-heading">
               <h2 class="platform-page__card-title">{{ card.title }}</h2>
+              <p class="platform-page__card-author">{{ authorFullName(card) }}</p>
               <v-chip
                 :color="card.status === 'active' ? 'success' : undefined"
                 variant="tonal"
@@ -133,7 +158,12 @@ const disableApplication = async () => {
           </div>
         </div>
 
-        <p class="platform-page__card-description">{{ card.platformName }}</p>
+        <p class="platform-page__card-description">{{ card.description }}</p>
+
+        <div class="platform-page__card-footer">
+          <span>{{ card.platformName }}</span>
+          <span>{{ formatDate(card.createdAt) }}</span>
+        </div>
       </article>
     </div>
 
@@ -195,7 +225,7 @@ const disableApplication = async () => {
   border: 1px solid #d2d2d5;
   box-shadow: 0 3px 10px rgba(15, 23, 42, 0.12);
   padding: 1.7rem;
-  min-height: 250px;
+  min-height: 280px;
   display: flex;
   flex-direction: column;
 }
@@ -261,17 +291,38 @@ const disableApplication = async () => {
 .platform-page__logo {
   width: 76px;
   height: 76px;
-  border-radius: 12px;
-  color: white;
+  border-radius: 16px;
+  object-fit: cover;
   background: #5955e0;
-  font-size: 2rem;
-  display: grid;
-  place-items: center;
+}
+
+.platform-page__card-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.platform-page__card-author {
+  margin: 0;
+  color: #2e2f37;
+  font-size: 1rem;
   font-weight: 600;
 }
 
 .platform-page__card-description {
   margin-top: 1.2rem;
+  flex: 1;
+}
+
+.platform-page__card-footer {
+  margin-top: 1.2rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid #d9dadf;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #575c6f;
+  font-weight: 600;
 }
 
 .platform-page__assistant {

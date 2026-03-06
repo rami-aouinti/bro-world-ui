@@ -357,7 +357,8 @@
         "private": "Privée",
         "active": "Active",
         "theme": "Thème",
-        "cacheSeconds": "Cache (secondes)"
+        "cacheSeconds": "Cache (secondes)",
+        "configuration": "Configuration"
       },
       "next": "Suivant",
       "prev": "Précédent",
