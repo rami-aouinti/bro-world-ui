@@ -76,13 +76,17 @@ onMounted(async () => {
 
 <template>
   <UiPageSection>
-    <Teleport defer to="#app-bar-teleport-target">
-      <div class="roles-page-appbar-tools">
-        <v-text-field v-model="search" label="Rechercher" prepend-inner-icon="mdi-magnify" density="comfortable" variant="underlined" hide-details class="roles-page-appbar-tools__search" />
-        <v-btn icon="mdi-refresh" color="primary" variant="outlined" :loading="loading" :aria-label="'Actualiser'" @click="fetchRoles" />
-      </div>
-    </Teleport>
-
+    <template #header>
+      <UiSectionHeader
+      >
+        <template #actions>
+          <div class="roles-page-appbar-tools">
+            <v-text-field v-model="search" label="Rechercher" prepend-inner-icon="mdi-magnify" density="comfortable" variant="underlined" hide-details class="roles-page-appbar-tools__search" />
+            <v-btn icon="mdi-refresh" color="primary" variant="outlined" :loading="loading" :aria-label="'Actualiser'" @click="fetchRoles" />
+          </div>
+        </template>
+      </UiSectionHeader>
+    </template>
     <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
 
     <UiDataTable :headers="headers" :items="roles" :loading="loading" :search="search" item-key="id" :items-per-page="10" :empty-text="t('admin.roles.empty')">

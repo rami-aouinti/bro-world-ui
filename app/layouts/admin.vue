@@ -131,7 +131,5 @@ const openGroups = computed(() => {
 .admin-layout__submenu-item {
   margin: 6px 0 6px 14px;
   padding-inline-start: 14px;
-  background-color: rgb(var(--v-theme-surface));
-  box-shadow: 0 8px 18px rgb(0 0 0 / 10%);
 }
 </style>

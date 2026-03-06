@@ -143,39 +143,6 @@ onMounted(async () => {
 
 <template>
   <UiPageSection>
-    <Teleport
-      defer
-      to="#app-bar-teleport-target"
-    >
-      <div class="api-keys-page-appbar-tools">
-        <v-text-field
-          v-model="search"
-          :label="t('admin.common.search')"
-          prepend-inner-icon="mdi-magnify"
-          density="comfortable"
-          variant="underlined"
-          hide-details
-          class="api-keys-page-appbar-tools__search"
-        />
-
-        <v-btn
-          icon="mdi-plus"
-          color="primary"
-          :aria-label="t('admin.common.create')"
-          @click="openCreateDialog"
-        />
-
-        <v-btn
-          icon="mdi-refresh"
-          color="primary"
-          variant="outlined"
-          :loading="loading"
-          :aria-label="t('admin.common.refresh')"
-          @click="fetchApiKeys"
-        />
-      </div>
-    </Teleport>
-
     <template #header>
       <UiSectionHeader
       >
@@ -192,6 +159,33 @@ onMounted(async () => {
             <v-btn value="v1">v1</v-btn>
             <v-btn value="v2">v2</v-btn>
           </v-btn-toggle>
+          <div class="api-keys-page-appbar-tools">
+            <v-text-field
+                v-model="search"
+                :label="t('admin.common.search')"
+                prepend-inner-icon="mdi-magnify"
+                density="comfortable"
+                variant="underlined"
+                hide-details
+                class="api-keys-page-appbar-tools__search"
+            />
+
+            <v-btn
+                icon="mdi-plus"
+                color="primary"
+                :aria-label="t('admin.common.create')"
+                @click="openCreateDialog"
+            />
+
+            <v-btn
+                icon="mdi-refresh"
+                color="primary"
+                variant="outlined"
+                :loading="loading"
+                :aria-label="t('admin.common.refresh')"
+                @click="fetchApiKeys"
+            />
+          </div>
         </template>
       </UiSectionHeader>
     </template>

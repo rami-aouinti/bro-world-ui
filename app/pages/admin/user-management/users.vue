@@ -230,39 +230,40 @@ onMounted(async () => {
 
 <template>
   <UiPageSection>
-    <Teleport
-      defer
-      to="#app-bar-teleport-target"
-    >
-      <div class="users-page-appbar-tools">
-        <v-text-field
-          v-model="search"
-          :label="t('admin.common.search')"
-          prepend-inner-icon="mdi-magnify"
-          density="comfortable"
-          variant="underlined"
-          hide-details
-          class="users-page-appbar-tools__search"
-        />
+    <template #header>
+      <UiSectionHeader
+      >
+        <template #actions>
+          <div class="users-page-appbar-tools">
+            <v-text-field
+                v-model="search"
+                :label="t('admin.common.search')"
+                prepend-inner-icon="mdi-magnify"
+                density="comfortable"
+                variant="underlined"
+                hide-details
+                class="users-page-appbar-tools__search"
+            />
 
-        <v-btn
-          icon="mdi-plus"
-          color="primary"
-          :aria-label="t('admin.common.create')"
-          @click="openCreateDialog"
-        />
+            <v-btn
+                icon="mdi-plus"
+                color="primary"
+                :aria-label="t('admin.common.create')"
+                @click="openCreateDialog"
+            />
 
-        <v-btn
-          icon="mdi-refresh"
-          color="primary"
-          variant="outlined"
-          :loading="loading"
-          :aria-label="t('admin.common.refresh')"
-          @click="fetchUsers"
-        />
-      </div>
-    </Teleport>
-
+            <v-btn
+                icon="mdi-refresh"
+                color="primary"
+                variant="outlined"
+                :loading="loading"
+                :aria-label="t('admin.common.refresh')"
+                @click="fetchUsers"
+            />
+          </div>
+        </template>
+      </UiSectionHeader>
+    </template>
     <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
       {{ errorMessage }}
     </v-alert>

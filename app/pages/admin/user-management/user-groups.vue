@@ -5,6 +5,7 @@ import UiActionDialog from '~/components/ui/UiActionDialog.vue'
 import UiPageSection from '~/components/ui/UiPageSection.vue'
 import { useUserGroupsStore } from '~/stores/userGroups'
 import type { UserGroup } from '~/types/api/userGroup'
+import UiSectionHeader from "~/components/ui/UiSectionHeader.vue";
 
 definePageMeta({
   layout: 'admin',
@@ -119,39 +120,40 @@ onMounted(async () => {
 
 <template>
   <UiPageSection>
-    <Teleport
-      defer
-      to="#app-bar-teleport-target"
-    >
-      <div class="user-groups-page-appbar-tools">
-        <v-text-field
-          v-model="search"
-          :label="t('admin.common.search')"
-          prepend-inner-icon="mdi-magnify"
-          density="comfortable"
-          variant="underlined"
-          hide-details
-          class="user-groups-page-appbar-tools__search"
-        />
+    <template #header>
+      <UiSectionHeader
+      >
+        <template #actions>
+          <div class="user-groups-page-appbar-tools">
+            <v-text-field
+                v-model="search"
+                :label="t('admin.common.search')"
+                prepend-inner-icon="mdi-magnify"
+                density="comfortable"
+                variant="underlined"
+                hide-details
+                class="user-groups-page-appbar-tools__search"
+            />
 
-        <v-btn
-          icon="mdi-plus"
-          color="primary"
-          :aria-label="t('admin.common.create')"
-          @click="openCreateDialog"
-        />
+            <v-btn
+                icon="mdi-plus"
+                color="primary"
+                :aria-label="t('admin.common.create')"
+                @click="openCreateDialog"
+            />
 
-        <v-btn
-          icon="mdi-refresh"
-          color="primary"
-          variant="outlined"
-          :loading="loading"
-          :aria-label="t('admin.common.refresh')"
-          @click="fetchUserGroups"
-        />
-      </div>
-    </Teleport>
-
+            <v-btn
+                icon="mdi-refresh"
+                color="primary"
+                variant="outlined"
+                :loading="loading"
+                :aria-label="t('admin.common.refresh')"
+                @click="fetchUserGroups"
+            />
+          </div>
+        </template>
+      </UiSectionHeader>
+    </template>
     <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
       {{ errorMessage }}
     </v-alert>
