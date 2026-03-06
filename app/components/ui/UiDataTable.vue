@@ -66,7 +66,9 @@ const skeletonRowsCount = computed(() => Math.max(1, props.skeletonRows))
     </template>
 
     <template #item.actions="slotProps">
-      <slot name="item.actions" v-bind="slotProps" />
+      <div class="ui-data-table__actions-cell">
+        <slot name="item.actions" v-bind="slotProps" />
+      </div>
     </template>
 
     <template #loading>
@@ -120,5 +122,11 @@ const skeletonRowsCount = computed(() => Math.max(1, props.skeletonRows))
 
 .ui-data-table__skeleton :deep(.v-skeleton-loader__text) {
   margin: 0;
+}
+
+.ui-data-table__actions-cell {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
 }
 </style>
