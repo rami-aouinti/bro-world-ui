@@ -4,6 +4,8 @@ import UiActionConfirmDialog from '~/components/ui/UiActionConfirmDialog.vue'
 import UiActionDialog from '~/components/ui/UiActionDialog.vue'
 import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
+import UiEntityActionButtons from '~/components/ui/UiEntityActionButtons.vue'
+import UiTableToolbar from '~/components/ui/UiTableToolbar.vue'
 import { useUsersStore } from '~/stores/users'
 import type { UserGroup } from '~/types/api/userGroup'
 import type { UserRead, UserWrite } from '~/types/api/user'
@@ -234,34 +236,16 @@ onMounted(async () => {
       <UiSectionHeader
       >
         <template #actions>
-          <div class="users-page-appbar-tools pa-2">
-            <v-text-field
-                v-model="search"
-                :label="t('admin.common.search')"
-                prepend-inner-icon="mdi-magnify"
-                density="compact"
-                variant="outlined"
-                hide-details
-                class="users-page-appbar-tools__search"
-            />
-
-            <v-btn
-                prepend-icon="mdi-plus"
-                color="primary"
-                :aria-label="t('admin.common.create')"
-                @click="openCreateDialog"
-                variant="outlined"
-            >New</v-btn>
-
-            <v-btn
-                prepend-icon="mdi-refresh"
-                color="primary"
-                variant="outlined"
-                :loading="loading"
-                :aria-label="t('admin.common.refresh')"
-                @click="fetchUsers"
-            >Refresh</v-btn>
-          </div>
+          <UiTableToolbar
+            :search="search"
+            :search-label="t('admin.common.search')"
+            :create-label="t('admin.common.create')"
+            :refresh-label="t('admin.common.refresh')"
+            :loading="loading"
+            @update:search="search = $event"
+            @create="openCreateDialog"
+            @refresh="fetchUsers"
+          />
         </template>
       </UiSectionHeader>
     </template>
@@ -292,11 +276,14 @@ onMounted(async () => {
       </template>
 
       <template #item.actions="{ item }">
-        <div class="d-flex justify-end flex-nowrap ga-1 py-1">
-          <v-btn size="x-small" variant="text" color="success"  icon="mdi-eye" :aria-label="t('admin.users.aria.show', { name: item.username })" @click="showEntity(item.id)" />
-          <v-btn size="x-small" variant="text" color="warning" icon="mdi-file-edit-outline" :aria-label="t('admin.users.aria.patch', { name: item.username })" @click="openEditDialog(item, true)" />
-          <v-btn size="x-small" variant="text" color="red" icon="mdi-delete" :aria-label="t('admin.users.aria.delete', { name: item.username })" @click="openDeleteDialog(item.id)" />
-        </div>
+        <UiEntityActionButtons
+          :show-label="t('admin.users.aria.show', { name: item.username })"
+          :patch-label="t('admin.users.aria.patch', { name: item.username })"
+          :delete-label="t('admin.users.aria.delete', { name: item.username })"
+          @show="showEntity(item.id)"
+          @patch="openEditDialog(item, true)"
+          @delete="openDeleteDialog(item.id)"
+        />
       </template>
     </UiDataTable>
 
@@ -378,17 +365,3 @@ onMounted(async () => {
   </UiPageSection>
 </template>
 
-<style scoped>
-.users-page-appbar-tools {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  margin-inline-start: 8px;
-}
-
-.users-page-appbar-tools__search {
-  min-width: 200px;
-  max-width: 280px;
-}
-</style>

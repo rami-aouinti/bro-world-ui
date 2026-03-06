@@ -2,6 +2,7 @@
 import UiDataTable from '~/components/ui/UiDataTable.vue'
 import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
+import UiTableToolbar from '~/components/ui/UiTableToolbar.vue'
 import { useRolesStore } from '~/stores/roles'
 import type { Role } from '~/types/api/role'
 
@@ -29,8 +30,6 @@ const headers = computed(() => [
   { title: t('admin.roles.headers.description'), key: 'description', sortable: true },
   { title: t('admin.roles.headers.actions'), key: 'actions', sortable: false },
 ])
-
-const formTitle = computed(() => (formMode.value === 'create' ? t('admin.roles.form.createTitle') : formMode.value === 'edit' ? t('admin.roles.form.editTitle') : t('admin.roles.form.patchTitle')))
 
 const fetchRoles = async () => {
   loading.value = true
@@ -80,11 +79,15 @@ onMounted(async () => {
       <UiSectionHeader
       >
         <template #actions>
-          <div class="roles-page-appbar-tools pa-2">
-            <v-text-field v-model="search" label="Rechercher" prepend-inner-icon="mdi-magnify" density="compact"
-                          variant="outlined" hide-details class="roles-page-appbar-tools__search" />
-            <v-btn prepend-icon="mdi-refresh" color="primary" variant="outlined" :loading="loading" :aria-label="'Actualiser'" @click="fetchRoles" >Refresh</v-btn>
-          </div>
+          <UiTableToolbar
+            :search="search"
+            :search-label="t('admin.common.search')"
+            :refresh-label="t('admin.common.refresh')"
+            :loading="loading"
+            :show-create="false"
+            @update:search="search = $event"
+            @refresh="fetchRoles"
+          />
         </template>
       </UiSectionHeader>
     </template>
@@ -114,18 +117,3 @@ onMounted(async () => {
     </v-dialog>
   </UiPageSection>
 </template>
-
-<style scoped>
-.roles-page-appbar-tools {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  margin-inline-start: 8px;
-}
-
-.roles-page-appbar-tools__search {
-  min-width: 200px;
-  max-width: 280px;
-}
-</style>
