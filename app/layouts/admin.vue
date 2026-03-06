@@ -44,6 +44,49 @@ const openGroups = computed(() => {
 
   return []
 })
+
+const adminMenu = computed(() => [
+  {
+    title: t('admin.navigation.dashboard.title'),
+    to: '/admin/dashboard',
+    icon: 'mdi-view-dashboard-outline',
+  },
+  {
+    title: t('admin.navigation.settings.title'),
+    to: '/admin/settings',
+    icon: 'mdi-cog-outline',
+  },
+  {
+    title: t('admin.navigation.userManagement.title'),
+    icon: 'mdi-account-group-outline',
+    children: [
+      {
+        title: t('admin.modules.users.title'),
+        to: '/admin/user-management/users',
+      },
+      {
+        title: t('admin.modules.roles.title'),
+        to: '/admin/user-management/roles',
+      },
+      {
+        title: t('admin.modules.groups.title'),
+        to: '/admin/user-management/user-groups',
+      },
+      {
+        title: t('admin.modules.apiKeys.title'),
+        to: '/admin/user-management/api-keys',
+      },
+    ],
+  },
+])
+
+const openGroups = computed(() => {
+  if (route.path.startsWith('/admin/user-management')) {
+    return ['user-management']
+  }
+
+  return []
+})
 </script>
 
 <template>
@@ -120,6 +163,15 @@ const openGroups = computed(() => {
 
 .admin-layout__menu-list {
   background: transparent;
+}
+
+.admin-layout__submenu-item {
+  padding-inline-start: 52px;
+}
+
+.admin-layout__menu-card {
+  position: sticky;
+  top: 100px;
 }
 
 .admin-layout__submenu-item {
