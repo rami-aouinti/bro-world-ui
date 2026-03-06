@@ -103,7 +103,7 @@ const signOut = async () => {
 
 <template>
   <v-app-bar
-    class="px-0 border-radius-xl toolbar-content-padding-y-none v-sheet v-toolbar v-toolbar--flat v-app-bar bg-transparent position-sticky blur shadow-blur top-1 z-index-sticky"
+    class="app-bar px-0 border-radius-xl toolbar-content-padding-y-none v-sheet v-toolbar v-toolbar--flat v-app-bar bg-transparent position-sticky blur shadow-blur top-1 z-index-sticky"
   >
     <v-toolbar-title class="app-bar__brand d-flex align-center ga-3 text-truncate">
       <NuxtLink to="/" class="app-bar__title-link d-flex align-center ga-2">
@@ -283,7 +283,9 @@ const signOut = async () => {
 }
 
 .app-bar__center-links {
-  margin-inline-start: 1rem;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .app-bar__link-btn {
