@@ -11,6 +11,7 @@ const { t } = useI18n({ useScope: 'global' })
 const router = useRouter()
 const { isAuthenticated, initSession } = useAuth()
 const applicationsStore = useApplicationsStore()
+const authSession = useAuthSessionStore()
 
 const editDialog = ref(false)
 const deleteDialog = ref(false)
@@ -53,6 +54,22 @@ const appHomePath = (applicationId: string) => `/platform/${applicationId}/home`
 
 const authorUsername = (application: (typeof applicationsStore.items.value)[number]) => {
   return application.author?.username ?? ''
+}
+
+const authorProfilePath = (application: (typeof applicationsStore.items.value)[number]) => {
+  const currentUserId = authSession.profile?.id
+  const authorId = application.author?.id
+
+  if (currentUserId && authorId && currentUserId === authorId) {
+    return '/profile'
+  }
+
+  const username = authorUsername(application)
+  if (username) {
+    return `/user/${username}/profile`
+  }
+
+  return undefined
 }
 
 const openEditModal = (application: (typeof applicationsStore.items.value)[number]) => {
@@ -160,6 +177,7 @@ const disableApplication = async () => {
               :last-name="card.author?.lastName"
               :username="authorUsername(card)"
               :photo="card.author?.photo"
+              :profile-path="authorProfilePath(card)"
             />
             <v-chip
               :color="card.status === 'active' ? 'success' : undefined"

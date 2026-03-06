@@ -7,6 +7,7 @@ interface Props {
   username?: string
   photo?: string
   fallbackLabel?: string
+  profilePath?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -15,6 +16,7 @@ const props = withDefaults(defineProps<Props>(), {
   username: '',
   photo: '',
   fallbackLabel: '—',
+  profilePath: undefined,
 })
 
 const fullName = computed(() => {
@@ -23,6 +25,10 @@ const fullName = computed(() => {
 })
 
 const profilePath = computed(() => {
+  if (props.profilePath) {
+    return props.profilePath
+  }
+
   if (props.username) {
     return `/user/${props.username}/profile`
   }
