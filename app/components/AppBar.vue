@@ -10,7 +10,7 @@ interface NavItem {
 }
 
 const router = useRouter()
-const { t, locale, locales, setLocale } = useI18n()
+const { t, locale, locales, setLocale } = useI18n({ useScope: 'global' })
 const authSession = useAuthSessionStore()
 const { can, canPermission } = useAccessControl()
 const { logout } = useAuth()
