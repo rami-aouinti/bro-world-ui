@@ -22,6 +22,9 @@ const ENTITY_CACHE_PREFIXES = [
   '/api/v1/role',
   '/api/v1/api_key',
   '/api/v2/api_key',
+  '/api/v1/configuration',
+  '/api/v1/platform',
+  '/api/v1/plugin',
 ]
 
 const ONE_DAY_IN_SECONDS = 60 * 60 * 24
