@@ -1,3 +1,5 @@
+import { en, fr } from 'vuetify/locale'
+
 export default defineNuxtPlugin((nuxtApp) => {
   const i18n = nuxtApp.$i18n
 
@@ -6,12 +8,8 @@ export default defineNuxtPlugin((nuxtApp) => {
   }
 
   const vuetifyLocaleMessages = {
-    en: {
-      badge: 'Badge',
-    },
-    fr: {
-      badge: 'Badge',
-    },
+    en,
+    fr,
   } as const
 
   Object.entries(vuetifyLocaleMessages).forEach(([locale, messages]) => {
