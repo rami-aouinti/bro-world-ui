@@ -27,6 +27,16 @@ export interface UploadProfilePhotoResponse {
   photo: string
 }
 
+export interface CreateApplicationResponseItem {
+  id: UUID
+}
+
+export type CreateApplicationResponse = CreateApplicationResponseItem[]
+
+export interface UploadApplicationPhotoResponse {
+  photo: string
+}
+
 
 export interface ApplicationConfigurationPayload {
   configurationKey: string
@@ -42,7 +52,6 @@ export interface CreateApplicationPayload {
   platformId: UUID
   title: string
   description?: string
-  photo?: string
   status: 'active' | 'inactive' | string
   private: boolean
   configurations: ApplicationConfigurationPayload[]

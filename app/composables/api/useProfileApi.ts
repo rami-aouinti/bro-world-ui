@@ -3,9 +3,11 @@ import { useApiClient } from '../useApiClient'
 import type { ListQueryParams, QueryParams } from '~/types/api/common'
 import type {
   CreateApplicationPayload,
+  CreateApplicationResponse,
   PatchProfilePayload,
   Profile,
   UpdateProfilePayload,
+  UploadApplicationPhotoResponse,
   UploadProfilePhotoResponse,
 } from '~/types/api/profile'
 
@@ -45,9 +47,18 @@ export const useProfileApi = () => {
       })
     },
     createApplication(payload: CreateApplicationPayload) {
-      return apiFetch('/api/v1/profile/applications', {
+      return apiFetch<CreateApplicationResponse>('/api/v1/profile/applications', {
         method: 'POST',
         body: payload,
+      })
+    },
+    uploadApplicationPhoto(applicationId: string, photo: File) {
+      const formData = new FormData()
+      formData.append('photo', photo)
+
+      return apiFetch<UploadApplicationPhotoResponse>(`${basePath}/applications/${applicationId}/photo`, {
+        method: 'POST',
+        body: formData,
       })
     },
   }

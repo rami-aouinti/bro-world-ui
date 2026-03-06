@@ -125,21 +125,10 @@ const submit = async () => {
       },
     ]
 
-    if (form.photoPreview) {
-      configurations.push({
-        configurationKey: 'app.photo',
-        configurationValue: {
-          dataUrl: form.photoPreview,
-          filename: form.photo?.name,
-        },
-      })
-    }
-
-    await profileApi.createApplication({
+    const createdApplications = await profileApi.createApplication({
       platformId: selectedPlatformId.value,
       title: form.title.trim(),
       description: form.description.trim(),
-      photo: form.photoPreview || undefined,
       status: form.active ? 'active' : 'inactive',
       private: form.private,
       configurations,
@@ -156,8 +145,20 @@ const submit = async () => {
       })),
     })
 
+    const applicationId = createdApplications[0]?.id
+
+    if (!applicationId) {
+      throw new Error('Application ID missing in creation response')
+    }
+
+    if (form.photo) {
+      await profileApi.uploadApplicationPhoto(applicationId, form.photo)
+    }
+
     applicationsStore.items = []
     clearNuxtData('platform-applications')
+    clearNuxtData('platform-applications-public')
+    clearNuxtData('platform-applications-private')
 
     await router.push('/platform')
   }
