@@ -5,8 +5,10 @@ import UiStateAlert from '~/components/ui/state/UiStateAlert.vue'
 import { ref } from 'vue'
 
 definePageMeta({
+  layout: 'auth',
   public: true,
   requiresAuth: false,
+  middleware: ['guest-only'],
 })
 
 const route = useRoute()

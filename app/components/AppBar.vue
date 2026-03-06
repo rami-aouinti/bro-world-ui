@@ -10,6 +10,7 @@ interface NavItem {
 }
 
 const router = useRouter()
+const route = useRoute()
 const { t, locale, locales, setLocale } = useI18n({ useScope: 'global' })
 const authSession = useAuthSessionStore()
 const { can, canPermission } = useAccessControl()
@@ -18,16 +19,24 @@ const theme = useTheme()
 
 const isProfileMenuOpen = ref(false)
 
-const headerItems = computed<NavItem[]>(() => {
-  const items: NavItem[] = [
-    { key: 'app.navigation.platform', to: '/', icon: 'mdi-view-grid-outline' },
-    { key: 'app.navigation.about', icon: 'mdi-information-outline' },
-    { key: 'app.navigation.contact', icon: 'mdi-email-outline' },
-    { key: 'app.navigation.faq', icon: 'mdi-frequently-asked-questions' },
-  ]
+const mainHeaderItems = computed<NavItem[]>(() => [
+  { key: 'app.navigation.platform', to: '/', icon: 'mdi-view-grid-outline' },
+  { key: 'app.navigation.about', icon: 'mdi-information-outline' },
+  { key: 'app.navigation.contact', icon: 'mdi-email-outline' },
+  { key: 'app.navigation.faq', icon: 'mdi-frequently-asked-questions' },
+])
 
-  return items
-})
+const adminHeaderItems = computed<NavItem[]>(() => [
+  { key: 'app.navigation.adminOverview', to: '/admin', icon: 'mdi-view-dashboard-outline' },
+  { key: 'app.navigation.adminUsers', to: '/admin/users', icon: 'mdi-account-multiple-outline' },
+  { key: 'app.navigation.adminRoles', to: '/admin/roles', icon: 'mdi-shield-account-outline' },
+  { key: 'app.navigation.adminGroups', to: '/admin/user-groups', icon: 'mdi-account-group-outline' },
+  { key: 'app.navigation.adminApiKeys', to: '/admin/api-keys', icon: 'mdi-key-outline' },
+])
+
+const headerItems = computed<NavItem[]>(() => route.path.startsWith('/admin')
+  ? adminHeaderItems.value
+  : mainHeaderItems.value)
 
 const actionItems = computed<NavItem[]>(() => [
   { key: 'app.navigation.calendar', icon: 'mdi-calendar-month-outline' },
@@ -46,35 +55,36 @@ const profileName = computed(() => {
   return `${profile.firstName} ${profile.lastName}`.trim() || profile.username
 })
 
-const currentLocaleLabel = computed(() => locale.value.toUpperCase())
 const isDark = computed(() => theme.global.name.value === 'dark')
 
 const availableLocales = computed(() => locales.value
   .map((item) => {
     if (typeof item === 'string') {
-      return item
+      return {
+        code: item,
+        name: item.toUpperCase(),
+      }
     }
 
     if (item && typeof item === 'object' && 'code' in item) {
-      return item.code
+      return {
+        code: item.code,
+        name: 'name' in item && typeof item.name === 'string' ? item.name : item.code.toUpperCase(),
+      }
     }
 
     return null
   })
-  .filter((value): value is string => Boolean(value)))
+  .filter((value): value is { code: string, name: string } => Boolean(value)))
 
-const cycleLocale = async () => {
-  if (!availableLocales.value.length) {
-    return
-  }
+const currentLocaleLabel = computed(() => locale.value.toUpperCase())
 
-  const currentIndex = availableLocales.value.findIndex(item => item === locale.value)
-  const nextIndex = currentIndex >= 0
-    ? (currentIndex + 1) % availableLocales.value.length
-    : 0
-
-  await setLocale(availableLocales.value[nextIndex])
+const localeFlags: Record<string, string> = {
+  en: '🇬🇧',
+  fr: '🇫🇷',
 }
+
+const getFlag = (code: string) => localeFlags[code] ?? '🌐'
 
 const toggleTheme = () => {
   theme.global.name.value = isDark.value ? 'light' : 'dark'
@@ -170,15 +180,39 @@ const signOut = async () => {
           </v-list>
         </v-menu>
 
-        <v-btn
-          icon
-          variant="text"
-          class="app-bar__icon-btn"
-          :aria-label="t('app.navigation.language')"
-          @click="cycleLocale"
-        >
-          <span class="app-bar__lang-label">{{ currentLocaleLabel }}</span>
-        </v-btn>
+        <v-menu location="bottom end">
+          <template #activator="{ props }">
+            <v-btn
+              variant="text"
+              class="app-bar__lang-btn"
+              :aria-label="t('app.navigation.language')"
+              v-bind="props"
+            >
+              <span class="me-1">{{ getFlag(locale) }}</span>
+              <span class="app-bar__lang-label">{{ currentLocaleLabel }}</span>
+              <v-icon icon="mdi-chevron-down" size="16" class="ms-1" />
+            </v-btn>
+          </template>
+
+          <v-list class="py-1 app-bar__menu" min-width="180">
+            <v-list-item
+              v-for="item in availableLocales"
+              :key="item.code"
+              rounded="lg"
+              class="mx-2 my-1"
+              :active="locale === item.code"
+              @click="setLocale(item.code)"
+            >
+              <template #prepend>
+                <span class="text-body-1">{{ getFlag(item.code) }}</span>
+              </template>
+              <v-list-item-title>{{ item.name }}</v-list-item-title>
+              <template #append>
+                <v-icon v-if="locale === item.code" icon="mdi-check" size="16" />
+              </template>
+            </v-list-item>
+          </v-list>
+        </v-menu>
 
         <v-btn
           icon
@@ -208,7 +242,14 @@ const signOut = async () => {
           class="mx-2 my-1"
         />
         <v-divider class="my-1" />
-        <v-list-item :title="t('app.navigation.language')" prepend-icon="mdi-translate" rounded="lg" class="mx-2 my-1" @click="cycleLocale" />
+        <v-list-item
+          v-for="item in availableLocales"
+          :key="`mobile-${item.code}`"
+          rounded="lg"
+          class="mx-2 my-1"
+          :title="`${getFlag(item.code)} ${item.name}`"
+          @click="setLocale(item.code)"
+        />
         <v-list-item :title="t('app.navigation.toggleTheme')" prepend-icon="mdi-theme-light-dark" rounded="lg" class="mx-2 my-1" @click="toggleTheme" />
         <v-list-item
           v-if="canPermission('profile.logout')"
@@ -276,6 +317,12 @@ const signOut = async () => {
 
 .app-bar__menu {
   background-color: #f7f5f7;
+}
+
+.app-bar__lang-btn {
+  border-radius: 12px;
+  text-transform: none;
+  min-width: 92px;
 }
 
 .app-bar__lang-label {
