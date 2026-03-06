@@ -7,6 +7,7 @@ const labelMap: Record<string, string> = {
   settings: 'Settings',
   'user-management': 'User Management',
   users: 'Utilisateurs',
+  groups: 'Groupes',
   roles: 'Rôles',
   'user-groups': 'Groupes utilisateurs',
   'api-keys': 'Clés API',
