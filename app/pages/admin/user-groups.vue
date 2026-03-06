@@ -12,6 +12,7 @@ definePageMeta({
 })
 
 const userGroupsStore = useUserGroupsStore()
+const { t } = useI18n()
 const loading = ref(false)
 const submitting = ref(false)
 const errorMessage = ref('')
@@ -24,13 +25,13 @@ const formMode = ref<'create' | 'edit' | 'patch'>('create')
 const selectedGroup = ref<UserGroup | null>(null)
 const form = reactive({ name: '', role: '' })
 
-const headers = [
-  { title: 'ID', key: 'id', sortable: true },
-  { title: 'Nom', key: 'name', sortable: true },
-  { title: 'Rôle', key: 'roleId', sortable: true },
-  { title: 'Description rôle', key: 'roleDescription', sortable: true },
-  { title: 'Actions', key: 'actions', sortable: false },
-]
+const headers = computed(() => [
+  { title: t('admin.userGroups.headers.id'), key: 'id', sortable: true },
+  { title: t('admin.userGroups.headers.name'), key: 'name', sortable: true },
+  { title: t('admin.userGroups.headers.role'), key: 'roleId', sortable: true },
+  { title: t('admin.userGroups.headers.roleDescription'), key: 'roleDescription', sortable: true },
+  { title: t('admin.userGroups.headers.actions'), key: 'actions', sortable: false },
+])
 
 const tableItems = computed(() => userGroups.value.map(group => ({
   ...group,
@@ -38,7 +39,7 @@ const tableItems = computed(() => userGroups.value.map(group => ({
   roleDescription: group.role?.description || '',
 })))
 
-const formTitle = computed(() => (formMode.value === 'create' ? 'Créer un groupe' : formMode.value === 'edit' ? 'Éditer un groupe' : 'Patch groupe'))
+const formTitle = computed(() => (formMode.value === 'create' ? t('admin.userGroups.form.createTitle') : formMode.value === 'edit' ? t('admin.userGroups.form.editTitle') : t('admin.userGroups.form.patchTitle')))
 
 const fetchUserGroups = async () => {
   loading.value = true
@@ -48,7 +49,7 @@ const fetchUserGroups = async () => {
     userGroups.value = await userGroupsStore.fetchAll()
   }
   catch {
-    errorMessage.value = 'Impossible de charger les groupes depuis /api/v1/user_group.'
+    errorMessage.value = t('admin.userGroups.errors.load')
   }
   finally {
     loading.value = false
@@ -95,7 +96,7 @@ const submitForm = async () => {
 }
 
 const deleteEntity = async (id: string) => {
-  if (!window.confirm(`Supprimer le groupe ${id} ?`)) {
+  if (!window.confirm(t('admin.userGroups.confirmDelete', { id }))) {
     return
   }
 
@@ -115,7 +116,7 @@ await fetchUserGroups()
       <div class="user-groups-page-appbar-tools">
         <v-text-field
           v-model="search"
-          label="Rechercher"
+          :label="t('admin.common.search')"
           prepend-inner-icon="mdi-magnify"
           density="comfortable"
           variant="underlined"
@@ -126,7 +127,7 @@ await fetchUserGroups()
         <v-btn
           icon="mdi-plus"
           color="primary"
-          :aria-label="'Créer'"
+          :aria-label="t('admin.common.create')"
           @click="openCreateDialog"
         />
 
@@ -135,7 +136,7 @@ await fetchUserGroups()
           color="primary"
           variant="outlined"
           :loading="loading"
-          :aria-label="'Actualiser'"
+          :aria-label="t('admin.common.refresh')"
           @click="fetchUserGroups"
         />
       </div>
@@ -153,13 +154,13 @@ await fetchUserGroups()
         :search="search"
         item-key="id"
         :items-per-page="10"
-        empty-text="Aucun groupe utilisateur trouvé."
+        :empty-text="t('admin.userGroups.empty')"
       >
         <template #item.actions="{ item }">
           <div class="d-flex flex-nowrap ga-1 py-1">
-            <v-btn size="x-small" variant="tonal" icon="mdi-eye" :aria-label="`Show ${item.id}`" @click="showEntity(item.id)" />
-            <v-btn size="x-small" variant="tonal" color="warning" icon="mdi-file-edit-outline" :aria-label="`Patch ${item.id}`" @click="openEditDialog(item, true)" />
-            <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="`Delete ${item.id}`" @click="deleteEntity(item.id)" />
+            <v-btn size="x-small" variant="tonal" icon="mdi-eye" :aria-label="t('admin.userGroups.aria.show', { id: item.id })" @click="showEntity(item.id)" />
+            <v-btn size="x-small" variant="tonal" color="warning" icon="mdi-file-edit-outline" :aria-label="t('admin.userGroups.aria.patch', { id: item.id })" @click="openEditDialog(item, true)" />
+            <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="t('admin.userGroups.aria.delete', { id: item.id })" @click="deleteEntity(item.id)" />
           </div>
         </template>
       </UiDataTable>
@@ -169,19 +170,19 @@ await fetchUserGroups()
       <v-card rounded="xl">
         <v-card-title>{{ formTitle }}</v-card-title>
         <v-card-text>
-          <v-text-field v-model="form.name" label="Nom du groupe" class="mb-2" />
-          <v-text-field v-model="form.role" label="ID du rôle" />
+          <v-text-field v-model="form.name" :label="t('admin.userGroups.form.groupName')" class="mb-2" />
+          <v-text-field v-model="form.role" :label="t('admin.userGroups.form.roleId')" />
         </v-card-text>
         <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="formDialog = false">Annuler</v-btn>
-          <v-btn color="primary" :loading="submitting" @click="submitForm">Enregistrer</v-btn>
+          <v-btn variant="text" @click="formDialog = false">{{ t('admin.common.cancel') }}</v-btn>
+          <v-btn color="primary" :loading="submitting" @click="submitForm">{{ t('admin.common.save') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
     <v-dialog v-model="showDialog" max-width="700">
       <v-card rounded="xl">
-        <v-card-title>Détails groupe</v-card-title>
+        <v-card-title>{{ t('admin.userGroups.dialogs.groupDetails') }}</v-card-title>
         <v-card-text>
           <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selectedGroup, null, 2) }}</pre>
         </v-card-text>

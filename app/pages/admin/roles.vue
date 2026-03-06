@@ -12,6 +12,7 @@ definePageMeta({
 })
 
 const rolesStore = useRolesStore()
+const { t } = useI18n()
 const loading = ref(false)
 const submitting = ref(false)
 const errorMessage = ref('')
@@ -27,13 +28,13 @@ const loadingRoleDetails = ref(false)
 const formMode = ref<'create' | 'edit' | 'patch'>('create')
 const form = reactive({ id: '', description: '' })
 
-const headers = [
-  { title: 'Identifiant', key: 'id', sortable: true },
-  { title: 'Description', key: 'description', sortable: true },
-  { title: 'Actions', key: 'actions', sortable: false },
-]
+const headers = computed(() => [
+  { title: t('admin.roles.headers.id'), key: 'id', sortable: true },
+  { title: t('admin.roles.headers.description'), key: 'description', sortable: true },
+  { title: t('admin.roles.headers.actions'), key: 'actions', sortable: false },
+])
 
-const formTitle = computed(() => (formMode.value === 'create' ? 'Créer un rôle' : formMode.value === 'edit' ? 'Éditer un rôle' : 'Patch rôle'))
+const formTitle = computed(() => (formMode.value === 'create' ? t('admin.roles.form.createTitle') : formMode.value === 'edit' ? t('admin.roles.form.editTitle') : t('admin.roles.form.patchTitle')))
 
 const fetchRoles = async () => {
   loading.value = true
@@ -44,7 +45,7 @@ const fetchRoles = async () => {
     rolesCount.value = rolesStore.count
   }
   catch {
-    errorMessage.value = 'Impossible de charger les rôles depuis /api/v1/role.'
+    errorMessage.value = t('admin.roles.errors.load')
   }
   finally {
     loading.value = false
@@ -65,7 +66,7 @@ const showEntity = async (id: string) => {
     showDialog.value = true
   }
   catch {
-    errorMessage.value = `Impossible de charger les détails du rôle ${id}.`
+    errorMessage.value = t('admin.roles.errors.loadDetails', { id })
   }
   finally {
     loadingRoleDetails.value = false
@@ -107,7 +108,7 @@ const submitForm = async () => {
 }
 
 const deleteEntity = async (id: string) => {
-  if (!window.confirm(`Supprimer le rôle ${id} ?`)) {
+  if (!window.confirm(t('admin.roles.confirmDelete', { id }))) {
     return
   }
 
@@ -122,23 +123,23 @@ await fetchRoles()
   <UiPageSection>
     <Teleport defer to="#app-bar-teleport-target">
       <div class="roles-page-appbar-tools">
-        <v-text-field v-model="search" label="Rechercher" prepend-inner-icon="mdi-magnify" density="comfortable" variant="underlined" hide-details class="roles-page-appbar-tools__search" />
-        <v-btn icon="mdi-plus" color="primary" :aria-label="'Créer'" @click="openCreateDialog" />
-        <v-btn icon="mdi-refresh" color="primary" variant="outlined" :loading="loading" :aria-label="'Actualiser'" @click="fetchRoles" />
+        <v-text-field v-model="search" :label="t('admin.common.search')" prepend-inner-icon="mdi-magnify" density="comfortable" variant="underlined" hide-details class="roles-page-appbar-tools__search" />
+        <v-btn icon="mdi-plus" color="primary" :aria-label="t('admin.common.create')" @click="openCreateDialog" />
+        <v-btn icon="mdi-refresh" color="primary" variant="outlined" :loading="loading" :aria-label="t('admin.common.refresh')" @click="fetchRoles" />
       </div>
     </Teleport>
 
     <v-card rounded="xl" elevation="2" class="pa-4">
       <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
 
-      <UiDataTable :headers="headers" :items="roles" :loading="loading" :search="search" item-key="id" :items-per-page="10" empty-text="Aucun rôle trouvé.">
+      <UiDataTable :headers="headers" :items="roles" :loading="loading" :search="search" item-key="id" :items-per-page="10" :empty-text="t('admin.roles.empty')">
         <template #item.description="{ item }">{{ item.description || '—' }}</template>
         <template #item.actions="{ item }">
           <div class="d-flex flex-nowrap ga-1 py-1">
-            <v-btn size="x-small" variant="tonal" icon="mdi-eye" :loading="loadingRoleDetails" :aria-label="`Voir ${item.id}`" @click="showEntity(item.id)" />
-            <v-btn size="x-small" variant="tonal" color="primary" icon="mdi-pencil" :aria-label="`Edit ${item.id}`" @click="openEditDialog(item)" />
-            <v-btn size="x-small" variant="tonal" color="warning" icon="mdi-file-edit-outline" :aria-label="`Patch ${item.id}`" @click="openEditDialog(item, true)" />
-            <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="`Delete ${item.id}`" @click="deleteEntity(item.id)" />
+            <v-btn size="x-small" variant="tonal" icon="mdi-eye" :loading="loadingRoleDetails" :aria-label="t('admin.roles.aria.show', { id: item.id })" @click="showEntity(item.id)" />
+            <v-btn size="x-small" variant="tonal" color="primary" icon="mdi-pencil" :aria-label="t('admin.roles.aria.edit', { id: item.id })" @click="openEditDialog(item)" />
+            <v-btn size="x-small" variant="tonal" color="warning" icon="mdi-file-edit-outline" :aria-label="t('admin.roles.aria.patch', { id: item.id })" @click="openEditDialog(item, true)" />
+            <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="t('admin.roles.aria.delete', { id: item.id })" @click="deleteEntity(item.id)" />
           </div>
         </template>
       </UiDataTable>
@@ -148,25 +149,25 @@ await fetchRoles()
       <v-card rounded="xl">
         <v-card-title>{{ formTitle }}</v-card-title>
         <v-card-text>
-          <v-text-field v-model="form.id" label="Identifiant" :disabled="formMode !== 'create'" class="mb-2" />
-          <v-text-field v-model="form.description" label="Description" />
+          <v-text-field v-model="form.id" :label="t('admin.roles.form.id')" :disabled="formMode !== 'create'" class="mb-2" />
+          <v-text-field v-model="form.description" :label="t('admin.roles.form.description')" />
         </v-card-text>
         <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="formDialog = false">Annuler</v-btn>
-          <v-btn color="primary" :loading="submitting" @click="submitForm">Enregistrer</v-btn>
+          <v-btn variant="text" @click="formDialog = false">{{ t('admin.common.cancel') }}</v-btn>
+          <v-btn color="primary" :loading="submitting" @click="submitForm">{{ t('admin.common.save') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
     <v-dialog v-model="showDialog" max-width="700">
       <v-card rounded="xl">
-        <v-card-title>Détails rôle</v-card-title>
+        <v-card-title>{{ t('admin.roles.dialogs.details') }}</v-card-title>
         <v-card-text>
           <pre class="text-body-2 mb-4" style="white-space: pre-wrap;">{{ JSON.stringify(selectedRole, null, 2) }}</pre>
-          <div class="text-subtitle-2 mb-2">Rôles hérités</div>
+          <div class="text-subtitle-2 mb-2">{{ t('admin.roles.dialogs.inheritedRoles') }}</div>
           <div class="d-flex flex-wrap ga-2">
             <v-chip v-for="role in selectedRoleInherited" :key="role" size="small">{{ role }}</v-chip>
-            <span v-if="!selectedRoleInherited.length" class="text-body-2">Aucun rôle hérité.</span>
+            <span v-if="!selectedRoleInherited.length" class="text-body-2">{{ t('admin.roles.dialogs.noInheritedRoles') }}</span>
           </div>
         </v-card-text>
       </v-card>

@@ -44,7 +44,147 @@
   },
   "admin": {
     "title": "Administration area",
-    "description": "This page is restricted to users with the administrator role."
+    "description": "This page is restricted to users with the administrator role.",
+    "common": {
+      "search": "Search",
+      "create": "Create",
+      "refresh": "Refresh",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "users": {
+      "headers": {
+        "username": "Username",
+        "name": "Name",
+        "email": "Email",
+        "relations": "Relations",
+        "actions": "Actions"
+      },
+      "form": {
+        "createTitle": "Create user",
+        "editTitle": "Edit user",
+        "patchTitle": "Patch user",
+        "username": "Username",
+        "email": "Email",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "password": "Password",
+        "passwordHint": "Leave blank to keep current value",
+        "timezone": "Timezone",
+        "language": "Language",
+        "locale": "Locale",
+        "photoUrl": "Photo URL",
+        "groupIdToAttach": "Group ID to attach"
+      },
+      "errors": {
+        "load": "Unable to load users from /api/v1/user."
+      },
+      "confirmDelete": "Delete user {id}?",
+      "empty": "No users found.",
+      "buttons": {
+        "roles": "Roles",
+        "groups": "Groups",
+        "detach": "Detach"
+      },
+      "aria": {
+        "show": "Show {name}",
+        "patch": "Patch {name}",
+        "delete": "Delete {name}"
+      },
+      "dialogs": {
+        "userDetails": "User details",
+        "userRoles": "User roles",
+        "userGroups": "User groups"
+      }
+    },
+    "userGroups": {
+      "headers": {
+        "id": "ID",
+        "name": "Name",
+        "role": "Role",
+        "roleDescription": "Role description",
+        "actions": "Actions"
+      },
+      "form": {
+        "createTitle": "Create group",
+        "editTitle": "Edit group",
+        "patchTitle": "Patch group",
+        "groupName": "Group name",
+        "roleId": "Role ID"
+      },
+      "errors": {
+        "load": "Unable to load groups from /api/v1/user_group."
+      },
+      "confirmDelete": "Delete group {id}?",
+      "empty": "No user groups found.",
+      "aria": {
+        "show": "Show {id}",
+        "patch": "Patch {id}",
+        "delete": "Delete {id}"
+      },
+      "dialogs": {
+        "groupDetails": "Group details"
+      }
+    },
+    "apiKeys": {
+      "headers": {
+        "id": "ID",
+        "description": "Description",
+        "token": "Token",
+        "actions": "Actions"
+      },
+      "form": {
+        "createTitle": "Create API key",
+        "editTitle": "Edit API key",
+        "patchTitle": "Patch API key",
+        "description": "Description",
+        "token": "Token"
+      },
+      "errors": {
+        "load": "Unable to load API keys from /api/{version}/api_key."
+      },
+      "confirmDelete": "Delete API key {id}?",
+      "empty": "No API keys found.",
+      "aria": {
+        "show": "Show {id}",
+        "patch": "Patch {id}",
+        "delete": "Delete {id}"
+      },
+      "dialogs": {
+        "details": "API key details"
+      }
+    },
+    "roles": {
+      "headers": {
+        "id": "Identifier",
+        "description": "Description",
+        "actions": "Actions"
+      },
+      "form": {
+        "createTitle": "Create role",
+        "editTitle": "Edit role",
+        "patchTitle": "Patch role",
+        "id": "Identifier",
+        "description": "Description"
+      },
+      "errors": {
+        "load": "Unable to load roles from /api/v1/role.",
+        "loadDetails": "Unable to load role details for {id}."
+      },
+      "confirmDelete": "Delete role {id}?",
+      "empty": "No roles found.",
+      "aria": {
+        "show": "Show {id}",
+        "edit": "Edit {id}",
+        "patch": "Patch {id}",
+        "delete": "Delete {id}"
+      },
+      "dialogs": {
+        "details": "Role details",
+        "inheritedRoles": "Inherited roles",
+        "noInheritedRoles": "No inherited roles."
+      }
+    }
   },
   "$vuetify": {
     "dataFooter": {

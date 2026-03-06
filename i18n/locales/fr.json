@@ -44,7 +44,147 @@
   },
   "admin": {
     "title": "Espace administration",
-    "description": "Cette page est réservée aux utilisateurs ayant le rôle administrateur."
+    "description": "Cette page est réservée aux utilisateurs ayant le rôle administrateur.",
+    "common": {
+      "search": "Rechercher",
+      "create": "Créer",
+      "refresh": "Actualiser",
+      "cancel": "Annuler",
+      "save": "Enregistrer"
+    },
+    "users": {
+      "headers": {
+        "username": "Username",
+        "name": "Nom",
+        "email": "Email",
+        "relations": "Relations",
+        "actions": "Actions"
+      },
+      "form": {
+        "createTitle": "Créer un utilisateur",
+        "editTitle": "Éditer un utilisateur",
+        "patchTitle": "Patch utilisateur",
+        "username": "Username",
+        "email": "Email",
+        "firstName": "Prénom",
+        "lastName": "Nom",
+        "password": "Mot de passe",
+        "passwordHint": "Laisser vide pour ne pas changer",
+        "timezone": "Fuseau horaire",
+        "language": "Langue",
+        "locale": "Locale",
+        "photoUrl": "URL de photo",
+        "groupIdToAttach": "ID du groupe à attacher"
+      },
+      "errors": {
+        "load": "Impossible de charger les utilisateurs depuis /api/v1/user."
+      },
+      "confirmDelete": "Supprimer l'utilisateur {id} ?",
+      "empty": "Aucun utilisateur trouvé.",
+      "buttons": {
+        "roles": "Rôles",
+        "groups": "Groupes",
+        "detach": "Détacher"
+      },
+      "aria": {
+        "show": "Voir {name}",
+        "patch": "Patch {name}",
+        "delete": "Supprimer {name}"
+      },
+      "dialogs": {
+        "userDetails": "Détails utilisateur",
+        "userRoles": "Rôles utilisateur",
+        "userGroups": "Groupes utilisateur"
+      }
+    },
+    "userGroups": {
+      "headers": {
+        "id": "ID",
+        "name": "Nom",
+        "role": "Rôle",
+        "roleDescription": "Description rôle",
+        "actions": "Actions"
+      },
+      "form": {
+        "createTitle": "Créer un groupe",
+        "editTitle": "Éditer un groupe",
+        "patchTitle": "Patch groupe",
+        "groupName": "Nom du groupe",
+        "roleId": "ID du rôle"
+      },
+      "errors": {
+        "load": "Impossible de charger les groupes depuis /api/v1/user_group."
+      },
+      "confirmDelete": "Supprimer le groupe {id} ?",
+      "empty": "Aucun groupe utilisateur trouvé.",
+      "aria": {
+        "show": "Voir {id}",
+        "patch": "Patch {id}",
+        "delete": "Supprimer {id}"
+      },
+      "dialogs": {
+        "groupDetails": "Détails groupe"
+      }
+    },
+    "apiKeys": {
+      "headers": {
+        "id": "ID",
+        "description": "Description",
+        "token": "Token",
+        "actions": "Actions"
+      },
+      "form": {
+        "createTitle": "Créer une clé API",
+        "editTitle": "Éditer une clé API",
+        "patchTitle": "Patch clé API",
+        "description": "Description",
+        "token": "Token"
+      },
+      "errors": {
+        "load": "Impossible de charger les clés API depuis /api/{version}/api_key."
+      },
+      "confirmDelete": "Supprimer la clé API {id} ?",
+      "empty": "Aucune clé API trouvée.",
+      "aria": {
+        "show": "Voir {id}",
+        "patch": "Patch {id}",
+        "delete": "Supprimer {id}"
+      },
+      "dialogs": {
+        "details": "Détails clé API"
+      }
+    },
+    "roles": {
+      "headers": {
+        "id": "Identifiant",
+        "description": "Description",
+        "actions": "Actions"
+      },
+      "form": {
+        "createTitle": "Créer un rôle",
+        "editTitle": "Éditer un rôle",
+        "patchTitle": "Patch rôle",
+        "id": "Identifiant",
+        "description": "Description"
+      },
+      "errors": {
+        "load": "Impossible de charger les rôles depuis /api/v1/role.",
+        "loadDetails": "Impossible de charger les détails du rôle {id}."
+      },
+      "confirmDelete": "Supprimer le rôle {id} ?",
+      "empty": "Aucun rôle trouvé.",
+      "aria": {
+        "show": "Voir {id}",
+        "edit": "Éditer {id}",
+        "patch": "Patch {id}",
+        "delete": "Supprimer {id}"
+      },
+      "dialogs": {
+        "details": "Détails rôle",
+        "inheritedRoles": "Rôles hérités",
+        "noInheritedRoles": "Aucun rôle hérité."
+      }
+    }
   },
   "$vuetify": {
     "badge": "Badge"
