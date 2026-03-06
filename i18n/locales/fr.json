@@ -20,7 +20,8 @@
       "adminUsers": "Utilisateurs",
       "adminRoles": "Rôles",
       "adminGroups": "Groupes",
-      "adminApiKeys": "Clés API"
+      "adminApiKeys": "Clés API",
+      "settings": "Paramètres"
     }
   },
   "login": {
@@ -277,5 +278,35 @@
       "back": "Page précédente"
     },
     "localeHint": "Langue active : {locale}"
+  },
+  "platform": {
+    "title": "Plateforme",
+    "description": "Découvrez le point d'entrée principal de Bro World et naviguez vers les sections clés.",
+    "cta": "Nous contacter"
+  },
+  "about": {
+    "title": "À propos",
+    "description": "Découvrez Bro World, notre mission et la vision du produit."
+  },
+  "faq": {
+    "title": "FAQ",
+    "description": "Trouvez rapidement les réponses aux questions fréquentes sur la plateforme.",
+    "q1": "Comment me connecter ?",
+    "a1": "Utilisez la page Connexion avec votre identifiant ou email et votre mot de passe.",
+    "q2": "La plateforme est-elle disponible en français ?",
+    "a2": "Oui, vous pouvez changer la langue depuis la barre de navigation en haut."
+  },
+  "contact": {
+    "title": "Contact",
+    "description": "Besoin d'aide ou envie de partager un retour ? Contactez-nous via l'un de nos canaux.",
+    "emailLabel": "Email",
+    "emailValue": "support (at) bro-world.example",
+    "phoneLabel": "Téléphone",
+    "phoneValue": "+33 1 23 45 67 89"
+  },
+  "settings": {
+    "title": "Paramètres de la plateforme",
+    "description": "Configurez vos préférences personnelles et le comportement de la plateforme.",
+    "notice": "D'autres options de paramétrage seront bientôt disponibles."
   }
 }
