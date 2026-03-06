@@ -6,6 +6,7 @@ import type {
   PatchProfilePayload,
   Profile,
   UpdateProfilePayload,
+  UploadProfilePhotoResponse,
 } from '~/types/api/profile'
 
 export const useProfileApi = () => {
@@ -32,6 +33,15 @@ export const useProfileApi = () => {
       return apiFetch<Profile>(basePath, {
         method: 'PATCH',
         body: payload,
+      })
+    },
+    uploadPhoto(photo: File) {
+      const formData = new FormData()
+      formData.append('photo', photo)
+
+      return apiFetch<UploadProfilePhotoResponse>(`${basePath}/photo`, {
+        method: 'POST',
+        body: formData,
       })
     },
     createApplication(payload: CreateApplicationPayload) {

@@ -39,7 +39,14 @@
     "notAuthenticated": "Vous n'êtes pas connecté. Passez par la page de connexion.",
     "tokenHint": "Le token de session sera automatiquement utilisé dans l'en-tête",
     "tokenHeader": "Authorization: Bearer ...",
-    "tokenHintSuffix": "pour appeler l'API profil."
+    "tokenHintSuffix": "pour appeler l'API profil.",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "timezone": "Fuseau horaire",
+    "photo": "Photo",
+    "saveChanges": "Enregistrer les modifications",
+    "updateSuccess": "Profil mis à jour avec succès.",
+    "photoUpdateSuccess": "Photo de profil mise à jour avec succès."
   },
   "errors": {
     "auth": {
@@ -49,7 +56,9 @@
     },
     "profile": {
       "noToken": "Aucun token en session, connectez-vous.",
-      "loadFailed": "Impossible de charger le profil. Réessayez."
+      "loadFailed": "Impossible de charger le profil. Réessayez.",
+      "updateFailed": "Impossible de mettre à jour le profil. Réessayez.",
+      "photoUploadFailed": "Impossible d'uploader la photo de profil. Réessayez."
     }
   },
   "home": {
