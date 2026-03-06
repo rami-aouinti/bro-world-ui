@@ -12,7 +12,7 @@ definePageMeta({
   requiresAuth: true,
 })
 
-const { t } = useI18n()
+const { t } = useI18n({ useScope: 'global' })
 const router = useRouter()
 const platformsApi = usePlatformsApi()
 const pluginsApi = usePluginsApi()

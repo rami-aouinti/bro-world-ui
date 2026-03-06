@@ -6,7 +6,7 @@ definePageMeta({
   requiresAuth: false,
 })
 
-const { t } = useI18n()
+const { t } = useI18n({ useScope: 'global' })
 const router = useRouter()
 const { isAuthenticated, initSession } = useAuth()
 const applicationsStore = useApplicationsStore()
