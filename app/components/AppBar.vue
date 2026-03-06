@@ -105,11 +105,11 @@ const signOut = async () => {
   <v-app-bar
     flat
     rounded="xl"
-    class="app-bar px-3 px-sm-5 py-2"
+    class="app-bar px-3 px-sm-5"
   >
     <v-toolbar-title class="app-bar__brand d-flex align-center ga-3 text-truncate">
       <NuxtLink to="/" class="app-bar__title-link d-flex align-center ga-2">
-        <v-icon icon="mdi-alpha-v-circle-outline" size="32" class="app-bar__brand-icon" />
+        <v-icon icon="mdi-earth" size="32" class="app-bar__brand-icon" />
         <span class="text-truncate">
           <span class="app-bar__brand-bro">Bro</span><span class="app-bar__brand-world">World</span>
         </span>
