@@ -18,6 +18,7 @@ const { logout } = useAuth()
 const theme = useTheme()
 
 const isProfileMenuOpen = ref(false)
+const isAuthenticated = computed(() => Boolean(authSession.profile))
 
 const mainHeaderItems = computed<NavItem[]>(() => [
   { key: 'app.navigation.platform', to: '/', icon: 'mdi-view-grid-outline' },
@@ -32,11 +33,17 @@ const headerItems = computed<NavItem[]>(() => route.path.startsWith('/admin')
   ? adminHeaderItems.value
   : mainHeaderItems.value)
 
-const actionItems = computed<NavItem[]>(() => [
-  { key: 'app.navigation.calendar', icon: 'mdi-calendar-month-outline' },
-  { key: 'app.navigation.messages', icon: 'mdi-message-processing-outline' },
-  { key: 'app.navigation.notifications', icon: 'mdi-bell-outline' },
-])
+const actionItems = computed<NavItem[]>(() => {
+  if (!isAuthenticated.value) {
+    return []
+  }
+
+  return [
+    { key: 'app.navigation.calendar', icon: 'mdi-calendar-month-outline' },
+    { key: 'app.navigation.messages', icon: 'mdi-message-processing-outline' },
+    { key: 'app.navigation.notifications', icon: 'mdi-bell-outline' },
+  ]
+})
 
 const { mdAndUp } = useDisplay()
 const isDesktop = computed(() => mdAndUp.value)
