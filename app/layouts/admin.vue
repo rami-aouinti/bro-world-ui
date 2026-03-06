@@ -3,10 +3,14 @@ const route = useRoute()
 
 const labelMap: Record<string, string> = {
   admin: 'Administration',
-  users: 'Utilisateurs',
-  roles: 'Rôles',
-  'user-groups': 'Groupes utilisateurs',
-  'api-keys': 'Clés API',
+  dashboard: 'Dashboard',
+  settings: 'Settings',
+  'user-management': 'User Management',
+  users: 'Users',
+  groups: 'Groups',
+  roles: 'Roles',
+  'user-groups': 'Groups',
+  'api-keys': 'API Keys',
 }
 
 const breadcrumbs = computed(() => {

@@ -218,6 +218,43 @@
         "description": "Lister et gérer les clés API disponibles sur /api/v1/api_key."
       },
       "open": "Ouvrir"
+    },
+    "navigation": {
+      "dashboard": {
+        "title": "Dashboard",
+        "description": "Consulter les statistiques clés et les indicateurs d’activité."
+      },
+      "settings": {
+        "title": "Paramètres",
+        "description": "Configurer les informations et options globales de la plateforme."
+      },
+      "userManagement": {
+        "title": "Gestion des utilisateurs",
+        "description": "Accéder à l’administration des utilisateurs, rôles, groupes et clés API."
+      }
+    },
+    "dashboard": {
+      "title": "Dashboard administrateur",
+      "description": "Vue d’ensemble de l’activité de la plateforme et des indicateurs d’usage.",
+      "stats": {
+        "activeUsers": "Utilisateurs actifs",
+        "newAccounts": "Nouveaux comptes (7 jours)",
+        "apiRequests": "Requêtes API (24h)",
+        "errors": "Erreurs critiques"
+      }
+    },
+    "settings": {
+      "title": "Paramètres",
+      "description": "Gérez la configuration de votre site depuis ce formulaire.",
+      "form": {
+        "siteName": "Nom du site",
+        "description": "Description",
+        "saved": "Paramètres enregistrés."
+      }
+    },
+    "userManagement": {
+      "title": "Gestion des utilisateurs",
+      "description": "Choisissez une section pour administrer les utilisateurs et les droits d’accès."
     }
   },
   "$vuetify": {
