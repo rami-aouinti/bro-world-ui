@@ -58,7 +58,7 @@ const openGroups = computed(() => {
       <v-container fluid class="py-6">
         <v-row>
           <v-col cols="12" md="3">
-            <v-card class="admin-layout__menu-card" rounded="xl" elevation="6">
+            <v-card class="admin-layout__menu-card" rounded="xl" elevation="0">
               <v-list
                 :opened="openGroups"
                 nav
@@ -121,6 +121,7 @@ const openGroups = computed(() => {
 .admin-layout__menu-card {
   position: sticky;
   top: 100px;
+  background: transparent !important;
 }
 
 .admin-layout__menu-list {
