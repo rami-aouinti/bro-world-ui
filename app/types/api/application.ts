@@ -2,6 +2,7 @@ import type { UUID } from './common'
 
 export interface ApplicationRead {
   id: UUID
+  slug?: string
   title: string
   description?: string
   photo?: string
@@ -9,6 +10,7 @@ export interface ApplicationRead {
   private: boolean
   platformId: UUID
   platformName: string
+  platformKey?: string
   ownerId?: UUID
   author?: {
     id: UUID

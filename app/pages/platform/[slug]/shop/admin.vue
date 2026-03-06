@@ -9,21 +9,21 @@ definePageMeta({
 
 const route = useRoute()
 
-const platformId = computed(() => String(route.params.platformId ?? ''))
+const slug = computed(() => String(route.params.slug ?? ''))
 </script>
 
 <template>
   <UiPageSection max-width="1200" card>
     <template #header>
       <UiSectionHeader
-        title="Platform Admin"
-        :subtitle="`Zone d'administration pour la platform ${platformId}`"
+        title="Platform Shop Admin"
+        :subtitle="`Zone d'administration pour l'application ${slug} sur Shop`"
       />
     </template>
 
     <div class="d-flex flex-wrap ga-3">
-      <v-chip color="primary" variant="tonal">Platform: {{ platformId }}</v-chip>
-      <v-btn variant="outlined" :to="`/platform/${platformId}/home`">Retour Home</v-btn>
+      <v-chip color="primary" variant="tonal">Application: {{ slug }}</v-chip>
+      <v-btn variant="outlined" :to="`/platform/${slug}/shop/home`">Retour Home</v-btn>
       <v-btn variant="text" to="/platform">Retour liste</v-btn>
     </div>
   </UiPageSection>
