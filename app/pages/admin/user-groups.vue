@@ -2,7 +2,7 @@
 import UiDataTable from '~/components/ui/UiDataTable.vue'
 import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
-import { useUserGroupsApi } from '~/composables/api/useUserGroupsApi'
+import { useUserGroupsStore } from '~/stores/userGroups'
 import type { UserGroup } from '~/types/api/userGroup'
 
 definePageMeta({
@@ -11,7 +11,7 @@ definePageMeta({
   requiredPermissions: ['admin.access'],
 })
 
-const userGroupsApi = useUserGroupsApi()
+const userGroupsStore = useUserGroupsStore()
 const loading = ref(false)
 const submitting = ref(false)
 const errorMessage = ref('')
@@ -45,8 +45,7 @@ const fetchUserGroups = async () => {
   errorMessage.value = ''
 
   try {
-    const response = await userGroupsApi.list({ limit: 200 })
-    userGroups.value = Array.isArray(response) ? response : (response.results ?? [])
+    userGroups.value = await userGroupsStore.fetchAll()
   }
   catch {
     errorMessage.value = 'Impossible de charger les groupes depuis /api/v1/user_group.'
@@ -70,7 +69,7 @@ const openEditDialog = (group: UserGroup, patch = false) => {
 }
 
 const showEntity = async (id: string) => {
-  selectedGroup.value = await userGroupsApi.getById(id)
+  selectedGroup.value = await userGroupsStore.getById(id)
   showDialog.value = true
 }
 
@@ -78,13 +77,13 @@ const submitForm = async () => {
   submitting.value = true
   try {
     if (formMode.value === 'create') {
-      await userGroupsApi.create({ name: form.name, role: form.role })
+      await userGroupsStore.create({ name: form.name, role: form.role })
     }
     else if (formMode.value === 'edit' && selectedGroup.value) {
-      await userGroupsApi.update(selectedGroup.value.id, { name: form.name, role: form.role })
+      await userGroupsStore.update(selectedGroup.value.id, { name: form.name, role: form.role })
     }
     else if (formMode.value === 'patch' && selectedGroup.value) {
-      await userGroupsApi.patch(selectedGroup.value.id, { name: form.name, role: form.role })
+      await userGroupsStore.patch(selectedGroup.value.id, { name: form.name, role: form.role })
     }
 
     formDialog.value = false
@@ -100,7 +99,7 @@ const deleteEntity = async (id: string) => {
     return
   }
 
-  await userGroupsApi.delete(id)
+  await userGroupsStore.remove(id)
   await fetchUserGroups()
 }
 

@@ -8,7 +8,12 @@ import type {
   QueryParams,
   UUID,
 } from '~/types/api/common'
-import type { Role } from '~/types/api/role'
+import type {
+  CreateRolePayload,
+  PatchRolePayload,
+  Role,
+  UpdateRolePayload,
+} from '~/types/api/role'
 
 export const useRolesApi = () => {
   const { apiFetch } = useApiClient()
@@ -38,6 +43,27 @@ export const useRolesApi = () => {
     },
     inherited(id: UUID) {
       return apiFetch<string[]>(`${basePath}/${id}/inherited`, { method: 'GET' })
+    },
+    create(payload: CreateRolePayload) {
+      return apiFetch<Role>(basePath, {
+        method: 'POST',
+        body: payload,
+      })
+    },
+    update(id: UUID, payload: UpdateRolePayload) {
+      return apiFetch<Role>(`${basePath}/${id}`, {
+        method: 'PUT',
+        body: payload,
+      })
+    },
+    patch(id: UUID, payload: PatchRolePayload) {
+      return apiFetch<Role>(`${basePath}/${id}`, {
+        method: 'PATCH',
+        body: payload,
+      })
+    },
+    delete(id: UUID) {
+      return apiFetch<void>(`${basePath}/${id}`, { method: 'DELETE' })
     },
   }
 }
