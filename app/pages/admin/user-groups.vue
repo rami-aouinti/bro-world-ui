@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import UiDataTable from '~/components/ui/UiDataTable.vue'
 import UiPageSection from '~/components/ui/UiPageSection.vue'
-import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import { useUserGroupsStore } from '~/stores/userGroups'
 import type { UserGroup } from '~/types/api/userGroup'
 
@@ -22,18 +21,9 @@ const showDialog = ref(false)
 const selectedGroup = ref<UserGroup | null>(null)
 
 const headers = computed(() => [
-  { title: t('admin.userGroups.headers.id'), key: 'id', sortable: true },
   { title: t('admin.userGroups.headers.name'), key: 'name', sortable: true },
-  { title: t('admin.userGroups.headers.role'), key: 'roleId', sortable: true },
-  { title: t('admin.userGroups.headers.roleDescription'), key: 'roleDescription', sortable: true },
   { title: t('admin.userGroups.headers.actions'), key: 'actions', sortable: false },
 ])
-
-const tableItems = computed(() => userGroups.value.map(group => ({
-  ...group,
-  roleId: group.role?.id || '',
-  roleDescription: group.role?.description || '',
-})))
 
 const formTitle = computed(() => (formMode.value === 'create' ? t('admin.userGroups.form.createTitle') : formMode.value === 'edit' ? t('admin.userGroups.form.editTitle') : t('admin.userGroups.form.patchTitle')))
 
