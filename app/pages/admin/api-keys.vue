@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import UiDataTable from '~/components/ui/UiDataTable.vue'
+import UiActionConfirmDialog from '~/components/ui/UiActionConfirmDialog.vue'
 import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import { useApiKeysStore } from '~/stores/apiKeys'
@@ -26,9 +27,11 @@ const selectedVersion = computed({
 })
 
 const formDialog = ref(false)
+const deleteDialog = ref(false)
 const showDialog = ref(false)
 const formMode = ref<'create' | 'edit' | 'patch'>('create')
 const selectedItem = ref<ApiKey | null>(null)
+const apiKeyToDeleteId = ref('')
 const form = reactive({ token: '', description: '' })
 
 const headers = computed(() => [
@@ -110,13 +113,26 @@ const submitForm = async () => {
   }
 }
 
-const deleteEntity = async (id: string) => {
-  if (!window.confirm(t('admin.apiKeys.confirmDelete', { id }))) {
+const openDeleteDialog = (id: string) => {
+  apiKeyToDeleteId.value = id
+  deleteDialog.value = true
+}
+
+const deleteEntity = async () => {
+  if (!apiKeyToDeleteId.value) {
     return
   }
 
-  await apiKeysStore.remove(id)
-  await fetchApiKeys()
+  submitting.value = true
+  try {
+    await apiKeysStore.remove(apiKeyToDeleteId.value)
+    deleteDialog.value = false
+    apiKeyToDeleteId.value = ''
+    await fetchApiKeys()
+  }
+  finally {
+    submitting.value = false
+  }
 }
 
 await fetchApiKeys()
@@ -198,10 +214,20 @@ await fetchApiKeys()
         <div class="d-flex flex-nowrap ga-1 py-1">
           <v-btn size="x-small" variant="tonal" icon="mdi-eye" :aria-label="t('admin.apiKeys.aria.show', { id: item.id })" @click="showEntity(item.id)" />
           <v-btn size="x-small" variant="tonal" color="warning" icon="mdi-file-edit-outline" :aria-label="t('admin.apiKeys.aria.patch', { id: item.id })" @click="openEditDialog(item, true)" />
-          <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="t('admin.apiKeys.aria.delete', { id: item.id })" @click="deleteEntity(item.id)" />
+          <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="t('admin.apiKeys.aria.delete', { id: item.id })" @click="openDeleteDialog(item.id)" />
         </div>
       </template>
     </UiDataTable>
+
+    <UiActionConfirmDialog
+      v-model="deleteDialog"
+      :title="t('admin.common.delete')"
+      :message="t('admin.apiKeys.confirmDelete', { id: apiKeyToDeleteId })"
+      :confirm-label="t('admin.common.delete')"
+      :cancel-label="t('admin.common.cancel')"
+      :loading="submitting"
+      @confirm="deleteEntity"
+    />
 
     <v-dialog v-model="formDialog" max-width="560" persistent>
       <v-card rounded="xl">

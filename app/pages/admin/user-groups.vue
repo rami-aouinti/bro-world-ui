@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import UiDataTable from '~/components/ui/UiDataTable.vue'
+import UiActionConfirmDialog from '~/components/ui/UiActionConfirmDialog.vue'
 import UiPageSection from '~/components/ui/UiPageSection.vue'
 import { useUserGroupsStore } from '~/stores/userGroups'
 import type { UserGroup } from '~/types/api/userGroup'
@@ -18,7 +19,9 @@ const userGroups = ref<UserGroup[]>([])
 const search = ref('')
 
 const showDialog = ref(false)
+const deleteDialog = ref(false)
 const selectedGroup = ref<UserGroup | null>(null)
+const groupToDeleteId = ref('')
 
 const headers = computed(() => [
   { title: t('admin.userGroups.headers.name'), key: 'name', sortable: true },
@@ -68,13 +71,26 @@ const submitForm = async () => {
   }
 }
 
-const deleteEntity = async (id: string) => {
-  if (!window.confirm(t('admin.userGroups.confirmDelete', { id }))) {
+const openDeleteDialog = (id: string) => {
+  groupToDeleteId.value = id
+  deleteDialog.value = true
+}
+
+const deleteEntity = async () => {
+  if (!groupToDeleteId.value) {
     return
   }
 
-  await userGroupsStore.remove(id)
-  await fetchUserGroups()
+  submitting.value = true
+  try {
+    await userGroupsStore.remove(groupToDeleteId.value)
+    deleteDialog.value = false
+    groupToDeleteId.value = ''
+    await fetchUserGroups()
+  }
+  finally {
+    submitting.value = false
+  }
 }
 
 await fetchUserGroups()
@@ -132,10 +148,20 @@ await fetchUserGroups()
         <div class="d-flex flex-nowrap ga-1 py-1">
           <v-btn size="x-small" variant="tonal" icon="mdi-eye" :aria-label="t('admin.userGroups.aria.show', { id: item.id })" @click="showEntity(item.id)" />
           <v-btn size="x-small" variant="tonal" color="warning" icon="mdi-file-edit-outline" :aria-label="t('admin.userGroups.aria.patch', { id: item.id })" @click="openEditDialog(item, true)" />
-          <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="t('admin.userGroups.aria.delete', { id: item.id })" @click="deleteEntity(item.id)" />
+          <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="t('admin.userGroups.aria.delete', { id: item.id })" @click="openDeleteDialog(item.id)" />
         </div>
       </template>
     </UiDataTable>
+
+    <UiActionConfirmDialog
+      v-model="deleteDialog"
+      :title="t('admin.common.delete')"
+      :message="t('admin.userGroups.confirmDelete', { id: groupToDeleteId })"
+      :confirm-label="t('admin.common.delete')"
+      :cancel-label="t('admin.common.cancel')"
+      :loading="submitting"
+      @confirm="deleteEntity"
+    />
 
     <v-dialog v-model="formDialog" max-width="560" persistent>
       <v-card rounded="xl">
