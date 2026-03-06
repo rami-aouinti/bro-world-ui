@@ -15,6 +15,7 @@ interface Props {
   emptyText?: string
   itemsPerPage?: number
   itemsPerPageOptions?: number[]
+  skeletonRows?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -24,9 +25,11 @@ const props = withDefaults(defineProps<Props>(), {
   emptyText: 'Aucune donnée disponible.',
   itemsPerPage: 10,
   itemsPerPageOptions: () => [5, 10, 20, 50],
+  skeletonRows: 5,
 })
 
 const resolveHeaderKey = (header: DataTableHeader) => header.key ?? header.value ?? ''
+const skeletonRowsCount = computed(() => Math.max(1, props.skeletonRows))
 </script>
 
 <template>
@@ -54,6 +57,21 @@ const resolveHeaderKey = (header: DataTableHeader) => header.key ?? header.value
       <slot name="item.actions" v-bind="slotProps" />
     </template>
 
+    <template #loading>
+      <tr
+        v-for="index in skeletonRowsCount"
+        :key="`skeleton-${index}`"
+      >
+        <td
+          v-for="header in props.headers"
+          :key="`skeleton-cell-${resolveHeaderKey(header)}-${index}`"
+          class="ui-data-table__skeleton-cell"
+        >
+          <v-skeleton-loader type="text" class="ui-data-table__skeleton" />
+        </td>
+      </tr>
+    </template>
+
     <template #no-data>
       <slot name="empty">
         <div class="ui-data-table__empty py-8 text-center text-medium-emphasis">{{ props.emptyText }}</div>
@@ -71,5 +89,13 @@ const resolveHeaderKey = (header: DataTableHeader) => header.key ?? header.value
 
 .ui-data-table__empty {
   font-weight: 500;
+}
+
+.ui-data-table__skeleton-cell {
+  padding: 0.75rem 1rem;
+}
+
+.ui-data-table__skeleton :deep(.v-skeleton-loader__text) {
+  margin: 0;
 }
 </style>
