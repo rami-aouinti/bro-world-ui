@@ -29,6 +29,7 @@ const cardPaddingClass = computed(() => (props.padding === 'pa-6' ? undefined : 
   <v-container class="py-10" :max-width="props.maxWidth">
     <UiCard
       v-if="props.card"
+      class="ui-page-section__card"
       :title="props.title"
       :subtitle="props.subtitle"
       :rounded="props.rounded"
@@ -69,3 +70,9 @@ const cardPaddingClass = computed(() => (props.padding === 'pa-6' ? undefined : 
     </div>
   </v-container>
 </template>
+
+<style scoped>
+.ui-page-section__card {
+  background-color: transparent !important;
+}
+</style>
