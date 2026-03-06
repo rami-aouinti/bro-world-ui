@@ -27,7 +27,7 @@ const modules = computed(() => [
   {
     title: t('admin.modules.groups.title'),
     description: t('admin.modules.groups.description'),
-    to: '/admin/user-management/groups',
+    to: '/admin/user-management/user-groups',
     icon: 'mdi-account-group-outline',
   },
   {
