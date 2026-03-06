@@ -31,7 +31,6 @@ const selectedItem = ref<ApiKey | null>(null)
 const form = reactive({ token: '', description: '' })
 
 const headers = [
-  { title: 'ID', key: 'id', sortable: true },
   { title: 'Description', key: 'description', sortable: true },
   { title: 'Token', key: 'tokenMasked', sortable: false },
   { title: 'Actions', key: 'actions', sortable: false },
@@ -123,7 +122,7 @@ await fetchApiKeys()
 </script>
 
 <template>
-  <UiPageSection max-width="1100">
+  <UiPageSection>
     <Teleport
       defer
       to="#app-bar-teleport-target"
@@ -159,8 +158,6 @@ await fetchApiKeys()
 
     <template #header>
       <UiSectionHeader
-        title="Gestion des clés API"
-        :subtitle="`Données chargées depuis /api/${selectedVersion}/api_key`"
       >
         <template #actions>
           <v-btn-toggle

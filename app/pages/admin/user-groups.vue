@@ -50,7 +50,7 @@ await fetchUserGroups()
 </script>
 
 <template>
-  <UiPageSection max-width="1100">
+  <UiPageSection>
     <Teleport
       defer
       to="#app-bar-teleport-target"
@@ -76,13 +76,6 @@ await fetchUserGroups()
         />
       </div>
     </Teleport>
-
-    <template #header>
-      <UiSectionHeader
-        title="Gestion des groupes utilisateurs"
-        subtitle="Données chargées depuis /api/v1/user_group"
-      />
-    </template>
 
     <v-card rounded="xl" elevation="2" class="pa-4">
       <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">

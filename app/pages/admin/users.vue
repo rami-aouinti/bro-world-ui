@@ -205,7 +205,7 @@ await fetchUsers()
 </script>
 
 <template>
-  <UiPageSection max-width="1200">
+  <UiPageSection>
     <Teleport
       defer
       to="#app-bar-teleport-target"
@@ -238,13 +238,6 @@ await fetchUsers()
         />
       </div>
     </Teleport>
-
-    <template #header>
-      <UiSectionHeader
-        title="Gestion des utilisateurs"
-        subtitle="Données chargées depuis /api/v1/user"
-      />
-    </template>
 
     <v-card rounded="xl" elevation="2" class="pa-4">
       <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
