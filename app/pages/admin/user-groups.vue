@@ -14,16 +14,12 @@ definePageMeta({
 const userGroupsStore = useUserGroupsStore()
 const { t } = useI18n()
 const loading = ref(false)
-const submitting = ref(false)
 const errorMessage = ref('')
 const userGroups = ref<UserGroup[]>([])
 const search = ref('')
 
-const formDialog = ref(false)
 const showDialog = ref(false)
-const formMode = ref<'create' | 'edit' | 'patch'>('create')
 const selectedGroup = ref<UserGroup | null>(null)
-const form = reactive({ name: '', role: '' })
 
 const headers = computed(() => [
   { title: t('admin.userGroups.headers.id'), key: 'id', sortable: true },
@@ -54,19 +50,6 @@ const fetchUserGroups = async () => {
   finally {
     loading.value = false
   }
-}
-
-const openCreateDialog = () => {
-  formMode.value = 'create'
-  Object.assign(form, { name: '', role: '' })
-  formDialog.value = true
-}
-
-const openEditDialog = (group: UserGroup, patch = false) => {
-  formMode.value = patch ? 'patch' : 'edit'
-  selectedGroup.value = group
-  Object.assign(form, { name: group.name, role: group.role?.id ?? '' })
-  formDialog.value = true
 }
 
 const showEntity = async (id: string) => {
@@ -149,7 +132,7 @@ await fetchUserGroups()
 
       <UiDataTable
         :headers="headers"
-        :items="tableItems"
+        :items="userGroups"
         :loading="loading"
         :search="search"
         item-key="id"

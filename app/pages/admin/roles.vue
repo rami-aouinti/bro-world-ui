@@ -14,19 +14,15 @@ definePageMeta({
 const rolesStore = useRolesStore()
 const { t } = useI18n()
 const loading = ref(false)
-const submitting = ref(false)
 const errorMessage = ref('')
 const roles = ref<Role[]>([])
 const search = ref('')
 const rolesCount = ref<number | null>(null)
 
 const showDialog = ref(false)
-const formDialog = ref(false)
 const selectedRole = ref<Role | null>(null)
 const selectedRoleInherited = ref<string[]>([])
 const loadingRoleDetails = ref(false)
-const formMode = ref<'create' | 'edit' | 'patch'>('create')
-const form = reactive({ id: '', description: '' })
 
 const headers = computed(() => [
   { title: t('admin.roles.headers.id'), key: 'id', sortable: true },
@@ -73,49 +69,6 @@ const showEntity = async (id: string) => {
   }
 }
 
-const openCreateDialog = () => {
-  formMode.value = 'create'
-  Object.assign(form, { id: '', description: '' })
-  formDialog.value = true
-}
-
-const openEditDialog = (item: Role, patch = false) => {
-  selectedRole.value = item
-  formMode.value = patch ? 'patch' : 'edit'
-  Object.assign(form, { id: item.id, description: item.description ?? '' })
-  formDialog.value = true
-}
-
-const submitForm = async () => {
-  submitting.value = true
-  try {
-    if (formMode.value === 'create') {
-      await rolesStore.create({ id: form.id, description: form.description || undefined })
-    }
-    else if (formMode.value === 'edit' && selectedRole.value) {
-      await rolesStore.update(selectedRole.value.id, { id: form.id, description: form.description || undefined })
-    }
-    else if (formMode.value === 'patch' && selectedRole.value) {
-      await rolesStore.patch(selectedRole.value.id, { description: form.description || undefined })
-    }
-
-    formDialog.value = false
-    await fetchRoles()
-  }
-  finally {
-    submitting.value = false
-  }
-}
-
-const deleteEntity = async (id: string) => {
-  if (!window.confirm(t('admin.roles.confirmDelete', { id }))) {
-    return
-  }
-
-  await rolesStore.remove(id)
-  await fetchRoles()
-}
-
 await fetchRoles()
 </script>
 
@@ -123,9 +76,8 @@ await fetchRoles()
   <UiPageSection>
     <Teleport defer to="#app-bar-teleport-target">
       <div class="roles-page-appbar-tools">
-        <v-text-field v-model="search" :label="t('admin.common.search')" prepend-inner-icon="mdi-magnify" density="comfortable" variant="underlined" hide-details class="roles-page-appbar-tools__search" />
-        <v-btn icon="mdi-plus" color="primary" :aria-label="t('admin.common.create')" @click="openCreateDialog" />
-        <v-btn icon="mdi-refresh" color="primary" variant="outlined" :loading="loading" :aria-label="t('admin.common.refresh')" @click="fetchRoles" />
+        <v-text-field v-model="search" label="Rechercher" prepend-inner-icon="mdi-magnify" density="comfortable" variant="underlined" hide-details class="roles-page-appbar-tools__search" />
+        <v-btn icon="mdi-refresh" color="primary" variant="outlined" :loading="loading" :aria-label="'Actualiser'" @click="fetchRoles" />
       </div>
     </Teleport>
 
@@ -136,28 +88,11 @@ await fetchRoles()
         <template #item.description="{ item }">{{ item.description || '—' }}</template>
         <template #item.actions="{ item }">
           <div class="d-flex flex-nowrap ga-1 py-1">
-            <v-btn size="x-small" variant="tonal" icon="mdi-eye" :loading="loadingRoleDetails" :aria-label="t('admin.roles.aria.show', { id: item.id })" @click="showEntity(item.id)" />
-            <v-btn size="x-small" variant="tonal" color="primary" icon="mdi-pencil" :aria-label="t('admin.roles.aria.edit', { id: item.id })" @click="openEditDialog(item)" />
-            <v-btn size="x-small" variant="tonal" color="warning" icon="mdi-file-edit-outline" :aria-label="t('admin.roles.aria.patch', { id: item.id })" @click="openEditDialog(item, true)" />
-            <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="t('admin.roles.aria.delete', { id: item.id })" @click="deleteEntity(item.id)" />
+            <v-btn size="x-small" variant="tonal" icon="mdi-eye" :loading="loadingRoleDetails" :aria-label="`Voir ${item.id}`" @click="showEntity(item.id)" />
           </div>
         </template>
       </UiDataTable>
     </v-card>
-
-    <v-dialog v-model="formDialog" max-width="560" persistent>
-      <v-card rounded="xl">
-        <v-card-title>{{ formTitle }}</v-card-title>
-        <v-card-text>
-          <v-text-field v-model="form.id" :label="t('admin.roles.form.id')" :disabled="formMode !== 'create'" class="mb-2" />
-          <v-text-field v-model="form.description" :label="t('admin.roles.form.description')" />
-        </v-card-text>
-        <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="formDialog = false">{{ t('admin.common.cancel') }}</v-btn>
-          <v-btn color="primary" :loading="submitting" @click="submitForm">{{ t('admin.common.save') }}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
 
     <v-dialog v-model="showDialog" max-width="700">
       <v-card rounded="xl">
