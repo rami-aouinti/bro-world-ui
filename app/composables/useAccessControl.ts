@@ -4,22 +4,22 @@ import { BUSINESS_PERMISSIONS, isKnownPermission } from '~/constants/permissions
 import type { BusinessPermission, PermissionContext } from '~/constants/permissions'
 import type { UUID } from '~/types/api/common'
 
-const normalizeRoles = (roles: string | string[] | undefined | null): string[] => {
-  if (!roles) {
+const normalizeToArray = <T>(value: T | T[] | undefined | null): T[] => {
+  if (!value) {
     return []
   }
 
-  return Array.isArray(roles) ? roles : [roles]
+  return Array.isArray(value) ? value : [value]
+}
+
+const normalizeRoles = (roles: string | string[] | undefined | null): string[] => {
+  return normalizeToArray(roles)
 }
 
 const normalizePermissions = (
   permissions: BusinessPermission | BusinessPermission[] | undefined | null,
 ): BusinessPermission[] => {
-  if (!permissions) {
-    return []
-  }
-
-  return Array.isArray(permissions) ? permissions : [permissions]
+  return normalizeToArray(permissions)
 }
 
 export const useAccessControl = () => {
@@ -27,6 +27,7 @@ export const useAccessControl = () => {
   const { isAuthenticated } = useAuth()
 
   const userRoles = computed(() => authSession.roles ?? [])
+  const userRoleSet = computed(() => new Set(userRoles.value))
 
   const hasRole = (roles: string | string[]) => {
     const requiredRoles = normalizeRoles(roles)
@@ -35,7 +36,7 @@ export const useAccessControl = () => {
       return true
     }
 
-    return requiredRoles.some(role => userRoles.value.includes(role))
+    return requiredRoles.some(role => userRoleSet.value.has(role))
   }
 
   const isSelf = (userId?: UUID | null) => {
