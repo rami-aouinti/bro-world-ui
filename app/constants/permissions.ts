@@ -16,6 +16,60 @@ type PermissionRule = {
 }
 
 export const BUSINESS_PERMISSIONS = {
+  'configuration.readList': {
+    rolesAny: ['ROLE_ADMIN', 'ROLE_ROOT'],
+  },
+  'configuration.readById': {
+    rolesAny: ['ROLE_ADMIN', 'ROLE_ROOT'],
+  },
+  'configuration.create': {
+    rolesAny: ['ROLE_ROOT'],
+  },
+  'configuration.update': {
+    rolesAny: ['ROLE_ROOT'],
+  },
+  'configuration.patch': {
+    rolesAny: ['ROLE_ROOT'],
+  },
+  'configuration.delete': {
+    rolesAny: ['ROLE_ROOT'],
+  },
+  'platform.readList': {
+    rolesAny: ['ROLE_ADMIN', 'ROLE_ROOT'],
+  },
+  'platform.readById': {
+    rolesAny: ['ROLE_ADMIN', 'ROLE_ROOT'],
+  },
+  'platform.create': {
+    rolesAny: ['ROLE_ROOT'],
+  },
+  'platform.update': {
+    rolesAny: ['ROLE_ROOT'],
+  },
+  'platform.patch': {
+    rolesAny: ['ROLE_ROOT'],
+  },
+  'platform.delete': {
+    rolesAny: ['ROLE_ROOT'],
+  },
+  'plugin.readList': {
+    rolesAny: ['ROLE_ROOT'],
+  },
+  'plugin.readById': {
+    rolesAny: ['ROLE_ROOT'],
+  },
+  'plugin.create': {
+    rolesAny: ['ROLE_ROOT'],
+  },
+  'plugin.update': {
+    rolesAny: ['ROLE_ROOT'],
+  },
+  'plugin.patch': {
+    rolesAny: ['ROLE_ROOT'],
+  },
+  'plugin.delete': {
+    rolesAny: ['ROLE_ROOT'],
+  },
   'apiKey.readAll': {
     rolesAny: ['ROLE_ROOT'],
   },

@@ -12,11 +12,12 @@ import type { PluginRead } from '~/types/api/plugin'
 definePageMeta({
   layout: 'admin',
   middleware: ['role'],
-  requiredPermissions: ['admin.access'],
+  requiredPermissions: ['plugin.readList'],
 })
 
 const pluginsStore = usePluginsStore()
 const { t } = useI18n()
+const { canPermission } = useAccessControl()
 const loading = ref(false)
 const submitting = ref(false)
 const errorMessage = ref('')
@@ -184,6 +185,7 @@ onMounted(async () => {
             :create-label="t('admin.common.create')"
             :refresh-label="t('admin.common.refresh')"
             :loading="loading"
+            :show-create="canPermission('plugin.create')"
             @update:search="search = $event"
             @create="openCreateDialog"
             @refresh="fetchPlugins"
@@ -209,11 +211,21 @@ onMounted(async () => {
 
       <template #item.actions="{ item }">
         <div class="d-flex justify-end ga-1">
-          <v-btn size="x-small" variant="text" color="primary" icon="mdi-pencil" :aria-label="`Éditer ${item.name}`" @click="openEditDialog(item)" />
+          <v-btn
+            v-if="canPermission('plugin.update')"
+            size="x-small"
+            variant="text"
+            color="primary"
+            icon="mdi-pencil"
+            :aria-label="`Éditer ${item.name}`"
+            @click="openEditDialog(item)"
+          />
           <UiEntityActionButtons
             :show-label="`Voir ${item.name}`"
             :patch-label="`Patch ${item.name}`"
             :delete-label="`Supprimer ${item.name}`"
+            :show-patch="canPermission('plugin.patch')"
+            :show-delete="canPermission('plugin.delete')"
             @show="showEntity(item.id)"
             @patch="openEditDialog(item, true)"
             @delete="openDeleteDialog(item.id)"
