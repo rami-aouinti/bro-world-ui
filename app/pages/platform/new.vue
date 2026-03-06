@@ -138,6 +138,8 @@ const submit = async () => {
     await profileApi.createApplication({
       platformId: selectedPlatformId.value,
       title: form.title.trim(),
+      description: form.description.trim(),
+      photo: form.photoPreview || undefined,
       status: form.active ? 'active' : 'inactive',
       private: form.private,
       configurations,
