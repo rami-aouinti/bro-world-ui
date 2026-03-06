@@ -367,6 +367,13 @@
         "create": "Impossible de créer la plateforme."
       },
       "titleStepTitle": "Saisissez le titre de l'application"
+    },
+    "actions": {
+      "edit": "Éditer",
+      "delete": "Supprimer",
+      "editTitle": "Éditer l'application",
+      "deleteTitle": "Désactiver l'application",
+      "deleteMessage": "Désactiver l'application \"{title}\" ?"
     }
   },
   "about": {

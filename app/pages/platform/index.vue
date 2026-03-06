@@ -9,8 +9,13 @@ const router = useRouter()
 const { isAuthenticated, initSession } = useAuth()
 const applicationsStore = useApplicationsStore()
 
+const editDialog = ref(false)
+const deleteDialog = ref(false)
+const submitting = ref(false)
+const selectedApp = ref<(typeof applicationsStore.items.value)[number] | null>(null)
+
 await initSession()
-await useAsyncData('platform-applications-public', () => applicationsStore.fetchPublic())
+await useAsyncData('platform-applications', () => applicationsStore.fetch())
 
 const goToNewPlatform = () => {
   if (isAuthenticated.value) {
@@ -24,6 +29,55 @@ const goToNewPlatform = () => {
 const getInitials = (name: string) => {
   const parts = name.trim().split(/\s+/).filter(Boolean)
   return parts.slice(0, 2).map(part => part[0]?.toUpperCase() ?? '').join('') || 'AP'
+}
+
+const openEditModal = (application: (typeof applicationsStore.items.value)[number]) => {
+  selectedApp.value = {
+    ...application,
+  }
+  editDialog.value = true
+}
+
+const openDeleteModal = (application: (typeof applicationsStore.items.value)[number]) => {
+  selectedApp.value = application
+  deleteDialog.value = true
+}
+
+const saveApplication = async () => {
+  if (!selectedApp.value) {
+    return
+  }
+
+  submitting.value = true
+
+  try {
+    await applicationsStore.update(selectedApp.value.id, {
+      title: selectedApp.value.title.trim(),
+      status: selectedApp.value.status,
+      private: selectedApp.value.private,
+    })
+    editDialog.value = false
+  }
+  finally {
+    submitting.value = false
+  }
+}
+
+const disableApplication = async () => {
+  if (!selectedApp.value) {
+    return
+  }
+
+  submitting.value = true
+
+  try {
+    await applicationsStore.disable(selectedApp.value.id)
+    deleteDialog.value = false
+    selectedApp.value = null
+  }
+  finally {
+    submitting.value = false
+  }
 }
 </script>
 
@@ -45,12 +99,22 @@ const getInitials = (name: string) => {
         :key="card.id"
         class="platform-page__card"
       >
-        <v-btn
-          class="platform-page__card-dot"
-          icon="mdi-dots-vertical"
-          variant="text"
-          density="compact"
-        />
+        <v-menu v-if="card.isOwner" location="bottom end">
+          <template #activator="{ props }">
+            <v-btn
+              class="platform-page__card-dot"
+              icon="mdi-dots-vertical"
+              variant="text"
+              density="compact"
+              v-bind="props"
+            />
+          </template>
+
+          <v-list density="compact">
+            <v-list-item :title="t('platform.actions.edit')" @click="openEditModal(card)" />
+            <v-list-item :title="t('platform.actions.delete')" @click="openDeleteModal(card)" />
+          </v-list>
+        </v-menu>
 
         <div class="platform-page__card-top">
           <div class="platform-page__card-brand">
@@ -73,6 +137,39 @@ const getInitials = (name: string) => {
       </article>
     </div>
 
+    <UiActionDialog v-model="editDialog" :title="t('platform.actions.editTitle')" max-width="560" persistent>
+      <template v-if="selectedApp">
+        <v-text-field v-model="selectedApp.title" :label="t('platform.wizard.fields.title')" class="mb-3" />
+        <v-select
+          v-model="selectedApp.status"
+          :label="t('platform.wizard.fields.active')"
+          :items="[
+            { title: t('platform.status.active'), value: 'active' },
+            { title: t('platform.status.inactive'), value: 'inactive' },
+          ]"
+          item-title="title"
+          item-value="value"
+          class="mb-3"
+        />
+        <v-switch v-model="selectedApp.private" :label="t('platform.wizard.fields.private')" inset hide-details />
+      </template>
+
+      <template #actions>
+        <v-btn variant="text" :disabled="submitting" @click="editDialog = false">{{ t('admin.common.cancel') }}</v-btn>
+        <v-btn color="primary" :loading="submitting" @click="saveApplication">{{ t('admin.common.save') }}</v-btn>
+      </template>
+    </UiActionDialog>
+
+    <UiActionConfirmDialog
+      v-model="deleteDialog"
+      :title="t('platform.actions.deleteTitle')"
+      :message="t('platform.actions.deleteMessage', { title: selectedApp?.title || '' })"
+      :confirm-label="t('platform.actions.delete')"
+      :cancel-label="t('admin.common.cancel')"
+      :loading="submitting"
+      @confirm="disableApplication"
+    />
+
     <button type="button" class="platform-page__assistant" :aria-label="t('platform.assistant')">
       <v-icon icon="mdi-message-outline" size="22" />
       <v-icon icon="mdi-format-list-bulleted" size="22" />
@@ -82,7 +179,7 @@ const getInitials = (name: string) => {
 
 <style scoped>
 .platform-page {
-  padding: 1.25rem 0.75rem 2rem;
+  padding: 1.5rem;
 }
 
 .platform-page__grid {
