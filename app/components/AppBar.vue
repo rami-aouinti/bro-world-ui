@@ -149,7 +149,7 @@ const signOut = async () => {
         <v-menu location="bottom end" v-model="isProfileMenuOpen">
           <template #activator="{ props }">
             <UiAvatar :aria-label="t('app.navigation.profile')"
-                      v-bind="props" :src="authSession.profile?.photo" size="xs" :name="profileName" status="online" />
+                      v-bind="props" :src="authSession.profile?.photo" size="xs" :name="profileName" status="online" class="me-1" />
           </template>
 
           <v-list class="py-1 app-bar__menu" min-width="220">
@@ -176,16 +176,7 @@ const signOut = async () => {
 
         <v-menu location="bottom end">
           <template #activator="{ props }">
-            <v-btn
-              variant="text"
-              class="app-bar__lang-btn"
-              :aria-label="t('app.navigation.language')"
-              v-bind="props"
-            >
-              <span class="me-1">{{ getFlag(locale) }}</span>
-              <span class="app-bar__lang-label">{{ currentLocaleLabel }}</span>
-              <v-icon icon="mdi-chevron-down" size="16" class="ms-1" />
-            </v-btn>
+            <span class="px-2" v-bind="props">{{ getFlag(locale) }}</span>
           </template>
 
           <v-list class="py-1 app-bar__menu" min-width="180">
@@ -200,7 +191,6 @@ const signOut = async () => {
               <template #prepend>
                 <span class="text-body-1">{{ getFlag(item.code) }}</span>
               </template>
-              <v-list-item-title>{{ item.name }}</v-list-item-title>
               <template #append>
                 <v-icon v-if="locale === item.code" icon="mdi-check" size="16" />
               </template>
