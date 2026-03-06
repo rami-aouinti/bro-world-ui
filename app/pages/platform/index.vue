@@ -110,7 +110,7 @@ const disableApplication = async () => {
     <section class="platform-page">
       <div class="platform-page__grid">
         <article class="platform-page__card platform-page__card--new" role="button" tabindex="0" @click="goToNewPlatform">
-          <div class="platform-page__add-icon">+</div>
+          <div class="platform-page__add-icon"><v-icon icon="mdi-earth"/></div>
           <h2 class="platform-page__new-title">
             {{ isAuthenticated ? t('platform.newPlatform.title') : t('platform.newPlatform.connectTitle') }}
           </h2>
@@ -283,13 +283,10 @@ const disableApplication = async () => {
 .platform-page__add-icon {
   width: 64px;
   height: 64px;
-  border-radius: 999px;
-  border: 5px solid #e82f7d;
   color: #e82f7d;
   display: grid;
   place-items: center;
   font-size: 2.8rem;
-  line-height: 1;
   margin-bottom: 1rem;
 }
 
