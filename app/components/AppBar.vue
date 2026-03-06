@@ -103,9 +103,7 @@ const signOut = async () => {
 
 <template>
   <v-app-bar
-    flat
-    rounded="xl"
-    class="app-bar px-3 px-sm-5"
+    class="px-0 border-radius-xl toolbar-content-padding-y-none v-sheet v-toolbar v-toolbar--flat v-app-bar bg-transparent position-sticky blur shadow-blur top-1 z-index-sticky"
   >
     <v-toolbar-title class="app-bar__brand d-flex align-center ga-3 text-truncate">
       <NuxtLink to="/" class="app-bar__title-link d-flex align-center ga-2">
@@ -151,7 +149,7 @@ const signOut = async () => {
         <v-menu location="bottom end" v-model="isProfileMenuOpen">
           <template #activator="{ props }">
             <UiAvatar :aria-label="t('app.navigation.profile')"
-                      v-bind="props" :src="authSession.profile?.photo" size="sm" :name="profileName" status="online" />
+                      v-bind="props" :src="authSession.profile?.photo" size="xs" :name="profileName" status="online" />
           </template>
 
           <v-list class="py-1 app-bar__menu" min-width="220">
