@@ -3,7 +3,11 @@ const route = useRoute()
 
 const labelMap: Record<string, string> = {
   admin: 'Administration',
+  dashboard: 'Dashboard',
+  settings: 'Settings',
+  'user-management': 'User Management',
   users: 'Utilisateurs',
+  groups: 'Groupes',
   roles: 'Rôles',
   'user-groups': 'Groupes utilisateurs',
   'api-keys': 'Clés API',

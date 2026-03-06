@@ -11,59 +11,53 @@ definePageMeta({
 
 const { t } = useI18n()
 
-const adminModules = computed(() => [
+const modules = computed(() => [
   {
-    title: t('admin.navigation.dashboard.title'),
-    description: t('admin.navigation.dashboard.description'),
-    to: '/admin/dashboard',
-    icon: 'mdi-view-dashboard-outline',
+    title: t('admin.modules.users.title'),
+    description: t('admin.modules.users.description'),
+    to: '/admin/user-management/users',
+    icon: 'mdi-account-multiple-outline',
   },
   {
-    title: t('admin.navigation.settings.title'),
-    description: t('admin.navigation.settings.description'),
-    to: '/admin/settings',
-    icon: 'mdi-cog-outline',
+    title: t('admin.modules.roles.title'),
+    description: t('admin.modules.roles.description'),
+    to: '/admin/user-management/roles',
+    icon: 'mdi-shield-account-outline',
   },
   {
-    title: t('admin.navigation.userManagement.title'),
-    description: t('admin.navigation.userManagement.description'),
-    to: '/admin/user-management',
-    icon: 'mdi-account-cog-outline',
+    title: t('admin.modules.groups.title'),
+    description: t('admin.modules.groups.description'),
+    to: '/admin/user-management/groups',
+    icon: 'mdi-account-group-outline',
+  },
+  {
+    title: t('admin.modules.apiKeys.title'),
+    description: t('admin.modules.apiKeys.description'),
+    to: '/admin/user-management/api-keys',
+    icon: 'mdi-key-outline',
   },
 ])
 </script>
 
 <template>
-  <UiPageSection
-    max-width="1200"
-    card
-  >
+  <UiPageSection max-width="1200" card>
     <template #header>
       <UiSectionHeader
-        :title="t('admin.title')"
-        :subtitle="t('admin.description')"
+        :title="t('admin.userManagement.title')"
+        :subtitle="t('admin.userManagement.description')"
       />
     </template>
 
     <v-row>
       <v-col
-        v-for="module in adminModules"
+        v-for="module in modules"
         :key="module.to"
         cols="12"
-        md="4"
+        md="6"
       >
-        <UiCard
-          variant="tonal"
-          rounded="lg"
-          compact
-        >
+        <UiCard variant="tonal" rounded="lg" compact>
           <div class="d-flex align-start ga-3">
-            <v-icon
-              :icon="module.icon"
-              color="primary"
-              size="28"
-              class="mt-1"
-            />
+            <v-icon :icon="module.icon" color="primary" size="26" class="mt-1" />
 
             <div class="flex-grow-1">
               <h2 class="text-h6 mb-1">{{ module.title }}</h2>
