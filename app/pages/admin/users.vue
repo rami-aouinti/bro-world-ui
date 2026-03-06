@@ -2,7 +2,7 @@
 import UiDataTable from '~/components/ui/UiDataTable.vue'
 import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
-import { useUsersApi } from '~/composables/api/useUsersApi'
+import { useUsersStore } from '~/stores/users'
 import type { UserGroup } from '~/types/api/userGroup'
 import type { UserRead, UserWrite } from '~/types/api/user'
 
@@ -12,7 +12,7 @@ definePageMeta({
   requiredPermissions: ['admin.access'],
 })
 
-const usersApi = useUsersApi()
+const usersStore = useUsersStore()
 const loading = ref(false)
 const submitting = ref(false)
 const errorMessage = ref('')
@@ -74,18 +74,8 @@ const fetchUsers = async () => {
   errorMessage.value = ''
 
   try {
-    users.value = await usersApi.list({ limit: 200 })
-
-    const relations = await Promise.all(users.value.map(async (user) => {
-      const [roles, groups] = await Promise.all([
-        usersApi.getRoles(user.id).catch(() => []),
-        usersApi.getGroups(user.id).catch(() => []),
-      ])
-
-      return [user.id, { roles, groups }] as const
-    }))
-
-    userRelations.value = Object.fromEntries(relations)
+    users.value = await usersStore.fetchAll()
+    userRelations.value = usersStore.relations
   }
   catch {
     errorMessage.value = 'Impossible de charger les utilisateurs depuis /api/v1/user.'
@@ -134,19 +124,19 @@ const openEditDialog = (user: UserRead, patch = false) => {
 
 
 const showEntity = async (id: string) => {
-  selectedUser.value = await usersApi.getById(id)
+  selectedUser.value = await usersStore.getById(id)
   showDialog.value = true
 }
 
 const openRolesDialog = async (user: UserRead) => {
   selectedUser.value = user
-  selectedUserRoles.value = await usersApi.getRoles(user.id)
+  selectedUserRoles.value = await usersStore.getRoles(user.id)
   rolesDialog.value = true
 }
 
 const openGroupsDialog = async (user: UserRead) => {
   selectedUser.value = user
-  selectedUserGroups.value = await usersApi.getGroups(user.id)
+  selectedUserGroups.value = await usersStore.getGroups(user.id)
   groupsDialog.value = true
 }
 
@@ -155,9 +145,9 @@ const attachGroup = async () => {
     return
   }
 
-  await usersApi.attachGroup(selectedUser.value.id, groupToAttach.value.trim())
+  await usersStore.attachGroup(selectedUser.value.id, groupToAttach.value.trim())
   groupToAttach.value = ''
-  selectedUserGroups.value = await usersApi.getGroups(selectedUser.value.id)
+  selectedUserGroups.value = await usersStore.getGroups(selectedUser.value.id)
 }
 
 const detachGroup = async (groupId: string) => {
@@ -165,8 +155,8 @@ const detachGroup = async (groupId: string) => {
     return
   }
 
-  await usersApi.detachGroup(selectedUser.value.id, groupId)
-  selectedUserGroups.value = await usersApi.getGroups(selectedUser.value.id)
+  await usersStore.detachGroup(selectedUser.value.id, groupId)
+  selectedUserGroups.value = await usersStore.getGroups(selectedUser.value.id)
 }
 
 const submitForm = async () => {
@@ -177,13 +167,13 @@ const submitForm = async () => {
   submitting.value = true
   try {
     if (formMode.value === 'create') {
-      await usersApi.create({ ...form })
+      await usersStore.create({ ...form })
     }
     else if (formMode.value === 'edit') {
-      await usersApi.update(selectedUser.value!.id, { ...form })
+      await usersStore.update(selectedUser.value!.id, { ...form })
     }
     else {
-      await usersApi.patch(selectedUser.value!.id, {
+      await usersStore.patch(selectedUser.value!.id, {
         firstName: form.firstName,
         lastName: form.lastName,
         email: form.email,
@@ -207,7 +197,7 @@ const deleteEntity = async (id: string) => {
     return
   }
 
-  await usersApi.delete(id)
+  await usersStore.remove(id)
   await fetchUsers()
 }
 

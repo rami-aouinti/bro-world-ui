@@ -2,7 +2,7 @@
 import UiDataTable from '~/components/ui/UiDataTable.vue'
 import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
-import { useApiKeysApi } from '~/composables/api/useApiKeysApi'
+import { useApiKeysStore } from '~/stores/apiKeys'
 import type { ApiKey } from '~/types/api/apiKey'
 
 definePageMeta({
@@ -11,13 +11,18 @@ definePageMeta({
   requiredPermissions: ['admin.access'],
 })
 
-const apiKeysApi = useApiKeysApi()
+const apiKeysStore = useApiKeysStore()
 const loading = ref(false)
 const submitting = ref(false)
 const errorMessage = ref('')
 const apiKeys = ref<ApiKey[]>([])
 const search = ref('')
-const selectedVersion = ref<'v1' | 'v2'>('v1')
+const selectedVersion = computed({
+  get: () => apiKeysStore.version,
+  set: (value) => {
+    apiKeysStore.version = value
+  },
+})
 
 const formDialog = ref(false)
 const showDialog = ref(false)
@@ -31,8 +36,6 @@ const headers = [
   { title: 'Token', key: 'tokenMasked', sortable: false },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
-
-const currentClient = computed(() => apiKeysApi[selectedVersion.value])
 
 const maskToken = (token: string) => {
   if (!token) {
@@ -58,8 +61,7 @@ const fetchApiKeys = async () => {
   errorMessage.value = ''
 
   try {
-    const response = await currentClient.value.list({ limit: 200 })
-    apiKeys.value = Array.isArray(response) ? response : (response.results ?? [])
+    apiKeys.value = await apiKeysStore.fetchAll()
   }
   catch {
     errorMessage.value = `Impossible de charger les clés API depuis /api/${selectedVersion.value}/api_key.`
@@ -70,7 +72,7 @@ const fetchApiKeys = async () => {
 }
 
 const showEntity = async (id: string) => {
-  selectedItem.value = await currentClient.value.getById(id)
+  selectedItem.value = await apiKeysStore.getById(id)
   showDialog.value = true
 }
 
@@ -91,13 +93,13 @@ const submitForm = async () => {
   submitting.value = true
   try {
     if (formMode.value === 'create') {
-      await currentClient.value.create({ token: form.token, description: form.description })
+      await apiKeysStore.create({ token: form.token, description: form.description })
     }
     else if (formMode.value === 'edit' && selectedItem.value) {
-      await currentClient.value.update(selectedItem.value.id, { token: form.token, description: form.description })
+      await apiKeysStore.update(selectedItem.value.id, { token: form.token, description: form.description })
     }
     else if (formMode.value === 'patch' && selectedItem.value) {
-      await currentClient.value.patch(selectedItem.value.id, { description: form.description, token: form.token })
+      await apiKeysStore.patch(selectedItem.value.id, { description: form.description, token: form.token })
     }
 
     formDialog.value = false
@@ -113,7 +115,7 @@ const deleteEntity = async (id: string) => {
     return
   }
 
-  await currentClient.value.delete(id)
+  await apiKeysStore.remove(id)
   await fetchApiKeys()
 }
 
