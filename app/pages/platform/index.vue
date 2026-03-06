@@ -57,6 +57,10 @@ const authorUsername = (application: (typeof applicationsStore.items.value)[numb
 }
 
 const authorProfilePath = (application: (typeof applicationsStore.items.value)[number]) => {
+  if (application.isOwner) {
+    return '/profile'
+  }
+
   const currentUserId = authSession.profile?.id
   const authorId = application.author?.id
 
@@ -163,12 +167,25 @@ const disableApplication = async () => {
               <div class="platform-page__card-brand">
                 <img :src="card.photo" :alt="card.title" class="platform-page__logo">
                 <div class="platform-page__card-heading">
-                  <h3 class="platform-page__card-title">{{ card.title }}</h3>
+                  <div class="platform-page__card-title-row">
+                    <h3 class="platform-page__card-title">{{ card.title }}</h3>
+                    <v-tooltip v-if="card.description" location="top">
+                      <template #activator="{ props }">
+                        <v-btn
+                          icon="mdi-information-outline"
+                          size="x-small"
+                          variant="text"
+                          density="comfortable"
+                          class="platform-page__description-tooltip-trigger"
+                          v-bind="props"
+                        />
+                      </template>
+                      <span>{{ card.description }}</span>
+                    </v-tooltip>
+                  </div>
                 </div>
               </div>
             </div>
-
-            <p class="platform-page__card-description" :title="card.description || ''">{{ card.description }}</p>
           </NuxtLink>
 
           <div class="platform-page__card-meta">
@@ -360,18 +377,14 @@ const disableApplication = async () => {
   font-size: 1.28rem;
 }
 
-.platform-page__card-description {
-  margin-top: 0.8rem;
-  font-size: 0.95rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  transition: -webkit-line-clamp 0.2s ease;
+.platform-page__card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
-.platform-page__card:hover .platform-page__card-description {
-  -webkit-line-clamp: 3;
+.platform-page__description-tooltip-trigger {
+  color: #707287;
 }
 
 .platform-page__card-meta {
