@@ -8,25 +8,24 @@ definePageMeta({
 })
 
 const route = useRoute()
-const { t } = useI18n({ useScope: 'global' })
 
-const platformId = computed(() => String(route.params.platformId ?? ''))
+const slug = computed(() => String(route.params.slug ?? ''))
 </script>
 
 <template>
   <UiPageSection max-width="1200" card>
     <template #header>
       <UiSectionHeader
-        :title="`Platform Home`"
-        :subtitle="`Espace d'accueil pour la platform ${platformId}`"
+        title="Platform School Home"
+        :subtitle="`Espace d'accueil pour l'application ${slug} sur School`"
       />
     </template>
 
     <v-alert type="info" variant="tonal" class="mb-4">
-      {{ t('platform.newPlatform.title') }} - {{ platformId }}
+      Application: {{ slug }}
     </v-alert>
 
-    <v-btn color="primary" variant="flat" :to="`/platform/${platformId}/admin`">
+    <v-btn color="primary" variant="flat" :to="`/platform/${slug}/school/admin`">
       Aller vers Admin
     </v-btn>
   </UiPageSection>

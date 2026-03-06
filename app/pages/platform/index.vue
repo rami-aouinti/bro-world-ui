@@ -50,7 +50,12 @@ const authorFullName = (application: (typeof applicationsStore.items.value)[numb
   return fullName || application.author?.username || '—'
 }
 
-const appHomePath = (applicationId: string) => `/platform/${applicationId}/home`
+const appHomePath = (application: (typeof applicationsStore.items.value)[number]) => {
+  const appSlug = application.slug ?? application.id
+  const platformKey = application.platformKey ?? 'crm'
+
+  return `/platform/${appSlug}/${platformKey}/home`
+}
 
 const authorUsername = (application: (typeof applicationsStore.items.value)[number]) => {
   return application.author?.username ?? ''
@@ -162,7 +167,7 @@ const disableApplication = async () => {
             </v-list>
           </v-menu>
 
-          <NuxtLink :to="appHomePath(card.id)" class="platform-page__card-main-link">
+          <NuxtLink :to="appHomePath(card)" class="platform-page__card-main-link">
             <div class="platform-page__card-top">
               <div class="platform-page__card-brand">
                 <img :src="card.photo" :alt="card.title" class="platform-page__logo">
