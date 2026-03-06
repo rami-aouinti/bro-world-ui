@@ -5,7 +5,8 @@ import UiActionDialog from '~/components/ui/UiActionDialog.vue'
 import UiPageSection from '~/components/ui/UiPageSection.vue'
 import { useUserGroupsStore } from '~/stores/userGroups'
 import type { UserGroup } from '~/types/api/userGroup'
-import UiSectionHeader from "~/components/ui/UiSectionHeader.vue";
+import UiSectionHeader from "~/components/ui/UiSectionHeader.vue"
+import UiTableToolbar from "~/components/ui/UiTableToolbar.vue"
 
 definePageMeta({
   layout: 'admin',
@@ -124,34 +125,16 @@ onMounted(async () => {
       <UiSectionHeader
       >
         <template #actions>
-          <div class="user-groups-page-appbar-tools pa-2">
-            <v-text-field
-                v-model="search"
-                :label="t('admin.common.search')"
-                prepend-inner-icon="mdi-magnify"
-                density="compact"
-                variant="outlined"
-                hide-details
-                class="user-groups-page-appbar-tools__search"
-            />
-
-            <v-btn
-                prepend-icon="mdi-plus"
-                color="primary"
-                variant="outlined"
-                :aria-label="t('admin.common.create')"
-                @click="openCreateDialog"
-            >New</v-btn>
-
-            <v-btn
-                prepend-icon="mdi-refresh"
-                color="primary"
-                variant="outlined"
-                :loading="loading"
-                :aria-label="t('admin.common.refresh')"
-                @click="fetchUserGroups"
-            >Refresh</v-btn>
-          </div>
+          <UiTableToolbar
+            :search="search"
+            :search-label="t('admin.common.search')"
+            :create-label="t('admin.common.create')"
+            :refresh-label="t('admin.common.refresh')"
+            :loading="loading"
+            @update:search="search = $event"
+            @create="openCreateDialog"
+            @refresh="fetchUserGroups"
+          />
         </template>
       </UiSectionHeader>
     </template>
@@ -213,17 +196,3 @@ onMounted(async () => {
 </template>
 
 
-<style scoped>
-.user-groups-page-appbar-tools {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  margin-inline-start: 8px;
-}
-
-.user-groups-page-appbar-tools__search {
-  min-width: 200px;
-  max-width: 280px;
-}
-</style>
