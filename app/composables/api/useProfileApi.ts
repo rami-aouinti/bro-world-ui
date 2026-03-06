@@ -11,6 +11,37 @@ import type {
   UploadProfilePhotoResponse,
 } from '~/types/api/profile'
 
+const IMAGE_MIME_TYPES_BY_EXTENSION: Record<string, string> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  gif: 'image/gif',
+  webp: 'image/webp',
+  bmp: 'image/bmp',
+  svg: 'image/svg+xml',
+  avif: 'image/avif',
+  heic: 'image/heic',
+  heif: 'image/heif',
+}
+
+const withImageMimeType = (photo: File) => {
+  if (photo.type.startsWith('image/')) {
+    return photo
+  }
+
+  const extension = photo.name.split('.').pop()?.toLowerCase()
+  const mimeType = extension ? IMAGE_MIME_TYPES_BY_EXTENSION[extension] : undefined
+
+  if (!mimeType) {
+    return photo
+  }
+
+  return new File([photo], photo.name, {
+    type: mimeType,
+    lastModified: photo.lastModified,
+  })
+}
+
 export const useProfileApi = () => {
   const { apiFetch } = useApiClient()
   const basePath = '/api/v1/profile'
@@ -39,7 +70,7 @@ export const useProfileApi = () => {
     },
     uploadPhoto(photo: File) {
       const formData = new FormData()
-      formData.append('photo', photo)
+      formData.append('photo', withImageMimeType(photo))
 
       return apiFetch<UploadProfilePhotoResponse>(`${basePath}/photo`, {
         method: 'POST',
@@ -54,7 +85,7 @@ export const useProfileApi = () => {
     },
     uploadApplicationPhoto(applicationId: string, photo: File) {
       const formData = new FormData()
-      formData.append('photo', photo)
+      formData.append('photo', withImageMimeType(photo))
 
       return apiFetch<UploadApplicationPhotoResponse>(`${basePath}/applications/${applicationId}/photo`, {
         method: 'POST',
