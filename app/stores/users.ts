@@ -11,34 +11,59 @@ export const useUsersStore = defineStore('users', () => {
 
   const fetchAll = async () => {
     items.value = await usersApi.list({ limit: 200 })
-    const allRelations = await Promise.all(items.value.map(async (user) => {
+
+    const activeIds = new Set(items.value.map(user => user.id))
+    relations.value = Object.fromEntries(
+      Object.entries(relations.value).filter(([id]) => activeIds.has(id)),
+    )
+
+    return items.value
+  }
+
+  const fetchRelations = async (userIds?: UUID[]) => {
+    const targetIds = userIds?.length
+      ? userIds
+      : items.value.map(user => user.id)
+
+    if (!targetIds.length) {
+      return relations.value
+    }
+
+    const allRelations = await Promise.all(targetIds.map(async (userId) => {
       const [roles, groups] = await Promise.all([
-        usersApi.getRoles(user.id).catch(() => []),
-        usersApi.getGroups(user.id).catch(() => []),
+        usersApi.getRoles(userId).catch(() => []),
+        usersApi.getGroups(userId).catch(() => []),
       ])
 
-      return [user.id, { roles, groups }] as const
+      return [userId, { roles, groups }] as const
     }))
 
-    relations.value = Object.fromEntries(allRelations)
-    return items.value
+    relations.value = {
+      ...relations.value,
+      ...Object.fromEntries(allRelations),
+    }
+
+    return relations.value
   }
 
   const create = async (payload: CreateUserPayload) => {
     const created = await usersApi.create(payload)
     await fetchAll()
+    await fetchRelations()
     return created
   }
 
   const update = async (id: UUID, payload: UpdateUserPayload) => {
     const updated = await usersApi.update(id, payload)
     await fetchAll()
+    await fetchRelations([id])
     return updated
   }
 
   const patch = async (id: UUID, payload: PatchUserPayload) => {
     const patched = await usersApi.patch(id, payload)
     await fetchAll()
+    await fetchRelations([id])
     return patched
   }
 
@@ -51,6 +76,7 @@ export const useUsersStore = defineStore('users', () => {
     items,
     relations,
     fetchAll,
+    fetchRelations,
     create,
     update,
     patch,

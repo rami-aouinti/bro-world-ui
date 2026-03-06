@@ -36,11 +36,9 @@ const normalizeRequiredPermissions = (permissions: unknown): string[] => {
 }
 
 export default defineNuxtRouteMiddleware(async (to) => {
-  const { initSession, isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAuth()
   const authSession = useAuthSessionStore()
   const { canPermission } = useAccessControl()
-
-  await initSession()
 
   const requiredPermissions = normalizeRequiredPermissions(to.meta.requiredPermissions)
 
