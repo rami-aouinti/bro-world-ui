@@ -6,7 +6,16 @@
       "login": "Login",
       "profile": "Profile",
       "openMenu": "Open menu",
-      "admin": "Admin"
+      "admin": "Admin",
+      "platform": "Platform",
+      "about": "About",
+      "contact": "Contact",
+      "faq": "FAQ",
+      "calendar": "Calendar",
+      "messages": "Messages",
+      "notifications": "Notifications",
+      "language": "Language",
+      "toggleTheme": "Toggle theme"
     }
   },
   "login": {
