@@ -145,7 +145,9 @@ const submit = async () => {
       })),
     })
 
-    const applicationId = createdApplications[0]?.id
+    const applicationId = Array.isArray(createdApplications)
+      ? createdApplications[0]?.id
+      : createdApplications?.id
 
     if (!applicationId) {
       throw new Error('Application ID missing in creation response')

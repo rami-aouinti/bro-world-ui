@@ -31,7 +31,7 @@ export interface CreateApplicationResponseItem {
   id: UUID
 }
 
-export type CreateApplicationResponse = CreateApplicationResponseItem[]
+export type CreateApplicationResponse = CreateApplicationResponseItem | CreateApplicationResponseItem[]
 
 export interface UploadApplicationPhotoResponse {
   photo: string
