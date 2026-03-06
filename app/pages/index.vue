@@ -2,8 +2,8 @@
 import UiPageSection from '~/components/ui/UiPageSection.vue'
 
 definePageMeta({
-  public: true,
-  requiresAuth: false,
+  public: false,
+  requiresAuth: true,
 })
 
 const { t } = useI18n()
