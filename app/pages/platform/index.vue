@@ -134,88 +134,94 @@ const disableApplication = async () => {
 <template>
   <UiPageSection max-width="1200">
     <section class="platform-page">
-      <div class="platform-page__grid">
-        <article class="platform-page__card platform-page__card--new" role="button" tabindex="0" @click="goToNewPlatform">
-          <div class="platform-page__add-icon"><v-icon icon="mdi-earth"/></div>
-          <h2 class="platform-page__new-title">
-            {{ isAuthenticated ? t('platform.newPlatform.title') : t('platform.newPlatform.connectTitle') }}
-          </h2>
-          <p class="platform-page__new-description">
-            {{ isAuthenticated ? t('platform.newPlatform.description') : t('platform.newPlatform.connectDescription') }}
-          </p>
-        </article>
+      <div class="platform-page__layout">
+        <aside class="platform-page__sidebar" aria-hidden="true" />
 
-        <article
-          v-for="card in applicationsStore.items"
-          :key="card.id"
-          class="platform-page__card"
-        >
-          <v-menu v-if="card.isOwner" location="bottom end">
-            <template #activator="{ props }">
-              <v-btn
-                class="platform-page__card-dot"
-                icon="mdi-dots-vertical"
-                variant="text"
-                density="compact"
-                v-bind="props"
-              />
-            </template>
+        <div class="platform-page__content">
+          <div class="platform-page__grid">
+            <article class="platform-page__card platform-page__card--new" role="button" tabindex="0" @click="goToNewPlatform">
+              <div class="platform-page__add-icon"><v-icon icon="mdi-earth"/></div>
+              <h2 class="platform-page__new-title">
+                {{ isAuthenticated ? t('platform.newPlatform.title') : t('platform.newPlatform.connectTitle') }}
+              </h2>
+              <p class="platform-page__new-description">
+                {{ isAuthenticated ? t('platform.newPlatform.description') : t('platform.newPlatform.connectDescription') }}
+              </p>
+            </article>
 
-            <v-list density="compact">
-              <v-list-item :title="t('platform.actions.edit')" @click="openEditModal(card)" />
-              <v-list-item :title="t('platform.actions.delete')" @click="openDeleteModal(card)" />
-            </v-list>
-          </v-menu>
+            <article
+              v-for="card in applicationsStore.items"
+              :key="card.id"
+              class="platform-page__card"
+            >
+              <v-menu v-if="card.isOwner" location="bottom end">
+                <template #activator="{ props }">
+                  <v-btn
+                    class="platform-page__card-dot"
+                    icon="mdi-dots-vertical"
+                    variant="text"
+                    density="compact"
+                    v-bind="props"
+                  />
+                </template>
 
-          <NuxtLink :to="appHomePath(card)" class="platform-page__card-main-link">
-            <div class="platform-page__card-top">
-              <div class="platform-page__card-brand">
-                <img :src="card.photo" :alt="card.title" class="platform-page__logo">
-                <div class="platform-page__card-heading">
-                  <div class="platform-page__card-title-row">
-                    <h3 class="platform-page__card-title">{{ card.title }}</h3>
-                    <v-tooltip v-if="card.description" location="top">
-                      <template #activator="{ props }">
-                        <v-btn
-                          icon="mdi-information-outline"
-                          size="x-small"
-                          variant="text"
-                          density="comfortable"
-                          class="platform-page__description-tooltip-trigger"
-                          v-bind="props"
-                        />
-                      </template>
-                      <span>{{ card.description }}</span>
-                    </v-tooltip>
+                <v-list density="compact">
+                  <v-list-item :title="t('platform.actions.edit')" @click="openEditModal(card)" />
+                  <v-list-item :title="t('platform.actions.delete')" @click="openDeleteModal(card)" />
+                </v-list>
+              </v-menu>
+
+              <NuxtLink :to="appHomePath(card)" class="platform-page__card-main-link">
+                <div class="platform-page__card-top">
+                  <div class="platform-page__card-brand">
+                    <img :src="card.photo" :alt="card.title" class="platform-page__logo">
+                    <div class="platform-page__card-heading">
+                      <div class="platform-page__card-title-row">
+                        <h3 class="platform-page__card-title">{{ card.title }}</h3>
+                        <v-tooltip v-if="card.description" location="top">
+                          <template #activator="{ props }">
+                            <v-btn
+                              icon="mdi-information-outline"
+                              size="x-small"
+                              variant="text"
+                              density="comfortable"
+                              class="platform-page__description-tooltip-trigger"
+                              v-bind="props"
+                            />
+                          </template>
+                          <span>{{ card.description }}</span>
+                        </v-tooltip>
+                      </div>
+                    </div>
                   </div>
                 </div>
+              </NuxtLink>
+
+              <div class="platform-page__card-meta">
+                <UserIdentity
+                  :first-name="card.author?.firstName"
+                  :last-name="card.author?.lastName"
+                  :username="authorUsername(card)"
+                  :photo="card.author?.photo"
+                  :profile-path="authorProfilePath(card)"
+                />
+                <v-chip
+                  :color="card.status === 'active' ? 'success' : undefined"
+                  variant="tonal"
+                  size="small"
+                  class="text-capitalize"
+                >
+                  {{ card.status === 'active' ? t('platform.status.active') : t('platform.status.inactive') }}
+                </v-chip>
               </div>
-            </div>
-          </NuxtLink>
 
-          <div class="platform-page__card-meta">
-            <UserIdentity
-              :first-name="card.author?.firstName"
-              :last-name="card.author?.lastName"
-              :username="authorUsername(card)"
-              :photo="card.author?.photo"
-              :profile-path="authorProfilePath(card)"
-            />
-            <v-chip
-              :color="card.status === 'active' ? 'success' : undefined"
-              variant="tonal"
-              size="small"
-              class="text-capitalize"
-            >
-              {{ card.status === 'active' ? t('platform.status.active') : t('platform.status.inactive') }}
-            </v-chip>
+              <div class="platform-page__card-footer">
+                <span>{{ card.platformName }}</span>
+                <span>{{ formatDate(card.createdAt) }}</span>
+              </div>
+            </article>
           </div>
-
-          <div class="platform-page__card-footer">
-            <span>{{ card.platformName }}</span>
-            <span>{{ formatDate(card.createdAt) }}</span>
-          </div>
-        </article>
+        </div>
       </div>
 
       <UiActionDialog v-model="editDialog" :title="t('platform.actions.editTitle')" max-width="560" persistent>
@@ -264,9 +270,23 @@ const disableApplication = async () => {
   padding: 1.5rem;
 }
 
+.platform-page__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 1rem;
+}
+
+.platform-page__sidebar {
+  min-height: 100%;
+}
+
+.platform-page__content {
+  min-width: 0;
+}
+
 .platform-page__grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
 }
 
@@ -432,6 +452,10 @@ const disableApplication = async () => {
 }
 
 @media (max-width: 1200px) {
+  .platform-page__layout {
+    grid-template-columns: 1fr;
+  }
+
   .platform-page__grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
