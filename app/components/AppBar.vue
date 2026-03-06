@@ -25,7 +25,6 @@ const mainHeaderItems = computed<NavItem[]>(() => [
   { key: 'app.navigation.about', to: '/about', icon: 'mdi-information-outline' },
   { key: 'app.navigation.contact', to: '/contact', icon: 'mdi-email-outline' },
   { key: 'app.navigation.faq', to: '/faq', icon: 'mdi-frequently-asked-questions' },
-  { key: 'app.navigation.settings', to: '/settings', icon: 'mdi-cog-outline' },
 ])
 
 const adminHeaderItems = computed<NavItem[]>(() => [])
@@ -157,6 +156,7 @@ const signOut = async () => {
 
           <v-list class="py-1 app-bar__menu" min-width="220">
             <v-list-item to="/profile" :title="t('app.navigation.profile')" prepend-icon="mdi-account-outline" rounded="lg" class="mx-2 my-1" />
+            <v-list-item to="/settings" :title="t('app.navigation.settings')" prepend-icon="mdi-cog-outline" rounded="lg" class="mx-2 my-1" />
             <v-list-item
               v-if="canPermission('admin.access')"
               to="/admin"
@@ -229,6 +229,14 @@ const signOut = async () => {
           :to="item.to"
           :title="t(item.key)"
           :prepend-icon="item.icon"
+          rounded="lg"
+          class="mx-2 my-1"
+        />
+        <v-list-item
+          v-if="isAuthenticated"
+          to="/settings"
+          :title="t('app.navigation.settings')"
+          prepend-icon="mdi-cog-outline"
           rounded="lg"
           class="mx-2 my-1"
         />
