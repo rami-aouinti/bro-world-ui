@@ -88,7 +88,7 @@ onMounted(async () => {
     <UiDataTable :headers="headers" :items="roles" :loading="loading" :search="search" item-key="id" :items-per-page="10" :empty-text="t('admin.roles.empty')">
       <template #item.description="{ item }">{{ item.description || '—' }}</template>
       <template #item.actions="{ item }">
-        <div class="d-flex flex-nowrap ga-1 py-1">
+        <div class="d-flex justify-end flex-nowrap ga-1 py-1">
           <v-btn size="x-small" variant="tonal" icon="mdi-eye" :loading="loadingRoleDetails" :aria-label="`Voir ${item.id}`" @click="showEntity(item.id)" />
         </div>
       </template>
