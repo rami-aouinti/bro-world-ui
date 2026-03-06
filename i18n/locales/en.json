@@ -218,6 +218,43 @@
         "description": "List and manage API keys available on /api/v1/api_key."
       },
       "open": "Open"
+    },
+    "navigation": {
+      "dashboard": {
+        "title": "Dashboard",
+        "description": "View key statistics and activity indicators."
+      },
+      "settings": {
+        "title": "Settings",
+        "description": "Configure global platform information and options."
+      },
+      "userManagement": {
+        "title": "User Management",
+        "description": "Access users, roles, groups and API key administration."
+      }
+    },
+    "dashboard": {
+      "title": "Admin dashboard",
+      "description": "Overview of platform activity and usage metrics.",
+      "stats": {
+        "activeUsers": "Active users",
+        "newAccounts": "New accounts (7 days)",
+        "apiRequests": "API requests (24h)",
+        "errors": "Critical errors"
+      }
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Manage your site configuration from this form.",
+      "form": {
+        "siteName": "Site name",
+        "description": "Description",
+        "saved": "Settings saved."
+      }
+    },
+    "userManagement": {
+      "title": "User management",
+      "description": "Choose a section to administer users and access rights."
     }
   },
   "$vuetify": {
