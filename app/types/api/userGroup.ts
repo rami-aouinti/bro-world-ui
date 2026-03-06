@@ -5,7 +5,7 @@ import type { UserRead } from './user'
 export interface UserGroup {
   id: UUID
   name: string
-  role: Role
+  role?: Role | null
 }
 
 export interface CreateUserGroupPayload {
