@@ -103,7 +103,7 @@ const signOut = async () => {
 
 <template>
   <v-app-bar
-    class="px-0 border-radius-xl toolbar-content-padding-y-none v-sheet v-toolbar v-toolbar--flat v-app-bar bg-transparent position-sticky blur shadow-blur top-1 z-index-sticky"
+    class="app-bar px-0 border-radius-xl toolbar-content-padding-y-none v-sheet v-toolbar v-toolbar--flat v-app-bar bg-transparent position-sticky blur shadow-blur top-1 z-index-sticky"
   >
     <v-toolbar-title class="app-bar__brand d-flex align-center ga-3 text-truncate">
       <NuxtLink to="/" class="app-bar__title-link d-flex align-center ga-2">
@@ -283,7 +283,9 @@ const signOut = async () => {
 }
 
 .app-bar__center-links {
-  margin-inline-start: 1rem;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .app-bar__link-btn {
@@ -294,34 +296,6 @@ const signOut = async () => {
 
 .app-bar__icon-btn {
   color: #4a4d55;
-}
-
-.app-bar__avatar-btn {
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.9);
-}
-
-.app-bar__menu {
-  background-color: #f7f5f7;
-}
-
-.app-bar__lang-btn {
-  border-radius: 12px;
-  text-transform: none;
-  min-width: 92px;
-}
-
-.app-bar__lang-label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-
-.app-bar__theme-btn {
-  border-radius: 999px;
-  min-width: 42px;
-  background-color: #7f8188;
-  color: #ffffff;
 }
 
 .app-bar__teleport-target {
