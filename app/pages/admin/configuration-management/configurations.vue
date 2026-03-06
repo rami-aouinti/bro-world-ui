@@ -16,11 +16,12 @@ import type {
 definePageMeta({
   layout: 'admin',
   middleware: ['role'],
-  requiredPermissions: ['admin.access'],
+  requiredPermissions: ['configuration.readList'],
 })
 
 const configurationsStore = useConfigurationsStore()
 const { t } = useI18n()
+const { canPermission } = useAccessControl()
 const loading = ref(false)
 const submitting = ref(false)
 const errorMessage = ref('')
@@ -197,6 +198,7 @@ onMounted(async () => {
             :create-label="t('admin.common.create')"
             :refresh-label="t('admin.common.refresh')"
             :loading="loading"
+            :show-create="canPermission('configuration.create')"
             @update:search="search = $event"
             @create="openCreateDialog"
             @refresh="fetchConfigurations"
@@ -220,11 +222,21 @@ onMounted(async () => {
 
       <template #item.actions="{ item }">
         <div class="d-flex justify-end ga-1">
-          <v-btn size="x-small" variant="text" color="primary" icon="mdi-pencil" :aria-label="`Éditer ${item.configurationKey}`" @click="openEditDialog(item)" />
+          <v-btn
+            v-if="canPermission('configuration.update')"
+            size="x-small"
+            variant="text"
+            color="primary"
+            icon="mdi-pencil"
+            :aria-label="`Éditer ${item.configurationKey}`"
+            @click="openEditDialog(item)"
+          />
           <UiEntityActionButtons
             :show-label="`Voir ${item.configurationKey}`"
             :patch-label="`Patch ${item.configurationKey}`"
             :delete-label="`Supprimer ${item.configurationKey}`"
+            :show-patch="canPermission('configuration.patch')"
+            :show-delete="canPermission('configuration.delete')"
             @show="showEntity(item.id)"
             @patch="openEditDialog(item, true)"
             @delete="openDeleteDialog(item.id)"
