@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import UiPageSection from "~/components/ui/UiPageSection.vue";
+import UserIdentity from '~/components/UserIdentity.vue'
 
 definePageMeta({
   public: true,
@@ -10,6 +11,7 @@ const { t } = useI18n({ useScope: 'global' })
 const router = useRouter()
 const { isAuthenticated, initSession } = useAuth()
 const applicationsStore = useApplicationsStore()
+const authSession = useAuthSessionStore()
 
 const editDialog = ref(false)
 const deleteDialog = ref(false)
@@ -45,16 +47,29 @@ const authorFullName = (application: (typeof applicationsStore.items.value)[numb
   const lastName = application.author?.lastName ?? ''
   const fullName = `${firstName} ${lastName}`.trim()
 
-  return fullName || '—'
+  return fullName || application.author?.username || '—'
 }
 
-const authorAvatar = (application: (typeof applicationsStore.items.value)[number]) => {
-  if (application.author?.photo) {
-    return application.author.photo
+const appHomePath = (applicationId: string) => `/platform/${applicationId}/home`
+
+const authorUsername = (application: (typeof applicationsStore.items.value)[number]) => {
+  return application.author?.username ?? ''
+}
+
+const authorProfilePath = (application: (typeof applicationsStore.items.value)[number]) => {
+  const currentUserId = authSession.profile?.id
+  const authorId = application.author?.id
+
+  if (currentUserId && authorId && currentUserId === authorId) {
+    return '/profile'
   }
 
-  const name = encodeURIComponent(authorFullName(application))
-  return `https://ui-avatars.com/api/?name=${name}`
+  const username = authorUsername(application)
+  if (username) {
+    return `/user/${username}/profile`
+  }
+
+  return undefined
 }
 
 const openEditModal = (application: (typeof applicationsStore.items.value)[number]) => {
@@ -122,18 +137,18 @@ const disableApplication = async () => {
         </article>
 
         <article
-            v-for="card in applicationsStore.items"
-            :key="card.id"
-            class="platform-page__card"
+          v-for="card in applicationsStore.items"
+          :key="card.id"
+          class="platform-page__card"
         >
           <v-menu v-if="card.isOwner" location="bottom end">
             <template #activator="{ props }">
               <v-btn
-                  class="platform-page__card-dot"
-                  icon="mdi-dots-vertical"
-                  variant="text"
-                  density="compact"
-                  v-bind="props"
+                class="platform-page__card-dot"
+                icon="mdi-dots-vertical"
+                variant="text"
+                density="compact"
+                v-bind="props"
               />
             </template>
 
@@ -143,28 +158,36 @@ const disableApplication = async () => {
             </v-list>
           </v-menu>
 
-          <div class="platform-page__card-top">
-            <div class="platform-page__card-brand">
-              <img :src="card?.photo" :alt="card.title" class="platform-page__logo">
-              <div class="platform-page__card-heading">
-                <h3 class="platform-page__card-title">{{ card.title }}</h3>
+          <NuxtLink :to="appHomePath(card.id)" class="platform-page__card-main-link">
+            <div class="platform-page__card-top">
+              <div class="platform-page__card-brand">
+                <img :src="card.photo" :alt="card.title" class="platform-page__logo">
+                <div class="platform-page__card-heading">
+                  <h3 class="platform-page__card-title">{{ card.title }}</h3>
+                </div>
               </div>
             </div>
 
-          </div>
-          <div class="platform-page__card-brand py-4">
-            <img :src="authorAvatar(card)" :alt="authorFullName(card)" class="user__logo">
-            <p class="platform-page__card-author">{{ authorFullName(card) }}</p>
+            <p class="platform-page__card-description" :title="card.description || ''">{{ card.description }}</p>
+          </NuxtLink>
+
+          <div class="platform-page__card-meta">
+            <UserIdentity
+              :first-name="card.author?.firstName"
+              :last-name="card.author?.lastName"
+              :username="authorUsername(card)"
+              :photo="card.author?.photo"
+              :profile-path="authorProfilePath(card)"
+            />
             <v-chip
-                :color="card.status === 'active' ? 'success' : undefined"
-                variant="tonal"
-                size="small"
-                class="text-capitalize"
+              :color="card.status === 'active' ? 'success' : undefined"
+              variant="tonal"
+              size="small"
+              class="text-capitalize"
             >
               {{ card.status === 'active' ? t('platform.status.active') : t('platform.status.inactive') }}
             </v-chip>
           </div>
-          <p class="platform-page__card-description">{{ card.description }}</p>
 
           <div class="platform-page__card-footer">
             <span>{{ card.platformName }}</span>
@@ -177,15 +200,15 @@ const disableApplication = async () => {
         <template v-if="selectedApp">
           <v-text-field v-model="selectedApp.title" :label="t('platform.wizard.fields.title')" class="mb-3" />
           <v-select
-              v-model="selectedApp.status"
-              :label="t('platform.wizard.fields.active')"
-              :items="[
-            { title: t('platform.status.active'), value: 'active' },
-            { title: t('platform.status.inactive'), value: 'inactive' },
-          ]"
-              item-title="title"
-              item-value="value"
-              class="mb-3"
+            v-model="selectedApp.status"
+            :label="t('platform.wizard.fields.active')"
+            :items="[
+              { title: t('platform.status.active'), value: 'active' },
+              { title: t('platform.status.inactive'), value: 'inactive' },
+            ]"
+            item-title="title"
+            item-value="value"
+            class="mb-3"
           />
           <v-switch v-model="selectedApp.private" :label="t('platform.wizard.fields.private')" inset hide-details />
         </template>
@@ -197,13 +220,13 @@ const disableApplication = async () => {
       </UiActionDialog>
 
       <UiActionConfirmDialog
-          v-model="deleteDialog"
-          :title="t('platform.actions.deleteTitle')"
-          :message="t('platform.actions.deleteMessage', { title: selectedApp?.title || '' })"
-          :confirm-label="t('platform.actions.delete')"
-          :cancel-label="t('admin.common.cancel')"
-          :loading="submitting"
-          @confirm="disableApplication"
+        v-model="deleteDialog"
+        :title="t('platform.actions.deleteTitle')"
+        :message="t('platform.actions.deleteMessage', { title: selectedApp?.title || '' })"
+        :confirm-label="t('platform.actions.delete')"
+        :cancel-label="t('admin.common.cancel')"
+        :loading="submitting"
+        @confirm="disableApplication"
       />
 
       <button type="button" class="platform-page__assistant" :aria-label="t('platform.assistant')">
@@ -221,30 +244,54 @@ const disableApplication = async () => {
 
 .platform-page__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.75rem 1.5rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
 }
 
 .platform-page__card {
   position: relative;
-  background: #ededee;
-  border-radius: 12px;
-  border: 1px solid #d2d2d5;
-  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.12);
-  padding: 1.7rem;
-  min-height: 280px;
+  background: linear-gradient(160deg, #f6f6f8 0%, #ececef 100%);
+  border-radius: 14px;
+  border: 1px solid #d4d5dc;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  padding: 1rem;
+  min-height: 240px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.platform-page__card::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 26px 26px 0;
+  border-color: transparent #d9d5ff transparent transparent;
+  transition: border-width 0.25s ease;
+}
+
+.platform-page__card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(45, 45, 94, 0.16);
+}
+
+.platform-page__card:hover::before {
+  border-width: 0 36px 36px 0;
 }
 
 .platform-page__card-dot {
   position: absolute;
-  right: 0.7rem;
-  top: 0.7rem;
+  right: 0.4rem;
+  top: 0.4rem;
 }
 
 .platform-page__card--new {
-  border: 3px dashed #2f3033;
+  border: 2px dashed #2f3033;
   align-items: center;
   justify-content: center;
   text-align: center;
@@ -252,16 +299,16 @@ const disableApplication = async () => {
 }
 
 .platform-page__add-icon {
-  width: 70px;
-  height: 70px;
+  width: 64px;
+  height: 64px;
   border-radius: 999px;
-  border: 6px solid #e82f7d;
+  border: 5px solid #e82f7d;
   color: #e82f7d;
   display: grid;
   place-items: center;
-  font-size: 3.2rem;
+  font-size: 2.8rem;
   line-height: 1;
-  margin-bottom: 1.3rem;
+  margin-bottom: 1rem;
 }
 
 .platform-page__new-title,
@@ -272,71 +319,82 @@ const disableApplication = async () => {
 }
 
 .platform-page__new-title {
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem;
 }
 
 .platform-page__new-description,
 .platform-page__card-description {
   color: #55565c;
-  font-size: 1.08rem;
-  line-height: 1.45;
+  line-height: 1.4;
+}
+
+.platform-page__card-main-link {
+  color: inherit;
+  text-decoration: none;
+  display: block;
+  flex: 1;
 }
 
 .platform-page__card-top {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .platform-page__card-brand {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
+  align-items: center;
 }
 
 .platform-page__logo {
-  width: 76px;
-  height: 76px;
-  border-radius: 16px;
-  object-fit: cover;
-  background: #5955e0;
-}
-
-.user__logo {
-  width: 24px;
-  height: 24px;
-  border-radius: 16px;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
   object-fit: cover;
   background: #5955e0;
 }
 
 .platform-page__card-heading {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+  min-width: 0;
 }
 
-.platform-page__card-author {
-  margin: 0;
-  color: #2e2f37;
-  font-size: 1rem;
-  font-weight: 600;
+.platform-page__card-title {
+  font-size: 1.28rem;
 }
 
 .platform-page__card-description {
-  margin-top: 1.2rem;
-  flex: 1;
+  margin-top: 0.8rem;
+  font-size: 0.95rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: -webkit-line-clamp 0.2s ease;
+}
+
+.platform-page__card:hover .platform-page__card-description {
+  -webkit-line-clamp: 3;
+}
+
+.platform-page__card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.8rem;
+  gap: 0.5rem;
 }
 
 .platform-page__card-footer {
-  margin-top: 1.2rem;
-  padding-top: 0.9rem;
+  margin-top: 0.7rem;
+  padding-top: 0.7rem;
   border-top: 1px solid #d9dadf;
   display: flex;
   justify-content: space-between;
   align-items: center;
   color: #575c6f;
   font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .platform-page__assistant {
@@ -356,5 +414,23 @@ const disableApplication = async () => {
   justify-content: center;
   gap: 0.45rem;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 1200px) {
+  .platform-page__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .platform-page__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .platform-page__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

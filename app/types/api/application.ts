@@ -15,6 +15,7 @@ export interface ApplicationRead {
     firstName: string
     lastName: string
     photo?: string
+    username?: string
   }
   createdAt?: string
   isOwner?: boolean
