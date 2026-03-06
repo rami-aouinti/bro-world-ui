@@ -4,6 +4,7 @@ export interface ApplicationRead {
   id: UUID
   title: string
   description?: string
+  photo?: string
   status: 'active' | 'inactive' | string
   private: boolean
   platformId: UUID

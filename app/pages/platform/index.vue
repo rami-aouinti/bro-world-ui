@@ -142,22 +142,25 @@ const disableApplication = async () => {
 
         <div class="platform-page__card-top">
           <div class="platform-page__card-brand">
-            <img :src="authorAvatar(card)" :alt="authorFullName(card)" class="platform-page__logo">
+            <img :src="card?.photo" :alt="card.title" class="platform-page__logo">
             <div class="platform-page__card-heading">
-              <h2 class="platform-page__card-title">{{ card.title }}</h2>
-              <p class="platform-page__card-author">{{ authorFullName(card) }}</p>
-              <v-chip
-                :color="card.status === 'active' ? 'success' : undefined"
-                variant="tonal"
-                size="small"
-                class="text-capitalize"
-              >
-                {{ card.status === 'active' ? t('platform.status.active') : t('platform.status.inactive') }}
-              </v-chip>
+              <h3 class="platform-page__card-title">{{ card.title }}</h3>
             </div>
           </div>
-        </div>
 
+        </div>
+        <div class="platform-page__card-brand py-4">
+          <img :src="authorAvatar(card)" :alt="authorFullName(card)" class="user__logo">
+          <p class="platform-page__card-author">{{ authorFullName(card) }}</p>
+          <v-chip
+              :color="card.status === 'active' ? 'success' : undefined"
+              variant="tonal"
+              size="small"
+              class="text-capitalize"
+          >
+            {{ card.status === 'active' ? t('platform.status.active') : t('platform.status.inactive') }}
+          </v-chip>
+        </div>
         <p class="platform-page__card-description">{{ card.description }}</p>
 
         <div class="platform-page__card-footer">
@@ -259,7 +262,6 @@ const disableApplication = async () => {
 
 .platform-page__new-title,
 .platform-page__card-title {
-  font-size: 1.6rem;
   line-height: 1.2;
   font-weight: 700;
   color: #25262c;
@@ -291,6 +293,14 @@ const disableApplication = async () => {
 .platform-page__logo {
   width: 76px;
   height: 76px;
+  border-radius: 16px;
+  object-fit: cover;
+  background: #5955e0;
+}
+
+.user__logo {
+  width: 24px;
+  height: 24px;
   border-radius: 16px;
   object-fit: cover;
   background: #5955e0;
