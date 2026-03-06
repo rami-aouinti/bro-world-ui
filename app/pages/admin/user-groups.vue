@@ -13,32 +13,18 @@ definePageMeta({
 
 const userGroupsStore = useUserGroupsStore()
 const loading = ref(false)
-const submitting = ref(false)
 const errorMessage = ref('')
 const userGroups = ref<UserGroup[]>([])
 const search = ref('')
 
-const formDialog = ref(false)
 const showDialog = ref(false)
-const formMode = ref<'create' | 'edit' | 'patch'>('create')
 const selectedGroup = ref<UserGroup | null>(null)
-const form = reactive({ name: '', role: '' })
 
 const headers = [
   { title: 'ID', key: 'id', sortable: true },
   { title: 'Nom', key: 'name', sortable: true },
-  { title: 'Rôle', key: 'roleId', sortable: true },
-  { title: 'Description rôle', key: 'roleDescription', sortable: true },
-  { title: 'Actions', key: 'actions', sortable: false },
+  { title: 'Détails', key: 'actions', sortable: false },
 ]
-
-const tableItems = computed(() => userGroups.value.map(group => ({
-  ...group,
-  roleId: group.role?.id || '',
-  roleDescription: group.role?.description || '',
-})))
-
-const formTitle = computed(() => (formMode.value === 'create' ? 'Créer un groupe' : formMode.value === 'edit' ? 'Éditer un groupe' : 'Patch groupe'))
 
 const fetchUserGroups = async () => {
   loading.value = true
@@ -55,52 +41,9 @@ const fetchUserGroups = async () => {
   }
 }
 
-const openCreateDialog = () => {
-  formMode.value = 'create'
-  Object.assign(form, { name: '', role: '' })
-  formDialog.value = true
-}
-
-const openEditDialog = (group: UserGroup, patch = false) => {
-  formMode.value = patch ? 'patch' : 'edit'
-  selectedGroup.value = group
-  Object.assign(form, { name: group.name, role: group.role?.id ?? '' })
-  formDialog.value = true
-}
-
 const showEntity = async (id: string) => {
   selectedGroup.value = await userGroupsStore.getById(id)
   showDialog.value = true
-}
-
-const submitForm = async () => {
-  submitting.value = true
-  try {
-    if (formMode.value === 'create') {
-      await userGroupsStore.create({ name: form.name, role: form.role })
-    }
-    else if (formMode.value === 'edit' && selectedGroup.value) {
-      await userGroupsStore.update(selectedGroup.value.id, { name: form.name, role: form.role })
-    }
-    else if (formMode.value === 'patch' && selectedGroup.value) {
-      await userGroupsStore.patch(selectedGroup.value.id, { name: form.name, role: form.role })
-    }
-
-    formDialog.value = false
-    await fetchUserGroups()
-  }
-  finally {
-    submitting.value = false
-  }
-}
-
-const deleteEntity = async (id: string) => {
-  if (!window.confirm(`Supprimer le groupe ${id} ?`)) {
-    return
-  }
-
-  await userGroupsStore.remove(id)
-  await fetchUserGroups()
 }
 
 await fetchUserGroups()
@@ -124,13 +67,6 @@ await fetchUserGroups()
         />
 
         <v-btn
-          icon="mdi-plus"
-          color="primary"
-          :aria-label="'Créer'"
-          @click="openCreateDialog"
-        />
-
-        <v-btn
           icon="mdi-refresh"
           color="primary"
           variant="outlined"
@@ -148,7 +84,7 @@ await fetchUserGroups()
 
       <UiDataTable
         :headers="headers"
-        :items="tableItems"
+        :items="userGroups"
         :loading="loading"
         :search="search"
         item-key="id"
@@ -158,26 +94,10 @@ await fetchUserGroups()
         <template #item.actions="{ item }">
           <div class="d-flex flex-nowrap ga-1 py-1">
             <v-btn size="x-small" variant="tonal" icon="mdi-eye" :aria-label="`Show ${item.id}`" @click="showEntity(item.id)" />
-            <v-btn size="x-small" variant="tonal" color="warning" icon="mdi-file-edit-outline" :aria-label="`Patch ${item.id}`" @click="openEditDialog(item, true)" />
-            <v-btn size="x-small" variant="tonal" color="error" icon="mdi-delete" :aria-label="`Delete ${item.id}`" @click="deleteEntity(item.id)" />
           </div>
         </template>
       </UiDataTable>
     </v-card>
-
-    <v-dialog v-model="formDialog" max-width="560" persistent>
-      <v-card rounded="xl">
-        <v-card-title>{{ formTitle }}</v-card-title>
-        <v-card-text>
-          <v-text-field v-model="form.name" label="Nom du groupe" class="mb-2" />
-          <v-text-field v-model="form.role" label="ID du rôle" />
-        </v-card-text>
-        <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="formDialog = false">Annuler</v-btn>
-          <v-btn color="primary" :loading="submitting" @click="submitForm">Enregistrer</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
 
     <v-dialog v-model="showDialog" max-width="700">
       <v-card rounded="xl">
