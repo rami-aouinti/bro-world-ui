@@ -5,6 +5,7 @@ import { usePlatformsApi } from '~/composables/api/usePlatformsApi'
 import { usePluginsApi } from '~/composables/api/usePluginsApi'
 import { useProfileApi } from '~/composables/api/useProfileApi'
 import { useApplicationsStore } from '~/stores/applications'
+import UiPageSection from "~/components/ui/UiPageSection.vue";
 
 definePageMeta({
   public: false,
@@ -126,120 +127,122 @@ const submit = async () => {
 </script>
 
 <template>
-  <section class="platform-new">
-    <div class="wizard-header">
-      <div class="wizard-step" :class="{ 'wizard-step--active': step === 1 }">
-        <span>1</span>
-        <small>{{ t('platform.wizard.steps.title') }}</small>
-      </div>
-      <div class="wizard-step" :class="{ 'wizard-step--active': step === 2 }">
-        <span>2</span>
-        <small>{{ t('platform.wizard.steps.platform') }}</small>
-      </div>
-      <div class="wizard-step" :class="{ 'wizard-step--active': step === 3 }">
-        <span>3</span>
-        <small>{{ t('platform.wizard.steps.plugins') }}</small>
-      </div>
-    </div>
-
-    <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
-
-    <v-card v-if="!loading" class="pa-5">
-      <template v-if="step === 1">
-        <h2 class="text-h5 mb-4">{{ t('platform.wizard.titleStepTitle') }}</h2>
-
-        <v-text-field v-model="form.title" :label="t('platform.wizard.fields.title')" density="comfortable" />
-
-        <div class="d-flex justify-end">
-          <v-btn :disabled="!canContinueToStep2" color="primary" @click="step = 2">{{ t('platform.wizard.next') }}</v-btn>
+  <UiPageSection max-width="1200">
+    <section class="platform-new">
+      <div class="wizard-header">
+        <div class="wizard-step" :class="{ 'wizard-step--active': step === 1 }">
+          <span>1</span>
+          <small>{{ t('platform.wizard.steps.title') }}</small>
         </div>
-      </template>
-
-      <template v-else-if="step === 2">
-        <h2 class="text-h5 mb-4">{{ t('platform.wizard.platformTitle') }}</h2>
-        <div class="wizard-grid mb-4">
-          <button
-            v-for="platform in availablePlatforms"
-            :key="platform.id"
-            type="button"
-            class="wizard-option"
-            :class="{ 'wizard-option--selected': selectedPlatformId === platform.id }"
-            @click="selectedPlatformId = platform.id"
-          >
-            <img :src="platform.photo || ''" :alt="platform.name" class="wizard-option__photo">
-            <div class="wizard-option__body">
-              <h3>{{ platform.name }}</h3>
-              <p>{{ platform.description }}</p>
-            </div>
-          </button>
+        <div class="wizard-step" :class="{ 'wizard-step--active': step === 2 }">
+          <span>2</span>
+          <small>{{ t('platform.wizard.steps.platform') }}</small>
         </div>
-        <v-checkbox v-model="form.private" :label="t('platform.wizard.fields.private')" />
-        <v-checkbox v-model="form.active" :label="t('platform.wizard.fields.active')" />
+        <div class="wizard-step" :class="{ 'wizard-step--active': step === 3 }">
+          <span>3</span>
+          <small>{{ t('platform.wizard.steps.plugins') }}</small>
+        </div>
+      </div>
 
-        <v-select
-          v-model="form.theme"
-          :label="t('platform.wizard.fields.theme')"
-          :items="[
+      <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
+
+      <v-card v-if="!loading" class="pa-5">
+        <template v-if="step === 1">
+          <h2 class="text-h5 mb-4">{{ t('platform.wizard.titleStepTitle') }}</h2>
+
+          <v-text-field v-model="form.title" :label="t('platform.wizard.fields.title')" density="comfortable" />
+
+          <div class="d-flex justify-end">
+            <v-btn :disabled="!canContinueToStep2" color="primary" @click="step = 2">{{ t('platform.wizard.next') }}</v-btn>
+          </div>
+        </template>
+
+        <template v-else-if="step === 2">
+          <h2 class="text-h5 mb-4">{{ t('platform.wizard.platformTitle') }}</h2>
+          <div class="wizard-grid mb-4">
+            <button
+                v-for="platform in availablePlatforms"
+                :key="platform.id"
+                type="button"
+                class="wizard-option"
+                :class="{ 'wizard-option--selected': selectedPlatformId === platform.id }"
+                @click="selectedPlatformId = platform.id"
+            >
+              <img :src="platform.photo || ''" :alt="platform.name" class="wizard-option__photo">
+              <div class="wizard-option__body">
+                <h3>{{ platform.name }}</h3>
+                <p>{{ platform.description }}</p>
+              </div>
+            </button>
+          </div>
+          <v-checkbox v-model="form.private" :label="t('platform.wizard.fields.private')" />
+          <v-checkbox v-model="form.active" :label="t('platform.wizard.fields.active')" />
+
+          <v-select
+              v-model="form.theme"
+              :label="t('platform.wizard.fields.theme')"
+              :items="[
             { title: 'Light', value: 'light' },
             { title: 'Dark', value: 'dark' },
           ]"
-          item-title="title"
-          item-value="value"
-        />
+              item-title="title"
+              item-value="value"
+          />
 
-        <div class="d-flex justify-space-between">
-          <v-btn variant="outlined" @click="step = 1">{{ t('platform.wizard.prev') }}</v-btn>
-          <v-btn :disabled="!canContinueToStep3" color="primary" @click="step = 3">{{ t('platform.wizard.next') }}</v-btn>
-        </div>
-      </template>
+          <div class="d-flex justify-space-between">
+            <v-btn variant="outlined" @click="step = 1">{{ t('platform.wizard.prev') }}</v-btn>
+            <v-btn :disabled="!canContinueToStep3" color="primary" @click="step = 3">{{ t('platform.wizard.next') }}</v-btn>
+          </div>
+        </template>
 
-      <template v-else>
-        <h2 class="text-h5 mb-4">{{ t('platform.wizard.pluginTitle') }}</h2>
-        <div class="wizard-grid mb-4">
-          <button
-            v-for="plugin in availablePlugins"
-            :key="plugin.id"
-            type="button"
-            class="wizard-option"
-            :class="{ 'wizard-option--selected': selectedPluginIds.includes(plugin.id) }"
-            @click="togglePlugin(plugin.id)"
-          >
-            <img :src="plugin.photo || ''" :alt="plugin.name" class="wizard-option__photo">
-            <div class="wizard-option__body">
-              <h3>{{ plugin.name }}</h3>
-              <p>{{ plugin.description }}</p>
-            </div>
-          </button>
-        </div>
+        <template v-else>
+          <h2 class="text-h5 mb-4">{{ t('platform.wizard.pluginTitle') }}</h2>
+          <div class="wizard-grid mb-4">
+            <button
+                v-for="plugin in availablePlugins"
+                :key="plugin.id"
+                type="button"
+                class="wizard-option"
+                :class="{ 'wizard-option--selected': selectedPluginIds.includes(plugin.id) }"
+                @click="togglePlugin(plugin.id)"
+            >
+              <img :src="plugin.photo || ''" :alt="plugin.name" class="wizard-option__photo">
+              <div class="wizard-option__body">
+                <h3>{{ plugin.name }}</h3>
+                <p>{{ plugin.description }}</p>
+              </div>
+            </button>
+          </div>
 
-        <v-expansion-panels v-if="selectedPluginIds.length" class="mb-4" variant="accordion">
-          <v-expansion-panel
-            v-for="plugin in availablePlugins.filter(item => selectedPluginIds.includes(item.id))"
-            :key="plugin.id"
-          >
-            <v-expansion-panel-title>
-              {{ plugin.name }} - {{ t('platform.wizard.fields.configuration') }}
-            </v-expansion-panel-title>
-            <v-expansion-panel-text>
-              <v-text-field
-                v-model.number="pluginConfigurations[plugin.id].cacheSeconds"
-                type="number"
-                min="1"
-                :label="t('platform.wizard.fields.cacheSeconds')"
-              />
-            </v-expansion-panel-text>
-          </v-expansion-panel>
-        </v-expansion-panels>
+          <v-expansion-panels v-if="selectedPluginIds.length" class="mb-4" variant="accordion">
+            <v-expansion-panel
+                v-for="plugin in availablePlugins.filter(item => selectedPluginIds.includes(item.id))"
+                :key="plugin.id"
+            >
+              <v-expansion-panel-title>
+                {{ plugin.name }} - {{ t('platform.wizard.fields.configuration') }}
+              </v-expansion-panel-title>
+              <v-expansion-panel-text>
+                <v-text-field
+                    v-model.number="pluginConfigurations[plugin.id].cacheSeconds"
+                    type="number"
+                    min="1"
+                    :label="t('platform.wizard.fields.cacheSeconds')"
+                />
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-expansion-panels>
 
-        <div class="d-flex justify-space-between">
-          <v-btn variant="outlined" @click="step = 2">{{ t('platform.wizard.prev') }}</v-btn>
-          <v-btn color="primary" :disabled="!canCreate || creating" :loading="creating" @click="submit">
-            {{ t('platform.wizard.create') }}
-          </v-btn>
-        </div>
-      </template>
-    </v-card>
-  </section>
+          <div class="d-flex justify-space-between">
+            <v-btn variant="outlined" @click="step = 2">{{ t('platform.wizard.prev') }}</v-btn>
+            <v-btn color="primary" :disabled="!canCreate || creating" :loading="creating" @click="submit">
+              {{ t('platform.wizard.create') }}
+            </v-btn>
+          </div>
+        </template>
+      </v-card>
+    </section>
+  </UiPageSection>
 </template>
 
 <style scoped>
