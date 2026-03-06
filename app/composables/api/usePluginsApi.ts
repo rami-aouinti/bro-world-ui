@@ -26,6 +26,11 @@ export const usePluginsApi = () => {
         query: buildListQuery(query, extraQuery),
       })
     },
+    listPublic() {
+      return apiFetch<PluginRead[]>(`${basePath}/public`, {
+        method: 'GET',
+      })
+    },
     count(query: ListQueryParams = {}, extraQuery: QueryParams = {}) {
       return apiFetch<CountResponse>(`${basePath}/count`, {
         method: 'GET',
