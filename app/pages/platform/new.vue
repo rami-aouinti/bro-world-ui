@@ -32,6 +32,9 @@ const pluginConfigurations = reactive<Record<string, { cacheSeconds: number }>>(
 
 const form = reactive({
   title: '',
+  description: '',
+  photo: null as File | null,
+  photoPreview: '',
   private: true,
   active: true,
   theme: 'light',
@@ -77,6 +80,27 @@ const togglePlugin = (pluginId: string) => {
   }
 }
 
+const readFileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
+  const reader = new FileReader()
+
+  reader.onload = () => resolve(String(reader.result ?? ''))
+  reader.onerror = () => reject(new Error('Failed to read file'))
+  reader.readAsDataURL(file)
+})
+
+const onPhotoSelected = async (value: File | File[] | null) => {
+  const file = Array.isArray(value) ? value[0] : value
+
+  if (!file) {
+    form.photo = null
+    form.photoPreview = ''
+    return
+  }
+
+  form.photo = file
+  form.photoPreview = await readFileAsDataUrl(file)
+}
+
 const submit = async () => {
   if (!selectedPlatformId.value || !form.title.trim()) {
     return
@@ -86,19 +110,37 @@ const submit = async () => {
   errorMessage.value = ''
 
   try {
+    const configurations = [
+      {
+        configurationKey: 'app.theme',
+        configurationValue: {
+          name: form.theme,
+        },
+      },
+      {
+        configurationKey: 'app.description',
+        configurationValue: {
+          text: form.description.trim(),
+        },
+      },
+    ]
+
+    if (form.photoPreview) {
+      configurations.push({
+        configurationKey: 'app.photo',
+        configurationValue: {
+          dataUrl: form.photoPreview,
+          filename: form.photo?.name,
+        },
+      })
+    }
+
     await profileApi.createApplication({
       platformId: selectedPlatformId.value,
       title: form.title.trim(),
       status: form.active ? 'active' : 'inactive',
       private: form.private,
-      configurations: [
-        {
-          configurationKey: 'app.theme',
-          configurationValue: {
-            name: form.theme,
-          },
-        },
-      ],
+      configurations,
       plugins: selectedPluginIds.value.map(pluginId => ({
         pluginId,
         configurations: [
@@ -151,6 +193,29 @@ const submit = async () => {
           <h2 class="text-h5 mb-4">{{ t('platform.wizard.titleStepTitle') }}</h2>
 
           <v-text-field v-model="form.title" :label="t('platform.wizard.fields.title')" density="comfortable" />
+          <v-textarea
+            v-model="form.description"
+            :label="t('platform.wizard.fields.description')"
+            rows="3"
+            auto-grow
+            class="mb-2"
+          />
+          <v-file-input
+            :model-value="form.photo"
+            :label="t('platform.wizard.fields.photo')"
+            accept="image/*"
+            prepend-icon="mdi-camera"
+            show-size
+            @update:model-value="onPhotoSelected"
+          />
+          <v-img
+            v-if="form.photoPreview"
+            :src="form.photoPreview"
+            max-height="180"
+            max-width="180"
+            cover
+            class="mb-4 rounded"
+          />
 
           <div class="d-flex justify-end">
             <v-btn :disabled="!canContinueToStep2" color="primary" @click="step = 2">{{ t('platform.wizard.next') }}</v-btn>
