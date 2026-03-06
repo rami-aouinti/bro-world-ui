@@ -267,7 +267,6 @@ const signOut = async () => {
 .app-bar {
   margin: var(--ui-spacing-sm) var(--ui-spacing-md);
   padding-inline: var(--ui-spacing-lg);
-  min-height: 76px;
   background: #f5f5f7;
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
@@ -346,7 +345,6 @@ const signOut = async () => {
 @media (max-width: 959px) {
   .app-bar {
     margin: var(--ui-spacing-sm);
-    min-height: 64px;
     padding-inline: var(--ui-spacing-md);
   }
 }

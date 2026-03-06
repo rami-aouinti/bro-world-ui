@@ -7,6 +7,7 @@ import UiStateEmptyState from '~/components/ui/state/UiEmptyState.vue'
 import UiStateLoadingState from '~/components/ui/state/UiLoadingState.vue'
 import UiStateAlert from '~/components/ui/state/UiStateAlert.vue'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
+import {useProfileApi} from "~/composables/api/useProfileApi";
 
 import type { Profile } from '~/types/api/profile'
 
@@ -31,7 +32,6 @@ const formRef = ref()
 const form = reactive({
   firstName: '',
   lastName: '',
-  timezone: '',
   photo: '',
 })
 
@@ -51,7 +51,6 @@ const emptyProfileDescription = computed(() => `${t('profile.tokenHint')} ${t('p
 const applyProfileToForm = (profile: Profile | null) => {
   form.firstName = profile?.firstName ?? ''
   form.lastName = profile?.lastName ?? ''
-  form.timezone = profile?.timezone ?? ''
   form.photo = profile?.photo ?? ''
 }
 
@@ -117,7 +116,6 @@ const submitProfile = async () => {
     const updatedProfile = await profileApi.patch({
       firstName: form.firstName,
       lastName: form.lastName,
-      timezone: form.timezone,
     })
 
     syncSessionProfile(updatedProfile)
@@ -149,7 +147,6 @@ const uploadProfilePhoto = async (files: File[] | File | null) => {
     const updatedProfile = await profileApi.patch({
       firstName: form.firstName,
       lastName: form.lastName,
-      timezone: form.timezone,
     })
 
     syncSessionProfile({
@@ -252,14 +249,6 @@ onMounted(async () => {
             <v-text-field
               v-model="form.lastName"
               :label="t('profile.lastName')"
-              variant="outlined"
-              density="comfortable"
-            />
-          </v-col>
-          <v-col cols="12">
-            <v-text-field
-              v-model="form.timezone"
-              :label="t('profile.timezone')"
               variant="outlined"
               density="comfortable"
             />
