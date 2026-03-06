@@ -29,13 +29,25 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const resolveHeaderKey = (header: DataTableHeader) => header.key ?? header.value ?? ''
+const normalizedHeaders = computed(() => props.headers.map((header) => {
+  const headerKey = resolveHeaderKey(header)
+
+  if (headerKey !== 'actions') {
+    return header
+  }
+
+  return {
+    ...header,
+    align: 'end',
+  }
+}))
 const skeletonRowsCount = computed(() => Math.max(1, props.skeletonRows))
 </script>
 
 <template>
   <v-data-table
     class="ui-data-table table thead-light table-striped row-height-auto"
-    :headers="props.headers"
+    :headers="normalizedHeaders"
     :items="props.items"
     :loading="props.loading"
     :search="props.search"
@@ -54,7 +66,9 @@ const skeletonRowsCount = computed(() => Math.max(1, props.skeletonRows))
     </template>
 
     <template #item.actions="slotProps">
-      <slot name="item.actions" v-bind="slotProps" />
+      <div class="ui-data-table__actions-cell">
+        <slot name="item.actions" v-bind="slotProps" />
+      </div>
     </template>
 
     <template #loading>
@@ -108,5 +122,11 @@ const skeletonRowsCount = computed(() => Math.max(1, props.skeletonRows))
 
 .ui-data-table__skeleton :deep(.v-skeleton-loader__text) {
   margin: 0;
+}
+
+.ui-data-table__actions-cell {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
 }
 </style>
