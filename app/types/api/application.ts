@@ -8,6 +8,13 @@ export interface ApplicationRead {
   platformId: UUID
   platformName: string
   ownerId: UUID
+  isOwner?: boolean
+}
+
+export interface UpdateApplicationPayload {
+  title?: string
+  status?: 'active' | 'inactive' | string
+  private?: boolean
 }
 
 export interface ApplicationConfiguration {

@@ -387,6 +387,13 @@
         "create": "Unable to create platform."
       },
       "titleStepTitle": "Enter the application title"
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "editTitle": "Edit application",
+      "deleteTitle": "Disable application",
+      "deleteMessage": "Disable application \"{title}\"?"
     }
   },
   "about": {

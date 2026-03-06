@@ -101,7 +101,7 @@ const submit = async () => {
     })
 
     applicationsStore.items = []
-    clearNuxtData('platform-applications-public')
+    clearNuxtData('platform-applications')
 
     await router.push('/platform')
   }
@@ -115,7 +115,7 @@ const submit = async () => {
 </script>
 
 <template>
-  <section class="platform-new pa-6">
+  <section class="platform-new">
     <div class="wizard-header">
       <div class="wizard-step" :class="{ 'wizard-step--active': step === 1 }">
         <span>1</span>
@@ -221,7 +221,7 @@ const submit = async () => {
 </template>
 
 <style scoped>
-.platform-new { margin: 0 auto; }
+.platform-new { margin: 0 auto; padding: 1.5rem; }
 .wizard-header { background: linear-gradient(90deg, #df1f7f, #ef3f8e); color: white; border-radius: 14px; display: flex; justify-content: space-around; padding: 1rem; margin-bottom: 1.5rem; }
 .wizard-step { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; opacity: 0.75; }
 .wizard-step span { width: 32px; height: 32px; border-radius: 50%; background: #304e79; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; }
