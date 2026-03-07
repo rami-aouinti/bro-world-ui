@@ -164,7 +164,7 @@ const disableApplication = async () => {
   <section class="platform-page">
     <div class="platform-page__layout">
       <aside class="platform-page__sidebar">
-        <v-card class="platform-page__filters" rounded="xl" elevation="8">
+        <article  class="platform-page__card">
           <v-card-title class="text-h6 platform-page__filters-title">{{ t('platform.filters.title') }}</v-card-title>
           <v-card-text>
             <v-text-field
@@ -200,7 +200,7 @@ const disableApplication = async () => {
               <v-btn variant="text" block class="mt-2" @click="clearFilters">{{ t('platform.filters.clear') }}</v-btn>
             </div>
           </v-card-text>
-        </v-card>
+        </article>
       </aside>
 
       <div class="platform-page__content">
