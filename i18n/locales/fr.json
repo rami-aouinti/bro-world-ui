@@ -324,7 +324,8 @@
       "title": "+ Nouvelle plateforme",
       "description": "Créez une nouvelle user-application et configurez ses plugins.",
       "connectTitle": "Connectez-vous pour en créer une",
-      "connectDescription": "Vous devez être connecté pour créer une nouvelle plateforme."
+      "connectDescription": "Vous devez être connecté pour créer une nouvelle plateforme.",
+      "worldTitle": "New World"
     },
     "status": {
       "active": "Actif",

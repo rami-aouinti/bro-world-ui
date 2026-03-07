@@ -344,7 +344,8 @@
       "title": "+ New Platform",
       "description": "Create a new user application and configure its plugins.",
       "connectTitle": "Connect to create one",
-      "connectDescription": "You must be signed in to create a new platform."
+      "connectDescription": "You must be signed in to create a new platform.",
+      "worldTitle": "New World"
     },
     "status": {
       "active": "Active",
