@@ -1,13 +1,13 @@
 <script setup lang="ts">
+import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import UiAvatar from '~/components/ui/UiAvatar.vue'
 import UiCard from '~/components/ui/UiCard.vue'
-import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import UiStateEmptyState from '~/components/ui/state/UiEmptyState.vue'
 import UiStateLoadingState from '~/components/ui/state/UiLoadingState.vue'
 import UiStateAlert from '~/components/ui/state/UiStateAlert.vue'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
-import {useProfileApi} from "~/composables/api/useProfileApi";
+import { useProfileApi } from '~/composables/api/useProfileApi'
 
 import type { Profile } from '~/types/api/profile'
 
@@ -172,128 +172,135 @@ onMounted(async () => {
 </script>
 
 <template>
-  <UiPageSection
-    max-width="840"
-  >
-    <template #header>
+  <PlatformSplitLayout>
+    <template #sidebar>
       <UiSectionHeader :title="t('profile.title')" />
+
+      <div class="profile-page__identity">
+        <UiAvatar
+          :src="form.photo || authSession.profile?.photo"
+          :name="profileDisplayName"
+          size="lg"
+          :status="profileStatus"
+        />
+        <div>
+          <p class="text-subtitle-1 font-weight-bold profile-page__identity-name">{{ profileDisplayName }}</p>
+          <p class="text-body-2 text-medium-emphasis profile-page__identity-role">{{ t('profile.title') }}</p>
+        </div>
+      </div>
+
+      <div class="platform-layout__sidebar-actions">
+        <v-btn variant="outlined" block to="/profile">Profile</v-btn>
+        <v-btn variant="outlined" block class="mt-2" to="/settings">Settings</v-btn>
+      </div>
     </template>
 
-    <div class="d-flex align-center ga-3 mb-4">
-      <UiAvatar
-        :src="form.photo || authSession.profile?.photo"
-        :name="profileDisplayName"
-        size="lg"
-        :status="profileStatus"
+    <template #default>
+      <UiSectionHeader :title="t('profile.title')" />
+
+      <UiStateAlert
+        v-if="!isAuthenticated"
+        type="warning"
+        variant="tonal"
+        class="mb-4"
+        :message="t('profile.notAuthenticated')"
       />
-      <div>
-        <p class="text-subtitle-1 font-weight-bold mb-0">{{ profileDisplayName }}</p>
-        <p class="text-body-2 text-medium-emphasis mb-0">{{ t('profile.title') }}</p>
-      </div>
-    </div>
 
-    <UiStateAlert
-      v-if="!isAuthenticated"
-      type="warning"
-      variant="tonal"
-      class="mb-4"
-      :message="t('profile.notAuthenticated')"
-    />
+      <UiStateAlert
+        v-else-if="loading"
+        type="info"
+        variant="tonal"
+        class="mb-4"
+      >
+        <UiStateLoadingState
+          :message="`${t('profile.load')}...`"
+          mode="spinner"
+        />
+      </UiStateAlert>
 
-    <UiStateAlert
-      v-else-if="loading"
-      type="info"
-      variant="tonal"
-      class="mb-4"
-    >
-      <UiStateLoadingState
-        :message="`${t('profile.load')}...`"
-        mode="spinner"
+      <UiStateAlert
+        v-if="errorMessage"
+        type="error"
+        variant="tonal"
+        class="mb-4"
+        :message="errorMessage"
       />
-    </UiStateAlert>
 
-    <UiStateAlert
-      v-if="errorMessage"
-      type="error"
-      variant="tonal"
-      class="mb-4"
-      :message="errorMessage"
-    />
+      <UiStateAlert
+        v-if="successMessage"
+        type="success"
+        variant="tonal"
+        class="mb-4"
+        :message="successMessage"
+      />
 
-    <UiStateAlert
-      v-if="successMessage"
-      type="success"
-      variant="tonal"
-      class="mb-4"
-      :message="successMessage"
-    />
+      <UiCard
+        v-if="authSession.profile"
+        variant="tonal"
+        rounded="lg"
+        compact
+        class="mb-4"
+      >
+        <v-form ref="formRef" @submit.prevent="submitProfile">
+          <v-row>
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="form.firstName"
+                :label="t('profile.firstName')"
+                variant="outlined"
+                density="comfortable"
+              />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="form.lastName"
+                :label="t('profile.lastName')"
+                variant="outlined"
+                density="comfortable"
+              />
+            </v-col>
+            <v-col cols="12" class="d-flex flex-wrap align-center ga-3">
+              <v-file-input
+                accept="image/*"
+                :label="t('profile.photo')"
+                prepend-icon="mdi-camera-outline"
+                variant="outlined"
+                density="comfortable"
+                hide-details
+                :disabled="uploadingPhoto || saving"
+                @update:model-value="uploadProfilePhoto"
+              />
+            </v-col>
+            <v-col cols="12" class="d-flex">
+              <v-btn
+                type="submit"
+                color="primary"
+                prepend-icon="mdi-content-save-outline"
+                :loading="saving"
+                :disabled="saving || uploadingPhoto"
+              >
+                {{ t('profile.saveChanges') }}
+              </v-btn>
+            </v-col>
+          </v-row>
+        </v-form>
+      </UiCard>
 
-    <UiCard
-      v-if="authSession.profile"
-      variant="tonal"
-      rounded="lg"
-      compact
-      class="mb-4"
-    >
-      <v-form ref="formRef" @submit.prevent="submitProfile">
-        <v-row>
-          <v-col cols="12" sm="6">
-            <v-text-field
-              v-model="form.firstName"
-              :label="t('profile.firstName')"
-              variant="outlined"
-              density="comfortable"
-            />
-          </v-col>
-          <v-col cols="12" sm="6">
-            <v-text-field
-              v-model="form.lastName"
-              :label="t('profile.lastName')"
-              variant="outlined"
-              density="comfortable"
-            />
-          </v-col>
-          <v-col cols="12" class="d-flex flex-wrap align-center ga-3">
-            <v-file-input
-              accept="image/*"
-              :label="t('profile.photo')"
-              prepend-icon="mdi-camera-outline"
-              variant="outlined"
-              density="comfortable"
-              hide-details
-              :disabled="uploadingPhoto || saving"
-              @update:model-value="uploadProfilePhoto"
-            />
-          </v-col>
-          <v-col cols="12" class="d-flex">
-            <v-btn
-              type="submit"
-              color="primary"
-              prepend-icon="mdi-content-save-outline"
-              :loading="saving"
-              :disabled="saving || uploadingPhoto"
-            >
-              {{ t('profile.saveChanges') }}
-            </v-btn>
-          </v-col>
-        </v-row>
-      </v-form>
-    </UiCard>
+      <UiCard
+        v-if="authSession.profile"
+        variant="tonal"
+        rounded="lg"
+        compact
+      >
+        <pre class="text-body-2">{{ authSession.profile }}</pre>
+      </UiCard>
 
-    <UiCard
-      v-if="authSession.profile"
-      variant="tonal"
-      rounded="lg"
-      compact
-    >
-      <pre class="text-body-2">{{ authSession.profile }}</pre>
-    </UiCard>
-
-    <UiStateEmptyState
-      v-else
-      :title="t('profile.tokenHeader')"
-      :description="emptyProfileDescription"
-      icon="mdi-key-outline"
-    />
-  </UiPageSection>
+      <UiStateEmptyState
+        v-else
+        :title="t('profile.tokenHeader')"
+        :description="emptyProfileDescription"
+        icon="mdi-key-outline"
+      />
+    </template>
+  </PlatformSplitLayout>
 </template>
