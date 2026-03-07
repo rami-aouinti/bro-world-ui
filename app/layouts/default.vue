@@ -16,8 +16,15 @@ const { t } = useI18n()
 
 
 
-const excludedSplitShellPaths = new Set(['/','/login','/about','/faq','/contact'])
-const useSplitShell = computed(() => route.meta.splitShell !== false && !excludedSplitShellPaths.has(route.path))
+const excludedSplitShellPaths = new Set(['/', '/login', '/about', '/faq', '/contact'])
+const excludedSplitShellPrefixes = ['/platform', '/profile', '/settings', '/notifications', '/calendar']
+
+const isSplitShellExcluded = computed(() => {
+  if (excludedSplitShellPaths.has(route.path)) return true
+  return excludedSplitShellPrefixes.some((prefix) => route.path === prefix || route.path.startsWith(`${prefix}/`))
+})
+
+const useSplitShell = computed(() => route.meta.splitShell !== false && !isSplitShellExcluded.value)
 
 const routeMessage = computed(() => {
   const key = typeof route.query.message === 'string' ? route.query.message : ''
