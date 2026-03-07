@@ -1,19 +1,26 @@
 <script setup lang="ts">
+import EntityCard from '~/components/platform/cards/EntityCard.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
-import UiListCard from '~/components/ui/UiListCard.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
+import UiSkeletonCardGrid from '~/components/ui/state/UiSkeletonCardGrid.vue'
+import { crmProjects } from '~/data/platform/crm'
 
 definePageMeta({ public: true, requiresAuth: false })
 
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const crmPath = (page: string) => `/platform/${slug.value}/crm/${page}`
+const loading = ref(true)
 
-const projects = [
-  { name: 'Onboarding ERP', stage: 'Kickoff', due: '18/06' },
-  { name: 'Migration CRM', stage: 'En cours', due: '30/06' },
-  { name: 'Campagne Q3', stage: 'Planning', due: '12/07' },
-]
+const projects = computed(() =>
+  [...crmProjects].sort((a, b) => a.dueDate.localeCompare(b.dueDate)),
+)
+
+onMounted(() => {
+  setTimeout(() => {
+    loading.value = false
+  }, 200)
+})
 </script>
 
 <template>
@@ -29,13 +36,18 @@ const projects = [
 
     <template #default>
       <UiSectionHeader title="Projets clients" subtitle="Vue portfolio des déploiements" />
-      <v-row>
-        <v-col v-for="project in projects" :key="project.name" cols="12" md="4">
-          <UiListCard>
-            <p class="text-subtitle-1 font-weight-medium">{{ project.name }}</p>
-            <p class="text-body-2 text-medium-emphasis mb-2">Phase: {{ project.stage }}</p>
-            <v-chip size="small" variant="tonal" color="primary">Échéance {{ project.due }}</v-chip>
-          </UiListCard>
+      <UiSkeletonCardGrid v-if="loading" :cards="4" />
+      <v-row v-else>
+        <v-col v-for="project in projects" :key="project.id" cols="12" md="6" lg="4">
+          <EntityCard
+            :title="project.title"
+            :subtitle="`Compte ${project.companySlug}`"
+            :category="project.category"
+            :status="project.status"
+            :tags="project.tags"
+            date-label="Échéance"
+            :date-value="project.dueDate"
+          />
         </v-col>
       </v-row>
     </template>

@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import EntityCard from '~/components/platform/cards/EntityCard.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
-import UiListCard from '~/components/ui/UiListCard.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
+import UiSkeletonCardGrid from '~/components/ui/state/UiSkeletonCardGrid.vue'
+import { shopCategories, shopProducts } from '~/data/platform/shop'
 
 definePageMeta({ public: true, requiresAuth: false })
 
@@ -9,8 +11,20 @@ const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const shopPath = (page: string) => `/platform/${slug.value}/shop/${page}`
 const { isOwner } = usePlatformApplication(slug)
+const loading = ref(true)
 
-const categories = ['apparel', 'office', 'electronics']
+const categories = computed(() =>
+  shopCategories.map(category => ({
+    ...category,
+    productsCount: shopProducts.filter(product => product.category === category.slug).length,
+  })),
+)
+
+onMounted(() => {
+  setTimeout(() => {
+    loading.value = false
+  }, 220)
+})
 </script>
 
 <template>
@@ -27,12 +41,19 @@ const categories = ['apparel', 'office', 'electronics']
 
     <template #default>
       <UiSectionHeader title="Catalogue produits" subtitle="Parcourir les catégories disponibles" />
-      <v-row>
-        <v-col v-for="category in categories" :key="category" cols="12" md="4">
-          <UiListCard>
-            <p class="text-subtitle-1 font-weight-medium text-capitalize">{{ category }}</p>
-            <v-btn class="mt-2" color="primary" variant="tonal" :to="`/platform/${slug}/shop/${category}/products`">Voir les produits</v-btn>
-          </UiListCard>
+      <UiSkeletonCardGrid v-if="loading" :cards="3" />
+      <v-row v-else>
+        <v-col v-for="category in categories" :key="category.id" cols="12" md="4">
+          <EntityCard
+            :title="category.title"
+            :subtitle="`${category.productsCount} produits`"
+            :category="category.slug"
+            :status="category.status"
+            :tags="category.tags"
+            date-label="Mis à jour"
+            :date-value="category.updatedAt"
+            :to="`/platform/${slug}/shop/${category.slug}/products`"
+          />
         </v-col>
       </v-row>
     </template>

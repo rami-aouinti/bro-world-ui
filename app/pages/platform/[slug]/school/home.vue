@@ -1,13 +1,26 @@
 <script setup lang="ts">
+import ClassCard from '~/components/platform/cards/ClassCard.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
-import UiListCard from '~/components/ui/UiListCard.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
+import UiSkeletonCardGrid from '~/components/ui/state/UiSkeletonCardGrid.vue'
+import { schoolClasses } from '~/data/platform/school'
 
 definePageMeta({ public: true, requiresAuth: false })
 
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const { isOwner } = usePlatformApplication(slug)
+const loading = ref(true)
+
+const sortedClasses = computed(() =>
+  [...schoolClasses].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
+)
+
+onMounted(() => {
+  setTimeout(() => {
+    loading.value = false
+  }, 220)
+})
 </script>
 
 <template>
@@ -23,10 +36,11 @@ const { isOwner } = usePlatformApplication(slug)
 
     <template #default>
       <UiSectionHeader title="Classes" subtitle="Programme en cours" />
-      <v-row>
-        <v-col cols="12" md="4"><UiListCard><p class="font-weight-medium">Classe A</p><p class="text-body-2">24 élèves · Niveau 1</p></UiListCard></v-col>
-        <v-col cols="12" md="4"><UiListCard><p class="font-weight-medium">Classe B</p><p class="text-body-2">19 élèves · Niveau 2</p></UiListCard></v-col>
-        <v-col cols="12" md="4"><UiListCard><p class="font-weight-medium">Classe C</p><p class="text-body-2">21 élèves · Niveau 3</p></UiListCard></v-col>
+      <UiSkeletonCardGrid v-if="loading" :cards="4" />
+      <v-row v-else>
+        <v-col v-for="classItem in sortedClasses" :key="classItem.id" cols="12" md="6" lg="4">
+          <ClassCard :class-item="classItem" />
+        </v-col>
       </v-row>
     </template>
   </PlatformSplitLayout>
