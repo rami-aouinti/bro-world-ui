@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import UiCard from '~/components/ui/UiCard.vue'
-import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 
 definePageMeta({
@@ -46,16 +45,14 @@ const adminModules = computed(() => [
 </script>
 
 <template>
-  <UiPageSection
+  <div class="admin-page-content">
     max-width="1200"
     card
   >
-    <template #header>
       <UiSectionHeader
         :title="t('admin.title')"
         :subtitle="t('admin.description')"
       />
-    </template>
 
     <v-row>
       <v-col
@@ -94,5 +91,5 @@ const adminModules = computed(() => [
         </UiCard>
       </v-col>
     </v-row>
-  </UiPageSection>
+  </div>
 </template>

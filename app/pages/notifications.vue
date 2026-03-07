@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import UiListCard from '~/components/ui/UiListCard.vue'
-import UiPageShell from '~/components/ui/page/UiPageShell.vue'
+import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import UiStateEmptyState from '~/components/ui/state/UiEmptyState.vue'
 import UiStatChip from '~/components/ui/UiStatChip.vue'
 
@@ -65,19 +66,20 @@ const markAllAsRead = () => {
 </script>
 
 <template>
-  <UiPageShell
-    title="Notifications"
-    eyebrow="Centre de notifications"
-    icon="mdi-bell-ring-outline"
-    subtitle="Suivez les activités importantes et gardez votre équipe synchronisée."
-    max-width="1100"
-  >
-    <template #actions>
+  <PlatformSplitLayout>
+    <template #sidebar>
+      <UiSectionHeader
+        title="Notifications"
+        subtitle="Centre de notifications"
+      />
+
+      <p class="text-body-2 text-medium-emphasis mb-3">Suivez les activités importantes et gardez votre équipe synchronisée.</p>
+
       <v-btn
         color="primary"
         variant="outlined"
         prepend-icon="mdi-check-all"
-        class="w-100 w-md-auto"
+        block
         :disabled="!unreadNotifications.length"
         @click="markAllAsRead"
       >
@@ -170,7 +172,7 @@ const markAllAsRead = () => {
         </UiListCard>
       </v-col>
     </v-row>
-  </UiPageShell>
+  </PlatformSplitLayout>
 </template>
 
 <style scoped>
