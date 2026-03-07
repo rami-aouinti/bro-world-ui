@@ -2,7 +2,14 @@ import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 
 const LOCALES_DIR = path.resolve('i18n/locales')
-const REQUIRED_NAMESPACES = ['about', 'contact', 'faq', 'home']
+const REQUIRED_NAMESPACES = [
+  'about',
+  'contact',
+  'faq',
+  'home',
+]
+
+const FALLBACK_SIMULATION_KEYS = ['about.hero.title', 'home.hero.title']
 
 function flattenKeys(value, prefix = '') {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -87,9 +94,7 @@ async function main() {
   const sampleLocaleCode = Object.keys(localeByCode).find((code) => code !== fallbackLocale)
   if (sampleLocaleCode) {
     const sampleLocale = structuredClone(localeByCode[sampleLocaleCode])
-    const samplePaths = ['about.hero.title', 'home.hero.title']
-
-    for (const samplePath of samplePaths) {
+    for (const samplePath of FALLBACK_SIMULATION_KEYS) {
       const pathSegments = samplePath.split('.')
       const leaf = pathSegments.pop()
       const parent = pathSegments.reduce((current, segment) => {
