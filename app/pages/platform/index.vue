@@ -261,114 +261,84 @@ const disableApplication = async () => {
         </aside>
 
         <div class="platform-page__content">
-          <div class="platform-page__grid">
-            <article
-              class="platform-page__card platform-page__card--new"
-              role="button"
-              tabindex="0"
-              @click="goToNewPlatform"
-            >
-              <div class="platform-page__add-icon">
-                <v-icon icon="mdi-earth" />
-              </div>
-              <h2 class="platform-page__new-title">
-                {{ t("platform.newPlatform.worldTitle") }}
-              </h2>
-            </article>
+          <div class="platform-page__toolbar">
+            <h2 class="platform-page__title">{{ t("platform.title") }}</h2>
+            <v-btn color="primary" rounded="pill" @click="goToNewPlatform">
+              {{ t("platform.newPlatform.worldTitle") }}
+            </v-btn>
+          </div>
 
-            <article
-              v-for="card in applicationsStore.items"
-              :key="card.id"
-              class="platform-page__card"
-            >
-              <v-menu v-if="card.isOwner" location="bottom end">
-                <template #activator="{ props }">
-                  <v-btn
-                    class="platform-page__card-dot"
-                    icon="mdi-dots-vertical"
-                    variant="text"
-                    density="compact"
-                    v-bind="props"
-                  />
-                </template>
-
-                <v-list density="compact">
-                  <v-list-item
-                    :title="t('platform.actions.edit')"
-                    @click="openEditModal(card)"
-                  />
-                  <v-list-item
-                    :title="t('platform.actions.delete')"
-                    @click="openDeleteModal(card)"
-                  />
-                </v-list>
-              </v-menu>
-
-              <NuxtLink
-                :to="appHomePath(card)"
-                class="platform-page__card-main-link"
-              >
-                <div class="platform-page__card-top">
-                  <div class="platform-page__card-brand">
-                    <img
-                      :src="card.photo"
-                      :alt="card.title"
-                      class="platform-page__logo"
-                    />
-                    <div class="platform-page__card-heading">
-                      <p class="platform-page__platform-pill text-uppercase">
-                        {{ card.platformKey }}
-                      </p>
-                      <div class="platform-page__card-title-row">
-                        <h3 class="platform-page__card-title">
-                          {{ card.title }}
-                        </h3>
-                        <v-tooltip v-if="card.description" location="top">
-                          <template #activator="{ props }">
-                            <v-btn
-                              icon="mdi-information-outline"
-                              size="x-small"
-                              variant="text"
-                              density="comfortable"
-                              class="platform-page__description-tooltip-trigger"
-                              v-bind="props"
-                            />
-                          </template>
-                          <span>{{ card.description }}</span>
-                        </v-tooltip>
+          <div class="platform-page__table-wrapper">
+            <v-table density="comfortable">
+              <thead>
+                <tr>
+                  <th>{{ t("platform.wizard.fields.title") }}</th>
+                  <th>{{ t("platform.filters.platformKey") }}</th>
+                  <th>{{ t("platform.wizard.fields.active") }}</th>
+                  <th>{{ t("platform.table.owner") }}</th>
+                  <th>{{ t("platform.table.updatedAt") }}</th>
+                  <th class="text-right">{{ t("platform.table.actions") }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="card in applicationsStore.items" :key="card.id">
+                  <td>
+                    <NuxtLink :to="appHomePath(card)" class="platform-page__row-main-link">
+                      <div class="platform-page__row-brand">
+                        <img :src="card.photo" :alt="card.title" class="platform-page__logo" />
+                        <div>
+                          <p class="platform-page__row-title">{{ card.title }}</p>
+                          <p class="platform-page__row-description">
+                            {{ card.description || card.platformName }}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </div>
-              </NuxtLink>
+                    </NuxtLink>
+                  </td>
+                  <td>
+                    <v-chip size="small" variant="tonal" class="text-uppercase">
+                      {{ card.platformKey }}
+                    </v-chip>
+                  </td>
+                  <td>
+                    <v-chip
+                      :color="card.status === 'active' ? 'success' : undefined"
+                      variant="tonal"
+                      size="small"
+                      class="text-capitalize"
+                    >
+                      {{
+                        card.status === "active"
+                          ? t("platform.status.active")
+                          : t("platform.status.inactive")
+                      }}
+                    </v-chip>
+                  </td>
+                  <td>
+                    <UserIdentity
+                      :first-name="card.author?.firstName"
+                      :last-name="card.author?.lastName"
+                      :username="authorUsername(card)"
+                      :photo="card.author?.photo"
+                      :profile-path="authorProfilePath(card)"
+                    />
+                  </td>
+                  <td>{{ formatDate(card.createdAt) }}</td>
+                  <td class="text-right">
+                    <v-menu v-if="card.isOwner" location="bottom end">
+                      <template #activator="{ props }">
+                        <v-btn icon="mdi-dots-vertical" variant="text" density="compact" v-bind="props" />
+                      </template>
 
-              <div class="platform-page__card-meta">
-                <UserIdentity
-                  :first-name="card.author?.firstName"
-                  :last-name="card.author?.lastName"
-                  :username="authorUsername(card)"
-                  :photo="card.author?.photo"
-                  :profile-path="authorProfilePath(card)"
-                />
-                <v-chip
-                  :color="card.status === 'active' ? 'success' : undefined"
-                  variant="tonal"
-                  size="small"
-                  class="text-capitalize"
-                >
-                  {{
-                    card.status === "active"
-                      ? t("platform.status.active")
-                      : t("platform.status.inactive")
-                  }}
-                </v-chip>
-              </div>
-
-              <div class="platform-page__card-footer">
-                <span>{{ card.platformName }}</span>
-                <span>{{ formatDate(card.createdAt) }}</span>
-              </div>
-            </article>
+                      <v-list density="compact">
+                        <v-list-item :title="t('platform.actions.edit')" @click="openEditModal(card)" />
+                        <v-list-item :title="t('platform.actions.delete')" @click="openDeleteModal(card)" />
+                      </v-list>
+                    </v-menu>
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
           </div>
 
           <div class="platform-page__pagination">
@@ -520,173 +490,57 @@ const disableApplication = async () => {
   min-width: 0;
 }
 
-.platform-page__grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--platform-space-4);
-}
-
-.platform-page__card {
-  position: relative;
-  background: linear-gradient(
-    165deg,
-    var(--platform-color-surface) 0%,
-    var(--platform-color-surface-muted) 100%
-  );
-  border-radius: var(--platform-radius-md);
-  border: 1px solid var(--platform-color-border);
-  box-shadow: var(--platform-shadow-sm);
-  padding: 1rem;
-  min-height: 208px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
-}
-
-.platform-page__card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--platform-shadow-md);
-  border-color: color-mix(
-    in srgb,
-    rgb(var(--v-theme-primary)) 28%,
-    var(--platform-color-border)
-  );
-}
-
-.platform-page__card-dot {
-  position: absolute;
-  right: 0.4rem;
-  top: 0.4rem;
-}
-
-.platform-page__card--new {
-  border: 2px dashed var(--platform-color-border-strong);
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  cursor: pointer;
-  background: color-mix(
-    in srgb,
-    rgb(var(--v-theme-primary)) 5%,
-    var(--platform-color-surface)
-  );
-}
-
-.platform-page__add-icon {
-  width: 54px;
-  height: 54px;
-  color: rgb(var(--v-theme-primary));
-  display: grid;
-  place-items: center;
-  font-size: 2.4rem;
-  margin-bottom: var(--platform-space-4);
-}
-
-.platform-page__new-title,
-.platform-page__card-title {
-  line-height: 1.2;
-  font-weight: 700;
-  color: var(--platform-color-text-primary);
-}
-
-.platform-page__new-title {
-  margin-bottom: 0.8rem;
-}
-
-.platform-page__new-description,
-.platform-page__card-description {
-  color: var(--platform-color-text-secondary);
-  line-height: 1.4;
-}
-
-.platform-page__card-main-link {
-  color: inherit;
-  text-decoration: none;
-  display: block;
-  flex: 1;
-}
-
-.platform-page__card-top,
-.platform-page__card-brand,
-.platform-page__card-meta,
-.platform-page__card-footer,
+.platform-page__toolbar,
+.platform-page__row-brand,
 .platform-page__pagination {
   display: flex;
   align-items: center;
 }
 
-.platform-page__card-top,
-.platform-page__card-brand {
+.platform-page__toolbar {
+  justify-content: space-between;
+  margin-bottom: var(--platform-space-3);
   gap: var(--platform-space-3);
 }
 
-.platform-page__card-top {
-  align-items: flex-start;
+.platform-page__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.platform-page__table-wrapper {
+  border: 1px solid var(--platform-color-border);
+  border-radius: var(--platform-radius-md);
+  overflow: hidden;
+  background: var(--platform-color-surface);
 }
 
 .platform-page__logo {
-  width: 48px;
-  height: 48px;
+  width: 42px;
+  height: 42px;
   border-radius: var(--platform-radius-sm);
   object-fit: cover;
   background: var(--platform-color-accent-soft);
 }
 
-.platform-page__card-heading {
-  min-width: 0;
+.platform-page__row-main-link {
+  text-decoration: none;
+  color: inherit;
 }
 
-.platform-page__card-title {
-  font-size: 1.12rem;
-}
-
-.platform-page__platform-pill {
-  display: inline-flex;
-  align-items: center;
-  margin-bottom: var(--platform-space-1);
-  padding: 0.15rem 0.5rem;
-  border-radius: var(--platform-radius-pill);
-  background: color-mix(
-    in srgb,
-    rgb(var(--v-theme-primary)) 11%,
-    var(--platform-color-surface-muted)
-  );
-  color: rgb(var(--v-theme-primary));
-  letter-spacing: 0.04em;
-  font-weight: 700;
-  font-size: 0.68rem;
-}
-
-.platform-page__card-title-row {
-  align-items: center;
-  gap: var(--platform-space-1);
-}
-
-.platform-page__description-tooltip-trigger {
-  color: var(--platform-color-text-tertiary);
-}
-
-.platform-page__card-meta {
-  justify-content: space-between;
-  margin-top: 0.85rem;
+.platform-page__row-brand {
   gap: var(--platform-space-2);
-  padding: 0.55rem 0.65rem;
-  border-radius: var(--platform-radius-sm);
-  border: 1px solid color-mix(in srgb, var(--platform-color-border) 75%, #fff);
-  background: var(--platform-color-surface);
 }
 
-.platform-page__card-footer {
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--platform-color-border);
-  justify-content: space-between;
+.platform-page__row-title {
+  margin: 0;
+  font-weight: 700;
+}
+
+.platform-page__row-description {
+  margin: 0;
   color: var(--platform-color-text-tertiary);
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
 }
 
 .platform-page__pagination {
@@ -723,19 +577,14 @@ const disableApplication = async () => {
   }
 }
 
-@media (max-width: 900px) {
-  .platform-page__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 640px) {
   .platform-page {
     padding: var(--platform-space-4);
   }
 
-  .platform-page__grid {
-    grid-template-columns: 1fr;
+  .platform-page__toolbar {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 </style>
