@@ -332,20 +332,6 @@ const disableApplication = async () => {
                   </div>
                 </div>
 
-                <div class="platform-page__card-footer">
-                  <v-chip
-                      :color="card.private ? 'warning' : 'info'"
-                      variant="tonal"
-                      size="small"
-                      class="text-capitalize"
-                  >
-                    {{ card.private ? "Private" : "Public" }}
-                  </v-chip>
-                  <NuxtLink :to="appHomePath(card)" class="platform-page__open-link">
-                    Open
-                    <v-icon icon="mdi-arrow-right" size="16" />
-                  </NuxtLink>
-                </div>
               </v-card>
             </div>
           </v-card-text>
@@ -505,19 +491,20 @@ const disableApplication = async () => {
   display: flex;
   gap: var(--platform-space-2);
   flex-wrap: wrap;
+  margin-top: calc(var(--platform-space-1) * -1);
 }
 
 .platform-page__card-meta {
   display: flex;
   justify-content: space-between;
-  gap: var(--platform-space-3);
+  gap: var(--platform-space-5);
   padding-top: var(--platform-space-1);
   border-top: 1px solid color-mix(in srgb, var(--platform-color-border) 65%, transparent);
 }
 
 .platform-page__meta-label {
   margin: 0 0 0.2rem;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--platform-color-text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -527,6 +514,7 @@ const disableApplication = async () => {
   margin: 0;
   color: var(--platform-color-text-secondary);
   font-weight: 600;
+  font-size: 0.95rem;
 }
 .platform-page__toolbar {
   justify-content: space-between;
@@ -552,7 +540,7 @@ const disableApplication = async () => {
 .platform-page__cards-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--platform-space-3);
+  gap: var(--platform-space-5);
 }
 
 .platform-page__application-card {
@@ -562,7 +550,7 @@ const disableApplication = async () => {
     color-mix(in srgb, var(--platform-color-surface) 94%, #fff 6%) 0%,
     var(--platform-color-surface) 100%
   );
-  padding: var(--platform-space-2);
+  padding: var(--platform-space-4);
   display: flex;
   flex-direction: column;
   gap: var(--platform-space-3);
@@ -578,7 +566,7 @@ const disableApplication = async () => {
 
 .platform-page__cover {
   width: 100%;
-  height: 170px;
+  height: 118px;
   border-radius: calc(var(--platform-radius-md) - 2px);
   object-fit: cover;
   background: var(--platform-color-accent-soft);
@@ -592,7 +580,7 @@ const disableApplication = async () => {
 
 .platform-page__row-brand {
   display: grid;
-  gap: var(--platform-space-3);
+  gap: var(--platform-space-2);
 }
 
 .platform-page__headline {
@@ -603,36 +591,20 @@ const disableApplication = async () => {
 .platform-page__row-title {
   margin: 0;
   font-weight: 700;
-  font-size: 1.55rem;
+  font-size: 1.2rem;
   line-height: 1.2;
   color: color-mix(in srgb, var(--platform-color-primary) 24%, var(--platform-color-text-primary));
 }
 
 .platform-page__row-description {
-  margin: var(--platform-space-2) 0 0;
+  margin: var(--platform-space-1) 0 0;
   color: var(--platform-color-text-tertiary);
-  font-size: 1rem;
-  line-height: 1.5;
-}
-
-.platform-page__card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--platform-space-2);
-}
-
-.platform-page__open-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  text-decoration: none;
-  color: var(--platform-color-primary);
-  font-weight: 600;
-}
-
-.platform-page__open-link:hover {
-  text-decoration: underline;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .platform-page__pagination {
@@ -692,7 +664,7 @@ const disableApplication = async () => {
   }
 
   .platform-page__row-title {
-    font-size: 1.3rem;
+    font-size: 1.05rem;
   }
 }
 </style>
