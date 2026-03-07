@@ -63,78 +63,81 @@
     }
   },
   "home": {
-    "title": "Welcome to Bro World",
-    "description": "Nuxt 4 project configured with Vuetify and the Material Dashboard style.",
-    "cta": {
-      "title": "Ready to align your teams and scale execution?",
-      "description": "Start with a guided setup and see how Bro World streamlines your daily operations.",
-      "primaryAction": "Launch my workspace",
-      "secondaryAction": "Talk to sales"
-    },
-    "featuresTitle": "Core features",
-    "metricsTitle": "Impact metrics",
-    "stepsTitle": "Onboarding in 3 steps",
-    "stepLabel": "Step {index}",
     "hero": {
-      "badge": "Operations cockpit",
-      "title": "Orchestrate teams, tools, and workflows from one place",
-      "subtitle": "Bro World gives your teams a shared command center to align priorities, monitor execution, and move faster with confidence.",
-      "primaryCta": "Start free trial",
-      "secondaryCta": "Book a demo",
-      "benefits": [
-        "Single workspace for product, ops, and support.",
-        "Faster decisions with real-time visibility.",
-        "Role-based governance ready for scale."
-      ]
+      "badge": "مركز العمليات",
+      "title": "نسّق الفرق والأدوات وسير العمل من مكان واحد",
+      "subtitle": "يوفّر Bro World مركز قيادة مشتركًا لفرقك لمواءمة الأولويات ومتابعة التنفيذ والتقدّم بسرعة وثقة.",
+      "bullets": [
+        "مساحة واحدة موحّدة للمنتج والعمليات والدعم.",
+        "قرارات أسرع بفضل الرؤية اللحظية.",
+        "حوكمة قائمة على الأدوار وجاهزة للتوسّع."
+      ],
+      "primaryCta": "ابدأ تجربة مجانية",
+      "secondaryCta": "احجز عرضًا توضيحيًا"
     },
-    "featureCards": [
+    "featuresTitle": "الميزات الأساسية",
+    "features": [
       {
-        "icon": "mdi-view-dashboard-outline",
-        "title": "Unified workspace",
-        "description": "Track projects, tickets, and priorities in one collaborative view."
+        "title": "مساحة عمل موحّدة",
+        "description": "تابع المشاريع والتذاكر والأولويات ضمن عرض تعاوني واحد.",
+        "icon": "mdi-view-dashboard-outline"
       },
       {
-        "icon": "mdi-lightning-bolt-outline",
-        "title": "Workflow automation",
-        "description": "Automate repetitive tasks and handoffs with configurable rules."
+        "title": "أتمتة سير العمل",
+        "description": "أتمت المهام المتكررة وعمليات التسليم بقواعد قابلة للتهيئة.",
+        "icon": "mdi-lightning-bolt-outline"
       },
       {
-        "icon": "mdi-shield-check-outline",
-        "title": "Secure by default",
-        "description": "Control access with granular permissions and full activity traceability."
+        "title": "أمان افتراضي",
+        "description": "تحكّم في الوصول عبر صلاحيات دقيقة وتتبع كامل للنشاط.",
+        "icon": "mdi-shield-check-outline"
       }
     ],
+    "metricsTitle": "مؤشرات الأثر",
     "metrics": [
       {
-        "value": "42%",
-        "label": "faster cross-team delivery cycles"
+        "value": "42٪",
+        "label": "تسريع دورات التسليم بين الفرق",
+        "context": "تم قياسه بعد توحيد استقبال المشاريع وعمليات التسليم بين الفرق.",
+        "icon": "mdi-chart-line"
       },
       {
-        "value": "99.95%",
-        "label": "average platform availability"
+        "value": "99.95٪",
+        "label": "متوسط توافر المنصة",
+        "context": "لوحظ خلال آخر 12 شهرًا على بيئات الإنتاج.",
+        "icon": "mdi-server-network"
       },
       {
         "value": "4.8/5",
-        "label": "customer satisfaction score"
+        "label": "معدل رضا العملاء",
+        "context": "استنادًا إلى استطلاعات ما بعد الحل والمراجعات الفصلية.",
+        "icon": "mdi-star-circle-outline"
       }
     ],
+    "stepsTitle": "البدء في 3 خطوات",
     "steps": [
       {
-        "icon": "mdi-account-plus-outline",
-        "title": "Create your workspace",
-        "description": "Set up your team spaces, roles, and core workflows in minutes."
+        "title": "أنشئ مساحة عملك",
+        "description": "اضبط الفرق والأدوار وسير العمل الأساسي خلال دقائق.",
+        "icon": "mdi-account-plus-outline"
       },
       {
-        "icon": "mdi-link-variant",
-        "title": "Connect your tools",
-        "description": "Link your existing stack to centralize data and avoid context switching."
+        "title": "اربط أدواتك",
+        "description": "صل أدواتك الحالية لتوحيد البيانات وتقليل تبديل السياق.",
+        "icon": "mdi-link-variant"
       },
       {
-        "icon": "mdi-rocket-launch-outline",
-        "title": "Launch and optimize",
-        "description": "Deploy your first process, monitor outcomes, and iterate continuously."
+        "title": "أطلق وحسّن",
+        "description": "شغّل أول عملية لديك، راقب النتائج، وكرّر التحسين باستمرار.",
+        "icon": "mdi-rocket-launch-outline"
       }
-    ]
+    ],
+    "cta": {
+      "title": "جاهز لمواءمة فرقك وتوسيع التنفيذ؟",
+      "description": "ابدأ بإعداد موجّه واكتشف كيف يبسّط Bro World عملياتك اليومية.",
+      "primaryAction": "ابدأ مساحة عملي",
+      "secondaryAction": "تواصل مع المبيعات"
+    }
   },
   "admin": {
     "title": "Administration area",

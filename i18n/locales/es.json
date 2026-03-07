@@ -63,78 +63,81 @@
     }
   },
   "home": {
-    "title": "Welcome to Bro World",
-    "description": "Nuxt 4 project configured with Vuetify and the Material Dashboard style.",
-    "cta": {
-      "title": "Ready to align your teams and scale execution?",
-      "description": "Start with a guided setup and see how Bro World streamlines your daily operations.",
-      "primaryAction": "Launch my workspace",
-      "secondaryAction": "Talk to sales"
-    },
-    "featuresTitle": "Core features",
-    "metricsTitle": "Impact metrics",
-    "stepsTitle": "Onboarding in 3 steps",
-    "stepLabel": "Step {index}",
     "hero": {
-      "badge": "Operations cockpit",
-      "title": "Orchestrate teams, tools, and workflows from one place",
-      "subtitle": "Bro World gives your teams a shared command center to align priorities, monitor execution, and move faster with confidence.",
-      "primaryCta": "Start free trial",
-      "secondaryCta": "Book a demo",
-      "benefits": [
-        "Single workspace for product, ops, and support.",
-        "Faster decisions with real-time visibility.",
-        "Role-based governance ready for scale."
-      ]
+      "badge": "Centro de operaciones",
+      "title": "Orquesta equipos, herramientas y flujos desde un solo lugar",
+      "subtitle": "Bro World ofrece a tus equipos un centro de mando compartido para alinear prioridades, supervisar la ejecución y avanzar más rápido con confianza.",
+      "bullets": [
+        "Un único espacio para producto, operaciones y soporte.",
+        "Decisiones más rápidas con visibilidad en tiempo real.",
+        "Gobernanza por roles preparada para escalar."
+      ],
+      "primaryCta": "Iniciar prueba gratis",
+      "secondaryCta": "Solicitar una demo"
     },
-    "featureCards": [
+    "featuresTitle": "Funciones principales",
+    "features": [
       {
-        "icon": "mdi-view-dashboard-outline",
-        "title": "Unified workspace",
-        "description": "Track projects, tickets, and priorities in one collaborative view."
+        "title": "Espacio unificado",
+        "description": "Sigue proyectos, tickets y prioridades en una vista colaborativa.",
+        "icon": "mdi-view-dashboard-outline"
       },
       {
-        "icon": "mdi-lightning-bolt-outline",
-        "title": "Workflow automation",
-        "description": "Automate repetitive tasks and handoffs with configurable rules."
+        "title": "Automatización de flujos",
+        "description": "Automatiza tareas repetitivas y transferencias con reglas configurables.",
+        "icon": "mdi-lightning-bolt-outline"
       },
       {
-        "icon": "mdi-shield-check-outline",
-        "title": "Secure by default",
-        "description": "Control access with granular permissions and full activity traceability."
+        "title": "Seguro por defecto",
+        "description": "Controla accesos con permisos granulares y trazabilidad completa.",
+        "icon": "mdi-shield-check-outline"
       }
     ],
+    "metricsTitle": "Métricas de impacto",
     "metrics": [
       {
-        "value": "42%",
-        "label": "faster cross-team delivery cycles"
+        "value": "42 %",
+        "label": "de mejora en ciclos de entrega entre equipos",
+        "context": "Medido tras estandarizar la entrada de proyectos y los handoffs.",
+        "icon": "mdi-chart-line"
       },
       {
-        "value": "99.95%",
-        "label": "average platform availability"
+        "value": "99,95 %",
+        "label": "de disponibilidad media de la plataforma",
+        "context": "Observado durante los últimos 12 meses en producción.",
+        "icon": "mdi-server-network"
       },
       {
-        "value": "4.8/5",
-        "label": "customer satisfaction score"
+        "value": "4,8/5",
+        "label": "de satisfacción de clientes",
+        "context": "Basado en encuestas posteriores a resolución y revisiones trimestrales.",
+        "icon": "mdi-star-circle-outline"
       }
     ],
+    "stepsTitle": "Implementación en 3 pasos",
     "steps": [
       {
-        "icon": "mdi-account-plus-outline",
-        "title": "Create your workspace",
-        "description": "Set up your team spaces, roles, and core workflows in minutes."
+        "title": "Crea tu espacio",
+        "description": "Configura equipos, roles y flujos clave en pocos minutos.",
+        "icon": "mdi-account-plus-outline"
       },
       {
-        "icon": "mdi-link-variant",
-        "title": "Connect your tools",
-        "description": "Link your existing stack to centralize data and avoid context switching."
+        "title": "Conecta tus herramientas",
+        "description": "Integra tu stack actual para centralizar datos y reducir cambios de contexto.",
+        "icon": "mdi-link-variant"
       },
       {
-        "icon": "mdi-rocket-launch-outline",
-        "title": "Launch and optimize",
-        "description": "Deploy your first process, monitor outcomes, and iterate continuously."
+        "title": "Lanza y optimiza",
+        "description": "Despliega tu primer proceso, mide resultados e itera continuamente.",
+        "icon": "mdi-rocket-launch-outline"
       }
-    ]
+    ],
+    "cta": {
+      "title": "¿Listo para alinear equipos y escalar la ejecución?",
+      "description": "Empieza con una implementación guiada y descubre cómo Bro World simplifica tus operaciones diarias.",
+      "primaryAction": "Lanzar mi espacio",
+      "secondaryAction": "Hablar con ventas"
+    }
   },
   "admin": {
     "title": "Administration area",

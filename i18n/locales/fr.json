@@ -63,78 +63,81 @@
     }
   },
   "home": {
-    "title": "Bienvenue sur Bro World",
-    "description": "Projet Nuxt 4 configuré avec Vuetify et le style Material Dashboard.",
+    "hero": {
+      "badge": "Cockpit opérationnel",
+      "title": "Orchestrez équipes, outils et workflows depuis un seul espace",
+      "subtitle": "Bro World offre à vos équipes un centre de pilotage partagé pour aligner les priorités, suivre l’exécution et avancer plus vite avec confiance.",
+      "bullets": [
+        "Un espace unique pour le produit, les opérations et le support.",
+        "Des décisions plus rapides grâce à la visibilité en temps réel.",
+        "Une gouvernance par rôles prête à l’échelle."
+      ],
+      "primaryCta": "Essayer gratuitement",
+      "secondaryCta": "Demander une démo"
+    },
+    "featuresTitle": "Fonctionnalités clés",
+    "features": [
+      {
+        "title": "Espace unifié",
+        "description": "Suivez projets, tickets et priorités dans une vue collaborative unique.",
+        "icon": "mdi-view-dashboard-outline"
+      },
+      {
+        "title": "Automatisation des workflows",
+        "description": "Automatisez les tâches répétitives et les transferts avec des règles configurables.",
+        "icon": "mdi-lightning-bolt-outline"
+      },
+      {
+        "title": "Sécurité native",
+        "description": "Contrôlez les accès avec des permissions granulaires et une traçabilité complète.",
+        "icon": "mdi-shield-check-outline"
+      }
+    ],
+    "metricsTitle": "Indicateurs d’impact",
+    "metrics": [
+      {
+        "value": "42 %",
+        "label": "d’accélération des cycles de livraison inter-équipes",
+        "context": "Mesuré après la standardisation de l’entrée des demandes et des handoffs.",
+        "icon": "mdi-chart-line"
+      },
+      {
+        "value": "99,95 %",
+        "label": "de disponibilité moyenne de la plateforme",
+        "context": "Constaté sur les 12 derniers mois en environnement de production.",
+        "icon": "mdi-server-network"
+      },
+      {
+        "value": "4,8/5",
+        "label": "de satisfaction client",
+        "context": "Basé sur les enquêtes post-résolution et les bilans trimestriels.",
+        "icon": "mdi-star-circle-outline"
+      }
+    ],
+    "stepsTitle": "Onboarding en 3 étapes",
+    "steps": [
+      {
+        "title": "Créez votre espace",
+        "description": "Configurez vos équipes, rôles et workflows essentiels en quelques minutes.",
+        "icon": "mdi-account-plus-outline"
+      },
+      {
+        "title": "Connectez vos outils",
+        "description": "Reliez votre stack existante pour centraliser les données et limiter les changements de contexte.",
+        "icon": "mdi-link-variant"
+      },
+      {
+        "title": "Lancez et optimisez",
+        "description": "Déployez votre premier processus, mesurez les résultats et itérez en continu.",
+        "icon": "mdi-rocket-launch-outline"
+      }
+    ],
     "cta": {
       "title": "Prêt à aligner vos équipes et accélérer l’exécution ?",
       "description": "Démarrez avec un accompagnement guidé et découvrez comment Bro World fluidifie vos opérations quotidiennes.",
       "primaryAction": "Lancer mon espace",
       "secondaryAction": "Contacter les ventes"
-    },
-    "featuresTitle": "Fonctionnalités clés",
-    "metricsTitle": "Indicateurs d’impact",
-    "stepsTitle": "Onboarding en 3 étapes",
-    "stepLabel": "Étape {index}",
-    "hero": {
-      "badge": "Cockpit opérationnel",
-      "title": "Orchestrez équipes, outils et workflows depuis un seul espace",
-      "subtitle": "Bro World offre à vos équipes un centre de pilotage partagé pour aligner les priorités, suivre l’exécution et avancer plus vite avec confiance.",
-      "primaryCta": "Essayer gratuitement",
-      "secondaryCta": "Demander une démo",
-      "benefits": [
-        "Un espace unique pour produit, opérations et support.",
-        "Des décisions plus rapides grâce à la visibilité en temps réel.",
-        "Une gouvernance par rôles prête à l’échelle."
-      ]
-    },
-    "featureCards": [
-      {
-        "icon": "mdi-view-dashboard-outline",
-        "title": "Espace unifié",
-        "description": "Suivez projets, tickets et priorités dans une vue collaborative unique."
-      },
-      {
-        "icon": "mdi-lightning-bolt-outline",
-        "title": "Automatisation des workflows",
-        "description": "Automatisez les tâches répétitives et les handoffs avec des règles configurables."
-      },
-      {
-        "icon": "mdi-shield-check-outline",
-        "title": "Sécurité native",
-        "description": "Contrôlez les accès avec des permissions granulaires et une traçabilité complète."
-      }
-    ],
-    "metrics": [
-      {
-        "value": "42 %",
-        "label": "de gain sur les cycles de livraison inter-équipes"
-      },
-      {
-        "value": "99,95 %",
-        "label": "de disponibilité moyenne de la plateforme"
-      },
-      {
-        "value": "4,8/5",
-        "label": "de satisfaction client"
-      }
-    ],
-    "steps": [
-      {
-        "icon": "mdi-account-plus-outline",
-        "title": "Créez votre espace",
-        "description": "Configurez vos équipes, rôles et workflows essentiels en quelques minutes."
-      },
-      {
-        "icon": "mdi-link-variant",
-        "title": "Connectez vos outils",
-        "description": "Reliez votre stack existante pour centraliser les données et limiter les changements de contexte."
-      },
-      {
-        "icon": "mdi-rocket-launch-outline",
-        "title": "Lancez et optimisez",
-        "description": "Déployez votre premier processus, mesurez les résultats et itérez en continu."
-      }
-    ]
+    }
   },
   "admin": {
     "title": "Espace administration",
