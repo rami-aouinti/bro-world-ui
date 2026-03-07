@@ -13,11 +13,12 @@ definePageMeta({
   layout: 'admin',
   middleware: ['role'],
   requiredPermissions: ['admin.access'],
+  skeleton: 'data-table',
 })
 
 const apiKeysStore = useApiKeysStore()
 const { t } = useI18n()
-const loading = ref(false)
+const loading = computed(() => apiKeysStore.isLoading)
 const submitting = ref(false)
 const errorMessage = ref('')
 const apiKeys = ref<ApiKey[]>([])
@@ -63,7 +64,6 @@ const tableItems = computed(() => apiKeys.value.map(key => ({
 const formTitle = computed(() => (formMode.value === 'create' ? t('admin.apiKeys.form.createTitle') : formMode.value === 'edit' ? t('admin.apiKeys.form.editTitle') : t('admin.apiKeys.form.patchTitle')))
 
 const fetchApiKeys = async () => {
-  loading.value = true
   errorMessage.value = ''
 
   try {
@@ -71,9 +71,6 @@ const fetchApiKeys = async () => {
   }
   catch {
     errorMessage.value = t('admin.apiKeys.errors.load', { version: selectedVersion.value })
-  }
-  finally {
-    loading.value = false
   }
 }
 

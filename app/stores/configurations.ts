@@ -12,16 +12,24 @@ export const useConfigurationsStore = defineStore('configurations', () => {
   const configurationsApi = useConfigurationApi()
   const items = ref<ConfigurationRead[]>([])
   const count = ref<number | null>(null)
+  const isLoading = ref(false)
 
   const fetchAll = async () => {
-    const [listResponse, countResponse] = await Promise.all([
-      configurationsApi.list({ limit: 200 }),
-      configurationsApi.count(),
-    ])
+    isLoading.value = true
 
-    items.value = Array.isArray(listResponse) ? listResponse : (listResponse.results ?? [])
-    count.value = countResponse.count
-    return items.value
+    try {
+      const [listResponse, countResponse] = await Promise.all([
+        configurationsApi.list({ limit: 200 }),
+        configurationsApi.count(),
+      ])
+
+      items.value = Array.isArray(listResponse) ? listResponse : (listResponse.results ?? [])
+      count.value = countResponse.count
+      return items.value
+    }
+    finally {
+      isLoading.value = false
+    }
   }
 
   const create = async (payload: CreateConfigurationPayload) => {
@@ -50,6 +58,7 @@ export const useConfigurationsStore = defineStore('configurations', () => {
   return {
     items,
     count,
+    isLoading,
     fetchAll,
     create,
     update,

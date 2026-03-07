@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import UserIdentity from '~/components/UserIdentity.vue'
+import UiPageShell from '~/components/ui/page/UiPageShell.vue'
 
 definePageMeta({
   public: true,
   requiresAuth: false,
+  skeleton: 'card-grid',
 })
 
 const { t } = useI18n({ useScope: 'global' })
@@ -22,6 +24,8 @@ const platformKeyOptions = ['crm', 'recruit', 'school', 'shop'] as const
 
 await initSession()
 await useAsyncData('platform-applications', () => applicationsStore.fetch({ limit: 5 }))
+
+const isEmpty = computed(() => !applicationsStore.isLoading && applicationsStore.items.length === 0)
 
 const goToNewPlatform = () => {
   if (isAuthenticated.value) {
@@ -161,6 +165,16 @@ const disableApplication = async () => {
 </script>
 
 <template>
+  <UiPageShell
+    :title="t('platform.filters.title')"
+    subtitle=""
+    :loading="applicationsStore.isLoading"
+    skeleton="card-grid"
+    :empty="isEmpty"
+    :empty-title="t('platform.title')"
+    :empty-description="t('platform.filters.clear')"
+    max-width="100%"
+  >
   <section class="platform-page">
     <div class="platform-page__layout">
       <aside class="platform-page__sidebar">
@@ -330,6 +344,7 @@ const disableApplication = async () => {
       <v-icon icon="mdi-format-list-bulleted" size="22" />
     </button>
   </section>
+  </UiPageShell>
 </template>
 
 <style scoped>

@@ -13,11 +13,12 @@ definePageMeta({
   layout: 'admin',
   middleware: ['role'],
   requiredPermissions: ['admin.access'],
+  skeleton: 'data-table',
 })
 
 const userGroupsStore = useUserGroupsStore()
 const { t } = useI18n()
-const loading = ref(false)
+const loading = computed(() => userGroupsStore.isLoading)
 const submitting = ref(false)
 const errorMessage = ref('')
 const userGroups = ref<UserGroup[]>([])
@@ -39,7 +40,6 @@ const headers = computed(() => [
 const formTitle = computed(() => (formMode.value === 'create' ? t('admin.userGroups.form.createTitle') : formMode.value === 'edit' ? t('admin.userGroups.form.editTitle') : t('admin.userGroups.form.patchTitle')))
 
 const fetchUserGroups = async () => {
-  loading.value = true
   errorMessage.value = ''
 
   try {
@@ -47,9 +47,6 @@ const fetchUserGroups = async () => {
   }
   catch {
     errorMessage.value = t('admin.userGroups.errors.load')
-  }
-  finally {
-    loading.value = false
   }
 }
 

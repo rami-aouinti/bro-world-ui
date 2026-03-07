@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import UiPageSection from '~/components/ui/UiPageSection.vue'
-import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
+import UiPageShell from '~/components/ui/page/UiPageShell.vue'
 import UiStateAlert from '~/components/ui/state/UiStateAlert.vue'
 import { ref } from 'vue'
 
@@ -9,6 +8,7 @@ definePageMeta({
   public: true,
   requiresAuth: false,
   middleware: ['guest-only'],
+  skeleton: 'form',
 })
 
 const route = useRoute()
@@ -19,6 +19,7 @@ const usernameOrEmail = ref('')
 const password = ref('')
 const loading = ref(false)
 const errorMessage = ref('')
+
 
 const resolveRedirectTarget = () => {
   const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : ''
@@ -59,16 +60,14 @@ const submit = async () => {
 </script>
 
 <template>
-  <UiPageSection
+  <UiPageShell
+    :title="t('login.title')"
+    :subtitle="t('login.description')"
     max-width="520"
+    :loading="loading"
+    skeleton="form"
+    :empty="false"
   >
-    <template #header>
-      <UiSectionHeader
-        :title="t('login.title')"
-        :subtitle="t('login.description')"
-        dense
-      />
-    </template>
     <UiStateAlert
       v-if="errorMessage"
       type="error"
@@ -104,5 +103,5 @@ const submit = async () => {
         {{ t('login.submit') }}
       </v-btn>
     </v-form>
-  </UiPageSection>
+  </UiPageShell>
 </template>

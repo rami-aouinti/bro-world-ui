@@ -13,12 +13,13 @@ definePageMeta({
   layout: 'admin',
   middleware: ['role'],
   requiredPermissions: ['platform.readList'],
+  skeleton: 'data-table',
 })
 
 const platformsStore = usePlatformsStore()
 const { t } = useI18n()
 const { canPermission } = useAccessControl()
-const loading = ref(false)
+const loading = computed(() => platformsStore.isLoading)
 const submitting = ref(false)
 const errorMessage = ref('')
 const platforms = ref<PlatformRead[]>([])
@@ -62,7 +63,6 @@ const formTitle = computed(() => {
 })
 
 const fetchPlatforms = async () => {
-  loading.value = true
   errorMessage.value = ''
 
   try {
@@ -70,9 +70,6 @@ const fetchPlatforms = async () => {
   }
   catch {
     errorMessage.value = 'Impossible de charger les plateformes.'
-  }
-  finally {
-    loading.value = false
   }
 }
 

@@ -17,12 +17,13 @@ definePageMeta({
   layout: 'admin',
   middleware: ['role'],
   requiredPermissions: ['configuration.readList'],
+  skeleton: 'data-table',
 })
 
 const configurationsStore = useConfigurationsStore()
 const { t } = useI18n()
 const { canPermission } = useAccessControl()
-const loading = ref(false)
+const loading = computed(() => configurationsStore.isLoading)
 const submitting = ref(false)
 const errorMessage = ref('')
 const configurations = ref<ConfigurationRead[]>([])
@@ -72,7 +73,6 @@ const formTitle = computed(() => {
 })
 
 const fetchConfigurations = async () => {
-  loading.value = true
   errorMessage.value = ''
 
   try {
@@ -80,9 +80,6 @@ const fetchConfigurations = async () => {
   }
   catch {
     errorMessage.value = 'Impossible de charger les configurations.'
-  }
-  finally {
-    loading.value = false
   }
 }
 

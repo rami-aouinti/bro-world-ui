@@ -7,16 +7,24 @@ export const useRolesStore = defineStore('roles', () => {
   const rolesApi = useRolesApi()
   const items = ref<Role[]>([])
   const count = ref<number | null>(null)
+  const isLoading = ref(false)
 
   const fetchAll = async () => {
-    const [listResponse, countResponse] = await Promise.all([
-      rolesApi.list({ limit: 200 }),
-      rolesApi.count(),
-    ])
+    isLoading.value = true
 
-    items.value = Array.isArray(listResponse) ? listResponse : (listResponse.results ?? [])
-    count.value = countResponse.count
-    return items.value
+    try {
+      const [listResponse, countResponse] = await Promise.all([
+        rolesApi.list({ limit: 200 }),
+        rolesApi.count(),
+      ])
+
+      items.value = Array.isArray(listResponse) ? listResponse : (listResponse.results ?? [])
+      count.value = countResponse.count
+      return items.value
+    }
+    finally {
+      isLoading.value = false
+    }
   }
 
   const create = async (payload: CreateRolePayload) => {
@@ -45,6 +53,7 @@ export const useRolesStore = defineStore('roles', () => {
   return {
     items,
     count,
+    isLoading,
     fetchAll,
     create,
     update,

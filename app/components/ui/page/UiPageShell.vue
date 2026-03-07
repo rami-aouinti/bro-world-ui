@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import UiStateEmptyState from '~/components/ui/state/UiEmptyState.vue'
+import UiSkeletonCardGrid from '~/components/ui/state/UiSkeletonCardGrid.vue'
+import UiSkeletonDataTable from '~/components/ui/state/UiSkeletonDataTable.vue'
+import UiSkeletonForm from '~/components/ui/state/UiSkeletonForm.vue'
 
 interface Props {
   title: string
@@ -8,6 +11,8 @@ interface Props {
   icon?: string
   maxWidth?: string | number
   empty?: boolean
+  loading?: boolean
+  skeleton?: string
   emptyTitle?: string
   emptyDescription?: string
   emptyIcon?: string
@@ -19,9 +24,24 @@ const props = withDefaults(defineProps<Props>(), {
   icon: '',
   maxWidth: 1200,
   empty: false,
+  loading: false,
+  skeleton: '',
   emptyTitle: '',
   emptyDescription: '',
   emptyIcon: 'mdi-information-outline',
+})
+
+const route = useRoute()
+
+const skeletonComponents: Record<string, unknown> = {
+  'card-grid': UiSkeletonCardGrid,
+  'data-table': UiSkeletonDataTable,
+  form: UiSkeletonForm,
+}
+
+const resolvedSkeleton = computed(() => {
+  const skeletonKey = props.skeleton || (typeof route.meta?.skeleton === 'string' ? route.meta.skeleton : '')
+  return skeletonComponents[skeletonKey] ?? UiSkeletonForm
 })
 </script>
 
@@ -46,8 +66,10 @@ const props = withDefaults(defineProps<Props>(), {
       </div>
     </v-card>
 
+    <component :is="resolvedSkeleton" v-if="props.loading" class="ui-page-shell__loading" />
+
     <UiStateEmptyState
-      v-if="props.empty"
+      v-else-if="props.empty"
       :title="props.emptyTitle || props.title"
       :description="props.emptyDescription"
       :icon="props.emptyIcon"
@@ -79,6 +101,12 @@ const props = withDefaults(defineProps<Props>(), {
   border: 1px dashed rgba(var(--v-theme-on-surface), 0.2);
   border-radius: 16px;
   background: rgba(var(--v-theme-surface-variant), 0.25);
+}
+
+.ui-page-shell__loading {
+  border: 1px dashed rgba(var(--v-theme-on-surface), 0.12);
+  border-radius: 16px;
+  padding: 1rem;
 }
 
 @media (min-width: 960px) {

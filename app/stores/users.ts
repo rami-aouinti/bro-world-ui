@@ -8,16 +8,24 @@ export const useUsersStore = defineStore('users', () => {
   const usersApi = useUsersApi()
   const items = ref<UserRead[]>([])
   const relations = ref<Record<string, { roles: string[]; groups: UserGroup[] }>>({})
+  const isLoading = ref(false)
 
   const fetchAll = async () => {
-    items.value = await usersApi.list({ limit: 200 })
+    isLoading.value = true
 
-    const activeIds = new Set(items.value.map(user => user.id))
-    relations.value = Object.fromEntries(
-      Object.entries(relations.value).filter(([id]) => activeIds.has(id)),
-    )
+    try {
+      items.value = await usersApi.list({ limit: 200 })
 
-    return items.value
+      const activeIds = new Set(items.value.map(user => user.id))
+      relations.value = Object.fromEntries(
+        Object.entries(relations.value).filter(([id]) => activeIds.has(id)),
+      )
+
+      return items.value
+    }
+    finally {
+      isLoading.value = false
+    }
   }
 
   const fetchRelations = async (userIds?: UUID[]) => {
@@ -75,6 +83,7 @@ export const useUsersStore = defineStore('users', () => {
   return {
     items,
     relations,
+    isLoading,
     fetchAll,
     fetchRelations,
     create,

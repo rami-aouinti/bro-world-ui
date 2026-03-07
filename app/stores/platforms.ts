@@ -12,16 +12,24 @@ export const usePlatformsStore = defineStore('platforms', () => {
   const platformsApi = usePlatformsApi()
   const items = ref<PlatformRead[]>([])
   const count = ref<number | null>(null)
+  const isLoading = ref(false)
 
   const fetchAll = async () => {
-    const [listResponse, countResponse] = await Promise.all([
-      platformsApi.list({ limit: 200 }),
-      platformsApi.count(),
-    ])
+    isLoading.value = true
 
-    items.value = Array.isArray(listResponse) ? listResponse : (listResponse.results ?? [])
-    count.value = countResponse.count
-    return items.value
+    try {
+      const [listResponse, countResponse] = await Promise.all([
+        platformsApi.list({ limit: 200 }),
+        platformsApi.count(),
+      ])
+
+      items.value = Array.isArray(listResponse) ? listResponse : (listResponse.results ?? [])
+      count.value = countResponse.count
+      return items.value
+    }
+    finally {
+      isLoading.value = false
+    }
   }
 
   const create = async (payload: CreatePlatformPayload) => {
@@ -50,6 +58,7 @@ export const usePlatformsStore = defineStore('platforms', () => {
   return {
     items,
     count,
+    isLoading,
     fetchAll,
     create,
     update,

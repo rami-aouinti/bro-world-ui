@@ -13,12 +13,13 @@ definePageMeta({
   layout: 'admin',
   middleware: ['role'],
   requiredPermissions: ['plugin.readList'],
+  skeleton: 'data-table',
 })
 
 const pluginsStore = usePluginsStore()
 const { t } = useI18n()
 const { canPermission } = useAccessControl()
-const loading = ref(false)
+const loading = computed(() => pluginsStore.isLoading)
 const submitting = ref(false)
 const errorMessage = ref('')
 const plugins = ref<PluginRead[]>([])
@@ -60,7 +61,6 @@ const formTitle = computed(() => {
 })
 
 const fetchPlugins = async () => {
-  loading.value = true
   errorMessage.value = ''
 
   try {
@@ -68,9 +68,6 @@ const fetchPlugins = async () => {
   }
   catch {
     errorMessage.value = 'Impossible de charger les plugins.'
-  }
-  finally {
-    loading.value = false
   }
 }
 
