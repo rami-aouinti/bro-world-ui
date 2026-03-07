@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import UserIdentity from "~/components/UserIdentity.vue";
-import UiPageShell from "~/components/ui/page/UiPageShell.vue";
+import UiPageSection from "~/components/ui/UiPageSection.vue";
+import UiEmptyState from "~/components/ui/state/UiEmptyState.vue";
+import UiSkeletonCardGrid from "~/components/ui/state/UiSkeletonCardGrid.vue";
 
 definePageMeta({
   public: true,
@@ -183,20 +185,27 @@ const disableApplication = async () => {
 </script>
 
 <template>
-  <UiPageShell
-    :title="t('platform.filters.title')"
-    subtitle=""
-    :loading="loading"
-    skeleton="card-grid"
-    :empty="isEmpty"
-    :empty-title="t('platform.title')"
-    :empty-description="t('platform.filters.clear')"
-    max-width="100%"
-  >
+  <UiPageSection max-width="100%">
     <section class="platform-page">
-      <div class="platform-page__layout">
+      <UiSkeletonCardGrid v-if="loading" class="platform-page__state" />
+
+      <UiEmptyState
+        v-else-if="isEmpty"
+        :title="t('platform.title')"
+        :description="t('platform.filters.clear')"
+        icon="mdi-earth-off"
+        class="platform-page__state"
+      >
+        <template #action>
+          <v-btn color="primary" rounded="pill" @click="goToNewPlatform">
+            {{ t("platform.newPlatform.worldTitle") }}
+          </v-btn>
+        </template>
+      </UiEmptyState>
+
+      <div v-else class="platform-page__layout">
         <aside class="platform-page__sidebar">
-          <article class="platform-page__card platform-page__filters">
+          <article class="platform-page__filters">
             <v-card-title class="text-h6 platform-page__filters-title">{{
               t("platform.filters.title")
             }}</v-card-title>
@@ -440,13 +449,18 @@ const disableApplication = async () => {
         <v-icon icon="mdi-format-list-bulleted" size="22" />
       </button>
     </section>
-  </UiPageShell>
+  </UiPageSection>
 </template>
 
 <style scoped>
 .platform-page {
   padding: var(--platform-space-6);
   color: var(--platform-color-text-primary);
+}
+
+.platform-page__state {
+  border: 1px dashed var(--platform-color-border);
+  border-radius: var(--platform-radius-md);
 }
 
 .platform-page__layout {
@@ -459,7 +473,9 @@ const disableApplication = async () => {
 .platform-page__filters {
   position: sticky;
   top: var(--platform-space-4);
+  border-radius: var(--platform-radius-md);
   border: 1px solid var(--platform-color-border);
+  box-shadow: var(--platform-shadow-sm);
   background: linear-gradient(
     180deg,
     var(--platform-color-surface) 0%,
@@ -505,11 +521,7 @@ const disableApplication = async () => {
 
 .platform-page__card {
   position: relative;
-  background: linear-gradient(
-    160deg,
-    var(--platform-color-surface-muted) 0%,
-    var(--platform-color-surface-accent) 100%
-  );
+  background: var(--platform-color-surface);
   border-radius: var(--platform-radius-md);
   border: 1px solid var(--platform-color-border);
   box-shadow: var(--platform-shadow-sm);
@@ -523,26 +535,9 @@ const disableApplication = async () => {
     box-shadow 0.25s ease;
 }
 
-.platform-page__card::before {
-  content: "";
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 0 26px 26px 0;
-  border-color: transparent var(--platform-color-accent-soft) transparent transparent;
-  transition: border-width 0.25s ease;
-}
-
 .platform-page__card:hover {
   transform: translateY(-4px);
   box-shadow: var(--platform-shadow-md);
-}
-
-.platform-page__card:hover::before {
-  border-width: 0 36px 36px 0;
 }
 
 .platform-page__card-dot {
