@@ -9,6 +9,10 @@ interface NavItem {
   icon: string
 }
 
+interface ActionNavItem extends NavItem {
+  to: string
+}
+
 const router = useRouter()
 const route = useRoute()
 const { t, locale, locales, setLocale } = useI18n({ useScope: 'global' })
@@ -33,15 +37,15 @@ const headerItems = computed<NavItem[]>(() => route.path.startsWith('/admin')
   ? adminHeaderItems.value
   : mainHeaderItems.value)
 
-const actionItems = computed<NavItem[]>(() => {
+const actionItems = computed<ActionNavItem[]>(() => {
   if (!isAuthenticated.value) {
     return []
   }
 
   return [
-    { key: 'app.navigation.calendar', icon: 'mdi-calendar-month-outline' },
-    { key: 'app.navigation.messages', icon: 'mdi-message-processing-outline' },
-    { key: 'app.navigation.notifications', icon: 'mdi-bell-outline' },
+    { key: 'app.navigation.calendar', to: '/calendar', icon: 'mdi-calendar-month-outline' },
+    { key: 'app.navigation.messages', to: '/inbox', icon: 'mdi-message-processing-outline' },
+    { key: 'app.navigation.notifications', to: '/notifications', icon: 'mdi-bell-outline' },
   ]
 })
 
@@ -138,6 +142,7 @@ const signOut = async () => {
         <v-btn
           v-for="action in actionItems"
           :key="action.key"
+          :to="action.to"
           icon
           variant="text"
           class="app-bar__icon-btn"
@@ -217,6 +222,15 @@ const signOut = async () => {
           :to="item.to"
           :title="t(item.key)"
           :prepend-icon="item.icon"
+          rounded="lg"
+          class="mx-2 my-1"
+        />
+        <v-list-item
+          v-for="action in actionItems"
+          :key="`mobile-${action.key}`"
+          :to="action.to"
+          :title="t(action.key)"
+          :prepend-icon="action.icon"
           rounded="lg"
           class="mx-2 my-1"
         />
