@@ -14,14 +14,15 @@ const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const { isOwner } = usePlatformPermissions(slug)
 const navItems = computed(() => getShopNav(slug.value, isOwner.value))
+const { t } = useI18n()
 
 const search = ref('')
 const selectedStatuses = ref<ShopOrderStatus[]>([])
 
 const availableStatuses: { label: string, value: ShopOrderStatus }[] = [
-  { label: 'Paid', value: 'paid' },
-  { label: 'Refunded', value: 'refunded' },
-  { label: 'Canceled', value: 'canceled' },
+  { label: t('platform.shop.common.statuses.paid'), value: 'paid' },
+  { label: t('platform.shop.common.statuses.refunded'), value: 'refunded' },
+  { label: t('platform.shop.common.statuses.canceled'), value: 'canceled' },
 ]
 
 const filteredOrders = computed(() => {
@@ -47,7 +48,15 @@ const filteredOrders = computed(() => {
 })
 
 const exportToCsv = () => {
-  const headers = ['Order', 'Customer', 'Email', 'Status', 'Date', 'Items', 'Revenue']
+  const headers = [
+    t('platform.shop.orders.table.headers.order'),
+    t('platform.shop.orders.table.headers.customer'),
+    t('platform.shop.orders.table.headers.email'),
+    t('platform.shop.orders.table.headers.status'),
+    t('platform.shop.orders.table.headers.date'),
+    t('platform.shop.orders.table.headers.items'),
+    t('platform.shop.orders.table.headers.revenue'),
+  ]
   const rows = filteredOrders.value.map(order => [
     order.orderNumber,
     order.customer.name,
@@ -64,7 +73,7 @@ const exportToCsv = () => {
   const link = document.createElement('a')
 
   link.setAttribute('href', url)
-  link.setAttribute('download', 'shop-orders.csv')
+  link.setAttribute('download', t('platform.shop.orders.csvFilename'))
   link.style.display = 'none'
   document.body.appendChild(link)
   link.click()
@@ -85,18 +94,18 @@ const exportToCsv = () => {
     </template>
 
     <section class="d-flex flex-column ga-4">
-      <ShopSectionTitle title="Orders" subtitle="Manage orders, refunds and cancellations.">
+      <ShopSectionTitle :title="t('platform.shop.orders.title')" :subtitle="t('platform.shop.orders.subtitle')">
         <template #actions>
-          <ShopPrimaryAction prepend-icon="mdi-plus">New order</ShopPrimaryAction>
+          <ShopPrimaryAction prepend-icon="mdi-plus">{{ t('platform.shop.common.buttons.newOrder') }}</ShopPrimaryAction>
 
           <v-menu location="bottom end">
             <template #activator="{ props }">
-              <ShopSecondaryAction v-bind="props" prepend-icon="mdi-filter-variant">Filters</ShopSecondaryAction>
+              <ShopSecondaryAction v-bind="props" prepend-icon="mdi-filter-variant">{{ t('platform.shop.common.buttons.filters') }}</ShopSecondaryAction>
             </template>
 
             <v-card min-width="260" rounded="lg">
               <v-list>
-                <v-list-subheader>Status</v-list-subheader>
+                <v-list-subheader>{{ t('platform.shop.orders.filters.statusTitle') }}</v-list-subheader>
                 <v-list-item
                   v-for="status in availableStatuses"
                   :key="status.value"
@@ -111,13 +120,13 @@ const exportToCsv = () => {
             </v-card>
           </v-menu>
 
-          <ShopSecondaryAction prepend-icon="mdi-file-delimited-outline" @click="exportToCsv">Export CSV</ShopSecondaryAction>
+          <ShopSecondaryAction prepend-icon="mdi-file-delimited-outline" @click="exportToCsv">{{ t('platform.shop.common.buttons.exportCsv') }}</ShopSecondaryAction>
         </template>
       </ShopSectionTitle>
 
       <v-text-field
         v-model="search"
-        label="Search orders"
+        :label="t('platform.shop.orders.searchLabel')"
         prepend-inner-icon="mdi-magnify"
         variant="outlined"
         density="comfortable"

@@ -575,6 +575,154 @@
           "next": "Next",
           "send": "Send"
         }
+      },
+      "common": {
+        "statuses": {
+          "paid": "Paid",
+          "refunded": "Refunded",
+          "canceled": "Canceled"
+        },
+        "buttons": {
+          "save": "Save",
+          "next": "Next",
+          "prev": "Prev",
+          "send": "Send",
+          "addToCart": "Add to cart",
+          "exportCsv": "Export CSV",
+          "newOrder": "New order",
+          "filters": "Filters",
+          "invoice": "Invoice",
+          "backToOrders": "Back to orders",
+          "viewDetails": "View details",
+          "editVisual": "Edit visual",
+          "removeVisual": "Remove visual"
+        }
+      },
+      "orders": {
+        "title": "Orders",
+        "subtitle": "Manage orders, refunds and cancellations.",
+        "searchLabel": "Search orders",
+        "filters": {
+          "statusTitle": "Status"
+        },
+        "table": {
+          "headers": {
+            "order": "Order",
+            "customer": "Customer",
+            "status": "Status",
+            "date": "Date",
+            "items": "Items",
+            "revenue": "Revenue",
+            "actions": "Actions",
+            "email": "Email"
+          },
+          "selectedSummary": "{selected} selected · {total} orders"
+        },
+        "csvFilename": "shop-orders.csv",
+        "detail": {
+          "title": "Order detail",
+          "subtitle": "Track customer, status and payment info.",
+          "labels": {
+            "order": "Order",
+            "customer": "Customer",
+            "items": "Items",
+            "revenue": "Revenue",
+            "createdAt": "Created at"
+          },
+          "notFound": "Order not found."
+        },
+        "tracking": {
+          "pageLabel": "Order",
+          "pageTitle": "Order details #{orderId}",
+          "orderedProduct": "Ordered product",
+          "deliveryInProgress": "Delivery in progress",
+          "productMeta": "Color: {color} · Qty: {quantity}",
+          "warehouse": "Warehouse: {warehouse}",
+          "trackingNumber": "Tracking #: {trackingNumber}",
+          "timelineTitle": "Tracking timeline",
+          "billingInformation": "Billing information",
+          "paymentDetails": "Payment details",
+          "paymentCard": "Mastercard ending in {last4}",
+          "paymentMeta": "Exp. {expiry} · Cardholder: {holder}",
+          "summaryTitle": "Order summary",
+          "summary": {
+            "subtotal": "Subtotal",
+            "delivery": "Delivery",
+            "taxes": "Taxes",
+            "total": "Total"
+          },
+          "timelineStates": {
+            "done": "Done",
+            "current": "Current",
+            "upcoming": "Upcoming"
+          },
+          "steps": {
+            "confirmed": "Order confirmed",
+            "prepared": "Package prepared",
+            "inTransit": "In transit",
+            "outForDelivery": "Out for delivery",
+            "delivered": "Delivered"
+          },
+          "dates": {
+            "expected": "Expected {date}"
+          }
+        }
+      },
+      "checkout": {
+        "card": {
+          "orderTitle": "Order #{id}",
+          "paymentDescription": "Secure multi-provider payment ready to connect.",
+          "checkoutDescription": "Cart summary + addresses + delivery.",
+          "ordersDescription": "Order tracking, statuses and returns."
+        }
+      },
+      "productDetail": {
+        "labels": {
+          "material": "Material",
+          "color": "Color",
+          "quantity": "Quantity"
+        },
+        "otherProducts": {
+          "title": "Other products",
+          "headers": {
+            "product": "Product",
+            "price": "Price",
+            "rating": "Rating",
+            "availability": "Availability"
+          },
+          "sku": "SKU #{id}"
+        }
+      },
+      "editProduct": {
+        "title": "Edit product",
+        "subtitle": "Update catalog content, socials, and pricing metadata.",
+        "sections": {
+          "productImage": "Product image",
+          "productInformation": "Product information",
+          "socials": "Socials",
+          "pricing": "Pricing"
+        },
+        "form": {
+          "imageAltText": "Image alt text",
+          "productName": "Product name",
+          "subtitle": "Subtitle",
+          "description": "Description",
+          "category": "Category",
+          "size": "Size",
+          "weight": "Weight (kg)",
+          "sku": "SKU",
+          "website": "Website",
+          "instagram": "Instagram",
+          "facebook": "Facebook",
+          "tiktok": "TikTok",
+          "price": "Price",
+          "currency": "Currency",
+          "compareAtPrice": "Compare-at price",
+          "costPerItem": "Cost per item",
+          "taxRate": "Tax rate (%)",
+          "stock": "Stock"
+        },
+        "saveSuccess": "Product updated successfully (mock)."
       }
     },
     "recruit": {

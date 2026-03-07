@@ -14,13 +14,14 @@ const slug = computed(() => String(route.params.slug ?? ''))
 const orderId = computed(() => String(route.params.orderId ?? ''))
 const { isOwner } = usePlatformPermissions(slug)
 const navItems = computed(() => getShopNav(slug.value, isOwner.value))
+const { t } = useI18n()
 
 const order = computed<ShopOrder | undefined>(() => shopOrders.find(item => item.id === orderId.value))
 
 const statusConfig: Record<ShopOrder['status'], { status: 'paid' | 'refunded' | 'canceled', label: string }> = {
-  paid: { status: 'paid', label: 'Paid' },
-  refunded: { status: 'refunded', label: 'Refunded' },
-  canceled: { status: 'canceled', label: 'Canceled' },
+  paid: { status: 'paid', label: t('platform.shop.common.statuses.paid') },
+  refunded: { status: 'refunded', label: t('platform.shop.common.statuses.refunded') },
+  canceled: { status: 'canceled', label: t('platform.shop.common.statuses.canceled') },
 }
 </script>
 
@@ -36,13 +37,13 @@ const statusConfig: Record<ShopOrder['status'], { status: 'paid' | 'refunded' | 
     </template>
 
     <section class="d-flex flex-column ga-4">
-      <ShopSectionTitle title="Order detail" subtitle="Track customer, status and payment info." />
+      <ShopSectionTitle :title="t('platform.shop.orders.detail.title')" :subtitle="t('platform.shop.orders.detail.subtitle')" />
 
       <ShopFormCard v-if="order">
         <v-card-text class="d-flex flex-column ga-4">
           <div class="d-flex align-center justify-space-between flex-wrap ga-3">
             <div>
-              <p class="text-overline mb-1">Order</p>
+              <p class="text-overline mb-1">{{ t('platform.shop.orders.detail.labels.order') }}</p>
               <p class="text-h6 mb-0">{{ order.orderNumber }}</p>
             </div>
             <ShopStatusChip :status="statusConfig[order.status].status" :label="statusConfig[order.status].label" />
@@ -52,25 +53,25 @@ const statusConfig: Record<ShopOrder['status'], { status: 'paid' | 'refunded' | 
 
           <v-row>
             <v-col cols="12" md="6">
-              <p class="text-overline mb-1">Customer</p>
+              <p class="text-overline mb-1">{{ t('platform.shop.orders.detail.labels.customer') }}</p>
               <p class="mb-0 font-weight-medium">{{ order.customer.name }}</p>
               <p class="text-medium-emphasis mb-0">{{ order.customer.email }}</p>
             </v-col>
             <v-col cols="6" md="3">
-              <p class="text-overline mb-1">Items</p>
+              <p class="text-overline mb-1">{{ t('platform.shop.orders.detail.labels.items') }}</p>
               <p class="mb-0">{{ order.items }}</p>
             </v-col>
             <v-col cols="6" md="3">
-              <p class="text-overline mb-1">Revenue</p>
+              <p class="text-overline mb-1">{{ t('platform.shop.orders.detail.labels.revenue') }}</p>
               <p class="mb-0">{{ order.revenue }}</p>
             </v-col>
             <v-col cols="12" md="6">
-              <p class="text-overline mb-1">Created at</p>
+              <p class="text-overline mb-1">{{ t('platform.shop.orders.detail.labels.createdAt') }}</p>
               <p class="mb-0">{{ order.createdAt }}</p>
             </v-col>
             <v-col cols="12" md="6" class="d-flex align-end">
               <v-btn variant="text" color="primary" :to="`/platform/${slug}/shop/orders`" prepend-icon="mdi-arrow-left">
-                Back to orders
+                {{ t('platform.shop.common.buttons.backToOrders') }}
               </v-btn>
             </v-col>
           </v-row>
@@ -79,7 +80,7 @@ const statusConfig: Record<ShopOrder['status'], { status: 'paid' | 'refunded' | 
 
       <ShopFormCard v-else>
         <v-card-text>
-          <p class="mb-0 text-body-1">Order not found.</p>
+          <p class="mb-0 text-body-1">{{ t('platform.shop.orders.detail.notFound') }}</p>
         </v-card-text>
       </ShopFormCard>
     </section>

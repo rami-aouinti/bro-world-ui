@@ -25,19 +25,27 @@ const slug = computed(() => String(route.params.slug ?? ''))
 const orderId = computed(() => String(route.params.orderId ?? ''))
 const { isOwner } = usePlatformPermissions(slug)
 const navItems = computed(() => getShopNav(slug.value, isOwner.value))
+const { t } = useI18n()
+const { formatCurrency } = usePlatformI18n()
 
 const trackingTimeline: TimelineStep[] = [
-  { title: 'Order confirmed', date: '12 Jan 2026 · 09:14', icon: 'mdiCheckCircle', state: 'done' },
-  { title: 'Package prepared', date: '12 Jan 2026 · 13:58', icon: 'mdiPackageVariantClosed', state: 'done' },
-  { title: 'In transit', date: '13 Jan 2026 · 07:32', icon: 'mdiTruckDelivery', state: 'current' },
-  { title: 'Out for delivery', date: 'Expected 14 Jan 2026', icon: 'mdiMapMarkerPath', state: 'upcoming' },
-  { title: 'Delivered', date: 'Expected 14 Jan 2026', icon: 'mdiHomeCheck', state: 'upcoming' }
+  { title: t('platform.shop.orders.tracking.steps.confirmed'), date: '12 Jan 2026 · 09:14', icon: 'mdiCheckCircle', state: 'done' },
+  { title: t('platform.shop.orders.tracking.steps.prepared'), date: '12 Jan 2026 · 13:58', icon: 'mdiPackageVariantClosed', state: 'done' },
+  { title: t('platform.shop.orders.tracking.steps.inTransit'), date: '13 Jan 2026 · 07:32', icon: 'mdiTruckDelivery', state: 'current' },
+  { title: t('platform.shop.orders.tracking.steps.outForDelivery'), date: t('platform.shop.orders.tracking.dates.expected', { date: '14 Jan 2026' }), icon: 'mdiMapMarkerPath', state: 'upcoming' },
+  { title: t('platform.shop.orders.tracking.steps.delivered'), date: t('platform.shop.orders.tracking.dates.expected', { date: '14 Jan 2026' }), icon: 'mdiHomeCheck', state: 'upcoming' }
 ]
 
 const timelineColorMap: Record<TimelineState, string> = {
   done: 'success',
   current: 'primary',
   upcoming: 'medium-emphasis'
+}
+
+const timelineStateLabel: Record<TimelineState, string> = {
+  done: t('platform.shop.orders.tracking.timelineStates.done'),
+  current: t('platform.shop.orders.tracking.timelineStates.current'),
+  upcoming: t('platform.shop.orders.tracking.timelineStates.upcoming'),
 }
 </script>
 
@@ -56,11 +64,11 @@ const timelineColorMap: Record<TimelineState, string> = {
       <v-card rounded="xl" class="mb-6" variant="outlined">
         <v-card-text class="d-flex flex-wrap align-center justify-space-between ga-4">
           <div>
-            <p class="text-overline text-medium-emphasis mb-1">Order</p>
-            <h1 class="text-h5 font-weight-bold">Order Details #{{ orderId }}</h1>
+            <p class="text-overline text-medium-emphasis mb-1">{{ t('platform.shop.orders.tracking.pageLabel') }}</p>
+            <h1 class="text-h5 font-weight-bold">{{ t('platform.shop.orders.tracking.pageTitle', { orderId }) }}</h1>
           </div>
           <v-btn color="primary" prepend-icon="mdiFileDocumentOutline" variant="flat">
-            Invoice
+            {{ t('platform.shop.common.buttons.invoice') }}
           </v-btn>
         </v-card-text>
       </v-card>
@@ -69,10 +77,10 @@ const timelineColorMap: Record<TimelineState, string> = {
         <v-col cols="12" lg="8">
           <v-card rounded="xl" variant="outlined" class="mb-6">
             <v-card-item>
-              <v-card-title>Ordered product</v-card-title>
+              <v-card-title>{{ t('platform.shop.orders.tracking.orderedProduct') }}</v-card-title>
               <template #append>
                 <v-chip color="warning" variant="tonal" prepend-icon="mdiTruckFast">
-                  Delivery in progress
+                  {{ t('platform.shop.orders.tracking.deliveryInProgress') }}
                 </v-chip>
               </template>
             </v-card-item>
@@ -81,16 +89,16 @@ const timelineColorMap: Record<TimelineState, string> = {
               <v-img :src="orderedProductImage" width="170" cover class="rounded-lg border" />
               <div>
                 <p class="text-h6 font-weight-bold mb-1">Pro Headset X2</p>
-                <p class="text-body-2 text-medium-emphasis mb-1">Color: Midnight Black · Qty: 1</p>
-                <p class="text-body-2 text-medium-emphasis mb-1">Warehouse: Paris North Hub</p>
-                <p class="text-body-1 font-weight-medium">Tracking #: FR-24-0089134</p>
+                <p class="text-body-2 text-medium-emphasis mb-1">{{ t('platform.shop.orders.tracking.productMeta', { color: 'Midnight Black', quantity: 1 }) }}</p>
+                <p class="text-body-2 text-medium-emphasis mb-1">{{ t('platform.shop.orders.tracking.warehouse', { warehouse: 'Paris North Hub' }) }}</p>
+                <p class="text-body-1 font-weight-medium">{{ t('platform.shop.orders.tracking.trackingNumber', { trackingNumber: 'FR-24-0089134' }) }}</p>
               </div>
             </v-card-text>
           </v-card>
 
           <v-card rounded="xl" variant="outlined" class="mb-6">
             <v-card-item>
-              <v-card-title>Tracking timeline</v-card-title>
+              <v-card-title>{{ t('platform.shop.orders.tracking.timelineTitle') }}</v-card-title>
             </v-card-item>
             <v-divider />
             <v-card-text>
@@ -104,7 +112,7 @@ const timelineColorMap: Record<TimelineState, string> = {
                 >
                   <div class="d-flex align-center justify-space-between flex-wrap ga-2">
                     <p class="font-weight-medium">{{ step.title }}</p>
-                    <v-chip size="small" :color="timelineColorMap[step.state]" variant="tonal">{{ step.state }}</v-chip>
+                    <v-chip size="small" :color="timelineColorMap[step.state]" variant="tonal">{{ timelineStateLabel[step.state] }}</v-chip>
                   </div>
                   <p class="text-body-2 text-medium-emphasis mt-1">{{ step.date }}</p>
                 </v-timeline-item>
@@ -114,7 +122,7 @@ const timelineColorMap: Record<TimelineState, string> = {
 
           <v-card rounded="xl" variant="outlined">
             <v-card-item>
-              <v-card-title>Billing information</v-card-title>
+              <v-card-title>{{ t('platform.shop.orders.tracking.billingInformation') }}</v-card-title>
             </v-card-item>
             <v-divider />
             <v-card-text>
@@ -129,7 +137,7 @@ const timelineColorMap: Record<TimelineState, string> = {
         <v-col cols="12" lg="4">
           <v-card rounded="xl" variant="outlined" class="mb-6">
             <v-card-item>
-              <v-card-title>Payment details</v-card-title>
+              <v-card-title>{{ t('platform.shop.orders.tracking.paymentDetails') }}</v-card-title>
             </v-card-item>
             <v-divider />
             <v-card-text class="d-flex ga-4 align-center">
@@ -137,34 +145,34 @@ const timelineColorMap: Record<TimelineState, string> = {
                 <v-img :src="mastercardLogo" alt="Mastercard" />
               </v-avatar>
               <div>
-                <p class="font-weight-medium">Mastercard ending in 9086</p>
-                <p class="text-body-2 text-medium-emphasis">Exp. 10/29 · Cardholder: Nadia Bento</p>
+                <p class="font-weight-medium">{{ t('platform.shop.orders.tracking.paymentCard', { last4: '9086' }) }}</p>
+                <p class="text-body-2 text-medium-emphasis">{{ t('platform.shop.orders.tracking.paymentMeta', { expiry: '10/29', holder: 'Nadia Bento' }) }}</p>
               </div>
             </v-card-text>
           </v-card>
 
           <v-card rounded="xl" variant="outlined">
             <v-card-item>
-              <v-card-title>Order summary</v-card-title>
+              <v-card-title>{{ t('platform.shop.orders.tracking.summaryTitle') }}</v-card-title>
             </v-card-item>
             <v-divider />
             <v-card-text>
               <div class="d-flex justify-space-between mb-2">
-                <span class="text-medium-emphasis">Subtotal</span>
-                <span>€169.00</span>
+                <span class="text-medium-emphasis">{{ t('platform.shop.orders.tracking.summary.subtotal') }}</span>
+                <span>{{ formatCurrency(169) }}</span>
               </div>
               <div class="d-flex justify-space-between mb-2">
-                <span class="text-medium-emphasis">Delivery</span>
-                <span>€8.50</span>
+                <span class="text-medium-emphasis">{{ t('platform.shop.orders.tracking.summary.delivery') }}</span>
+                <span>{{ formatCurrency(8.5, 'EUR') }}</span>
               </div>
               <div class="d-flex justify-space-between mb-4">
-                <span class="text-medium-emphasis">Taxes</span>
-                <span>€35.50</span>
+                <span class="text-medium-emphasis">{{ t('platform.shop.orders.tracking.summary.taxes') }}</span>
+                <span>{{ formatCurrency(35.5, 'EUR') }}</span>
               </div>
               <v-divider class="mb-4" />
               <div class="d-flex justify-space-between text-h6 font-weight-bold">
-                <span>Total</span>
-                <span>€213.00</span>
+                <span>{{ t('platform.shop.orders.tracking.summary.total') }}</span>
+                <span>{{ formatCurrency(213) }}</span>
               </div>
             </v-card-text>
           </v-card>

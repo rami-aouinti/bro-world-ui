@@ -6,12 +6,14 @@ interface Props {
 }
 
 defineProps<Props>()
+const { t } = useI18n()
+const { formatCurrency } = usePlatformI18n()
 
 const headers = [
-  { title: 'Product', key: 'title' },
-  { title: 'Price', key: 'price', align: 'end' },
-  { title: 'Rating', key: 'rating', align: 'center' },
-  { title: 'Availability', key: 'availability', align: 'center' },
+  { title: t('platform.shop.productDetail.otherProducts.headers.product'), key: 'title' },
+  { title: t('platform.shop.productDetail.otherProducts.headers.price'), key: 'price', align: 'end' },
+  { title: t('platform.shop.productDetail.otherProducts.headers.rating'), key: 'rating', align: 'center' },
+  { title: t('platform.shop.productDetail.otherProducts.headers.availability'), key: 'availability', align: 'center' },
 ] as const
 
 const availabilityColor = (availability: number) => {
@@ -23,7 +25,7 @@ const availabilityColor = (availability: number) => {
 
 <template>
   <v-card rounded="xl">
-    <v-card-title class="text-h6">Other Products</v-card-title>
+    <v-card-title class="text-h6">{{ t('platform.shop.productDetail.otherProducts.title') }}</v-card-title>
     <v-data-table
       :headers="headers"
       :items="items"
@@ -37,13 +39,13 @@ const availabilityColor = (availability: number) => {
           <v-avatar color="primary" variant="tonal" size="36">{{ item.title.slice(0, 2).toUpperCase() }}</v-avatar>
           <div>
             <p class="font-weight-medium mb-0">{{ item.title }}</p>
-            <p class="text-caption text-medium-emphasis mb-0">SKU #{{ item.id }}</p>
+            <p class="text-caption text-medium-emphasis mb-0">{{ t('platform.shop.productDetail.otherProducts.sku', { id: item.id }) }}</p>
           </div>
         </div>
       </template>
 
       <template #item.price="{ item }">
-        <span class="font-weight-bold">${{ item.price.toFixed(2) }}</span>
+        <span class="font-weight-bold">{{ formatCurrency(item.price, 'USD') }}</span>
       </template>
 
       <template #item.rating="{ item }">
