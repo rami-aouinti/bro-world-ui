@@ -1,14 +1,12 @@
 <script setup lang="ts">
-import UiPageSection from '~/components/ui/UiPageSection.vue'
+import UiAside from '~/components/ui/layout/UiAside.vue'
 </script>
 
 <template>
   <div class="platform-split-layout">
-    <aside class="platform-split-layout__sidebar">
-      <article class="platform-split-layout__card platform-split-layout__card--sidebar">
-        <slot name="sidebar" />
-      </article>
-    </aside>
+    <UiAside class="platform-split-layout__sidebar">
+      <slot name="sidebar" />
+    </UiAside>
 
     <section class="platform-split-layout__content">
       <article class="platform-split-layout__card">
