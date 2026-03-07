@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import UiAside from '~/components/ui/layout/UiAside.vue'
+import AppSplitShell from '~/components/layout/AppSplitShell.vue'
 
 withDefaults(defineProps<{
   showPageSkeleton?: boolean
@@ -112,73 +112,63 @@ const openGroups = computed(() => {
         </slot>
       </template>
 
-      <v-container v-else fluid class="py-6">
-        <v-row>
-          <v-col cols="12" md="3">
-            <UiAside class="admin-layout__menu-card" rounded="xl" sticky-top="100px">
-              <v-list
-                :opened="openGroups"
-                nav
-                color="primary"
-                density="comfortable"
-                bg-color="transparent"
-                class="admin-layout__menu-list"
+      <AppSplitShell v-else>
+        <template #left>
+          <v-list
+            :opened="openGroups"
+            nav
+            color="primary"
+            density="comfortable"
+            bg-color="transparent"
+            class="admin-layout__menu-list"
+          >
+            <template v-for="item in adminMenu" :key="item.title">
+              <v-list-item
+                v-if="!item.children"
+                :to="item.to"
+                :prepend-icon="item.icon"
+                rounded="lg"
+                class="mb-1"
               >
-                <template v-for="item in adminMenu" :key="item.title">
+                <v-list-item-title>{{ item.title }}</v-list-item-title>
+              </v-list-item>
+
+              <v-list-group
+                v-else
+                :value="item.value"
+              >
+                <template #activator="{ props }">
                   <v-list-item
-                    v-if="!item.children"
-                    :to="item.to"
+                    v-bind="props"
                     :prepend-icon="item.icon"
                     rounded="lg"
-                    class="mb-1"
                   >
                     <v-list-item-title>{{ item.title }}</v-list-item-title>
                   </v-list-item>
-
-                  <v-list-group
-                    v-else
-                    :value="item.value"
-                  >
-                    <template #activator="{ props }">
-                      <v-list-item
-                        v-bind="props"
-                        :prepend-icon="item.icon"
-                        rounded="lg"
-                      >
-                        <v-list-item-title>{{ item.title }}</v-list-item-title>
-                      </v-list-item>
-                    </template>
-
-                    <v-list-item
-                      v-for="child in item.children"
-                      :key="child.to"
-                      :to="child.to"
-                      :prepend-icon="child.icon"
-                      rounded="lg"
-                      class="admin-layout__submenu-item"
-                    >
-                      <v-list-item-title>{{ child.title }}</v-list-item-title>
-                    </v-list-item>
-                  </v-list-group>
                 </template>
-              </v-list>
-            </UiAside>
-          </v-col>
 
-          <v-col cols="12" md="9">
-            <slot />
-          </v-col>
-        </v-row>
-      </v-container>
+                <v-list-item
+                  v-for="child in item.children"
+                  :key="child.to"
+                  :to="child.to"
+                  :prepend-icon="child.icon"
+                  rounded="lg"
+                  class="admin-layout__submenu-item"
+                >
+                  <v-list-item-title>{{ child.title }}</v-list-item-title>
+                </v-list-item>
+              </v-list-group>
+            </template>
+          </v-list>
+        </template>
+
+        <slot />
+      </AppSplitShell>
     </v-main>
   </v-app>
 </template>
 
 <style scoped>
-.admin-layout__menu-card {
-  background: transparent;
-}
-
 .admin-layout__menu-list {
   background: transparent;
 }

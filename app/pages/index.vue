@@ -2,6 +2,7 @@
 definePageMeta({
   public: false,
   requiresAuth: true,
+  splitShell: false,
 })
 
 interface HomeHero {
