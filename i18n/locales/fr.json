@@ -63,78 +63,81 @@
     }
   },
   "home": {
-    "title": "Bienvenue sur Bro World",
-    "description": "Projet Nuxt 4 configuré avec Vuetify et le style Material Dashboard.",
-    "cta": {
-      "title": "Prêt à aligner vos équipes et accélérer l’exécution ?",
-      "description": "Démarrez avec un accompagnement guidé et découvrez comment Bro World fluidifie vos opérations quotidiennes.",
-      "primaryAction": "Lancer mon espace",
-      "secondaryAction": "Contacter les ventes"
-    },
-    "featuresTitle": "Fonctionnalités clés",
-    "metricsTitle": "Indicateurs d’impact",
-    "stepsTitle": "Onboarding en 3 étapes",
-    "stepLabel": "Étape {index}",
     "hero": {
       "badge": "Cockpit opérationnel",
       "title": "Orchestrez équipes, outils et workflows depuis un seul espace",
-      "subtitle": "Bro World offre à vos équipes un centre de pilotage partagé pour aligner les priorités, suivre l’exécution et avancer plus vite avec confiance.",
-      "primaryCta": "Essayer gratuitement",
-      "secondaryCta": "Demander une démo",
-      "benefits": [
+      "subtitle": "Bro World offre à chaque équipe un centre de pilotage partagé pour aligner les priorités, exécuter plus vite et rester responsable.",
+      "bullets": [
         "Un espace unique pour produit, opérations et support.",
-        "Des décisions plus rapides grâce à la visibilité en temps réel.",
-        "Une gouvernance par rôles prête à l’échelle."
-      ]
+        "Une visibilité en temps réel pour décider plus vite.",
+        "Une gouvernance par rôles conçue pour l’échelle."
+      ],
+      "primaryCta": "Essayer gratuitement",
+      "secondaryCta": "Demander une démo"
     },
-    "featureCards": [
+    "featuresTitle": "Fonctionnalités clés",
+    "features": [
       {
-        "icon": "mdi-view-dashboard-outline",
         "title": "Espace unifié",
-        "description": "Suivez projets, tickets et priorités dans une vue collaborative unique."
+        "description": "Suivez projets, demandes et priorités dans une vue collaborative unique.",
+        "icon": "mdi-view-dashboard-outline"
       },
       {
-        "icon": "mdi-lightning-bolt-outline",
         "title": "Automatisation des workflows",
-        "description": "Automatisez les tâches répétitives et les handoffs avec des règles configurables."
+        "description": "Automatisez les étapes répétitives, validations et handoffs avec des règles configurables.",
+        "icon": "mdi-lightning-bolt-outline"
       },
       {
-        "icon": "mdi-shield-check-outline",
-        "title": "Sécurité native",
-        "description": "Contrôlez les accès avec des permissions granulaires et une traçabilité complète."
+        "title": "Collaboration sécurisée",
+        "description": "Contrôlez les accès avec des rôles granulaires et une traçabilité complète des activités.",
+        "icon": "mdi-shield-check-outline"
       }
     ],
+    "metricsTitle": "Indicateurs d’impact",
     "metrics": [
       {
         "value": "42 %",
-        "label": "de gain sur les cycles de livraison inter-équipes"
+        "label": "de livraison inter-équipes plus rapide",
+        "context": "Réduction moyenne du cycle de livraison après déploiement.",
+        "icon": "mdi-trending-up"
       },
       {
         "value": "99,95 %",
-        "label": "de disponibilité moyenne de la plateforme"
+        "label": "de disponibilité plateforme",
+        "context": "Disponibilité observée sur les espaces de travail en production.",
+        "icon": "mdi-check-decagram-outline"
       },
       {
         "value": "4,8/5",
-        "label": "de satisfaction client"
+        "label": "de satisfaction des équipes",
+        "context": "Score moyen remonté par managers et contributeurs.",
+        "icon": "mdi-star-outline"
       }
     ],
+    "stepsTitle": "Démarrer en 3 étapes",
     "steps": [
       {
-        "icon": "mdi-account-plus-outline",
         "title": "Créez votre espace",
-        "description": "Configurez vos équipes, rôles et workflows essentiels en quelques minutes."
+        "description": "Configurez équipes, permissions et workflows utilisés au quotidien.",
+        "icon": "mdi-account-plus-outline"
       },
       {
-        "icon": "mdi-link-variant",
-        "title": "Connectez vos outils",
-        "description": "Reliez votre stack existante pour centraliser les données et limiter les changements de contexte."
+        "title": "Connectez votre stack",
+        "description": "Intégrez vos outils existants pour centraliser les données et réduire le changement de contexte.",
+        "icon": "mdi-link-variant"
       },
       {
-        "icon": "mdi-rocket-launch-outline",
         "title": "Lancez et optimisez",
-        "description": "Déployez votre premier processus, mesurez les résultats et itérez en continu."
+        "description": "Déployez vos premiers processus, suivez les résultats et améliorez en continu.",
+        "icon": "mdi-rocket-launch-outline"
       }
-    ]
+    ],
+    "cta": {
+      "title": "Prêt à aligner vos équipes et accélérer l’exécution ?",
+      "description": "Commencez avec un onboarding guidé et transformez vos opérations quotidiennes en moteur de performance mesurable.",
+      "primaryAction": "Lancer mon espace",
+      "secondaryAction": "Contacter les ventes"
+    }
   },
   "admin": {
     "title": "Espace administration",
