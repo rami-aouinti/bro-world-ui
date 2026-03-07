@@ -44,7 +44,7 @@ const actionItems = computed<ActionNavItem[]>(() => {
 
   return [
     { key: 'app.navigation.calendar', to: '/calendar', icon: 'mdi-calendar-month-outline' },
-    { key: 'app.navigation.messages', to: '/inbox', icon: 'mdi-message-processing-outline' },
+    { key: 'app.navigation.inbox', to: '/inbox', icon: 'mdi-message-processing-outline' },
     { key: 'app.navigation.notifications', to: '/notifications', icon: 'mdi-bell-outline' },
   ]
 })
