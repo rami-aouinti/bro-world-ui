@@ -4,6 +4,7 @@ import UiPageSection from '~/components/ui/UiPageSection.vue'
 definePageMeta({
   public: true,
   requiresAuth: false,
+  splitShell: false,
 })
 
 interface ContactChannel {

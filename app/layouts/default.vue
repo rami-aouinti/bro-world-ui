@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import UiStateAlert from '~/components/ui/state/UiStateAlert.vue'
+import AppSplitShell from '~/components/layout/AppSplitShell.vue'
 
 withDefaults(defineProps<{
   showPageSkeleton?: boolean
@@ -12,6 +13,11 @@ withDefaults(defineProps<{
 
 const route = useRoute()
 const { t } = useI18n()
+
+
+
+const excludedSplitShellPaths = new Set(['/','/login','/about','/faq','/contact'])
+const useSplitShell = computed(() => route.meta.splitShell !== false && !excludedSplitShellPaths.has(route.path))
 
 const routeMessage = computed(() => {
   const key = typeof route.query.message === 'string' ? route.query.message : ''
@@ -55,7 +61,15 @@ const routeMessage = computed(() => {
           />
         </v-container>
 
-        <slot />
+        <AppSplitShell v-if="useSplitShell">
+          <template #left>
+            <slot name="layout-sidebar" />
+          </template>
+
+          <slot />
+        </AppSplitShell>
+
+        <slot v-else />
       </template>
     </v-main>
   </v-app>
