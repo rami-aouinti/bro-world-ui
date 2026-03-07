@@ -256,15 +256,10 @@ const disableApplication = async () => {
         </template>
       </UiEmptyState>
       <div v-else class="platform-page__content">
-        <div class="platform-page__toolbar">
-          <h2 class="platform-page__title">{{ t("platform.title") }}</h2>
-          <v-btn color="primary" rounded="pill" @click="goToNewPlatform">
-            {{ t("platform.newPlatform.worldTitle") }}
-          </v-btn>
-        </div>
-        <v-row>
+        <v-row class="mt-12">
           <v-col cols="12" md="6" lg="4">
             <v-card
+                @click="goToNewPlatform"
                 class="platform-page__application-card"
                 rounded="xl"
                 elevation="8"
@@ -272,7 +267,7 @@ const disableApplication = async () => {
               <v-card-text>
                 <div class="d-flex flex-column align-center">
                   <v-icon icon="mdi-earth" size="64" class="mx-auto" color="primary" />
-                  <h2> New World </h2>
+                  <h2> {{ t("platform.newPlatform.worldTitle") }} </h2>
                 </div>
               </v-card-text>
             </v-card>
@@ -292,7 +287,6 @@ const disableApplication = async () => {
                     <p class="platform-page__row-title">{{ card.title }}</p>
                   </v-toolbar-title>
                 </NuxtLink>
-
 
                 <template v-slot:append>
                   <v-menu v-if="card.isOwner" location="bottom end">
@@ -341,7 +335,7 @@ const disableApplication = async () => {
             </v-card>
           </v-col>
         </v-row>
-        <div class="platform-page__pagination py-4">
+        <div class="platform-pagination">
           <v-pagination
               :model-value="applicationsStore.pagination.page"
               :length="applicationsStore.pagination.totalPages"
@@ -414,9 +408,8 @@ const disableApplication = async () => {
 </template>
 
 <style scoped>
-.platform-page {
-  padding: var(--platform-space-6);
-  color: var(--platform-color-text-primary);
+.platform-pagination {
+  position: fixed; bottom: 0; justify-content: center; width: 100%;
 }
 
 .platform-page__state {
