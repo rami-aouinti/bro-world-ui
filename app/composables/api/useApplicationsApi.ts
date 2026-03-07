@@ -7,7 +7,7 @@ export const useApplicationsApi = () => {
 
   const buildListQuery = (params?: { page?: number, limit?: number, filters?: ApplicationListFilters }) => {
     const page = params?.page ?? 1
-    const limit = params?.limit ?? 10
+    const limit = params?.limit ?? 5
     const search = params?.filters?.search?.trim() ?? ''
     const platformKey = params?.filters?.platformKey?.trim() ?? ''
 

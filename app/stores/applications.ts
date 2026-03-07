@@ -5,7 +5,7 @@ import type { ApplicationListFilters, ApplicationListPagination, ApplicationRead
 
 const defaultPagination = (): ApplicationListPagination => ({
   page: 1,
-  limit: 10,
+  limit: 5,
   totalItems: 0,
   totalPages: 1,
 })

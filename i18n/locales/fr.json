@@ -390,7 +390,7 @@
     "filters": {
       "title": "Filtres",
       "search": "Recherche",
-      "platformKey": "Platform key",
+      "platformKey": "Clé plateforme",
       "apply": "Appliquer",
       "clear": "Réinitialiser"
     }
