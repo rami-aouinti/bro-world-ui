@@ -493,7 +493,7 @@ const disableApplication = async () => {
   height: 56px;
   border-radius: 12px;
   object-fit: cover;
-  background: #5955e0;
+  background: rgba(var(--v-theme-primary), 0.35);
 }
 
 .platform-page__card-heading {
@@ -511,7 +511,7 @@ const disableApplication = async () => {
 }
 
 .platform-page__description-tooltip-trigger {
-  color: #707287;
+  color: rgba(var(--v-theme-primary), 0.35);
 }
 
 .platform-page__card-meta {
@@ -529,7 +529,7 @@ const disableApplication = async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #575c6f;
+  color: rgba(var(--v-theme-primary), 0.65);
   font-weight: 600;
   font-size: 0.9rem;
 }
