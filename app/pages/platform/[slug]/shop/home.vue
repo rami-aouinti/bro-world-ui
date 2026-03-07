@@ -13,17 +13,20 @@ const slug = computed(() => String(route.params.slug ?? ''))
 const { isOwner } = usePlatformPermissions(slug)
 const showAccessDenied = computed(() => route.query.accessDenied === 'admin')
 
+const { t } = useI18n()
+const { formatCurrency } = usePlatformI18n()
+
 const navItems = computed(() => getShopNav(slug.value, isOwner.value))
 </script>
 
 <template>
   <PlatformSplitLayout>
-    <template #sidebar><PlatformSidebarNav title="Shop" :subtitle="`Application ${slug}`" :items="navItems" /></template>
+    <template #sidebar><PlatformSidebarNav title="platform.shop.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
       <v-alert v-if="showAccessDenied" type="error" variant="tonal" class="mb-4">
-        Accès admin refusé : permissions insuffisantes pour cette application.
+        {{ t('platform.common.alert.adminDenied') }}
       </v-alert>
-      <PlatformHeroHeader title="Shop Highlights" subtitle="Catalogue enrichi, pages produits détaillées, conversion et design premium." cta="Ajouter produit" />
+      <PlatformHeroHeader title="platform.shop.hero.home.title" subtitle="platform.shop.hero.home.subtitle" cta="platform.shop.hero.home.cta" />
       <v-row class="mb-5">
         <v-col v-for="item in shopCatalogMedia" :key="item.id" cols="12" md="4"><PlatformMediaCard :item="item" /></v-col>
       </v-row>
@@ -34,7 +37,7 @@ const navItems = computed(() => getShopNav(slug.value, isOwner.value))
               <div class="text-h3 mb-2">{{ product.cover }}</div>
               <p class="text-subtitle-1 font-weight-bold">{{ product.title }}</p>
               <p class="text-body-2 text-medium-emphasis mb-2">{{ product.description }}</p>
-              <div class="d-flex justify-space-between align-center"><v-chip size="small" color="primary" variant="tonal">{{ product.category }}</v-chip><p class="text-subtitle-2 font-weight-bold">€ {{ product.price }}</p></div>
+              <div class="d-flex justify-space-between align-center"><v-chip size="small" color="primary" variant="tonal">{{ t(`platform.shop.categories.${product.category}`) }}</v-chip><p class="text-subtitle-2 font-weight-bold">{{ formatCurrency(product.price) }}</p></div>
             </v-card-text>
           </v-card>
         </v-col>

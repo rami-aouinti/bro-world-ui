@@ -29,7 +29,7 @@ onMounted(async () => {
 
 <template>
   <PlatformSplitLayout>
-    <template #sidebar><PlatformSidebarNav title="Recruit" :subtitle="`Admin ${slug}`" :items="navItems" /></template>
+    <template #sidebar><PlatformSidebarNav title="platform.recruit.sidebar.title" subtitle="platform.common.sidebar.admin" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
       <v-alert v-if="accessDenied" type="error" variant="tonal" class="mb-4">
         Accès refusé à l’espace admin Recruit. Redirection en cours…

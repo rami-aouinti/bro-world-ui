@@ -21,9 +21,9 @@ const navItems = computed(() => getRecruitNav(slug.value, isOwner.value))
 
 <template>
   <PlatformSplitLayout>
-    <template #sidebar><PlatformSidebarNav title="Recruit Interviews" :subtitle="`Application ${slug}`" :items="navItems" /></template>
+    <template #sidebar><PlatformSidebarNav title="platform.recruit.sidebar.interviews" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
-      <PlatformHeroHeader title="Interview Planner" subtitle="Planning, feedback loop et time-to-hire" cta="Planifier" />
+      <PlatformHeroHeader title="platform.recruit.hero.interviews.title" subtitle="platform.recruit.hero.interviews.subtitle" cta="platform.recruit.hero.interviews.cta" />
       <v-timeline density="compact" side="end" truncate-line="both">
         <v-timeline-item v-for="slot in interviewSlots" :key="slot.role" dot-color="primary" size="small">
           <v-card rounded="xl" variant="outlined">

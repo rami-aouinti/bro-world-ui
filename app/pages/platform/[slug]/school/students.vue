@@ -16,9 +16,9 @@ const navItems = computed(() => getSchoolNav(slug.value, isOwner.value))
 
 <template>
   <PlatformSplitLayout>
-    <template #sidebar><PlatformSidebarNav title="School" :subtitle="`Application ${slug}`" :items="navItems" /></template>
+    <template #sidebar><PlatformSidebarNav title="platform.school.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
-      <PlatformHeroHeader title="Student Experience" subtitle="Engagement, progression académique et vie campus" cta="Ajouter étudiant" />
+      <PlatformHeroHeader title="platform.school.hero.students.title" subtitle="platform.school.hero.students.subtitle" cta="platform.school.hero.students.cta" />
       <v-row>
         <v-col v-for="item in schoolCampusMedia" :key="item.id" cols="12" md="4">
           <PlatformMediaCard :item="item" />

@@ -16,9 +16,9 @@ const navItems = computed(() => getSchoolNav(slug.value, isOwner.value))
 
 <template>
   <PlatformSplitLayout>
-    <template #sidebar><PlatformSidebarNav title="School Tickets" :subtitle="`Roadmap ${slug}`" :items="navItems" /></template>
+    <template #sidebar><PlatformSidebarNav title="platform.school.sidebar.tickets" subtitle="platform.common.sidebar.roadmap" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
-      <PlatformHeroHeader title="Tickets School" subtitle="Priorités académiques, pédagogie, planning et communication" cta="Nouveau ticket" />
+      <PlatformHeroHeader title="platform.school.hero.tickets.title" subtitle="platform.school.hero.tickets.subtitle" cta="platform.school.hero.tickets.cta" />
       <PlatformTicketBoard title="Backlog School" :tickets="platformProposals.school" />
     </section>
   </PlatformSplitLayout>

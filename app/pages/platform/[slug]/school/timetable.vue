@@ -21,9 +21,9 @@ const navItems = computed(() => getSchoolNav(slug.value, isOwner.value))
 
 <template>
   <PlatformSplitLayout>
-    <template #sidebar><PlatformSidebarNav title="School Timetable" :subtitle="`Application ${slug}`" :items="navItems" /></template>
+    <template #sidebar><PlatformSidebarNav title="platform.school.sidebar.timetable" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
-      <PlatformHeroHeader title="Timetable Planner" subtitle="Créneaux, salles, enseignants et charge hebdomadaire" cta="Optimiser planning" />
+      <PlatformHeroHeader title="platform.school.hero.timetable.title" subtitle="platform.school.hero.timetable.subtitle" cta="platform.school.hero.timetable.cta" />
       <v-row>
         <v-col v-for="item in timetable" :key="item.day" cols="12" md="4">
           <v-card rounded="xl" variant="outlined">

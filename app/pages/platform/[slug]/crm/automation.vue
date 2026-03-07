@@ -21,9 +21,9 @@ const navItems = computed(() => getCrmNav(slug.value, isOwner.value))
 
 <template>
   <PlatformSplitLayout>
-    <template #sidebar><PlatformSidebarNav title="CRM Automation" :subtitle="`Application ${slug}`" :items="navItems" /></template>
+    <template #sidebar><PlatformSidebarNav title="platform.crm.sidebar.automation" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
-      <PlatformHeroHeader title="Automation Center" subtitle="Orchestrez workflows et scoring automatiques" cta="Créer workflow" />
+      <PlatformHeroHeader title="platform.crm.hero.automation.title" subtitle="platform.crm.hero.automation.subtitle" cta="platform.crm.hero.automation.cta" />
       <v-row>
         <v-col v-for="item in automations" :key="item.name" cols="12" md="4">
           <v-card rounded="xl" variant="outlined" class="h-100">

@@ -410,83 +410,231 @@
     "localeHint": "Langue active : {locale}"
   },
   "platform": {
-    "title": "Plateforme",
-    "description": "Découvrez le point d'entrée principal de Bro World et naviguez vers les sections clés.",
-    "cta": "Nous contacter",
-    "newPlatform": {
-      "title": "+ Nouvelle plateforme",
-      "description": "Créez une nouvelle user-application et configurez ses plugins.",
-      "connectTitle": "Connectez-vous pour en créer une",
-      "connectDescription": "Vous devez être connecté pour créer une nouvelle plateforme.",
-      "worldTitle": "New World"
-    },
-    "status": {
-      "active": "Actif",
-      "inactive": "Inactif"
-    },
-    "assistant": "Assistant de plateforme",
-    "cards": {
-      "crm1": {
-        "title": "CRM 1",
-        "description": "Module CRM complet pour centraliser les relations clients, suivre les opportunités et structurer l'activité commerciale."
+    "common": {
+      "backToList": "Retour liste",
+      "alert": {
+        "adminDenied": "Accès admin refusé : permissions insuffisantes pour cette application."
       },
-      "crm2": {
-        "title": "CRM 2",
-        "description": "Module CRM complet pour centraliser les relations clients, suivre les opportunités et structurer l'activité commerciale."
+      "sidebar": {
+        "application": "Application {slug}",
+        "admin": "Admin {slug}",
+        "roadmap": "Roadmap {slug}"
       },
-      "shop": {
-        "title": "Shop Principal",
-        "description": "Suite e-commerce pour gérer le catalogue produits, les commandes, les paiements et les performances de vente."
+      "nav": {
+        "admin": "Admin"
       },
-      "recruit": {
-        "title": "Recruit Principal",
-        "description": "Espace recrutement pour publier des offres, qualifier les candidatures et piloter les entretiens efficacement."
-      },
-      "school": {
-        "title": "School Principal",
-        "description": "Module scolaire pour organiser les classes, planifier les enseignements et suivre les progressions des apprenants."
+      "time": {
+        "daysAgo": "il y a {count} j",
+        "weeksAgo": "il y a {count} sem"
       }
     },
-    "wizard": {
-      "steps": {
-        "title": "Titre",
-        "platform": "Plateforme",
-        "plugins": "Plugins"
+    "crm": {
+      "sidebar": {
+        "title": "CRM",
+        "reports": "CRM Reports",
+        "tickets": "CRM Tickets",
+        "automation": "CRM Automation"
       },
-      "platformTitle": "Choisissez une plateforme",
-      "pluginTitle": "Choisissez un plugin",
-      "fields": {
-        "title": "Titre",
-        "description": "Description",
-        "photo": "Photo",
-        "private": "Privée",
-        "active": "Active",
-        "theme": "Thème",
-        "cacheSeconds": "Cache (secondes)",
-        "configuration": "Configuration"
+      "nav": {
+        "home": "Dashboard",
+        "companies": "Entreprises",
+        "projects": "Projets",
+        "contacts": "Contacts",
+        "reports": "Rapports",
+        "automation": "Automatisation",
+        "sprint": "Sprint",
+        "calendar": "Calendrier",
+        "settings": "Paramètres",
+        "billing": "Facturation",
+        "tickets": "Tickets"
       },
-      "next": "Suivant",
-      "prev": "Précédent",
-      "create": "Créer",
-      "errors": {
-        "load": "Impossible de charger les données du wizard.",
-        "create": "Impossible de créer la plateforme."
-      },
-      "titleStepTitle": "Saisissez le titre de l'application"
+      "hero": {
+        "home": {
+          "title": "CRM Dashboard",
+          "subtitle": "Pilotage commercial complet avec vues actionnables et backlog tickets.",
+          "cta": "Nouveau lead"
+        },
+        "automation": {
+          "title": "Automation Center",
+          "subtitle": "Orchestrez workflows et scoring automatiques",
+          "cta": "Créer workflow"
+        },
+        "contacts": {
+          "title": "Contacts 360",
+          "subtitle": "Vue complète de vos contacts, contextes et interactions",
+          "cta": "Ajouter contact"
+        },
+        "reports": {
+          "title": "Rapports & Forecast",
+          "subtitle": "KPIs temps réel, conversion, MRR et performance équipes",
+          "cta": "Exporter"
+        },
+        "tickets": {
+          "title": "Tickets CRM",
+          "subtitle": "Backlog priorisé avec owners, ETA et impacts",
+          "cta": "Nouveau ticket"
+        }
+      }
     },
-    "actions": {
-      "edit": "Éditer",
-      "delete": "Supprimer",
-      "editTitle": "Éditer l'application",
-      "deleteTitle": "Désactiver l'application",
-      "deleteMessage": "Désactiver l'application \"{title}\" ?"
+    "shop": {
+      "sidebar": {
+        "title": "Shop",
+        "reviews": "Shop Reviews",
+        "customers": "Shop Customers",
+        "tickets": "Shop Tickets",
+        "productDetail": "Détail produit",
+        "category": "Catégorie {category}"
+      },
+      "categories": {
+        "tech": "Tech",
+        "fashion": "Mode",
+        "home": "Maison",
+        "sport": "Sport",
+        "beauty": "Beauté",
+        "kids": "Enfants"
+      },
+      "nav": {
+        "home": "Accueil shop",
+        "promotions": "Promotions",
+        "customers": "Clients",
+        "reviews": "Avis",
+        "checkout": "Checkout",
+        "orders": "Commandes",
+        "payment": "Paiement",
+        "tickets": "Tickets"
+      },
+      "hero": {
+        "home": {
+          "title": "Shop Highlights",
+          "subtitle": "Catalogue enrichi, pages produits détaillées, conversion et design premium.",
+          "cta": "Ajouter produit"
+        },
+        "promotions": {
+          "title": "Promotions & Campaigns",
+          "subtitle": "Collections, offres limitées, bundles et optimisation conversion",
+          "cta": "Créer campagne"
+        },
+        "customers": {
+          "title": "Customer Intelligence",
+          "subtitle": "Segmentation, fidélité, lifetime value et recommandations",
+          "cta": "Exporter CRM"
+        },
+        "reviews": {
+          "title": "Avis clients",
+          "subtitle": "Analyse de sentiment, modération et confiance produit",
+          "cta": "Publier widget"
+        },
+        "tickets": {
+          "title": "Tickets Shop",
+          "subtitle": "Propositions d'amélioration design, data, conversion et fidélité",
+          "cta": "Nouveau ticket"
+        }
+      },
+      "products": {
+        "title": "Produits — {category}",
+        "stockLine": "{price} · {stock} en stock"
+      },
+      "product": {
+        "stock": "Stock {count}"
+      },
+      "customers": {
+        "orders": "{count} commandes"
+      }
     },
-    "filters": {
-      "title": "Filtres",
-      "search": "Recherche",
-      "platformKey": "Clé plateforme",
-      "apply": "Appliquer",
-      "clear": "Réinitialiser"
+    "recruit": {
+      "sidebar": {
+        "title": "Recruit",
+        "interviews": "Recruit Interviews",
+        "tickets": "Recruit Tickets",
+        "jobDetail": "Détail offre"
+      },
+      "nav": {
+        "home": "Jobs",
+        "candidates": "Candidats",
+        "interviews": "Interviews",
+        "tickets": "Tickets"
+      },
+      "hero": {
+        "home": {
+          "title": "Opportunités en cours",
+          "subtitle": "Pipeline jobs, matching candidats et suivi interviews.",
+          "cta": "Créer offre"
+        },
+        "candidates": {
+          "title": "Candidate Hub",
+          "subtitle": "Shortlist, scoring, portfolio et matching compétences",
+          "cta": "Ajouter candidat"
+        },
+        "interviews": {
+          "title": "Interview Planner",
+          "subtitle": "Planning, feedback loop et time-to-hire",
+          "cta": "Planifier"
+        },
+        "tickets": {
+          "title": "Tickets Recruit",
+          "subtitle": "Pipeline talent, expérience candidat, analytics recrutement",
+          "cta": "Nouveau ticket"
+        }
+      },
+      "job": {
+        "published": "Publication : {value}",
+        "remote": "Remote possible",
+        "onsite": "Sur site"
+      }
+    },
+    "school": {
+      "sidebar": {
+        "title": "School",
+        "timetable": "School Timetable",
+        "teachers": "School Teachers",
+        "tickets": "School Tickets"
+      },
+      "nav": {
+        "home": "Classes",
+        "students": "Étudiants",
+        "teachers": "Enseignants",
+        "timetable": "Emploi du temps",
+        "settings": "Paramètres",
+        "certificates": "Certificats",
+        "tickets": "Tickets"
+      },
+      "hero": {
+        "home": {
+          "title": "Liste des classes",
+          "subtitle": "Modules pédagogiques, professeurs et progression de cohortes.",
+          "cta": "Nouvelle classe"
+        },
+        "students": {
+          "title": "Student Experience",
+          "subtitle": "Engagement, progression académique et vie campus",
+          "cta": "Ajouter étudiant"
+        },
+        "teachers": {
+          "title": "Teacher Hub",
+          "subtitle": "Charge pédagogique, performance et satisfaction élèves",
+          "cta": "Affecter classe"
+        },
+        "timetable": {
+          "title": "Timetable Planner",
+          "subtitle": "Créneaux, salles, enseignants et charge hebdomadaire",
+          "cta": "Optimiser planning"
+        },
+        "tickets": {
+          "title": "Tickets School",
+          "subtitle": "Priorités académiques, pédagogie, planning et communication",
+          "cta": "Nouveau ticket"
+        }
+      }
+    },
+    "reviewChecklist": {
+      "title": "Checklist de revue i18n plateforme",
+      "items": [
+        "Remplacer tous les libellés visibles par des clés du namespace `platform.*`.",
+        "Utiliser un formatage localisé pour dates, temps relatifs et monnaies.",
+        "Vérifier les titres/sidebar/sous-titres/CTA des pages plateforme.",
+        "Relire la microcopy par locale (FR/EN/ES/PT/DE/AR).",
+        "Exécuter `node scripts/validate-i18n.mjs` avant merge."
+      ]
     }
   },
   "about": {

@@ -16,9 +16,9 @@ const navItems = computed(() => getShopNav(slug.value, isOwner.value))
 
 <template>
   <PlatformSplitLayout>
-    <template #sidebar><PlatformSidebarNav title="Shop Tickets" :subtitle="`Roadmap ${slug}`" :items="navItems" /></template>
+    <template #sidebar><PlatformSidebarNav title="platform.shop.sidebar.tickets" subtitle="platform.common.sidebar.roadmap" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
-      <PlatformHeroHeader title="Tickets Shop" subtitle="Propositions d'amélioration design, data, conversion et fidélité" cta="Nouveau ticket" />
+      <PlatformHeroHeader title="platform.shop.hero.tickets.title" subtitle="platform.shop.hero.tickets.subtitle" cta="platform.shop.hero.tickets.cta" />
       <PlatformTicketBoard title="Backlog Shop" :tickets="platformProposals.shop" />
     </section>
   </PlatformSplitLayout>

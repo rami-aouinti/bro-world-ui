@@ -16,9 +16,9 @@ const navItems = computed(() => getCrmNav(slug.value, isOwner.value))
 
 <template>
   <PlatformSplitLayout>
-    <template #sidebar><PlatformSidebarNav title="CRM Tickets" :subtitle="`Roadmap ${slug}`" :items="navItems" /></template>
+    <template #sidebar><PlatformSidebarNav title="platform.crm.sidebar.tickets" subtitle="platform.common.sidebar.roadmap" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
-      <PlatformHeroHeader title="Tickets CRM" subtitle="Backlog priorisé avec owners, ETA et impacts" cta="Nouveau ticket" />
+      <PlatformHeroHeader title="platform.crm.hero.tickets.title" subtitle="platform.crm.hero.tickets.subtitle" cta="platform.crm.hero.tickets.cta" />
       <PlatformTicketBoard title="Backlog CRM" :tickets="platformProposals.crm" />
     </section>
   </PlatformSplitLayout>

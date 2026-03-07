@@ -14,7 +14,7 @@ const navItems = computed(() => getShopNav(slug.value, isOwner.value))
 
 <template>
   <PlatformSplitLayout>
-    <template #sidebar><PlatformSidebarNav title="Shop" :subtitle="`Application ${slug}`" :items="navItems" /></template>
+    <template #sidebar><PlatformSidebarNav title="platform.shop.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
       <h1 class="text-h5 font-weight-bold mb-4 text-capitalize">{{ page }}</h1>
       <v-row>

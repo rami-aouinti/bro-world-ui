@@ -28,7 +28,7 @@ onMounted(async () => {
 
 <template>
   <PlatformSplitLayout>
-    <template #sidebar><PlatformSidebarNav title="Shop" :subtitle="`Application ${slug}`" :items="navItems" /></template>
+    <template #sidebar><PlatformSidebarNav title="platform.shop.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
       <v-alert v-if="accessDenied" type="error" variant="tonal" class="mb-4">
         Accès refusé à l’espace admin Shop. Redirection en cours…

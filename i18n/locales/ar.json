@@ -410,83 +410,231 @@
     "localeHint": "Active language: {locale}"
   },
   "platform": {
-    "title": "Platform",
-    "description": "Discover the main entry point of Bro World and navigate to key sections.",
-    "cta": "Contact us",
-    "newPlatform": {
-      "title": "+ New Platform",
-      "description": "Create a new user application and configure its plugins.",
-      "connectTitle": "Connect to create one",
-      "connectDescription": "You must be signed in to create a new platform.",
-      "worldTitle": "New World"
-    },
-    "status": {
-      "active": "Active",
-      "inactive": "Inactive"
-    },
-    "assistant": "Platform assistant",
-    "cards": {
-      "crm1": {
-        "title": "CRM 1",
-        "description": "Complete CRM module to centralize customer relationships, track opportunities, and structure commercial activity."
+    "common": {
+      "backToList": "Back to list",
+      "alert": {
+        "adminDenied": "Admin access denied: insufficient permissions for this application."
       },
-      "crm2": {
-        "title": "CRM 2",
-        "description": "Complete CRM module to centralize customer relationships, track opportunities, and structure commercial activity."
+      "sidebar": {
+        "application": "Application {slug}",
+        "admin": "Admin {slug}",
+        "roadmap": "Roadmap {slug}"
       },
-      "shop": {
-        "title": "Shop Principal",
-        "description": "E-commerce suite to manage product catalogs, orders, payments, and sales performance."
+      "nav": {
+        "admin": "Admin"
       },
-      "recruit": {
-        "title": "Recruit Principal",
-        "description": "Recruitment workspace to publish job offers, qualify applications, and manage interviews efficiently."
-      },
-      "school": {
-        "title": "School Principal",
-        "description": "School module to organize classes, plan lessons, and monitor learner progress."
+      "time": {
+        "daysAgo": "{count}d ago",
+        "weeksAgo": "{count}w ago"
       }
     },
-    "wizard": {
-      "steps": {
-        "title": "Title",
-        "platform": "Platform",
-        "plugins": "Plugins"
+    "crm": {
+      "sidebar": {
+        "title": "CRM",
+        "reports": "CRM Reports",
+        "tickets": "CRM Tickets",
+        "automation": "CRM Automation"
       },
-      "platformTitle": "Choose a platform",
-      "pluginTitle": "Choose a plugin",
-      "fields": {
-        "title": "Title",
-        "description": "Description",
-        "photo": "Photo",
-        "private": "Private",
-        "active": "Active",
-        "theme": "Theme",
-        "cacheSeconds": "Cache (seconds)",
-        "configuration": "Configuration"
+      "nav": {
+        "home": "Dashboard",
+        "companies": "Companies",
+        "projects": "Projects",
+        "contacts": "Contacts",
+        "reports": "Reports",
+        "automation": "Automation",
+        "sprint": "Sprint",
+        "calendar": "Calendar",
+        "settings": "Settings",
+        "billing": "Billing",
+        "tickets": "Tickets"
       },
-      "next": "Next",
-      "prev": "Prev",
-      "create": "Create",
-      "errors": {
-        "load": "Unable to load wizard data.",
-        "create": "Unable to create platform."
-      },
-      "titleStepTitle": "Enter the application title"
+      "hero": {
+        "home": {
+          "title": "CRM Dashboard",
+          "subtitle": "Complete sales steering with actionable views and ticket backlog.",
+          "cta": "New lead"
+        },
+        "automation": {
+          "title": "Automation Center",
+          "subtitle": "Orchestrate workflows and automated scoring",
+          "cta": "Create workflow"
+        },
+        "contacts": {
+          "title": "Contacts 360",
+          "subtitle": "Complete contact view with context and interactions",
+          "cta": "Add contact"
+        },
+        "reports": {
+          "title": "Reports & Forecast",
+          "subtitle": "Real-time KPIs, conversion, MRR and team performance",
+          "cta": "Export"
+        },
+        "tickets": {
+          "title": "CRM Tickets",
+          "subtitle": "Prioritized backlog with owners, ETA and impact",
+          "cta": "New ticket"
+        }
+      }
     },
-    "actions": {
-      "edit": "Edit",
-      "delete": "Delete",
-      "editTitle": "Edit application",
-      "deleteTitle": "Disable application",
-      "deleteMessage": "Disable application \"{title}\"?"
+    "shop": {
+      "sidebar": {
+        "title": "Shop",
+        "reviews": "Shop Reviews",
+        "customers": "Shop Customers",
+        "tickets": "Shop Tickets",
+        "productDetail": "Product detail",
+        "category": "Category {category}"
+      },
+      "categories": {
+        "tech": "Tech",
+        "fashion": "Fashion",
+        "home": "Home",
+        "sport": "Sport",
+        "beauty": "Beauty",
+        "kids": "Kids"
+      },
+      "nav": {
+        "home": "Shop Home",
+        "promotions": "Promotions",
+        "customers": "Customers",
+        "reviews": "Reviews",
+        "checkout": "Checkout",
+        "orders": "Orders",
+        "payment": "Payment",
+        "tickets": "Tickets"
+      },
+      "hero": {
+        "home": {
+          "title": "Shop Highlights",
+          "subtitle": "Enhanced catalog, rich product pages, conversion and premium design.",
+          "cta": "Add product"
+        },
+        "promotions": {
+          "title": "Promotions & Campaigns",
+          "subtitle": "Collections, limited-time offers, bundles and conversion optimization",
+          "cta": "Create campaign"
+        },
+        "customers": {
+          "title": "Customer Intelligence",
+          "subtitle": "Segmentation, loyalty, lifetime value and recommendations",
+          "cta": "Export CRM"
+        },
+        "reviews": {
+          "title": "Customer Reviews",
+          "subtitle": "Sentiment analysis, moderation and product trust",
+          "cta": "Publish widget"
+        },
+        "tickets": {
+          "title": "Shop Tickets",
+          "subtitle": "Design, data, conversion and loyalty improvement proposals",
+          "cta": "New ticket"
+        }
+      },
+      "products": {
+        "title": "Products — {category}",
+        "stockLine": "{price} · {stock} in stock"
+      },
+      "product": {
+        "stock": "Stock {count}"
+      },
+      "customers": {
+        "orders": "{count} orders"
+      }
     },
-    "filters": {
-      "title": "Filters",
-      "search": "Search",
-      "platformKey": "Platform key",
-      "apply": "Apply",
-      "clear": "Clear"
+    "recruit": {
+      "sidebar": {
+        "title": "Recruit",
+        "interviews": "Recruit Interviews",
+        "tickets": "Recruit Tickets",
+        "jobDetail": "Job detail"
+      },
+      "nav": {
+        "home": "Jobs",
+        "candidates": "Candidates",
+        "interviews": "Interviews",
+        "tickets": "Tickets"
+      },
+      "hero": {
+        "home": {
+          "title": "Open opportunities",
+          "subtitle": "Jobs pipeline, candidate matching and interview tracking.",
+          "cta": "Create job"
+        },
+        "candidates": {
+          "title": "Candidate Hub",
+          "subtitle": "Shortlist, scoring, portfolio and skills matching",
+          "cta": "Add candidate"
+        },
+        "interviews": {
+          "title": "Interview Planner",
+          "subtitle": "Planning, feedback loop and time-to-hire",
+          "cta": "Schedule"
+        },
+        "tickets": {
+          "title": "Recruit Tickets",
+          "subtitle": "Talent pipeline, candidate experience and recruiting analytics",
+          "cta": "New ticket"
+        }
+      },
+      "job": {
+        "published": "Published: {value}",
+        "remote": "Remote possible",
+        "onsite": "On-site"
+      }
+    },
+    "school": {
+      "sidebar": {
+        "title": "School",
+        "timetable": "School Timetable",
+        "teachers": "School Teachers",
+        "tickets": "School Tickets"
+      },
+      "nav": {
+        "home": "Classes",
+        "students": "Students",
+        "teachers": "Teachers",
+        "timetable": "Timetable",
+        "settings": "Settings",
+        "certificates": "Certificates",
+        "tickets": "Tickets"
+      },
+      "hero": {
+        "home": {
+          "title": "Class list",
+          "subtitle": "Learning modules, teachers and cohort progress.",
+          "cta": "New class"
+        },
+        "students": {
+          "title": "Student Experience",
+          "subtitle": "Engagement, academic progression and campus life",
+          "cta": "Add student"
+        },
+        "teachers": {
+          "title": "Teacher Hub",
+          "subtitle": "Teaching load, performance and student satisfaction",
+          "cta": "Assign class"
+        },
+        "timetable": {
+          "title": "Timetable Planner",
+          "subtitle": "Slots, rooms, teachers and weekly load",
+          "cta": "Optimize planning"
+        },
+        "tickets": {
+          "title": "School Tickets",
+          "subtitle": "Academic priorities, pedagogy, scheduling and communication",
+          "cta": "New ticket"
+        }
+      }
+    },
+    "reviewChecklist": {
+      "title": "Platform i18n review checklist",
+      "items": [
+        "Replace visible labels with translation keys in `platform.*` namespace.",
+        "Use locale-aware formatting for date, relative time and currency.",
+        "Check sidebar, hero titles/subtitles and CTA labels.",
+        "Validate microcopy tone and vocabulary by locale (FR/EN/ES/PT/DE/AR).",
+        "Run `node scripts/validate-i18n.mjs` before merging."
+      ]
     }
   },
   "about": {

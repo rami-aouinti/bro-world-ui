@@ -24,7 +24,7 @@ const visibleJobs = computed(() => recruitJobs.filter((job) => {
 <template>
   <PlatformSplitLayout>
     <template #sidebar>
-      <PlatformSidebarNav title="Recruit" :subtitle="`Application ${slug}`" :items="navItems">
+      <PlatformSidebarNav title="platform.recruit.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems">
         <v-divider class="my-4" />
         <p class="text-subtitle-2 mb-2">Filtres</p>
         <v-switch v-model="filters.remoteOnly" label="Remote only" color="primary" hide-details inset />
@@ -36,7 +36,7 @@ const visibleJobs = computed(() => recruitJobs.filter((job) => {
       <v-alert v-if="showAccessDenied" type="error" variant="tonal" class="mb-4">
         Accès admin refusé : permissions insuffisantes pour cette application.
       </v-alert>
-      <PlatformHeroHeader title="Opportunités en cours" subtitle="Pipeline jobs, matching candidats et suivi interviews." cta="Créer offre" />
+      <PlatformHeroHeader title="platform.recruit.hero.home.title" subtitle="platform.recruit.hero.home.subtitle" cta="platform.recruit.hero.home.cta" />
       <v-row>
         <v-col v-for="job in visibleJobs" :key="job.slug" cols="12" md="6">
           <v-card rounded="xl" hover :to="`/platform/${slug}/recruit/job/${job.slug}`">

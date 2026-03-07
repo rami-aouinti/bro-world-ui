@@ -19,9 +19,9 @@ const navItems = computed(() => getShopNav(slug.value, isOwner.value))
 
 <template>
   <PlatformSplitLayout>
-    <template #sidebar><PlatformSidebarNav title="Shop Reviews" :subtitle="`Application ${slug}`" :items="navItems" /></template>
+    <template #sidebar><PlatformSidebarNav title="platform.shop.sidebar.reviews" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
-      <PlatformHeroHeader title="Avis clients" subtitle="Analyse de sentiment, modération et confiance produit" cta="Publier widget" />
+      <PlatformHeroHeader title="platform.shop.hero.reviews.title" subtitle="platform.shop.hero.reviews.subtitle" cta="platform.shop.hero.reviews.cta" />
       <v-row>
         <v-col v-for="review in reviews" :key="review.author" cols="12" md="4">
           <v-card rounded="xl">

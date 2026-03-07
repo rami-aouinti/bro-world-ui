@@ -17,7 +17,7 @@ const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
 <template>
   <PlatformSplitLayout>
     <template #sidebar>
-      <PlatformSidebarNav title="CRM" :subtitle="`Application ${slug}`" :items="crmNav" />
+      <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
 
     <section>
