@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
+import PlatformHeroHeader from '~/components/platform/sections/PlatformHeroHeader.vue'
 import { recruitJobs, type NavItem } from '~/data/platform-demo'
 
 definePageMeta({ public: true, requiresAuth: false })
@@ -11,7 +12,12 @@ const isOwner = computed(() => true)
 
 const navItems = computed<NavItem[]>(() => {
   const base = `/platform/${slug.value}/recruit`
-  const items: NavItem[] = [{ title: 'Jobs', icon: 'mdi-briefcase-search-outline', to: `${base}/home` }]
+  const items: NavItem[] = [
+    { title: 'Jobs', icon: 'mdi-briefcase-search-outline', to: `${base}/home` },
+    { title: 'Candidates', icon: 'mdi-account-tie-outline', to: `${base}/candidates` },
+    { title: 'Interviews', icon: 'mdi-calendar-account-outline', to: `${base}/interviews` },
+    { title: 'Tickets', icon: 'mdi-ticket-confirmation-outline', to: `${base}/tickets` },
+  ]
   if (isOwner.value) items.push({ title: 'Admin', icon: 'mdi-shield-crown-outline', to: `${base}/admin` })
   return items
 })
@@ -35,15 +41,12 @@ const visibleJobs = computed(() => recruitJobs.filter((job) => {
     </template>
 
     <section>
-      <h1 class="text-h5 font-weight-bold mb-5">Opportunités en cours</h1>
+      <PlatformHeroHeader title="Opportunités en cours" subtitle="Pipeline jobs, matching candidats et suivi interviews." cta="Créer offre" />
       <v-row>
         <v-col v-for="job in visibleJobs" :key="job.slug" cols="12" md="6">
           <v-card rounded="xl" hover :to="`/platform/${slug}/recruit/job/${job.slug}`">
             <v-card-text>
-              <div class="d-flex align-center justify-space-between mb-2">
-                <p class="font-weight-bold">{{ job.title }}</p>
-                <v-chip size="small" color="primary" variant="tonal">{{ job.type }}</v-chip>
-              </div>
+              <div class="d-flex align-center justify-space-between mb-2"><p class="font-weight-bold">{{ job.title }}</p><v-chip size="small" color="primary" variant="tonal">{{ job.type }}</v-chip></div>
               <p class="text-body-2 text-medium-emphasis">{{ job.company }} · {{ job.location }} · {{ job.salary }}</p>
               <p class="text-body-2 mt-2">{{ job.summary }}</p>
             </v-card-text>
