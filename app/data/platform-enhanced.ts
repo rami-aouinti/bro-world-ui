@@ -1,4 +1,7 @@
 import type { PlatformSectionItem } from '~/data/platform-demo'
+import productDetails1 from '~/assets/img/products/product-details-1.jpg'
+import productDetails2 from '~/assets/img/products/product-details-2.jpg'
+import productDetails3 from '~/assets/img/products/product-details-3.jpg'
 
 export interface TicketItem {
   id: string
@@ -25,9 +28,9 @@ export const crmTickets: TicketItem[] = [
 ]
 
 export const shopCatalogMedia: MediaCardItem[] = [
-  { id: 'shop-m-01', title: 'Premium Hoodie', subtitle: 'Collection Winter 2026', image: '/images/platform-media/shop-premium-hoodie.svg', chips: ['fashion', 'best seller'], metric: '4.8/5' },
-  { id: 'shop-m-02', title: 'Desk Setup Kit', subtitle: 'Office comfort bundle', image: '/images/platform-media/shop-desk-setup-kit.svg', chips: ['office', 'bundle'], metric: '€189' },
-  { id: 'shop-m-03', title: 'Sport Performance Pack', subtitle: 'Top ventes sport', image: '/images/platform-media/shop-sport-pack.svg', chips: ['sport', 'new'], metric: '+22%' },
+  { id: 'shop-m-01', title: 'Premium Hoodie', subtitle: 'Collection Winter 2026', image: productDetails1, chips: ['fashion', 'best seller'], metric: '4.8/5' },
+  { id: 'shop-m-02', title: 'Desk Setup Kit', subtitle: 'Office comfort bundle', image: productDetails2, chips: ['office', 'bundle'], metric: '€189' },
+  { id: 'shop-m-03', title: 'Sport Performance Pack', subtitle: 'Top ventes sport', image: productDetails3, chips: ['sport', 'new'], metric: '+22%' },
 ]
 
 export const recruitCandidates: MediaCardItem[] = [

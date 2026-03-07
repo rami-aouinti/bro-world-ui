@@ -6,6 +6,7 @@ import ShopStatusChip from '~/components/platform/shop/admin/ShopStatusChip.vue'
 import ShopOtherProductsTable from '~/components/platform/shop/ShopOtherProductsTable.vue'
 import { shopProducts } from '~/data/platform-demo'
 import { getShopNav } from '~/data/platform-nav'
+import productPlaceholder from '~/assets/img/products/product-12.jpg'
 import { shopOtherProducts, shopProductGallery, shopProductVariants } from '~/data/shop-product-detail'
 
 definePageMeta({ public: true, requiresAuth: false })
@@ -20,7 +21,13 @@ const { formatCurrency } = usePlatformI18n()
 
 const navItems = computed(() => getShopNav(appSlug.value, false))
 
-const selectedImage = ref(shopProductGallery[0])
+const selectedImage = ref(shopProductGallery[0] ?? productPlaceholder)
+
+const imageErrorMap = ref<Record<string, boolean>>({})
+const imageWithFallback = (image: string) => (imageErrorMap.value[image] ? productPlaceholder : image)
+const markImageError = (image: string) => {
+  imageErrorMap.value = { ...imageErrorMap.value, [image]: true }
+}
 const selectedMaterial = ref(shopProductVariants.material[0])
 const selectedColor = ref(shopProductVariants.color[0])
 const selectedQuantity = ref(shopProductVariants.quantity[0])
@@ -34,7 +41,7 @@ const selectedQuantity = ref(shopProductVariants.quantity[0])
         <v-card-text>
           <v-row>
             <v-col cols="12" md="7">
-              <v-img :src="selectedImage" :alt="product.title" height="420" class="rounded-lg mb-4" cover />
+              <v-img :src="imageWithFallback(selectedImage)" :alt="product.title" height="420" class="rounded-lg mb-4" cover @error="markImageError(selectedImage)" />
               <div class="d-flex ga-3 flex-wrap">
                 <v-sheet
                   v-for="image in shopProductGallery"
@@ -45,7 +52,7 @@ const selectedQuantity = ref(shopProductVariants.quantity[0])
                   border
                   @click="selectedImage = image"
                 >
-                  <v-img :src="image" :alt="`Thumbnail ${product.title}`" width="80" height="80" cover class="rounded-lg" />
+                  <v-img :src="imageWithFallback(image)" :alt="`Thumbnail ${product.title}`" width="80" height="80" cover class="rounded-lg" @error="markImageError(image)" />
                 </v-sheet>
               </div>
             </v-col>

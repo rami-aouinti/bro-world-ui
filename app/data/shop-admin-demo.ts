@@ -1,3 +1,7 @@
+import productDetails1 from '~/assets/img/products/product-details-1.jpg'
+import productDetails2 from '~/assets/img/products/product-details-2.jpg'
+import productPlaceholder from '~/assets/img/products/product-12.jpg'
+
 export interface ShopAdminProductForm {
   slug: string
   image: string
@@ -28,7 +32,7 @@ export interface ShopAdminProductForm {
 export const shopAdminProductsDemo: ShopAdminProductForm[] = [
   {
     slug: 'smart-watch-pro',
-    image: 'product-details-1.jpg',
+    image: productDetails1 || productPlaceholder,
     imageAlt: 'Smart Watch Pro sur fond sombre',
     name: 'Smart Watch Pro',
     subtitle: 'Montre connectée premium',
@@ -55,7 +59,7 @@ export const shopAdminProductsDemo: ShopAdminProductForm[] = [
   },
   {
     slug: 'running-shoes-x',
-    image: 'product-details-2.jpg',
+    image: productDetails2 || productPlaceholder,
     imageAlt: 'Running Shoes X sur une piste',
     name: 'Running Shoes X',
     subtitle: 'Chaussures running légères',

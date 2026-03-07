@@ -3,6 +3,7 @@ import productThumbnail2 from '~/assets/img/products/product-details-2.jpg'
 import productThumbnail3 from '~/assets/img/products/product-details-3.jpg'
 import productThumbnail4 from '~/assets/img/products/product-details-4.jpg'
 import productThumbnail5 from '~/assets/img/products/product-details-5.jpg'
+import productPlaceholder from '~/assets/img/products/product-12.jpg'
 
 export interface ShopProductVariant {
   material: string[]
@@ -19,7 +20,7 @@ export interface ShopOtherProduct {
 }
 
 export const shopProductGallery: string[] = [
-  productMainImage,
+  productMainImage || productPlaceholder,
   productThumbnail2,
   productThumbnail3,
   productThumbnail4,
