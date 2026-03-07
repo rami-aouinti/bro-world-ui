@@ -13,6 +13,7 @@ const slug = computed(() => String(route.params.slug ?? ''))
 
 const homePath = computed(() => `/platform/${slug.value}/crm/home`)
 const adminPath = computed(() => `/platform/${slug.value}/crm/admin`)
+const { isOwner } = usePlatformApplication(slug)
 </script>
 
 <template>
@@ -25,7 +26,7 @@ const adminPath = computed(() => `/platform/${slug.value}/crm/admin`)
 
       <div class="platform-layout__sidebar-actions">
         <v-btn variant="outlined" block :to="homePath">Home</v-btn>
-      <v-btn variant="outlined" block :to="adminPath" class="mt-2">Admin</v-btn>
+      <v-btn v-if="isOwner" variant="outlined" block :to="adminPath" class="mt-2">Admin</v-btn>
       <v-btn variant="text" block class="mt-2" to="/platform">Retour liste</v-btn>
       </div>
     </template>
