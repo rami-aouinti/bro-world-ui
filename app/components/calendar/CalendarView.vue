@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import dayGridPlugin from '@fullcalendar/daygrid'
+import interactionPlugin from '@fullcalendar/interaction'
+import timeGridPlugin from '@fullcalendar/timegrid'
+import FullCalendar from '@fullcalendar/vue3'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import UiStatChip from '~/components/ui/UiStatChip.vue'
@@ -12,7 +16,21 @@ type CalendarEvent = {
   color: string
 }
 
-const selectedRange = ref('7days')
+type CalendarFilterRange = '7days' | '30days' | 'quarter'
+
+type FullCalendarEvent = {
+  id: string
+  title: string
+  start: string
+  end: string
+  allDay?: boolean
+  color: string
+  extendedProps: {
+    type: CalendarEvent['type']
+  }
+}
+
+const selectedRange = ref<CalendarFilterRange>('7days')
 const selectedType = ref<'all' | CalendarEvent['type']>('all')
 
 const rangeOptions = [
@@ -34,6 +52,49 @@ const upcomingEvents = ref<CalendarEvent[]>([
   { id: 3, title: 'Atelier design system', date: 'Vendredi 11:00', type: 'task', color: 'info' },
 ])
 
+const calendarEvents = ref<FullCalendarEvent[]>([
+  {
+    id: 'evt-1',
+    title: 'Kickoff produit Q3',
+    start: '2026-03-10T09:30:00',
+    end: '2026-03-10T10:30:00',
+    color: '#1976D2',
+    extendedProps: { type: 'meeting' },
+  },
+  {
+    id: 'evt-2',
+    title: 'Déploiement v2.8',
+    start: '2026-03-12T14:00:00',
+    end: '2026-03-12T15:00:00',
+    color: '#2E7D32',
+    extendedProps: { type: 'release' },
+  },
+  {
+    id: 'evt-3',
+    title: 'Atelier design system',
+    start: '2026-03-13T11:00:00',
+    end: '2026-03-13T12:00:00',
+    color: '#0288D1',
+    extendedProps: { type: 'task' },
+  },
+  {
+    id: 'evt-4',
+    title: 'Sprint planning',
+    start: '2026-03-18T10:00:00',
+    end: '2026-03-18T11:30:00',
+    color: '#5E35B1',
+    extendedProps: { type: 'meeting' },
+  },
+  {
+    id: 'evt-5',
+    title: 'Release candidate QA',
+    start: '2026-04-01T13:30:00',
+    end: '2026-04-01T15:00:00',
+    color: '#00897B',
+    extendedProps: { type: 'release' },
+  },
+])
+
 const filteredEvents = computed(() => {
   if (selectedType.value === 'all') {
     return upcomingEvents.value
@@ -41,6 +102,48 @@ const filteredEvents = computed(() => {
 
   return upcomingEvents.value.filter(event => event.type === selectedType.value)
 })
+
+const rangeInDays: Record<CalendarFilterRange, number> = {
+  '7days': 7,
+  '30days': 30,
+  'quarter': 90,
+}
+
+const filteredCalendarEvents = computed(() => {
+  const windowDays = rangeInDays[selectedRange.value]
+  const startDate = new Date('2026-03-01T00:00:00')
+  const maxDate = new Date(startDate)
+  maxDate.setDate(startDate.getDate() + windowDays)
+
+  return calendarEvents.value.filter(event => {
+    const eventDate = new Date(event.start)
+    const matchesType = selectedType.value === 'all' || event.extendedProps.type === selectedType.value
+    const inRange = eventDate >= startDate && eventDate <= maxDate
+
+    return matchesType && inRange
+  })
+})
+
+const calendarOptions = computed(() => ({
+  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+  initialView: 'dayGridMonth',
+  locale: 'fr',
+  headerToolbar: {
+    left: 'prev,next today',
+    center: 'title',
+    right: 'dayGridMonth,timeGridWeek,timeGridDay',
+  },
+  buttonText: {
+    today: 'Aujourd\'hui',
+    month: 'Mois',
+    week: 'Semaine',
+    day: 'Jour',
+  },
+  height: 'auto',
+  editable: true,
+  selectable: true,
+  events: filteredCalendarEvents.value,
+}))
 </script>
 
 <template>
@@ -117,13 +220,13 @@ const filteredEvents = computed(() => {
 
       <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
         <h2 class="text-subtitle-1 font-weight-bold mb-0">Vue calendrier</h2>
-        <UiStatChip value="Slot prêt pour FullCalendar" color="info" />
+        <UiStatChip :value="`${filteredCalendarEvents.length} événements`" color="info" />
       </div>
 
-      <div class="calendar-page__slot d-flex flex-column align-center justify-center text-medium-emphasis">
-        <v-icon icon="mdi-calendar-range" size="40" class="mb-2" />
-        <p class="text-body-2 mb-3 text-center">Intégrez ici le composant FullCalendar avec vos sources d'événements.</p>
-        <v-btn variant="outlined" prepend-icon="mdi-code-tags">Configurer le calendrier</v-btn>
+      <div class="calendar-page__slot">
+        <ClientOnly>
+          <FullCalendar :options="calendarOptions" />
+        </ClientOnly>
       </div>
     </template>
   </PlatformSplitLayout>
@@ -141,8 +244,17 @@ const filteredEvents = computed(() => {
 
 .calendar-page__slot {
   min-height: 320px;
-  border: 1px dashed rgba(var(--v-theme-on-surface), 0.2);
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
   border-radius: 16px;
-  padding: 1.25rem;
+  padding: 1rem;
+}
+
+:deep(.fc .fc-toolbar.fc-header-toolbar) {
+  margin-bottom: 1rem;
+}
+
+:deep(.fc .fc-button-primary) {
+  background-color: rgb(var(--v-theme-primary));
+  border-color: rgb(var(--v-theme-primary));
 }
 </style>
