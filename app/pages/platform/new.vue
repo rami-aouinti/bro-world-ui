@@ -347,8 +347,8 @@ const submit = async () => {
 <style scoped>
 
 .platform-new__layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
 }
 
