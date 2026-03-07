@@ -419,182 +419,308 @@
   },
   "about": {
     "title": "À propos",
-    "description": "Découvrez Bro World, notre mission, notre vision et nos engagements.",
+    "description": "Découvrez Bro World, notre mission, notre vision et les engagements mesurables qui guident chaque évolution produit.",
     "hero": {
       "badge": "Plateforme collaborative",
-      "title": "Construire une expérience fiable et humaine",
-      "subtitle": "Bro World aide les équipes à coordonner leurs opérations, partager l'information et accélérer les décisions.",
+      "title": "Construire un système opérationnel fiable et centré sur l’humain",
+      "subtitle": "Bro World aide les équipes opérations, produit et support à coordonner leur travail dans un contexte partagé pour décider plus vite et exécuter avec confiance.",
+      "paragraphs": [
+        "Nous avons conçu Bro World comme un espace de travail concret où les objectifs stratégiques restent connectés aux actions quotidiennes. Les équipes peuvent suivre les décisions, documenter le contexte et rester alignées sans multiplier les outils.",
+        "Notre feuille de route suit un principe simple : chaque fonctionnalité doit réduire la friction dans les workflows réels. Cela signifie plus de visibilité, moins de handoffs et des responsabilités plus claires de la demande à la livraison."
+      ],
+      "bullets": [
+        "Visibilité unifiée sur les opérations, la communication et les jalons de livraison.",
+        "Gouvernance fiable avec accès par rôles, auditabilité et continuité de service.",
+        "Modèle d’adoption progressif, adapté aux petites équipes comme aux organisations multi-entités."
+      ],
       "primaryCta": "Explorer la plateforme",
       "secondaryCta": "Voir les fonctionnalités"
     },
-    "blocks": {
-      "mission": {
+    "missionCards": [
+      {
         "title": "Notre mission",
-        "description": "Permettre à chaque équipe de gagner en clarté opérationnelle grâce à des outils simples et connectés."
+        "description": "Permettre à chaque équipe de gagner en clarté opérationnelle grâce à des outils simples, connectés et actionnables.",
+        "paragraphs": [
+          "L’excellence opérationnelle ne devrait pas dépendre de processus lourds. Nous privilégions des interfaces claires et des parcours utiles pour passer rapidement de l’intention à l’impact.",
+          "En centralisant les signaux clés, les tâches et les décisions, Bro World réduit l’ambiguïté et aide les équipes à prioriser ce qui compte vraiment."
+        ],
+        "bullets": [
+          "Cycles de coordination plus courts entre équipes.",
+          "Vision partagée des priorités et des contraintes.",
+          "Reporting exploitable pour améliorer la prise de décision."
+        ],
+        "icon": "mdi-rocket-launch-outline"
       },
-      "vision": {
+      {
         "title": "Notre vision",
-        "description": "Créer un environnement numérique où l'information circule vite, reste fiable et sert la collaboration."
-      },
-      "values": {
-        "title": "Nos valeurs",
-        "items": {
-          "impact": {
-            "title": "Impact concret",
-            "description": "Chaque fonctionnalité doit apporter un gain mesurable au quotidien."
-          },
-          "trust": {
-            "title": "Confiance",
-            "description": "Nous privilégions la transparence, la sécurité et la continuité de service."
-          },
-          "innovation": {
-            "title": "Innovation utile",
-            "description": "Nous améliorons en continu l'expérience sans complexifier les usages."
-          }
-        }
-      },
-      "keyNumbers": {
-        "title": "Chiffres clés",
-        "items": {
-          "users": {
-            "value": "15k+",
-            "label": "utilisateurs actifs mensuels"
-          },
-          "uptime": {
-            "value": "99,95 %",
-            "label": "disponibilité moyenne"
-          },
-          "csat": {
-            "value": "4,8/5",
-            "label": "satisfaction client"
-          }
-        }
-      },
-      "testimonials": {
-        "title": "Témoignages",
-        "items": {
-          "ops": {
-            "quote": "Nous avons réduit le temps de coordination de 30 % en centralisant nos échanges sur Bro World.",
-            "author": "Responsable Opérations · Secteur industriel"
-          },
-          "community": {
-            "quote": "La plateforme est claire, rapide et nous aide à répondre plus vite à notre communauté.",
-            "author": "Lead Support · Organisation internationale"
-          }
-        }
+        "description": "Créer un environnement numérique où l’information circule vite, reste fiable et renforce une collaboration durable.",
+        "paragraphs": [
+          "Les organisations modernes ont besoin d’outils qui montent en complexité sans perdre en lisibilité. Les données doivent être compréhensibles, traçables et faciles à exploiter.",
+          "Notre ambition long terme est de devenir la couche de collaboration de référence pour les équipes distribuées qui exigent simultanément fiabilité et rapidité."
+        ],
+        "bullets": [
+          "Collaboration transparente entre sites, fuseaux horaires et métiers.",
+          "Architecture sécurisée par défaut pour les processus sensibles.",
+          "Évolution continue du produit guidée par des résultats mesurables."
+        ],
+        "icon": "mdi-shield-check-outline"
       }
-    }
+    ],
+    "metrics": [
+      {
+        "value": "15k+",
+        "label": "utilisateurs actifs mensuels",
+        "context": "Croissance de l’adoption maintenue sur les 12 derniers mois dans plusieurs secteurs.",
+        "icon": "mdi-account-group-outline"
+      },
+      {
+        "value": "99,95 %",
+        "label": "disponibilité moyenne",
+        "context": "Disponibilité observée sur les environnements de production et les services critiques.",
+        "icon": "mdi-server-network"
+      },
+      {
+        "value": "4,8/5",
+        "label": "satisfaction client",
+        "context": "Score moyen collecté via les enquêtes post-résolution et les revues trimestrielles.",
+        "icon": "mdi-star-circle-outline"
+      }
+    ],
+    "timeline": [
+      {
+        "title": "Phase fondatrice",
+        "period": "2021",
+        "description": "Nous avons livré un premier noyau collaboratif centré sur la visibilité des tâches et les accès par rôles.",
+        "highlights": [
+          "Lancement des espaces multi-équipes.",
+          "Mise en place de couches de permissions configurables."
+        ],
+        "icon": "mdi-rocket-launch-outline"
+      },
+      {
+        "title": "Passage à l’échelle & fiabilité",
+        "period": "2022-2023",
+        "description": "La plateforme a évolué pour absorber plus de trafic, renforcer la gouvernance et ouvrir davantage d’intégrations.",
+        "highlights": [
+          "Amélioration de l’observabilité et des contrôles de disponibilité.",
+          "Publication de modèles de workflows structurés pour les équipes opérations."
+        ],
+        "icon": "mdi-shield-check-outline"
+      },
+      {
+        "title": "Intelligence & accélération",
+        "period": "2024+",
+        "description": "Nous investissons dans des capacités d’assistance qui aident à prioriser, détecter les risques plus tôt et automatiser les tâches répétitives.",
+        "highlights": [
+          "Recommandations contextuelles dans les écrans clés.",
+          "Analytique étendue au service de l’amélioration continue."
+        ],
+        "icon": "mdi-lightbulb-on-outline"
+      }
+    ],
+    "cta": {
+      "title": "Vous voulez aller plus loin ?",
+      "description": "Échangez avec notre équipe pour cartographier vos priorités et identifier le chemin le plus rapide vers un impact opérationnel avec Bro World.",
+      "primaryAction": "Contacter notre équipe",
+      "secondaryAction": "Lire la FAQ"
+    },
+    "metricsTitle": "Indicateurs clés",
+    "timelineTitle": "Chronologie"
   },
   "faq": {
     "title": "FAQ",
-    "description": "Trouvez rapidement les réponses aux questions fréquentes sur la plateforme.",
+    "description": "Retrouvez des réponses rapides et concrètes aux questions les plus fréquentes sur Bro World.",
     "hero": {
-      "badge": "Centre d'aide",
+      "badge": "Centre d’aide",
       "title": "Une FAQ enrichie pour aller plus vite",
-      "subtitle": "Filtrez par catégorie, recherchez un sujet précis et accédez rapidement au bon canal de contact.",
+      "subtitle": "Filtrez par catégorie, recherchez des sujets précis et accédez à des conseils opérationnels en quelques secondes.",
       "primaryCta": "Parcourir les questions",
       "secondaryCta": "Contacter le support"
     },
     "search": {
       "label": "Rechercher dans la FAQ",
-      "placeholder": "Ex: connexion, sécurité, notifications..."
+      "placeholder": "Exemple : connexion, permissions, notifications, sécurité..."
     },
-    "categories": {
-      "all": "Toutes",
-      "account": "Compte",
-      "platform": "Plateforme",
-      "security": "Sécurité"
-    },
-    "items": {
-      "q1": {
-        "question": "Comment me connecter à mon compte ?",
-        "answer": "Utilisez votre identifiant ou votre email sur la page Connexion, puis saisissez votre mot de passe."
+    "categories": [
+      {
+        "key": "all",
+        "label": "Toutes",
+        "color": "primary",
+        "description": "Parcourir toutes les questions disponibles."
       },
-      "q2": {
-        "question": "Puis-je personnaliser les notifications ?",
-        "answer": "Oui, les notifications peuvent être ajustées depuis vos paramètres utilisateur selon chaque canal."
+      {
+        "key": "account",
+        "label": "Compte",
+        "color": "info",
+        "description": "Authentification, profil utilisateur et préférences."
       },
-      "q3": {
-        "question": "Comment sont protégées mes données ?",
-        "answer": "Les données sont chiffrées en transit et nos accès sont contrôlés selon des rôles et permissions."
+      {
+        "key": "platform",
+        "label": "Plateforme",
+        "color": "success",
+        "description": "Fonctionnalités, workflows et bonnes pratiques d’usage."
       },
-      "q4": {
-        "question": "La plateforme est-elle disponible en plusieurs langues ?",
-        "answer": "Oui, vous pouvez changer la langue de l'interface directement depuis la barre de navigation."
+      {
+        "key": "security",
+        "label": "Sécurité",
+        "color": "warning",
+        "description": "Contrôle d’accès, traitement des données et conformité."
       }
-    },
-    "contactCta": {
-      "title": "Vous ne trouvez pas votre réponse ?",
-      "description": "Notre équipe support peut vous orienter vers la meilleure solution selon votre besoin.",
-      "action": "Ouvrir la page contact"
+    ],
+    "items": [
+      {
+        "category": "account",
+        "question": "Comment me connecter à mon compte ?",
+        "answer": "Utilisez votre identifiant ou votre email professionnel sur la page Connexion, puis saisissez votre mot de passe pour ouvrir une session sécurisée.",
+        "detailsParagraphs": [
+          "Si votre organisation utilise une identité centralisée, votre administrateur peut avoir activé des contrôles supplémentaires comme le SSO ou la double authentification.",
+          "En cas d’échec répété, réinitialisez votre mot de passe et vérifiez qu’aucune politique n’a temporairement verrouillé votre compte."
+        ],
+        "bullets": [
+          "Utilisez de préférence un email d’entreprise.",
+          "Ne partagez pas vos identifiants entre collègues.",
+          "Contactez votre administrateur si le compte est désactivé."
+        ]
+      },
+      {
+        "category": "platform",
+        "question": "Puis-je personnaliser les notifications ?",
+        "answer": "Oui. Les canaux et la fréquence des notifications peuvent être ajustés dans les paramètres utilisateur pour chaque workflow.",
+        "detailsParagraphs": [
+          "Vous pouvez choisir quels événements déclenchent des emails, des alertes in-app ou des résumés. Cela réduit le bruit tout en conservant la visibilité sur les alertes critiques.",
+          "Les réglages par équipe peuvent être surchargés selon votre rôle et les règles de gouvernance."
+        ],
+        "bullets": [
+          "Définissez des heures calmes pour les mises à jour non critiques.",
+          "Conservez les alertes d’incident critique actives en permanence."
+        ]
+      },
+      {
+        "category": "security",
+        "question": "Comment mes données sont-elles protégées ?",
+        "answer": "Les données sont chiffrées en transit, les accès sont contrôlés par rôles et les opérations sensibles sont journalisées pour audit.",
+        "detailsParagraphs": [
+          "Bro World applique des principes de moindre privilège et un monitoring continu sur les services critiques.",
+          "Les contrôles de sécurité sont revus régulièrement pour rester alignés avec les exigences de conformité et des clients."
+        ],
+        "bullets": [
+          "Accès par rôles et permissions fines.",
+          "Traçabilité des actions sensibles.",
+          "Durcissement de l’infrastructure et surveillance proactive."
+        ]
+      },
+      {
+        "category": "platform",
+        "question": "La plateforme est-elle disponible en plusieurs langues ?",
+        "answer": "Oui. Vous pouvez changer la langue de l’interface à tout moment depuis la barre de navigation.",
+        "detailsParagraphs": [
+          "La couverture de localisation s’étend en continu selon l’usage produit et la demande client.",
+          "Les administrateurs peuvent définir une langue par défaut tout en conservant des préférences individuelles par utilisateur."
+        ],
+        "bullets": [
+          "Bascule de langue immédiate dans l’interface.",
+          "Aucune déconnexion nécessaire pour appliquer le changement."
+        ]
+      }
+    ],
+    "emptyState": {
+      "title": "Aucun résultat avec vos filtres actuels",
+      "description": "Essayez d’élargir vos termes de recherche, de changer de catégorie ou de contacter le support pour un accompagnement personnalisé.",
+      "suggestion": "Astuce : utilisez des mots-clés courts comme « connexion », « sécurité » ou « notifications »."
     }
   },
   "contact": {
     "title": "Contact",
-    "description": "Besoin d'aide ou envie de partager un retour ? Contactez-nous via l'un de nos canaux.",
+    "description": "Besoin d’accompagnement, de support technique ou d’un échange stratégique ? Contactez-nous via le canal le plus adapté à votre contexte.",
     "hero": {
       "badge": "Support & accompagnement",
       "title": "Un point de contact clair pour chaque besoin",
-      "subtitle": "Nos équipes vous répondent selon le niveau de priorité avec des engagements de service transparents.",
+      "subtitle": "Nos équipes support, customer success et partenariat se coordonnent pour vous répondre rapidement avec un suivi transparent.",
       "primaryCta": "Envoyer une demande",
       "secondaryCta": "Voir nos SLA"
     },
-    "channels": {
-      "title": "Canaux de contact",
-      "items": {
-        "email": {
-          "label": "Email",
-          "value": "support (at) bro-world.example"
-        },
-        "phone": {
-          "label": "Téléphone",
-          "value": "+33 1 23 45 67 89"
-        },
-        "chat": {
-          "label": "Chat",
-          "value": "Disponible depuis l'espace utilisateur"
-        }
+    "channels": [
+      {
+        "label": "Support email",
+        "value": "support (at) bro-world.example",
+        "details": "À privilégier pour les demandes détaillées, les pièces jointes et le suivi asynchrone.",
+        "icon": "mdi-email-outline"
+      },
+      {
+        "label": "Hotline téléphonique",
+        "value": "+33 1 23 45 67 89",
+        "details": "Recommandée pour les blocages urgents nécessitant une qualification immédiate.",
+        "icon": "mdi-phone-outline"
+      },
+      {
+        "label": "Chat espace utilisateur",
+        "value": "Disponible depuis l’espace utilisateur",
+        "details": "Idéal pour les questions du quotidien et les clarifications rapides.",
+        "icon": "mdi-message-processing-outline"
       }
-    },
-    "hours": {
-      "title": "Horaires de disponibilité",
-      "weekdays": "Lundi - Vendredi : 08:00 - 19:00 (CET)",
-      "weekend": "Samedi : 09:00 - 13:00 (CET) · Urgences uniquement"
-    },
-    "sla": {
-      "title": "Engagements de service (SLA)",
-      "items": {
-        "request": {
-          "title": "Réception de la demande",
-          "description": "Accusé de réception automatique immédiat avec numéro de suivi."
+    ],
+    "availability": {
+      "title": "Disponibilité et escalade",
+      "description": "Nos plages de réponse sont conçues pour équilibrer rapidité, profondeur d’analyse et suivi prévisible.",
+      "windows": [
+        {
+          "label": "Plage de support standard",
+          "value": "Lundi - Vendredi : 08:00 - 19:00 (CET)"
         },
-        "response": {
-          "title": "Première réponse",
-          "description": "Moins de 2 heures ouvrées pour les tickets prioritaires."
-        },
-        "resolution": {
-          "title": "Plan de résolution",
-          "description": "Mise à jour régulière jusqu'à résolution complète du ticket."
+        {
+          "label": "Couverture d’urgence",
+          "value": "Samedi : 09:00 - 13:00 (CET) · Incidents critiques uniquement"
         }
-      }
+      ],
+      "escalationTitle": "Comment les escalades sont traitées",
+      "escalationBullets": [
+        "Accusé de réception immédiat avec identifiant de suivi et responsable assigné.",
+        "Qualification selon la criticité avec visibilité sur les délais de réponse.",
+        "Mises à jour régulières jusqu’à mitigation puis résolution complète."
+      ]
     },
     "form": {
       "title": "Formulaire de contact",
+      "description": "Partagez suffisamment de contexte pour orienter votre demande vers la bonne équipe et obtenir une réponse actionnable.",
       "fields": {
         "firstName": "Prénom",
         "lastName": "Nom",
         "email": "Email professionnel",
         "topic": "Sujet",
         "message": "Message",
-        "messagePlaceholder": "Décrivez votre besoin, contexte et niveau d'urgence..."
+        "messagePlaceholder": "Décrivez votre objectif, votre contexte, vos contraintes et le niveau d’urgence..."
       },
-      "topics": {
-        "support": "Support technique",
-        "sales": "Question commerciale",
-        "partnership": "Partenariat"
-      },
+      "topics": [
+        {
+          "value": "support",
+          "label": "Support technique"
+        },
+        {
+          "value": "sales",
+          "label": "Question commerciale"
+        },
+        {
+          "value": "partnership",
+          "label": "Partenariat"
+        }
+      ],
+      "privacyNote": "En envoyant ce formulaire, vous acceptez le traitement de vos informations afin de répondre à votre demande et d’améliorer la qualité du service.",
       "submit": "Envoyer",
       "reset": "Réinitialiser"
+    },
+    "cta": {
+      "title": "Vous préférez un échange d’onboarding guidé ?",
+      "description": "Planifiez un appel de découverte pour revoir vos objectifs, contraintes et plan de déploiement avec notre équipe.",
+      "actions": [
+        {
+          "label": "Planifier un appel",
+          "variant": "primary"
+        },
+        {
+          "label": "Télécharger la synthèse SLA",
+          "variant": "outlined"
+        }
+      ]
     }
   },
   "settings": {

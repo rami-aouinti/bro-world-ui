@@ -419,182 +419,308 @@
   },
   "about": {
     "title": "About",
-    "description": "Discover Bro World, our mission, our vision, and our commitments.",
+    "description": "Discover Bro World, our mission, our vision, and the measurable commitments that shape each release.",
     "hero": {
       "badge": "Collaborative platform",
-      "title": "Building a reliable and human-centered experience",
-      "subtitle": "Bro World helps teams coordinate operations, share knowledge, and speed up decision-making.",
+      "title": "Building a reliable and human-centered operating system for teams",
+      "subtitle": "Bro World helps operations, product, and support teams coordinate work in one shared context so they can decide faster and execute with confidence.",
+      "paragraphs": [
+        "We designed Bro World as a practical workspace where strategic goals and day-to-day actions stay connected. Teams can track decisions, document context, and keep everyone aligned without multiplying disconnected tools.",
+        "Our roadmap is guided by one principle: each feature must reduce friction in real workflows. That means better visibility, fewer handoffs, and clearer ownership from intake to delivery."
+      ],
+      "bullets": [
+        "Unified visibility across operations, communication, and delivery milestones.",
+        "Reliable governance with role-based access, auditability, and service continuity.",
+        "Progressive adoption model that supports both small teams and multi-entity organizations."
+      ],
       "primaryCta": "Explore the platform",
       "secondaryCta": "View features"
     },
-    "blocks": {
-      "mission": {
+    "missionCards": [
+      {
         "title": "Our mission",
-        "description": "Enable every team to improve operational clarity with simple and connected tools."
+        "description": "Enable every team to improve operational clarity with simple, connected, and actionable tools.",
+        "paragraphs": [
+          "Operational excellence should not require heavy process overhead. We focus on clear interfaces and practical workflows so teams can move from intent to impact quickly.",
+          "By centralizing key signals, tasks, and decisions, Bro World reduces ambiguity and helps teams prioritize the work that matters most."
+        ],
+        "bullets": [
+          "Shorter coordination cycles between departments.",
+          "Shared understanding of priorities and constraints.",
+          "Actionable reporting that supports better decision-making."
+        ],
+        "icon": "mdi-rocket-launch-outline"
       },
-      "vision": {
+      {
         "title": "Our vision",
-        "description": "Create a digital environment where information flows quickly, stays reliable, and empowers collaboration."
-      },
-      "values": {
-        "title": "Our values",
-        "items": {
-          "impact": {
-            "title": "Real impact",
-            "description": "Every feature must deliver measurable value to daily workflows."
-          },
-          "trust": {
-            "title": "Trust",
-            "description": "We prioritize transparency, security, and service continuity."
-          },
-          "innovation": {
-            "title": "Useful innovation",
-            "description": "We continuously improve the experience without adding complexity."
-          }
-        }
-      },
-      "keyNumbers": {
-        "title": "Key metrics",
-        "items": {
-          "users": {
-            "value": "15k+",
-            "label": "monthly active users"
-          },
-          "uptime": {
-            "value": "99.95%",
-            "label": "average uptime"
-          },
-          "csat": {
-            "value": "4.8/5",
-            "label": "customer satisfaction"
-          }
-        }
-      },
-      "testimonials": {
-        "title": "Testimonials",
-        "items": {
-          "ops": {
-            "quote": "We reduced coordination time by 30% by centralizing conversations in Bro World.",
-            "author": "Operations Manager · Industrial sector"
-          },
-          "community": {
-            "quote": "The platform is clear, fast, and helps us respond quicker to our community.",
-            "author": "Support Lead · International organization"
-          }
-        }
+        "description": "Create a digital environment where information flows quickly, stays trustworthy, and empowers sustainable collaboration.",
+        "paragraphs": [
+          "We believe modern organizations need tools that scale in complexity without sacrificing usability. Data should be understandable, traceable, and easy to act on.",
+          "Our long-term ambition is to become the reference collaboration layer for distributed teams that need reliability and speed at the same time."
+        ],
+        "bullets": [
+          "Transparent collaboration across sites, time zones, and functions.",
+          "Secure-by-default architecture for sensitive business processes.",
+          "Continuous product evolution informed by measurable user outcomes."
+        ],
+        "icon": "mdi-shield-check-outline"
       }
-    }
+    ],
+    "metrics": [
+      {
+        "value": "15k+",
+        "label": "monthly active users",
+        "context": "Adoption growth sustained over the last 12 months across multiple industries.",
+        "icon": "mdi-account-group-outline"
+      },
+      {
+        "value": "99.95%",
+        "label": "average uptime",
+        "context": "Observed availability across production environments and critical services.",
+        "icon": "mdi-server-network"
+      },
+      {
+        "value": "4.8/5",
+        "label": "customer satisfaction",
+        "context": "Average score collected through post-resolution and quarterly feedback loops.",
+        "icon": "mdi-star-circle-outline"
+      }
+    ],
+    "timeline": [
+      {
+        "title": "Foundation phase",
+        "period": "2021",
+        "description": "We shipped the first collaboration core focused on shared task visibility and role-based access.",
+        "highlights": [
+          "Launched multi-team workspaces.",
+          "Introduced configurable permission layers."
+        ],
+        "icon": "mdi-rocket-launch-outline"
+      },
+      {
+        "title": "Scale & reliability",
+        "period": "2022-2023",
+        "description": "The platform expanded to support higher traffic, stronger governance, and richer integrations.",
+        "highlights": [
+          "Improved observability and uptime controls.",
+          "Released structured workflow templates for operations teams."
+        ],
+        "icon": "mdi-shield-check-outline"
+      },
+      {
+        "title": "Intelligence & acceleration",
+        "period": "2024+",
+        "description": "We are investing in assistive capabilities that help teams prioritize, detect risks early, and automate repetitive steps.",
+        "highlights": [
+          "Context-aware recommendations in key screens.",
+          "Expanded analytics for process improvement."
+        ],
+        "icon": "mdi-lightbulb-on-outline"
+      }
+    ],
+    "cta": {
+      "title": "Want to go deeper?",
+      "description": "Talk with our team to map your priorities and identify the fastest path to operational impact with Bro World.",
+      "primaryAction": "Contact our team",
+      "secondaryAction": "Read the FAQ"
+    },
+    "metricsTitle": "Key metrics",
+    "timelineTitle": "Timeline"
   },
   "faq": {
     "title": "FAQ",
-    "description": "Find quick answers to common questions about the platform.",
+    "description": "Find quick and practical answers to the most frequent questions about Bro World.",
     "hero": {
       "badge": "Help center",
       "title": "An enriched FAQ to move faster",
-      "subtitle": "Filter by category, search specific topics, and quickly access the right contact channel.",
+      "subtitle": "Filter by category, search specific topics, and access operational guidance in a few seconds.",
       "primaryCta": "Browse questions",
       "secondaryCta": "Contact support"
     },
     "search": {
       "label": "Search in FAQ",
-      "placeholder": "Example: sign in, security, notifications..."
+      "placeholder": "Example: sign in, permissions, notifications, security..."
     },
-    "categories": {
-      "all": "All",
-      "account": "Account",
-      "platform": "Platform",
-      "security": "Security"
-    },
-    "items": {
-      "q1": {
-        "question": "How do I sign in to my account?",
-        "answer": "Use your username or email on the Login page, then enter your password."
+    "categories": [
+      {
+        "key": "all",
+        "label": "All",
+        "color": "primary",
+        "description": "Browse all available questions."
       },
-      "q2": {
-        "question": "Can I customize notifications?",
-        "answer": "Yes, notifications can be adjusted in your user settings for each channel."
+      {
+        "key": "account",
+        "label": "Account",
+        "color": "info",
+        "description": "Authentication, profile settings, and user preferences."
       },
-      "q3": {
-        "question": "How is my data protected?",
-        "answer": "Data is encrypted in transit and access is controlled through roles and permissions."
+      {
+        "key": "platform",
+        "label": "Platform",
+        "color": "success",
+        "description": "Features, workflows, and day-to-day usage tips."
       },
-      "q4": {
-        "question": "Is the platform available in multiple languages?",
-        "answer": "Yes, you can change the interface language directly from the top navigation bar."
+      {
+        "key": "security",
+        "label": "Security",
+        "color": "warning",
+        "description": "Access control, data handling, and compliance practices."
       }
-    },
-    "contactCta": {
-      "title": "Still missing an answer?",
-      "description": "Our support team can guide you to the best solution for your context.",
-      "action": "Open contact page"
+    ],
+    "items": [
+      {
+        "category": "account",
+        "question": "How do I sign in to my account?",
+        "answer": "Use your username or business email on the Login page, then enter your password to start a secure session.",
+        "detailsParagraphs": [
+          "If your organization uses centralized identity, your administrator may have configured additional checks such as SSO or multi-factor authentication.",
+          "If login attempts fail repeatedly, reset your password and verify that your account has not been temporarily locked by policy."
+        ],
+        "bullets": [
+          "Use a company-managed email whenever possible.",
+          "Avoid sharing credentials between team members.",
+          "Contact your admin if your account is deactivated."
+        ]
+      },
+      {
+        "category": "platform",
+        "question": "Can I customize notifications?",
+        "answer": "Yes. Notification channels and frequency can be adjusted in user settings for each workflow.",
+        "detailsParagraphs": [
+          "You can choose which events trigger email, in-app, or digest notifications. This helps reduce noise while keeping critical alerts visible.",
+          "Team-level defaults can be overridden depending on your role and governance settings."
+        ],
+        "bullets": [
+          "Set quiet hours for non-critical updates.",
+          "Keep critical incident alerts enabled at all times."
+        ]
+      },
+      {
+        "category": "security",
+        "question": "How is my data protected?",
+        "answer": "Data is encrypted in transit, access is controlled through roles, and sensitive operations are logged for auditability.",
+        "detailsParagraphs": [
+          "Bro World applies least-privilege access patterns and continuous monitoring across key services.",
+          "Security controls are reviewed regularly to align with evolving compliance and customer requirements."
+        ],
+        "bullets": [
+          "Role-based access and scoped permissions.",
+          "Traceable activity logs on sensitive actions.",
+          "Infrastructure hardening and proactive monitoring."
+        ]
+      },
+      {
+        "category": "platform",
+        "question": "Is the platform available in multiple languages?",
+        "answer": "Yes. You can change the interface language from the top navigation bar at any time.",
+        "detailsParagraphs": [
+          "Localization coverage is continuously expanded based on product usage and customer demand.",
+          "Administrators can define a default locale while keeping personal language preferences for each user."
+        ],
+        "bullets": [
+          "Language switch is immediate in the UI.",
+          "No logout required to apply locale changes."
+        ]
+      }
+    ],
+    "emptyState": {
+      "title": "No results for your current filters",
+      "description": "Try broadening your search terms, selecting another category, or contacting support for personalized guidance.",
+      "suggestion": "Tip: use short keywords such as \"login\", \"security\", or \"notifications\"."
     }
   },
   "contact": {
     "title": "Contact",
-    "description": "Need help or have feedback? Reach out through one of our channels.",
+    "description": "Need guidance, technical support, or strategic advice? Reach out through the channel that fits your context.",
     "hero": {
       "badge": "Support & guidance",
       "title": "A clear contact point for every need",
-      "subtitle": "Our teams reply according to priority level with transparent service commitments.",
+      "subtitle": "Our support, success, and partnership teams coordinate to provide fast responses and transparent follow-up.",
       "primaryCta": "Send a request",
       "secondaryCta": "View our SLAs"
     },
-    "channels": {
-      "title": "Contact channels",
-      "items": {
-        "email": {
-          "label": "Email",
-          "value": "support (at) bro-world.example"
-        },
-        "phone": {
-          "label": "Phone",
-          "value": "+33 1 23 45 67 89"
-        },
-        "chat": {
-          "label": "Chat",
-          "value": "Available from the user workspace"
-        }
+    "channels": [
+      {
+        "label": "Email support",
+        "value": "support (at) bro-world.example",
+        "details": "Best for detailed requests, attachments, and asynchronous follow-up.",
+        "icon": "mdi-email-outline"
+      },
+      {
+        "label": "Phone hotline",
+        "value": "+33 1 23 45 67 89",
+        "details": "Recommended for urgent blockers requiring immediate triage.",
+        "icon": "mdi-phone-outline"
+      },
+      {
+        "label": "Workspace chat",
+        "value": "Available from the user workspace",
+        "details": "Ideal for day-to-day questions and quick clarification with the support desk.",
+        "icon": "mdi-message-processing-outline"
       }
-    },
-    "hours": {
-      "title": "Availability hours",
-      "weekdays": "Monday - Friday: 08:00 - 19:00 (CET)",
-      "weekend": "Saturday: 09:00 - 13:00 (CET) · Emergency only"
-    },
-    "sla": {
-      "title": "Service commitments (SLA)",
-      "items": {
-        "request": {
-          "title": "Request received",
-          "description": "Immediate automated acknowledgment with a tracking number."
+    ],
+    "availability": {
+      "title": "Availability and escalation",
+      "description": "Our response windows are designed to balance speed, depth of analysis, and predictable follow-up.",
+      "windows": [
+        {
+          "label": "Standard support window",
+          "value": "Monday - Friday: 08:00 - 19:00 (CET)"
         },
-        "response": {
-          "title": "First response",
-          "description": "Under 2 business hours for high-priority tickets."
-        },
-        "resolution": {
-          "title": "Resolution plan",
-          "description": "Regular updates until full ticket resolution."
+        {
+          "label": "Emergency coverage",
+          "value": "Saturday: 09:00 - 13:00 (CET) · Critical incidents only"
         }
-      }
+      ],
+      "escalationTitle": "How escalations are handled",
+      "escalationBullets": [
+        "Immediate acknowledgement with tracking ID and owner assignment.",
+        "Priority-based triage with visibility on expected response times.",
+        "Regular progress updates until mitigation and full resolution."
+      ]
     },
     "form": {
       "title": "Contact form",
+      "description": "Share enough context so we can route your request to the right team and reply with actionable guidance.",
       "fields": {
         "firstName": "First name",
         "lastName": "Last name",
         "email": "Business email",
         "topic": "Topic",
         "message": "Message",
-        "messagePlaceholder": "Describe your need, context, and urgency level..."
+        "messagePlaceholder": "Describe your objective, current context, constraints, and urgency level..."
       },
-      "topics": {
-        "support": "Technical support",
-        "sales": "Sales question",
-        "partnership": "Partnership"
-      },
+      "topics": [
+        {
+          "value": "support",
+          "label": "Technical support"
+        },
+        {
+          "value": "sales",
+          "label": "Sales question"
+        },
+        {
+          "value": "partnership",
+          "label": "Partnership"
+        }
+      ],
+      "privacyNote": "By submitting this form, you agree that we process your information to respond to your request and improve service quality.",
       "submit": "Send",
       "reset": "Reset"
+    },
+    "cta": {
+      "title": "Prefer a guided onboarding conversation?",
+      "description": "Book a discovery call to review your goals, constraints, and rollout plan with our team.",
+      "actions": [
+        {
+          "label": "Schedule a call",
+          "variant": "primary"
+        },
+        {
+          "label": "Download SLA overview",
+          "variant": "outlined"
+        }
+      ]
     }
   },
   "settings": {
