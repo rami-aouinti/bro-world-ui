@@ -205,7 +205,7 @@ const disableApplication = async () => {
 
       <div v-else class="platform-page__layout">
         <aside class="platform-page__sidebar">
-          <article class="platform-page__filters">
+          <v-card class="platform-page__filters" rounded="xl" variant="outlined">
             <v-card-title class="text-h6 platform-page__filters-title">{{
               t("platform.filters.title")
             }}</v-card-title>
@@ -257,7 +257,7 @@ const disableApplication = async () => {
                 >
               </div>
             </v-card-text>
-          </article>
+          </v-card>
         </aside>
 
         <div class="platform-page__content">

@@ -17,7 +17,7 @@ const { t } = useI18n()
 
 
 const excludedSplitShellPaths = new Set(['/', '/login', '/about', '/faq', '/contact'])
-const excludedSplitShellPrefixes = ['/platform', '/profile', '/settings', '/notifications', '/calendar']
+const excludedSplitShellPrefixes = ['/platform', '/profile', '/settings', '/notifications', '/calendar', '/inbox']
 
 const isSplitShellExcluded = computed(() => {
   if (excludedSplitShellPaths.has(route.path)) return true
