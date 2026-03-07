@@ -7,13 +7,17 @@ import UiPageSection from '~/components/ui/UiPageSection.vue'
     <div class="platform-split-layout">
       <aside class="platform-split-layout__sidebar">
         <UiPageSection card class="platform-split-layout__sidebar-card">
-          <slot name="sidebar" />
+          <article class="platform-split-layout__card platform-split-layout__card--sidebar">
+            <slot name="sidebar" />
+          </article>
         </UiPageSection>
       </aside>
 
       <section class="platform-split-layout__content">
         <UiPageSection card>
-          <slot />
+          <article class="platform-split-layout__card">
+            <slot />
+          </article>
         </UiPageSection>
       </section>
     </div>
