@@ -30,6 +30,7 @@ const platformFeatureFlags: Record<PlatformName, Record<string, boolean>> = {
   shop: {
     home: true,
     categories: true,
+    newProduct: true,
     promotions: true,
     customers: true,
     reviews: true,
@@ -89,6 +90,7 @@ export const getShopNav = (slug: string, isOwner = false): PlatformNavItem[] => 
   const base = `/platform/${slug}/shop`
   return resolveNav('shop', [
     { title: 'platform.shop.nav.home', icon: 'mdi-storefront-outline', to: `${base}/home`, section: 'overview', featureFlag: 'home' },
+    { title: 'platform.shop.nav.newProduct', icon: 'mdi-plus-box-outline', to: `${base}/products/new`, section: 'catalog', rights: 'owner', featureFlag: 'newProduct' },
     ...shopCategories.map<PlatformNavItem>((category) => ({ title: `platform.shop.categories.${category}`, icon: 'mdi-shape-outline', to: `${base}/${category}/products`, section: 'catalog', featureFlag: 'categories' })),
     { title: 'platform.shop.nav.promotions', icon: 'mdi-sale-outline', to: `${base}/promotions`, section: 'sales', featureFlag: 'promotions', badge: 'HOT' },
     { title: 'platform.shop.nav.customers', icon: 'mdi-account-group-outline', to: `${base}/customers`, section: 'sales', featureFlag: 'customers' },

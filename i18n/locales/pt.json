@@ -502,7 +502,8 @@
         "checkout": "Checkout",
         "orders": "Orders",
         "payment": "Payment",
-        "tickets": "Tickets"
+        "tickets": "Tickets",
+        "newProduct": "New Product"
       },
       "hero": {
         "home": {
@@ -540,6 +541,40 @@
       },
       "customers": {
         "orders": "{count} orders"
+      },
+      "newProduct": {
+        "title": "New product",
+        "subtitle": "Configure product information, media, socials, and pricing before publishing.",
+        "steps": {
+          "productInfo": "Product Info",
+          "media": "Media",
+          "socials": "Socials",
+          "pricing": "Pricing"
+        },
+        "form": {
+          "name": "Product name",
+          "weight": "Weight (kg)",
+          "description": "Description",
+          "descriptionTodo": "TODO: replace this field with a Nuxt 4 compatible rich text editor.",
+          "category": "Category",
+          "sizes": "Sizes",
+          "shopifyHandle": "Shopify handle",
+          "facebook": "Facebook",
+          "instagram": "Instagram",
+          "price": "Price",
+          "currency": "Currency",
+          "sku": "SKU",
+          "tags": "Tags"
+        },
+        "media": {
+          "dropzoneTitle": "Drop your images here",
+          "dropzoneSubtitle": "Click to pick files, or drag and drop multiple images."
+        },
+        "actions": {
+          "prev": "Prev",
+          "next": "Next",
+          "send": "Send"
+        }
       }
     },
     "recruit": {
