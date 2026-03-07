@@ -137,3 +137,36 @@ Les variables `var(--v-text-*-letter-spacing)` et `var(--v-text-*-weight)` sont 
   - `border-radius` → `var(--v-field-border-radius)` (`var(--v-radius-md)`).
 
 Ces tokens sont destinés à être réutilisés dans les composants personnalisés pour garantir une cohérence visuelle entre le design system et Vuetify.
+
+## Gestion des `!important` (refactor cascade CSS)
+
+Refactor initial appliqué sur les fichiers à fort impact global :
+
+- `material-dashboard/_drawer.scss`
+- `material-dashboard/_table.scss`
+- `material-dashboard/_forms.scss`
+- `material-dashboard/_app-bar.scss`
+
+### Classification retenue
+
+- **Remplaçable par spécificité / ordre d'import** : la majorité des `!important` de ces fichiers étaient utilisés pour forcer des styles internes (couleurs, paddings, typographie, hover, états actifs). Ils ont été retirés et laissés à une cascade normale via des sélecteurs déjà suffisamment scoppés.
+- **Nécessaire pour override tiers non contrôlé (vendor only)** : quelques règles qui doivent écraser des styles injectés/runtimes Vuetify pour les panneaux `.fixed-plugin*` restent en `!important`.
+- **Obsolète** : aucun `!important` restant dans les fichiers cœur listés ci-dessus ; les anciens forçages redondants ont été supprimés.
+
+### Isolation des overrides vendor
+
+Les exceptions `vendor only` ont été déplacées dans `material-dashboard/_vendor-overrides.scss`, importé en dernier dans `material-dashboard.scss`, pour limiter la contamination de la cascade globale.
+
+### Exceptions `!important` conservées (justifiées)
+
+Dans `material-dashboard/_vendor-overrides.scss` :
+
+- `.fixed-plugin .v-card { position: fixed !important; }`
+  - **Motif** : forcer le mode panneau flottant face aux styles de layout Vuetify.
+- `.fixed-plugin .v-card { left: auto !important; transform: unset !important; }`
+  - **Motif** : neutraliser les transformations/positions appliquées par les composants overlay/drawer tiers.
+- `.fixed-plugin-{education|skill|language|hobby} .v-card { position: fixed !important; left: auto !important; transform: unset !important; }`
+  - **Motif** : même contrainte de priorité runtime sur des variantes de panneau.
+
+Règle d'évolution : toute nouvelle exception `!important` doit être documentée ici avec le sélecteur exact et la justification d'override tiers.
+
