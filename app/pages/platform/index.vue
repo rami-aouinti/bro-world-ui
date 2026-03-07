@@ -316,6 +316,9 @@ const disableApplication = async () => {
                       class="platform-page__logo"
                     />
                     <div class="platform-page__card-heading">
+                      <p class="platform-page__platform-pill text-uppercase">
+                        {{ card.platformKey }}
+                      </p>
                       <div class="platform-page__card-title-row">
                         <h3 class="platform-page__card-title">
                           {{ card.title }}
@@ -466,13 +469,17 @@ const disableApplication = async () => {
 .platform-page__layout {
   display: grid;
   grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
-  gap: var(--platform-space-4);
+  gap: var(--platform-space-5);
   align-items: start;
 }
 
-.platform-page__filters {
+.platform-page__sidebar {
   position: sticky;
-  top: var(--platform-space-4);
+  top: calc(var(--platform-space-5) + 8px);
+}
+
+.platform-page__filters {
+  position: relative;
   border-radius: var(--platform-radius-md);
   border: 1px solid var(--platform-color-border);
   box-shadow: var(--platform-shadow-sm);
@@ -521,11 +528,15 @@ const disableApplication = async () => {
 
 .platform-page__card {
   position: relative;
-  background: var(--platform-color-surface);
+  background: linear-gradient(
+    165deg,
+    var(--platform-color-surface) 0%,
+    var(--platform-color-surface-muted) 100%
+  );
   border-radius: var(--platform-radius-md);
   border: 1px solid var(--platform-color-border);
   box-shadow: var(--platform-shadow-sm);
-  padding: 0.85rem;
+  padding: 1rem;
   min-height: 208px;
   display: flex;
   flex-direction: column;
@@ -538,6 +549,11 @@ const disableApplication = async () => {
 .platform-page__card:hover {
   transform: translateY(-4px);
   box-shadow: var(--platform-shadow-md);
+  border-color: color-mix(
+    in srgb,
+    rgb(var(--v-theme-primary)) 28%,
+    var(--platform-color-border)
+  );
 }
 
 .platform-page__card-dot {
@@ -552,6 +568,11 @@ const disableApplication = async () => {
   justify-content: center;
   text-align: center;
   cursor: pointer;
+  background: color-mix(
+    in srgb,
+    rgb(var(--v-theme-primary)) 5%,
+    var(--platform-color-surface)
+  );
 }
 
 .platform-page__add-icon {
@@ -622,6 +643,23 @@ const disableApplication = async () => {
   font-size: 1.12rem;
 }
 
+.platform-page__platform-pill {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: var(--platform-space-1);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--platform-radius-pill);
+  background: color-mix(
+    in srgb,
+    rgb(var(--v-theme-primary)) 11%,
+    var(--platform-color-surface-muted)
+  );
+  color: rgb(var(--v-theme-primary));
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  font-size: 0.68rem;
+}
+
 .platform-page__card-title-row {
   align-items: center;
   gap: var(--platform-space-1);
@@ -633,13 +671,17 @@ const disableApplication = async () => {
 
 .platform-page__card-meta {
   justify-content: space-between;
-  margin-top: 0.65rem;
+  margin-top: 0.85rem;
   gap: var(--platform-space-2);
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--platform-radius-sm);
+  border: 1px solid color-mix(in srgb, var(--platform-color-border) 75%, #fff);
+  background: var(--platform-color-surface);
 }
 
 .platform-page__card-footer {
-  margin-top: 0.55rem;
-  padding-top: 0.55rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
   border-top: 1px solid var(--platform-color-border);
   justify-content: space-between;
   color: var(--platform-color-text-tertiary);
@@ -676,7 +718,7 @@ const disableApplication = async () => {
     grid-template-columns: 1fr;
   }
 
-  .platform-page__filters {
+  .platform-page__sidebar {
     position: static;
   }
 }
