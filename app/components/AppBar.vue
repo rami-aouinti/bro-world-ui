@@ -107,8 +107,8 @@ const signOut = async () => {
 
 <template>
   <v-app-bar
-    :class="{ 'app-bar--dark': isDark }"
-    class="app-bar px-0 border-radius-xl toolbar-content-padding-y-none v-sheet v-toolbar v-toolbar--flat v-app-bar bg-transparent position-sticky blur shadow-blur top-1 z-index-sticky"
+    :class="{ 'blur shadow-blur': !isDark }"
+    class="app-bar px-0 border-radius-xl toolbar-content-padding-y-none v-sheet v-toolbar v-toolbar--flat v-app-bar bg-transparent position-sticky top-1 z-index-sticky"
   >
     <v-toolbar-title class="app-bar__brand d-flex align-center ga-3 text-truncate">
       <NuxtLink to="/" class="app-bar__title-link d-flex align-center ga-2">
