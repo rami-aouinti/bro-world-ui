@@ -398,8 +398,8 @@ const disableApplication = async () => {
   border-radius: 14px;
   border: 1px solid #d4d5dc;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
-  padding: 1rem;
-  min-height: 240px;
+  padding: 0.85rem;
+  min-height: 208px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -443,12 +443,12 @@ const disableApplication = async () => {
 }
 
 .platform-page__add-icon {
-  width: 64px;
-  height: 64px;
+  width: 54px;
+  height: 54px;
   color: #e82f7d;
   display: grid;
   place-items: center;
-  font-size: 2.8rem;
+  font-size: 2.4rem;
   margin-bottom: 1rem;
 }
 
@@ -489,8 +489,8 @@ const disableApplication = async () => {
 }
 
 .platform-page__logo {
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   border-radius: 12px;
   object-fit: cover;
   background: rgba(var(--v-theme-primary), 0.35);
@@ -501,7 +501,7 @@ const disableApplication = async () => {
 }
 
 .platform-page__card-title {
-  font-size: 1.28rem;
+  font-size: 1.12rem;
 }
 
 .platform-page__card-title-row {
@@ -518,13 +518,13 @@ const disableApplication = async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 0.8rem;
+  margin-top: 0.65rem;
   gap: 0.5rem;
 }
 
 .platform-page__card-footer {
-  margin-top: 0.7rem;
-  padding-top: 0.7rem;
+  margin-top: 0.55rem;
+  padding-top: 0.55rem;
   border-top: 1px solid #d9dadf;
   display: flex;
   justify-content: space-between;
