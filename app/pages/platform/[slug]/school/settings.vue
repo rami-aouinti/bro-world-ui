@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
-import UiListCard from '~/components/ui/UiListCard.vue'
+import UiCard from '~/components/ui/UiCard.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 
 definePageMeta({ public: true, requiresAuth: false })
@@ -16,16 +16,17 @@ const slug = computed(() => String(route.params.slug ?? ''))
       <div class="platform-layout__sidebar-actions">
         <v-btn variant="outlined" block :to="`/platform/${slug}/school/home`">Classes</v-btn>
         <v-btn variant="outlined" block class="mt-2" :to="`/platform/${slug}/school/settings`">Settings</v-btn>
+        <v-btn variant="outlined" block class="mt-2" :to="`/platform/${slug}/school/certificates`">Certificates</v-btn>
       </div>
     </template>
 
     <template #default>
-      <UiSectionHeader title="Classes" subtitle="Programme en cours" />
-      <v-row>
-        <v-col cols="12" md="4"><UiListCard><p class="font-weight-medium">Classe A</p><p class="text-body-2">24 élèves · Niveau 1</p></UiListCard></v-col>
-        <v-col cols="12" md="4"><UiListCard><p class="font-weight-medium">Classe B</p><p class="text-body-2">19 élèves · Niveau 2</p></UiListCard></v-col>
-        <v-col cols="12" md="4"><UiListCard><p class="font-weight-medium">Classe C</p><p class="text-body-2">21 élèves · Niveau 3</p></UiListCard></v-col>
-      </v-row>
+      <UiSectionHeader title="Paramètres école" subtitle="Configuration académique" />
+      <UiCard>
+        <v-text-field label="Nom de l'établissement" value="Bro Academy" />
+        <v-select label="Année scolaire" :items="['2025-2026', '2026-2027']" class="mt-2" />
+        <v-switch label="Activer notifications parents" class="mt-2" color="primary" />
+      </UiCard>
     </template>
   </PlatformSplitLayout>
 </template>

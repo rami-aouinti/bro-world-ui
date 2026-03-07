@@ -1,48 +1,33 @@
 <script setup lang="ts">
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
+import UiCard from '~/components/ui/UiCard.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 
-definePageMeta({
-  public: true,
-  requiresAuth: false,
-})
+definePageMeta({ public: true, requiresAuth: false })
 
 const route = useRoute()
-
 const slug = computed(() => String(route.params.slug ?? ''))
-
-const homePath = computed(() => `/platform/${slug.value}/recruit/home`)
-const adminPath = computed(() => `/platform/${slug.value}/recruit/admin`)
 </script>
 
 <template>
   <PlatformSplitLayout>
     <template #sidebar>
-      <UiSectionHeader
-        title="Recruit"
-        :subtitle="`Application ${slug}`"
-      />
-
+      <UiSectionHeader title="Recruit" :subtitle="`Application ${slug}`" dense />
       <div class="platform-layout__sidebar-actions">
-        <v-btn variant="outlined" block :to="homePath">Home</v-btn>
-      <v-btn variant="outlined" block :to="adminPath" class="mt-2">Admin</v-btn>
-      <v-btn variant="text" block class="mt-2" to="/platform">Retour liste</v-btn>
+        <v-btn variant="outlined" block :to="`/platform/${slug}/recruit/home`">Jobs</v-btn>
+        <v-btn variant="outlined" block class="mt-2" :to="`/platform/${slug}/recruit/admin`">Admin</v-btn>
       </div>
     </template>
 
     <template #default>
-      <UiSectionHeader
-        title="Platform Recruit Home"
-        :subtitle="`Espace d'accueil pour l'application ${slug} sur Recruit`"
-      />
-
-    <v-alert type="info" variant="tonal" class="mb-4">
-      Application: {{ slug }}
-    </v-alert>
-
-    <v-btn color="primary" variant="flat" :to="adminPath">
-      Aller vers Admin
-    </v-btn>
+      <UiSectionHeader title="Offres d'emploi" subtitle="Pipeline de recrutement" />
+      <UiCard>
+        <v-list lines="two">
+          <v-list-item title="Frontend Engineer" subtitle="Paris · CDI" :to="`/platform/${slug}/recruit/job/frontend-engineer`" />
+          <v-list-item title="Product Designer" subtitle="Remote · CDI" :to="`/platform/${slug}/recruit/job/product-designer`" />
+          <v-list-item title="Data Analyst" subtitle="Lyon · Freelance" :to="`/platform/${slug}/recruit/job/data-analyst`" />
+        </v-list>
+      </UiCard>
     </template>
   </PlatformSplitLayout>
 </template>
