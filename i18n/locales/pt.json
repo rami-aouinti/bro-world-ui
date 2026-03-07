@@ -671,6 +671,63 @@
         "Validate microcopy tone and vocabulary by locale (FR/EN/ES/PT/DE/AR).",
         "Run `node scripts/validate-i18n.mjs` before merging."
       ]
+    },
+    "title": "Platforms",
+    "assistant": "Open platform assistant",
+    "filters": {
+      "title": "Filters",
+      "search": "Search a platform",
+      "platformKey": "Platform type",
+      "apply": "Apply filters",
+      "clear": "Clear filters"
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "editTitle": "Edit platform",
+      "deleteTitle": "Delete platform",
+      "deleteMessage": "Are you sure you want to delete \"{title}\"?"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "table": {
+      "owner": "Owner",
+      "updatedAt": "Updated",
+      "actions": "Actions"
+    },
+    "newPlatform": {
+      "title": "Create a new platform",
+      "description": "Start from scratch and configure your workspace in a few steps.",
+      "worldTitle": "Create a platform"
+    },
+    "wizard": {
+      "errors": {
+        "load": "Unable to load platform templates.",
+        "create": "Unable to create platform. Please try again."
+      },
+      "steps": {
+        "title": "Basics",
+        "platform": "Platform",
+        "plugins": "Plugins"
+      },
+      "titleStepTitle": "Platform details",
+      "platformTitle": "Platform settings",
+      "pluginTitle": "Plugins and integrations",
+      "next": "Next",
+      "prev": "Previous",
+      "create": "Create platform",
+      "fields": {
+        "title": "Title",
+        "description": "Description",
+        "photo": "Logo URL",
+        "private": "Private platform",
+        "active": "Active status",
+        "theme": "Theme",
+        "configuration": "Configuration JSON",
+        "cacheSeconds": "Cache duration (seconds)"
+      }
     }
   },
   "about": {
