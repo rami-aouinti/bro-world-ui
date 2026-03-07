@@ -8,7 +8,8 @@ import { getSchoolNav } from '~/data/platform-nav'
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
-const isOwner = computed(() => true)
+const { isOwner } = usePlatformPermissions(slug)
+const showAccessDenied = computed(() => route.query.accessDenied === 'admin')
 const navItems = computed(() => getSchoolNav(slug.value, isOwner.value))
 </script>
 
@@ -16,6 +17,9 @@ const navItems = computed(() => getSchoolNav(slug.value, isOwner.value))
   <PlatformSplitLayout>
     <template #sidebar><PlatformSidebarNav title="School" :subtitle="`Application ${slug}`" :items="navItems" /></template>
     <section>
+      <v-alert v-if="showAccessDenied" type="error" variant="tonal" class="mb-4">
+        Accès admin refusé : permissions insuffisantes pour cette application.
+      </v-alert>
       <PlatformHeroHeader title="Liste des classes" subtitle="Modules pédagogiques, professeurs et progression de cohortes." cta="Nouvelle classe" />
       <v-row>
         <v-col v-for="classe in schoolClasses" :key="classe.id" cols="12" md="6" lg="4">

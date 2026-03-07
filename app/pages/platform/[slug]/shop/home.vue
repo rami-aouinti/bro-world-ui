@@ -10,7 +10,8 @@ import { getShopNav } from '~/data/platform-nav'
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
-const isOwner = computed(() => true)
+const { isOwner } = usePlatformPermissions(slug)
+const showAccessDenied = computed(() => route.query.accessDenied === 'admin')
 
 const navItems = computed(() => getShopNav(slug.value, isOwner.value))
 </script>
@@ -19,6 +20,9 @@ const navItems = computed(() => getShopNav(slug.value, isOwner.value))
   <PlatformSplitLayout>
     <template #sidebar><PlatformSidebarNav title="Shop" :subtitle="`Application ${slug}`" :items="navItems" /></template>
     <section>
+      <v-alert v-if="showAccessDenied" type="error" variant="tonal" class="mb-4">
+        Accès admin refusé : permissions insuffisantes pour cette application.
+      </v-alert>
       <PlatformHeroHeader title="Shop Highlights" subtitle="Catalogue enrichi, pages produits détaillées, conversion et design premium." cta="Ajouter produit" />
       <v-row class="mb-5">
         <v-col v-for="item in shopCatalogMedia" :key="item.id" cols="12" md="4"><PlatformMediaCard :item="item" /></v-col>

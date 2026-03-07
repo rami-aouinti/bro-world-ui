@@ -10,7 +10,8 @@ import { getShopNav } from '~/data/platform-nav'
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
-const navItems = computed(() => getShopNav(slug.value, false))
+const { isOwner } = usePlatformPermissions(slug)
+const navItems = computed(() => getShopNav(slug.value, isOwner.value))
 </script>
 
 <template>

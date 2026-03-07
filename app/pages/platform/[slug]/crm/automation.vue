@@ -9,13 +9,14 @@ import { getCrmNav } from '~/data/platform-nav'
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
+const { isOwner } = usePlatformPermissions(slug)
 const automations = [
   { name: 'Welcome sequence', trigger: 'Nouveau lead', status: 'Actif', impact: '+18% activation' },
   { name: 'Deal follow-up', trigger: 'Devis ouvert > 3 jours', status: 'Actif', impact: '+11% conversion' },
   { name: 'Renewal alert', trigger: 'J-45 fin contrat', status: 'Pilot', impact: '-7% churn' },
 ]
 
-const navItems = computed(() => getCrmNav(slug.value, false))
+const navItems = computed(() => getCrmNav(slug.value, isOwner.value))
 </script>
 
 <template>

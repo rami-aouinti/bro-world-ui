@@ -9,7 +9,8 @@ definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const filters = ref({ remoteOnly: false, contract: 'all' })
-const isOwner = computed(() => true)
+const { isOwner } = usePlatformPermissions(slug)
+const showAccessDenied = computed(() => route.query.accessDenied === 'admin')
 
 const navItems = computed(() => getRecruitNav(slug.value, isOwner.value))
 
@@ -32,6 +33,9 @@ const visibleJobs = computed(() => recruitJobs.filter((job) => {
     </template>
 
     <section>
+      <v-alert v-if="showAccessDenied" type="error" variant="tonal" class="mb-4">
+        Accès admin refusé : permissions insuffisantes pour cette application.
+      </v-alert>
       <PlatformHeroHeader title="Opportunités en cours" subtitle="Pipeline jobs, matching candidats et suivi interviews." cta="Créer offre" />
       <v-row>
         <v-col v-for="job in visibleJobs" :key="job.slug" cols="12" md="6">
