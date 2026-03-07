@@ -217,7 +217,7 @@ onMounted(async () => {
         >
           <UiStateLoadingState
             :message="`${t('profile.load')}...`"
-            mode="spinner"
+            variant="spinner"
           />
         </UiStateAlert>
 
