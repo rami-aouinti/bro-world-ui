@@ -47,25 +47,6 @@ const resolvedSkeleton = computed(() => {
 
 <template>
   <UiPageSection :max-width="props.maxWidth">
-    <v-card class="ui-page-shell__header pa-5 pa-md-7 mb-5 rounded-xl" elevation="2">
-      <div class="d-flex align-start justify-space-between ga-4 flex-wrap">
-        <div class="ui-page-shell__heading">
-          <p v-if="props.eyebrow" class="text-overline text-primary mb-2">{{ props.eyebrow }}</p>
-          <h1 class="text-h5 text-md-h4 font-weight-bold mb-2 d-flex align-center ga-2">
-            <v-icon v-if="props.icon" :icon="props.icon" color="primary" />
-            {{ props.title }}
-          </h1>
-          <p v-if="props.subtitle" class="text-body-1 text-medium-emphasis mb-0">
-            {{ props.subtitle }}
-          </p>
-        </div>
-
-        <div v-if="$slots.actions" class="ui-page-shell__actions">
-          <slot name="actions" />
-        </div>
-      </div>
-    </v-card>
-
     <component :is="resolvedSkeleton" v-if="props.loading" class="ui-page-shell__loading" />
 
     <UiStateEmptyState
@@ -81,12 +62,35 @@ const resolvedSkeleton = computed(() => {
     </UiStateEmptyState>
 
     <div v-else class="ui-page-shell__content">
+      <slot name="header-inline">
+        <div class="ui-page-shell__header d-flex align-start justify-space-between ga-4 flex-wrap">
+          <div class="ui-page-shell__heading">
+            <p v-if="props.eyebrow" class="text-overline text-primary mb-2">{{ props.eyebrow }}</p>
+            <h1 class="text-h5 text-md-h4 font-weight-bold mb-2 d-flex align-center ga-2">
+              <v-icon v-if="props.icon" :icon="props.icon" color="primary" />
+              {{ props.title }}
+            </h1>
+            <p v-if="props.subtitle" class="text-body-1 text-medium-emphasis mb-0">
+              {{ props.subtitle }}
+            </p>
+          </div>
+
+          <div v-if="$slots.actions" class="ui-page-shell__actions">
+            <slot name="actions" />
+          </div>
+        </div>
+      </slot>
+
       <slot />
     </div>
   </UiPageSection>
 </template>
 
 <style scoped>
+.ui-page-shell__header {
+  margin-bottom: 0.25rem;
+}
+
 .ui-page-shell__actions {
   width: 100%;
 }
