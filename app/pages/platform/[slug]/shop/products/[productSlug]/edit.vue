@@ -22,6 +22,7 @@ const slug = computed(() => String(route.params.slug ?? ''))
 const productSlug = computed(() => String(route.params.productSlug ?? ''))
 const { isOwner } = usePlatformPermissions(slug)
 const navItems = computed(() => getShopNav(slug.value, isOwner.value))
+const { t } = useI18n()
 
 const productSeed = computed(() => {
   return shopAdminProductsDemo.find((item) => item.slug === productSlug.value) ?? shopAdminProductsDemo[0]
@@ -65,10 +66,10 @@ const onSave = async () => {
     </template>
 
     <section>
-      <ShopSectionTitle title="Edit Product" subtitle="Update catalog content, socials, and pricing metadata.">
+      <ShopSectionTitle :title="t('platform.shop.editProduct.title')" :subtitle="t('platform.shop.editProduct.subtitle')">
         <template #actions>
           <ShopPrimaryAction :loading="isSaving" prepend-icon="mdi-content-save-outline" @click="onSave">
-            Save
+            {{ t('platform.shop.common.buttons.save') }}
           </ShopPrimaryAction>
         </template>
       </ShopSectionTitle>
@@ -76,7 +77,7 @@ const onSave = async () => {
       <v-row>
         <v-col cols="12" md="4">
           <ShopFormCard class="h-100">
-            <v-card-title class="text-subtitle-1 font-weight-bold">Product Image</v-card-title>
+            <v-card-title class="text-subtitle-1 font-weight-bold">{{ t('platform.shop.editProduct.sections.productImage') }}</v-card-title>
             <v-card-text class="d-flex flex-column ga-4">
               <v-img :src="productImage" :alt="productForm.imageAlt" height="220" cover rounded="lg">
                 <template #error>
@@ -86,15 +87,15 @@ const onSave = async () => {
 
               <v-text-field
                 v-model="productForm.imageAlt"
-                label="Image alt text"
+                 :label="t('platform.shop.editProduct.form.imageAltText')"
                 variant="outlined"
                 density="comfortable"
                 hide-details="auto"
               />
 
               <div class="d-flex ga-2">
-                <ShopSecondaryAction block prepend-icon="mdi-pencil-outline">Edit visual</ShopSecondaryAction>
-                <ShopSecondaryAction block prepend-icon="mdi-delete-outline">Remove visual</ShopSecondaryAction>
+                <ShopSecondaryAction block prepend-icon="mdi-pencil-outline">{{ t('platform.shop.common.buttons.editVisual') }}</ShopSecondaryAction>
+                <ShopSecondaryAction block prepend-icon="mdi-delete-outline">{{ t('platform.shop.common.buttons.removeVisual') }}</ShopSecondaryAction>
               </div>
             </v-card-text>
           </ShopFormCard>
@@ -102,13 +103,13 @@ const onSave = async () => {
 
         <v-col cols="12" md="8">
           <ShopFormCard class="h-100">
-            <v-card-title class="text-subtitle-1 font-weight-bold">Product Information</v-card-title>
+            <v-card-title class="text-subtitle-1 font-weight-bold">{{ t('platform.shop.editProduct.sections.productInformation') }}</v-card-title>
             <v-card-text>
               <v-row>
                 <v-col cols="12" md="6">
                   <v-text-field
                     v-model="productForm.name"
-                    label="Product name"
+                     :label="t('platform.shop.editProduct.form.productName')"
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
@@ -117,7 +118,7 @@ const onSave = async () => {
                 <v-col cols="12" md="6">
                   <v-text-field
                     v-model="productForm.subtitle"
-                    label="Subtitle"
+                     :label="t('platform.shop.editProduct.form.subtitle')"
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
@@ -126,14 +127,14 @@ const onSave = async () => {
                 <v-col cols="12">
                   <ShopRichTextField
                     v-model="productForm.description"
-                    label="Description"
+                     :label="t('platform.shop.editProduct.form.description')"
                   />
                 </v-col>
                 <v-col cols="12" md="4">
                   <v-select
                     v-model="productForm.category"
                     :items="shopAdminCategoryOptions"
-                    label="Category"
+                     :label="t('platform.shop.editProduct.form.category')"
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
@@ -143,7 +144,7 @@ const onSave = async () => {
                   <v-select
                     v-model="productForm.size"
                     :items="shopAdminSizeOptions"
-                    label="Size"
+                     :label="t('platform.shop.editProduct.form.size')"
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
@@ -153,7 +154,7 @@ const onSave = async () => {
                   <v-text-field
                     v-model.number="productForm.weight"
                     type="number"
-                    label="Weight (kg)"
+                     :label="t('platform.shop.editProduct.form.weight')"
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
@@ -162,7 +163,7 @@ const onSave = async () => {
                 <v-col cols="12" md="6">
                   <v-text-field
                     v-model="productForm.sku"
-                    label="SKU"
+                     :label="t('platform.shop.editProduct.form.sku')"
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
@@ -175,13 +176,13 @@ const onSave = async () => {
 
         <v-col cols="12" md="6">
           <ShopFormCard>
-            <v-card-title class="text-subtitle-1 font-weight-bold">Socials</v-card-title>
+            <v-card-title class="text-subtitle-1 font-weight-bold">{{ t('platform.shop.editProduct.sections.socials') }}</v-card-title>
             <v-card-text>
               <v-row>
                 <v-col cols="12">
                   <v-text-field
                     v-model="productForm.socials.website"
-                    label="Website"
+                     :label="t('platform.shop.editProduct.form.website')"
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
@@ -191,7 +192,7 @@ const onSave = async () => {
                 <v-col cols="12" md="6">
                   <v-text-field
                     v-model="productForm.socials.instagram"
-                    label="Instagram"
+                     :label="t('platform.shop.editProduct.form.instagram')"
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
@@ -201,7 +202,7 @@ const onSave = async () => {
                 <v-col cols="12" md="6">
                   <v-text-field
                     v-model="productForm.socials.facebook"
-                    label="Facebook"
+                     :label="t('platform.shop.editProduct.form.facebook')"
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
@@ -211,7 +212,7 @@ const onSave = async () => {
                 <v-col cols="12">
                   <v-text-field
                     v-model="productForm.socials.tiktok"
-                    label="TikTok"
+                     :label="t('platform.shop.editProduct.form.tiktok')"
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
@@ -225,14 +226,14 @@ const onSave = async () => {
 
         <v-col cols="12" md="6">
           <ShopFormCard>
-            <v-card-title class="text-subtitle-1 font-weight-bold">Pricing</v-card-title>
+            <v-card-title class="text-subtitle-1 font-weight-bold">{{ t('platform.shop.editProduct.sections.pricing') }}</v-card-title>
             <v-card-text>
               <v-row>
                 <v-col cols="12" md="6">
                   <v-text-field
                     v-model.number="productForm.pricing.price"
                     type="number"
-                    label="Price"
+                     :label="t('platform.shop.editProduct.form.price')"
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
@@ -242,7 +243,7 @@ const onSave = async () => {
                   <v-select
                     v-model="productForm.pricing.currency"
                     :items="shopAdminCurrencyOptions"
-                    label="Currency"
+                     :label="t('platform.shop.editProduct.form.currency')"
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
@@ -252,7 +253,7 @@ const onSave = async () => {
                   <v-text-field
                     v-model.number="productForm.pricing.compareAtPrice"
                     type="number"
-                    label="Compare-at price"
+                     :label="t('platform.shop.editProduct.form.compareAtPrice')"
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
@@ -262,7 +263,7 @@ const onSave = async () => {
                   <v-text-field
                     v-model.number="productForm.pricing.costPerItem"
                     type="number"
-                    label="Cost per item"
+                     :label="t('platform.shop.editProduct.form.costPerItem')"
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
@@ -272,7 +273,7 @@ const onSave = async () => {
                   <v-text-field
                     v-model.number="productForm.pricing.taxRate"
                     type="number"
-                    label="Tax rate (%)"
+                     :label="t('platform.shop.editProduct.form.taxRate')"
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
@@ -282,7 +283,7 @@ const onSave = async () => {
                   <v-text-field
                     v-model.number="productForm.pricing.stock"
                     type="number"
-                    label="Stock"
+                     :label="t('platform.shop.editProduct.form.stock')"
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
@@ -295,7 +296,7 @@ const onSave = async () => {
       </v-row>
 
       <v-snackbar v-model="showSavedSnackbar" color="success" location="bottom right" timeout="2600">
-        Product updated successfully (mock).
+        {{ t('platform.shop.editProduct.saveSuccess') }}
       </v-snackbar>
     </section>
   </PlatformSplitLayout>

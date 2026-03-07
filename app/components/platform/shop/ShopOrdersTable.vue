@@ -18,19 +18,20 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const { t } = useI18n()
 
 const selectedOrderIds = ref<string[]>([])
 const page = ref(1)
 const itemsPerPage = 5
 
 const headers: TableHeader[] = [
-  { title: 'Order', key: 'orderNumber', sortable: true },
-  { title: 'Customer', key: 'customer', sortable: false },
-  { title: 'Status', key: 'status', sortable: false },
-  { title: 'Date', key: 'createdAt', sortable: true },
-  { title: 'Items', key: 'items', align: 'center', sortable: true },
-  { title: 'Revenue', key: 'revenue', align: 'end', sortable: true },
-  { title: 'Actions', key: 'actions', align: 'end', sortable: false, width: 140 },
+  { title: t('platform.shop.orders.table.headers.order'), key: 'orderNumber', sortable: true },
+  { title: t('platform.shop.orders.table.headers.customer'), key: 'customer', sortable: false },
+  { title: t('platform.shop.orders.table.headers.status'), key: 'status', sortable: false },
+  { title: t('platform.shop.orders.table.headers.date'), key: 'createdAt', sortable: true },
+  { title: t('platform.shop.orders.table.headers.items'), key: 'items', align: 'center', sortable: true },
+  { title: t('platform.shop.orders.table.headers.revenue'), key: 'revenue', align: 'end', sortable: true },
+  { title: t('platform.shop.orders.table.headers.actions'), key: 'actions', align: 'end', sortable: false, width: 140 },
 ]
 
 const pageCount = computed(() => Math.max(1, Math.ceil(props.orders.length / itemsPerPage)))
@@ -46,9 +47,9 @@ watch(() => props.orders.length, () => {
 })
 
 const statusConfig: Record<ShopOrder['status'], { status: 'paid' | 'refunded' | 'canceled', label: string }> = {
-  paid: { status: 'paid', label: 'Paid' },
-  refunded: { status: 'refunded', label: 'Refunded' },
-  canceled: { status: 'canceled', label: 'Canceled' },
+  paid: { status: 'paid', label: t('platform.shop.common.statuses.paid') },
+  refunded: { status: 'refunded', label: t('platform.shop.common.statuses.refunded') },
+  canceled: { status: 'canceled', label: t('platform.shop.common.statuses.canceled') },
 }
 </script>
 
@@ -96,7 +97,7 @@ const statusConfig: Record<ShopOrder['status'], { status: 'paid' | 'refunded' | 
             variant="text"
             :to="getShopRoute('orderDetail', { slug: props.platformSlug, orderId: item.id })"
           >
-            View details
+            {{ t('platform.shop.common.buttons.viewDetails') }}
           </v-btn>
         </div>
       </template>
@@ -106,7 +107,7 @@ const statusConfig: Record<ShopOrder['status'], { status: 'paid' | 'refunded' | 
 
     <div class="d-flex align-center justify-space-between px-4 py-3">
       <p class="text-caption text-medium-emphasis mb-0">
-        {{ selectedOrderIds.length }} selected · {{ props.orders.length }} orders
+        {{ t('platform.shop.orders.table.selectedSummary', { selected: selectedOrderIds.length, total: props.orders.length }) }}
       </p>
       <v-pagination v-model="page" :length="pageCount" density="comfortable" total-visible="6" />
     </div>

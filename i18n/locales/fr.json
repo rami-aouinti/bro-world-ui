@@ -575,6 +575,154 @@
           "next": "Suivant",
           "send": "Envoyer"
         }
+      },
+      "common": {
+        "statuses": {
+          "paid": "Payée",
+          "refunded": "Remboursée",
+          "canceled": "Annulée"
+        },
+        "buttons": {
+          "save": "Enregistrer",
+          "next": "Suivant",
+          "prev": "Précédent",
+          "send": "Envoyer",
+          "addToCart": "Ajouter au panier",
+          "exportCsv": "Exporter CSV",
+          "newOrder": "Nouvelle commande",
+          "filters": "Filtres",
+          "invoice": "Facture",
+          "backToOrders": "Retour aux commandes",
+          "viewDetails": "Voir les détails",
+          "editVisual": "Modifier le visuel",
+          "removeVisual": "Supprimer le visuel"
+        }
+      },
+      "orders": {
+        "title": "Commandes",
+        "subtitle": "Gérez les commandes, remboursements et annulations.",
+        "searchLabel": "Rechercher des commandes",
+        "filters": {
+          "statusTitle": "Statut"
+        },
+        "table": {
+          "headers": {
+            "order": "Commande",
+            "customer": "Client",
+            "status": "Statut",
+            "date": "Date",
+            "items": "Articles",
+            "revenue": "Revenu",
+            "actions": "Actions",
+            "email": "Email"
+          },
+          "selectedSummary": "{selected} sélectionnés · {total} commandes"
+        },
+        "csvFilename": "commandes-shop.csv",
+        "detail": {
+          "title": "Détail de la commande",
+          "subtitle": "Suivez le client, le statut et les informations de paiement.",
+          "labels": {
+            "order": "Commande",
+            "customer": "Client",
+            "items": "Articles",
+            "revenue": "Revenu",
+            "createdAt": "Créée le"
+          },
+          "notFound": "Commande introuvable."
+        },
+        "tracking": {
+          "pageLabel": "Commande",
+          "pageTitle": "Détails de la commande n°{orderId}",
+          "orderedProduct": "Produit commandé",
+          "deliveryInProgress": "Livraison en cours",
+          "productMeta": "Couleur : {color} · Qté : {quantity}",
+          "warehouse": "Entrepôt : {warehouse}",
+          "trackingNumber": "Suivi n° : {trackingNumber}",
+          "timelineTitle": "Suivi de livraison",
+          "billingInformation": "Informations de facturation",
+          "paymentDetails": "Détails du paiement",
+          "paymentCard": "Mastercard se terminant par {last4}",
+          "paymentMeta": "Exp. {expiry} · Titulaire : {holder}",
+          "summaryTitle": "Récapitulatif de commande",
+          "summary": {
+            "subtotal": "Sous-total",
+            "delivery": "Livraison",
+            "taxes": "Taxes",
+            "total": "Total"
+          },
+          "timelineStates": {
+            "done": "Terminé",
+            "current": "En cours",
+            "upcoming": "À venir"
+          },
+          "steps": {
+            "confirmed": "Commande confirmée",
+            "prepared": "Colis préparé",
+            "inTransit": "En transit",
+            "outForDelivery": "En cours de livraison",
+            "delivered": "Livrée"
+          },
+          "dates": {
+            "expected": "Prévue le {date}"
+          }
+        }
+      },
+      "checkout": {
+        "card": {
+          "orderTitle": "Commande n°{id}",
+          "paymentDescription": "Paiement sécurisé multi-fournisseur prêt à connecter.",
+          "checkoutDescription": "Résumé panier + adresses + livraison.",
+          "ordersDescription": "Suivi des commandes, statuts et retours."
+        }
+      },
+      "productDetail": {
+        "labels": {
+          "material": "Matière",
+          "color": "Couleur",
+          "quantity": "Quantité"
+        },
+        "otherProducts": {
+          "title": "Autres produits",
+          "headers": {
+            "product": "Produit",
+            "price": "Prix",
+            "rating": "Note",
+            "availability": "Disponibilité"
+          },
+          "sku": "SKU n°{id}"
+        }
+      },
+      "editProduct": {
+        "title": "Modifier le produit",
+        "subtitle": "Mettez à jour le catalogue, les réseaux sociaux et les données de tarification.",
+        "sections": {
+          "productImage": "Image du produit",
+          "productInformation": "Informations produit",
+          "socials": "Réseaux sociaux",
+          "pricing": "Tarification"
+        },
+        "form": {
+          "imageAltText": "Texte alternatif de l'image",
+          "productName": "Nom du produit",
+          "subtitle": "Sous-titre",
+          "description": "Description",
+          "category": "Catégorie",
+          "size": "Taille",
+          "weight": "Poids (kg)",
+          "sku": "SKU",
+          "website": "Site web",
+          "instagram": "Instagram",
+          "facebook": "Facebook",
+          "tiktok": "TikTok",
+          "price": "Prix",
+          "currency": "Devise",
+          "compareAtPrice": "Prix barré",
+          "costPerItem": "Coût par article",
+          "taxRate": "Taux de taxe (%)",
+          "stock": "Stock"
+        },
+        "saveSuccess": "Produit mis à jour avec succès (mock)."
       }
     },
     "recruit": {
