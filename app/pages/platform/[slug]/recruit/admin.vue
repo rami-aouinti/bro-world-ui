@@ -1,47 +1,32 @@
 <script setup lang="ts">
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
-import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
+import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
+import { recruitJobs, type NavItem } from '~/data/platform-demo'
 
-definePageMeta({
-  public: true,
-  requiresAuth: false,
-})
-
+definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
-
 const slug = computed(() => String(route.params.slug ?? ''))
-
-const homePath = computed(() => `/platform/${slug.value}/recruit/home`)
-const adminPath = computed(() => `/platform/${slug.value}/recruit/admin`)
-const { isOwner } = usePlatformApplication(slug)
+const navItems = computed<NavItem[]>(() => [
+  { title: 'Jobs', icon: 'mdi-briefcase-search-outline', to: `/platform/${slug.value}/recruit/home` },
+  { title: 'Admin', icon: 'mdi-shield-crown-outline', to: `/platform/${slug.value}/recruit/admin` },
+])
 </script>
 
 <template>
   <PlatformSplitLayout>
-    <template #sidebar>
-      <UiSectionHeader
-        title="Recruit"
-        :subtitle="`Application ${slug}`"
-      />
-
-      <div class="platform-layout__sidebar-actions">
-        <v-btn variant="outlined" block :to="homePath">Home</v-btn>
-      <v-btn v-if="isOwner" variant="outlined" block :to="adminPath" class="mt-2">Admin</v-btn>
-      <v-btn variant="text" block class="mt-2" to="/platform">Retour liste</v-btn>
-      </div>
-    </template>
-
-    <template #default>
-      <UiSectionHeader
-        title="Platform Recruit Admin"
-        :subtitle="`Zone d'administration pour l'application ${slug} sur Recruit`"
-      />
-
-    <div class="d-flex flex-wrap ga-3">
-      <v-chip color="primary" variant="tonal">Application: {{ slug }}</v-chip>
-      <v-btn variant="outlined" :to="homePath">Retour Home</v-btn>
-      <v-btn variant="text" to="/platform">Retour liste</v-btn>
-    </div>
-    </template>
+    <template #sidebar><PlatformSidebarNav title="Recruit" :subtitle="`Admin ${slug}`" :items="navItems" /></template>
+    <section>
+      <h1 class="text-h5 font-weight-bold mb-4">Admin Recruit</h1>
+      <v-row>
+        <v-col v-for="job in recruitJobs" :key="job.slug" cols="12" md="6">
+          <v-card rounded="xl" variant="outlined">
+            <v-card-text>
+              <p class="font-weight-bold">{{ job.title }}</p>
+              <p class="text-body-2 text-medium-emphasis">{{ job.company }} · {{ job.type }}</p>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+    </section>
   </PlatformSplitLayout>
 </template>
