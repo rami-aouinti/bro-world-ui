@@ -6,6 +6,9 @@ import { usePluginsApi } from '~/composables/api/usePluginsApi'
 import { useProfileApi } from '~/composables/api/useProfileApi'
 import { useApplicationsStore } from '~/stores/applications'
 import UiAside from '~/components/ui/layout/UiAside.vue'
+import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
+import UiStatChip from "~/components/ui/UiStatChip.vue";
+import UiSectionHeader from "~/components/ui/UiSectionHeader.vue";
 
 definePageMeta({
   public: false,
@@ -176,31 +179,31 @@ const submit = async () => {
 </script>
 
 <template>
-  <section class="platform-new">
-    <div class="platform-new__layout">
-      <UiAside class="platform-new__sidebar">
-          <h2 class="text-h6 mb-2">{{ t('platform.newPlatform.title') }}</h2>
-          <p class="text-body-2 text-medium-emphasis mb-4">
-            {{ t('platform.newPlatform.description') }}
-          </p>
+  <PlatformSplitLayout>
+    <template #sidebar>
+      <h2 class="text-h6 mb-2">{{ t('platform.newPlatform.title') }}</h2>
+      <p class="text-body-2 text-medium-emphasis mb-4">
+        {{ t('platform.newPlatform.description') }}
+      </p>
 
-          <div class="platform-new__steps">
-            <div class="platform-new__step" :class="{ 'platform-new__step--active': step === 1 }">
-              <span>1</span>
-              <small>{{ t('platform.wizard.steps.title') }}</small>
-            </div>
-            <div class="platform-new__step" :class="{ 'platform-new__step--active': step === 2 }">
-              <span>2</span>
-              <small>{{ t('platform.wizard.steps.platform') }}</small>
-            </div>
-            <div class="platform-new__step" :class="{ 'platform-new__step--active': step === 3 }">
-              <span>3</span>
-              <small>{{ t('platform.wizard.steps.plugins') }}</small>
-            </div>
-          </div>
-      </UiAside>
+      <div class="platform-new__steps">
+        <div class="platform-new__step" :class="{ 'platform-new__step--active': step === 1 }">
+          <span>1</span>
+          <small>{{ t('platform.wizard.steps.title') }}</small>
+        </div>
+        <div class="platform-new__step" :class="{ 'platform-new__step--active': step === 2 }">
+          <span>2</span>
+          <small>{{ t('platform.wizard.steps.platform') }}</small>
+        </div>
+        <div class="platform-new__step" :class="{ 'platform-new__step--active': step === 3 }">
+          <span>3</span>
+          <small>{{ t('platform.wizard.steps.plugins') }}</small>
+        </div>
+      </div>
+    </template>
 
-      <div class="platform-new__content">
+    <template>
+      <div class="platform-new__layout">
         <div class="wizard-header">
           <div class="wizard-step" :class="{ 'wizard-step--active': step === 1 }">
             <span>1</span>
@@ -337,15 +340,11 @@ const submit = async () => {
           </template>
         </v-card>
       </div>
-    </div>
-  </section>
+    </template>
+  </PlatformSplitLayout>
 </template>
 
 <style scoped>
-.platform-new {
-  margin: 0 auto;
-  padding: 1.5rem;
-}
 
 .platform-new__layout {
   display: grid;
