@@ -190,8 +190,7 @@ const disableApplication = async () => {
   <PlatformSplitLayout>
 
     <template #sidebar>
-      <PlatformSidebarNav title="Platform" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems">
-        <v-divider class="my-4" />
+      <PlatformSidebarNav title="Platform" subtitle="platform.common.sidebar.application" items="">
         <v-text-field
             v-model="search"
             :label="t('platform.filters.search')"
@@ -405,14 +404,6 @@ const disableApplication = async () => {
           :loading="submitting"
           @confirm="disableApplication"
       />
-      <button
-          type="button"
-          class="platform-page__assistant"
-          :aria-label="t('platform.assistant')"
-      >
-        <v-icon icon="mdi-message-outline" size="22" />
-        <v-icon icon="mdi-format-list-bulleted" size="22" />
-      </button>
     </section>
   </PlatformSplitLayout>
 </template>
