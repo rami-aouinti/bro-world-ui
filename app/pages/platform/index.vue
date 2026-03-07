@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import UiPageSection from "~/components/ui/UiPageSection.vue";
 import UserIdentity from '~/components/UserIdentity.vue'
 
 definePageMeta({
@@ -16,7 +15,10 @@ const authSession = useAuthSessionStore()
 const editDialog = ref(false)
 const deleteDialog = ref(false)
 const submitting = ref(false)
+const search = ref('')
+const selectedPlatformKey = ref('')
 const selectedApp = ref<(typeof applicationsStore.items.value)[number] | null>(null)
+const platformKeyOptions = ['crm', 'recruit', 'school', 'shop']
 
 await initSession()
 await useAsyncData('platform-applications', () => applicationsStore.fetch())
@@ -40,14 +42,6 @@ const formatDate = (value?: string) => {
     month: '2-digit',
     year: '2-digit',
   }).format(new Date(value))
-}
-
-const authorFullName = (application: (typeof applicationsStore.items.value)[number]) => {
-  const firstName = application.author?.firstName ?? ''
-  const lastName = application.author?.lastName ?? ''
-  const fullName = `${firstName} ${lastName}`.trim()
-
-  return fullName || application.author?.username || '—'
 }
 
 const appHomePath = (application: (typeof applicationsStore.items.value)[number]) => {
@@ -79,6 +73,34 @@ const authorProfilePath = (application: (typeof applicationsStore.items.value)[n
   }
 
   return undefined
+}
+
+const applyFilters = async () => {
+  applicationsStore.setPage(1)
+  await applicationsStore.fetch({
+    page: 1,
+    filters: {
+      search: search.value,
+      platformKey: selectedPlatformKey.value,
+    },
+  })
+}
+
+const clearFilters = async () => {
+  search.value = ''
+  selectedPlatformKey.value = ''
+  await applyFilters()
+}
+
+const onPageChange = async (page: number) => {
+  applicationsStore.setPage(page)
+  await applicationsStore.fetch({
+    page,
+    filters: {
+      search: search.value,
+      platformKey: selectedPlatformKey.value,
+    },
+  })
 }
 
 const openEditModal = (application: (typeof applicationsStore.items.value)[number]) => {
@@ -135,8 +157,36 @@ const disableApplication = async () => {
   <section class="platform-page">
     <div class="platform-page__layout">
       <aside class="platform-page__sidebar">
-        <v-card class="platform-new__side-card bg-transparent" rounded="lg">
+        <v-card class="platform-new__side-card bg-transparent platform-page__filters" rounded="lg">
+          <v-card-title class="text-h6">{{ t('platform.filters.title') }}</v-card-title>
+          <v-card-text>
+            <v-text-field
+              v-model="search"
+              :label="t('platform.filters.search')"
+              prepend-inner-icon="mdi-magnify"
+              variant="outlined"
+              density="comfortable"
+              hide-details
+              class="mb-3"
+              @keyup.enter="applyFilters"
+            />
 
+            <v-select
+              v-model="selectedPlatformKey"
+              :label="t('platform.filters.platformKey')"
+              :items="platformKeyOptions"
+              variant="outlined"
+              density="comfortable"
+              hide-details
+              clearable
+              class="mb-4"
+            />
+
+            <div class="platform-page__filters-actions">
+              <v-btn color="primary" block @click="applyFilters">{{ t('platform.filters.apply') }}</v-btn>
+              <v-btn variant="text" block class="mt-2" @click="clearFilters">{{ t('platform.filters.clear') }}</v-btn>
+            </div>
+          </v-card-text>
         </v-card>
       </aside>
 
@@ -224,6 +274,15 @@ const disableApplication = async () => {
             </div>
           </article>
         </div>
+
+        <div class="platform-page__pagination">
+          <v-pagination
+            :model-value="applicationsStore.pagination.page"
+            :length="applicationsStore.pagination.totalPages"
+            :total-visible="6"
+            @update:model-value="onPageChange"
+          />
+        </div>
       </div>
     </div>
 
@@ -280,6 +339,16 @@ const disableApplication = async () => {
 
 .platform-page__sidebar {
   min-height: 100%;
+}
+
+.platform-page__filters {
+  position: sticky;
+  top: 1rem;
+}
+
+.platform-page__filters-actions {
+  display: flex;
+  flex-direction: column;
 }
 
 .platform-page__content {
@@ -432,6 +501,12 @@ const disableApplication = async () => {
   color: #575c6f;
   font-weight: 600;
   font-size: 0.9rem;
+}
+
+.platform-page__pagination {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
 }
 
 .platform-page__assistant {
