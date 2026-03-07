@@ -1,19 +1,54 @@
 import { defineStore } from 'pinia'
 import { useApplicationsApi } from '~/composables/api/useApplicationsApi'
 import { useAuth } from '~/composables/useAuth'
-import type { ApplicationRead, UpdateApplicationPayload } from '~/types/api/application'
+import type { ApplicationListFilters, ApplicationListPagination, ApplicationRead, UpdateApplicationPayload } from '~/types/api/application'
+
+const defaultPagination = (): ApplicationListPagination => ({
+  page: 1,
+  limit: 5,
+  totalItems: 0,
+  totalPages: 1,
+})
 
 export const useApplicationsStore = defineStore('applications', () => {
   const applicationsApi = useApplicationsApi()
   const { initSession, isAuthenticated } = useAuth()
   const items = ref<ApplicationRead[]>([])
   const isLoading = ref(false)
+  const pagination = ref<ApplicationListPagination>(defaultPagination())
+  const filters = ref<ApplicationListFilters>({
+    search: '',
+    platformKey: '',
+  })
 
-  const fetchPublic = async () => {
+  const setFilters = (nextFilters: ApplicationListFilters) => {
+    filters.value = {
+      ...filters.value,
+      ...nextFilters,
+    }
+  }
+
+  const setPage = (page: number) => {
+    pagination.value.page = page
+  }
+
+  const fetchPublic = async (params?: { page?: number, limit?: number, filters?: ApplicationListFilters }) => {
     isLoading.value = true
 
     try {
-      items.value = await applicationsApi.listPublic()
+      if (params?.filters) {
+        setFilters(params.filters)
+      }
+      pagination.value.page = params?.page ?? pagination.value.page
+      pagination.value.limit = params?.limit ?? pagination.value.limit
+
+      const response = await applicationsApi.listPublic({
+        page: pagination.value.page,
+        limit: pagination.value.limit,
+        filters: filters.value,
+      })
+      items.value = response.items
+      pagination.value = response.pagination
       return items.value
     }
     finally {
@@ -21,14 +56,31 @@ export const useApplicationsStore = defineStore('applications', () => {
     }
   }
 
-  const fetch = async () => {
+  const fetch = async (params?: { page?: number, limit?: number, filters?: ApplicationListFilters }) => {
     await initSession()
     isLoading.value = true
 
     try {
-      items.value = isAuthenticated.value
-        ? await applicationsApi.listPrivate()
-        : await applicationsApi.listPublic()
+      if (params?.filters) {
+        setFilters(params.filters)
+      }
+      pagination.value.page = params?.page ?? pagination.value.page
+      pagination.value.limit = params?.limit ?? pagination.value.limit
+
+      const response = isAuthenticated.value
+        ? await applicationsApi.listPrivate({
+            page: pagination.value.page,
+            limit: pagination.value.limit,
+            filters: filters.value,
+          })
+        : await applicationsApi.listPublic({
+            page: pagination.value.page,
+            limit: pagination.value.limit,
+            filters: filters.value,
+          })
+
+      items.value = response.items
+      pagination.value = response.pagination
       return items.value
     }
     finally {
@@ -54,6 +106,10 @@ export const useApplicationsStore = defineStore('applications', () => {
   return {
     items,
     isLoading,
+    pagination,
+    filters,
+    setFilters,
+    setPage,
     fetchPublic,
     fetch,
     update,

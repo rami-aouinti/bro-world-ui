@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import UiPageSection from "~/components/ui/UiPageSection.vue";
 import UserIdentity from '~/components/UserIdentity.vue'
 
 definePageMeta({
@@ -16,10 +15,13 @@ const authSession = useAuthSessionStore()
 const editDialog = ref(false)
 const deleteDialog = ref(false)
 const submitting = ref(false)
+const search = ref('')
+const selectedPlatformKey = ref('')
 const selectedApp = ref<(typeof applicationsStore.items.value)[number] | null>(null)
+const platformKeyOptions = ['crm', 'recruit', 'school', 'shop'] as const
 
 await initSession()
-await useAsyncData('platform-applications', () => applicationsStore.fetch())
+await useAsyncData('platform-applications', () => applicationsStore.fetch({ limit: 5 }))
 
 const goToNewPlatform = () => {
   if (isAuthenticated.value) {
@@ -40,14 +42,6 @@ const formatDate = (value?: string) => {
     month: '2-digit',
     year: '2-digit',
   }).format(new Date(value))
-}
-
-const authorFullName = (application: (typeof applicationsStore.items.value)[number]) => {
-  const firstName = application.author?.firstName ?? ''
-  const lastName = application.author?.lastName ?? ''
-  const fullName = `${firstName} ${lastName}`.trim()
-
-  return fullName || application.author?.username || '—'
 }
 
 const appHomePath = (application: (typeof applicationsStore.items.value)[number]) => {
@@ -79,6 +73,41 @@ const authorProfilePath = (application: (typeof applicationsStore.items.value)[n
   }
 
   return undefined
+}
+
+const applyFilters = async () => {
+  applicationsStore.setPage(1)
+  await applicationsStore.fetch({
+    page: 1,
+    limit: 5,
+    filters: {
+      search: search.value,
+      platformKey: selectedPlatformKey.value,
+    },
+  })
+}
+
+const clearFilters = async () => {
+  search.value = ''
+  selectedPlatformKey.value = ''
+  await applyFilters()
+}
+
+const togglePlatformKey = async (platformKey: string) => {
+  selectedPlatformKey.value = selectedPlatformKey.value === platformKey ? '' : platformKey
+  await applyFilters()
+}
+
+const onPageChange = async (page: number) => {
+  applicationsStore.setPage(page)
+  await applicationsStore.fetch({
+    page,
+    limit: 5,
+    filters: {
+      search: search.value,
+      platformKey: selectedPlatformKey.value,
+    },
+  })
 }
 
 const openEditModal = (application: (typeof applicationsStore.items.value)[number]) => {
@@ -135,8 +164,42 @@ const disableApplication = async () => {
   <section class="platform-page">
     <div class="platform-page__layout">
       <aside class="platform-page__sidebar">
-        <v-card class="platform-new__side-card bg-transparent" rounded="lg">
+        <v-card class="platform-page__filters" rounded="xl" elevation="8">
+          <v-card-title class="text-h6 platform-page__filters-title">{{ t('platform.filters.title') }}</v-card-title>
+          <v-card-text>
+            <v-text-field
+              v-model="search"
+              :label="t('platform.filters.search')"
+              prepend-inner-icon="mdi-magnify"
+              variant="solo"
+              flat
+              density="comfortable"
+              hide-details
+              class="mb-4"
+              @keyup.enter="applyFilters"
+            />
 
+            <p class="platform-page__platform-key-label mb-2">{{ t('platform.filters.platformKey') }}</p>
+            <div class="platform-page__platform-key-buttons mb-4">
+              <v-btn
+                v-for="platformKey in platformKeyOptions"
+                :key="platformKey"
+                :color="selectedPlatformKey === platformKey ? 'primary' : undefined"
+                :variant="selectedPlatformKey === platformKey ? 'flat' : 'outlined'"
+                size="small"
+                rounded="pill"
+                class="text-lowercase"
+                @click="togglePlatformKey(platformKey)"
+              >
+                {{ platformKey }}
+              </v-btn>
+            </div>
+
+            <div class="platform-page__filters-actions">
+              <v-btn color="primary" block @click="applyFilters">{{ t('platform.filters.apply') }}</v-btn>
+              <v-btn variant="text" block class="mt-2" @click="clearFilters">{{ t('platform.filters.clear') }}</v-btn>
+            </div>
+          </v-card-text>
         </v-card>
       </aside>
 
@@ -152,19 +215,15 @@ const disableApplication = async () => {
             </p>
           </article>
 
-          <article
-              v-for="card in applicationsStore.items"
-              :key="card.id"
-              class="platform-page__card"
-          >
+          <article v-for="card in applicationsStore.items" :key="card.id" class="platform-page__card">
             <v-menu v-if="card.isOwner" location="bottom end">
               <template #activator="{ props }">
                 <v-btn
-                    class="platform-page__card-dot"
-                    icon="mdi-dots-vertical"
-                    variant="text"
-                    density="compact"
-                    v-bind="props"
+                  class="platform-page__card-dot"
+                  icon="mdi-dots-vertical"
+                  variant="text"
+                  density="compact"
+                  v-bind="props"
                 />
               </template>
 
@@ -184,12 +243,12 @@ const disableApplication = async () => {
                       <v-tooltip v-if="card.description" location="top">
                         <template #activator="{ props }">
                           <v-btn
-                              icon="mdi-information-outline"
-                              size="x-small"
-                              variant="text"
-                              density="comfortable"
-                              class="platform-page__description-tooltip-trigger"
-                              v-bind="props"
+                            icon="mdi-information-outline"
+                            size="x-small"
+                            variant="text"
+                            density="comfortable"
+                            class="platform-page__description-tooltip-trigger"
+                            v-bind="props"
                           />
                         </template>
                         <span>{{ card.description }}</span>
@@ -202,17 +261,17 @@ const disableApplication = async () => {
 
             <div class="platform-page__card-meta">
               <UserIdentity
-                  :first-name="card.author?.firstName"
-                  :last-name="card.author?.lastName"
-                  :username="authorUsername(card)"
-                  :photo="card.author?.photo"
-                  :profile-path="authorProfilePath(card)"
+                :first-name="card.author?.firstName"
+                :last-name="card.author?.lastName"
+                :username="authorUsername(card)"
+                :photo="card.author?.photo"
+                :profile-path="authorProfilePath(card)"
               />
               <v-chip
-                  :color="card.status === 'active' ? 'success' : undefined"
-                  variant="tonal"
-                  size="small"
-                  class="text-capitalize"
+                :color="card.status === 'active' ? 'success' : undefined"
+                variant="tonal"
+                size="small"
+                class="text-capitalize"
               >
                 {{ card.status === 'active' ? t('platform.status.active') : t('platform.status.inactive') }}
               </v-chip>
@@ -224,6 +283,15 @@ const disableApplication = async () => {
             </div>
           </article>
         </div>
+
+        <div class="platform-page__pagination">
+          <v-pagination
+            :model-value="applicationsStore.pagination.page"
+            :length="applicationsStore.pagination.totalPages"
+            :total-visible="6"
+            @update:model-value="onPageChange"
+          />
+        </div>
       </div>
     </div>
 
@@ -231,15 +299,15 @@ const disableApplication = async () => {
       <template v-if="selectedApp">
         <v-text-field v-model="selectedApp.title" :label="t('platform.wizard.fields.title')" class="mb-3" />
         <v-select
-            v-model="selectedApp.status"
-            :label="t('platform.wizard.fields.active')"
-            :items="[
-              { title: t('platform.status.active'), value: 'active' },
-              { title: t('platform.status.inactive'), value: 'inactive' },
-            ]"
-            item-title="title"
-            item-value="value"
-            class="mb-3"
+          v-model="selectedApp.status"
+          :label="t('platform.wizard.fields.active')"
+          :items="[
+            { title: t('platform.status.active'), value: 'active' },
+            { title: t('platform.status.inactive'), value: 'inactive' },
+          ]"
+          item-title="title"
+          item-value="value"
+          class="mb-3"
         />
         <v-switch v-model="selectedApp.private" :label="t('platform.wizard.fields.private')" inset hide-details />
       </template>
@@ -251,13 +319,13 @@ const disableApplication = async () => {
     </UiActionDialog>
 
     <UiActionConfirmDialog
-        v-model="deleteDialog"
-        :title="t('platform.actions.deleteTitle')"
-        :message="t('platform.actions.deleteMessage', { title: selectedApp?.title || '' })"
-        :confirm-label="t('platform.actions.delete')"
-        :cancel-label="t('admin.common.cancel')"
-        :loading="submitting"
-        @confirm="disableApplication"
+      v-model="deleteDialog"
+      :title="t('platform.actions.deleteTitle')"
+      :message="t('platform.actions.deleteMessage', { title: selectedApp?.title || '' })"
+      :confirm-label="t('platform.actions.delete')"
+      :cancel-label="t('admin.common.cancel')"
+      :loading="submitting"
+      @confirm="disableApplication"
     />
 
     <button type="button" class="platform-page__assistant" :aria-label="t('platform.assistant')">
@@ -274,12 +342,37 @@ const disableApplication = async () => {
 
 .platform-page__layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
   gap: 1rem;
+  align-items: start;
 }
 
-.platform-page__sidebar {
-  min-height: 100%;
+.platform-page__filters {
+  position: sticky;
+  top: 80px;
+  border: 1px solid #e1e5ef;
+  background: linear-gradient(180deg, #fcfcff 0%, #f5f7fc 100%);
+}
+
+.platform-page__filters-title {
+  font-weight: 700;
+}
+
+.platform-page__platform-key-label {
+  font-size: 0.86rem;
+  color: #5b6070;
+  font-weight: 600;
+}
+
+.platform-page__platform-key-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.platform-page__filters-actions {
+  display: flex;
+  flex-direction: column;
 }
 
 .platform-page__content {
@@ -434,6 +527,12 @@ const disableApplication = async () => {
   font-size: 0.9rem;
 }
 
+.platform-page__pagination {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
 .platform-page__assistant {
   position: fixed;
   right: 12px;
@@ -456,6 +555,10 @@ const disableApplication = async () => {
 @media (max-width: 1200px) {
   .platform-page__layout {
     grid-template-columns: 1fr;
+  }
+
+  .platform-page__filters {
+    position: static;
   }
 
   .platform-page__grid {
