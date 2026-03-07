@@ -10,7 +10,8 @@ import { getCrmNav } from '~/data/platform-nav'
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
-const isOwner = computed(() => true)
+const { isOwner } = usePlatformPermissions(slug)
+const showAccessDenied = computed(() => route.query.accessDenied === 'admin')
 
 const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
 </script>
@@ -19,6 +20,9 @@ const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
   <PlatformSplitLayout>
     <template #sidebar><PlatformSidebarNav title="CRM" :subtitle="`Application ${slug}`" :items="crmNav" /></template>
     <section>
+      <v-alert v-if="showAccessDenied" type="error" variant="tonal" class="mb-4">
+        Accès admin refusé : permissions insuffisantes pour cette application.
+      </v-alert>
       <PlatformHeroHeader title="CRM Dashboard" subtitle="Pilotage commercial complet avec vues actionnables et backlog tickets." cta="Nouveau lead" />
       <v-row class="mb-2">
         <v-col v-for="stat in crmStats" :key="stat.label" cols="12" sm="6" lg="3">

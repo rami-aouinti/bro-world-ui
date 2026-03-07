@@ -7,11 +7,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   const slug = decodeURIComponent(match[1] ?? '')
   const domain = match[2] ?? ''
-  const { isOwner, resolveApplication } = usePlatformApplication(slug)
+  const platformPermissions = usePlatformPermissions(slug)
 
-  await resolveApplication()
+  await platformPermissions.resolveApplication()
 
-  if (!isOwner.value) {
-    return navigateTo(`/platform/${slug}/${domain}/home`)
+  if (!platformPermissions.canAccessAdmin.value) {
+    return navigateTo(platformPermissions.getDeniedRedirectPath(domain))
   }
 })

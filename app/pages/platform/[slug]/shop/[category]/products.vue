@@ -8,7 +8,7 @@ definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const category = computed(() => String(route.params.category ?? 'tech'))
-const isOwner = computed(() => true)
+const { isOwner } = usePlatformPermissions(slug)
 
 const products = computed(() => shopProducts.filter((item) => item.category === category.value))
 const navItems = computed(() => getShopNav(slug.value, isOwner.value))

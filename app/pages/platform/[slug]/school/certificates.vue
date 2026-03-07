@@ -7,8 +7,9 @@ import { getSchoolNav } from '~/data/platform-nav'
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
+const { isOwner } = usePlatformPermissions(slug)
 const page = computed(() => route.path.split('/').pop() || 'home')
-const navItems = computed(() => getSchoolNav(slug.value, false))
+const navItems = computed(() => getSchoolNav(slug.value, isOwner.value))
 </script>
 
 <template>

@@ -10,12 +10,13 @@ import { getSchoolNav } from '~/data/platform-nav'
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
+const { isOwner } = usePlatformPermissions(slug)
 const timetable = [
   { day: 'Lundi', slots: '09:00-12:00 · Data Lab', room: 'Lab-2' },
   { day: 'Mardi', slots: '13:00-16:00 · UX Studio', room: 'B-103' },
   { day: 'Jeudi', slots: '10:00-12:00 · Product Strategy', room: 'C-220' },
 ]
-const navItems = computed(() => getSchoolNav(slug.value, false))
+const navItems = computed(() => getSchoolNav(slug.value, isOwner.value))
 </script>
 
 <template>
