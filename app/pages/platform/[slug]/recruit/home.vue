@@ -7,6 +7,7 @@ definePageMeta({ public: true, requiresAuth: false })
 
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
+const { isOwner } = usePlatformApplication(slug)
 </script>
 
 <template>
@@ -15,7 +16,7 @@ const slug = computed(() => String(route.params.slug ?? ''))
       <UiSectionHeader title="Recruit" :subtitle="`Application ${slug}`" dense />
       <div class="platform-layout__sidebar-actions">
         <v-btn variant="outlined" block :to="`/platform/${slug}/recruit/home`">Jobs</v-btn>
-        <v-btn variant="outlined" block class="mt-2" :to="`/platform/${slug}/recruit/admin`">Admin</v-btn>
+        <v-btn v-if="isOwner" variant="outlined" block class="mt-2" :to="`/platform/${slug}/recruit/admin`">Admin</v-btn>
       </div>
     </template>
 

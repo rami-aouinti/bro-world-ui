@@ -11,6 +11,7 @@ definePageMeta({
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const crmPath = (page: string) => `/platform/${slug.value}/crm/${page}`
+const { isOwner } = usePlatformApplication(slug)
 
 const quickLinks = [
   { label: 'Dashboard', to: crmPath('dashboard') },
@@ -30,7 +31,7 @@ const quickLinks = [
       <div class="platform-layout__sidebar-actions">
         <v-btn variant="outlined" block :to="crmPath('home')">Home</v-btn>
         <v-btn variant="outlined" block class="mt-2" :to="crmPath('dashboard')">Dashboard</v-btn>
-        <v-btn variant="outlined" block class="mt-2" :to="crmPath('admin')">Admin</v-btn>
+        <v-btn v-if="isOwner" variant="outlined" block class="mt-2" :to="crmPath('admin')">Admin</v-btn>
         <v-btn variant="text" block class="mt-2" to="/platform">Retour liste</v-btn>
       </div>
     </template>

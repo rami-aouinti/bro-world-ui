@@ -8,6 +8,7 @@ definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const shopPath = (page: string) => `/platform/${slug.value}/shop/${page}`
+const { isOwner } = usePlatformApplication(slug)
 
 const categories = ['apparel', 'office', 'electronics']
 </script>
@@ -20,6 +21,7 @@ const categories = ['apparel', 'office', 'electronics']
         <v-btn variant="outlined" block :to="shopPath('home')">Home</v-btn>
         <v-btn variant="outlined" block class="mt-2" :to="shopPath('orders')">Orders</v-btn>
         <v-btn variant="outlined" block class="mt-2" :to="shopPath('checkout')">Checkout</v-btn>
+        <v-btn v-if="isOwner" variant="outlined" block class="mt-2" :to="shopPath('admin')">Admin</v-btn>
       </div>
     </template>
 
