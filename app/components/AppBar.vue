@@ -107,6 +107,7 @@ const signOut = async () => {
 
 <template>
   <v-app-bar
+    :class="{ 'app-bar--dark': isDark }"
     class="app-bar px-0 border-radius-xl toolbar-content-padding-y-none v-sheet v-toolbar v-toolbar--flat v-app-bar bg-transparent position-sticky blur shadow-blur top-1 z-index-sticky"
   >
     <v-toolbar-title class="app-bar__brand d-flex align-center ga-3 text-truncate">
@@ -272,6 +273,10 @@ const signOut = async () => {
   background: rgb(var(--v-theme-surface));
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   box-shadow: 0 12px 24px rgba(var(--v-theme-on-surface), 0.08);
+}
+
+.app-bar--dark {
+  background: color-mix(in srgb, rgb(var(--v-theme-surface)) 88%, #000 12%);
 }
 
 .app-bar__brand {
