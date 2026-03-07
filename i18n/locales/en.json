@@ -63,78 +63,81 @@
     }
   },
   "home": {
-    "title": "Welcome to Bro World",
-    "description": "Nuxt 4 project configured with Vuetify and the Material Dashboard style.",
-    "cta": {
-      "title": "Ready to align your teams and scale execution?",
-      "description": "Start with a guided setup and see how Bro World streamlines your daily operations.",
-      "primaryAction": "Launch my workspace",
-      "secondaryAction": "Talk to sales"
-    },
-    "featuresTitle": "Core features",
-    "metricsTitle": "Impact metrics",
-    "stepsTitle": "Onboarding in 3 steps",
-    "stepLabel": "Step {index}",
     "hero": {
       "badge": "Operations cockpit",
       "title": "Orchestrate teams, tools, and workflows from one place",
-      "subtitle": "Bro World gives your teams a shared command center to align priorities, monitor execution, and move faster with confidence.",
+      "subtitle": "Bro World gives every team a shared command center to align priorities, execute faster, and stay accountable.",
+      "bullets": [
+        "One workspace for product, ops, and support.",
+        "Real-time visibility to unblock decisions faster.",
+        "Role-based governance built for scale."
+      ],
       "primaryCta": "Start free trial",
-      "secondaryCta": "Book a demo",
-      "benefits": [
-        "Single workspace for product, ops, and support.",
-        "Faster decisions with real-time visibility.",
-        "Role-based governance ready for scale."
-      ]
+      "secondaryCta": "Book a demo"
     },
-    "featureCards": [
+    "featuresTitle": "Core features",
+    "features": [
       {
-        "icon": "mdi-view-dashboard-outline",
         "title": "Unified workspace",
-        "description": "Track projects, tickets, and priorities in one collaborative view."
+        "description": "Track projects, requests, and priorities in one collaborative view.",
+        "icon": "mdi-view-dashboard-outline"
       },
       {
-        "icon": "mdi-lightning-bolt-outline",
         "title": "Workflow automation",
-        "description": "Automate repetitive tasks and handoffs with configurable rules."
+        "description": "Automate repetitive steps, approvals, and handoffs with configurable rules.",
+        "icon": "mdi-lightning-bolt-outline"
       },
       {
-        "icon": "mdi-shield-check-outline",
-        "title": "Secure by default",
-        "description": "Control access with granular permissions and full activity traceability."
+        "title": "Secure collaboration",
+        "description": "Control access with granular roles and full activity traceability.",
+        "icon": "mdi-shield-check-outline"
       }
     ],
+    "metricsTitle": "Impact metrics",
     "metrics": [
       {
         "value": "42%",
-        "label": "faster cross-team delivery cycles"
+        "label": "faster cross-team delivery",
+        "context": "Average reduction in delivery cycle time after rollout.",
+        "icon": "mdi-trending-up"
       },
       {
         "value": "99.95%",
-        "label": "average platform availability"
+        "label": "platform availability",
+        "context": "Observed service uptime across production workspaces.",
+        "icon": "mdi-check-decagram-outline"
       },
       {
         "value": "4.8/5",
-        "label": "customer satisfaction score"
+        "label": "team satisfaction",
+        "context": "Average score reported by managers and contributors.",
+        "icon": "mdi-star-outline"
       }
     ],
+    "stepsTitle": "Get started in 3 steps",
     "steps": [
       {
-        "icon": "mdi-account-plus-outline",
         "title": "Create your workspace",
-        "description": "Set up your team spaces, roles, and core workflows in minutes."
+        "description": "Set up teams, permissions, and the workflows you rely on every day.",
+        "icon": "mdi-account-plus-outline"
       },
       {
-        "icon": "mdi-link-variant",
-        "title": "Connect your tools",
-        "description": "Link your existing stack to centralize data and avoid context switching."
+        "title": "Connect your stack",
+        "description": "Integrate your existing tools to centralize data and reduce context switching.",
+        "icon": "mdi-link-variant"
       },
       {
-        "icon": "mdi-rocket-launch-outline",
         "title": "Launch and optimize",
-        "description": "Deploy your first process, monitor outcomes, and iterate continuously."
+        "description": "Run your first processes, monitor outcomes, and improve continuously.",
+        "icon": "mdi-rocket-launch-outline"
       }
-    ]
+    ],
+    "cta": {
+      "title": "Ready to align your teams and scale execution?",
+      "description": "Start with guided onboarding and turn daily operations into a measurable performance engine.",
+      "primaryAction": "Launch my workspace",
+      "secondaryAction": "Talk to sales"
+    }
   },
   "admin": {
     "title": "Administration area",
