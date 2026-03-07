@@ -208,11 +208,8 @@ const disableApplication = async () => {
           <article class="platform-page__card platform-page__card--new" role="button" tabindex="0" @click="goToNewPlatform">
             <div class="platform-page__add-icon"><v-icon icon="mdi-earth"/></div>
             <h2 class="platform-page__new-title">
-              {{ isAuthenticated ? t('platform.newPlatform.title') : t('platform.newPlatform.connectTitle') }}
+              {{ t('platform.newPlatform.worldTitle') }}
             </h2>
-            <p class="platform-page__new-description">
-              {{ isAuthenticated ? t('platform.newPlatform.description') : t('platform.newPlatform.connectDescription') }}
-            </p>
           </article>
 
           <article v-for="card in applicationsStore.items" :key="card.id" class="platform-page__card">
