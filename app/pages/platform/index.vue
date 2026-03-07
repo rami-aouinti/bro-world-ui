@@ -1,86 +1,101 @@
 <script setup lang="ts">
-import UserIdentity from '~/components/UserIdentity.vue'
-import UiPageShell from '~/components/ui/page/UiPageShell.vue'
+import UserIdentity from "~/components/UserIdentity.vue";
+import UiPageShell from "~/components/ui/page/UiPageShell.vue";
 
 definePageMeta({
   public: true,
   requiresAuth: false,
-  skeleton: 'card-grid',
-})
+  skeleton: "card-grid",
+});
 
-const { t } = useI18n({ useScope: 'global' })
-const router = useRouter()
-const { isAuthenticated, initSession } = useAuth()
-const applicationsStore = useApplicationsStore()
-const authSession = useAuthSessionStore()
+const { t } = useI18n({ useScope: "global" });
+const router = useRouter();
+const { isAuthenticated } = useAuth();
+const applicationsStore = useApplicationsStore();
+const authSession = useAuthSessionStore();
 
-const editDialog = ref(false)
-const deleteDialog = ref(false)
-const submitting = ref(false)
-const search = ref('')
-const selectedPlatformKey = ref('')
-const selectedApp = ref<(typeof applicationsStore.items.value)[number] | null>(null)
-const platformKeyOptions = ['crm', 'recruit', 'school', 'shop'] as const
+const editDialog = ref(false);
+const deleteDialog = ref(false);
+const submitting = ref(false);
+const search = ref("");
+const selectedPlatformKey = ref("");
+const selectedApp = ref<(typeof applicationsStore.items.value)[number] | null>(
+  null,
+);
+const platformKeyOptions = ["crm", "recruit", "school", "shop"] as const;
 
-await initSession()
-await useAsyncData('platform-applications', () => applicationsStore.fetch({ limit: 5 }))
+const { pending: applicationsPending } = useAsyncData(
+  "platform-applications",
+  () => applicationsStore.fetch({ limit: 5 }),
+);
 
-const isEmpty = computed(() => !applicationsStore.isLoading && applicationsStore.items.length === 0)
+const loading = computed(
+  () => applicationsPending.value || applicationsStore.isLoading,
+);
+const isEmpty = computed(
+  () => !loading.value && applicationsStore.items.length === 0,
+);
 
 const goToNewPlatform = () => {
   if (isAuthenticated.value) {
-    router.push('/platform/new')
-    return
+    router.push("/platform/new");
+    return;
   }
 
-  router.push('/login')
-}
+  router.push("/login");
+};
 
 const formatDate = (value?: string) => {
   if (!value) {
-    return ''
+    return "";
   }
 
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: '2-digit',
-  }).format(new Date(value))
-}
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+  }).format(new Date(value));
+};
 
-const appHomePath = (application: (typeof applicationsStore.items.value)[number]) => {
-  const appSlug = application.slug ?? application.id
-  const platformKey = application.platformKey ?? 'crm'
+const appHomePath = (
+  application: (typeof applicationsStore.items.value)[number],
+) => {
+  const appSlug = application.slug ?? application.id;
+  const platformKey = application.platformKey ?? "crm";
 
-  return `/platform/${appSlug}/${platformKey}/home`
-}
+  return `/platform/${appSlug}/${platformKey}/home`;
+};
 
-const authorUsername = (application: (typeof applicationsStore.items.value)[number]) => {
-  return application.author?.username ?? ''
-}
+const authorUsername = (
+  application: (typeof applicationsStore.items.value)[number],
+) => {
+  return application.author?.username ?? "";
+};
 
-const authorProfilePath = (application: (typeof applicationsStore.items.value)[number]) => {
+const authorProfilePath = (
+  application: (typeof applicationsStore.items.value)[number],
+) => {
   if (application.isOwner) {
-    return '/profile'
+    return "/profile";
   }
 
-  const currentUserId = authSession.profile?.id
-  const authorId = application.author?.id
+  const currentUserId = authSession.profile?.id;
+  const authorId = application.author?.id;
 
   if (currentUserId && authorId && currentUserId === authorId) {
-    return '/profile'
+    return "/profile";
   }
 
-  const username = authorUsername(application)
+  const username = authorUsername(application);
   if (username) {
-    return `/user/${username}/profile`
+    return `/user/${username}/profile`;
   }
 
-  return undefined
-}
+  return undefined;
+};
 
 const applyFilters = async () => {
-  applicationsStore.setPage(1)
+  applicationsStore.setPage(1);
   await applicationsStore.fetch({
     page: 1,
     limit: 5,
@@ -88,22 +103,23 @@ const applyFilters = async () => {
       search: search.value,
       platformKey: selectedPlatformKey.value,
     },
-  })
-}
+  });
+};
 
 const clearFilters = async () => {
-  search.value = ''
-  selectedPlatformKey.value = ''
-  await applyFilters()
-}
+  search.value = "";
+  selectedPlatformKey.value = "";
+  await applyFilters();
+};
 
 const togglePlatformKey = async (platformKey: string) => {
-  selectedPlatformKey.value = selectedPlatformKey.value === platformKey ? '' : platformKey
-  await applyFilters()
-}
+  selectedPlatformKey.value =
+    selectedPlatformKey.value === platformKey ? "" : platformKey;
+  await applyFilters();
+};
 
 const onPageChange = async (page: number) => {
-  applicationsStore.setPage(page)
+  applicationsStore.setPage(page);
   await applicationsStore.fetch({
     page,
     limit: 5,
@@ -111,239 +127,319 @@ const onPageChange = async (page: number) => {
       search: search.value,
       platformKey: selectedPlatformKey.value,
     },
-  })
-}
+  });
+};
 
-const openEditModal = (application: (typeof applicationsStore.items.value)[number]) => {
+const openEditModal = (
+  application: (typeof applicationsStore.items.value)[number],
+) => {
   selectedApp.value = {
     ...application,
-  }
-  editDialog.value = true
-}
+  };
+  editDialog.value = true;
+};
 
-const openDeleteModal = (application: (typeof applicationsStore.items.value)[number]) => {
-  selectedApp.value = application
-  deleteDialog.value = true
-}
+const openDeleteModal = (
+  application: (typeof applicationsStore.items.value)[number],
+) => {
+  selectedApp.value = application;
+  deleteDialog.value = true;
+};
 
 const saveApplication = async () => {
   if (!selectedApp.value) {
-    return
+    return;
   }
 
-  submitting.value = true
+  submitting.value = true;
 
   try {
     await applicationsStore.update(selectedApp.value.id, {
       title: selectedApp.value.title.trim(),
       status: selectedApp.value.status,
       private: selectedApp.value.private,
-    })
-    editDialog.value = false
+    });
+    editDialog.value = false;
+  } finally {
+    submitting.value = false;
   }
-  finally {
-    submitting.value = false
-  }
-}
+};
 
 const disableApplication = async () => {
   if (!selectedApp.value) {
-    return
+    return;
   }
 
-  submitting.value = true
+  submitting.value = true;
 
   try {
-    await applicationsStore.disable(selectedApp.value.id)
-    deleteDialog.value = false
-    selectedApp.value = null
+    await applicationsStore.disable(selectedApp.value.id);
+    deleteDialog.value = false;
+    selectedApp.value = null;
+  } finally {
+    submitting.value = false;
   }
-  finally {
-    submitting.value = false
-  }
-}
+};
 </script>
 
 <template>
   <UiPageShell
     :title="t('platform.filters.title')"
     subtitle=""
-    :loading="applicationsStore.isLoading"
+    :loading="loading"
     skeleton="card-grid"
     :empty="isEmpty"
     :empty-title="t('platform.title')"
     :empty-description="t('platform.filters.clear')"
     max-width="100%"
   >
-  <section class="platform-page">
-    <div class="platform-page__layout">
-      <aside class="platform-page__sidebar">
-        <article  class="platform-page__card">
-          <v-card-title class="text-h6 platform-page__filters-title">{{ t('platform.filters.title') }}</v-card-title>
-          <v-card-text>
-            <v-text-field
-              v-model="search"
-              :label="t('platform.filters.search')"
-              prepend-inner-icon="mdi-magnify"
-              variant="solo"
-              flat
-              density="comfortable"
-              hide-details
-              class="mb-4"
-              @keyup.enter="applyFilters"
-            />
+    <section class="platform-page">
+      <div class="platform-page__layout">
+        <aside class="platform-page__sidebar">
+          <article class="platform-page__card">
+            <v-card-title class="text-h6 platform-page__filters-title">{{
+              t("platform.filters.title")
+            }}</v-card-title>
+            <v-card-text>
+              <v-text-field
+                v-model="search"
+                :label="t('platform.filters.search')"
+                prepend-inner-icon="mdi-magnify"
+                variant="solo"
+                flat
+                density="comfortable"
+                hide-details
+                class="mb-4"
+                @keyup.enter="applyFilters"
+              />
 
-            <p class="platform-page__platform-key-label mb-2">{{ t('platform.filters.platformKey') }}</p>
-            <div class="platform-page__platform-key-buttons mb-4">
-              <v-btn
-                v-for="platformKey in platformKeyOptions"
-                :key="platformKey"
-                :color="selectedPlatformKey === platformKey ? 'primary' : undefined"
-                :variant="selectedPlatformKey === platformKey ? 'flat' : 'outlined'"
-                size="small"
-                rounded="pill"
-                class="text-lowercase"
-                @click="togglePlatformKey(platformKey)"
-              >
-                {{ platformKey }}
-              </v-btn>
-            </div>
-
-            <div class="platform-page__filters-actions">
-              <v-btn color="primary" block @click="applyFilters">{{ t('platform.filters.apply') }}</v-btn>
-              <v-btn variant="text" block class="mt-2" @click="clearFilters">{{ t('platform.filters.clear') }}</v-btn>
-            </div>
-          </v-card-text>
-        </article>
-      </aside>
-
-      <div class="platform-page__content">
-        <div class="platform-page__grid">
-          <article class="platform-page__card platform-page__card--new" role="button" tabindex="0" @click="goToNewPlatform">
-            <div class="platform-page__add-icon"><v-icon icon="mdi-earth"/></div>
-            <h2 class="platform-page__new-title">
-              {{ t('platform.newPlatform.worldTitle') }}
-            </h2>
-          </article>
-
-          <article v-for="card in applicationsStore.items" :key="card.id" class="platform-page__card">
-            <v-menu v-if="card.isOwner" location="bottom end">
-              <template #activator="{ props }">
+              <p class="platform-page__platform-key-label mb-2">
+                {{ t("platform.filters.platformKey") }}
+              </p>
+              <div class="platform-page__platform-key-buttons mb-4">
                 <v-btn
-                  class="platform-page__card-dot"
-                  icon="mdi-dots-vertical"
+                  v-for="platformKey in platformKeyOptions"
+                  :key="platformKey"
+                  :color="
+                    selectedPlatformKey === platformKey ? 'primary' : undefined
+                  "
+                  :variant="
+                    selectedPlatformKey === platformKey ? 'flat' : 'outlined'
+                  "
+                  size="small"
+                  rounded="pill"
+                  class="text-lowercase"
+                  @click="togglePlatformKey(platformKey)"
+                >
+                  {{ platformKey }}
+                </v-btn>
+              </div>
+
+              <div class="platform-page__filters-actions">
+                <v-btn color="primary" block @click="applyFilters">{{
+                  t("platform.filters.apply")
+                }}</v-btn>
+                <v-btn
                   variant="text"
-                  density="compact"
-                  v-bind="props"
-                />
-              </template>
+                  block
+                  class="mt-2"
+                  @click="clearFilters"
+                  >{{ t("platform.filters.clear") }}</v-btn
+                >
+              </div>
+            </v-card-text>
+          </article>
+        </aside>
 
-              <v-list density="compact">
-                <v-list-item :title="t('platform.actions.edit')" @click="openEditModal(card)" />
-                <v-list-item :title="t('platform.actions.delete')" @click="openDeleteModal(card)" />
-              </v-list>
-            </v-menu>
+        <div class="platform-page__content">
+          <div class="platform-page__grid">
+            <article
+              class="platform-page__card platform-page__card--new"
+              role="button"
+              tabindex="0"
+              @click="goToNewPlatform"
+            >
+              <div class="platform-page__add-icon">
+                <v-icon icon="mdi-earth" />
+              </div>
+              <h2 class="platform-page__new-title">
+                {{ t("platform.newPlatform.worldTitle") }}
+              </h2>
+            </article>
 
-            <NuxtLink :to="appHomePath(card)" class="platform-page__card-main-link">
-              <div class="platform-page__card-top">
-                <div class="platform-page__card-brand">
-                  <img :src="card.photo" :alt="card.title" class="platform-page__logo">
-                  <div class="platform-page__card-heading">
-                    <div class="platform-page__card-title-row">
-                      <h3 class="platform-page__card-title">{{ card.title }}</h3>
-                      <v-tooltip v-if="card.description" location="top">
-                        <template #activator="{ props }">
-                          <v-btn
-                            icon="mdi-information-outline"
-                            size="x-small"
-                            variant="text"
-                            density="comfortable"
-                            class="platform-page__description-tooltip-trigger"
-                            v-bind="props"
-                          />
-                        </template>
-                        <span>{{ card.description }}</span>
-                      </v-tooltip>
+            <article
+              v-for="card in applicationsStore.items"
+              :key="card.id"
+              class="platform-page__card"
+            >
+              <v-menu v-if="card.isOwner" location="bottom end">
+                <template #activator="{ props }">
+                  <v-btn
+                    class="platform-page__card-dot"
+                    icon="mdi-dots-vertical"
+                    variant="text"
+                    density="compact"
+                    v-bind="props"
+                  />
+                </template>
+
+                <v-list density="compact">
+                  <v-list-item
+                    :title="t('platform.actions.edit')"
+                    @click="openEditModal(card)"
+                  />
+                  <v-list-item
+                    :title="t('platform.actions.delete')"
+                    @click="openDeleteModal(card)"
+                  />
+                </v-list>
+              </v-menu>
+
+              <NuxtLink
+                :to="appHomePath(card)"
+                class="platform-page__card-main-link"
+              >
+                <div class="platform-page__card-top">
+                  <div class="platform-page__card-brand">
+                    <img
+                      :src="card.photo"
+                      :alt="card.title"
+                      class="platform-page__logo"
+                    />
+                    <div class="platform-page__card-heading">
+                      <div class="platform-page__card-title-row">
+                        <h3 class="platform-page__card-title">
+                          {{ card.title }}
+                        </h3>
+                        <v-tooltip v-if="card.description" location="top">
+                          <template #activator="{ props }">
+                            <v-btn
+                              icon="mdi-information-outline"
+                              size="x-small"
+                              variant="text"
+                              density="comfortable"
+                              class="platform-page__description-tooltip-trigger"
+                              v-bind="props"
+                            />
+                          </template>
+                          <span>{{ card.description }}</span>
+                        </v-tooltip>
+                      </div>
                     </div>
                   </div>
                 </div>
+              </NuxtLink>
+
+              <div class="platform-page__card-meta">
+                <UserIdentity
+                  :first-name="card.author?.firstName"
+                  :last-name="card.author?.lastName"
+                  :username="authorUsername(card)"
+                  :photo="card.author?.photo"
+                  :profile-path="authorProfilePath(card)"
+                />
+                <v-chip
+                  :color="card.status === 'active' ? 'success' : undefined"
+                  variant="tonal"
+                  size="small"
+                  class="text-capitalize"
+                >
+                  {{
+                    card.status === "active"
+                      ? t("platform.status.active")
+                      : t("platform.status.inactive")
+                  }}
+                </v-chip>
               </div>
-            </NuxtLink>
 
-            <div class="platform-page__card-meta">
-              <UserIdentity
-                :first-name="card.author?.firstName"
-                :last-name="card.author?.lastName"
-                :username="authorUsername(card)"
-                :photo="card.author?.photo"
-                :profile-path="authorProfilePath(card)"
-              />
-              <v-chip
-                :color="card.status === 'active' ? 'success' : undefined"
-                variant="tonal"
-                size="small"
-                class="text-capitalize"
-              >
-                {{ card.status === 'active' ? t('platform.status.active') : t('platform.status.inactive') }}
-              </v-chip>
-            </div>
+              <div class="platform-page__card-footer">
+                <span>{{ card.platformName }}</span>
+                <span>{{ formatDate(card.createdAt) }}</span>
+              </div>
+            </article>
+          </div>
 
-            <div class="platform-page__card-footer">
-              <span>{{ card.platformName }}</span>
-              <span>{{ formatDate(card.createdAt) }}</span>
-            </div>
-          </article>
-        </div>
-
-        <div class="platform-page__pagination">
-          <v-pagination
-            :model-value="applicationsStore.pagination.page"
-            :length="applicationsStore.pagination.totalPages"
-            :total-visible="6"
-            @update:model-value="onPageChange"
-          />
+          <div class="platform-page__pagination">
+            <v-pagination
+              :model-value="applicationsStore.pagination.page"
+              :length="applicationsStore.pagination.totalPages"
+              :total-visible="6"
+              @update:model-value="onPageChange"
+            />
+          </div>
         </div>
       </div>
-    </div>
 
-    <UiActionDialog v-model="editDialog" :title="t('platform.actions.editTitle')" max-width="560" persistent>
-      <template v-if="selectedApp">
-        <v-text-field v-model="selectedApp.title" :label="t('platform.wizard.fields.title')" class="mb-3" />
-        <v-select
-          v-model="selectedApp.status"
-          :label="t('platform.wizard.fields.active')"
-          :items="[
-            { title: t('platform.status.active'), value: 'active' },
-            { title: t('platform.status.inactive'), value: 'inactive' },
-          ]"
-          item-title="title"
-          item-value="value"
-          class="mb-3"
-        />
-        <v-switch v-model="selectedApp.private" :label="t('platform.wizard.fields.private')" inset hide-details />
-      </template>
+      <UiActionDialog
+        v-model="editDialog"
+        :title="t('platform.actions.editTitle')"
+        max-width="560"
+        persistent
+      >
+        <template v-if="selectedApp">
+          <v-text-field
+            v-model="selectedApp.title"
+            :label="t('platform.wizard.fields.title')"
+            class="mb-3"
+          />
+          <v-select
+            v-model="selectedApp.status"
+            :label="t('platform.wizard.fields.active')"
+            :items="[
+              { title: t('platform.status.active'), value: 'active' },
+              { title: t('platform.status.inactive'), value: 'inactive' },
+            ]"
+            item-title="title"
+            item-value="value"
+            class="mb-3"
+          />
+          <v-switch
+            v-model="selectedApp.private"
+            :label="t('platform.wizard.fields.private')"
+            inset
+            hide-details
+          />
+        </template>
 
-      <template #actions>
-        <v-btn variant="text" :disabled="submitting" @click="editDialog = false">{{ t('admin.common.cancel') }}</v-btn>
-        <v-btn color="primary" :loading="submitting" @click="saveApplication">{{ t('admin.common.save') }}</v-btn>
-      </template>
-    </UiActionDialog>
+        <template #actions>
+          <v-btn
+            variant="text"
+            :disabled="submitting"
+            @click="editDialog = false"
+            >{{ t("admin.common.cancel") }}</v-btn
+          >
+          <v-btn
+            color="primary"
+            :loading="submitting"
+            @click="saveApplication"
+            >{{ t("admin.common.save") }}</v-btn
+          >
+        </template>
+      </UiActionDialog>
 
-    <UiActionConfirmDialog
-      v-model="deleteDialog"
-      :title="t('platform.actions.deleteTitle')"
-      :message="t('platform.actions.deleteMessage', { title: selectedApp?.title || '' })"
-      :confirm-label="t('platform.actions.delete')"
-      :cancel-label="t('admin.common.cancel')"
-      :loading="submitting"
-      @confirm="disableApplication"
-    />
+      <UiActionConfirmDialog
+        v-model="deleteDialog"
+        :title="t('platform.actions.deleteTitle')"
+        :message="
+          t('platform.actions.deleteMessage', {
+            title: selectedApp?.title || '',
+          })
+        "
+        :confirm-label="t('platform.actions.delete')"
+        :cancel-label="t('admin.common.cancel')"
+        :loading="submitting"
+        @confirm="disableApplication"
+      />
 
-    <button type="button" class="platform-page__assistant" :aria-label="t('platform.assistant')">
-      <v-icon icon="mdi-message-outline" size="22" />
-      <v-icon icon="mdi-format-list-bulleted" size="22" />
-    </button>
-  </section>
+      <button
+        type="button"
+        class="platform-page__assistant"
+        :aria-label="t('platform.assistant')"
+      >
+        <v-icon icon="mdi-message-outline" size="22" />
+        <v-icon icon="mdi-format-list-bulleted" size="22" />
+      </button>
+    </section>
   </UiPageShell>
 </template>
 
@@ -418,11 +514,13 @@ const disableApplication = async () => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .platform-page__card::before {
-  content: '';
+  content: "";
   position: absolute;
   right: 0;
   top: 0;
