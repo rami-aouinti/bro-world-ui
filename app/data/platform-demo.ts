@@ -57,6 +57,31 @@ export interface SchoolClass {
   room: string
 }
 
+export interface PlatformSectionMetric {
+  label: string
+  value: string
+  tone?: 'primary' | 'success' | 'warning' | 'info' | 'error'
+}
+
+export interface PlatformSectionItem {
+  id: string
+  title: string
+  description: string
+  status?: string
+  owner?: string
+  metrics?: PlatformSectionMetric[]
+}
+
+export interface PlatformPageSections {
+  pageTitle: string
+  sections: Array<{
+    id: string
+    title: string
+    subtitle: string
+    icon: string
+  }>
+}
+
 export const crmStats: StatItem[] = [
   { label: 'Pipeline', value: '€ 284k', trend: '+12%', color: 'primary' },
   { label: 'Deals gagnés', value: '41', trend: '+8%', color: 'success' },
@@ -107,3 +132,38 @@ export const schoolClasses: SchoolClass[] = [
   { id: 'cls-104', name: 'Informatique', level: 'Terminale', teacher: 'M. Girard', students: 24, room: 'Lab-2' },
   { id: 'cls-105', name: 'Littérature', level: 'Première', teacher: 'Mme Costa', students: 30, room: 'B-112' },
 ]
+
+export const platformPageSections: Record<'crm' | 'shop' | 'school' | 'recruit', PlatformPageSections> = {
+  crm: {
+    pageTitle: 'CRM Settings',
+    sections: [
+      { id: 'routing', title: 'Routage des leads', subtitle: 'Attribution commerciale, SLA et priorités', icon: 'mdi-account-switch' },
+      { id: 'automation', title: 'Automations RevOps', subtitle: 'Workflows devis, relances et renouvellements', icon: 'mdi-cog-refresh-outline' },
+      { id: 'governance', title: 'Conformité & gouvernance', subtitle: 'Consentement, sécurité et journal d’audit', icon: 'mdi-shield-check-outline' },
+    ],
+  },
+  shop: {
+    pageTitle: 'Shop Payment',
+    sections: [
+      { id: 'checkout', title: 'Parcours checkout', subtitle: 'Abandon, friction et conversion', icon: 'mdi-cart-check' },
+      { id: 'providers', title: 'Providers de paiement', subtitle: 'Disponibilité, coûts et fallback', icon: 'mdi-credit-card-sync-outline' },
+      { id: 'fraud', title: 'Risque & fraude', subtitle: 'Chargebacks, règles 3DS et revue manuelle', icon: 'mdi-shield-search-outline' },
+    ],
+  },
+  school: {
+    pageTitle: 'School Settings',
+    sections: [
+      { id: 'calendar', title: 'Calendrier académique', subtitle: 'Périodes, vacances et examens', icon: 'mdi-calendar-month-outline' },
+      { id: 'permissions', title: 'Permissions & rôles', subtitle: 'Accès direction, enseignants et parents', icon: 'mdi-account-key-outline' },
+      { id: 'certificates', title: 'Templates certificats', subtitle: 'Modèles, signatures et publication', icon: 'mdi-certificate-outline' },
+    ],
+  },
+  recruit: {
+    pageTitle: 'Recruit Admin',
+    sections: [
+      { id: 'pipeline', title: 'Pipeline de recrutement', subtitle: 'Volume candidats par étape', icon: 'mdi-view-kanban-outline' },
+      { id: 'interviews', title: 'Comités d’interview', subtitle: 'Slots, panel et feedback', icon: 'mdi-account-group-outline' },
+      { id: 'offers', title: 'Offres & acceptance', subtitle: 'Propositions, délai de réponse et closing', icon: 'mdi-file-document-check-outline' },
+    ],
+  },
+}
