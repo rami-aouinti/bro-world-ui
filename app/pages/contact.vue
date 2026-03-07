@@ -59,12 +59,77 @@ interface ContactCta {
   actions: ContactCtaAction[]
 }
 
-const { t, tm } = useI18n()
+const { t, tm, rt } = useI18n()
 
-const channels = computed(() => tm('contact.channels') as ContactChannel[])
-const availability = computed(() => tm('contact.availability') as ContactAvailability)
-const contactForm = computed(() => tm('contact.form') as ContactForm)
-const cta = computed(() => tm('contact.cta') as ContactCta)
+const resolveText = (message: unknown) => rt(message as string)
+
+const channels = computed<ContactChannel[]>(() => {
+  const rawChannels = tm('contact.channels') as ContactChannel[]
+
+  return rawChannels.map((channel) => ({
+    ...channel,
+    label: resolveText(channel.label),
+    value: resolveText(channel.value),
+    details: resolveText(channel.details),
+  }))
+})
+
+const availability = computed<ContactAvailability>(() => {
+  const rawAvailability = tm('contact.availability') as ContactAvailability
+
+  return {
+    ...rawAvailability,
+    title: resolveText(rawAvailability.title),
+    description: resolveText(rawAvailability.description),
+    windows: rawAvailability.windows.map((window) => ({
+      ...window,
+      label: resolveText(window.label),
+      value: resolveText(window.value),
+    })),
+    escalationTitle: resolveText(rawAvailability.escalationTitle),
+    escalationBullets: rawAvailability.escalationBullets.map(resolveText),
+  }
+})
+
+const contactForm = computed<ContactForm>(() => {
+  const rawContactForm = tm('contact.form') as ContactForm
+
+  return {
+    ...rawContactForm,
+    title: resolveText(rawContactForm.title),
+    description: resolveText(rawContactForm.description),
+    fields: {
+      firstName: resolveText(rawContactForm.fields.firstName),
+      lastName: resolveText(rawContactForm.fields.lastName),
+      email: resolveText(rawContactForm.fields.email),
+      topic: resolveText(rawContactForm.fields.topic),
+      message: resolveText(rawContactForm.fields.message),
+      messagePlaceholder: resolveText(rawContactForm.fields.messagePlaceholder),
+    },
+    topics: rawContactForm.topics.map((topic) => ({
+      ...topic,
+      value: resolveText(topic.value),
+      label: resolveText(topic.label),
+    })),
+    privacyNote: resolveText(rawContactForm.privacyNote),
+    submit: resolveText(rawContactForm.submit),
+    reset: resolveText(rawContactForm.reset),
+  }
+})
+
+const cta = computed<ContactCta>(() => {
+  const rawCta = tm('contact.cta') as ContactCta
+
+  return {
+    ...rawCta,
+    title: resolveText(rawCta.title),
+    description: resolveText(rawCta.description),
+    actions: rawCta.actions.map((action) => ({
+      ...action,
+      label: resolveText(action.label),
+    })),
+  }
+})
 
 const topicLabels = computed(() => contactForm.value.topics.map((topic) => topic.label))
 </script>

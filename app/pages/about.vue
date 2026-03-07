@@ -46,13 +46,71 @@ interface AboutCta {
   secondaryAction: string
 }
 
-const { t, tm } = useI18n()
+const { t, tm, rt } = useI18n()
 
-const hero = computed(() => tm('about.hero') as AboutHero)
-const missionCards = computed(() => tm('about.missionCards') as AboutMissionCard[])
-const metrics = computed(() => tm('about.metrics') as AboutMetric[])
-const timeline = computed(() => tm('about.timeline') as AboutTimelineItem[])
-const cta = computed(() => tm('about.cta') as AboutCta)
+const resolveText = (message: unknown) => rt(message as string)
+
+const hero = computed<AboutHero>(() => {
+  const rawHero = tm('about.hero') as AboutHero
+
+  return {
+    ...rawHero,
+    badge: resolveText(rawHero.badge),
+    title: resolveText(rawHero.title),
+    subtitle: resolveText(rawHero.subtitle),
+    paragraphs: rawHero.paragraphs.map(resolveText),
+    bullets: rawHero.bullets.map(resolveText),
+    primaryCta: resolveText(rawHero.primaryCta),
+    secondaryCta: resolveText(rawHero.secondaryCta),
+  }
+})
+
+const missionCards = computed<AboutMissionCard[]>(() => {
+  const rawMissionCards = tm('about.missionCards') as AboutMissionCard[]
+
+  return rawMissionCards.map((card) => ({
+    ...card,
+    title: resolveText(card.title),
+    description: resolveText(card.description),
+    paragraphs: card.paragraphs.map(resolveText),
+    bullets: card.bullets.map(resolveText),
+  }))
+})
+
+const metrics = computed<AboutMetric[]>(() => {
+  const rawMetrics = tm('about.metrics') as AboutMetric[]
+
+  return rawMetrics.map((metric) => ({
+    ...metric,
+    value: resolveText(metric.value),
+    label: resolveText(metric.label),
+    context: resolveText(metric.context),
+  }))
+})
+
+const timeline = computed<AboutTimelineItem[]>(() => {
+  const rawTimeline = tm('about.timeline') as AboutTimelineItem[]
+
+  return rawTimeline.map((entry) => ({
+    ...entry,
+    title: resolveText(entry.title),
+    period: resolveText(entry.period),
+    description: resolveText(entry.description),
+    highlights: entry.highlights.map(resolveText),
+  }))
+})
+
+const cta = computed<AboutCta>(() => {
+  const rawCta = tm('about.cta') as AboutCta
+
+  return {
+    ...rawCta,
+    title: resolveText(rawCta.title),
+    description: resolveText(rawCta.description),
+    primaryAction: resolveText(rawCta.primaryAction),
+    secondaryAction: resolveText(rawCta.secondaryAction),
+  }
+})
 </script>
 
 <template>

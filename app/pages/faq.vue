@@ -28,14 +28,47 @@ interface FaqEmptyState {
   suggestion: string
 }
 
-const { t, tm } = useI18n()
+const { t, tm, rt } = useI18n()
+
+const resolveText = (message: unknown) => rt(message as string)
 
 const search = ref('')
 const selectedCategory = ref('all')
 
-const categories = computed(() => tm('faq.categories') as FaqCategory[])
-const faqItems = computed(() => tm('faq.items') as FaqItem[])
-const emptyState = computed(() => tm('faq.emptyState') as FaqEmptyState)
+const categories = computed<FaqCategory[]>(() => {
+  const rawCategories = tm('faq.categories') as FaqCategory[]
+
+  return rawCategories.map((category) => ({
+    ...category,
+    key: resolveText(category.key),
+    label: resolveText(category.label),
+    description: resolveText(category.description),
+  }))
+})
+
+const faqItems = computed<FaqItem[]>(() => {
+  const rawFaqItems = tm('faq.items') as FaqItem[]
+
+  return rawFaqItems.map((item) => ({
+    ...item,
+    category: resolveText(item.category),
+    question: resolveText(item.question),
+    answer: resolveText(item.answer),
+    detailsParagraphs: item.detailsParagraphs.map(resolveText),
+    bullets: item.bullets.map(resolveText),
+  }))
+})
+
+const emptyState = computed<FaqEmptyState>(() => {
+  const rawEmptyState = tm('faq.emptyState') as FaqEmptyState
+
+  return {
+    ...rawEmptyState,
+    title: resolveText(rawEmptyState.title),
+    description: resolveText(rawEmptyState.description),
+    suggestion: resolveText(rawEmptyState.suggestion),
+  }
+})
 
 const filteredFaqItems = computed(() => faqItems.value.filter((item) => {
   const query = search.value.trim().toLowerCase()
