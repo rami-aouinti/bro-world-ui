@@ -137,7 +137,8 @@
       "description": "ابدأ بإعداد موجّه وحوّل العمليات اليومية إلى أداء قابل للقياس.",
       "primaryAction": "إطلاق مساحة العمل",
       "secondaryAction": "تواصل مع المبيعات"
-    }
+    },
+    "stepLabel": "الخطوة {index}"
   },
   "admin": {
     "title": "Administration area",

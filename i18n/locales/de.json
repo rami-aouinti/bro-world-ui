@@ -137,7 +137,8 @@
       "description": "Starte mit geführtem Onboarding und mache tägliche Abläufe zu einem messbaren Leistungsmotor.",
       "primaryAction": "Workspace starten",
       "secondaryAction": "Vertrieb kontaktieren"
-    }
+    },
+    "stepLabel": "Schritt {index}"
   },
   "admin": {
     "title": "Administration area",

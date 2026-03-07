@@ -137,7 +137,8 @@
       "description": "Empieza con una puesta en marcha guiada y convierte la operación diaria en rendimiento medible.",
       "primaryAction": "Abrir mi espacio",
       "secondaryAction": "Hablar con ventas"
-    }
+    },
+    "stepLabel": "Paso {index}"
   },
   "admin": {
     "title": "Administration area",

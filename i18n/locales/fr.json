@@ -137,7 +137,8 @@
       "description": "Commencez avec un onboarding guidé et transformez vos opérations quotidiennes en moteur de performance mesurable.",
       "primaryAction": "Lancer mon espace",
       "secondaryAction": "Contacter les ventes"
-    }
+    },
+    "stepLabel": "Étape {index}"
   },
   "admin": {
     "title": "Espace administration",
