@@ -4,7 +4,7 @@ definePageMeta({
   requiresAuth: false,
 })
 
-await navigateTo('/settings/basic-info', { redirectCode: 301, replace: true })
+await navigateTo('/settings/basic-info', { replace: true })
 </script>
 
 <template>
