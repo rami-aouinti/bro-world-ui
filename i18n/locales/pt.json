@@ -137,7 +137,8 @@
       "description": "Comece com onboarding guiado e transforme a operação diária em desempenho mensurável.",
       "primaryAction": "Abrir meu workspace",
       "secondaryAction": "Falar com vendas"
-    }
+    },
+    "stepLabel": "Passo {index}"
   },
   "admin": {
     "title": "Administration area",

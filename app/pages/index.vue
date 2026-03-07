@@ -37,65 +37,83 @@ interface HomeCta {
   secondaryAction: string
 }
 
-const { t, tm, rt } = useI18n()
+const { t, te } = useI18n()
 
-const resolveText = (message: unknown) => (typeof message === 'string' ? rt(message) : '')
-const toRecord = (value: unknown): Record<string, unknown> =>
-  value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : {}
-const toList = (value: unknown): Record<string, unknown>[] => (Array.isArray(value) ? value : [])
+const collectIndexedEntries = (basePath: string, leafKey: string, max = 24) => {
+  const entries: number[] = []
+  for (let index = 0; index < max; index += 1) {
+    if (!te(`${basePath}.${index}.${leafKey}`)) {
+      break
+    }
+
+    entries.push(index)
+  }
+
+  return entries
+}
+
+const collectIndexedStrings = (basePath: string, max = 24) => {
+  const entries: string[] = []
+  for (let index = 0; index < max; index += 1) {
+    if (!te(`${basePath}.${index}`)) {
+      break
+    }
+
+    entries.push(t(`${basePath}.${index}`))
+  }
+
+  return entries
+}
 
 const hero = computed<HomeHero>(() => {
-  const rawHero = toRecord(tm('home.hero'))
-  const rawBenefits = (rawHero.benefits ?? rawHero.bullets) as unknown
+  const bulletPath = te('home.hero.bullets.0') ? 'home.hero.bullets' : 'home.hero.benefits'
 
   return {
-    badge: resolveText(rawHero.badge),
-    title: resolveText(rawHero.title),
-    subtitle: resolveText(rawHero.subtitle),
-    primaryCta: resolveText(rawHero.primaryCta),
-    secondaryCta: resolveText(rawHero.secondaryCta),
-    benefits: Array.isArray(rawBenefits) ? rawBenefits.map(resolveText) : [],
+    badge: t('home.hero.badge'),
+    title: t('home.hero.title'),
+    subtitle: t('home.hero.subtitle'),
+    primaryCta: t('home.hero.primaryCta'),
+    secondaryCta: t('home.hero.secondaryCta'),
+    benefits: collectIndexedStrings(bulletPath),
   }
 })
 
 const featureCards = computed<HomeFeatureCard[]>(() => {
-  const rawCards = toList(tm('home.featureCards'))
-  const cards = rawCards.length > 0 ? rawCards : toList(tm('home.features'))
+  const basePath = te('home.featureCards.0.title') ? 'home.featureCards' : 'home.features'
+  const indices = collectIndexedEntries(basePath, 'title')
 
-  return cards.map((card) => ({
-    icon: String(card.icon ?? ''),
-    title: resolveText(card.title),
-    description: resolveText(card.description),
+  return indices.map(index => ({
+    icon: t(`${basePath}.${index}.icon`),
+    title: t(`${basePath}.${index}.title`),
+    description: t(`${basePath}.${index}.description`),
   }))
 })
 
 const metrics = computed<HomeMetric[]>(() => {
-  const rawMetrics = toList(tm('home.metrics'))
+  const indices = collectIndexedEntries('home.metrics', 'value')
 
-  return rawMetrics.map((metric) => ({
-    value: resolveText(metric.value),
-    label: resolveText(metric.label),
+  return indices.map(index => ({
+    value: t(`home.metrics.${index}.value`),
+    label: t(`home.metrics.${index}.label`),
   }))
 })
 
 const steps = computed<HomeStep[]>(() => {
-  const rawSteps = toList(tm('home.steps'))
+  const indices = collectIndexedEntries('home.steps', 'title')
 
-  return rawSteps.map((step) => ({
-    icon: String(step.icon ?? ''),
-    title: resolveText(step.title),
-    description: resolveText(step.description),
+  return indices.map(index => ({
+    icon: t(`home.steps.${index}.icon`),
+    title: t(`home.steps.${index}.title`),
+    description: t(`home.steps.${index}.description`),
   }))
 })
 
 const cta = computed<HomeCta>(() => {
-  const rawCta = toRecord(tm('home.cta'))
-
   return {
-    title: resolveText(rawCta.title),
-    description: resolveText(rawCta.description),
-    primaryAction: resolveText(rawCta.primaryAction),
-    secondaryAction: resolveText(rawCta.secondaryAction),
+    title: t('home.cta.title'),
+    description: t('home.cta.description'),
+    primaryAction: t('home.cta.primaryAction'),
+    secondaryAction: t('home.cta.secondaryAction'),
   }
 })
 </script>

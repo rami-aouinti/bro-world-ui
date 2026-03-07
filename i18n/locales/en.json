@@ -137,7 +137,8 @@
       "description": "Start with guided onboarding and turn daily operations into a measurable performance engine.",
       "primaryAction": "Launch my workspace",
       "secondaryAction": "Talk to sales"
-    }
+    },
+    "stepLabel": "Step {index}"
   },
   "admin": {
     "title": "Administration area",
