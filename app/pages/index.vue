@@ -39,57 +39,59 @@ interface HomeCta {
 
 const { t, tm, rt } = useI18n()
 
-const resolveText = (message: unknown) => rt(message as string)
+const resolveText = (message: unknown) => (typeof message === 'string' ? rt(message) : '')
+const toRecord = (value: unknown): Record<string, unknown> =>
+  value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : {}
+const toList = (value: unknown): Record<string, unknown>[] => (Array.isArray(value) ? value : [])
 
 const hero = computed<HomeHero>(() => {
-  const rawHero = tm('home.hero') as HomeHero
+  const rawHero = toRecord(tm('home.hero'))
+  const rawBenefits = (rawHero.benefits ?? rawHero.bullets) as unknown
 
   return {
-    ...rawHero,
     badge: resolveText(rawHero.badge),
     title: resolveText(rawHero.title),
     subtitle: resolveText(rawHero.subtitle),
     primaryCta: resolveText(rawHero.primaryCta),
     secondaryCta: resolveText(rawHero.secondaryCta),
-    benefits: rawHero.benefits.map(resolveText),
+    benefits: Array.isArray(rawBenefits) ? rawBenefits.map(resolveText) : [],
   }
 })
 
 const featureCards = computed<HomeFeatureCard[]>(() => {
-  const rawCards = tm('home.featureCards') as HomeFeatureCard[]
+  const rawCards = toList(tm('home.featureCards'))
+  const cards = rawCards.length > 0 ? rawCards : toList(tm('home.features'))
 
-  return rawCards.map((card) => ({
-    ...card,
+  return cards.map((card) => ({
+    icon: String(card.icon ?? ''),
     title: resolveText(card.title),
     description: resolveText(card.description),
   }))
 })
 
 const metrics = computed<HomeMetric[]>(() => {
-  const rawMetrics = tm('home.metrics') as HomeMetric[]
+  const rawMetrics = toList(tm('home.metrics'))
 
   return rawMetrics.map((metric) => ({
-    ...metric,
     value: resolveText(metric.value),
     label: resolveText(metric.label),
   }))
 })
 
 const steps = computed<HomeStep[]>(() => {
-  const rawSteps = tm('home.steps') as HomeStep[]
+  const rawSteps = toList(tm('home.steps'))
 
   return rawSteps.map((step) => ({
-    ...step,
+    icon: String(step.icon ?? ''),
     title: resolveText(step.title),
     description: resolveText(step.description),
   }))
 })
 
 const cta = computed<HomeCta>(() => {
-  const rawCta = tm('home.cta') as HomeCta
+  const rawCta = toRecord(tm('home.cta'))
 
   return {
-    ...rawCta,
     title: resolveText(rawCta.title),
     description: resolveText(rawCta.description),
     primaryAction: resolveText(rawCta.primaryAction),
