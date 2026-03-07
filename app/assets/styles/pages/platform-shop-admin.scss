@@ -1,0 +1,140 @@
+.platform-shop-admin-page {
+  --platform-shop-space-page: clamp(1rem, 1.8vw, 1.5rem);
+  --platform-shop-space-section: clamp(1rem, 1.5vw, 1.4rem);
+  --platform-shop-card-radius: 22px;
+  --platform-shop-card-shadow: 0 16px 30px rgb(15 23 42 / 10%);
+  --platform-shop-card-shadow-soft: 0 10px 18px rgb(15 23 42 / 7%);
+  --platform-shop-focus-ring: 0 0 0 3px rgb(var(--v-theme-primary) / 28%);
+
+  padding: var(--platform-shop-space-page);
+
+  .shop-admin-form-card,
+  .new-product-stepper,
+  .platform-shop-admin-table,
+  .platform-shop-admin-toolbar,
+  .platform-shop-admin-state {
+    border-radius: var(--platform-shop-card-radius) !important;
+    box-shadow: var(--platform-shop-card-shadow-soft);
+  }
+
+  .platform-shop-admin-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid rgb(var(--v-theme-outline-variant));
+    background: linear-gradient(145deg, rgb(var(--v-theme-surface)) 0%, rgb(var(--v-theme-surface-bright)) 100%);
+  }
+
+  .platform-shop-admin-state {
+    border: 1px dashed rgb(var(--v-theme-outline-variant));
+    padding: 1rem;
+    background-color: rgb(var(--v-theme-surface));
+  }
+
+  .shop-admin-action {
+    min-height: 42px;
+    min-width: 42px;
+    letter-spacing: 0.01em;
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--platform-shop-focus-ring);
+    }
+  }
+
+  .shop-admin-action.v-btn--variant-flat,
+  .shop-admin-action.v-btn--variant-elevated {
+    color: rgb(var(--v-theme-on-primary));
+    border: none;
+    background: linear-gradient(120deg, rgb(var(--v-theme-primary)) 0%, rgb(var(--v-theme-secondary)) 100%);
+    box-shadow: 0 12px 24px rgb(var(--v-theme-primary) / 30%);
+  }
+
+  .shop-admin-action.v-btn--variant-outlined {
+    border-color: rgb(var(--v-theme-outline));
+    color: rgb(var(--v-theme-on-surface));
+    background: rgb(var(--v-theme-surface));
+  }
+
+  .v-field {
+    --v-field-input-padding-top: 10px;
+    --v-field-input-padding-bottom: 10px;
+
+    &:focus-within {
+      box-shadow: var(--platform-shop-focus-ring);
+    }
+  }
+
+  .v-table {
+    font-size: 0.9rem;
+
+    th {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: rgb(var(--v-theme-on-surface) / 78%);
+    }
+
+    td,
+    th {
+      padding-top: 0.64rem !important;
+      padding-bottom: 0.64rem !important;
+      white-space: nowrap;
+    }
+  }
+}
+
+.platform-shop-admin-title,
+.shop-admin-section-title :deep(h1),
+.shop-admin-section-title :deep(h2) {
+  letter-spacing: -0.01em;
+  font-weight: 700;
+}
+
+.platform-shop-admin-empty-icon {
+  border-radius: 999px;
+  border: 1px solid rgb(var(--v-theme-outline-variant));
+  background: rgb(var(--v-theme-surface-bright));
+}
+
+@media (max-width: 960px) {
+  .platform-shop-admin-page {
+    --platform-shop-space-page: 0.85rem;
+
+    .platform-shop-admin-toolbar {
+      padding: 0.8rem;
+    }
+
+    .v-table td,
+    .v-table th {
+      padding-top: 0.56rem !important;
+      padding-bottom: 0.56rem !important;
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .platform-shop-admin-page {
+    --platform-shop-space-page: 0.7rem;
+
+    .platform-shop-admin-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .shop-admin-action {
+      width: 100%;
+    }
+
+    .shop-admin-form-card,
+    .new-product-stepper,
+    .platform-shop-admin-table,
+    .platform-shop-admin-toolbar,
+    .platform-shop-admin-state {
+      border-radius: 16px !important;
+    }
+  }
+}

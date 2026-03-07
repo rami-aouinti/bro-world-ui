@@ -1,6 +1,7 @@
 .shop-admin-form-card {
   border: 1px solid rgb(var(--v-theme-outline-variant));
   border-radius: 24px;
+  box-shadow: 0 16px 28px rgb(15 23 42 / 8%);
 }
 
 .shop-admin-section-title {
@@ -11,6 +12,7 @@
   border-radius: 999px;
   text-transform: none;
   font-weight: 600;
+  min-height: 42px;
 }
 
 .shop-admin-surface-muted {
@@ -22,12 +24,13 @@
 }
 
 .shop-admin-rich-text :deep(textarea) {
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .shop-admin-actions-row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 0.75rem;
   margin-top: 1.5rem;
 }
