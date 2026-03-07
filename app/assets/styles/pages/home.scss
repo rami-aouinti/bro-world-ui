@@ -2,9 +2,10 @@ main.home-page {
   position: relative;
   overflow: hidden;
   background:
-    radial-gradient(circle at 12% 12%, rgba(var(--v-theme-primary), 0.18), transparent 46%),
+    radial-gradient(circle at 12% 12%, rgba(var(--v-theme-primary), 0.2), transparent 46%),
     radial-gradient(circle at 88% 0%, rgba(var(--v-theme-secondary), 0.16), transparent 44%),
-    radial-gradient(circle at 82% 78%, rgba(var(--v-theme-tertiary), 0.12), transparent 42%),
+    radial-gradient(circle at 82% 78%, rgba(var(--v-theme-tertiary), 0.14), transparent 42%),
+    radial-gradient(circle at 52% 100%, rgba(var(--v-theme-primary), 0.08), transparent 60%),
     linear-gradient(
       160deg,
       rgba(var(--v-theme-surface), 1) 0%,
@@ -42,6 +43,11 @@ main.home-page {
   gap: 12px;
 }
 
+.home-hero :is(h1, .text-h2) {
+  font-size: clamp(2rem, 1.75rem + 1.2vw, 2.9rem);
+  line-height: 1.1;
+}
+
 .home-section {
   padding: 36px 32px;
   background:
@@ -74,6 +80,17 @@ main.home-page {
 
 .home-metric-card {
   text-align: left;
+}
+
+.home-metric-card__value {
+  font-size: clamp(2rem, 1.9rem + 0.8vw, 2.5rem);
+  font-weight: 700;
+  color: rgba(var(--v-theme-primary), 0.95);
+}
+
+.home-metric-card__label {
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .home-cta {
@@ -111,6 +128,15 @@ main.home-page {
   .home-cta {
     padding: 32px 28px;
   }
+
+  .home-hero :is(h1, .text-h2) {
+    font-size: clamp(1.9rem, 1.7rem + 1vw, 2.5rem);
+  }
+
+  .home-section :is(h2, .text-h4),
+  .home-cta :is(h2, .text-h4) {
+    font-size: clamp(1.5rem, 1.35rem + 0.6vw, 1.9rem);
+  }
 }
 
 @media (max-width: 960px) {
@@ -131,6 +157,15 @@ main.home-page {
   .home-metric-card,
   .home-step-card {
     padding: 20px;
+  }
+
+  .home-hero :is(h1, .text-h2) {
+    font-size: clamp(1.8rem, 1.6rem + 1.6vw, 2.2rem);
+  }
+
+  .home-section :is(h2, .text-h4),
+  .home-cta :is(h2, .text-h4) {
+    font-size: clamp(1.4rem, 1.3rem + 0.8vw, 1.7rem);
   }
 }
 
