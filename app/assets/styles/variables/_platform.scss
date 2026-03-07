@@ -1,0 +1,52 @@
+:root {
+  /* Platform colors */
+  --platform-color-bg: #f6f7fb;
+  --platform-color-surface: #ffffff;
+  --platform-color-surface-muted: #f4f6fb;
+  --platform-color-surface-accent: #eceffd;
+  --platform-color-border: #d6dbe8;
+  --platform-color-border-strong: #bcc4d8;
+  --platform-color-text-primary: #212636;
+  --platform-color-text-secondary: #556079;
+  --platform-color-text-tertiary: #6f7892;
+  --platform-color-accent: rgb(var(--v-theme-primary));
+  --platform-color-accent-soft: rgba(var(--v-theme-primary), 0.12);
+  --platform-color-success-soft: rgba(var(--v-theme-success), 0.16);
+
+  /* Platform radius */
+  --platform-radius-sm: 12px;
+  --platform-radius-md: 16px;
+  --platform-radius-lg: 20px;
+  --platform-radius-pill: 999px;
+
+  /* Platform shadows */
+  --platform-shadow-sm: 0 2px 8px rgba(18, 25, 38, 0.08);
+  --platform-shadow-md: 0 8px 20px rgba(18, 25, 38, 0.12);
+  --platform-shadow-lg: 0 14px 28px rgba(18, 25, 38, 0.18);
+
+  /* Platform spacing */
+  --platform-space-1: 0.25rem;
+  --platform-space-2: 0.5rem;
+  --platform-space-3: 0.75rem;
+  --platform-space-4: 1rem;
+  --platform-space-5: 1.25rem;
+  --platform-space-6: 1.5rem;
+}
+
+.dark {
+  --platform-color-bg: #121623;
+  --platform-color-surface: #1a2030;
+  --platform-color-surface-muted: #20283a;
+  --platform-color-surface-accent: #252e45;
+  --platform-color-border: #33405b;
+  --platform-color-border-strong: #425173;
+  --platform-color-text-primary: #f5f7ff;
+  --platform-color-text-secondary: #bec8e4;
+  --platform-color-text-tertiary: #99a8cd;
+  --platform-color-accent-soft: rgba(var(--v-theme-primary), 0.22);
+  --platform-color-success-soft: rgba(var(--v-theme-success), 0.24);
+
+  --platform-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.28);
+  --platform-shadow-md: 0 10px 20px rgba(0, 0, 0, 0.34);
+  --platform-shadow-lg: 0 16px 30px rgba(0, 0, 0, 0.4);
+}

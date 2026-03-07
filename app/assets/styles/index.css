@@ -113,6 +113,15 @@ body.rtl .text-right {
   --ui-spacing-md: var(--ui-spacing-3);
   --ui-spacing-lg: var(--ui-spacing-4);
   --ui-spacing-xl: var(--ui-spacing-6);
+
+  /* Platform token aliases */
+  --ui-platform-bg: var(--platform-color-bg);
+  --ui-platform-surface: var(--platform-color-surface);
+  --ui-platform-border: var(--platform-color-border);
+  --ui-platform-text-primary: var(--platform-color-text-primary);
+  --ui-platform-text-secondary: var(--platform-color-text-secondary);
+  --ui-platform-radius-md: var(--platform-radius-md);
+  --ui-platform-shadow-md: var(--platform-shadow-md);
 }
 
 form,

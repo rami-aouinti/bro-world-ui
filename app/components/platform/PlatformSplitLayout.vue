@@ -20,27 +20,33 @@ import UiAside from '~/components/ui/layout/UiAside.vue'
 .platform-split-layout {
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr);
-  gap: 1rem;
-  padding: 1.25rem;
+  gap: var(--platform-space-4);
+  padding: var(--platform-space-5);
 }
 
 .platform-split-layout__sidebar {
   position: sticky;
-  top: 1.25rem;
+  top: var(--platform-space-5);
   align-self: flex-start;
   max-height: calc(100vh - 2.5rem);
   overflow: auto;
-  border: 1px solid rgba(127, 127, 127, 0.18);
-  border-radius: 20px;
-  background: linear-gradient(180deg, rgba(103, 58, 183, 0.08), rgba(33, 150, 243, 0.04));
+  border: 1px solid var(--platform-color-border);
+  border-radius: var(--platform-radius-lg);
+  background: linear-gradient(
+    180deg,
+    var(--platform-color-accent-soft),
+    var(--platform-color-surface-muted)
+  );
+  box-shadow: var(--platform-shadow-sm);
 }
 
 .platform-split-layout__card {
-  border: 1px solid rgba(127, 127, 127, 0.15);
-  border-radius: 20px;
+  border: 1px solid var(--platform-color-border);
+  border-radius: var(--platform-radius-lg);
   min-height: 76vh;
-  padding: 1.25rem;
-  background: var(--v-theme-surface);
+  padding: var(--platform-space-5);
+  background: var(--platform-color-surface);
+  box-shadow: var(--platform-shadow-sm);
   animation: fadeInUp 260ms ease-out;
 }
 

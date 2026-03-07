@@ -196,7 +196,7 @@ const disableApplication = async () => {
     <section class="platform-page">
       <div class="platform-page__layout">
         <aside class="platform-page__sidebar">
-          <article class="platform-page__card">
+          <article class="platform-page__card platform-page__filters">
             <v-card-title class="text-h6 platform-page__filters-title">{{
               t("platform.filters.title")
             }}</v-card-title>
@@ -445,51 +445,51 @@ const disableApplication = async () => {
 
 <style scoped>
 .platform-page {
-  padding: 1.5rem;
+  padding: var(--platform-space-6);
+  color: var(--platform-color-text-primary);
 }
 
 .platform-page__layout {
   display: grid;
   grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
-  gap: 1rem;
+  gap: var(--platform-space-4);
   align-items: start;
 }
 
 .platform-page__filters {
   position: sticky;
-  top: 80px;
-  border: 1px solid #e1e5ef;
-  background: linear-gradient(180deg, #fcfcff 0%, #f5f7fc 100%);
+  top: var(--platform-space-4);
+  border: 1px solid var(--platform-color-border);
+  background: linear-gradient(
+    180deg,
+    var(--platform-color-surface) 0%,
+    var(--platform-color-surface-muted) 100%
+  );
 }
 
 .platform-page__filters-title {
   font-weight: 700;
+  color: var(--platform-color-text-primary);
 }
 
 .platform-page__platform-key-label {
   font-size: 0.86rem;
-  color: #5b6070;
+  color: var(--platform-color-text-secondary);
   font-weight: 600;
 }
 
+.platform-page__platform-key-buttons,
+.platform-page__filters-actions,
+.platform-page__card-title-row {
+  display: flex;
+}
+
 .platform-page__platform-key-buttons {
-  display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--platform-space-2);
 }
 
 .platform-page__filters-actions {
-  display: flex;
-  flex-direction: column;
-}
-
-.platform-page__filters {
-  position: sticky;
-  top: 1rem;
-}
-
-.platform-page__filters-actions {
-  display: flex;
   flex-direction: column;
 }
 
@@ -500,15 +500,19 @@ const disableApplication = async () => {
 .platform-page__grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
+  gap: var(--platform-space-4);
 }
 
 .platform-page__card {
   position: relative;
-  background: linear-gradient(160deg, #f6f6f8 0%, #ececef 100%);
-  border-radius: 14px;
-  border: 1px solid #d4d5dc;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  background: linear-gradient(
+    160deg,
+    var(--platform-color-surface-muted) 0%,
+    var(--platform-color-surface-accent) 100%
+  );
+  border-radius: var(--platform-radius-md);
+  border: 1px solid var(--platform-color-border);
+  box-shadow: var(--platform-shadow-sm);
   padding: 0.85rem;
   min-height: 208px;
   display: flex;
@@ -528,13 +532,13 @@ const disableApplication = async () => {
   height: 0;
   border-style: solid;
   border-width: 0 26px 26px 0;
-  border-color: transparent #d9d5ff transparent transparent;
+  border-color: transparent var(--platform-color-accent-soft) transparent transparent;
   transition: border-width 0.25s ease;
 }
 
 .platform-page__card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 20px rgba(45, 45, 94, 0.16);
+  box-shadow: var(--platform-shadow-md);
 }
 
 .platform-page__card:hover::before {
@@ -548,7 +552,7 @@ const disableApplication = async () => {
 }
 
 .platform-page__card--new {
-  border: 2px dashed #2f3033;
+  border: 2px dashed var(--platform-color-border-strong);
   align-items: center;
   justify-content: center;
   text-align: center;
@@ -558,18 +562,18 @@ const disableApplication = async () => {
 .platform-page__add-icon {
   width: 54px;
   height: 54px;
-  color: #e82f7d;
+  color: rgb(var(--v-theme-primary));
   display: grid;
   place-items: center;
   font-size: 2.4rem;
-  margin-bottom: 1rem;
+  margin-bottom: var(--platform-space-4);
 }
 
 .platform-page__new-title,
 .platform-page__card-title {
   line-height: 1.2;
   font-weight: 700;
-  color: #25262c;
+  color: var(--platform-color-text-primary);
 }
 
 .platform-page__new-title {
@@ -578,7 +582,7 @@ const disableApplication = async () => {
 
 .platform-page__new-description,
 .platform-page__card-description {
-  color: #55565c;
+  color: var(--platform-color-text-secondary);
   line-height: 1.4;
 }
 
@@ -589,24 +593,30 @@ const disableApplication = async () => {
   flex: 1;
 }
 
-.platform-page__card-top {
+.platform-page__card-top,
+.platform-page__card-brand,
+.platform-page__card-meta,
+.platform-page__card-footer,
+.platform-page__pagination {
   display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
+  align-items: center;
 }
 
+.platform-page__card-top,
 .platform-page__card-brand {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
+  gap: var(--platform-space-3);
+}
+
+.platform-page__card-top {
+  align-items: flex-start;
 }
 
 .platform-page__logo {
   width: 48px;
   height: 48px;
-  border-radius: 12px;
+  border-radius: var(--platform-radius-sm);
   object-fit: cover;
-  background: rgba(var(--v-theme-primary), 0.35);
+  background: var(--platform-color-accent-soft);
 }
 
 .platform-page__card-heading {
@@ -618,38 +628,32 @@ const disableApplication = async () => {
 }
 
 .platform-page__card-title-row {
-  display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: var(--platform-space-1);
 }
 
 .platform-page__description-tooltip-trigger {
-  color: rgba(var(--v-theme-primary), 0.35);
+  color: var(--platform-color-text-tertiary);
 }
 
 .platform-page__card-meta {
-  display: flex;
-  align-items: center;
   justify-content: space-between;
   margin-top: 0.65rem;
-  gap: 0.5rem;
+  gap: var(--platform-space-2);
 }
 
 .platform-page__card-footer {
   margin-top: 0.55rem;
   padding-top: 0.55rem;
-  border-top: 1px solid #d9dadf;
-  display: flex;
+  border-top: 1px solid var(--platform-color-border);
   justify-content: space-between;
-  align-items: center;
-  color: rgba(var(--v-theme-primary), 0.65);
+  color: var(--platform-color-text-tertiary);
   font-weight: 600;
   font-size: 0.9rem;
 }
 
 .platform-page__pagination {
-  margin-top: 1rem;
-  display: flex;
+  margin-top: var(--platform-space-4);
   justify-content: center;
 }
 
@@ -660,16 +664,16 @@ const disableApplication = async () => {
   transform: translateY(-50%);
   width: 48px;
   height: 90px;
-  border-radius: 24px;
-  border: 2px solid #0f1014;
-  background: #1e2025;
-  color: #fff;
+  border-radius: var(--platform-radius-pill);
+  border: 2px solid var(--platform-color-border-strong);
+  background: var(--platform-color-surface);
+  color: var(--platform-color-text-primary);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--platform-shadow-md);
 }
 
 @media (max-width: 1200px) {
@@ -680,10 +684,6 @@ const disableApplication = async () => {
   .platform-page__filters {
     position: static;
   }
-
-  .platform-page__grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 900px) {
@@ -693,6 +693,10 @@ const disableApplication = async () => {
 }
 
 @media (max-width: 640px) {
+  .platform-page {
+    padding: var(--platform-space-4);
+  }
+
   .platform-page__grid {
     grid-template-columns: 1fr;
   }
