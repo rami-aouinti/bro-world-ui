@@ -18,12 +18,12 @@ const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
 
 <template>
   <PlatformSplitLayout>
-    <template #sidebar><PlatformSidebarNav title="CRM" :subtitle="`Application ${slug}`" :items="crmNav" /></template>
+    <template #sidebar><PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" /></template>
     <section>
       <v-alert v-if="showAccessDenied" type="error" variant="tonal" class="mb-4">
         Accès admin refusé : permissions insuffisantes pour cette application.
       </v-alert>
-      <PlatformHeroHeader title="CRM Dashboard" subtitle="Pilotage commercial complet avec vues actionnables et backlog tickets." cta="Nouveau lead" />
+      <PlatformHeroHeader title="platform.crm.hero.home.title" subtitle="platform.crm.hero.home.subtitle" cta="platform.crm.hero.home.cta" />
       <v-row class="mb-2">
         <v-col v-for="stat in crmStats" :key="stat.label" cols="12" sm="6" lg="3">
           <v-card rounded="xl" variant="tonal" :color="stat.color || 'primary'" class="h-100">

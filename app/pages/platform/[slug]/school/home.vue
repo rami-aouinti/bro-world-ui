@@ -15,12 +15,12 @@ const navItems = computed(() => getSchoolNav(slug.value, isOwner.value))
 
 <template>
   <PlatformSplitLayout>
-    <template #sidebar><PlatformSidebarNav title="School" :subtitle="`Application ${slug}`" :items="navItems" /></template>
+    <template #sidebar><PlatformSidebarNav title="platform.school.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
       <v-alert v-if="showAccessDenied" type="error" variant="tonal" class="mb-4">
         Accès admin refusé : permissions insuffisantes pour cette application.
       </v-alert>
-      <PlatformHeroHeader title="Liste des classes" subtitle="Modules pédagogiques, professeurs et progression de cohortes." cta="Nouvelle classe" />
+      <PlatformHeroHeader title="platform.school.hero.home.title" subtitle="platform.school.hero.home.subtitle" cta="platform.school.hero.home.cta" />
       <v-row>
         <v-col v-for="classe in schoolClasses" :key="classe.id" cols="12" md="6" lg="4">
           <v-card rounded="xl" hover>

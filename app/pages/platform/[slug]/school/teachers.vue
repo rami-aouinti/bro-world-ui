@@ -19,9 +19,9 @@ const navItems = computed(() => getSchoolNav(slug.value, isOwner.value))
 
 <template>
   <PlatformSplitLayout>
-    <template #sidebar><PlatformSidebarNav title="School Teachers" :subtitle="`Application ${slug}`" :items="navItems" /></template>
+    <template #sidebar><PlatformSidebarNav title="platform.school.sidebar.teachers" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
-      <PlatformHeroHeader title="Teacher Hub" subtitle="Charge pédagogique, performance et satisfaction élèves" cta="Affecter classe" />
+      <PlatformHeroHeader title="platform.school.hero.teachers.title" subtitle="platform.school.hero.teachers.subtitle" cta="platform.school.hero.teachers.cta" />
       <v-row>
         <v-col v-for="teacher in teachers" :key="teacher.name" cols="12" md="4">
           <v-card rounded="xl" variant="outlined">

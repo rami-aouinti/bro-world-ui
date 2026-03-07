@@ -18,9 +18,9 @@ const navItems = computed(() => getCrmNav(slug.value, isOwner.value))
 
 <template>
   <PlatformSplitLayout>
-    <template #sidebar><PlatformSidebarNav title="CRM" :subtitle="`Application ${slug}`" :items="navItems" /></template>
+    <template #sidebar><PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
-      <PlatformHeroHeader title="Contacts 360" subtitle="Vue complète de vos contacts, contextes et interactions" cta="Ajouter contact" />
+      <PlatformHeroHeader title="platform.crm.hero.contacts.title" subtitle="platform.crm.hero.contacts.subtitle" cta="platform.crm.hero.contacts.cta" />
       <v-row>
         <v-col v-for="candidate in recruitCandidates" :key="candidate.id" cols="12" md="4">
           <PlatformMediaCard :item="candidate" />

@@ -16,9 +16,9 @@ const navItems = computed(() => getCrmNav(slug.value, isOwner.value))
 
 <template>
   <PlatformSplitLayout>
-    <template #sidebar><PlatformSidebarNav title="CRM Reports" :subtitle="`Application ${slug}`" :items="navItems" /></template>
+    <template #sidebar><PlatformSidebarNav title="platform.crm.sidebar.reports" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
-      <PlatformHeroHeader title="Rapports & Forecast" subtitle="KPIs temps réel, conversion, MRR et performance équipes" cta="Exporter" />
+      <PlatformHeroHeader title="platform.crm.hero.reports.title" subtitle="platform.crm.hero.reports.subtitle" cta="platform.crm.hero.reports.cta" />
       <v-row class="mb-2">
         <v-col v-for="stat in crmStats" :key="stat.label" cols="12" sm="6" lg="3">
           <v-card rounded="xl" variant="tonal" :color="stat.color || 'primary'">

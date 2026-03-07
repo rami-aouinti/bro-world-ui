@@ -16,9 +16,9 @@ const navItems = computed(() => getRecruitNav(slug.value, isOwner.value))
 
 <template>
   <PlatformSplitLayout>
-    <template #sidebar><PlatformSidebarNav title="Recruit Tickets" :subtitle="`Roadmap ${slug}`" :items="navItems" /></template>
+    <template #sidebar><PlatformSidebarNav title="platform.recruit.sidebar.tickets" subtitle="platform.common.sidebar.roadmap" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
-      <PlatformHeroHeader title="Tickets Recruit" subtitle="Pipeline talent, expérience candidat, analytics recrutement" cta="Nouveau ticket" />
+      <PlatformHeroHeader title="platform.recruit.hero.tickets.title" subtitle="platform.recruit.hero.tickets.subtitle" cta="platform.recruit.hero.tickets.cta" />
       <PlatformTicketBoard title="Backlog Recruit" :tickets="platformProposals.recruit" />
     </section>
   </PlatformSplitLayout>

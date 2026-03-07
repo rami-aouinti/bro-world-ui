@@ -1,18 +1,26 @@
 <script setup lang="ts">
 import type { NavItem } from '~/data/platform-demo'
 
+const { t, te } = useI18n()
+
 const props = defineProps<{
   title: string
   subtitle?: string
+  subtitleValues?: Record<string, string | number>
   items: NavItem[]
 }>()
+
+const resolveLabel = (value?: string) => {
+  if (!value) return ''
+  return te(value) ? t(value) : value
+}
 </script>
 
 <template>
   <div class="platform-sidebar-nav">
     <div class="mb-4">
-      <h3 class="text-h6 mb-1">{{ props.title }}</h3>
-      <p v-if="props.subtitle" class="text-body-2 text-medium-emphasis">{{ props.subtitle }}</p>
+      <h3 class="text-h6 mb-1">{{ resolveLabel(props.title) }}</h3>
+      <p v-if="props.subtitle" class="text-body-2 text-medium-emphasis">{{ te(props.subtitle) ? t(props.subtitle, props.subtitleValues) : props.subtitle }}</p>
     </div>
 
     <v-list nav density="comfortable" rounded="xl" class="platform-sidebar-nav__list">
@@ -22,8 +30,8 @@ const props = defineProps<{
         :to="item.to"
         rounded="lg"
         :prepend-icon="item.icon"
-        :title="item.title"
-        :subtitle="item.subtitle"
+        :title="resolveLabel(item.title)"
+        :subtitle="resolveLabel(item.subtitle)"
         color="primary"
       />
     </v-list>
@@ -31,7 +39,7 @@ const props = defineProps<{
     <slot />
 
     <v-divider class="my-4" />
-    <v-btn block variant="text" to="/platform" prepend-icon="mdi-arrow-left">Retour liste</v-btn>
+    <v-btn block variant="text" to="/platform" prepend-icon="mdi-arrow-left">{{ t('platform.common.backToList') }}</v-btn>
   </div>
 </template>
 

@@ -17,9 +17,9 @@ const navItems = computed(() => getShopNav(slug.value, isOwner.value))
 
 <template>
   <PlatformSplitLayout>
-    <template #sidebar><PlatformSidebarNav title="Shop" :subtitle="`Application ${slug}`" :items="navItems" /></template>
+    <template #sidebar><PlatformSidebarNav title="platform.shop.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
-      <PlatformHeroHeader title="Promotions & Campaigns" subtitle="Collections, offres limitées, bundles et optimisation conversion" cta="Créer campagne" />
+      <PlatformHeroHeader title="platform.shop.hero.promotions.title" subtitle="platform.shop.hero.promotions.subtitle" cta="platform.shop.hero.promotions.cta" />
       <v-row>
         <v-col v-for="item in shopCatalogMedia" :key="item.id" cols="12" md="4">
           <PlatformMediaCard :item="item" />
