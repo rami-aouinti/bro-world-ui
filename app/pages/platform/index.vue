@@ -285,7 +285,7 @@ const disableApplication = async () => {
             >
               <v-toolbar color="transparent">
                 <template v-slot:prepend>
-                  <v-img rounded="xl" :src="card.photo" :alt="card.title" height="40" width="40" />
+                  <v-img rounded="xl" :src="card.photo" cover color="primary" :alt="card.title" height="40" width="40" />
                 </template>
                 <NuxtLink :to="appHomePath(card)" class="platform-page__row-main-link">
                   <v-toolbar-title class="mt-4 mx-auto">
