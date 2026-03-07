@@ -2,10 +2,11 @@
 import ShopFormCard from '~/components/platform/shop/admin/ShopFormCard.vue'
 import ShopStatusChip from '~/components/platform/shop/admin/ShopStatusChip.vue'
 import type { ShopOrder } from '~/data/shop-orders'
+import { getShopRoute } from '~/data/platform-nav'
 
 interface TableHeader {
   title: string
-  key: keyof ShopOrder | 'customer' | 'status'
+  key: keyof ShopOrder | 'customer' | 'status' | 'actions'
   sortable?: boolean
   align?: 'start' | 'center' | 'end'
   width?: string | number
@@ -13,6 +14,7 @@ interface TableHeader {
 
 interface Props {
   orders: ShopOrder[]
+  platformSlug: string
 }
 
 const props = defineProps<Props>()
@@ -28,6 +30,7 @@ const headers: TableHeader[] = [
   { title: 'Date', key: 'createdAt', sortable: true },
   { title: 'Items', key: 'items', align: 'center', sortable: true },
   { title: 'Revenue', key: 'revenue', align: 'end', sortable: true },
+  { title: 'Actions', key: 'actions', align: 'end', sortable: false, width: 140 },
 ]
 
 const pageCount = computed(() => Math.max(1, Math.ceil(props.orders.length / itemsPerPage)))
@@ -83,6 +86,19 @@ const statusConfig: Record<ShopOrder['status'], { status: 'paid' | 'refunded' | 
 
       <template #item.revenue="{ item }">
         <div class="text-right font-weight-medium">{{ item.revenue }}</div>
+      </template>
+
+      <template #item.actions="{ item }">
+        <div class="d-flex justify-end">
+          <v-btn
+            size="small"
+            color="primary"
+            variant="text"
+            :to="getShopRoute('orderDetail', { slug: props.platformSlug, orderId: item.id })"
+          >
+            View details
+          </v-btn>
+        </div>
       </template>
     </v-data-table>
 

@@ -125,7 +125,7 @@ const exportToCsv = () => {
         hide-details
       />
 
-      <ShopOrdersTable :orders="filteredOrders" />
+      <ShopOrdersTable :orders="filteredOrders" :platform-slug="slug" />
     </section>
   </PlatformSplitLayout>
 </template>
