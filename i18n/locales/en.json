@@ -418,23 +418,183 @@
   },
   "about": {
     "title": "About",
-    "description": "Learn more about Bro World, our mission, and the product vision."
+    "description": "Discover Bro World, our mission, our vision, and our commitments.",
+    "hero": {
+      "badge": "Collaborative platform",
+      "title": "Building a reliable and human-centered experience",
+      "subtitle": "Bro World helps teams coordinate operations, share knowledge, and speed up decision-making.",
+      "primaryCta": "Explore the platform",
+      "secondaryCta": "View features"
+    },
+    "blocks": {
+      "mission": {
+        "title": "Our mission",
+        "description": "Enable every team to improve operational clarity with simple and connected tools."
+      },
+      "vision": {
+        "title": "Our vision",
+        "description": "Create a digital environment where information flows quickly, stays reliable, and empowers collaboration."
+      },
+      "values": {
+        "title": "Our values",
+        "items": {
+          "impact": {
+            "title": "Real impact",
+            "description": "Every feature must deliver measurable value to daily workflows."
+          },
+          "trust": {
+            "title": "Trust",
+            "description": "We prioritize transparency, security, and service continuity."
+          },
+          "innovation": {
+            "title": "Useful innovation",
+            "description": "We continuously improve the experience without adding complexity."
+          }
+        }
+      },
+      "keyNumbers": {
+        "title": "Key metrics",
+        "items": {
+          "users": {
+            "value": "15k+",
+            "label": "monthly active users"
+          },
+          "uptime": {
+            "value": "99.95%",
+            "label": "average uptime"
+          },
+          "csat": {
+            "value": "4.8/5",
+            "label": "customer satisfaction"
+          }
+        }
+      },
+      "testimonials": {
+        "title": "Testimonials",
+        "items": {
+          "ops": {
+            "quote": "We reduced coordination time by 30% by centralizing conversations in Bro World.",
+            "author": "Operations Manager · Industrial sector"
+          },
+          "community": {
+            "quote": "The platform is clear, fast, and helps us respond quicker to our community.",
+            "author": "Support Lead · International organization"
+          }
+        }
+      }
+    }
   },
   "faq": {
     "title": "FAQ",
     "description": "Find quick answers to common questions about the platform.",
-    "q1": "How do I sign in?",
-    "a1": "Use the Login page and enter your username or email with your password.",
-    "q2": "Is the platform available in French?",
-    "a2": "Yes, you can switch language from the top navigation bar."
+    "hero": {
+      "badge": "Help center",
+      "title": "An enriched FAQ to move faster",
+      "subtitle": "Filter by category, search specific topics, and quickly access the right contact channel.",
+      "primaryCta": "Browse questions",
+      "secondaryCta": "Contact support"
+    },
+    "search": {
+      "label": "Search in FAQ",
+      "placeholder": "Example: sign in, security, notifications..."
+    },
+    "categories": {
+      "all": "All",
+      "account": "Account",
+      "platform": "Platform",
+      "security": "Security"
+    },
+    "items": {
+      "q1": {
+        "question": "How do I sign in to my account?",
+        "answer": "Use your username or email on the Login page, then enter your password."
+      },
+      "q2": {
+        "question": "Can I customize notifications?",
+        "answer": "Yes, notifications can be adjusted in your user settings for each channel."
+      },
+      "q3": {
+        "question": "How is my data protected?",
+        "answer": "Data is encrypted in transit and access is controlled through roles and permissions."
+      },
+      "q4": {
+        "question": "Is the platform available in multiple languages?",
+        "answer": "Yes, you can change the interface language directly from the top navigation bar."
+      }
+    },
+    "contactCta": {
+      "title": "Still missing an answer?",
+      "description": "Our support team can guide you to the best solution for your context.",
+      "action": "Open contact page"
+    }
   },
   "contact": {
     "title": "Contact",
     "description": "Need help or have feedback? Reach out through one of our channels.",
-    "emailLabel": "Email",
-    "emailValue": "support (at) bro-world.example",
-    "phoneLabel": "Phone",
-    "phoneValue": "+33 1 23 45 67 89"
+    "hero": {
+      "badge": "Support & guidance",
+      "title": "A clear contact point for every need",
+      "subtitle": "Our teams reply according to priority level with transparent service commitments.",
+      "primaryCta": "Send a request",
+      "secondaryCta": "View our SLAs"
+    },
+    "channels": {
+      "title": "Contact channels",
+      "items": {
+        "email": {
+          "label": "Email",
+          "value": "support (at) bro-world.example"
+        },
+        "phone": {
+          "label": "Phone",
+          "value": "+33 1 23 45 67 89"
+        },
+        "chat": {
+          "label": "Chat",
+          "value": "Available from the user workspace"
+        }
+      }
+    },
+    "hours": {
+      "title": "Availability hours",
+      "weekdays": "Monday - Friday: 08:00 - 19:00 (CET)",
+      "weekend": "Saturday: 09:00 - 13:00 (CET) · Emergency only"
+    },
+    "sla": {
+      "title": "Service commitments (SLA)",
+      "items": {
+        "request": {
+          "title": "Request received",
+          "description": "Immediate automated acknowledgment with a tracking number."
+        },
+        "response": {
+          "title": "First response",
+          "description": "Under 2 business hours for high-priority tickets."
+        },
+        "resolution": {
+          "title": "Resolution plan",
+          "description": "Regular updates until full ticket resolution."
+        }
+      }
+    },
+    "form": {
+      "title": "Contact form",
+      "fields": {
+        "firstName": "First name",
+        "lastName": "Last name",
+        "email": "Business email",
+        "topic": "Topic",
+        "message": "Message",
+        "messagePlaceholder": "Describe your need, context, and urgency level..."
+      },
+      "topics": {
+        "support": "Technical support",
+        "sales": "Sales question",
+        "partnership": "Partnership"
+      },
+      "submit": "Send",
+      "reset": "Reset"
+    }
   },
   "settings": {
     "title": "Platform settings",

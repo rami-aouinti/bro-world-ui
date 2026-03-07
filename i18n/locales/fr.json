@@ -398,23 +398,183 @@
   },
   "about": {
     "title": "À propos",
-    "description": "Découvrez Bro World, notre mission et la vision du produit."
+    "description": "Découvrez Bro World, notre mission, notre vision et nos engagements.",
+    "hero": {
+      "badge": "Plateforme collaborative",
+      "title": "Construire une expérience fiable et humaine",
+      "subtitle": "Bro World aide les équipes à coordonner leurs opérations, partager l'information et accélérer les décisions.",
+      "primaryCta": "Explorer la plateforme",
+      "secondaryCta": "Voir les fonctionnalités"
+    },
+    "blocks": {
+      "mission": {
+        "title": "Notre mission",
+        "description": "Permettre à chaque équipe de gagner en clarté opérationnelle grâce à des outils simples et connectés."
+      },
+      "vision": {
+        "title": "Notre vision",
+        "description": "Créer un environnement numérique où l'information circule vite, reste fiable et sert la collaboration."
+      },
+      "values": {
+        "title": "Nos valeurs",
+        "items": {
+          "impact": {
+            "title": "Impact concret",
+            "description": "Chaque fonctionnalité doit apporter un gain mesurable au quotidien."
+          },
+          "trust": {
+            "title": "Confiance",
+            "description": "Nous privilégions la transparence, la sécurité et la continuité de service."
+          },
+          "innovation": {
+            "title": "Innovation utile",
+            "description": "Nous améliorons en continu l'expérience sans complexifier les usages."
+          }
+        }
+      },
+      "keyNumbers": {
+        "title": "Chiffres clés",
+        "items": {
+          "users": {
+            "value": "15k+",
+            "label": "utilisateurs actifs mensuels"
+          },
+          "uptime": {
+            "value": "99,95 %",
+            "label": "disponibilité moyenne"
+          },
+          "csat": {
+            "value": "4,8/5",
+            "label": "satisfaction client"
+          }
+        }
+      },
+      "testimonials": {
+        "title": "Témoignages",
+        "items": {
+          "ops": {
+            "quote": "Nous avons réduit le temps de coordination de 30 % en centralisant nos échanges sur Bro World.",
+            "author": "Responsable Opérations · Secteur industriel"
+          },
+          "community": {
+            "quote": "La plateforme est claire, rapide et nous aide à répondre plus vite à notre communauté.",
+            "author": "Lead Support · Organisation internationale"
+          }
+        }
+      }
+    }
   },
   "faq": {
     "title": "FAQ",
     "description": "Trouvez rapidement les réponses aux questions fréquentes sur la plateforme.",
-    "q1": "Comment me connecter ?",
-    "a1": "Utilisez la page Connexion avec votre identifiant ou email et votre mot de passe.",
-    "q2": "La plateforme est-elle disponible en français ?",
-    "a2": "Oui, vous pouvez changer la langue depuis la barre de navigation en haut."
+    "hero": {
+      "badge": "Centre d'aide",
+      "title": "Une FAQ enrichie pour aller plus vite",
+      "subtitle": "Filtrez par catégorie, recherchez un sujet précis et accédez rapidement au bon canal de contact.",
+      "primaryCta": "Parcourir les questions",
+      "secondaryCta": "Contacter le support"
+    },
+    "search": {
+      "label": "Rechercher dans la FAQ",
+      "placeholder": "Ex: connexion, sécurité, notifications..."
+    },
+    "categories": {
+      "all": "Toutes",
+      "account": "Compte",
+      "platform": "Plateforme",
+      "security": "Sécurité"
+    },
+    "items": {
+      "q1": {
+        "question": "Comment me connecter à mon compte ?",
+        "answer": "Utilisez votre identifiant ou votre email sur la page Connexion, puis saisissez votre mot de passe."
+      },
+      "q2": {
+        "question": "Puis-je personnaliser les notifications ?",
+        "answer": "Oui, les notifications peuvent être ajustées depuis vos paramètres utilisateur selon chaque canal."
+      },
+      "q3": {
+        "question": "Comment sont protégées mes données ?",
+        "answer": "Les données sont chiffrées en transit et nos accès sont contrôlés selon des rôles et permissions."
+      },
+      "q4": {
+        "question": "La plateforme est-elle disponible en plusieurs langues ?",
+        "answer": "Oui, vous pouvez changer la langue de l'interface directement depuis la barre de navigation."
+      }
+    },
+    "contactCta": {
+      "title": "Vous ne trouvez pas votre réponse ?",
+      "description": "Notre équipe support peut vous orienter vers la meilleure solution selon votre besoin.",
+      "action": "Ouvrir la page contact"
+    }
   },
   "contact": {
     "title": "Contact",
     "description": "Besoin d'aide ou envie de partager un retour ? Contactez-nous via l'un de nos canaux.",
-    "emailLabel": "Email",
-    "emailValue": "support (at) bro-world.example",
-    "phoneLabel": "Téléphone",
-    "phoneValue": "+33 1 23 45 67 89"
+    "hero": {
+      "badge": "Support & accompagnement",
+      "title": "Un point de contact clair pour chaque besoin",
+      "subtitle": "Nos équipes vous répondent selon le niveau de priorité avec des engagements de service transparents.",
+      "primaryCta": "Envoyer une demande",
+      "secondaryCta": "Voir nos SLA"
+    },
+    "channels": {
+      "title": "Canaux de contact",
+      "items": {
+        "email": {
+          "label": "Email",
+          "value": "support (at) bro-world.example"
+        },
+        "phone": {
+          "label": "Téléphone",
+          "value": "+33 1 23 45 67 89"
+        },
+        "chat": {
+          "label": "Chat",
+          "value": "Disponible depuis l'espace utilisateur"
+        }
+      }
+    },
+    "hours": {
+      "title": "Horaires de disponibilité",
+      "weekdays": "Lundi - Vendredi : 08:00 - 19:00 (CET)",
+      "weekend": "Samedi : 09:00 - 13:00 (CET) · Urgences uniquement"
+    },
+    "sla": {
+      "title": "Engagements de service (SLA)",
+      "items": {
+        "request": {
+          "title": "Réception de la demande",
+          "description": "Accusé de réception automatique immédiat avec numéro de suivi."
+        },
+        "response": {
+          "title": "Première réponse",
+          "description": "Moins de 2 heures ouvrées pour les tickets prioritaires."
+        },
+        "resolution": {
+          "title": "Plan de résolution",
+          "description": "Mise à jour régulière jusqu'à résolution complète du ticket."
+        }
+      }
+    },
+    "form": {
+      "title": "Formulaire de contact",
+      "fields": {
+        "firstName": "Prénom",
+        "lastName": "Nom",
+        "email": "Email professionnel",
+        "topic": "Sujet",
+        "message": "Message",
+        "messagePlaceholder": "Décrivez votre besoin, contexte et niveau d'urgence..."
+      },
+      "topics": {
+        "support": "Support technique",
+        "sales": "Question commerciale",
+        "partnership": "Partenariat"
+      },
+      "submit": "Envoyer",
+      "reset": "Réinitialiser"
+    }
   },
   "settings": {
     "title": "Paramètres de la plateforme",
