@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
-import ShopImageDropzone from '~/components/platform/ShopImageDropzone.vue'
+import ShopFormCard from '~/components/platform/shop/admin/ShopFormCard.vue'
+import ShopImageUploader from '~/components/platform/shop/admin/ShopImageUploader.vue'
+import ShopPrimaryAction from '~/components/platform/shop/admin/ShopPrimaryAction.vue'
+import ShopRichTextField from '~/components/platform/shop/admin/ShopRichTextField.vue'
+import ShopSecondaryAction from '~/components/platform/shop/admin/ShopSecondaryAction.vue'
+import ShopSectionTitle from '~/components/platform/shop/admin/ShopSectionTitle.vue'
 import { getShopNav } from '~/data/platform-nav'
 
 definePageMeta({ public: true, requiresAuth: false, splitShell: false })
@@ -108,10 +113,7 @@ const handleSubmit = async () => {
     </template>
 
     <section class="new-product-page">
-      <div class="mb-6">
-        <h1 class="text-h5 font-weight-bold mb-2">{{ t('platform.shop.newProduct.title') }}</h1>
-        <p class="text-body-2 text-medium-emphasis">{{ t('platform.shop.newProduct.subtitle') }}</p>
-      </div>
+      <ShopSectionTitle :title="t('platform.shop.newProduct.title')" :subtitle="t('platform.shop.newProduct.subtitle')" />
 
       <v-stepper v-model="step" flat class="new-product-stepper">
         <v-stepper-header class="new-product-stepper__header">
@@ -128,7 +130,7 @@ const handleSubmit = async () => {
         </v-stepper-header>
       </v-stepper>
 
-      <v-card class="new-product-form-card" rounded="xl" elevation="0">
+      <ShopFormCard>
         <v-window v-model="step">
           <v-window-item :value="1">
             <v-card-text class="pa-6 pa-md-8">
@@ -145,11 +147,9 @@ const handleSubmit = async () => {
                   />
                 </v-col>
                 <v-col cols="12">
-                  <v-textarea
+                  <ShopRichTextField
                     v-model="newProductForm.description"
                     :label="t('platform.shop.newProduct.form.description')"
-                    variant="outlined"
-                    rows="4"
                     :hint="t('platform.shop.newProduct.form.descriptionTodo')"
                     persistent-hint
                   />
@@ -185,23 +185,17 @@ const handleSubmit = async () => {
 
           <v-window-item :value="2">
             <v-card-text class="pa-6 pa-md-8">
-              <v-row>
-                <v-col cols="12" md="7">
-                  <ShopImageDropzone v-model="newProductForm.images" />
-                </v-col>
-                <v-col cols="12" md="5">
-                  <v-sheet class="pa-4 rounded-lg media-preview-sheet" border>
-                    <p class="text-subtitle-2 mb-3">{{ t('platform.shop.newProduct.steps.media') }}</p>
-                    <v-img
-                      :src="stepSections[1]?.image"
-                      :alt="stepSections[1]?.title"
-                      height="180"
-                      cover
-                      class="rounded-lg"
-                    />
-                  </v-sheet>
-                </v-col>
-              </v-row>
+              <ShopImageUploader v-model="newProductForm.images" :title="t('platform.shop.newProduct.steps.media')">
+                <template #preview>
+                  <v-img
+                    :src="stepSections[1]?.image"
+                    :alt="stepSections[1]?.title"
+                    height="180"
+                    cover
+                    class="rounded-lg"
+                  />
+                </template>
+              </ShopImageUploader>
             </v-card-text>
           </v-window-item>
 
@@ -272,18 +266,18 @@ const handleSubmit = async () => {
             </v-card-text>
           </v-window-item>
         </v-window>
-      </v-card>
+      </ShopFormCard>
 
-      <div class="new-product-actions">
-        <v-btn variant="outlined" :disabled="step <= 1" @click="prevStep">
+      <div class="shop-admin-actions-row">
+        <ShopSecondaryAction :disabled="step <= 1" @click="prevStep">
           {{ t('platform.shop.newProduct.actions.prev') }}
-        </v-btn>
-        <v-btn v-if="!isLastStep" color="primary" @click="nextStep">
+        </ShopSecondaryAction>
+        <ShopPrimaryAction v-if="!isLastStep" @click="nextStep">
           {{ t('platform.shop.newProduct.actions.next') }}
-        </v-btn>
-        <v-btn v-else color="primary" @click="handleSubmit">
+        </ShopPrimaryAction>
+        <ShopPrimaryAction v-else @click="handleSubmit">
           {{ t('platform.shop.newProduct.actions.send') }}
-        </v-btn>
+        </ShopPrimaryAction>
       </div>
     </section>
   </PlatformSplitLayout>
@@ -307,33 +301,11 @@ const handleSubmit = async () => {
   padding: 0.5rem;
 }
 
-.new-product-form-card {
-  border: 1px solid rgb(var(--v-theme-outline-variant));
-  border-radius: 24px;
-}
-
-.media-preview-sheet {
-  background: rgb(var(--v-theme-surface-bright));
-}
-
-.new-product-actions {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-}
 
 @media (max-width: 960px) {
   .new-product-page {
     max-width: 100%;
   }
 
-  .new-product-actions {
-    flex-direction: column;
-  }
-
-  .new-product-actions :deep(.v-btn) {
-    width: 100%;
-  }
 }
 </style>

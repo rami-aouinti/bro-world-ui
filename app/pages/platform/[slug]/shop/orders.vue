@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
+import ShopPrimaryAction from '~/components/platform/shop/admin/ShopPrimaryAction.vue'
+import ShopSecondaryAction from '~/components/platform/shop/admin/ShopSecondaryAction.vue'
+import ShopSectionTitle from '~/components/platform/shop/admin/ShopSectionTitle.vue'
 import ShopOrdersTable from '~/components/platform/shop/ShopOrdersTable.vue'
 import { shopOrders, type ShopOrderStatus } from '~/data/shop-orders'
 import { getShopNav } from '~/data/platform-nav'
@@ -82,17 +85,13 @@ const exportToCsv = () => {
     </template>
 
     <section class="d-flex flex-column ga-4">
-      <div class="d-flex flex-wrap justify-space-between align-center ga-3">
-        <div>
-          <h1 class="text-h5 font-weight-bold mb-1">Orders</h1>
-          <p class="text-body-2 text-medium-emphasis mb-0">Manage orders, refunds and cancellations.</p>
-        </div>
-        <div class="d-flex flex-wrap ga-2">
-          <v-btn color="primary" prepend-icon="mdi-plus">New order</v-btn>
+      <ShopSectionTitle title="Orders" subtitle="Manage orders, refunds and cancellations.">
+        <template #actions>
+          <ShopPrimaryAction prepend-icon="mdi-plus">New order</ShopPrimaryAction>
 
           <v-menu location="bottom end">
             <template #activator="{ props }">
-              <v-btn v-bind="props" variant="outlined" prepend-icon="mdi-filter-variant">Filters</v-btn>
+              <ShopSecondaryAction v-bind="props" prepend-icon="mdi-filter-variant">Filters</ShopSecondaryAction>
             </template>
 
             <v-card min-width="260" rounded="lg">
@@ -112,9 +111,9 @@ const exportToCsv = () => {
             </v-card>
           </v-menu>
 
-          <v-btn variant="outlined" prepend-icon="mdi-file-delimited-outline" @click="exportToCsv">Export CSV</v-btn>
-        </div>
-      </div>
+          <ShopSecondaryAction prepend-icon="mdi-file-delimited-outline" @click="exportToCsv">Export CSV</ShopSecondaryAction>
+        </template>
+      </ShopSectionTitle>
 
       <v-text-field
         v-model="search"
