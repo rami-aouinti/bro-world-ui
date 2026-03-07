@@ -1,161 +1,285 @@
 <script setup lang="ts">
+import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
+import UiAvatar from '~/components/ui/UiAvatar.vue'
+import UiCard from '~/components/ui/UiCard.vue'
+import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
+import UiStateAlert from '~/components/ui/state/UiStateAlert.vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useProfileApi } from '~/composables/api/useProfileApi'
+
+import type { Profile } from '~/types/api/profile'
+
 definePageMeta({
-  public: true,
-  requiresAuth: false,
+  middleware: ['role'],
+  requiredPermissions: ['profile.readOwn'],
+  skeleton: 'form',
 })
 
-import kalVisualAvatar from '~/assets/img/kal-visuals-square.jpg'
-import marieAvatar from '~/assets/img/marie.jpg'
-import ivanaAvatar from '~/assets/img/ivana-square.jpg'
-import team4Avatar from '~/assets/img/team-4.jpg'
-import homeDecor1 from '~/assets/img/home-decor-1.jpg'
-import homeDecor2 from '~/assets/img/home-decor-2.jpg'
-import homeDecor3 from '~/assets/img/home-decor-3.jpg'
-import homeDecor4 from '~/assets/img/home-decor-4.jpg'
+const { t } = useI18n()
+const authSession = useAuthSessionStore()
+const { canPermission } = useAccessControl()
+const { isAuthenticated, fetchProfile } = useAuth()
+const profileApi = useProfileApi()
 
-const accountSettings = [
-  { text: 'Email me when someone follows me', switchState: true },
-  { text: 'Email me when someone answers on...', switchState: false },
-  { text: 'Email me when someone mentions me...', switchState: true },
-]
+const loading = ref(false)
+const saving = ref(false)
+const uploadingPhoto = ref(false)
+const errorMessage = ref('')
+const successMessage = ref('')
+const formRef = ref()
 
-const applicationSettings = [
-  { text: 'New launches and projects', switchState: false },
-  { text: 'Monthly product updates', switchState: true },
-  { text: 'Subscribe to newsletter', switchState: false },
-]
+const form = reactive({
+  firstName: '',
+  lastName: '',
+  photo: '',
+})
 
-const conversations = [
-  { avatar: kalVisualAvatar, user: 'Sophie B.', message: 'Hi! I need more information..' },
-  { avatar: marieAvatar, user: 'Anne Marie', message: 'Awesome work, can you..' },
-  { avatar: ivanaAvatar, user: 'Ivanna', message: 'About files I can..' },
-  { avatar: team4Avatar, user: 'Peterson', message: 'Have a great afternoon..' },
-]
+const profileDisplayName = computed(() => {
+  const profile = authSession.profile
+  if (!profile) {
+    return 'Guest User'
+  }
 
-const cards = [
-  {
-    image: homeDecor1,
-    title: 'Project #2',
-    style: 'Modern',
-    description: 'As Uber works through a huge amount of internal management turmoil.',
-  },
-  {
-    image: homeDecor2,
-    title: 'Project #1',
-    style: 'Scandinavian',
-    description: 'Music is something that every person has his or her own specific opinion about.',
-  },
-  {
-    image: homeDecor3,
-    title: 'Project #3',
-    style: 'Minimalist',
-    description: 'Different people have different taste, and various types of music.',
-  },
-  {
-    image: homeDecor4,
-    title: 'Project #4',
-    style: 'Gothic',
-    description: 'Why would anyone pick blue over pink? Pink is obviously a better color.',
-  },
-]
+  return `${profile.firstName} ${profile.lastName}`.trim() || profile.username
+})
+
+const profileStatus = computed<'online' | 'offline'>(() => (isAuthenticated.value ? 'online' : 'offline'))
+
+const emptyProfileDescription = computed(() => `${t('profile.tokenHint')} ${t('profile.tokenHeader')} ${t('profile.tokenHintSuffix')}`)
+
+const applyProfileToForm = (profile: Profile | null) => {
+  form.firstName = profile?.firstName ?? ''
+  form.lastName = profile?.lastName ?? ''
+  form.photo = profile?.photo ?? ''
+}
+
+watch(
+  () => authSession.profile,
+  profile => applyProfileToForm(profile),
+  { immediate: true },
+)
+
+const syncSessionProfile = (profile: Profile) => {
+  if (!authSession.profile) {
+    return
+  }
+
+  authSession.setUserSession({
+    token: authSession.token,
+    profile: {
+      ...authSession.profile,
+      ...profile,
+      roles: authSession.profile.roles,
+      userGroups: authSession.profile.userGroups,
+    },
+    roles: authSession.roles,
+    locale: authSession.locale,
+  })
+}
+
+const loadProfile = async () => {
+  if (!isAuthenticated.value) {
+    errorMessage.value = t('errors.profile.noToken')
+    return
+  }
+
+  if (!canPermission('profile.readOwn', { userId: authSession.profile?.id })) {
+    errorMessage.value = t('profile.notAuthenticated')
+    return
+  }
+
+  errorMessage.value = ''
+  loading.value = true
+
+  try {
+    await fetchProfile()
+  }
+  catch {
+    errorMessage.value = t('errors.profile.loadFailed')
+  }
+  finally {
+    loading.value = false
+  }
+}
+
+const submitProfile = async () => {
+  if (!authSession.profile || saving.value) {
+    return
+  }
+
+  errorMessage.value = ''
+  successMessage.value = ''
+  saving.value = true
+
+  try {
+    const updatedProfile = await profileApi.patch({
+      firstName: form.firstName,
+      lastName: form.lastName,
+    })
+
+    syncSessionProfile(updatedProfile)
+    successMessage.value = t('profile.updateSuccess')
+  }
+  catch {
+    errorMessage.value = t('errors.profile.updateFailed')
+  }
+  finally {
+    saving.value = false
+  }
+}
+
+const uploadProfilePhoto = async (files: File[] | File | null) => {
+  const file = Array.isArray(files) ? files[0] : files
+
+  if (!file || !authSession.profile) {
+    return
+  }
+
+  errorMessage.value = ''
+  successMessage.value = ''
+  uploadingPhoto.value = true
+
+  try {
+    const response = await profileApi.uploadPhoto(file)
+    form.photo = response.photo
+
+    const updatedProfile = await profileApi.patch({
+      firstName: form.firstName,
+      lastName: form.lastName,
+    })
+
+    syncSessionProfile({
+      ...updatedProfile,
+      photo: response.photo,
+    })
+
+    successMessage.value = t('profile.photoUpdateSuccess')
+  }
+  catch {
+    errorMessage.value = t('errors.profile.photoUploadFailed')
+  }
+  finally {
+    uploadingPhoto.value = false
+  }
+}
+
+onMounted(async () => {
+  if (isAuthenticated.value && !authSession.profile) {
+    await loadProfile()
+  }
+})
 </script>
 
 <template>
-  <v-container fluid class="py-6">
-    <v-row>
-      <v-col cols="12" lg="4">
-        <v-card class="h-100 pa-4">
-          <h6 class="mb-4 text-h6">Platform Settings</h6>
+  <PlatformSplitLayout>
+    <template #sidebar>
+      <UiSectionHeader :title="t('profile.title')" />
 
-          <h6 class="text-uppercase text-body-2 font-weight-bold mb-3">Account</h6>
-          <v-list class="pa-0 mb-4">
-            <v-list-item
-              v-for="setting in accountSettings"
-              :key="setting.text"
-              :ripple="false"
-              class="px-0"
-            >
-              <template #append>
-                <v-switch v-model="setting.switchState" hide-details inset color="primary" />
-              </template>
-              <v-list-item-title class="text-body-1">{{ setting.text }}</v-list-item-title>
-            </v-list-item>
-          </v-list>
+      <div class="profile-page__identity">
+        <UiAvatar
+          :src="form.photo || authSession.profile?.photo"
+          :name="profileDisplayName"
+          size="lg"
+          :status="profileStatus"
+        />
+        <div>
+          <p class="text-subtitle-1 font-weight-bold profile-page__identity-name">{{ profileDisplayName }}</p>
+          <p class="text-body-2 text-medium-emphasis profile-page__identity-role">{{ t('profile.title') }}</p>
+        </div>
+      </div>
 
-          <h6 class="text-uppercase text-body-2 font-weight-bold mb-3">Application</h6>
-          <v-list class="pa-0">
-            <v-list-item
-              v-for="setting in applicationSettings"
-              :key="setting.text"
-              :ripple="false"
-              class="px-0"
-            >
-              <template #append>
-                <v-switch v-model="setting.switchState" hide-details inset color="primary" />
-              </template>
-              <v-list-item-title class="text-body-1">{{ setting.text }}</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-card>
-      </v-col>
+      <div class="platform-layout__sidebar-actions">
+        <v-btn variant="outlined" block to="/profile">Profile</v-btn>
+        <v-btn variant="outlined" block class="mt-2" to="/settings">Settings</v-btn>
+      </div>
+    </template>
 
-      <v-col cols="12" lg="8">
-        <v-row>
-          <v-col cols="12" md="6">
-            <v-card class="h-100 pa-4">
-              <h6 class="mb-4 text-h6">Profile Information</h6>
-              <p class="text-body-1 mb-4 text-medium-emphasis">
-                Hi, I’m Alec Thompson. Decisions: If you can’t decide, the answer is no.
-              </p>
-              <v-divider class="mb-4" />
-              <v-list class="pa-0">
-                <v-list-item class="px-0"><strong>Full Name:</strong>&nbsp;Alec M. Thompson</v-list-item>
-                <v-list-item class="px-0"><strong>Mobile:</strong>&nbsp;(44) 123 1234 123</v-list-item>
-                <v-list-item class="px-0"><strong>Email:</strong>&nbsp;alecthompson@mail.com</v-list-item>
-                <v-list-item class="px-0"><strong>Location:</strong>&nbsp;USA</v-list-item>
-              </v-list>
-            </v-card>
-          </v-col>
+    <template #default>
+      <UiSectionHeader
+        :title="t('profile.title')"
+        :subtitle="t('profile.tokenHint')"
+      />
+        <UiStateAlert
+          v-if="!isAuthenticated"
+          type="warning"
+          variant="tonal"
+          :message="t('profile.notAuthenticated')"
+        />
 
-          <v-col cols="12" md="6">
-            <v-card class="h-100 pa-4">
-              <h6 class="mb-4 text-h6">Conversations</h6>
-              <v-list class="pa-0">
-                <v-list-item v-for="conversation in conversations" :key="conversation.user" class="px-0 mb-2">
-                  <template #prepend>
-                    <v-avatar size="44" class="me-3">
-                      <img :src="conversation.avatar" alt="avatar">
-                    </v-avatar>
-                  </template>
-                  <v-list-item-title class="font-weight-bold">{{ conversation.user }}</v-list-item-title>
-                  <v-list-item-subtitle>{{ conversation.message }}</v-list-item-subtitle>
-                  <template #append>
-                    <v-btn variant="text" color="primary">Reply</v-btn>
-                  </template>
-                </v-list-item>
-              </v-list>
-            </v-card>
-          </v-col>
 
-          <v-col cols="12">
-            <v-card class="pa-4 mt-2">
-              <h6 class="text-h6 mb-1">Projects</h6>
-              <p class="text-body-2 text-medium-emphasis mb-4">Architects design houses</p>
-              <v-row>
-                <v-col v-for="card in cards" :key="card.title" cols="12" sm="6" xl="3">
-                  <v-card variant="text">
-                    <v-img :src="card.image" height="160" cover class="rounded-lg mb-3" />
-                    <p class="text-body-2 mb-1">{{ card.title }}</p>
-                    <h5 class="text-h5 mb-2">{{ card.style }}</h5>
-                    <p class="text-body-2 text-medium-emphasis mb-3">{{ card.description }}</p>
-                    <v-btn color="primary" variant="outlined">View Project</v-btn>
-                  </v-card>
-                </v-col>
-              </v-row>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-col>
-    </v-row>
-  </v-container>
+        <UiStateAlert
+          v-if="errorMessage"
+          type="error"
+          variant="tonal"
+          :message="errorMessage"
+        />
+
+        <UiStateAlert
+          v-if="successMessage"
+          type="success"
+          variant="tonal"
+          :message="successMessage"
+        />
+
+        <UiCard
+          v-if="authSession.profile"
+          variant="tonal"
+          rounded="lg"
+          compact
+        >
+          <v-form ref="formRef" @submit.prevent="submitProfile">
+            <v-row>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="form.firstName"
+                  :label="t('profile.firstName')"
+                  variant="outlined"
+                  density="comfortable"
+                />
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="form.lastName"
+                  :label="t('profile.lastName')"
+                  variant="outlined"
+                  density="comfortable"
+                />
+              </v-col>
+              <v-col cols="12" class="d-flex flex-wrap align-center ga-3">
+                <v-file-input
+                  accept="image/*"
+                  :label="t('profile.photo')"
+                  prepend-icon="mdi-camera-outline"
+                  variant="outlined"
+                  density="comfortable"
+                  hide-details
+                  :disabled="uploadingPhoto || saving"
+                  @update:model-value="uploadProfilePhoto"
+                />
+              </v-col>
+              <v-col cols="12" class="d-flex">
+                <v-btn
+                  type="submit"
+                  color="primary"
+                  prepend-icon="mdi-content-save-outline"
+                  :loading="saving"
+                  :disabled="saving || uploadingPhoto"
+                >
+                  {{ t('profile.saveChanges') }}
+                </v-btn>
+              </v-col>
+            </v-row>
+          </v-form>
+        </UiCard>
+
+        <UiCard
+          v-if="authSession.profile"
+          variant="tonal"
+          rounded="lg"
+          compact
+        >
+          <pre class="text-body-2">{{ authSession.profile }}</pre>
+        </UiCard>
+    </template>
+  </PlatformSplitLayout>
 </template>
