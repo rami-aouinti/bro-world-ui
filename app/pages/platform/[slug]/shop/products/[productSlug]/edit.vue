@@ -6,6 +6,7 @@ import ShopPrimaryAction from '~/components/platform/shop/admin/ShopPrimaryActio
 import ShopRichTextField from '~/components/platform/shop/admin/ShopRichTextField.vue'
 import ShopSecondaryAction from '~/components/platform/shop/admin/ShopSecondaryAction.vue'
 import ShopSectionTitle from '~/components/platform/shop/admin/ShopSectionTitle.vue'
+import productPlaceholder from '~/assets/img/products/product-12.jpg'
 import {
   shopAdminCategoryOptions,
   shopAdminCurrencyOptions,
@@ -32,9 +33,7 @@ watch(productSeed, (value) => {
   Object.assign(productForm, structuredClone(value))
 })
 
-const productImage = computed(
-  () => new URL(`~/assets/img/products/${productForm.image}`, import.meta.url).href,
-)
+const productImage = computed(() => productForm.image || productPlaceholder)
 
 const isSaving = ref(false)
 const showSavedSnackbar = ref(false)
@@ -79,7 +78,11 @@ const onSave = async () => {
           <ShopFormCard class="h-100">
             <v-card-title class="text-subtitle-1 font-weight-bold">Product Image</v-card-title>
             <v-card-text class="d-flex flex-column ga-4">
-              <v-img :src="productImage" :alt="productForm.imageAlt" height="220" cover rounded="lg" />
+              <v-img :src="productImage" :alt="productForm.imageAlt" height="220" cover rounded="lg">
+                <template #error>
+                  <v-img :src="productPlaceholder" :alt="productForm.imageAlt" height="220" cover rounded="lg" />
+                </template>
+              </v-img>
 
               <v-text-field
                 v-model="productForm.imageAlt"

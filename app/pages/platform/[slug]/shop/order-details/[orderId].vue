@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
-import orderedProductImage from '~/assets/images/shop/orders/ordered-headphones.svg'
-import mastercardLogo from '~/assets/images/shop/orders/mastercard-logo.svg'
+import orderedProductImage from '~/assets/img/products/product-details-2.jpg'
+import mastercardLogo from '~/assets/img/logos/mastercard.png'
 import { getShopNav } from '~/data/platform-nav'
 
 definePageMeta({

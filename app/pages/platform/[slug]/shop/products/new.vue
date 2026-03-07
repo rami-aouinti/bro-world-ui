@@ -7,6 +7,10 @@ import ShopPrimaryAction from '~/components/platform/shop/admin/ShopPrimaryActio
 import ShopRichTextField from '~/components/platform/shop/admin/ShopRichTextField.vue'
 import ShopSecondaryAction from '~/components/platform/shop/admin/ShopSecondaryAction.vue'
 import ShopSectionTitle from '~/components/platform/shop/admin/ShopSectionTitle.vue'
+import productDetails1 from '~/assets/img/products/product-details-1.jpg'
+import productDetails2 from '~/assets/img/products/product-details-2.jpg'
+import productDetails3 from '~/assets/img/products/product-details-3.jpg'
+import productPlaceholder from '~/assets/img/products/product-12.jpg'
 import { getShopNav } from '~/data/platform-nav'
 
 definePageMeta({ public: true, requiresAuth: false, splitShell: false })
@@ -41,22 +45,22 @@ const stepSections = computed(() => [
   {
     title: t('platform.shop.newProduct.steps.productInfo'),
     caption: t('platform.shop.newProduct.form.name'),
-    image: '/images/platform-media/shop-premium-hoodie.svg',
+    image: productDetails1,
   },
   {
     title: t('platform.shop.newProduct.steps.media'),
     caption: t('platform.shop.newProduct.form.description'),
-    image: '/images/platform-media/shop-desk-setup-kit.svg',
+    image: productDetails2,
   },
   {
     title: t('platform.shop.newProduct.steps.socials'),
     caption: t('platform.shop.newProduct.form.instagram'),
-    image: '/images/platform-media/shop-sport-pack.svg',
+    image: productDetails3,
   },
   {
     title: t('platform.shop.newProduct.steps.pricing'),
     caption: t('platform.shop.newProduct.form.price'),
-    image: '/images/placeholders/platform-media-fallback.svg',
+    image: productPlaceholder,
   },
 ])
 
@@ -193,7 +197,11 @@ const handleSubmit = async () => {
                     height="180"
                     cover
                     class="rounded-lg"
-                  />
+                  >
+                    <template #error>
+                      <v-img :src="productPlaceholder" :alt="stepSections[1]?.title" height="180" cover class="rounded-lg" />
+                    </template>
+                  </v-img>
                 </template>
               </ShopImageUploader>
             </v-card-text>

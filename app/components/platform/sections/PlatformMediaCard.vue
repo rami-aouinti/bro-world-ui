@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import productPlaceholder from '~/assets/img/products/product-12.jpg'
 import type { MediaCardItem } from '~/data/platform-enhanced'
 
-const FALLBACK_MEDIA_IMAGE = '/images/placeholders/platform-media-fallback.svg'
+const FALLBACK_MEDIA_IMAGE = productPlaceholder
 
 const props = defineProps<{ item: MediaCardItem }>()
 
