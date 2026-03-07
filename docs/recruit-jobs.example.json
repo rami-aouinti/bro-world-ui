@@ -1,0 +1,59 @@
+{
+  "jobs": [
+    {
+      "id": "job-001",
+      "slug": "senior-fullstack-entwickler-php-laravel-react-vue-typescript",
+      "title": "Senior Full Stack Entwickler (m/w/d) - PHP/Laravel, React/Vue.js/Typescript",
+      "company": {
+        "name": "Aveyara Software GmbH",
+        "logo": "AS",
+        "sector": "IT & Tech",
+        "size": "11-50 Mitarbeiter"
+      },
+      "location": "Stuttgart",
+      "contractType": "CDI",
+      "workMode": "Hybrid",
+      "schedule": "Vollzeit",
+      "salary": {
+        "min": 50000,
+        "max": 80000,
+        "currency": "EUR",
+        "period": "year"
+      },
+      "postedAtLabel": "vor 1 Woche",
+      "summary": "Wir suchen einen leidenschaftlichen Fullstack-Entwickler mit Expertise in PHP, Laravel, React und Typescript.",
+      "matchScore": 86,
+      "badges": [
+        "Bewerbungs-Update verfügbar",
+        "Sei einer der ersten Bewerber",
+        "Schnelle Bewerbung"
+      ],
+      "tags": [
+        "PHP",
+        "Laravel",
+        "React",
+        "Vue.js",
+        "Typescript",
+        "PostgreSQL",
+        "Docker"
+      ],
+      "missionTitle": "Deine Mission:",
+      "missionDescription": "Wir suchen einen leidenschaftlichen Fullstack-Entwickler...",
+      "responsibilities": [
+        "Innovation gestalten",
+        "Architektur weiterentwickeln",
+        "Agilität leben"
+      ],
+      "profile": [
+        "Erfahrung in PHP und Laravel",
+        "REST API und PostgreSQL",
+        "Deutsch und Englisch"
+      ],
+      "benefits": [
+        "Sinnstiftende Arbeit",
+        "Flexibles Arbeiten",
+        "Weiterbildung"
+      ]
+    }
+  ]
+}
