@@ -1,3 +1,5 @@
+import type { PlatformSectionItem } from '~/data/platform-demo'
+
 export interface TicketItem {
   id: string
   title: string
@@ -56,5 +58,61 @@ export const platformProposals: Record<'crm' | 'shop' | 'recruit' | 'school', Ti
     { id: 'sch-t-01', title: 'Bulletins temps réel', priority: 'P0', owner: 'Academic Ops', eta: '8 jours', description: 'Notes, absences, progression et alertes.' },
     { id: 'sch-t-02', title: 'Planning intelligent', priority: 'P1', owner: 'Direction', eta: '6 jours', description: 'Affectation salles/profs selon contraintes.' },
     { id: 'sch-t-03', title: 'Portail parents', priority: 'P2', owner: 'School IT', eta: '11 jours', description: 'Communication classe, notifications, docs.' },
+  ],
+}
+
+export const crmSettingsSections: Record<'routing' | 'automation' | 'governance', PlatformSectionItem[]> = {
+  routing: [
+    { id: 'crm-r1', title: 'Round-robin B2B', description: 'Distribution automatique des leads inbound par territoire.', owner: 'Sales Ops', status: 'Actif', metrics: [{ label: 'SLA', value: '8 min', tone: 'success' }, { label: 'Capacité', value: '92%', tone: 'primary' }] },
+    { id: 'crm-r2', title: 'Règles comptes stratégiques', description: 'Priorisation ABM vers les account executives seniors.', owner: 'Head of Sales', status: 'En revue', metrics: [{ label: 'Couverts', value: '124 comptes', tone: 'info' }] },
+  ],
+  automation: [
+    { id: 'crm-a1', title: 'Relance devis J+3', description: 'Envoi multi-canal selon score de closing.', owner: 'RevOps', status: 'Actif', metrics: [{ label: 'Taux réponse', value: '+18%', tone: 'success' }] },
+    { id: 'crm-a2', title: 'Renewal health-check', description: 'Détection risque churn avec déclenchement CSM.', owner: 'Customer Success', status: 'Actif', metrics: [{ label: 'Comptes suivis', value: '73', tone: 'primary' }] },
+  ],
+  governance: [
+    { id: 'crm-g1', title: 'Conservation PII', description: 'Purge auto des données inactives > 24 mois.', owner: 'DPO', status: 'Conforme', metrics: [{ label: 'Dernier audit', value: 'il y a 12 j', tone: 'info' }] },
+  ],
+}
+
+export const shopPaymentSections: Record<'checkout' | 'providers' | 'fraud', PlatformSectionItem[]> = {
+  checkout: [
+    { id: 'sh-c1', title: 'Tunnel mobile', description: 'Optimisation en 3 étapes pour panier < 120€.', status: 'Actif', metrics: [{ label: 'Conversion', value: '4.9%', tone: 'success' }, { label: 'Abandon', value: '32%', tone: 'warning' }] },
+    { id: 'sh-c2', title: 'Paiement express', description: 'One-click pour clients récurrents connectés.', status: 'Pilote', metrics: [{ label: 'Adoption', value: '38%', tone: 'primary' }] },
+  ],
+  providers: [
+    { id: 'sh-p1', title: 'Stripe EU', description: 'Provider principal cartes + wallets.', status: '99.98% uptime', metrics: [{ label: 'Coût', value: '1.4% + 0.25€', tone: 'info' }] },
+    { id: 'sh-p2', title: 'Adyen fallback', description: 'Routage intelligent sur erreur PSP primaire.', status: 'Actif', metrics: [{ label: 'Failover', value: '< 300ms', tone: 'success' }] },
+  ],
+  fraud: [
+    { id: 'sh-f1', title: 'Règle 3DS adaptative', description: 'Déclenchement selon score risque et pays.', status: 'Actif', metrics: [{ label: 'Chargebacks', value: '0.31%', tone: 'success' }] },
+  ],
+}
+
+export const schoolSettingsSections: Record<'calendar' | 'permissions' | 'certificates', PlatformSectionItem[]> = {
+  calendar: [
+    { id: 'sc-cal1', title: 'Année scolaire 2026', description: 'Découpage trimestres, examens blancs et conseils de classe.', owner: 'Direction pédagogique', status: 'Publié', metrics: [{ label: 'Jours ouvrés', value: '172', tone: 'info' }] },
+    { id: 'sc-cal2', title: 'Sessions rattrapage', description: 'Créneaux dédiés et salles réservées.', owner: 'Scolarité', status: 'Brouillon', metrics: [{ label: 'Sessions', value: '6', tone: 'warning' }] },
+  ],
+  permissions: [
+    { id: 'sc-perm1', title: 'Rôle enseignant', description: 'Accès notes, absences, ressources de classe.', owner: 'IT School', status: 'Actif', metrics: [{ label: 'Utilisateurs', value: '84', tone: 'primary' }] },
+    { id: 'sc-perm2', title: 'Portail parent', description: 'Consultation bulletins et signature électronique.', owner: 'Vie scolaire', status: 'Déploiement', metrics: [{ label: 'Activation', value: '67%', tone: 'success' }] },
+  ],
+  certificates: [
+    { id: 'sc-cert1', title: 'Template diplôme officiel', description: 'Version bilingue avec QR de vérification.', owner: 'Administration', status: 'Validé', metrics: [{ label: 'Dernière MAJ', value: '02/03/2026', tone: 'info' }] },
+  ],
+}
+
+export const recruitAdminSections: Record<'pipeline' | 'interviews' | 'offers', PlatformSectionItem[]> = {
+  pipeline: [
+    { id: 'rec-p1', title: 'Funnel Engineering', description: 'Suivi sourcing > screening > final panel.', owner: 'Talent Acquisition', status: 'Actif', metrics: [{ label: 'Candidats', value: '126', tone: 'primary' }, { label: 'Time-to-screen', value: '2.1 j', tone: 'success' }] },
+    { id: 'rec-p2', title: 'Pipeline Product', description: 'Rôles design & PM sur 2 squads prioritaires.', owner: 'Hiring Managers', status: 'Attention', metrics: [{ label: 'Besoins ouverts', value: '7', tone: 'warning' }] },
+  ],
+  interviews: [
+    { id: 'rec-i1', title: 'Panel Frontend', description: 'Comité hebdo avec scorecards harmonisées.', owner: 'Tech Leads', status: 'Actif', metrics: [{ label: 'No-show', value: '4%', tone: 'success' }] },
+    { id: 'rec-i2', title: 'Calibration interviewers', description: 'Formation anti-biais et grille compétences.', owner: 'People Ops', status: 'Planifié', metrics: [{ label: 'Participants', value: '24', tone: 'info' }] },
+  ],
+  offers: [
+    { id: 'rec-o1', title: 'Pack offres senior', description: 'Workflow approval compensation + signature.', owner: 'HRBP', status: 'Actif', metrics: [{ label: 'Offer acceptance', value: '81%', tone: 'success' }] },
   ],
 }
