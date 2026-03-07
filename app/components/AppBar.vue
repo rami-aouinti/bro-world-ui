@@ -269,9 +269,9 @@ const signOut = async () => {
 .app-bar {
   margin: var(--ui-spacing-sm) var(--ui-spacing-md);
   padding-inline: var(--ui-spacing-lg);
-  background: #f5f5f7;
+  background: rgb(var(--v-theme-surface));
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 12px 24px rgba(var(--v-theme-on-surface), 0.08);
 }
 
 .app-bar__brand {
@@ -279,21 +279,32 @@ const signOut = async () => {
 }
 
 .app-bar__title-link {
-  color: #24262d;
+  color: rgb(var(--v-theme-on-surface));
   text-decoration: none;
   font-weight: 700;
+  border-radius: var(--ui-radius-sm);
+  transition: color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.app-bar__title-link:hover {
+  color: rgb(var(--v-theme-primary));
+}
+
+.app-bar__title-link:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus);
 }
 
 .app-bar__brand-icon {
-  color: #ec407a;
+  color: rgb(var(--v-theme-primary));
 }
 
 .app-bar__brand-bro {
-  color: #24262d;
+  color: rgb(var(--v-theme-on-surface));
 }
 
 .app-bar__brand-world {
-  color: #ec407a;
+  color: rgb(var(--v-theme-primary));
 }
 
 .app-bar__center-links {
@@ -304,12 +315,33 @@ const signOut = async () => {
 
 .app-bar__link-btn {
   font-weight: 500;
-  color: #2f3136;
-  border-radius: 12px;
+  color: rgb(var(--v-theme-on-surface));
+  border-radius: var(--ui-radius-md);
+}
+
+.app-bar__link-btn:hover {
+  color: rgb(var(--v-theme-primary));
+  background-color: rgba(var(--v-theme-primary), 0.08);
+}
+
+.app-bar__link-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus);
 }
 
 .app-bar__icon-btn {
-  color: #4a4d55;
+  color: rgb(var(--v-theme-on-surface));
+  border-radius: var(--ui-radius-pill);
+}
+
+.app-bar__icon-btn:hover {
+  color: rgb(var(--v-theme-primary));
+  background-color: rgba(var(--v-theme-primary), 0.08);
+}
+
+.app-bar__icon-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus);
 }
 
 .app-bar__teleport-target {
