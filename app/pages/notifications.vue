@@ -1,5 +1,9 @@
 <script setup lang="ts">
+import UiListCard from '~/components/ui/UiListCard.vue'
+import UiPageShell from '~/components/ui/page/UiPageShell.vue'
 import UiStateEmptyState from '~/components/ui/state/UiEmptyState.vue'
+import UiStatChip from '~/components/ui/UiStatChip.vue'
+
 definePageMeta({
   public: false,
   requiresAuth: true,
@@ -61,38 +65,32 @@ const markAllAsRead = () => {
 </script>
 
 <template>
-  <UiPageSection max-width="1100">
-    <v-card class="pa-6 pa-md-8 mb-6 rounded-xl elevation-2">
-      <div class="d-flex align-start justify-space-between ga-4 flex-wrap">
-        <div>
-          <p class="text-overline text-primary mb-2">Centre de notifications</p>
-          <h1 class="text-h4 font-weight-bold mb-2 d-flex align-center ga-2">
-            <v-icon icon="mdi-bell-ring-outline" color="primary" />
-            Notifications
-          </h1>
-          <p class="text-body-1 text-medium-emphasis mb-0">
-            Suivez les activités importantes et gardez votre équipe synchronisée.
-          </p>
-        </div>
-
-        <v-btn
-          color="primary"
-          variant="outlined"
-          prepend-icon="mdi-check-all"
-          :disabled="!unreadNotifications.length"
-          @click="markAllAsRead"
-        >
-          Tout marquer comme lu
-        </v-btn>
-      </div>
-    </v-card>
+  <UiPageShell
+    title="Notifications"
+    eyebrow="Centre de notifications"
+    icon="mdi-bell-ring-outline"
+    subtitle="Suivez les activités importantes et gardez votre équipe synchronisée."
+    max-width="1100"
+  >
+    <template #actions>
+      <v-btn
+        color="primary"
+        variant="outlined"
+        prepend-icon="mdi-check-all"
+        class="w-100 w-md-auto"
+        :disabled="!unreadNotifications.length"
+        @click="markAllAsRead"
+      >
+        Tout marquer comme lu
+      </v-btn>
+    </template>
 
     <v-row>
       <v-col cols="12" md="6">
-        <v-card class="pa-5 rounded-xl elevation-1 h-100">
+        <UiListCard>
           <div class="d-flex align-center justify-space-between mb-4">
             <h2 class="text-subtitle-1 font-weight-bold mb-0">Non lues</h2>
-            <v-badge :content="unreadNotifications.length" color="primary" inline />
+            <UiStatChip :value="unreadNotifications.length" color="primary" />
           </div>
 
           <template v-if="unreadNotifications.length">
@@ -100,7 +98,7 @@ const markAllAsRead = () => {
               <v-list-item
                 v-for="item in unreadNotifications"
                 :key="item.id"
-                class="notifications-page__item px-0"
+                class="notifications-page__item px-0 rounded-lg"
               >
                 <template #prepend>
                   <v-avatar :color="item.color" variant="tonal" size="34">
@@ -139,21 +137,21 @@ const markAllAsRead = () => {
               <v-btn variant="outlined" prepend-icon="mdi-cog-outline">Gérer les préférences</v-btn>
             </template>
           </UiStateEmptyState>
-        </v-card>
+        </UiListCard>
       </v-col>
 
       <v-col cols="12" md="6">
-        <v-card class="pa-5 rounded-xl elevation-1 h-100">
+        <UiListCard>
           <div class="d-flex align-center justify-space-between mb-4">
             <h2 class="text-subtitle-1 font-weight-bold mb-0">Déjà lues</h2>
-            <v-chip size="small" variant="tonal">{{ readNotifications.length }}</v-chip>
+            <UiStatChip :value="readNotifications.length" color="info" />
           </div>
 
           <v-list class="bg-transparent pa-0" lines="two">
             <v-list-item
               v-for="item in readNotifications"
               :key="item.id"
-              class="notifications-page__item px-0"
+              class="notifications-page__item px-0 rounded-lg"
             >
               <template #prepend>
                 <v-avatar :color="item.color" variant="tonal" size="34">
@@ -169,14 +167,23 @@ const markAllAsRead = () => {
               </template>
             </v-list-item>
           </v-list>
-        </v-card>
+        </UiListCard>
       </v-col>
     </v-row>
-  </UiPageSection>
+  </UiPageShell>
 </template>
 
 <style scoped>
+.notifications-page__item {
+  transition: background-color 0.2s ease;
+}
+
 .notifications-page__item + .notifications-page__item {
   border-top: 1px solid rgba(var(--v-theme-on-surface), 0.08);
+}
+
+.notifications-page__item:hover,
+.notifications-page__item:focus-within {
+  background-color: rgba(var(--v-theme-primary), 0.06);
 }
 </style>

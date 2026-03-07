@@ -1,5 +1,9 @@
 <script setup lang="ts">
+import UiListCard from '~/components/ui/UiListCard.vue'
+import UiPageShell from '~/components/ui/page/UiPageShell.vue'
 import UiStateEmptyState from '~/components/ui/state/UiEmptyState.vue'
+import UiStatChip from '~/components/ui/UiStatChip.vue'
+
 definePageMeta({
   public: false,
   requiresAuth: true,
@@ -70,30 +74,23 @@ const messages = computed(() => {
 </script>
 
 <template>
-  <UiPageSection max-width="1250">
-    <v-card class="pa-6 pa-md-8 mb-6 rounded-xl elevation-2">
-      <div class="d-flex align-start justify-space-between ga-4 flex-wrap">
-        <div>
-          <p class="text-overline text-primary mb-2">Messagerie</p>
-          <h1 class="text-h4 font-weight-bold mb-2 d-flex align-center ga-2">
-            <v-icon icon="mdi-email-fast-outline" color="primary" />
-            Inbox
-          </h1>
-          <p class="text-body-1 text-medium-emphasis mb-0">
-            Centralisez vos conversations d'équipe et répondez rapidement aux messages importants.
-          </p>
-        </div>
-
-        <v-btn color="primary" prepend-icon="mdi-pencil-outline">Nouveau message</v-btn>
-      </div>
-    </v-card>
+  <UiPageShell
+    title="Inbox"
+    eyebrow="Messagerie"
+    icon="mdi-email-fast-outline"
+    subtitle="Centralisez vos conversations d'équipe et répondez rapidement aux messages importants."
+    max-width="1250"
+  >
+    <template #actions>
+      <v-btn color="primary" prepend-icon="mdi-pencil-outline" class="w-100 w-md-auto">Nouveau message</v-btn>
+    </template>
 
     <v-row>
       <v-col cols="12" lg="4">
-        <v-card class="pa-4 rounded-xl elevation-1 h-100">
+        <UiListCard>
           <div class="d-flex align-center justify-space-between mb-3">
             <h2 class="text-subtitle-1 font-weight-bold mb-0">Conversations</h2>
-            <v-chip size="small" variant="tonal">{{ conversations.length }}</v-chip>
+            <UiStatChip :value="conversations.length" color="primary" />
           </div>
 
           <v-list class="bg-transparent pa-0" nav>
@@ -102,7 +99,7 @@ const messages = computed(() => {
               :key="conversation.id"
               :active="activeConversationId === conversation.id"
               rounded="lg"
-              class="mb-2"
+              class="mb-2 inbox-page__conversation"
               @click="activeConversationId = conversation.id"
             >
               <template #prepend>
@@ -127,15 +124,15 @@ const messages = computed(() => {
               </template>
             </v-list-item>
           </v-list>
-        </v-card>
+        </UiListCard>
       </v-col>
 
       <v-col cols="12" lg="8">
-        <v-card class="pa-4 pa-md-5 rounded-xl elevation-1 h-100 d-flex flex-column">
+        <UiListCard class="h-100 d-flex flex-column">
           <template v-if="activeConversation">
-            <div class="d-flex align-center justify-space-between mb-4">
+            <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
               <div>
-                <h2 class="text-h6 mb-1">{{ activeConversation.name }}</h2>
+                <h2 class="text-subtitle-1 font-weight-bold mb-1">{{ activeConversation.name }}</h2>
                 <p class="text-body-2 text-medium-emphasis mb-0">Conversation active</p>
               </div>
               <v-btn variant="outlined" prepend-icon="mdi-account-plus-outline">Inviter</v-btn>
@@ -160,6 +157,7 @@ const messages = computed(() => {
               auto-grow
               variant="outlined"
               hide-details
+              density="comfortable"
             />
             <div class="d-flex justify-end mt-3">
               <v-btn color="primary" prepend-icon="mdi-send">Envoyer</v-btn>
@@ -176,13 +174,22 @@ const messages = computed(() => {
               <v-btn color="primary" variant="outlined" prepend-icon="mdi-plus">Démarrer une discussion</v-btn>
             </template>
           </UiStateEmptyState>
-        </v-card>
+        </UiListCard>
       </v-col>
     </v-row>
-  </UiPageSection>
+  </UiPageShell>
 </template>
 
 <style scoped>
+.inbox-page__conversation {
+  transition: background-color 0.2s ease;
+}
+
+.inbox-page__conversation:hover,
+.inbox-page__conversation:focus-within {
+  background-color: rgba(var(--v-theme-primary), 0.06);
+}
+
 .inbox-page__messages {
   min-height: 260px;
   display: flex;
@@ -193,7 +200,7 @@ const messages = computed(() => {
 .inbox-page__bubble {
   border-radius: 14px;
   padding: 0.75rem 1rem;
-  max-width: 90%;
+  max-width: 92%;
 }
 
 .inbox-page__bubble--other {
