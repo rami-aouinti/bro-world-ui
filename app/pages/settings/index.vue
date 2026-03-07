@@ -1,7 +1,9 @@
 <script setup lang="ts">
-definePageMeta({ public: true, requiresAuth: false })
-
-await navigateTo('/settings/basic-info', { replace: true })
+definePageMeta({
+  public: true,
+  requiresAuth: false,
+  redirect: '/settings/basic-info',
+})
 </script>
 
 <template>
