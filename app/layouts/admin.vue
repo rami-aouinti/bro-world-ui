@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import UiAside from '~/components/ui/layout/UiAside.vue'
 
+withDefaults(defineProps<{
+  showPageSkeleton?: boolean
+  pageSkeletonKey?: string
+}>(), {
+  showPageSkeleton: false,
+  pageSkeletonKey: '',
+})
+
 const route = useRoute()
 const { t } = useI18n()
 
@@ -89,7 +97,22 @@ const openGroups = computed(() => {
     <AppBar />
 
     <v-main>
-      <v-container fluid class="py-6">
+      <template v-if="showPageSkeleton">
+        <slot name="layout-skeleton">
+          <v-container fluid class="py-6">
+            <v-row>
+              <v-col cols="12" md="3">
+                <v-skeleton-loader type="list-item-two-line@8" />
+              </v-col>
+              <v-col cols="12" md="9">
+                <v-skeleton-loader type="article" />
+              </v-col>
+            </v-row>
+          </v-container>
+        </slot>
+      </template>
+
+      <v-container v-else fluid class="py-6">
         <v-row>
           <v-col cols="12" md="3">
             <UiAside class="admin-layout__menu-card" rounded="xl" sticky-top="100px">
