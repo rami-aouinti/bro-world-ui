@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import ShopFormCard from '~/components/platform/shop/admin/ShopFormCard.vue'
+import ShopStatusChip from '~/components/platform/shop/admin/ShopStatusChip.vue'
 import type { ShopOrder } from '~/data/shop-orders'
 
 interface TableHeader {
@@ -40,15 +42,15 @@ watch(() => props.orders.length, () => {
   page.value = 1
 })
 
-const statusConfig: Record<ShopOrder['status'], { color: string, label: string }> = {
-  paid: { color: 'success', label: 'Paid' },
-  refunded: { color: 'warning', label: 'Refunded' },
-  canceled: { color: 'error', label: 'Canceled' },
+const statusConfig: Record<ShopOrder['status'], { status: 'paid' | 'refunded' | 'canceled', label: string }> = {
+  paid: { status: 'paid', label: 'Paid' },
+  refunded: { status: 'refunded', label: 'Refunded' },
+  canceled: { status: 'canceled', label: 'Canceled' },
 }
 </script>
 
 <template>
-  <v-card rounded="xl" variant="outlined">
+  <ShopFormCard>
     <v-data-table
       v-model="selectedOrderIds"
       class="shop-orders-table"
@@ -72,9 +74,7 @@ const statusConfig: Record<ShopOrder['status'], { color: string, label: string }
       </template>
 
       <template #item.status="{ item }">
-        <v-chip size="small" variant="tonal" :color="statusConfig[item.status].color">
-          {{ statusConfig[item.status].label }}
-        </v-chip>
+        <ShopStatusChip :status="statusConfig[item.status].status" :label="statusConfig[item.status].label" />
       </template>
 
       <template #item.items="{ item }">
@@ -94,7 +94,7 @@ const statusConfig: Record<ShopOrder['status'], { color: string, label: string }
       </p>
       <v-pagination v-model="page" :length="pageCount" density="comfortable" total-visible="6" />
     </div>
-  </v-card>
+  </ShopFormCard>
 </template>
 
 <style scoped>

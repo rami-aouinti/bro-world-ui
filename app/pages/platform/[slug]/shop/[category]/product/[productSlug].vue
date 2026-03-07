@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
+import ShopPrimaryAction from '~/components/platform/shop/admin/ShopPrimaryAction.vue'
+import ShopStatusChip from '~/components/platform/shop/admin/ShopStatusChip.vue'
 import ShopOtherProductsTable from '~/components/platform/shop/ShopOtherProductsTable.vue'
 import { shopProducts } from '~/data/platform-demo'
 import { getShopNav } from '~/data/platform-nav'
@@ -50,14 +52,14 @@ const selectedQuantity = ref(shopProductVariants.quantity[0])
             <v-col cols="12" md="5">
               <h1 class="text-h5 font-weight-bold mb-2">{{ product.title }}</h1>
               <p class="text-h6 mb-3">{{ formatCurrency(product.price) }}</p>
-              <v-chip color="primary" variant="tonal" class="mb-4">{{ t('platform.shop.product.stock', { count: product.stock }) }}</v-chip>
+              <ShopStatusChip class="mb-4" status="stock" :label="t('platform.shop.product.stock', { count: product.stock })" />
               <p class="text-body-2 text-medium-emphasis mb-6">{{ product.description }}</p>
 
               <div class="d-flex flex-column ga-4">
                 <v-select v-model="selectedMaterial" :items="shopProductVariants.material" label="Material" variant="outlined" density="comfortable" hide-details />
                 <v-select v-model="selectedColor" :items="shopProductVariants.color" label="Color" variant="outlined" density="comfortable" hide-details />
                 <v-select v-model="selectedQuantity" :items="shopProductVariants.quantity" label="Quantity" variant="outlined" density="comfortable" hide-details />
-                <v-btn color="primary" size="large" prepend-icon="mdi-cart-plus">Add to cart</v-btn>
+                <ShopPrimaryAction size="large" prepend-icon="mdi-cart-plus">Add to cart</ShopPrimaryAction>
               </div>
             </v-col>
           </v-row>

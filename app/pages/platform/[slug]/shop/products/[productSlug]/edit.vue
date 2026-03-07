@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
+import ShopFormCard from '~/components/platform/shop/admin/ShopFormCard.vue'
+import ShopPrimaryAction from '~/components/platform/shop/admin/ShopPrimaryAction.vue'
+import ShopRichTextField from '~/components/platform/shop/admin/ShopRichTextField.vue'
+import ShopSecondaryAction from '~/components/platform/shop/admin/ShopSecondaryAction.vue'
+import ShopSectionTitle from '~/components/platform/shop/admin/ShopSectionTitle.vue'
 import {
   shopAdminCategoryOptions,
   shopAdminCurrencyOptions,
@@ -61,19 +66,17 @@ const onSave = async () => {
     </template>
 
     <section>
-      <div class="d-flex align-center justify-space-between mb-6 ga-4 flex-wrap">
-        <div>
-          <h1 class="text-h5 font-weight-bold mb-1">Edit Product</h1>
-          <p class="text-body-2 text-medium-emphasis">Update catalog content, socials, and pricing metadata.</p>
-        </div>
-        <v-btn color="primary" variant="flat" :loading="isSaving" prepend-icon="mdi-content-save-outline" @click="onSave">
-          Save
-        </v-btn>
-      </div>
+      <ShopSectionTitle title="Edit Product" subtitle="Update catalog content, socials, and pricing metadata.">
+        <template #actions>
+          <ShopPrimaryAction :loading="isSaving" prepend-icon="mdi-content-save-outline" @click="onSave">
+            Save
+          </ShopPrimaryAction>
+        </template>
+      </ShopSectionTitle>
 
       <v-row>
         <v-col cols="12" md="4">
-          <v-card rounded="xl" variant="outlined" class="h-100">
+          <ShopFormCard class="h-100">
             <v-card-title class="text-subtitle-1 font-weight-bold">Product Image</v-card-title>
             <v-card-text class="d-flex flex-column ga-4">
               <v-img :src="productImage" :alt="productForm.imageAlt" height="220" cover rounded="lg" />
@@ -87,15 +90,15 @@ const onSave = async () => {
               />
 
               <div class="d-flex ga-2">
-                <v-btn block variant="tonal" color="primary" prepend-icon="mdi-pencil-outline">Edit visual</v-btn>
-                <v-btn block variant="tonal" color="error" prepend-icon="mdi-delete-outline">Remove visual</v-btn>
+                <ShopSecondaryAction block prepend-icon="mdi-pencil-outline">Edit visual</ShopSecondaryAction>
+                <ShopSecondaryAction block prepend-icon="mdi-delete-outline">Remove visual</ShopSecondaryAction>
               </div>
             </v-card-text>
-          </v-card>
+          </ShopFormCard>
         </v-col>
 
         <v-col cols="12" md="8">
-          <v-card rounded="xl" variant="outlined" class="h-100">
+          <ShopFormCard class="h-100">
             <v-card-title class="text-subtitle-1 font-weight-bold">Product Information</v-card-title>
             <v-card-text>
               <v-row>
@@ -118,13 +121,9 @@ const onSave = async () => {
                   />
                 </v-col>
                 <v-col cols="12">
-                  <v-textarea
+                  <ShopRichTextField
                     v-model="productForm.description"
                     label="Description"
-                    variant="outlined"
-                    density="comfortable"
-                    rows="4"
-                    hide-details="auto"
                   />
                 </v-col>
                 <v-col cols="12" md="4">
@@ -168,11 +167,11 @@ const onSave = async () => {
                 </v-col>
               </v-row>
             </v-card-text>
-          </v-card>
+          </ShopFormCard>
         </v-col>
 
         <v-col cols="12" md="6">
-          <v-card rounded="xl" variant="outlined">
+          <ShopFormCard>
             <v-card-title class="text-subtitle-1 font-weight-bold">Socials</v-card-title>
             <v-card-text>
               <v-row>
@@ -218,11 +217,11 @@ const onSave = async () => {
                 </v-col>
               </v-row>
             </v-card-text>
-          </v-card>
+          </ShopFormCard>
         </v-col>
 
         <v-col cols="12" md="6">
-          <v-card rounded="xl" variant="outlined">
+          <ShopFormCard>
             <v-card-title class="text-subtitle-1 font-weight-bold">Pricing</v-card-title>
             <v-card-text>
               <v-row>
@@ -288,7 +287,7 @@ const onSave = async () => {
                 </v-col>
               </v-row>
             </v-card-text>
-          </v-card>
+          </ShopFormCard>
         </v-col>
       </v-row>
 
