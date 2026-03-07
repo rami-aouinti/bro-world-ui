@@ -386,6 +386,13 @@
       "editTitle": "Éditer l'application",
       "deleteTitle": "Désactiver l'application",
       "deleteMessage": "Désactiver l'application \"{title}\" ?"
+    },
+    "filters": {
+      "title": "Filtres",
+      "search": "Recherche",
+      "platformKey": "Platform key",
+      "apply": "Appliquer",
+      "clear": "Réinitialiser"
     }
   },
   "about": {

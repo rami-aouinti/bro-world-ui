@@ -406,6 +406,13 @@
       "editTitle": "Edit application",
       "deleteTitle": "Disable application",
       "deleteMessage": "Disable application \"{title}\"?"
+    },
+    "filters": {
+      "title": "Filters",
+      "search": "Search",
+      "platformKey": "Platform key",
+      "apply": "Apply",
+      "clear": "Clear"
     }
   },
   "about": {

@@ -23,6 +23,26 @@ export interface ApplicationRead {
   isOwner?: boolean
 }
 
+export interface ApplicationListFilters {
+  search?: string
+  platformKey?: string
+}
+
+export interface ApplicationListPagination {
+  page: number
+  limit: number
+  totalItems: number
+  totalPages: number
+}
+
+export interface ApplicationListResponse {
+  items: ApplicationRead[]
+  pagination: ApplicationListPagination
+  filters?: {
+    platformKey?: string
+  }
+}
+
 export interface UpdateApplicationPayload {
   title?: string
   status?: 'active' | 'inactive' | string
