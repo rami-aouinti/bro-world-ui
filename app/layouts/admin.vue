@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import UiAside from '~/components/ui/layout/UiAside.vue'
+
 const route = useRoute()
 const { t } = useI18n()
 
@@ -90,7 +92,7 @@ const openGroups = computed(() => {
       <v-container fluid class="py-6">
         <v-row>
           <v-col cols="12" md="3">
-            <v-card class="admin-layout__menu-card" rounded="xl" elevation="0">
+            <UiAside class="admin-layout__menu-card" rounded="xl" sticky-top="100px">
               <v-list
                 :opened="openGroups"
                 nav
@@ -137,7 +139,7 @@ const openGroups = computed(() => {
                   </v-list-group>
                 </template>
               </v-list>
-            </v-card>
+            </UiAside>
           </v-col>
 
           <v-col cols="12" md="9">
@@ -151,9 +153,7 @@ const openGroups = computed(() => {
 
 <style scoped>
 .admin-layout__menu-card {
-  position: sticky;
-  top: 100px;
-  background: transparent !important;
+  background: transparent;
 }
 
 .admin-layout__menu-list {

@@ -5,7 +5,7 @@ import { usePlatformsApi } from '~/composables/api/usePlatformsApi'
 import { usePluginsApi } from '~/composables/api/usePluginsApi'
 import { useProfileApi } from '~/composables/api/useProfileApi'
 import { useApplicationsStore } from '~/stores/applications'
-import UiPageSection from "~/components/ui/UiPageSection.vue";
+import UiAside from '~/components/ui/layout/UiAside.vue'
 
 definePageMeta({
   public: false,
@@ -176,8 +176,7 @@ const submit = async () => {
 <template>
   <section class="platform-new">
     <div class="platform-new__layout">
-      <aside class="platform-new__sidebar">
-        <v-card class="platform-new__side-card bg-transparent" rounded="lg">
+      <UiAside class="platform-new__sidebar">
           <h2 class="text-h6 mb-2">{{ t('platform.newPlatform.title') }}</h2>
           <p class="text-body-2 text-medium-emphasis mb-4">
             {{ t('platform.newPlatform.description') }}
@@ -197,8 +196,7 @@ const submit = async () => {
               <small>{{ t('platform.wizard.steps.plugins') }}</small>
             </div>
           </div>
-        </v-card>
-      </aside>
+      </UiAside>
 
       <div class="platform-new__content">
         <div class="wizard-header">
@@ -357,12 +355,6 @@ const submit = async () => {
   min-width: 0;
 }
 
-.platform-new__side-card {
-  position: sticky;
-  top: 84px;
-  padding: 1rem;
-}
-
 .platform-new__steps {
   display: flex;
   flex-direction: column;
@@ -472,9 +464,8 @@ const submit = async () => {
     grid-template-columns: 1fr;
   }
 
-  .platform-new__side-card {
+  :deep(.ui-aside__card--sticky) {
     position: static;
   }
 }
 </style>
-

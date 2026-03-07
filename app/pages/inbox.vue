@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import UiListCard from '~/components/ui/UiListCard.vue'
+import UiAside from '~/components/ui/layout/UiAside.vue'
 import UiPageShell from '~/components/ui/page/UiPageShell.vue'
 import UiStateEmptyState from '~/components/ui/state/UiEmptyState.vue'
 import UiStatChip from '~/components/ui/UiStatChip.vue'
@@ -87,7 +88,7 @@ const messages = computed(() => {
 
     <v-row>
       <v-col cols="12" lg="4">
-        <UiListCard>
+        <UiAside :sticky="false">
           <div class="d-flex align-center justify-space-between mb-3">
             <h2 class="text-subtitle-1 font-weight-bold mb-0">Conversations</h2>
             <UiStatChip :value="conversations.length" color="primary" />
@@ -124,7 +125,7 @@ const messages = computed(() => {
               </template>
             </v-list-item>
           </v-list>
-        </UiListCard>
+        </UiAside>
       </v-col>
 
       <v-col cols="12" lg="8">

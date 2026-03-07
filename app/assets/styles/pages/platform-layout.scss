@@ -15,7 +15,8 @@
   top: 1rem;
 }
 
-.platform-split-layout__card {
+.platform-split-layout__card,
+.ui-aside__card {
   position: relative;
   background: linear-gradient(160deg, #f6f6f8 0%, #ececef 100%);
   border-radius: 14px;
@@ -26,7 +27,8 @@
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.platform-split-layout__card::before {
+.platform-split-layout__card::before,
+.ui-aside__card::before {
   content: '';
   position: absolute;
   right: 0;
@@ -39,17 +41,28 @@
   transition: border-width 0.25s ease;
 }
 
-.platform-split-layout__card:hover {
+.platform-split-layout__card:hover,
+.ui-aside__card:hover {
   transform: translateY(-4px);
   box-shadow: 0 10px 20px rgba(45, 45, 94, 0.16);
 }
 
-.platform-split-layout__card:hover::before {
+.platform-split-layout__card:hover::before,
+.ui-aside__card:hover::before {
   border-width: 0 36px 36px 0;
 }
 
 .platform-split-layout__card--sidebar {
   min-height: 208px;
+}
+
+.ui-aside {
+  min-width: 0;
+}
+
+.ui-aside__card--sticky {
+  position: sticky;
+  top: var(--ui-aside-sticky-top, 84px);
 }
 
 .profile-page__identity {
