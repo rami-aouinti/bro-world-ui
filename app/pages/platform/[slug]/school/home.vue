@@ -23,7 +23,7 @@ const adminPath = computed(() => `/platform/${slug.value}/school/admin`)
         :subtitle="`Application ${slug}`"
       />
 
-      <div class="d-flex flex-column">
+      <div class="platform-layout__sidebar-actions">
         <v-btn variant="outlined" block :to="homePath">Home</v-btn>
       <v-btn variant="outlined" block :to="adminPath" class="mt-2">Admin</v-btn>
       <v-btn variant="text" block class="mt-2" to="/platform">Retour liste</v-btn>

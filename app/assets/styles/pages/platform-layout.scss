@@ -1,0 +1,46 @@
+.platform-split-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.platform-split-layout__sidebar,
+.platform-split-layout__content {
+  min-width: 0;
+}
+
+.platform-split-layout__sidebar-card {
+  position: sticky;
+  top: 1rem;
+}
+
+.profile-page__identity {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.profile-page__identity-name {
+  margin-bottom: 0;
+}
+
+.profile-page__identity-role {
+  margin-bottom: 0;
+}
+
+.platform-layout__sidebar-actions {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 960px) {
+  .platform-split-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .platform-split-layout__sidebar-card {
+    position: static;
+  }
+}
