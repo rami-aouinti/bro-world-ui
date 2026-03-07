@@ -7,24 +7,35 @@ definePageMeta({
   requiresAuth: false,
 })
 
-const { t } = useI18n()
+interface FaqCategory {
+  key: string
+  label: string
+  color: string
+  description: string
+}
+
+interface FaqItem {
+  category: string
+  question: string
+  answer: string
+  detailsParagraphs: string[]
+  bullets: string[]
+}
+
+interface FaqEmptyState {
+  title: string
+  description: string
+  suggestion: string
+}
+
+const { t, tm } = useI18n()
 
 const search = ref('')
 const selectedCategory = ref('all')
 
-const categories = [
-  { key: 'all', color: 'primary' },
-  { key: 'account', color: 'info' },
-  { key: 'platform', color: 'success' },
-  { key: 'security', color: 'warning' },
-]
-
-const faqItems = computed(() => [
-  { key: 'q1', category: 'account' },
-  { key: 'q2', category: 'platform' },
-  { key: 'q3', category: 'security' },
-  { key: 'q4', category: 'platform' },
-])
+const categories = computed(() => tm('faq.categories') as FaqCategory[])
+const faqItems = computed(() => tm('faq.items') as FaqItem[])
+const emptyState = computed(() => tm('faq.emptyState') as FaqEmptyState)
 
 const filteredFaqItems = computed(() => faqItems.value.filter((item) => {
   const query = search.value.trim().toLowerCase()
@@ -34,11 +45,17 @@ const filteredFaqItems = computed(() => faqItems.value.filter((item) => {
     return inCategory
   }
 
-  return inCategory && (
-    t(`faq.items.${item.key}.question`).toLowerCase().includes(query)
-    || t(`faq.items.${item.key}.answer`).toLowerCase().includes(query)
-  )
+  const matchesText = [
+    item.question,
+    item.answer,
+    ...item.detailsParagraphs,
+    ...item.bullets,
+  ].join(' ').toLowerCase().includes(query)
+
+  return inCategory && matchesText
 }))
+
+const categoryLabel = (key: string) => categories.value.find((category) => category.key === key)?.label ?? key
 </script>
 
 <template>
@@ -77,38 +94,41 @@ const filteredFaqItems = computed(() => faqItems.value.filter((item) => {
             class="cursor-pointer"
             @click="selectedCategory = category.key"
           >
-            {{ t(`faq.categories.${category.key}`) }}
+            {{ category.label }}
           </v-chip>
         </v-col>
       </v-row>
     </v-card>
 
     <v-expand-transition>
-      <v-expansion-panels multiple>
+      <v-expansion-panels v-if="filteredFaqItems.length" multiple>
         <v-expansion-panel
-          v-for="item in filteredFaqItems"
-          :key="item.key"
+          v-for="(item, index) in filteredFaqItems"
+          :key="`${item.question}-${index}`"
           class="mb-2"
         >
           <v-expansion-panel-title>
             <div class="d-flex align-center ga-3">
-              <v-chip size="small" variant="tonal">{{ t(`faq.categories.${item.category}`) }}</v-chip>
-              <span>{{ t(`faq.items.${item.key}.question`) }}</span>
+              <v-chip size="small" variant="tonal">{{ categoryLabel(item.category) }}</v-chip>
+              <span>{{ item.question }}</span>
             </div>
           </v-expansion-panel-title>
           <v-expansion-panel-text>
-            <p class="mb-0">{{ t(`faq.items.${item.key}.answer`) }}</p>
+            <p class="mb-2">{{ item.answer }}</p>
+            <p v-for="paragraph in item.detailsParagraphs" :key="`${item.question}-${paragraph}`" class="mb-2 text-body-2 text-medium-emphasis">
+              {{ paragraph }}
+            </p>
+            <ul class="text-body-2 ps-5 mb-0">
+              <li v-for="bullet in item.bullets" :key="`${item.question}-${bullet}`">{{ bullet }}</li>
+            </ul>
           </v-expansion-panel-text>
         </v-expansion-panel>
       </v-expansion-panels>
-    </v-expand-transition>
-
-    <v-fade-transition>
-      <v-card class="pa-5 mt-6" rounded="xl" variant="tonal">
-        <h2 class="text-h6 mb-2">{{ t('faq.contactCta.title') }}</h2>
-        <p class="text-body-2 text-medium-emphasis mb-4">{{ t('faq.contactCta.description') }}</p>
-        <v-btn color="primary">{{ t('faq.contactCta.action') }}</v-btn>
+      <v-card v-else class="pa-5" rounded="xl" variant="outlined">
+        <h2 class="text-h6 mb-2">{{ emptyState.title }}</h2>
+        <p class="text-body-2 text-medium-emphasis mb-2">{{ emptyState.description }}</p>
+        <p class="text-caption text-medium-emphasis mb-0">{{ emptyState.suggestion }}</p>
       </v-card>
-    </v-fade-transition>
+    </v-expand-transition>
   </UiPageSection>
 </template>

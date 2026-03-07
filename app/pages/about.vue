@@ -6,33 +6,53 @@ definePageMeta({
   requiresAuth: false,
 })
 
-const { t } = useI18n()
+interface AboutHero {
+  badge: string
+  title: string
+  subtitle: string
+  paragraphs: string[]
+  bullets: string[]
+  primaryCta: string
+  secondaryCta: string
+}
 
-const valueItems = [
-  {
-    key: 'impact',
-    icon: 'mdi-rocket-launch-outline',
-  },
-  {
-    key: 'trust',
-    icon: 'mdi-shield-check-outline',
-  },
-  {
-    key: 'innovation',
-    icon: 'mdi-lightbulb-on-outline',
-  },
-]
+interface AboutMissionCard {
+  title: string
+  description: string
+  paragraphs: string[]
+  bullets: string[]
+  icon: string
+}
 
-const keyNumbers = [
-  { key: 'users', icon: 'mdi-account-group-outline' },
-  { key: 'uptime', icon: 'mdi-server-network' },
-  { key: 'csat', icon: 'mdi-star-circle-outline' },
-]
+interface AboutMetric {
+  value: string
+  label: string
+  context: string
+  icon: string
+}
 
-const testimonials = [
-  { key: 'ops', icon: 'mdi-briefcase-outline' },
-  { key: 'community', icon: 'mdi-forum-outline' },
-]
+interface AboutTimelineItem {
+  title: string
+  period: string
+  description: string
+  highlights: string[]
+  icon: string
+}
+
+interface AboutCta {
+  title: string
+  description: string
+  primaryAction: string
+  secondaryAction: string
+}
+
+const { t, tm } = useI18n()
+
+const hero = computed(() => tm('about.hero') as AboutHero)
+const missionCards = computed(() => tm('about.missionCards') as AboutMissionCard[])
+const metrics = computed(() => tm('about.metrics') as AboutMetric[])
+const timeline = computed(() => tm('about.timeline') as AboutTimelineItem[])
+const cta = computed(() => tm('about.cta') as AboutCta)
 </script>
 
 <template>
@@ -40,56 +60,55 @@ const testimonials = [
     <v-fade-transition appear>
       <v-card class="pa-6 pa-md-8 mb-6 transition-elevation" elevation="4" rounded="xl" hover>
         <v-chip color="primary" class="mb-4" variant="tonal">
-          {{ t('about.hero.badge') }}
+          {{ hero.badge }}
         </v-chip>
 
-        <h1 class="text-h4 text-md-h3 font-weight-bold mb-2">{{ t('about.hero.title') }}</h1>
-        <p class="text-body-1 text-medium-emphasis mb-6">{{ t('about.hero.subtitle') }}</p>
+        <h1 class="text-h4 text-md-h3 font-weight-bold mb-2">{{ hero.title }}</h1>
+        <p class="text-body-1 text-medium-emphasis mb-4">{{ hero.subtitle }}</p>
+
+        <p v-for="paragraph in hero.paragraphs" :key="paragraph" class="text-body-2 text-medium-emphasis mb-3">
+          {{ paragraph }}
+        </p>
+
+        <ul class="text-body-2 mb-6 ps-5">
+          <li v-for="bullet in hero.bullets" :key="bullet" class="mb-1">{{ bullet }}</li>
+        </ul>
 
         <div class="d-flex flex-wrap ga-3">
-          <v-btn color="primary" size="large">{{ t('about.hero.primaryCta') }}</v-btn>
-          <v-btn variant="outlined" size="large">{{ t('about.hero.secondaryCta') }}</v-btn>
+          <v-btn color="primary" size="large">{{ hero.primaryCta }}</v-btn>
+          <v-btn variant="outlined" size="large">{{ hero.secondaryCta }}</v-btn>
         </div>
       </v-card>
     </v-fade-transition>
 
     <v-row class="mb-4" dense>
-      <v-col cols="12" md="6">
+      <v-col v-for="card in missionCards" :key="card.title" cols="12" md="6">
         <v-card class="pa-5 h-100 transition-elevation" rounded="xl" hover>
-          <h2 class="text-h6 mb-2">{{ t('about.blocks.mission.title') }}</h2>
-          <p class="text-body-2 text-medium-emphasis">{{ t('about.blocks.mission.description') }}</p>
-        </v-card>
-      </v-col>
-      <v-col cols="12" md="6">
-        <v-card class="pa-5 h-100 transition-elevation" rounded="xl" hover>
-          <h2 class="text-h6 mb-2">{{ t('about.blocks.vision.title') }}</h2>
-          <p class="text-body-2 text-medium-emphasis">{{ t('about.blocks.vision.description') }}</p>
+          <div class="d-flex align-center ga-2 mb-2">
+            <v-icon :icon="card.icon" color="primary" />
+            <h2 class="text-h6">{{ card.title }}</h2>
+          </div>
+          <p class="text-body-2 mb-3">{{ card.description }}</p>
+          <p v-for="paragraph in card.paragraphs" :key="`${card.title}-${paragraph}`" class="text-body-2 text-medium-emphasis mb-2">
+            {{ paragraph }}
+          </p>
+          <ul class="text-body-2 ps-5 mb-0">
+            <li v-for="bullet in card.bullets" :key="`${card.title}-${bullet}`" class="mb-1">{{ bullet }}</li>
+          </ul>
         </v-card>
       </v-col>
     </v-row>
 
-    <v-card class="pa-5 mb-6" rounded="xl" variant="tonal">
-      <h2 class="text-h6 mb-4">{{ t('about.blocks.values.title') }}</h2>
-      <v-row dense>
-        <v-col v-for="item in valueItems" :key="item.key" cols="12" sm="4">
-          <v-card class="pa-4 h-100 transition-elevation" rounded="lg" hover>
-            <v-icon :icon="item.icon" color="primary" class="mb-2" />
-            <h3 class="text-subtitle-1 font-weight-medium mb-1">{{ t(`about.blocks.values.items.${item.key}.title`) }}</h3>
-            <p class="text-body-2 text-medium-emphasis">{{ t(`about.blocks.values.items.${item.key}.description`) }}</p>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-card>
-
     <v-card class="pa-5 mb-6" rounded="xl">
-      <h2 class="text-h6 mb-4">{{ t('about.blocks.keyNumbers.title') }}</h2>
+      <h2 class="text-h6 mb-4">{{ t('about.metricsTitle') }}</h2>
       <v-row dense>
-        <v-col v-for="number in keyNumbers" :key="number.key" cols="12" sm="4">
+        <v-col v-for="metric in metrics" :key="metric.label" cols="12" sm="4">
           <div class="d-flex align-center ga-3 px-2 py-3 rounded-lg stat-item">
-            <v-icon :icon="number.icon" color="primary" />
+            <v-icon :icon="metric.icon" color="primary" />
             <div>
-              <div class="text-h6 font-weight-bold">{{ t(`about.blocks.keyNumbers.items.${number.key}.value`) }}</div>
-              <div class="text-body-2 text-medium-emphasis">{{ t(`about.blocks.keyNumbers.items.${number.key}.label`) }}</div>
+              <div class="text-h6 font-weight-bold">{{ metric.value }}</div>
+              <div class="text-body-2">{{ metric.label }}</div>
+              <div class="text-caption text-medium-emphasis">{{ metric.context }}</div>
             </div>
           </div>
         </v-col>
@@ -98,23 +117,38 @@ const testimonials = [
 
     <v-expand-transition>
       <v-card class="pa-5" rounded="xl" variant="outlined">
-        <h2 class="text-h6 mb-4">{{ t('about.blocks.testimonials.title') }}</h2>
+        <h2 class="text-h6 mb-4">{{ t('about.timelineTitle') }}</h2>
         <v-timeline density="compact" side="end" truncate-line="both">
           <v-timeline-item
-            v-for="entry in testimonials"
-            :key="entry.key"
+            v-for="entry in timeline"
+            :key="entry.title"
             :dot-icon="entry.icon"
             fill-dot
             size="small"
           >
             <v-card class="pa-4 transition-elevation" rounded="lg" hover>
-              <p class="text-body-2 mb-2">{{ t(`about.blocks.testimonials.items.${entry.key}.quote`) }}</p>
-              <p class="text-caption text-medium-emphasis">{{ t(`about.blocks.testimonials.items.${entry.key}.author`) }}</p>
+              <p class="text-caption text-medium-emphasis mb-1">{{ entry.period }}</p>
+              <p class="text-subtitle-1 font-weight-medium mb-2">{{ entry.title }}</p>
+              <p class="text-body-2 mb-2">{{ entry.description }}</p>
+              <ul class="text-body-2 ps-5 mb-0">
+                <li v-for="highlight in entry.highlights" :key="`${entry.title}-${highlight}`">{{ highlight }}</li>
+              </ul>
             </v-card>
           </v-timeline-item>
         </v-timeline>
       </v-card>
     </v-expand-transition>
+
+    <v-fade-transition>
+      <v-card class="pa-5 mt-6" rounded="xl" variant="tonal">
+        <h2 class="text-h6 mb-2">{{ cta.title }}</h2>
+        <p class="text-body-2 text-medium-emphasis mb-4">{{ cta.description }}</p>
+        <div class="d-flex flex-wrap ga-3">
+          <v-btn color="primary">{{ cta.primaryAction }}</v-btn>
+          <v-btn variant="outlined">{{ cta.secondaryAction }}</v-btn>
+        </div>
+      </v-card>
+    </v-fade-transition>
   </UiPageSection>
 </template>
 
