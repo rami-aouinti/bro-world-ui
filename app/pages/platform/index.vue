@@ -262,30 +262,39 @@ const disableApplication = async () => {
             {{ t("platform.newPlatform.worldTitle") }}
           </v-btn>
         </div>
+        <v-row>
+          <v-col cols="12" md="6" lg="4">
+            <v-card
+                class="platform-page__application-card"
+                rounded="xl"
+                elevation="8"
+            >
+              <v-card-text>
+                <div class="d-flex flex-column align-center">
+                  <v-icon icon="mdi-earth" size="64" class="mx-auto" color="primary" />
+                  <h2> New World </h2>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+          <v-col cols="12" md="6" lg="4" v-for="card in applicationsStore.items" :key="card.id">
+            <v-card
+                class="platform-page__application-card"
+                rounded="xl"
+                elevation="8"
+            >
+              <v-toolbar color="transparent">
+                <template v-slot:prepend>
+                  <v-img rounded="xl" :src="card.photo" :alt="card.title" height="40" width="40" />
+                </template>
+                <NuxtLink :to="appHomePath(card)" class="platform-page__row-main-link">
+                  <v-toolbar-title class="mt-4 mx-auto">
+                    <p class="platform-page__row-title">{{ card.title }}</p>
+                  </v-toolbar-title>
+                </NuxtLink>
 
-        <v-card class="platform-page__applications" rounded="xl" variant="outlined">
-          <v-card-text>
-            <div class="platform-page__cards-grid">
-              <v-card
-                  v-for="card in applicationsStore.items"
-                  :key="card.id"
-                  class="platform-page__application-card"
-                  rounded="lg"
-                  variant="outlined"
-              >
-                <div class="platform-page__card-header">
-                  <NuxtLink :to="appHomePath(card)" class="platform-page__row-main-link">
-                    <div class="platform-page__row-brand">
-                      <img :src="card.photo" :alt="card.title" class="platform-page__cover" />
-                      <div class="platform-page__headline">
-                        <p class="platform-page__row-title">{{ card.title }}</p>
-                        <p class="platform-page__row-description">
-                          {{ card.description || card.platformName }}
-                        </p>
-                      </div>
-                    </div>
-                  </NuxtLink>
 
+                <template v-slot:append>
                   <v-menu v-if="card.isOwner" location="bottom end">
                     <template #activator="{ props }">
                       <v-btn icon="mdi-dots-vertical" variant="text" density="comfortable" v-bind="props" />
@@ -295,29 +304,24 @@ const disableApplication = async () => {
                       <v-list-item :title="t('platform.actions.delete')" @click="openDeleteModal(card)" />
                     </v-list>
                   </v-menu>
-                </div>
+                </template>
+              </v-toolbar>
 
-                <div class="platform-page__chips-row">
-                  <v-chip size="small" variant="tonal" class="text-uppercase">
-                    {{ card.platformKey }}
-                  </v-chip>
-                  <v-chip
-                      :color="card.status === 'active' ? 'success' : undefined"
-                      variant="tonal"
-                      size="small"
-                      class="text-capitalize"
-                  >
-                    {{
-                      card.status === "active"
-                          ? t("platform.status.active")
-                          : t("platform.status.inactive")
-                    }}
-                  </v-chip>
-                </div>
+              <div class="platform-page__card-header">
+                <NuxtLink :to="appHomePath(card)" class="platform-page__row-main-link">
+                  <div class="platform-page__row-brand">
+                    <div class="platform-page__headline">
+                      <p class="platform-page__row-description">
+                        {{ card.description || card.platformName }}
+                      </p>
+                    </div>
+                  </div>
+                </NuxtLink>
+              </div>
 
-                <div class="platform-page__card-meta">
-                  <div>
-                    <p class="platform-page__meta-label">{{ t("platform.table.owner") }}</p>
+              <v-card-actions>
+                <v-row>
+                  <div class="justify-self-start">
                     <UserIdentity
                         :first-name="card.author?.firstName"
                         :last-name="card.author?.lastName"
@@ -326,18 +330,18 @@ const disableApplication = async () => {
                         :profile-path="authorProfilePath(card)"
                     />
                   </div>
-                  <div>
-                    <p class="platform-page__meta-label">{{ t("platform.table.updatedAt") }}</p>
-                    <p class="platform-page__meta-value">{{ formatDate(card.createdAt) }}</p>
+                  <v-spacer></v-spacer>
+                  <div class="justify-items-end">
+                    <v-chip size="small" variant="tonal" class="text-uppercase">
+                      {{ card.platformKey }}
+                    </v-chip>
                   </div>
-                </div>
-
-              </v-card>
-            </div>
-          </v-card-text>
-        </v-card>
-
-        <div class="platform-page__pagination">
+                </v-row>
+              </v-card-actions>
+            </v-card>
+          </v-col>
+        </v-row>
+        <div class="platform-page__pagination py-4">
           <v-pagination
               :model-value="applicationsStore.pagination.page"
               :length="applicationsStore.pagination.totalPages"
