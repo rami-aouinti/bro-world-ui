@@ -21,7 +21,8 @@
       "adminRoles": "Roles",
       "adminGroups": "Groups",
       "adminApiKeys": "API keys",
-      "settings": "Settings"
+      "settings": "Settings",
+      "inbox": "Messages"
     }
   },
   "login": {
