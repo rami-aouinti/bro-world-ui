@@ -3,6 +3,8 @@ import UserIdentity from "~/components/UserIdentity.vue";
 import UiPageSection from "~/components/ui/UiPageSection.vue";
 import UiEmptyState from "~/components/ui/state/UiEmptyState.vue";
 import UiSkeletonCardGrid from "~/components/ui/state/UiSkeletonCardGrid.vue";
+import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
+import PlatformSidebarNav from "~/components/platform/PlatformSidebarNav.vue";
 
 definePageMeta({
   public: true,
@@ -185,16 +187,68 @@ const disableApplication = async () => {
 </script>
 
 <template>
-  <UiPageSection max-width="100%">
-    <section class="platform-page">
-      <UiSkeletonCardGrid v-if="loading" class="platform-page__state" />
+  <PlatformSplitLayout>
 
+    <template #sidebar>
+      <PlatformSidebarNav title="Platform" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems">
+        <v-divider class="my-4" />
+        <v-text-field
+            v-model="search"
+            :label="t('platform.filters.search')"
+            prepend-inner-icon="mdi-magnify"
+            variant="solo"
+            flat
+            density="comfortable"
+            hide-details
+            class="mb-4"
+            @keyup.enter="applyFilters"
+        />
+
+        <p class="platform-page__platform-key-label mb-2">
+          {{ t("platform.filters.platformKey") }}
+        </p>
+        <div class="platform-page__platform-key-buttons mb-4">
+          <v-btn
+              v-for="platformKey in platformKeyOptions"
+              :key="platformKey"
+              :color="
+                    selectedPlatformKey === platformKey ? 'primary' : undefined
+                  "
+              :variant="
+                    selectedPlatformKey === platformKey ? 'flat' : 'outlined'
+                  "
+              size="small"
+              rounded="pill"
+              class="text-lowercase"
+              @click="togglePlatformKey(platformKey)"
+          >
+            {{ platformKey }}
+          </v-btn>
+        </div>
+
+        <div class="platform-page__filters-actions">
+          <v-btn color="primary" block @click="applyFilters">{{
+              t("platform.filters.apply")
+            }}</v-btn>
+          <v-btn
+              variant="text"
+              block
+              class="mt-2"
+              @click="clearFilters"
+          >{{ t("platform.filters.clear") }}</v-btn
+          >
+        </div>
+      </PlatformSidebarNav>
+    </template>
+
+    <section>
+      <UiSkeletonCardGrid v-if="loading" class="platform-page__state" />
       <UiEmptyState
-        v-else-if="isEmpty"
-        :title="t('platform.title')"
-        :description="t('platform.filters.clear')"
-        icon="mdi-earth-off"
-        class="platform-page__state"
+          v-else-if="isEmpty"
+          :title="t('platform.title')"
+          :description="t('platform.filters.clear')"
+          icon="mdi-earth-off"
+          class="platform-page__state"
       >
         <template #action>
           <v-btn color="primary" rounded="pill" @click="goToNewPlatform">
@@ -202,227 +256,165 @@ const disableApplication = async () => {
           </v-btn>
         </template>
       </UiEmptyState>
+      <div v-else class="platform-page__content">
+        <div class="platform-page__toolbar">
+          <h2 class="platform-page__title">{{ t("platform.title") }}</h2>
+          <v-btn color="primary" rounded="pill" @click="goToNewPlatform">
+            {{ t("platform.newPlatform.worldTitle") }}
+          </v-btn>
+        </div>
 
-      <div v-else class="platform-page__layout">
-        <aside class="platform-page__sidebar">
-          <v-card class="platform-page__filters" rounded="xl" variant="outlined">
-            <v-card-title class="text-h6 platform-page__filters-title">{{
-              t("platform.filters.title")
-            }}</v-card-title>
-            <v-card-text>
-              <v-text-field
-                v-model="search"
-                :label="t('platform.filters.search')"
-                prepend-inner-icon="mdi-magnify"
-                variant="solo"
-                flat
-                density="comfortable"
-                hide-details
-                class="mb-4"
-                @keyup.enter="applyFilters"
-              />
-
-              <p class="platform-page__platform-key-label mb-2">
-                {{ t("platform.filters.platformKey") }}
-              </p>
-              <div class="platform-page__platform-key-buttons mb-4">
-                <v-btn
-                  v-for="platformKey in platformKeyOptions"
-                  :key="platformKey"
-                  :color="
-                    selectedPlatformKey === platformKey ? 'primary' : undefined
-                  "
-                  :variant="
-                    selectedPlatformKey === platformKey ? 'flat' : 'outlined'
-                  "
-                  size="small"
-                  rounded="pill"
-                  class="text-lowercase"
-                  @click="togglePlatformKey(platformKey)"
-                >
-                  {{ platformKey }}
-                </v-btn>
-              </div>
-
-              <div class="platform-page__filters-actions">
-                <v-btn color="primary" block @click="applyFilters">{{
-                  t("platform.filters.apply")
-                }}</v-btn>
-                <v-btn
-                  variant="text"
-                  block
-                  class="mt-2"
-                  @click="clearFilters"
-                  >{{ t("platform.filters.clear") }}</v-btn
-                >
-              </div>
-            </v-card-text>
-          </v-card>
-        </aside>
-
-        <div class="platform-page__content">
-          <div class="platform-page__toolbar">
-            <h2 class="platform-page__title">{{ t("platform.title") }}</h2>
-            <v-btn color="primary" rounded="pill" @click="goToNewPlatform">
-              {{ t("platform.newPlatform.worldTitle") }}
-            </v-btn>
-          </div>
-
-          <v-card class="platform-page__applications" rounded="xl" variant="outlined">
-            <v-card-text>
-              <div class="platform-page__cards-grid">
-                <v-card
+        <v-card class="platform-page__applications" rounded="xl" variant="outlined">
+          <v-card-text>
+            <div class="platform-page__cards-grid">
+              <v-card
                   v-for="card in applicationsStore.items"
                   :key="card.id"
                   class="platform-page__application-card"
                   rounded="lg"
                   variant="outlined"
-                >
-                  <div class="platform-page__card-header">
-                    <NuxtLink :to="appHomePath(card)" class="platform-page__row-main-link">
-                      <div class="platform-page__row-brand">
-                        <img :src="card.photo" :alt="card.title" class="platform-page__logo" />
-                        <div>
-                          <p class="platform-page__row-title">{{ card.title }}</p>
-                          <p class="platform-page__row-description">
-                            {{ card.description || card.platformName }}
-                          </p>
-                        </div>
+              >
+                <div class="platform-page__card-header">
+                  <NuxtLink :to="appHomePath(card)" class="platform-page__row-main-link">
+                    <div class="platform-page__row-brand">
+                      <img :src="card.photo" :alt="card.title" class="platform-page__logo" />
+                      <div>
+                        <p class="platform-page__row-title">{{ card.title }}</p>
+                        <p class="platform-page__row-description">
+                          {{ card.description || card.platformName }}
+                        </p>
                       </div>
-                    </NuxtLink>
+                    </div>
+                  </NuxtLink>
 
-                    <v-menu v-if="card.isOwner" location="bottom end">
-                      <template #activator="{ props }">
-                        <v-btn icon="mdi-dots-vertical" variant="text" density="comfortable" v-bind="props" />
-                      </template>
-                      <v-list density="compact">
-                        <v-list-item :title="t('platform.actions.edit')" @click="openEditModal(card)" />
-                        <v-list-item :title="t('platform.actions.delete')" @click="openDeleteModal(card)" />
-                      </v-list>
-                    </v-menu>
-                  </div>
+                  <v-menu v-if="card.isOwner" location="bottom end">
+                    <template #activator="{ props }">
+                      <v-btn icon="mdi-dots-vertical" variant="text" density="comfortable" v-bind="props" />
+                    </template>
+                    <v-list density="compact">
+                      <v-list-item :title="t('platform.actions.edit')" @click="openEditModal(card)" />
+                      <v-list-item :title="t('platform.actions.delete')" @click="openDeleteModal(card)" />
+                    </v-list>
+                  </v-menu>
+                </div>
 
-                  <div class="platform-page__chips-row">
-                    <v-chip size="small" variant="tonal" class="text-uppercase">
-                      {{ card.platformKey }}
-                    </v-chip>
-                    <v-chip
+                <div class="platform-page__chips-row">
+                  <v-chip size="small" variant="tonal" class="text-uppercase">
+                    {{ card.platformKey }}
+                  </v-chip>
+                  <v-chip
                       :color="card.status === 'active' ? 'success' : undefined"
                       variant="tonal"
                       size="small"
                       class="text-capitalize"
-                    >
-                      {{
-                        card.status === "active"
+                  >
+                    {{
+                      card.status === "active"
                           ? t("platform.status.active")
                           : t("platform.status.inactive")
-                      }}
-                    </v-chip>
-                  </div>
+                    }}
+                  </v-chip>
+                </div>
 
-                  <div class="platform-page__card-meta">
-                    <div>
-                      <p class="platform-page__meta-label">{{ t("platform.table.owner") }}</p>
-                      <UserIdentity
+                <div class="platform-page__card-meta">
+                  <div>
+                    <p class="platform-page__meta-label">{{ t("platform.table.owner") }}</p>
+                    <UserIdentity
                         :first-name="card.author?.firstName"
                         :last-name="card.author?.lastName"
                         :username="authorUsername(card)"
                         :photo="card.author?.photo"
                         :profile-path="authorProfilePath(card)"
-                      />
-                    </div>
-                    <div>
-                      <p class="platform-page__meta-label">{{ t("platform.table.updatedAt") }}</p>
-                      <p class="platform-page__meta-value">{{ formatDate(card.createdAt) }}</p>
-                    </div>
+                    />
                   </div>
-                </v-card>
-              </div>
-            </v-card-text>
-          </v-card>
+                  <div>
+                    <p class="platform-page__meta-label">{{ t("platform.table.updatedAt") }}</p>
+                    <p class="platform-page__meta-value">{{ formatDate(card.createdAt) }}</p>
+                  </div>
+                </div>
+              </v-card>
+            </div>
+          </v-card-text>
+        </v-card>
 
-          <div class="platform-page__pagination">
-            <v-pagination
+        <div class="platform-page__pagination">
+          <v-pagination
               :model-value="applicationsStore.pagination.page"
               :length="applicationsStore.pagination.totalPages"
               :total-visible="6"
               @update:model-value="onPageChange"
-            />
-          </div>
+          />
         </div>
       </div>
-
       <UiActionDialog
-        v-model="editDialog"
-        :title="t('platform.actions.editTitle')"
-        max-width="560"
-        persistent
+          v-model="editDialog"
+          :title="t('platform.actions.editTitle')"
+          max-width="560"
+          persistent
       >
         <template v-if="selectedApp">
           <v-text-field
-            v-model="selectedApp.title"
-            :label="t('platform.wizard.fields.title')"
-            class="mb-3"
+              v-model="selectedApp.title"
+              :label="t('platform.wizard.fields.title')"
+              class="mb-3"
           />
           <v-select
-            v-model="selectedApp.status"
-            :label="t('platform.wizard.fields.active')"
-            :items="[
+              v-model="selectedApp.status"
+              :label="t('platform.wizard.fields.active')"
+              :items="[
               { title: t('platform.status.active'), value: 'active' },
               { title: t('platform.status.inactive'), value: 'inactive' },
             ]"
-            item-title="title"
-            item-value="value"
-            class="mb-3"
+              item-title="title"
+              item-value="value"
+              class="mb-3"
           />
           <v-switch
-            v-model="selectedApp.private"
-            :label="t('platform.wizard.fields.private')"
-            inset
-            hide-details
+              v-model="selectedApp.private"
+              :label="t('platform.wizard.fields.private')"
+              inset
+              hide-details
           />
         </template>
 
         <template #actions>
           <v-btn
-            variant="text"
-            :disabled="submitting"
-            @click="editDialog = false"
-            >{{ t("admin.common.cancel") }}</v-btn
+              variant="text"
+              :disabled="submitting"
+              @click="editDialog = false"
+          >{{ t("admin.common.cancel") }}</v-btn
           >
           <v-btn
-            color="primary"
-            :loading="submitting"
-            @click="saveApplication"
-            >{{ t("admin.common.save") }}</v-btn
+              color="primary"
+              :loading="submitting"
+              @click="saveApplication"
+          >{{ t("admin.common.save") }}</v-btn
           >
         </template>
       </UiActionDialog>
-
       <UiActionConfirmDialog
-        v-model="deleteDialog"
-        :title="t('platform.actions.deleteTitle')"
-        :message="
+          v-model="deleteDialog"
+          :title="t('platform.actions.deleteTitle')"
+          :message="
           t('platform.actions.deleteMessage', {
             title: selectedApp?.title || '',
           })
         "
-        :confirm-label="t('platform.actions.delete')"
-        :cancel-label="t('admin.common.cancel')"
-        :loading="submitting"
-        @confirm="disableApplication"
+          :confirm-label="t('platform.actions.delete')"
+          :cancel-label="t('admin.common.cancel')"
+          :loading="submitting"
+          @confirm="disableApplication"
       />
-
       <button
-        type="button"
-        class="platform-page__assistant"
-        :aria-label="t('platform.assistant')"
+          type="button"
+          class="platform-page__assistant"
+          :aria-label="t('platform.assistant')"
       >
         <v-icon icon="mdi-message-outline" size="22" />
         <v-icon icon="mdi-format-list-bulleted" size="22" />
       </button>
     </section>
-  </UiPageSection>
+  </PlatformSplitLayout>
 </template>
 
 <style scoped>
