@@ -20,6 +20,7 @@ export default defineNuxtConfig({
     'vuetify/styles',
     '~/assets/styles/material-dashboard.scss',
     '~/assets/styles/index.css',
+    '~/assets/styles/pages/index.scss',
     '~/assets/styles/pages/platform-layout.scss',
   ],
   i18n: {

@@ -1,4 +1,4 @@
-main.help-page {
+main.faq-page {
   position: relative;
   overflow: hidden;
   background:
@@ -11,12 +11,12 @@ main.help-page {
     );
 }
 
-.help-container {
+.faq-container {
   position: relative;
   z-index: 1;
 }
 
-.help-hero__surface {
+.faq-hero__surface {
   padding: 40px;
   background:
     linear-gradient(135deg, rgba(var(--v-theme-primary), 0.16), transparent 45%),
@@ -25,7 +25,7 @@ main.help-page {
   backdrop-filter: blur(16px);
 }
 
-.help-hero__badge {
+.faq-hero__badge {
   display: inline-flex;
   align-items: center;
   padding: 6px 14px;
@@ -35,27 +35,7 @@ main.help-page {
   margin-bottom: 20px;
 }
 
-.tracking-wide {
-  letter-spacing: 0.14em;
-}
-
-.help-hero__search {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  margin-top: 24px;
-}
-
-.help-hero__search :deep(.v-field) {
-  background-color: rgba(var(--v-theme-surface), 0.85);
-}
-
-.help-hero__count {
-  font-weight: 600;
-}
-
-.help-actions {
+.faq-filters {
   padding: 36px 32px;
   background:
     linear-gradient(135deg, rgba(var(--v-theme-secondary), 0.16), transparent 45%),
@@ -64,34 +44,11 @@ main.help-page {
   backdrop-filter: blur(14px);
 }
 
-.help-actions__row {
-  row-gap: 24px;
+.faq-filters__chips {
+  row-gap: 12px;
 }
 
-.help-actions__card {
-  height: 100%;
-  padding: 28px 24px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  background: rgba(var(--v-theme-surface), 0.85);
-  border: 1px solid rgba(var(--v-theme-outline-variant), 0.35);
-  transition:
-    transform 200ms ease,
-    box-shadow 200ms ease;
-}
-
-.help-actions__card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 18px 40px -22px rgba(var(--v-theme-on-surface), 0.4);
-}
-
-.help-actions__icon {
-  background: rgba(var(--v-theme-primary), 0.12);
-  color: rgba(var(--v-theme-primary), 0.95);
-}
-
-.help-faq {
+.faq-panels {
   padding: 36px 32px;
   background:
     linear-gradient(135deg, rgba(var(--v-theme-tertiary), 0.15), transparent 55%),
@@ -100,40 +57,36 @@ main.help-page {
   backdrop-filter: blur(14px);
 }
 
-.help-faq__panels {
+.faq-panels__list {
   background: transparent;
 }
 
-.help-faq__panels :deep(.v-expansion-panel) {
+.faq-panels__list :deep(.v-expansion-panel) {
   border-radius: var(--radius, var(--ui-card-radius));
   margin-bottom: 12px;
   border: 1px solid rgba(var(--v-theme-outline-variant), 0.28);
   background: rgba(var(--v-theme-surface), 0.92);
 }
 
-.help-faq__panels :deep(.v-expansion-panel-title) {
+.faq-panels__list :deep(.v-expansion-panel-title) {
   padding: 18px 24px;
 }
 
-.help-faq__panels :deep(.v-expansion-panel-text__wrapper) {
+.faq-panels__list :deep(.v-expansion-panel-text__wrapper) {
   padding: 0 24px 20px;
 }
 
 @media (max-width: 1024px) {
-  .help-hero__surface,
-  .help-actions,
-  .help-faq {
+  .faq-hero__surface,
+  .faq-filters,
+  .faq-panels {
     padding: 28px 24px;
   }
 }
 
 @media (max-width: 600px) {
-  main.help-page {
+  main.faq-page {
     padding-block: 60px;
   }
 
-  .help-hero__search {
-    flex-direction: column;
-    align-items: stretch;
-  }
 }
