@@ -5,7 +5,11 @@ import orderedProductImage from '~/assets/images/shop/orders/ordered-headphones.
 import mastercardLogo from '~/assets/images/shop/orders/mastercard-logo.svg'
 import { getShopNav } from '~/data/platform-nav'
 
-definePageMeta({ public: true, requiresAuth: false })
+definePageMeta({
+  public: true,
+  requiresAuth: false,
+  path: '/platform/:slug/shop/orders/:orderId'
+})
 
 type TimelineState = 'done' | 'current' | 'upcoming'
 
