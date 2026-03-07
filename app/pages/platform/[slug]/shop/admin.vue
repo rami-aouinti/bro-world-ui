@@ -3,6 +3,9 @@ import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import { shopProducts } from '~/data/platform-demo'
 import { getShopNav } from '~/data/platform-nav'
+import UiEmptyState from '~/components/ui/state/UiEmptyState.vue'
+import UiLoadingState from '~/components/ui/state/UiLoadingState.vue'
+import UiStateAlert from '~/components/ui/state/UiStateAlert.vue'
 
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
@@ -12,9 +15,11 @@ const platformPermissions = usePlatformPermissions(slug)
 const { isOwner } = platformPermissions
 const navItems = computed(() => getShopNav(slug.value, isOwner.value))
 const accessDenied = ref(false)
+const checkingAccess = ref(true)
 
 onMounted(async () => {
   await platformPermissions.resolveApplication()
+  checkingAccess.value = false
 
   if (!platformPermissions.canAccessAdmin.value) {
     accessDenied.value = true
@@ -29,12 +34,20 @@ onMounted(async () => {
 <template>
   <PlatformSplitLayout>
     <template #sidebar><PlatformSidebarNav title="platform.shop.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" /></template>
-    <section>
-      <v-alert v-if="accessDenied" type="error" variant="tonal" class="mb-4">
+    <section class="platform-shop-admin-page">
+      <UiLoadingState v-if="checkingAccess" class="platform-shop-admin-state" variant="spinner" message="Chargement des permissions admin…" />
+      <UiStateAlert v-else-if="accessDenied" type="error" class="mb-4 platform-shop-admin-state">
         Accès refusé à l’espace admin Shop. Redirection en cours…
-      </v-alert>
+      </UiStateAlert>
+      <UiEmptyState
+        v-else-if="shopProducts.length === 0"
+        class="platform-shop-admin-state"
+        icon="mdi-package-variant-closed-remove"
+        title="Aucun élément"
+        description="Les cartes d'administration apparaîtront ici dès que les données seront disponibles."
+      />
       <template v-else>
-        <h1 class="text-h5 font-weight-bold mb-4 text-capitalize">{{ page }}</h1>
+        <h1 class="text-h5 font-weight-bold mb-4 text-capitalize platform-shop-admin-title" :aria-label="`Section ${page}`">{{ page }}</h1>
         <v-row>
           <v-col v-for="(product, i) in shopProducts.slice(0, 5)" :key="product.slug" cols="12" md="6" lg="4">
             <v-card rounded="xl" variant="outlined">
