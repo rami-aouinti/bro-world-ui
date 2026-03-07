@@ -1,0 +1,64 @@
+@use "variables" as *;
+
+// Vendor-only overrides kept with !important to trump Vuetify runtime/injected styles.
+// Keep this file scoped and small to avoid global cascade contamination.
+
+.fixed-plugin {
+  .v-card {
+    position: fixed !important;
+    right: -360px;
+    top: 64px;
+    height: 85%;
+    left: auto !important;
+    transform: unset !important;
+    width: 360px;
+    border-radius: 0;
+    padding: 0 10px;
+    transition: 0.7s ease;
+    z-index: 1020;
+  }
+
+  &.show .v-card {
+    right: 0;
+  }
+}
+
+.fixed-plugin-education,
+.fixed-plugin-skill,
+.fixed-plugin-language,
+.fixed-plugin-hobby {
+  .v-card {
+    position: fixed !important;
+    right: -390px;
+    max-height: 500px;
+    left: auto !important;
+    transform: unset !important;
+    width: 390px;
+    border-radius: 0;
+    padding: 0;
+    transition: 0.7s ease;
+    z-index: 1020;
+    overflow-y: auto;
+  }
+
+  &.show .v-card {
+    right: 75px;
+  }
+}
+
+.fixed-plugin-education .v-card {
+  bottom: 135px;
+  max-height: 600px;
+}
+
+.fixed-plugin-skill .v-card {
+  bottom: 195px;
+}
+
+.fixed-plugin-language .v-card {
+  bottom: 255px;
+}
+
+.fixed-plugin-hobby .v-card {
+  bottom: 315px;
+}

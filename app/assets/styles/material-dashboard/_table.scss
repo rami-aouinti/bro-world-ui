@@ -8,22 +8,22 @@
 
   &.thead-light .v-data-table-header,
   .thead-light th {
-    color: $gray-600 !important;
+    color: $gray-600;
     background: linear-gradient(195deg, rgba($gray-100, 0.95), $white);
   }
 
   &.thead-light .v-data-table-header th {
-    color: $gray-600 !important;
+    color: $gray-600;
   }
 
   &.thead-dark .v-data-table-header,
   .thead-dark th {
     background-color: $table-bg-dark;
-    color: $table-color-dark !important;
+    color: $table-color-dark;
   }
 
   &.thead-dark .v-data-table-header th {
-    color: $table-color-dark !important;
+    color: $table-color-dark;
   }
 
   .sortable .v-icon {
@@ -31,16 +31,16 @@
   }
 
   &.thead-dark .sortable .v-icon {
-    color: $table-color-dark !important;
+    color: $table-color-dark;
   }
 
   &.thead-light .sortable .v-icon {
-    color: $gray-600 !important;
+    color: $gray-600;
   }
 
   thead th,
   &.v-data-table tr:not(:last-child) tbody td {
-    border-bottom: 1px solid $gray-200 !important;
+    border-bottom: 1px solid $gray-200;
   }
 
   &.v-data-table .v-data-footer {
@@ -53,9 +53,9 @@
     letter-spacing: $thead-th-ls;
     text-transform: uppercase;
     font-weight: $font-weight-bold;
-    font-size: $thead-th-font-size !important;
-    padding-top: $thead-th-p !important;
-    padding-bottom: $thead-th-p !important;
+    font-size: $thead-th-font-size;
+    padding-top: $thead-th-p;
+    padding-bottom: $thead-th-p;
   }
 
   tbody td {
@@ -64,16 +64,16 @@
   }
 
   tbody tr:hover {
-    background-color: rgba($primary, 0.04) !important;
+    background-color: rgba($primary, 0.04);
   }
 
   &.table-border-dark thead th {
     border-top: 1px solid $table-border-dark-color;
-    border-bottom: 1px solid $table-border-dark-color !important;
+    border-bottom: 1px solid $table-border-dark-color;
   }
 
   &.table-border-dark tbody tr:not(:last-child) td {
-    border-bottom: 1px solid $table-border-dark-color !important;
+    border-bottom: 1px solid $table-border-dark-color;
   }
 
   &.table-striped tbody tr:nth-of-type(odd) {

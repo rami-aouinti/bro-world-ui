@@ -59,15 +59,15 @@ $map: (
 }
 
 .text-color-search-dark input {
-  color: rgba($white, 0.5) !important;
+  color: rgba($white, 0.5);
 }
 
 .text-color-light input {
-  color: $gray-600 !important;
+  color: $gray-600;
 }
 
 .text-color-white input {
-  color: $white !important;
+  color: $white;
 }
 
 .font-size-input {
@@ -97,12 +97,12 @@ $map: (
 
 .text-light-input input,
 .text-light-input textarea {
-  color: $gray-700 !important;
+  color: $gray-700;
 }
 
 .navbar-search {
   &.navbar-search-dark .v-input--is-focused .v-input__slot {
-    background-color: $input-dark-bg !important;
+    background-color: $input-dark-bg;
   }
 }
 
@@ -155,6 +155,6 @@ $map: (
 
   .v-messages__message,
   .checkbox-validation {
-    color: map.get($theme-colors, "danger") !important;
+    color: map.get($theme-colors, "danger");
   }
 }
