@@ -20,7 +20,7 @@ const profileApi = useProfileApi()
 const applicationsStore = useApplicationsStore()
 
 const step = ref(1)
-const loading = ref(false)
+const loading = ref(true)
 const creating = ref(false)
 const errorMessage = ref('')
 
@@ -65,7 +65,9 @@ const loadWizardData = async () => {
   }
 }
 
-await loadWizardData()
+onMounted(() => {
+  void loadWizardData()
+})
 
 const togglePlugin = (pluginId: string) => {
   if (selectedPluginIds.value.includes(pluginId)) {
