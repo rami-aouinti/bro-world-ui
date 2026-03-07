@@ -1,31 +1,11 @@
 <script setup lang="ts">
-import PlatformDomainSidebar from '~/components/platform/PlatformDomainSidebar.vue'
 import UiAside from '~/components/ui/layout/UiAside.vue'
-
-const route = useRoute()
-
-const currentDomain = computed(() => {
-  const domain = String(route.params.domain ?? '')
-  if (['crm', 'shop', 'recruit', 'school'].includes(domain)) {
-    return domain as 'crm' | 'shop' | 'recruit' | 'school'
-  }
-
-  const matched = route.path.match(/^\/platform\/[^/]+\/(crm|shop|recruit|school)\b/)
-  return (matched?.[1] as 'crm' | 'shop' | 'recruit' | 'school' | undefined) ?? null
-})
-
-const currentSlug = computed(() => String(route.params.slug ?? ''))
 </script>
 
 <template>
   <div class="platform-split-layout">
     <UiAside class="platform-split-layout__sidebar">
-      <PlatformDomainSidebar
-        v-if="currentDomain && currentSlug"
-        :domain="currentDomain"
-        :slug="currentSlug"
-      />
-      <slot v-else name="sidebar" />
+      <slot name="sidebar" />
     </UiAside>
 
     <section class="platform-split-layout__content">
@@ -39,15 +19,50 @@ const currentSlug = computed(() => String(route.params.slug ?? ''))
 <style scoped>
 .platform-split-layout {
   display: grid;
-  grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
-  gap: 1.25rem;
-  padding: 1.5rem;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1.25rem;
 }
 
-@media (max-width: 960px) {
+.platform-split-layout__sidebar {
+  position: sticky;
+  top: 1.25rem;
+  align-self: flex-start;
+  max-height: calc(100vh - 2.5rem);
+  overflow: auto;
+  border: 1px solid rgba(127, 127, 127, 0.18);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(103, 58, 183, 0.08), rgba(33, 150, 243, 0.04));
+}
+
+.platform-split-layout__card {
+  border: 1px solid rgba(127, 127, 127, 0.15);
+  border-radius: 20px;
+  min-height: 76vh;
+  padding: 1.25rem;
+  background: var(--v-theme-surface);
+  animation: fadeInUp 260ms ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1120px) {
   .platform-split-layout {
     grid-template-columns: 1fr;
-    padding: 1rem;
+  }
+
+  .platform-split-layout__sidebar {
+    position: static;
+    max-height: none;
   }
 }
 </style>
