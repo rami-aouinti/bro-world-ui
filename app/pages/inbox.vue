@@ -122,29 +122,28 @@ const messages = computed(() => {
       </v-list>
     </template>
 
-    <UiListCard class="h-100 d-flex flex-column">
-      <template v-if="activeConversation">
-        <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
-          <div>
-            <h2 class="text-subtitle-1 font-weight-bold mb-1">{{ activeConversation.name }}</h2>
-            <p class="text-body-2 text-medium-emphasis mb-0">Conversation active</p>
-          </div>
-          <v-btn variant="outlined" prepend-icon="mdi-account-plus-outline">Inviter</v-btn>
+    <template v-if="activeConversation">
+      <div class="d-flex align-center justify-space-between mb-2 flex-wrap ga-2">
+        <div>
+          <h2 class="text-subtitle-1 font-weight-bold mb-1">{{ activeConversation.name }}</h2>
+          <p class="text-body-2 text-medium-emphasis mb-0">Conversation active</p>
         </div>
+        <v-btn variant="outlined" prepend-icon="mdi-account-plus-outline">Inviter</v-btn>
+      </div>
 
-        <div class="inbox-page__messages mb-4">
-          <div
+      <div class="inbox-page__messages mb-2">
+        <div
             v-for="message in messages"
             :key="message.id"
             class="inbox-page__bubble"
             :class="message.fromMe ? 'inbox-page__bubble--me' : 'inbox-page__bubble--other'"
-          >
-            <p class="text-caption text-medium-emphasis mb-1">{{ message.author }} • {{ message.time }}</p>
-            <p class="text-body-2 mb-0">{{ message.content }}</p>
-          </div>
+        >
+          <p class="text-caption text-medium-emphasis mb-1">{{ message.author }} • {{ message.time }}</p>
+          <p class="text-body-2 mb-0">{{ message.content }}</p>
         </div>
+      </div>
 
-        <v-textarea
+      <v-textarea
           label="Votre réponse"
           placeholder="Écrire un message..."
           rows="3"
@@ -152,23 +151,22 @@ const messages = computed(() => {
           variant="outlined"
           hide-details
           density="comfortable"
-        />
-        <div class="d-flex justify-end mt-3">
-          <v-btn color="primary" prepend-icon="mdi-send">Envoyer</v-btn>
-        </div>
-      </template>
+      />
+      <div class="d-flex justify-end mt-1">
+        <v-btn color="primary" prepend-icon="mdi-send">Envoyer</v-btn>
+      </div>
+    </template>
 
-      <UiStateEmptyState
+    <UiStateEmptyState
         v-else
         title="Aucune conversation sélectionnée"
         description="Choisissez une conversation à gauche pour afficher les messages."
         icon="mdi-email-open-outline"
-      >
-        <template #action>
-          <v-btn color="primary" variant="outlined" prepend-icon="mdi-plus">Démarrer une discussion</v-btn>
-        </template>
-      </UiStateEmptyState>
-    </UiListCard>
+    >
+      <template #action>
+        <v-btn color="primary" variant="outlined" prepend-icon="mdi-plus">Démarrer une discussion</v-btn>
+      </template>
+    </UiStateEmptyState>
   </PlatformSplitLayout>
 </template>
 
