@@ -18,6 +18,11 @@
   padding: var(--app-split-shell-margin);
 }
 
+.app-split-shell__left {
+  top: 83px;
+  position: sticky;
+}
+
 .app-split-shell__left,
 .app-split-shell__right {
   border-radius: var(--app-split-shell-radius);
