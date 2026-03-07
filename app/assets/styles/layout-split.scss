@@ -1,0 +1,75 @@
+:root {
+  --app-split-shell-margin: 1.25rem;
+  --app-split-shell-gap: 1rem;
+  --app-split-shell-radius: var(--ui-card-radius, 1rem);
+  --app-split-shell-appbar-height: 64px;
+  --app-split-shell-border: 1px solid color-mix(in srgb, rgb(var(--v-theme-on-surface)) 10%, transparent);
+  --app-split-shell-bg: color-mix(in srgb, rgb(var(--v-theme-surface)) 86%, transparent);
+  --app-split-shell-blur: 8px;
+  --app-split-shell-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+  --app-split-shell-transition: 280ms ease;
+}
+
+.app-split-shell {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  gap: var(--app-split-shell-gap);
+  align-items: start;
+  padding: var(--app-split-shell-margin);
+}
+
+.app-split-shell__left,
+.app-split-shell__right {
+  border-radius: var(--app-split-shell-radius);
+  border: var(--app-split-shell-border);
+  background: var(--app-split-shell-bg);
+  box-shadow: var(--app-split-shell-shadow);
+  backdrop-filter: blur(var(--app-split-shell-blur));
+  -webkit-backdrop-filter: blur(var(--app-split-shell-blur));
+  animation: app-split-shell-fade-slide var(--app-split-shell-transition);
+  transition: box-shadow var(--app-split-shell-transition), transform var(--app-split-shell-transition);
+}
+
+.app-split-shell__left:hover,
+.app-split-shell__right:hover {
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
+}
+
+.app-split-shell__left-content {
+  position: sticky;
+  top: var(--split-sticky-top, calc(var(--app-split-shell-appbar-height) + var(--app-split-shell-margin)));
+  height: var(--split-left-height, calc(100vh - var(--app-split-shell-appbar-height) - (var(--app-split-shell-margin) * 2)));
+  overflow-y: auto;
+  padding: var(--app-split-shell-margin);
+}
+
+.app-split-shell__right-content {
+  min-height: 76vh;
+  overflow-y: auto;
+  padding: var(--app-split-shell-margin);
+}
+
+@keyframes app-split-shell-fade-slide {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1120px) {
+  .app-split-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .app-split-shell__left-content {
+    position: static;
+    top: auto;
+    height: auto;
+    max-height: none;
+  }
+}
