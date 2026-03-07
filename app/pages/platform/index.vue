@@ -375,6 +375,16 @@ const disableApplication = async () => {
   flex-direction: column;
 }
 
+.platform-page__filters {
+  position: sticky;
+  top: 1rem;
+}
+
+.platform-page__filters-actions {
+  display: flex;
+  flex-direction: column;
+}
+
 .platform-page__content {
   min-width: 0;
 }
