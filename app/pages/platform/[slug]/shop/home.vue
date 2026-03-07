@@ -1,48 +1,38 @@
 <script setup lang="ts">
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
+import UiListCard from '~/components/ui/UiListCard.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 
-definePageMeta({
-  public: true,
-  requiresAuth: false,
-})
+definePageMeta({ public: true, requiresAuth: false })
 
 const route = useRoute()
-
 const slug = computed(() => String(route.params.slug ?? ''))
+const shopPath = (page: string) => `/platform/${slug.value}/shop/${page}`
 
-const homePath = computed(() => `/platform/${slug.value}/shop/home`)
-const adminPath = computed(() => `/platform/${slug.value}/shop/admin`)
+const categories = ['apparel', 'office', 'electronics']
 </script>
 
 <template>
   <PlatformSplitLayout>
     <template #sidebar>
-      <UiSectionHeader
-        title="Shop"
-        :subtitle="`Application ${slug}`"
-      />
-
+      <UiSectionHeader title="Shop" :subtitle="`Application ${slug}`" dense />
       <div class="platform-layout__sidebar-actions">
-        <v-btn variant="outlined" block :to="homePath">Home</v-btn>
-      <v-btn variant="outlined" block :to="adminPath" class="mt-2">Admin</v-btn>
-      <v-btn variant="text" block class="mt-2" to="/platform">Retour liste</v-btn>
+        <v-btn variant="outlined" block :to="shopPath('home')">Home</v-btn>
+        <v-btn variant="outlined" block class="mt-2" :to="shopPath('orders')">Orders</v-btn>
+        <v-btn variant="outlined" block class="mt-2" :to="shopPath('checkout')">Checkout</v-btn>
       </div>
     </template>
 
     <template #default>
-      <UiSectionHeader
-        title="Platform Shop Home"
-        :subtitle="`Espace d'accueil pour l'application ${slug} sur Shop`"
-      />
-
-    <v-alert type="info" variant="tonal" class="mb-4">
-      Application: {{ slug }}
-    </v-alert>
-
-    <v-btn color="primary" variant="flat" :to="adminPath">
-      Aller vers Admin
-    </v-btn>
+      <UiSectionHeader title="Catalogue produits" subtitle="Parcourir les catégories disponibles" />
+      <v-row>
+        <v-col v-for="category in categories" :key="category" cols="12" md="4">
+          <UiListCard>
+            <p class="text-subtitle-1 font-weight-medium text-capitalize">{{ category }}</p>
+            <v-btn class="mt-2" color="primary" variant="tonal" :to="`/platform/${slug}/shop/${category}/products`">Voir les produits</v-btn>
+          </UiListCard>
+        </v-col>
+      </v-row>
     </template>
   </PlatformSplitLayout>
 </template>
