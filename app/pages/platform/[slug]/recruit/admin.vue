@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
-import { recruitJobs, type NavItem } from '~/data/platform-demo'
+import { recruitJobs } from '~/data/platform-demo'
+import { getRecruitNav } from '~/data/platform-nav'
 
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
-const navItems = computed<NavItem[]>(() => [
-  { title: 'Jobs', icon: 'mdi-briefcase-search-outline', to: `/platform/${slug.value}/recruit/home` },
-  { title: 'Admin', icon: 'mdi-shield-crown-outline', to: `/platform/${slug.value}/recruit/admin` },
-])
+const navItems = computed(() => getRecruitNav(slug.value, true))
 </script>
 
 <template>

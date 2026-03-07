@@ -3,28 +3,16 @@ import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformHeroHeader from '~/components/platform/sections/PlatformHeroHeader.vue'
 import PlatformMediaCard from '~/components/platform/sections/PlatformMediaCard.vue'
-import { shopCategories, shopProducts, type NavItem } from '~/data/platform-demo'
+import { shopProducts } from '~/data/platform-demo'
 import { shopCatalogMedia } from '~/data/platform-enhanced'
+import { getShopNav } from '~/data/platform-nav'
 
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const isOwner = computed(() => true)
 
-const navItems = computed<NavItem[]>(() => {
-  const base = `/platform/${slug.value}/shop`
-  const items: NavItem[] = shopCategories.map((category) => ({ title: category, icon: 'mdi-shape-outline', to: `${base}/${category}/products` }))
-  items.unshift({ title: 'Accueil shop', icon: 'mdi-storefront-outline', to: `${base}/home` })
-  items.push({ title: 'Promotions', icon: 'mdi-sale-outline', to: `${base}/promotions` })
-  items.push({ title: 'Customers', icon: 'mdi-account-group-outline', to: `${base}/customers` })
-  items.push({ title: 'Reviews', icon: 'mdi-star-outline', to: `${base}/reviews` })
-  items.push({ title: 'Checkout', icon: 'mdi-cart-outline', to: `${base}/checkout` })
-  items.push({ title: 'Orders', icon: 'mdi-package-variant-closed', to: `${base}/orders` })
-  items.push({ title: 'Payment', icon: 'mdi-cash-fast', to: `${base}/payment` })
-  items.push({ title: 'Tickets', icon: 'mdi-ticket-confirmation-outline', to: `${base}/tickets` })
-  if (isOwner.value) items.push({ title: 'Admin', icon: 'mdi-shield-crown-outline', to: `${base}/admin` })
-  return items
-})
+const navItems = computed(() => getShopNav(slug.value, isOwner.value))
 </script>
 
 <template>

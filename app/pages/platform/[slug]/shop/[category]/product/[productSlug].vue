@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
-import { shopCategories, shopProducts, type NavItem } from '~/data/platform-demo'
+import { shopProducts } from '~/data/platform-demo'
+import { getShopNav } from '~/data/platform-nav'
 
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
@@ -10,10 +11,7 @@ const category = computed(() => String(route.params.category ?? 'tech'))
 const productSlug = computed(() => String(route.params.productSlug ?? ''))
 
 const product = computed(() => shopProducts.find((item) => item.slug === productSlug.value) ?? shopProducts[0])
-const navItems = computed<NavItem[]>(() => {
-  const base = `/platform/${appSlug.value}/shop`
-  return [{ title: 'Accueil shop', icon: 'mdi-storefront-outline', to: `${base}/home` }, ...shopCategories.map((c) => ({ title: c, icon: 'mdi-shape-outline', to: `${base}/${c}/products` }))]
-})
+const navItems = computed(() => getShopNav(appSlug.value, false))
 </script>
 
 <template>

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
-import { crmCompanies, crmProjects, type NavItem } from '~/data/platform-demo'
+import { crmCompanies, crmProjects } from '~/data/platform-demo'
+import { getCrmNav } from '~/data/platform-nav'
 
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
@@ -18,20 +19,7 @@ const titleMap: Record<string, string> = {
   admin: 'Admin CRM',
 }
 
-const crmNav = computed<NavItem[]>(() => {
-  const base = `/platform/${slug.value}/crm`
-  const items: NavItem[] = [
-    { title: 'Dashboard', icon: 'mdi-view-dashboard-outline', to: `${base}/home` },
-    { title: 'Companies', icon: 'mdi-office-building-outline', to: `${base}/companies` },
-    { title: 'Projects', icon: 'mdi-briefcase-outline', to: `${base}/projects` },
-    { title: 'Sprint', icon: 'mdi-run-fast', to: `${base}/sprint` },
-    { title: 'Calendar', icon: 'mdi-calendar-month-outline', to: `${base}/calendar` },
-    { title: 'Setting', icon: 'mdi-cog-outline', to: `${base}/settings` },
-    { title: 'Billing', icon: 'mdi-credit-card-outline', to: `${base}/billing` },
-  ]
-  if (isOwner.value) items.push({ title: 'Admin', icon: 'mdi-shield-crown-outline', to: `${base}/admin` })
-  return items
-})
+const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
 </script>
 
 <template>

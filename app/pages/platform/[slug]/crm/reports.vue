@@ -4,21 +4,13 @@ import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformHeroHeader from '~/components/platform/sections/PlatformHeroHeader.vue'
 import PlatformTicketBoard from '~/components/platform/sections/PlatformTicketBoard.vue'
 import { crmTickets } from '~/data/platform-enhanced'
-import { crmStats, type NavItem } from '~/data/platform-demo'
+import { crmStats } from '~/data/platform-demo'
+import { getCrmNav } from '~/data/platform-nav'
 
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
-const navItems = computed<NavItem[]>(() => {
-  const base = `/platform/${slug.value}/crm`
-  return [
-    { title: 'Dashboard', icon: 'mdi-view-dashboard-outline', to: `${base}/home` },
-    { title: 'Contacts', icon: 'mdi-account-group-outline', to: `${base}/contacts` },
-    { title: 'Reports', icon: 'mdi-chart-line', to: `${base}/reports` },
-    { title: 'Automation', icon: 'mdi-robot-outline', to: `${base}/automation` },
-    { title: 'Tickets', icon: 'mdi-ticket-confirmation-outline', to: `${base}/tickets` },
-  ]
-})
+const navItems = computed(() => getCrmNav(slug.value, false))
 </script>
 
 <template>

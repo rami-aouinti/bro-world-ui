@@ -3,6 +3,7 @@ import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformHeroHeader from '~/components/platform/sections/PlatformHeroHeader.vue'
 import type { NavItem } from '~/data/platform-demo'
+import { getShopNav } from '~/data/platform-nav'
 
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
@@ -12,16 +13,7 @@ const reviews = [
   { product: 'Desk Setup Kit', rating: 4, author: 'Marc', body: 'Excellent bundle, manque juste un câble.' },
   { product: 'Sport Performance Pack', rating: 5, author: 'Nora', body: 'Très bonne surprise, design premium.' },
 ]
-const navItems = computed<NavItem[]>(() => {
-  const base = `/platform/${slug.value}/shop`
-  return [
-    { title: 'Home', icon: 'mdi-storefront-outline', to: `${base}/home` },
-    { title: 'Promotions', icon: 'mdi-sale-outline', to: `${base}/promotions` },
-    { title: 'Customers', icon: 'mdi-account-group-outline', to: `${base}/customers` },
-    { title: 'Reviews', icon: 'mdi-star-outline', to: `${base}/reviews` },
-    { title: 'Tickets', icon: 'mdi-ticket-confirmation-outline', to: `${base}/tickets` },
-  ]
-})
+const navItems = computed(() => getShopNav(slug.value, false))
 </script>
 
 <template>

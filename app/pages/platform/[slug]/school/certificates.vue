@@ -1,21 +1,14 @@
 <script setup lang="ts">
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
-import { schoolClasses, type NavItem } from '~/data/platform-demo'
+import { schoolClasses } from '~/data/platform-demo'
+import { getSchoolNav } from '~/data/platform-nav'
 
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const page = computed(() => route.path.split('/').pop() || 'home')
-const navItems = computed<NavItem[]>(() => {
-  const base = `/platform/${slug.value}/school`
-  return [
-    { title: 'Classes', icon: 'mdi-google-classroom', to: `${base}/home` },
-    { title: 'Settings', icon: 'mdi-cog-outline', to: `${base}/settings` },
-    { title: 'Certificates', icon: 'mdi-certificate-outline', to: `${base}/certificates` },
-    { title: 'Admin', icon: 'mdi-shield-crown-outline', to: `${base}/admin` },
-  ]
-})
+const navItems = computed(() => getSchoolNav(slug.value, false))
 </script>
 
 <template>
