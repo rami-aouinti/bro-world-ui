@@ -2,7 +2,7 @@
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import { shopProducts } from '~/data/platform-demo'
-import { getShopNav } from '~/data/platform-nav'
+import { getShopNav, getShopRoute } from '~/data/platform-nav'
 
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
@@ -27,7 +27,17 @@ const navItems = computed(() => getShopNav(slug.value, isOwner.value))
             <v-card-text>
               <p class="text-h4 mb-2">{{ product.cover }}</p>
               <p class="font-weight-bold">{{ product.title }}</p>
-              <p class="text-body-2 text-medium-emphasis">{{ t('platform.shop.products.stockLine', { price: formatCurrency(product.price), stock: product.stock }) }}</p>
+              <p class="text-body-2 text-medium-emphasis mb-4">{{ t('platform.shop.products.stockLine', { price: formatCurrency(product.price), stock: product.stock }) }}</p>
+              <v-btn
+                v-if="isOwner"
+                size="small"
+                color="primary"
+                variant="text"
+                :to="getShopRoute('productEdit', { slug, productSlug: product.slug })"
+                @click.stop
+              >
+                Edit product
+              </v-btn>
             </v-card-text>
           </v-card>
         </v-col>

@@ -12,6 +12,23 @@ export interface PlatformNavItem extends NavItem {
 
 type PlatformName = 'crm' | 'shop' | 'recruit' | 'school'
 
+export interface ShopRouteContext {
+  slug: string
+  category?: string
+  productSlug?: string
+  orderId?: string
+}
+
+export const getShopRoute = (route: 'home' | 'newProduct' | 'productEdit' | 'orderDetail', context: ShopRouteContext) => {
+  const base = `/platform/${context.slug}/shop`
+
+  if (route === 'home') return `${base}/home`
+  if (route === 'newProduct') return `${base}/products/new`
+  if (route === 'productEdit') return `${base}/products/${context.productSlug}/edit`
+
+  return `${base}/orders/${context.orderId}`
+}
+
 const platformFeatureFlags: Record<PlatformName, Record<string, boolean>> = {
   crm: {
     dashboard: true,
@@ -89,8 +106,8 @@ export const getCrmNav = (slug: string, isOwner = false): PlatformNavItem[] => {
 export const getShopNav = (slug: string, isOwner = false): PlatformNavItem[] => {
   const base = `/platform/${slug}/shop`
   return resolveNav('shop', [
-    { title: 'platform.shop.nav.home', icon: 'mdi-storefront-outline', to: `${base}/home`, section: 'overview', featureFlag: 'home' },
-    { title: 'platform.shop.nav.newProduct', icon: 'mdi-plus-box-outline', to: `${base}/products/new`, section: 'catalog', rights: 'owner', featureFlag: 'newProduct' },
+    { title: 'platform.shop.nav.home', icon: 'mdi-storefront-outline', to: getShopRoute('home', { slug }), section: 'overview', featureFlag: 'home' },
+    { title: 'platform.shop.nav.newProduct', icon: 'mdi-plus-box-outline', to: getShopRoute('newProduct', { slug }), section: 'catalog', rights: 'owner', featureFlag: 'newProduct' },
     ...shopCategories.map<PlatformNavItem>((category) => ({ title: `platform.shop.categories.${category}`, icon: 'mdi-shape-outline', to: `${base}/${category}/products`, section: 'catalog', featureFlag: 'categories' })),
     { title: 'platform.shop.nav.promotions', icon: 'mdi-sale-outline', to: `${base}/promotions`, section: 'sales', featureFlag: 'promotions', badge: 'HOT' },
     { title: 'platform.shop.nav.customers', icon: 'mdi-account-group-outline', to: `${base}/customers`, section: 'sales', featureFlag: 'customers' },
