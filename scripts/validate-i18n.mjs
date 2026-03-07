@@ -2,7 +2,7 @@ import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 
 const LOCALES_DIR = path.resolve('i18n/locales')
-const REQUIRED_NAMESPACES = ['about', 'contact', 'faq']
+const REQUIRED_NAMESPACES = ['about', 'contact', 'faq', 'home']
 
 function flattenKeys(value, prefix = '') {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -86,18 +86,31 @@ async function main() {
 
   const sampleLocaleCode = Object.keys(localeByCode).find((code) => code !== fallbackLocale)
   if (sampleLocaleCode) {
-    const samplePath = 'about.hero.title'
     const sampleLocale = structuredClone(localeByCode[sampleLocaleCode])
-    sampleLocale.about.hero.title = undefined
+    const samplePaths = ['about.hero.title', 'home.hero.title']
 
-    const resolved = resolveWithFallback(sampleLocale, fallbackMessages, samplePath)
-    const fallbackValue = getValueAtPath(fallbackMessages, samplePath)
+    for (const samplePath of samplePaths) {
+      const pathSegments = samplePath.split('.')
+      const leaf = pathSegments.pop()
+      const parent = pathSegments.reduce((current, segment) => {
+        if (!current[segment] || typeof current[segment] !== 'object') {
+          current[segment] = {}
+        }
 
-    if (resolved !== fallbackValue) {
-      errors.push(`Fallback simulation failed for "${sampleLocaleCode}" and key "${samplePath}".`)
-    }
-    else {
-      console.log(`Fallback simulation OK: missing "${samplePath}" in "${sampleLocaleCode}" resolves to EN text.`)
+        return current[segment]
+      }, sampleLocale)
+
+      parent[leaf] = undefined
+
+      const resolved = resolveWithFallback(sampleLocale, fallbackMessages, samplePath)
+      const fallbackValue = getValueAtPath(fallbackMessages, samplePath)
+
+      if (resolved !== fallbackValue) {
+        errors.push(`Fallback simulation failed for "${sampleLocaleCode}" and key "${samplePath}".`)
+      }
+      else {
+        console.log(`Fallback simulation OK: missing "${samplePath}" in "${sampleLocaleCode}" resolves to EN text.`)
+      }
     }
   }
 
