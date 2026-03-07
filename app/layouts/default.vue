@@ -2,6 +2,14 @@
 import { computed } from 'vue'
 import UiStateAlert from '~/components/ui/state/UiStateAlert.vue'
 
+withDefaults(defineProps<{
+  showPageSkeleton?: boolean
+  pageSkeletonKey?: string
+}>(), {
+  showPageSkeleton: false,
+  pageSkeletonKey: '',
+})
+
 const route = useRoute()
 const { t } = useI18n()
 
@@ -25,19 +33,30 @@ const routeMessage = computed(() => {
     <AppBar />
 
     <v-main>
-      <v-container
-        v-if="routeMessage"
-        class="pt-6 pb-0"
-      >
-        <UiStateAlert
-          type="warning"
-          variant="tonal"
-          density="comfortable"
-          :message="routeMessage"
-        />
-      </v-container>
+      <template v-if="showPageSkeleton">
+        <slot name="layout-skeleton">
+          <v-container fluid class="py-6">
+            <v-skeleton-loader type="image" height="56" class="mb-6" />
+            <v-skeleton-loader type="article" />
+          </v-container>
+        </slot>
+      </template>
 
-      <slot />
+      <template v-else>
+        <v-container
+          v-if="routeMessage"
+          class="pt-6 pb-0"
+        >
+          <UiStateAlert
+            type="warning"
+            variant="tonal"
+            density="comfortable"
+            :message="routeMessage"
+          />
+        </v-container>
+
+        <slot />
+      </template>
     </v-main>
   </v-app>
 </template>

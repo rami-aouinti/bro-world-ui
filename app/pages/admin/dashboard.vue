@@ -7,6 +7,7 @@ definePageMeta({
   layout: 'admin',
   middleware: ['role'],
   requiredPermissions: ['admin.access'],
+  skeleton: 'dashboard',
 })
 
 const { t } = useI18n()
