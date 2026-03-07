@@ -132,102 +132,105 @@ const disableApplication = async () => {
 </script>
 
 <template>
-  <UiPageSection max-width="1200">
-    <section class="platform-page">
-      <div class="platform-page__layout">
-        <aside class="platform-page__sidebar" aria-hidden="true" />
+  <section class="platform-page">
+    <div class="platform-page__layout">
+      <aside class="platform-page__sidebar">
+        <v-card class="platform-new__side-card bg-transparent" rounded="lg">
 
-        <div class="platform-page__content">
-          <div class="platform-page__grid">
-            <article class="platform-page__card platform-page__card--new" role="button" tabindex="0" @click="goToNewPlatform">
-              <div class="platform-page__add-icon"><v-icon icon="mdi-earth"/></div>
-              <h2 class="platform-page__new-title">
-                {{ isAuthenticated ? t('platform.newPlatform.title') : t('platform.newPlatform.connectTitle') }}
-              </h2>
-              <p class="platform-page__new-description">
-                {{ isAuthenticated ? t('platform.newPlatform.description') : t('platform.newPlatform.connectDescription') }}
-              </p>
-            </article>
+        </v-card>
+      </aside>
 
-            <article
+      <div class="platform-page__content">
+        <div class="platform-page__grid">
+          <article class="platform-page__card platform-page__card--new" role="button" tabindex="0" @click="goToNewPlatform">
+            <div class="platform-page__add-icon"><v-icon icon="mdi-earth"/></div>
+            <h2 class="platform-page__new-title">
+              {{ isAuthenticated ? t('platform.newPlatform.title') : t('platform.newPlatform.connectTitle') }}
+            </h2>
+            <p class="platform-page__new-description">
+              {{ isAuthenticated ? t('platform.newPlatform.description') : t('platform.newPlatform.connectDescription') }}
+            </p>
+          </article>
+
+          <article
               v-for="card in applicationsStore.items"
               :key="card.id"
               class="platform-page__card"
-            >
-              <v-menu v-if="card.isOwner" location="bottom end">
-                <template #activator="{ props }">
-                  <v-btn
+          >
+            <v-menu v-if="card.isOwner" location="bottom end">
+              <template #activator="{ props }">
+                <v-btn
                     class="platform-page__card-dot"
                     icon="mdi-dots-vertical"
                     variant="text"
                     density="compact"
                     v-bind="props"
-                  />
-                </template>
+                />
+              </template>
 
-                <v-list density="compact">
-                  <v-list-item :title="t('platform.actions.edit')" @click="openEditModal(card)" />
-                  <v-list-item :title="t('platform.actions.delete')" @click="openDeleteModal(card)" />
-                </v-list>
-              </v-menu>
+              <v-list density="compact">
+                <v-list-item :title="t('platform.actions.edit')" @click="openEditModal(card)" />
+                <v-list-item :title="t('platform.actions.delete')" @click="openDeleteModal(card)" />
+              </v-list>
+            </v-menu>
 
-              <NuxtLink :to="appHomePath(card)" class="platform-page__card-main-link">
-                <div class="platform-page__card-top">
-                  <div class="platform-page__card-brand">
-                    <img :src="card.photo" :alt="card.title" class="platform-page__logo">
-                    <div class="platform-page__card-heading">
-                      <div class="platform-page__card-title-row">
-                        <h3 class="platform-page__card-title">{{ card.title }}</h3>
-                        <v-tooltip v-if="card.description" location="top">
-                          <template #activator="{ props }">
-                            <v-btn
+            <NuxtLink :to="appHomePath(card)" class="platform-page__card-main-link">
+              <div class="platform-page__card-top">
+                <div class="platform-page__card-brand">
+                  <img :src="card.photo" :alt="card.title" class="platform-page__logo">
+                  <div class="platform-page__card-heading">
+                    <div class="platform-page__card-title-row">
+                      <h3 class="platform-page__card-title">{{ card.title }}</h3>
+                      <v-tooltip v-if="card.description" location="top">
+                        <template #activator="{ props }">
+                          <v-btn
                               icon="mdi-information-outline"
                               size="x-small"
                               variant="text"
                               density="comfortable"
                               class="platform-page__description-tooltip-trigger"
                               v-bind="props"
-                            />
-                          </template>
-                          <span>{{ card.description }}</span>
-                        </v-tooltip>
-                      </div>
+                          />
+                        </template>
+                        <span>{{ card.description }}</span>
+                      </v-tooltip>
                     </div>
                   </div>
                 </div>
-              </NuxtLink>
+              </div>
+            </NuxtLink>
 
-              <div class="platform-page__card-meta">
-                <UserIdentity
+            <div class="platform-page__card-meta">
+              <UserIdentity
                   :first-name="card.author?.firstName"
                   :last-name="card.author?.lastName"
                   :username="authorUsername(card)"
                   :photo="card.author?.photo"
                   :profile-path="authorProfilePath(card)"
-                />
-                <v-chip
+              />
+              <v-chip
                   :color="card.status === 'active' ? 'success' : undefined"
                   variant="tonal"
                   size="small"
                   class="text-capitalize"
-                >
-                  {{ card.status === 'active' ? t('platform.status.active') : t('platform.status.inactive') }}
-                </v-chip>
-              </div>
+              >
+                {{ card.status === 'active' ? t('platform.status.active') : t('platform.status.inactive') }}
+              </v-chip>
+            </div>
 
-              <div class="platform-page__card-footer">
-                <span>{{ card.platformName }}</span>
-                <span>{{ formatDate(card.createdAt) }}</span>
-              </div>
-            </article>
-          </div>
+            <div class="platform-page__card-footer">
+              <span>{{ card.platformName }}</span>
+              <span>{{ formatDate(card.createdAt) }}</span>
+            </div>
+          </article>
         </div>
       </div>
+    </div>
 
-      <UiActionDialog v-model="editDialog" :title="t('platform.actions.editTitle')" max-width="560" persistent>
-        <template v-if="selectedApp">
-          <v-text-field v-model="selectedApp.title" :label="t('platform.wizard.fields.title')" class="mb-3" />
-          <v-select
+    <UiActionDialog v-model="editDialog" :title="t('platform.actions.editTitle')" max-width="560" persistent>
+      <template v-if="selectedApp">
+        <v-text-field v-model="selectedApp.title" :label="t('platform.wizard.fields.title')" class="mb-3" />
+        <v-select
             v-model="selectedApp.status"
             :label="t('platform.wizard.fields.active')"
             :items="[
@@ -237,17 +240,17 @@ const disableApplication = async () => {
             item-title="title"
             item-value="value"
             class="mb-3"
-          />
-          <v-switch v-model="selectedApp.private" :label="t('platform.wizard.fields.private')" inset hide-details />
-        </template>
+        />
+        <v-switch v-model="selectedApp.private" :label="t('platform.wizard.fields.private')" inset hide-details />
+      </template>
 
-        <template #actions>
-          <v-btn variant="text" :disabled="submitting" @click="editDialog = false">{{ t('admin.common.cancel') }}</v-btn>
-          <v-btn color="primary" :loading="submitting" @click="saveApplication">{{ t('admin.common.save') }}</v-btn>
-        </template>
-      </UiActionDialog>
+      <template #actions>
+        <v-btn variant="text" :disabled="submitting" @click="editDialog = false">{{ t('admin.common.cancel') }}</v-btn>
+        <v-btn color="primary" :loading="submitting" @click="saveApplication">{{ t('admin.common.save') }}</v-btn>
+      </template>
+    </UiActionDialog>
 
-      <UiActionConfirmDialog
+    <UiActionConfirmDialog
         v-model="deleteDialog"
         :title="t('platform.actions.deleteTitle')"
         :message="t('platform.actions.deleteMessage', { title: selectedApp?.title || '' })"
@@ -255,14 +258,13 @@ const disableApplication = async () => {
         :cancel-label="t('admin.common.cancel')"
         :loading="submitting"
         @confirm="disableApplication"
-      />
+    />
 
-      <button type="button" class="platform-page__assistant" :aria-label="t('platform.assistant')">
-        <v-icon icon="mdi-message-outline" size="22" />
-        <v-icon icon="mdi-format-list-bulleted" size="22" />
-      </button>
-    </section>
-  </UiPageSection>
+    <button type="button" class="platform-page__assistant" :aria-label="t('platform.assistant')">
+      <v-icon icon="mdi-message-outline" size="22" />
+      <v-icon icon="mdi-format-list-bulleted" size="22" />
+    </button>
+  </section>
 </template>
 
 <style scoped>

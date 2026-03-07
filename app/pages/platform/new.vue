@@ -174,107 +174,106 @@ const submit = async () => {
 </script>
 
 <template>
-  <UiPageSection max-width="1200">
-    <section class="platform-new">
-      <div class="platform-new__layout">
-        <aside class="platform-new__sidebar">
-          <v-card class="platform-new__side-card" rounded="lg">
-            <h2 class="text-h6 mb-2">{{ t('platform.newPlatform.title') }}</h2>
-            <p class="text-body-2 text-medium-emphasis mb-4">
-              {{ t('platform.newPlatform.description') }}
-            </p>
+  <section class="platform-new">
+    <div class="platform-new__layout">
+      <aside class="platform-new__sidebar">
+        <v-card class="platform-new__side-card bg-transparent" rounded="lg">
+          <h2 class="text-h6 mb-2">{{ t('platform.newPlatform.title') }}</h2>
+          <p class="text-body-2 text-medium-emphasis mb-4">
+            {{ t('platform.newPlatform.description') }}
+          </p>
 
-            <div class="platform-new__steps">
-              <div class="platform-new__step" :class="{ 'platform-new__step--active': step === 1 }">
-                <span>1</span>
-                <small>{{ t('platform.wizard.steps.title') }}</small>
-              </div>
-              <div class="platform-new__step" :class="{ 'platform-new__step--active': step === 2 }">
-                <span>2</span>
-                <small>{{ t('platform.wizard.steps.platform') }}</small>
-              </div>
-              <div class="platform-new__step" :class="{ 'platform-new__step--active': step === 3 }">
-                <span>3</span>
-                <small>{{ t('platform.wizard.steps.plugins') }}</small>
-              </div>
-            </div>
-          </v-card>
-        </aside>
-
-        <div class="platform-new__content">
-          <div class="wizard-header">
-            <div class="wizard-step" :class="{ 'wizard-step--active': step === 1 }">
+          <div class="platform-new__steps">
+            <div class="platform-new__step" :class="{ 'platform-new__step--active': step === 1 }">
               <span>1</span>
               <small>{{ t('platform.wizard.steps.title') }}</small>
             </div>
-            <div class="wizard-step" :class="{ 'wizard-step--active': step === 2 }">
+            <div class="platform-new__step" :class="{ 'platform-new__step--active': step === 2 }">
               <span>2</span>
               <small>{{ t('platform.wizard.steps.platform') }}</small>
             </div>
-            <div class="wizard-step" :class="{ 'wizard-step--active': step === 3 }">
+            <div class="platform-new__step" :class="{ 'platform-new__step--active': step === 3 }">
               <span>3</span>
               <small>{{ t('platform.wizard.steps.plugins') }}</small>
             </div>
           </div>
+        </v-card>
+      </aside>
 
-          <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
+      <div class="platform-new__content">
+        <div class="wizard-header">
+          <div class="wizard-step" :class="{ 'wizard-step--active': step === 1 }">
+            <span>1</span>
+            <small>{{ t('platform.wizard.steps.title') }}</small>
+          </div>
+          <div class="wizard-step" :class="{ 'wizard-step--active': step === 2 }">
+            <span>2</span>
+            <small>{{ t('platform.wizard.steps.platform') }}</small>
+          </div>
+          <div class="wizard-step" :class="{ 'wizard-step--active': step === 3 }">
+            <span>3</span>
+            <small>{{ t('platform.wizard.steps.plugins') }}</small>
+          </div>
+        </div>
 
-          <v-card v-if="!loading" class="pa-5">
-            <template v-if="step === 1">
-              <h2 class="text-h5 mb-4">{{ t('platform.wizard.titleStepTitle') }}</h2>
+        <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
 
-              <v-text-field v-model="form.title" :label="t('platform.wizard.fields.title')" density="comfortable" />
-              <v-textarea
+        <v-card v-if="!loading" class="pa-5 bg-transparent">
+          <template v-if="step === 1">
+            <h2 class="text-h5 mb-4">{{ t('platform.wizard.titleStepTitle') }}</h2>
+
+            <v-text-field v-model="form.title" :label="t('platform.wizard.fields.title')" density="comfortable" />
+            <v-textarea
                 v-model="form.description"
                 :label="t('platform.wizard.fields.description')"
                 rows="3"
                 auto-grow
                 class="mb-2"
-              />
-              <v-file-input
+            />
+            <v-file-input
                 :model-value="form.photo"
                 :label="t('platform.wizard.fields.photo')"
                 accept="image/*"
                 prepend-icon="mdi-camera"
                 show-size
                 @update:model-value="onPhotoSelected"
-              />
-              <v-img
+            />
+            <v-img
                 v-if="form.photoPreview"
                 :src="form.photoPreview"
                 max-height="180"
                 max-width="180"
                 cover
                 class="mb-4 rounded"
-              />
+            />
 
-              <div class="d-flex justify-end">
-                <v-btn :disabled="!canContinueToStep2" color="primary" @click="step = 2">{{ t('platform.wizard.next') }}</v-btn>
-              </div>
-            </template>
+            <div class="d-flex justify-end">
+              <v-btn :disabled="!canContinueToStep2" color="primary" @click="step = 2">{{ t('platform.wizard.next') }}</v-btn>
+            </div>
+          </template>
 
-            <template v-else-if="step === 2">
-              <h2 class="text-h5 mb-4">{{ t('platform.wizard.platformTitle') }}</h2>
-              <div class="wizard-grid mb-4">
-                <button
+          <template v-else-if="step === 2">
+            <h2 class="text-h5 mb-4">{{ t('platform.wizard.platformTitle') }}</h2>
+            <div class="wizard-grid mb-4">
+              <button
                   v-for="platform in availablePlatforms"
                   :key="platform.id"
                   type="button"
                   class="wizard-option"
                   :class="{ 'wizard-option--selected': selectedPlatformId === platform.id }"
                   @click="selectedPlatformId = platform.id"
-                >
-                  <img :src="platform.photo || ''" :alt="platform.name" class="wizard-option__photo">
-                  <div class="wizard-option__body">
-                    <h3>{{ platform.name }}</h3>
-                    <p>{{ platform.description }}</p>
-                  </div>
-                </button>
-              </div>
-              <v-checkbox v-model="form.private" :label="t('platform.wizard.fields.private')" />
-              <v-checkbox v-model="form.active" :label="t('platform.wizard.fields.active')" />
+              >
+                <img :src="platform.photo || ''" :alt="platform.name" class="wizard-option__photo">
+                <div class="wizard-option__body">
+                  <h3>{{ platform.name }}</h3>
+                  <p>{{ platform.description }}</p>
+                </div>
+              </button>
+            </div>
+            <v-checkbox v-model="form.private" :label="t('platform.wizard.fields.private')" />
+            <v-checkbox v-model="form.active" :label="t('platform.wizard.fields.active')" />
 
-              <v-select
+            <v-select
                 v-model="form.theme"
                 :label="t('platform.wizard.fields.theme')"
                 :items="[
@@ -283,64 +282,63 @@ const submit = async () => {
                 ]"
                 item-title="title"
                 item-value="value"
-              />
+            />
 
-              <div class="d-flex justify-space-between">
-                <v-btn variant="outlined" @click="step = 1">{{ t('platform.wizard.prev') }}</v-btn>
-                <v-btn :disabled="!canContinueToStep3" color="primary" @click="step = 3">{{ t('platform.wizard.next') }}</v-btn>
-              </div>
-            </template>
+            <div class="d-flex justify-space-between">
+              <v-btn variant="outlined" @click="step = 1">{{ t('platform.wizard.prev') }}</v-btn>
+              <v-btn :disabled="!canContinueToStep3" color="primary" @click="step = 3">{{ t('platform.wizard.next') }}</v-btn>
+            </div>
+          </template>
 
-            <template v-else>
-              <h2 class="text-h5 mb-4">{{ t('platform.wizard.pluginTitle') }}</h2>
-              <div class="wizard-grid mb-4">
-                <button
+          <template v-else>
+            <h2 class="text-h5 mb-4">{{ t('platform.wizard.pluginTitle') }}</h2>
+            <div class="wizard-grid mb-4">
+              <button
                   v-for="plugin in availablePlugins"
                   :key="plugin.id"
                   type="button"
                   class="wizard-option"
                   :class="{ 'wizard-option--selected': selectedPluginIds.includes(plugin.id) }"
                   @click="togglePlugin(plugin.id)"
-                >
-                  <img :src="plugin.photo || ''" :alt="plugin.name" class="wizard-option__photo">
-                  <div class="wizard-option__body">
-                    <h3>{{ plugin.name }}</h3>
-                    <p>{{ plugin.description }}</p>
-                  </div>
-                </button>
-              </div>
+              >
+                <img :src="plugin.photo || ''" :alt="plugin.name" class="wizard-option__photo">
+                <div class="wizard-option__body">
+                  <h3>{{ plugin.name }}</h3>
+                  <p>{{ plugin.description }}</p>
+                </div>
+              </button>
+            </div>
 
-              <v-expansion-panels v-if="selectedPluginIds.length" class="mb-4" variant="accordion">
-                <v-expansion-panel
+            <v-expansion-panels v-if="selectedPluginIds.length" class="mb-4" variant="accordion">
+              <v-expansion-panel
                   v-for="plugin in availablePlugins.filter(item => selectedPluginIds.includes(item.id))"
                   :key="plugin.id"
-                >
-                  <v-expansion-panel-title>
-                    {{ plugin.name }} - {{ t('platform.wizard.fields.configuration') }}
-                  </v-expansion-panel-title>
-                  <v-expansion-panel-text>
-                    <v-text-field
+              >
+                <v-expansion-panel-title>
+                  {{ plugin.name }} - {{ t('platform.wizard.fields.configuration') }}
+                </v-expansion-panel-title>
+                <v-expansion-panel-text>
+                  <v-text-field
                       v-model.number="pluginConfigurations[plugin.id].cacheSeconds"
                       type="number"
                       min="1"
                       :label="t('platform.wizard.fields.cacheSeconds')"
-                    />
-                  </v-expansion-panel-text>
-                </v-expansion-panel>
-              </v-expansion-panels>
+                  />
+                </v-expansion-panel-text>
+              </v-expansion-panel>
+            </v-expansion-panels>
 
-              <div class="d-flex justify-space-between">
-                <v-btn variant="outlined" @click="step = 2">{{ t('platform.wizard.prev') }}</v-btn>
-                <v-btn color="primary" :disabled="!canCreate || creating" :loading="creating" @click="submit">
-                  {{ t('platform.wizard.create') }}
-                </v-btn>
-              </div>
-            </template>
-          </v-card>
-        </div>
+            <div class="d-flex justify-space-between">
+              <v-btn variant="outlined" @click="step = 2">{{ t('platform.wizard.prev') }}</v-btn>
+              <v-btn color="primary" :disabled="!canCreate || creating" :loading="creating" @click="submit">
+                {{ t('platform.wizard.create') }}
+              </v-btn>
+            </div>
+          </template>
+        </v-card>
       </div>
-    </section>
-  </UiPageSection>
+    </div>
+  </section>
 </template>
 
 <style scoped>
