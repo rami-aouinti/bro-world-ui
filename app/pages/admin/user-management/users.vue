@@ -2,7 +2,6 @@
 import UiDataTable from '~/components/ui/UiDataTable.vue'
 import UiActionConfirmDialog from '~/components/ui/UiActionConfirmDialog.vue'
 import UiActionDialog from '~/components/ui/UiActionDialog.vue'
-import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import UiEntityActionButtons from '~/components/ui/UiEntityActionButtons.vue'
 import UiTableToolbar from '~/components/ui/UiTableToolbar.vue'
@@ -228,8 +227,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <UiPageSection>
-    <template #header>
+  <div class="admin-page-content">
       <UiSectionHeader
       >
         <template #actions>
@@ -245,7 +243,6 @@ onMounted(async () => {
           />
         </template>
       </UiSectionHeader>
-    </template>
     <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
       {{ errorMessage }}
     </v-alert>
@@ -359,6 +356,6 @@ onMounted(async () => {
       </v-card>
     </v-dialog>
 
-  </UiPageSection>
+  </div>
 </template>
 

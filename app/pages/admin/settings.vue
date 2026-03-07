@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import UiCard from '~/components/ui/UiCard.vue'
-import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 
 definePageMeta({
@@ -24,13 +23,11 @@ const saveSettings = () => {
 </script>
 
 <template>
-  <UiPageSection max-width="900" card>
-    <template #header>
+  <div class="admin-page-content">
       <UiSectionHeader
         :title="t('admin.settings.title')"
         :subtitle="t('admin.settings.description')"
       />
-    </template>
 
     <UiCard rounded="lg" compact>
       <v-form @submit.prevent="saveSettings">
@@ -64,5 +61,5 @@ const saveSettings = () => {
         </v-row>
       </v-form>
     </UiCard>
-  </UiPageSection>
+  </div>
 </template>

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import UiDataTable from '~/components/ui/UiDataTable.vue'
-import UiPageSection from '~/components/ui/UiPageSection.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import UiTableToolbar from '~/components/ui/UiTableToolbar.vue'
 import { useRolesStore } from '~/stores/roles'
@@ -71,8 +70,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <UiPageSection>
-    <template #header>
+  <div class="admin-page-content">
       <UiSectionHeader
       >
         <template #actions>
@@ -87,7 +85,6 @@ onMounted(async () => {
           />
         </template>
       </UiSectionHeader>
-    </template>
     <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
 
     <UiDataTable :headers="headers" :items="roles" :loading="loading" :search="search" item-key="id" :items-per-page="10" :empty-text="t('admin.roles.empty')">
@@ -112,5 +109,5 @@ onMounted(async () => {
         </v-card-text>
       </v-card>
     </v-dialog>
-  </UiPageSection>
+  </div>
 </template>

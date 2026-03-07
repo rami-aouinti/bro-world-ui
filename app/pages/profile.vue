@@ -2,7 +2,6 @@
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import UiAvatar from '~/components/ui/UiAvatar.vue'
 import UiCard from '~/components/ui/UiCard.vue'
-import UiPageShell from '~/components/ui/page/UiPageShell.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import UiStateAlert from '~/components/ui/state/UiStateAlert.vue'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
@@ -196,18 +195,10 @@ onMounted(async () => {
     </template>
 
     <template #default>
-      <UiPageShell
+      <UiSectionHeader
         :title="t('profile.title')"
         :subtitle="t('profile.tokenHint')"
-        icon="mdi-account-circle-outline"
-        max-width="100%"
-        :loading="loading"
-        skeleton="form"
-        :empty="!loading && !authSession.profile"
-        :empty-title="t('profile.tokenHeader')"
-        :empty-description="emptyProfileDescription"
-        empty-icon="mdi-key-outline"
-      >
+      />
         <UiStateAlert
           v-if="!isAuthenticated"
           type="warning"
@@ -289,8 +280,6 @@ onMounted(async () => {
         >
           <pre class="text-body-2">{{ authSession.profile }}</pre>
         </UiCard>
-
-      </UiPageShell>
     </template>
   </PlatformSplitLayout>
 </template>

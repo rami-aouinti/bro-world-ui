@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import UiListCard from '~/components/ui/UiListCard.vue'
-import UiAside from '~/components/ui/layout/UiAside.vue'
-import UiPageShell from '~/components/ui/page/UiPageShell.vue'
+import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
+import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import UiStateEmptyState from '~/components/ui/state/UiEmptyState.vue'
 import UiStatChip from '~/components/ui/UiStatChip.vue'
 
@@ -75,110 +75,101 @@ const messages = computed(() => {
 </script>
 
 <template>
-  <UiPageShell
-    title="Inbox"
-    eyebrow="Messagerie"
-    icon="mdi-email-fast-outline"
-    subtitle="Centralisez vos conversations d'équipe et répondez rapidement aux messages importants."
-    max-width="1250"
-  >
-    <template #actions>
-      <v-btn color="primary" prepend-icon="mdi-pencil-outline" class="w-100 w-md-auto">Nouveau message</v-btn>
-    </template>
+  <PlatformSplitLayout>
+    <template #sidebar>
+      <UiSectionHeader
+        title="Inbox"
+        subtitle="Messagerie"
+      />
 
-    <v-row>
-      <v-col cols="12" lg="4">
-        <UiAside :sticky="false">
-          <div class="d-flex align-center justify-space-between mb-3">
-            <h2 class="text-subtitle-1 font-weight-bold mb-0">Conversations</h2>
-            <UiStatChip :value="conversations.length" color="primary" />
-          </div>
+      <div class="d-flex align-center justify-space-between mb-3">
+        <h2 class="text-subtitle-1 font-weight-bold mb-0">Conversations</h2>
+        <UiStatChip :value="conversations.length" color="primary" />
+      </div>
 
-          <v-list class="bg-transparent pa-0" nav>
-            <v-list-item
-              v-for="conversation in conversations"
-              :key="conversation.id"
-              :active="activeConversationId === conversation.id"
-              rounded="lg"
-              class="mb-2 inbox-page__conversation"
-              @click="activeConversationId = conversation.id"
-            >
-              <template #prepend>
-                <v-avatar :color="conversation.avatarColor" variant="tonal">
-                  {{ conversation.name.charAt(0) }}
-                </v-avatar>
-              </template>
+      <v-btn color="primary" prepend-icon="mdi-pencil-outline" block class="mb-4">Nouveau message</v-btn>
 
-              <v-list-item-title class="font-weight-medium">{{ conversation.name }}</v-list-item-title>
-              <v-list-item-subtitle>{{ conversation.excerpt }}</v-list-item-subtitle>
-
-              <template #append>
-                <div class="d-flex flex-column align-end ga-1">
-                  <span class="text-caption text-medium-emphasis">{{ conversation.lastMessageAt }}</span>
-                  <v-badge
-                    v-if="conversation.unread"
-                    :content="conversation.unread"
-                    color="primary"
-                    inline
-                  />
-                </div>
-              </template>
-            </v-list-item>
-          </v-list>
-        </UiAside>
-      </v-col>
-
-      <v-col cols="12" lg="8">
-        <UiListCard class="h-100 d-flex flex-column">
-          <template v-if="activeConversation">
-            <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
-              <div>
-                <h2 class="text-subtitle-1 font-weight-bold mb-1">{{ activeConversation.name }}</h2>
-                <p class="text-body-2 text-medium-emphasis mb-0">Conversation active</p>
-              </div>
-              <v-btn variant="outlined" prepend-icon="mdi-account-plus-outline">Inviter</v-btn>
-            </div>
-
-            <div class="inbox-page__messages mb-4">
-              <div
-                v-for="message in messages"
-                :key="message.id"
-                class="inbox-page__bubble"
-                :class="message.fromMe ? 'inbox-page__bubble--me' : 'inbox-page__bubble--other'"
-              >
-                <p class="text-caption text-medium-emphasis mb-1">{{ message.author }} • {{ message.time }}</p>
-                <p class="text-body-2 mb-0">{{ message.content }}</p>
-              </div>
-            </div>
-
-            <v-textarea
-              label="Votre réponse"
-              placeholder="Écrire un message..."
-              rows="3"
-              auto-grow
-              variant="outlined"
-              hide-details
-              density="comfortable"
-            />
-            <div class="d-flex justify-end mt-3">
-              <v-btn color="primary" prepend-icon="mdi-send">Envoyer</v-btn>
-            </div>
+      <v-list class="bg-transparent pa-0" nav>
+        <v-list-item
+          v-for="conversation in conversations"
+          :key="conversation.id"
+          :active="activeConversationId === conversation.id"
+          rounded="lg"
+          class="mb-2 inbox-page__conversation"
+          @click="activeConversationId = conversation.id"
+        >
+          <template #prepend>
+            <v-avatar :color="conversation.avatarColor" variant="tonal">
+              {{ conversation.name.charAt(0) }}
+            </v-avatar>
           </template>
 
-          <UiStateEmptyState
-            v-else
-            title="Aucune conversation sélectionnée"
-            description="Choisissez une conversation à gauche pour afficher les messages."
-            icon="mdi-email-open-outline"
+          <v-list-item-title class="font-weight-medium">{{ conversation.name }}</v-list-item-title>
+          <v-list-item-subtitle>{{ conversation.excerpt }}</v-list-item-subtitle>
+
+          <template #append>
+            <div class="d-flex flex-column align-end ga-1">
+              <span class="text-caption text-medium-emphasis">{{ conversation.lastMessageAt }}</span>
+              <v-badge
+                v-if="conversation.unread"
+                :content="conversation.unread"
+                color="primary"
+                inline
+              />
+            </div>
+          </template>
+        </v-list-item>
+      </v-list>
+    </template>
+
+    <UiListCard class="h-100 d-flex flex-column">
+      <template v-if="activeConversation">
+        <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
+          <div>
+            <h2 class="text-subtitle-1 font-weight-bold mb-1">{{ activeConversation.name }}</h2>
+            <p class="text-body-2 text-medium-emphasis mb-0">Conversation active</p>
+          </div>
+          <v-btn variant="outlined" prepend-icon="mdi-account-plus-outline">Inviter</v-btn>
+        </div>
+
+        <div class="inbox-page__messages mb-4">
+          <div
+            v-for="message in messages"
+            :key="message.id"
+            class="inbox-page__bubble"
+            :class="message.fromMe ? 'inbox-page__bubble--me' : 'inbox-page__bubble--other'"
           >
-            <template #action>
-              <v-btn color="primary" variant="outlined" prepend-icon="mdi-plus">Démarrer une discussion</v-btn>
-            </template>
-          </UiStateEmptyState>
-        </UiListCard>
-      </v-col>
-    </v-row>
-  </UiPageShell>
+            <p class="text-caption text-medium-emphasis mb-1">{{ message.author }} • {{ message.time }}</p>
+            <p class="text-body-2 mb-0">{{ message.content }}</p>
+          </div>
+        </div>
+
+        <v-textarea
+          label="Votre réponse"
+          placeholder="Écrire un message..."
+          rows="3"
+          auto-grow
+          variant="outlined"
+          hide-details
+          density="comfortable"
+        />
+        <div class="d-flex justify-end mt-3">
+          <v-btn color="primary" prepend-icon="mdi-send">Envoyer</v-btn>
+        </div>
+      </template>
+
+      <UiStateEmptyState
+        v-else
+        title="Aucune conversation sélectionnée"
+        description="Choisissez une conversation à gauche pour afficher les messages."
+        icon="mdi-email-open-outline"
+      >
+        <template #action>
+          <v-btn color="primary" variant="outlined" prepend-icon="mdi-plus">Démarrer une discussion</v-btn>
+        </template>
+      </UiStateEmptyState>
+    </UiListCard>
+  </PlatformSplitLayout>
 </template>
 
 <style scoped>

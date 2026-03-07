@@ -2,7 +2,6 @@
 import UiDataTable from '~/components/ui/UiDataTable.vue'
 import UiActionConfirmDialog from '~/components/ui/UiActionConfirmDialog.vue'
 import UiActionDialog from '~/components/ui/UiActionDialog.vue'
-import UiPageSection from '~/components/ui/UiPageSection.vue'
 import { useUserGroupsStore } from '~/stores/userGroups'
 import type { UserGroup } from '~/types/api/userGroup'
 import UiSectionHeader from "~/components/ui/UiSectionHeader.vue"
@@ -118,8 +117,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <UiPageSection>
-    <template #header>
+  <div class="admin-page-content">
       <UiSectionHeader
       >
         <template #actions>
@@ -135,7 +133,6 @@ onMounted(async () => {
           />
         </template>
       </UiSectionHeader>
-    </template>
     <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
       {{ errorMessage }}
     </v-alert>
@@ -193,7 +190,7 @@ onMounted(async () => {
     >
       <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selectedGroup, null, 2) }}</pre>
     </UiActionDialog>
-  </UiPageSection>
+  </div>
 </template>
 
 
