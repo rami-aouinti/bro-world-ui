@@ -1,5 +1,9 @@
 <script setup lang="ts">
+import UiListCard from '~/components/ui/UiListCard.vue'
+import UiPageShell from '~/components/ui/page/UiPageShell.vue'
 import UiStateEmptyState from '~/components/ui/state/UiEmptyState.vue'
+import UiStatChip from '~/components/ui/UiStatChip.vue'
+
 definePageMeta({
   public: false,
   requiresAuth: true,
@@ -29,27 +33,20 @@ const upcomingEvents = [
 </script>
 
 <template>
-  <UiPageSection max-width="1200">
-    <v-card class="pa-6 pa-md-8 mb-6 rounded-xl elevation-2">
-      <div class="d-flex align-start justify-space-between ga-4 flex-wrap">
-        <div>
-          <p class="text-overline text-primary mb-2">Planification</p>
-          <h1 class="text-h4 font-weight-bold mb-2 d-flex align-center ga-2">
-            <v-icon icon="mdi-calendar-month-outline" color="primary" />
-            Calendar
-          </h1>
-          <p class="text-body-1 text-medium-emphasis mb-0">
-            Visualisez les échéances à venir et préparez vos prochaines actions d'équipe.
-          </p>
-        </div>
+  <UiPageShell
+    title="Calendar"
+    eyebrow="Planification"
+    icon="mdi-calendar-month-outline"
+    subtitle="Visualisez les échéances à venir et préparez vos prochaines actions d'équipe."
+    max-width="1200"
+  >
+    <template #actions>
+      <v-btn color="primary" prepend-icon="mdi-plus" class="w-100 w-md-auto">Créer un événement</v-btn>
+    </template>
 
-        <v-btn color="primary" prepend-icon="mdi-plus">Créer un événement</v-btn>
-      </div>
-    </v-card>
-
-    <v-row class="mb-2">
+    <v-row>
       <v-col cols="12" md="4">
-        <v-card class="pa-4 rounded-xl elevation-1 h-100">
+        <UiListCard>
           <h2 class="text-subtitle-1 font-weight-bold mb-4">Filtres</h2>
           <v-select
             v-model="selectedRange"
@@ -57,6 +54,7 @@ const upcomingEvents = [
             label="Période"
             variant="outlined"
             hide-details
+            density="comfortable"
             class="mb-3"
           />
           <v-select
@@ -65,18 +63,23 @@ const upcomingEvents = [
             label="Type"
             variant="outlined"
             hide-details
+            density="comfortable"
           />
-        </v-card>
+        </UiListCard>
       </v-col>
 
       <v-col cols="12" md="8">
-        <v-card class="pa-4 rounded-xl elevation-1 h-100">
-          <h2 class="text-subtitle-1 font-weight-bold mb-4">Prochains événements</h2>
+        <UiListCard>
+          <div class="d-flex align-center justify-space-between mb-3 flex-wrap ga-2">
+            <h2 class="text-subtitle-1 font-weight-bold mb-0">Prochains événements</h2>
+            <UiStatChip :value="upcomingEvents.length" icon="mdi-calendar-clock-outline" color="info" />
+          </div>
+
           <v-list v-if="upcomingEvents.length" class="bg-transparent pa-0" lines="two">
             <v-list-item
               v-for="event in upcomingEvents"
               :key="event.id"
-              class="px-0"
+              class="calendar-page__item px-0 rounded-lg"
             >
               <template #prepend>
                 <v-avatar size="34" :color="event.color" variant="tonal">
@@ -92,6 +95,7 @@ const upcomingEvents = [
               </template>
             </v-list-item>
           </v-list>
+
           <UiStateEmptyState
             v-else
             title="Aucun événement à venir"
@@ -102,14 +106,14 @@ const upcomingEvents = [
               <v-btn color="primary" prepend-icon="mdi-plus">Planifier maintenant</v-btn>
             </template>
           </UiStateEmptyState>
-        </v-card>
+        </UiListCard>
       </v-col>
     </v-row>
 
-    <v-card class="pa-5 pa-md-6 rounded-xl elevation-1">
+    <UiListCard>
       <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
-        <h2 class="text-h6 mb-0">Vue calendrier</h2>
-        <v-chip size="small" color="info" variant="tonal">Slot prêt pour FullCalendar</v-chip>
+        <h2 class="text-subtitle-1 font-weight-bold mb-0">Vue calendrier</h2>
+        <UiStatChip value="Slot prêt pour FullCalendar" color="info" />
       </div>
 
       <div class="calendar-page__slot d-flex flex-column align-center justify-center text-medium-emphasis">
@@ -117,15 +121,24 @@ const upcomingEvents = [
         <p class="text-body-2 mb-3 text-center">Intégrez ici le composant FullCalendar avec vos sources d'événements.</p>
         <v-btn variant="outlined" prepend-icon="mdi-code-tags">Configurer le calendrier</v-btn>
       </div>
-    </v-card>
-  </UiPageSection>
+    </UiListCard>
+  </UiPageShell>
 </template>
 
 <style scoped>
+.calendar-page__item {
+  transition: background-color 0.2s ease;
+}
+
+.calendar-page__item:hover,
+.calendar-page__item:focus-within {
+  background-color: rgba(var(--v-theme-primary), 0.06);
+}
+
 .calendar-page__slot {
   min-height: 320px;
   border: 1px dashed rgba(var(--v-theme-on-surface), 0.2);
   border-radius: 16px;
-  padding: 1.5rem;
+  padding: 1.25rem;
 }
 </style>

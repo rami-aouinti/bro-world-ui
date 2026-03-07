@@ -2,6 +2,7 @@
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import UiAvatar from '~/components/ui/UiAvatar.vue'
 import UiCard from '~/components/ui/UiCard.vue'
+import UiPageShell from '~/components/ui/page/UiPageShell.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import UiStateEmptyState from '~/components/ui/state/UiEmptyState.vue'
 import UiStateLoadingState from '~/components/ui/state/UiLoadingState.vue'
@@ -196,111 +197,111 @@ onMounted(async () => {
     </template>
 
     <template #default>
-      <UiSectionHeader :title="t('profile.title')" />
-
-      <UiStateAlert
-        v-if="!isAuthenticated"
-        type="warning"
-        variant="tonal"
-        class="mb-4"
-        :message="t('profile.notAuthenticated')"
-      />
-
-      <UiStateAlert
-        v-else-if="loading"
-        type="info"
-        variant="tonal"
-        class="mb-4"
+      <UiPageShell
+        :title="t('profile.title')"
+        :subtitle="t('profile.tokenHint')"
+        icon="mdi-account-circle-outline"
+        max-width="100%"
       >
-        <UiStateLoadingState
-          :message="`${t('profile.load')}...`"
-          mode="spinner"
+        <UiStateAlert
+          v-if="!isAuthenticated"
+          type="warning"
+          variant="tonal"
+          :message="t('profile.notAuthenticated')"
         />
-      </UiStateAlert>
 
-      <UiStateAlert
-        v-if="errorMessage"
-        type="error"
-        variant="tonal"
-        class="mb-4"
-        :message="errorMessage"
-      />
+        <UiStateAlert
+          v-else-if="loading"
+          type="info"
+          variant="tonal"
+        >
+          <UiStateLoadingState
+            :message="`${t('profile.load')}...`"
+            mode="spinner"
+          />
+        </UiStateAlert>
 
-      <UiStateAlert
-        v-if="successMessage"
-        type="success"
-        variant="tonal"
-        class="mb-4"
-        :message="successMessage"
-      />
+        <UiStateAlert
+          v-if="errorMessage"
+          type="error"
+          variant="tonal"
+          :message="errorMessage"
+        />
 
-      <UiCard
-        v-if="authSession.profile"
-        variant="tonal"
-        rounded="lg"
-        compact
-        class="mb-4"
-      >
-        <v-form ref="formRef" @submit.prevent="submitProfile">
-          <v-row>
-            <v-col cols="12" sm="6">
-              <v-text-field
-                v-model="form.firstName"
-                :label="t('profile.firstName')"
-                variant="outlined"
-                density="comfortable"
-              />
-            </v-col>
-            <v-col cols="12" sm="6">
-              <v-text-field
-                v-model="form.lastName"
-                :label="t('profile.lastName')"
-                variant="outlined"
-                density="comfortable"
-              />
-            </v-col>
-            <v-col cols="12" class="d-flex flex-wrap align-center ga-3">
-              <v-file-input
-                accept="image/*"
-                :label="t('profile.photo')"
-                prepend-icon="mdi-camera-outline"
-                variant="outlined"
-                density="comfortable"
-                hide-details
-                :disabled="uploadingPhoto || saving"
-                @update:model-value="uploadProfilePhoto"
-              />
-            </v-col>
-            <v-col cols="12" class="d-flex">
-              <v-btn
-                type="submit"
-                color="primary"
-                prepend-icon="mdi-content-save-outline"
-                :loading="saving"
-                :disabled="saving || uploadingPhoto"
-              >
-                {{ t('profile.saveChanges') }}
-              </v-btn>
-            </v-col>
-          </v-row>
-        </v-form>
-      </UiCard>
+        <UiStateAlert
+          v-if="successMessage"
+          type="success"
+          variant="tonal"
+          :message="successMessage"
+        />
 
-      <UiCard
-        v-if="authSession.profile"
-        variant="tonal"
-        rounded="lg"
-        compact
-      >
-        <pre class="text-body-2">{{ authSession.profile }}</pre>
-      </UiCard>
+        <UiCard
+          v-if="authSession.profile"
+          variant="tonal"
+          rounded="lg"
+          compact
+        >
+          <v-form ref="formRef" @submit.prevent="submitProfile">
+            <v-row>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="form.firstName"
+                  :label="t('profile.firstName')"
+                  variant="outlined"
+                  density="comfortable"
+                />
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="form.lastName"
+                  :label="t('profile.lastName')"
+                  variant="outlined"
+                  density="comfortable"
+                />
+              </v-col>
+              <v-col cols="12" class="d-flex flex-wrap align-center ga-3">
+                <v-file-input
+                  accept="image/*"
+                  :label="t('profile.photo')"
+                  prepend-icon="mdi-camera-outline"
+                  variant="outlined"
+                  density="comfortable"
+                  hide-details
+                  :disabled="uploadingPhoto || saving"
+                  @update:model-value="uploadProfilePhoto"
+                />
+              </v-col>
+              <v-col cols="12" class="d-flex">
+                <v-btn
+                  type="submit"
+                  color="primary"
+                  prepend-icon="mdi-content-save-outline"
+                  :loading="saving"
+                  :disabled="saving || uploadingPhoto"
+                >
+                  {{ t('profile.saveChanges') }}
+                </v-btn>
+              </v-col>
+            </v-row>
+          </v-form>
+        </UiCard>
 
-      <UiStateEmptyState
-        v-else
-        :title="t('profile.tokenHeader')"
-        :description="emptyProfileDescription"
-        icon="mdi-key-outline"
-      />
+        <UiCard
+          v-if="authSession.profile"
+          variant="tonal"
+          rounded="lg"
+          compact
+        >
+          <pre class="text-body-2">{{ authSession.profile }}</pre>
+        </UiCard>
+
+        <UiStateEmptyState
+          v-else
+          :title="t('profile.tokenHeader')"
+          :description="emptyProfileDescription"
+          icon="mdi-key-outline"
+        />
+      </UiPageShell>
     </template>
   </PlatformSplitLayout>
 </template>
