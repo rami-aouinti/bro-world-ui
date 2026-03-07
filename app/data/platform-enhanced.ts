@@ -25,21 +25,21 @@ export const crmTickets: TicketItem[] = [
 ]
 
 export const shopCatalogMedia: MediaCardItem[] = [
-  { id: 'shop-m-01', title: 'Premium Hoodie', subtitle: 'Collection Winter 2026', image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=1200&q=80&auto=format&fit=crop', chips: ['fashion', 'best seller'], metric: '4.8/5' },
-  { id: 'shop-m-02', title: 'Desk Setup Kit', subtitle: 'Office comfort bundle', image: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=1200&q=80&auto=format&fit=crop', chips: ['office', 'bundle'], metric: '€189' },
-  { id: 'shop-m-03', title: 'Sport Performance Pack', subtitle: 'Top ventes sport', image: 'https://images.unsplash.com/photo-1518459031867-a89b944bffe4?w=1200&q=80&auto=format&fit=crop', chips: ['sport', 'new'], metric: '+22%' },
+  { id: 'shop-m-01', title: 'Premium Hoodie', subtitle: 'Collection Winter 2026', image: '/images/platform-media/shop-premium-hoodie.svg', chips: ['fashion', 'best seller'], metric: '4.8/5' },
+  { id: 'shop-m-02', title: 'Desk Setup Kit', subtitle: 'Office comfort bundle', image: '/images/platform-media/shop-desk-setup-kit.svg', chips: ['office', 'bundle'], metric: '€189' },
+  { id: 'shop-m-03', title: 'Sport Performance Pack', subtitle: 'Top ventes sport', image: '/images/platform-media/shop-sport-pack.svg', chips: ['sport', 'new'], metric: '+22%' },
 ]
 
 export const recruitCandidates: MediaCardItem[] = [
-  { id: 'cand-01', title: 'Camille R.', subtitle: 'Senior Frontend Engineer · Paris', image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&q=80&auto=format&fit=crop', chips: ['Vue', 'Nuxt', 'Lead'], metric: 'Score 92' },
-  { id: 'cand-02', title: 'Nadia K.', subtitle: 'Product Designer · Remote', image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=800&q=80&auto=format&fit=crop', chips: ['UX', 'Figma', 'DesignOps'], metric: 'Score 88' },
-  { id: 'cand-03', title: 'Yanis M.', subtitle: 'Data Analyst · Lyon', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80&auto=format&fit=crop', chips: ['SQL', 'BI', 'A/B test'], metric: 'Score 84' },
+  { id: 'cand-01', title: 'Camille R.', subtitle: 'Senior Frontend Engineer · Paris', image: '/images/platform-media/recruit-camille.svg', chips: ['Vue', 'Nuxt', 'Lead'], metric: 'Score 92' },
+  { id: 'cand-02', title: 'Nadia K.', subtitle: 'Product Designer · Remote', image: '/images/platform-media/recruit-nadia.svg', chips: ['UX', 'Figma', 'DesignOps'], metric: 'Score 88' },
+  { id: 'cand-03', title: 'Yanis M.', subtitle: 'Data Analyst · Lyon', image: '/images/platform-media/recruit-yanis.svg', chips: ['SQL', 'BI', 'A/B test'], metric: 'Score 84' },
 ]
 
 export const schoolCampusMedia: MediaCardItem[] = [
-  { id: 'sch-01', title: 'STEM Lab', subtitle: 'Nouveau laboratoire IA', image: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1200&q=80&auto=format&fit=crop', chips: ['Innovation', 'AI'], metric: '48 places' },
-  { id: 'sch-02', title: 'Library Hub', subtitle: 'Ressources numériques', image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1200&q=80&auto=format&fit=crop', chips: ['Books', 'Digital'], metric: '24/7' },
-  { id: 'sch-03', title: 'Sports Center', subtitle: 'Programme bien-être', image: 'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=1200&q=80&auto=format&fit=crop', chips: ['Fitness', 'Health'], metric: '12 activités' },
+  { id: 'sch-01', title: 'STEM Lab', subtitle: 'Nouveau laboratoire IA', image: '/images/platform-media/school-stem-lab.svg', chips: ['Innovation', 'AI'], metric: '48 places' },
+  { id: 'sch-02', title: 'Library Hub', subtitle: 'Ressources numériques', image: '/images/platform-media/school-library-hub.svg', chips: ['Books', 'Digital'], metric: '24/7' },
+  { id: 'sch-03', title: 'Sports Center', subtitle: 'Programme bien-être', image: '/images/platform-media/school-sports-center.svg', chips: ['Fitness', 'Health'], metric: '12 activités' },
 ]
 
 export const platformProposals: Record<'crm' | 'shop' | 'recruit' | 'school', TicketItem[]> = {
