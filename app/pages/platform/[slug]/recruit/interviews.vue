@@ -5,6 +5,7 @@ import PlatformHeroHeader from '~/components/platform/sections/PlatformHeroHeade
 import PlatformTicketBoard from '~/components/platform/sections/PlatformTicketBoard.vue'
 import { platformProposals } from '~/data/platform-enhanced'
 import type { NavItem } from '~/data/platform-demo'
+import { getRecruitNav } from '~/data/platform-nav'
 
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
@@ -14,15 +15,7 @@ const interviewSlots = [
   { role: 'Product Designer II', interviewer: 'Head of Design', date: 'Jeu 14:00', type: 'Case study' },
   { role: 'Data Analyst Growth', interviewer: 'Lead Data', date: 'Ven 11:00', type: 'Business case' },
 ]
-const navItems = computed<NavItem[]>(() => {
-  const base = `/platform/${slug.value}/recruit`
-  return [
-    { title: 'Jobs', icon: 'mdi-briefcase-search-outline', to: `${base}/home` },
-    { title: 'Candidates', icon: 'mdi-account-tie-outline', to: `${base}/candidates` },
-    { title: 'Interviews', icon: 'mdi-calendar-account-outline', to: `${base}/interviews` },
-    { title: 'Tickets', icon: 'mdi-ticket-confirmation-outline', to: `${base}/tickets` },
-  ]
-})
+const navItems = computed(() => getRecruitNav(slug.value, false))
 </script>
 
 <template>

@@ -2,7 +2,8 @@
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformHeroHeader from '~/components/platform/sections/PlatformHeroHeader.vue'
-import { recruitJobs, type NavItem } from '~/data/platform-demo'
+import { recruitJobs } from '~/data/platform-demo'
+import { getRecruitNav } from '~/data/platform-nav'
 
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
@@ -10,17 +11,7 @@ const slug = computed(() => String(route.params.slug ?? ''))
 const filters = ref({ remoteOnly: false, contract: 'all' })
 const isOwner = computed(() => true)
 
-const navItems = computed<NavItem[]>(() => {
-  const base = `/platform/${slug.value}/recruit`
-  const items: NavItem[] = [
-    { title: 'Jobs', icon: 'mdi-briefcase-search-outline', to: `${base}/home` },
-    { title: 'Candidates', icon: 'mdi-account-tie-outline', to: `${base}/candidates` },
-    { title: 'Interviews', icon: 'mdi-calendar-account-outline', to: `${base}/interviews` },
-    { title: 'Tickets', icon: 'mdi-ticket-confirmation-outline', to: `${base}/tickets` },
-  ]
-  if (isOwner.value) items.push({ title: 'Admin', icon: 'mdi-shield-crown-outline', to: `${base}/admin` })
-  return items
-})
+const navItems = computed(() => getRecruitNav(slug.value, isOwner.value))
 
 const visibleJobs = computed(() => recruitJobs.filter((job) => {
   if (filters.value.remoteOnly && !job.remote) return false

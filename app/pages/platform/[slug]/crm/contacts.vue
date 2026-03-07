@@ -6,22 +6,13 @@ import PlatformMediaCard from '~/components/platform/sections/PlatformMediaCard.
 import PlatformTicketBoard from '~/components/platform/sections/PlatformTicketBoard.vue'
 import { crmTickets, recruitCandidates } from '~/data/platform-enhanced'
 import type { NavItem } from '~/data/platform-demo'
+import { getCrmNav } from '~/data/platform-nav'
 
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 
-const navItems = computed<NavItem[]>(() => {
-  const base = `/platform/${slug.value}/crm`
-  return [
-    { title: 'Dashboard', icon: 'mdi-view-dashboard-outline', to: `${base}/home` },
-    { title: 'Contacts', icon: 'mdi-account-group-outline', to: `${base}/contacts` },
-    { title: 'Reports', icon: 'mdi-chart-line', to: `${base}/reports` },
-    { title: 'Automation', icon: 'mdi-robot-outline', to: `${base}/automation` },
-    { title: 'Tickets', icon: 'mdi-ticket-confirmation-outline', to: `${base}/tickets` },
-    { title: 'Admin', icon: 'mdi-shield-crown-outline', to: `${base}/admin` },
-  ]
-})
+const navItems = computed(() => getCrmNav(slug.value, false))
 </script>
 
 <template>

@@ -2,26 +2,14 @@
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformHeroHeader from '~/components/platform/sections/PlatformHeroHeader.vue'
-import { schoolClasses, type NavItem } from '~/data/platform-demo'
+import { schoolClasses } from '~/data/platform-demo'
+import { getSchoolNav } from '~/data/platform-nav'
 
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const isOwner = computed(() => true)
-const navItems = computed<NavItem[]>(() => {
-  const base = `/platform/${slug.value}/school`
-  const items: NavItem[] = [
-    { title: 'Classes', icon: 'mdi-google-classroom', to: `${base}/home` },
-    { title: 'Students', icon: 'mdi-account-school-outline', to: `${base}/students` },
-    { title: 'Teachers', icon: 'mdi-teach', to: `${base}/teachers` },
-    { title: 'Timetable', icon: 'mdi-calendar-clock-outline', to: `${base}/timetable` },
-    { title: 'Settings', icon: 'mdi-cog-outline', to: `${base}/settings` },
-    { title: 'Certificates', icon: 'mdi-certificate-outline', to: `${base}/certificates` },
-    { title: 'Tickets', icon: 'mdi-ticket-confirmation-outline', to: `${base}/tickets` },
-  ]
-  if (isOwner.value) items.push({ title: 'Admin', icon: 'mdi-shield-crown-outline', to: `${base}/admin` })
-  return items
-})
+const navItems = computed(() => getSchoolNav(slug.value, isOwner.value))
 </script>
 
 <template>

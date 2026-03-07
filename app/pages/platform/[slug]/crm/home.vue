@@ -3,28 +3,16 @@ import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformHeroHeader from '~/components/platform/sections/PlatformHeroHeader.vue'
 import PlatformTicketBoard from '~/components/platform/sections/PlatformTicketBoard.vue'
-import { crmCompanies, crmStats, type NavItem } from '~/data/platform-demo'
+import { crmCompanies, crmStats } from '~/data/platform-demo'
 import { platformProposals } from '~/data/platform-enhanced'
+import { getCrmNav } from '~/data/platform-nav'
 
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const isOwner = computed(() => true)
 
-const crmNav = computed<NavItem[]>(() => {
-  const base = `/platform/${slug.value}/crm`
-  const items: NavItem[] = [
-    { title: 'Dashboard', icon: 'mdi-view-dashboard-outline', to: `${base}/home` },
-    { title: 'Companies', icon: 'mdi-office-building-outline', to: `${base}/companies` },
-    { title: 'Projects', icon: 'mdi-briefcase-outline', to: `${base}/projects` },
-    { title: 'Contacts', icon: 'mdi-account-group-outline', to: `${base}/contacts` },
-    { title: 'Reports', icon: 'mdi-chart-line', to: `${base}/reports` },
-    { title: 'Automation', icon: 'mdi-robot-outline', to: `${base}/automation` },
-    { title: 'Tickets', icon: 'mdi-ticket-confirmation-outline', to: `${base}/tickets` },
-  ]
-  if (isOwner.value) items.push({ title: 'Admin', icon: 'mdi-shield-crown-outline', to: `${base}/admin` })
-  return items
-})
+const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
 </script>
 
 <template>
