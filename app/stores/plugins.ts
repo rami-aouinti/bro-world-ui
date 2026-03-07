@@ -12,16 +12,24 @@ export const usePluginsStore = defineStore('plugins', () => {
   const pluginsApi = usePluginsApi()
   const items = ref<PluginRead[]>([])
   const count = ref<number | null>(null)
+  const isLoading = ref(false)
 
   const fetchAll = async () => {
-    const [listResponse, countResponse] = await Promise.all([
-      pluginsApi.list({ limit: 200 }),
-      pluginsApi.count(),
-    ])
+    isLoading.value = true
 
-    items.value = Array.isArray(listResponse) ? listResponse : (listResponse.results ?? [])
-    count.value = countResponse.count
-    return items.value
+    try {
+      const [listResponse, countResponse] = await Promise.all([
+        pluginsApi.list({ limit: 200 }),
+        pluginsApi.count(),
+      ])
+
+      items.value = Array.isArray(listResponse) ? listResponse : (listResponse.results ?? [])
+      count.value = countResponse.count
+      return items.value
+    }
+    finally {
+      isLoading.value = false
+    }
   }
 
   const create = async (payload: CreatePluginPayload) => {
@@ -50,6 +58,7 @@ export const usePluginsStore = defineStore('plugins', () => {
   return {
     items,
     count,
+    isLoading,
     fetchAll,
     create,
     update,

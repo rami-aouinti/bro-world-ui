@@ -4,8 +4,6 @@ import UiAvatar from '~/components/ui/UiAvatar.vue'
 import UiCard from '~/components/ui/UiCard.vue'
 import UiPageShell from '~/components/ui/page/UiPageShell.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
-import UiStateEmptyState from '~/components/ui/state/UiEmptyState.vue'
-import UiStateLoadingState from '~/components/ui/state/UiLoadingState.vue'
 import UiStateAlert from '~/components/ui/state/UiStateAlert.vue'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useProfileApi } from '~/composables/api/useProfileApi'
@@ -15,6 +13,7 @@ import type { Profile } from '~/types/api/profile'
 definePageMeta({
   middleware: ['role'],
   requiredPermissions: ['profile.readOwn'],
+  skeleton: 'form',
 })
 
 const { t } = useI18n()
@@ -202,6 +201,12 @@ onMounted(async () => {
         :subtitle="t('profile.tokenHint')"
         icon="mdi-account-circle-outline"
         max-width="100%"
+        :loading="loading"
+        skeleton="form"
+        :empty="!loading && !authSession.profile"
+        :empty-title="t('profile.tokenHeader')"
+        :empty-description="emptyProfileDescription"
+        empty-icon="mdi-key-outline"
       >
         <UiStateAlert
           v-if="!isAuthenticated"
@@ -210,16 +215,6 @@ onMounted(async () => {
           :message="t('profile.notAuthenticated')"
         />
 
-        <UiStateAlert
-          v-else-if="loading"
-          type="info"
-          variant="tonal"
-        >
-          <UiStateLoadingState
-            :message="`${t('profile.load')}...`"
-            variant="spinner"
-          />
-        </UiStateAlert>
 
         <UiStateAlert
           v-if="errorMessage"
@@ -295,12 +290,6 @@ onMounted(async () => {
           <pre class="text-body-2">{{ authSession.profile }}</pre>
         </UiCard>
 
-        <UiStateEmptyState
-          v-else
-          :title="t('profile.tokenHeader')"
-          :description="emptyProfileDescription"
-          icon="mdi-key-outline"
-        />
       </UiPageShell>
     </template>
   </PlatformSplitLayout>

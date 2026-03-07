@@ -14,11 +14,12 @@ definePageMeta({
   layout: 'admin',
   middleware: ['role'],
   requiredPermissions: ['admin.access'],
+  skeleton: 'data-table',
 })
 
 const usersStore = useUsersStore()
 const { t } = useI18n()
-const loading = ref(false)
+const loading = computed(() => usersStore.isLoading)
 const submitting = ref(false)
 const errorMessage = ref('')
 const users = ref<UserRead[]>([])
@@ -77,7 +78,6 @@ const formTitle = computed(() => {
 })
 
 const fetchUsers = async () => {
-  loading.value = true
   errorMessage.value = ''
 
   try {
@@ -90,9 +90,6 @@ const fetchUsers = async () => {
   }
   catch {
     errorMessage.value = t('admin.users.errors.load')
-  }
-  finally {
-    loading.value = false
   }
 }
 

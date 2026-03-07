@@ -6,11 +6,19 @@ import type { CreateUserGroupPayload, PatchUserGroupPayload, UpdateUserGroupPayl
 export const useUserGroupsStore = defineStore('user-groups', () => {
   const userGroupsApi = useUserGroupsApi()
   const items = ref<UserGroup[]>([])
+  const isLoading = ref(false)
 
   const fetchAll = async () => {
-    const response = await userGroupsApi.list({ limit: 200 })
-    items.value = Array.isArray(response) ? response : (response.results ?? [])
-    return items.value
+    isLoading.value = true
+
+    try {
+      const response = await userGroupsApi.list({ limit: 200 })
+      items.value = Array.isArray(response) ? response : (response.results ?? [])
+      return items.value
+    }
+    finally {
+      isLoading.value = false
+    }
   }
 
   const create = async (payload: CreateUserGroupPayload) => {
@@ -38,6 +46,7 @@ export const useUserGroupsStore = defineStore('user-groups', () => {
 
   return {
     items,
+    isLoading,
     fetchAll,
     create,
     update,

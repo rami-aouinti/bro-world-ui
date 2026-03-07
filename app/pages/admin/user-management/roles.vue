@@ -10,11 +10,12 @@ definePageMeta({
   layout: 'admin',
   middleware: ['role'],
   requiredPermissions: ['admin.access'],
+  skeleton: 'data-table',
 })
 
 const rolesStore = useRolesStore()
 const { t } = useI18n()
-const loading = ref(false)
+const loading = computed(() => rolesStore.isLoading)
 const errorMessage = ref('')
 const roles = ref<Role[]>([])
 const search = ref('')
@@ -32,7 +33,6 @@ const headers = computed(() => [
 ])
 
 const fetchRoles = async () => {
-  loading.value = true
   errorMessage.value = ''
 
   try {
@@ -41,9 +41,6 @@ const fetchRoles = async () => {
   }
   catch {
     errorMessage.value = t('admin.roles.errors.load')
-  }
-  finally {
-    loading.value = false
   }
 }
 

@@ -7,13 +7,21 @@ export const useApiKeysStore = defineStore('api-keys', () => {
   const apiKeysApi = useApiKeysApi()
   const version = ref<'v1' | 'v2'>('v1')
   const items = ref<ApiKey[]>([])
+  const isLoading = ref(false)
 
   const client = computed(() => apiKeysApi[version.value])
 
   const fetchAll = async () => {
-    const response = await client.value.list({ limit: 200 })
-    items.value = Array.isArray(response) ? response : (response.results ?? [])
-    return items.value
+    isLoading.value = true
+
+    try {
+      const response = await client.value.list({ limit: 200 })
+      items.value = Array.isArray(response) ? response : (response.results ?? [])
+      return items.value
+    }
+    finally {
+      isLoading.value = false
+    }
   }
 
   const create = async (payload: CreateApiKeyPayload) => {
@@ -42,6 +50,7 @@ export const useApiKeysStore = defineStore('api-keys', () => {
   return {
     version,
     items,
+    isLoading,
     fetchAll,
     create,
     update,
