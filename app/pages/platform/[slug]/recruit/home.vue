@@ -11,7 +11,6 @@ import { useRecruitHome } from '~/composables/recruit/useRecruitHome'
 
 definePageMeta({ public: true, requiresAuth: false })
 
-const RecruitJobCreateDialog = defineAsyncComponent(() => import('~/components/platform/recruit/RecruitJobCreateDialog.vue'))
 const RecruitJobEditDialog = defineAsyncComponent(() => import('~/components/platform/recruit/RecruitJobEditDialog.vue'))
 const RecruitApplyDialog = defineAsyncComponent(() => import('~/components/platform/recruit/RecruitApplyDialog.vue'))
 
