@@ -18,7 +18,7 @@ defineEmits<{
 <template>
   <v-dialog v-model="modelValue" max-width="760">
     <v-card rounded="xl">
-      <v-card-title class="text-h5 py-4 px-6">Créer une offre</v-card-title>
+      <v-card-title class="text-h5 py-4 px-6">New Job</v-card-title>
       <v-card-text class="px-6 pb-0">
         <v-alert v-if="error" type="error" variant="tonal" class="mb-4">{{ error }}</v-alert>
         <v-row>
@@ -39,7 +39,7 @@ defineEmits<{
       <v-card-actions class="px-6 pb-6 pt-2">
         <v-spacer />
         <v-btn variant="text" @click="$emit('close')">Annuler</v-btn>
-        <v-btn color="primary" :loading="loading" @click="$emit('submit')">Créer</v-btn>
+        <v-btn color="primary" :loading="loading" @click="$emit('submit')">Create</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

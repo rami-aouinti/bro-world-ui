@@ -128,11 +128,12 @@ export const getRecruitNav = (slug: string, isOwner = false, isAuthenticated = f
   const privateItems: PlatformNavItem[] = isAuthenticated
     ? [
         { title: 'platform.recruit.nav.myJobs', icon: 'mdi-briefcase-account-outline', to: `${base}/my-jobs`, section: 'overview', featureFlag: 'myJobs' },
-        { title: 'platform.recruit.nav.myApplications', icon: 'mdi-file-document-check-outline', to: `${base}/my-applications`, section: 'overview', featureFlag: 'myApplications' },
+        { title: 'platform.recruit.nav.myApplications', icon: 'mdi-file-outline', to: `${base}/my-applications`, section: 'overview', featureFlag: 'myApplications' },
       ]
     : []
 
   return resolveNav('recruit', [
+    { title: 'platform.recruit.home.actions.createJob', icon: 'mdi-plus-outline', to: `${base}/new`, section: 'overview', featureFlag: 'plus' },
     { title: 'platform.recruit.nav.home', icon: 'mdi-briefcase-search-outline', to: `${base}/home`, section: 'overview', featureFlag: 'jobs' },
     ...privateItems,
     { title: 'platform.recruit.nav.candidates', icon: 'mdi-account-tie-outline', to: `${base}/candidates`, section: 'operations', featureFlag: 'candidates' },

@@ -2,7 +2,6 @@
 import { defineAsyncComponent } from 'vue'
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
-import PlatformHeroHeader from '~/components/platform/sections/PlatformHeroHeader.vue'
 import RecruitJobsFiltersPanel from '~/components/platform/recruit/RecruitJobsFiltersPanel.vue'
 import RecruitJobList from '~/components/platform/recruit/RecruitJobList.vue'
 import RecruitPageSection from '~/components/platform/recruit/RecruitPageSection.vue'
@@ -72,18 +71,8 @@ const { isOwner } = usePlatformPermissions(slug)
 const { t } = useI18n()
 const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
 const visibleJobsCount = computed(() => jobsData.value?.jobs?.length ?? 0)
-const homeStats = computed(() => [
-  { label: 'Offres visibles', value: visibleJobsCount.value, icon: 'mdi-briefcase-search-outline', color: 'primary' },
-  { label: 'Pages', value: totalPages.value, icon: 'mdi-book-open-page-variant-outline', color: 'info' },
-  { label: 'Filtres actifs', value: hasFilters.value ? 'Oui' : 'Non', icon: 'mdi-filter-outline', color: 'warning' },
-  { label: 'Compte', value: isAuthenticated.value ? 'Connecté' : 'Invité', icon: 'mdi-account-circle-outline', color: 'success' },
-])
 
-const handleCreateJob = async () => {
-  if (await submitCreateJob()) {
-    await refreshRecruitMeJobsState(slug.value)
-  }
-}
+
 
 const handleEditJob = async () => {
   if (await submitEditJob()) {
@@ -154,15 +143,6 @@ const handleApplyToJob = async () => {
       </RecruitPageSection>
     </section>
   </PlatformSplitLayout>
-
-  <RecruitJobCreateDialog
-    v-model="createDialog"
-    v-model:form="createForm"
-    :loading="createLoading"
-    :error="ownerActionError"
-    @close="closeOwnerDialogs"
-    @submit="handleCreateJob"
-  />
 
   <RecruitJobEditDialog
     v-model="editDialog"
