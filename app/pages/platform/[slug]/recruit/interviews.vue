@@ -11,12 +11,13 @@ definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const { isOwner } = usePlatformPermissions(slug)
+const { isAuthenticated } = useAuth()
 const interviewSlots = [
   { role: 'Senior Frontend Engineer', interviewer: 'CTO', date: 'Mer 10:30', type: 'Tech interview' },
   { role: 'Product Designer II', interviewer: 'Head of Design', date: 'Jeu 14:00', type: 'Case study' },
   { role: 'Data Analyst Growth', interviewer: 'Lead Data', date: 'Ven 11:00', type: 'Business case' },
 ]
-const navItems = computed(() => getRecruitNav(slug.value, isOwner.value))
+const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
 </script>
 
 <template>

@@ -49,7 +49,7 @@ const { initSession, isAuthenticated } = useAuth()
 const { apiFetch } = useApiClient()
 const showAccessDenied = computed(() => route.query.accessDenied === 'admin')
 
-const navItems = computed(() => getRecruitNav(slug.value, isOwner.value))
+const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
 const hasFilters = computed(() => Object.values(filters.value).some(value => {
   if (typeof value === 'number') {
     return value > 0

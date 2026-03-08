@@ -11,7 +11,8 @@ definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const { isOwner } = usePlatformPermissions(slug)
-const navItems = computed(() => getRecruitNav(slug.value, isOwner.value))
+const { isAuthenticated } = useAuth()
+const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
 </script>
 
 <template>

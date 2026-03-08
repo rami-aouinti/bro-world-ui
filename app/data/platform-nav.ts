@@ -59,6 +59,8 @@ const platformFeatureFlags: Record<PlatformName, Record<string, boolean>> = {
   },
   recruit: {
     jobs: true,
+    myJobs: true,
+    myApplications: true,
     candidates: true,
     interviews: true,
     tickets: true,
@@ -120,10 +122,19 @@ export const getShopNav = (slug: string, isOwner = false): PlatformNavItem[] => 
   ], isOwner)
 }
 
-export const getRecruitNav = (slug: string, isOwner = false): PlatformNavItem[] => {
+export const getRecruitNav = (slug: string, isOwner = false, isAuthenticated = false): PlatformNavItem[] => {
   const base = `/platform/${slug}/recruit`
+
+  const privateItems: PlatformNavItem[] = isAuthenticated
+    ? [
+        { title: 'platform.recruit.nav.myJobs', icon: 'mdi-briefcase-account-outline', to: `${base}/my-jobs`, section: 'overview', featureFlag: 'myJobs' },
+        { title: 'platform.recruit.nav.myApplications', icon: 'mdi-file-document-check-outline', to: `${base}/my-applications`, section: 'overview', featureFlag: 'myApplications' },
+      ]
+    : []
+
   return resolveNav('recruit', [
     { title: 'platform.recruit.nav.home', icon: 'mdi-briefcase-search-outline', to: `${base}/home`, section: 'overview', featureFlag: 'jobs' },
+    ...privateItems,
     { title: 'platform.recruit.nav.candidates', icon: 'mdi-account-tie-outline', to: `${base}/candidates`, section: 'operations', featureFlag: 'candidates' },
     { title: 'platform.recruit.nav.interviews', icon: 'mdi-calendar-account-outline', to: `${base}/interviews`, section: 'operations', featureFlag: 'interviews' },
     { title: 'platform.recruit.nav.tickets', icon: 'mdi-ticket-confirmation-outline', to: `${base}/tickets`, section: 'support', featureFlag: 'tickets' },
