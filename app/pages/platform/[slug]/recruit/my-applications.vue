@@ -4,50 +4,17 @@ import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformHeroHeader from '~/components/platform/sections/PlatformHeroHeader.vue'
 import { getRecruitNav } from '~/data/platform-nav'
 
-type AppliedJobItem = {
-  applicationId: string
-  status: string
-  appliedAt: string
-  job: {
-    id: string
-    slug: string
-    title: string
-    company: string
-    location: string
-    contractType: string
-    workMode: string
-    schedule: string
-  }
-}
-
-type RecruitMeJobsResponse = {
-  appliedJobs?: AppliedJobItem[]
-}
-
 definePageMeta({ public: true, requiresAuth: false })
 
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const { isOwner } = usePlatformPermissions(slug)
-const { apiFetch } = useApiClient()
-const { initSession, isAuthenticated } = useAuth()
+const { isAuthenticated } = useAuth()
 
 const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
 
-const { data, pending, error } = await useAsyncData(
-  () => `recruit-my-applications-${slug.value}`,
-  async () => {
-    await initSession()
-
-    if (!isAuthenticated.value) {
-      return []
-    }
-
-    const response = await apiFetch<RecruitMeJobsResponse>('/api/v1/recruit/private/me/jobs', { method: 'GET' })
-    return response.appliedJobs ?? []
-  },
-  { watch: [slug], default: () => [] },
-)
+const { data, pending, error } = useRecruitMeJobs(slug)
+const applications = computed(() => data.value?.appliedJobs ?? [])
 </script>
 
 <template>
@@ -74,7 +41,7 @@ const { data, pending, error } = await useAsyncData(
       <v-skeleton-loader v-if="pending" type="article" class="mb-4" />
 
       <v-card
-        v-for="application in data"
+        v-for="application in applications"
         :key="application.applicationId"
         rounded="xl"
         class="mb-4 border"
@@ -92,7 +59,7 @@ const { data, pending, error } = await useAsyncData(
         </v-card-text>
       </v-card>
 
-      <v-alert v-if="isAuthenticated && !pending && !data.length" type="info" variant="tonal">
+      <v-alert v-if="isAuthenticated && !pending && !applications.length" type="info" variant="tonal">
         Vous n'avez encore postulé à aucune offre.
       </v-alert>
     </section>
