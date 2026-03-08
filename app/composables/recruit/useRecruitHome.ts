@@ -43,6 +43,7 @@ export type RecruitUpdateJobPayload = {
 
 const DEFAULT_PAGE_SIZE = 10
 const PRIVATE_JOBS_TIMEOUT_MS = 6000
+const RECRUIT_HOME_CACHE_TTL_MS = 60_000
 
 const emptyFilters = (): RecruitHomeFilters => ({
   company: '',
@@ -85,7 +86,12 @@ const createEmptyResumeForm = () => ({
   skillDescription: '',
 })
 
-export const useRecruitHome = async () => {
+type RecruitHomeJobsCacheEntry = {
+  data: { jobs: RecruitJob[], total: number }
+  cachedAt: number
+}
+
+export const useRecruitHome = () => {
   const route = useRoute()
   const slug = computed(() => String(route.params.slug ?? ''))
   const applicationSlug = computed(() => slug.value)
@@ -98,6 +104,7 @@ export const useRecruitHome = async () => {
 
   const currentPage = ref(1)
   const filters = ref<RecruitHomeFilters>(emptyFilters())
+  const jobsCache = useState<Record<string, RecruitHomeJobsCacheEntry>>('recruit-home-jobs-cache', () => ({}))
 
   const createDialog = ref(false)
   const editDialog = ref(false)
@@ -306,13 +313,25 @@ export const useRecruitHome = async () => {
     },
   })
 
+  const getJobsCacheKey = () => `${slug.value}-${currentPage.value}-${filterQueryKey.value}`
+
   const fetchRecruitJobsWithFallback = async () => {
+    const cacheKey = getJobsCacheKey()
+    const now = Date.now()
+    const cacheEntry = jobsCache.value[cacheKey]
+
+    if (cacheEntry && now - cacheEntry.cachedAt < RECRUIT_HOME_CACHE_TTL_MS) {
+      return cacheEntry.data
+    }
+
     await initSession()
 
     if (isAuthenticated.value) {
       try {
         const privateResponse = await withTimeout(fetchRecruitJobsPrivate(), PRIVATE_JOBS_TIMEOUT_MS)
-        return normalizeJobsResponse(privateResponse)
+        const normalized = normalizeJobsResponse(privateResponse)
+        jobsCache.value[cacheKey] = { data: normalized, cachedAt: now }
+        return normalized
       } catch {
         // fallback sur l'endpoint public si le private échoue ou tarde trop
       }
@@ -320,19 +339,22 @@ export const useRecruitHome = async () => {
 
     try {
       const publicResponse = await withTimeout(fetchRecruitJobsPublic(), PRIVATE_JOBS_TIMEOUT_MS)
-      return normalizeJobsResponse(publicResponse)
+      const normalized = normalizeJobsResponse(publicResponse)
+      jobsCache.value[cacheKey] = { data: normalized, cachedAt: now }
+      return normalized
     } catch {
-      return { jobs: [], total: 0 }
+      return cacheEntry?.data ?? { jobs: [], total: 0 }
     }
   }
 
-  const { data: jobsData, pending, error, refresh } = await useAsyncData(
+  const { data: jobsData, pending, error, refresh } = useAsyncData(
     () => `recruit-home-jobs-${slug.value}-${currentPage.value}-${filterQueryKey.value}`,
     fetchRecruitJobsWithFallback,
     {
       watch: [slug, currentPage, filterQueryKey],
       default: () => ({ jobs: [], total: 0 }),
       dedupe: 'cancel',
+      lazy: true,
     },
   )
 
@@ -371,8 +393,10 @@ export const useRecruitHome = async () => {
 
       await refresh()
       closeOwnerDialogs()
+      return true
     } catch {
       ownerActionError.value = "La création de l'offre a échoué."
+      return false
     } finally {
       createLoading.value = false
     }
@@ -407,8 +431,10 @@ export const useRecruitHome = async () => {
 
       await refresh()
       closeOwnerDialogs()
+      return true
     } catch {
       ownerActionError.value = "La mise à jour de l'offre a échoué."
+      return false
     } finally {
       editLoading.value = false
     }
@@ -429,8 +455,10 @@ export const useRecruitHome = async () => {
 
       await refresh()
       closeOwnerDialogs()
+      return true
     } catch {
       ownerActionError.value = "La suppression de l'offre a échoué."
+      return false
     } finally {
       deleteLoading.value = false
     }
@@ -438,7 +466,7 @@ export const useRecruitHome = async () => {
 
   const submitApply = async () => {
     if (!selectedApplyJob.value || !canSubmitApplication.value) {
-      return
+      return false
     }
 
     applyLoading.value = true
@@ -487,8 +515,10 @@ export const useRecruitHome = async () => {
 
       await refresh()
       closeApplyDialog()
+      return true
     } catch {
       applyError.value = 'La candidature a échoué. Vérifiez les informations et réessayez.'
+      return false
     } finally {
       applyLoading.value = false
     }
