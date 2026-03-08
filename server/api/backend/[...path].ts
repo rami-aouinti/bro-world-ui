@@ -13,6 +13,10 @@ const PUBLIC_BACKEND_PATHS = new Set([
   '/api/v1/plugin/public',
 ])
 
+const PUBLIC_BACKEND_PATH_PREFIXES = [
+  '/api/v1/recruit/public/',
+]
+
 const LOCALIZATION_CACHE_PATHS = new Set([
   '/api/v1/localization/language',
   '/api/v1/localization/locale',
@@ -179,6 +183,7 @@ export default defineEventHandler(async (event) => {
   const path = getRouterParam(event, 'path') || ''
   const targetPath = `/${path}`
   const isPublicRoute = PUBLIC_BACKEND_PATHS.has(targetPath)
+    || PUBLIC_BACKEND_PATH_PREFIXES.some(prefix => targetPath.startsWith(prefix))
 
   let bearerToken: string | undefined
   let authCookiePayload: Awaited<ReturnType<typeof requireAuthCookie>> | undefined
