@@ -1,25 +1,22 @@
 <script setup lang="ts">
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
-import PlatformHeroHeader from '~/components/platform/sections/PlatformHeroHeader.vue'
-import PlatformTicketBoard from '~/components/platform/sections/PlatformTicketBoard.vue'
 import RecruitPageSection from '~/components/platform/recruit/RecruitPageSection.vue'
 import { getRecruitNav } from '~/data/platform-nav'
-import { platformProposals } from '~/data/platform-enhanced'
-import {useRecruitHome} from "~/composables/recruit/useRecruitHome";
+import { useRecruitHome } from '~/composables/recruit/useRecruitHome'
 
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const { isOwner } = usePlatformPermissions(slug)
 const { isAuthenticated } = useAuth()
-const { t } = useI18n()
 const {
+  createDialog,
   submitCreateJob,
   createForm,
   createLoading,
   ownerActionError,
-  closeOwnerDialogs
+  closeOwnerDialogs,
 } = useRecruitHome()
 
 const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
