@@ -25,7 +25,7 @@ const skeletonComponents: Record<string, unknown> = {
 }
 
 const resolvedSkeleton = computed(() => skeletonComponents[activeSkeletonKey.value] ?? UiDefaultPageSkeleton)
-const mergedLoading = computed(() => props.loading || suspensePending.value)
+const mergedLoading = computed(() => suspensePending.value)
 
 watch(
   () => route.meta?.skeleton,
