@@ -107,14 +107,24 @@ const applyError = ref('')
 const selectedJob = ref<RecruitJob | null>(null)
 const selectedApplyJob = ref<RecruitJob | null>(null)
 const authSession = useAuthSessionStore()
-const importedResumeFile = ref<File | null>(null)
+const resumesStore = useRecruitResumesStore()
+const selectedResumeId = ref('')
+const resumeMode = ref<'existing' | 'new' | 'pdf'>('existing')
+const resumeForm = ref({
+  title: '',
+  description: '',
+  skillTitle: '',
+  skillDescription: '',
+})
+const resumeSaving = ref(false)
+const resumeDeleting = ref(false)
+const uploadedResumeFile = ref<File | null>(null)
+
 const applyForm = ref({
   firstName: '',
   lastName: '',
   email: '',
   coverLetter: '',
-  title: '',
-  description: '',
 })
 const editForm = ref<RecruitUpdateJobPayload>({
   title: '',
@@ -148,6 +158,25 @@ const createForm = ref<RecruitUpdateJobPayload>({
 
 const applicationSlug = computed(() => slug.value)
 const applicationId = computed(() => String(route.query.applicationId ?? slug.value))
+
+watch(selectedResumeId, (nextId) => {
+  if (!nextId) {
+    return
+  }
+
+  const resume = resumesStore.items.find(item => item.id === nextId)
+  if (!resume) {
+    return
+  }
+
+  if (!resume.experiences.length) {
+    resume.experiences = [{ id: '', title: '', description: '' }]
+  }
+
+  if (!resume.skills.length) {
+    resume.skills = [{ id: '', title: '', description: '' }]
+  }
+})
 
 const parseMultilineList = (value: string) => {
   return value
@@ -225,10 +254,18 @@ const openApplyDialog = async (job: RecruitJob) => {
     lastName: profile?.lastName ?? '',
     email: profile?.email ?? '',
     coverLetter: '',
+  }
+
+  await resumesStore.fetchMine()
+  selectedResumeId.value = resumesStore.items[0]?.id ?? ''
+  resumeMode.value = selectedResumeId.value ? 'existing' : 'new'
+  uploadedResumeFile.value = null
+  resumeForm.value = {
     title: '',
     description: '',
+    skillTitle: '',
+    skillDescription: '',
   }
-  importedResumeFile.value = null
   applyError.value = ''
   selectedApplyJob.value = job
   applyDialog.value = true
@@ -237,21 +274,28 @@ const openApplyDialog = async (job: RecruitJob) => {
 const closeApplyDialog = () => {
   applyDialog.value = false
   selectedApplyJob.value = null
-  importedResumeFile.value = null
   applyError.value = ''
+  uploadedResumeFile.value = null
 }
 
+const selectedResume = computed(() => resumesStore.items.find(item => item.id === selectedResumeId.value) ?? null)
+
 const handleResumeFileChange = (value: File | File[] | null) => {
-  const file = Array.isArray(value) ? (value[0] ?? null) : value
-  importedResumeFile.value = file
+  const nextFile = Array.isArray(value) ? (value[0] ?? null) : value
+  uploadedResumeFile.value = nextFile
 }
 
 const canSubmitApplication = computed(() => {
+  const hasExistingResume = resumeMode.value === 'existing' && Boolean(selectedResumeId.value)
+  const hasNewResumeData = resumeMode.value === 'new'
+    && resumeForm.value.title.trim()
+    && resumeForm.value.description.trim()
+  const hasPdfResume = resumeMode.value === 'pdf' && Boolean(uploadedResumeFile.value)
+
   return Boolean(
     selectedApplyJob.value
     && applyForm.value.coverLetter.trim()
-    && applyForm.value.title.trim()
-    && applyForm.value.description.trim(),
+    && (hasExistingResume || hasNewResumeData || hasPdfResume),
   )
 })
 
@@ -264,23 +308,37 @@ const submitApply = async () => {
   applyError.value = ''
 
   try {
-    const resumeResponse = await apiFetch<{ id: string }>('/api/v1/recruit/resumes', {
-      method: 'POST',
-      body: {
+    let resumeId = selectedResumeId.value
+
+    if (resumeMode.value === 'new') {
+      const resumeResponse = await resumesStore.create({
         experiences: [
           {
-            title: applyForm.value.title.trim(),
-            description: applyForm.value.description.trim(),
+            title: resumeForm.value.title.trim(),
+            description: resumeForm.value.description.trim(),
           },
         ],
-        skills: [],
-      },
-    })
+        skills: resumeForm.value.skillTitle.trim()
+          ? [
+              {
+                title: resumeForm.value.skillTitle.trim(),
+                description: resumeForm.value.skillDescription.trim(),
+              },
+            ]
+          : [],
+      })
+      resumeId = resumeResponse.id
+    }
+
+    if (resumeMode.value === 'pdf' && uploadedResumeFile.value) {
+      const resumeResponse = await resumesStore.createFromDocument(uploadedResumeFile.value)
+      resumeId = resumeResponse.id
+    }
 
     const applicantResponse = await apiFetch<{ id: string }>('/api/v1/recruit/applicants', {
       method: 'POST',
       body: {
-        resumeId: resumeResponse.id,
+        resumeId,
         coverLetter: applyForm.value.coverLetter.trim(),
       },
     })
@@ -300,6 +358,57 @@ const submitApply = async () => {
     applyError.value = 'La candidature a échoué. Vérifiez les informations et réessayez.'
   } finally {
     applyLoading.value = false
+  }
+}
+
+const saveSelectedResume = async () => {
+  if (!selectedResume.value) {
+    return
+  }
+
+  resumeSaving.value = true
+  applyError.value = ''
+
+  try {
+    await resumesStore.update(selectedResume.value.id, {
+      experiences: selectedResume.value.experiences.map(item => ({
+        title: item.title.trim(),
+        description: item.description.trim(),
+      })),
+      skills: selectedResume.value.skills.map(item => ({
+        title: item.title.trim(),
+        description: item.description.trim(),
+      })),
+    })
+  }
+  catch {
+    applyError.value = 'La mise à jour du CV a échoué.'
+  }
+  finally {
+    resumeSaving.value = false
+  }
+}
+
+const deleteSelectedResume = async () => {
+  if (!selectedResume.value) {
+    return
+  }
+
+  resumeDeleting.value = true
+  applyError.value = ''
+
+  try {
+    await resumesStore.remove(selectedResume.value.id)
+    selectedResumeId.value = resumesStore.items[0]?.id ?? ''
+    if (!selectedResumeId.value) {
+      resumeMode.value = 'new'
+    }
+  }
+  catch {
+    applyError.value = 'La suppression du CV a échoué.'
+  }
+  finally {
+    resumeDeleting.value = false
   }
 }
 
@@ -797,31 +906,81 @@ watch(filterQueryKey, () => {
           </v-col>
 
           <v-col cols="12">
-            <v-text-field v-model="applyForm.title" label="Title" variant="outlined" density="comfortable" />
-          </v-col>
-
-          <v-col cols="12">
-            <v-textarea v-model="applyForm.description" label="Description" rows="3" auto-grow variant="outlined" density="comfortable" />
-          </v-col>
-
-          <v-col cols="12">
             <v-textarea v-model="applyForm.coverLetter" label="Cover Letter" rows="5" auto-grow variant="outlined" density="comfortable" />
           </v-col>
 
           <v-col cols="12">
-            <div class="d-flex flex-wrap ga-2 mb-3">
-              <v-btn color="secondary" variant="tonal">Create a resume</v-btn>
+            <v-radio-group v-model="resumeMode" inline>
+              <v-radio label="Utiliser un CV existant" value="existing" />
+              <v-radio label="Créer un nouveau CV" value="new" />
+              <v-radio label="Importer un CV PDF" value="pdf" />
+            </v-radio-group>
+          </v-col>
+
+          <v-col v-if="resumeMode === 'existing'" cols="12">
+            <v-select
+              v-model="selectedResumeId"
+              label="Mes CV"
+              variant="outlined"
+              density="comfortable"
+              :loading="resumesStore.isLoading"
+              :items="resumesStore.items.map(item => ({
+                title: `${item.experiences[0]?.title ?? 'CV sans titre'} (${item.id})`,
+                value: item.id,
+              }))"
+            />
+          </v-col>
+
+          <template v-if="resumeMode === 'existing' && selectedResume">
+            <v-col cols="12" md="6">
+              <v-text-field v-model="selectedResume.experiences[0].title" label="Experience title" variant="outlined" density="comfortable" />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field v-model="selectedResume.skills[0].title" label="Skill title" variant="outlined" density="comfortable" />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-textarea v-model="selectedResume.experiences[0].description" label="Experience description" rows="2" auto-grow variant="outlined" density="comfortable" />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-textarea v-model="selectedResume.skills[0].description" label="Skill description" rows="2" auto-grow variant="outlined" density="comfortable" />
+            </v-col>
+            <v-col cols="12">
+              <div class="d-flex ga-2 justify-end">
+                <v-btn color="secondary" variant="tonal" :loading="resumeSaving" @click="saveSelectedResume">Modifier ce CV</v-btn>
+                <v-btn color="error" variant="tonal" :loading="resumeDeleting" @click="deleteSelectedResume">Supprimer ce CV</v-btn>
+              </div>
+            </v-col>
+          </template>
+
+
+          <template v-if="resumeMode === 'pdf'">
+            <v-col cols="12">
               <v-file-input
+                label="CV PDF"
                 accept="application/pdf"
-                density="comfortable"
-                variant="outlined"
-                label="Import CV (PDF)"
                 prepend-icon="mdi-file-pdf-box"
-                hide-details
+                variant="outlined"
+                density="comfortable"
+                show-size
                 @update:model-value="handleResumeFileChange"
               />
-            </div>
-          </v-col>
+            </v-col>
+          </template>
+
+          <template v-if="resumeMode === 'new'">
+            <v-col cols="12" md="6">
+              <v-text-field v-model="resumeForm.title" label="Experience title" variant="outlined" density="comfortable" />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field v-model="resumeForm.skillTitle" label="Skill title (optionnel)" variant="outlined" density="comfortable" />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-textarea v-model="resumeForm.description" label="Experience description" rows="2" auto-grow variant="outlined" density="comfortable" />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-textarea v-model="resumeForm.skillDescription" label="Skill description (optionnel)" rows="2" auto-grow variant="outlined" density="comfortable" />
+            </v-col>
+          </template>
         </v-row>
       </v-card-text>
       <v-card-actions class="px-6 pb-6 pt-2">
