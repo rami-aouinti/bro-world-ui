@@ -11,6 +11,7 @@ const PUBLIC_BACKEND_PATHS = new Set([
   '/api/v1/application/public',
   '/api/v1/platform/public',
   '/api/v1/plugin/public',
+  '/api/v1/blogs/general',
 ])
 
 const PUBLIC_BACKEND_PATH_PREFIXES = [
@@ -38,6 +39,7 @@ const ENTITY_CACHE_PREFIXES = [
   '/api/v1/plugin/public',
   '/api/v1/recruit/public',
   '/api/v1/recruit/private',
+  '/api/v1/blogs',
 ]
 
 const ENTITY_CACHE_INVALIDATION_RULES: Array<{ routePrefix: string, cachePrefixes: string[] }> = [
@@ -48,6 +50,10 @@ const ENTITY_CACHE_INVALIDATION_RULES: Array<{ routePrefix: string, cachePrefixe
   {
     routePrefix: '/api/v1/recruit/',
     cachePrefixes: ['/api/v1/recruit/public', '/api/v1/recruit/private'],
+  },
+  {
+    routePrefix: '/api/v1/blogs/',
+    cachePrefixes: ['/api/v1/blogs'],
   },
 ]
 
