@@ -4,46 +4,17 @@ import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformHeroHeader from '~/components/platform/sections/PlatformHeroHeader.vue'
 import { getRecruitNav } from '~/data/platform-nav'
 
-type CreatedJob = {
-  id: string
-  slug: string
-  title: string
-  company: string
-  location: string
-  contractType: string
-  workMode: string
-  schedule: string
-  createdAt: string
-}
-
-type RecruitMeJobsResponse = {
-  createdJobs?: CreatedJob[]
-}
-
 definePageMeta({ public: true, requiresAuth: false })
 
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const { isOwner } = usePlatformPermissions(slug)
-const { apiFetch } = useApiClient()
-const { initSession, isAuthenticated } = useAuth()
+const { isAuthenticated } = useAuth()
 
 const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
 
-const { data, pending, error } = await useAsyncData(
-  () => `recruit-my-jobs-${slug.value}`,
-  async () => {
-    await initSession()
-
-    if (!isAuthenticated.value) {
-      return []
-    }
-
-    const response = await apiFetch<RecruitMeJobsResponse>('/api/v1/recruit/private/me/jobs', { method: 'GET' })
-    return response.createdJobs ?? []
-  },
-  { watch: [slug], default: () => [] },
-)
+const { data, pending, error } = useRecruitMeJobs(slug)
+const jobs = computed(() => data.value?.createdJobs ?? [])
 </script>
 
 <template>
@@ -70,7 +41,7 @@ const { data, pending, error } = await useAsyncData(
       <v-skeleton-loader v-if="pending" type="article" class="mb-4" />
 
       <v-card
-        v-for="job in data"
+        v-for="job in jobs"
         :key="job.id"
         rounded="xl"
         class="mb-4 border"
@@ -85,7 +56,7 @@ const { data, pending, error } = await useAsyncData(
         </v-card-text>
       </v-card>
 
-      <v-alert v-if="isAuthenticated && !pending && !data.length" type="info" variant="tonal">
+      <v-alert v-if="isAuthenticated && !pending && !jobs.length" type="info" variant="tonal">
         Vous n'avez encore créé aucune offre.
       </v-alert>
     </section>
