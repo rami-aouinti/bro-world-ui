@@ -18,7 +18,7 @@ const resolveLabel = (value?: string) => {
 
 <template>
   <div class="platform-sidebar-nav">
-    <v-list nav density="comfortable" rounded="xl" class="platform-sidebar-nav__list">
+    <v-list nav density="compact" rounded="xl" class="platform-sidebar-nav__list">
       <v-list-item
         v-for="item in props.items"
         :key="item.to"

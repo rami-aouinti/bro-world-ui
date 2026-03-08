@@ -9,7 +9,7 @@ const isActive = (to: string) => route.path === to
 <template>
   <PlatformSplitLayout>
     <template #sidebar>
-      <v-list nav density="comfortable" class="py-0">
+      <v-list nav density="compact" class="py-0">
         <v-list-item
             v-for="item in settingsNavItems"
             :key="item.to"

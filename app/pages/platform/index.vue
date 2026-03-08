@@ -204,7 +204,7 @@ const disableApplication = async () => {
             prepend-inner-icon="mdi-magnify"
             variant="solo"
             flat
-            density="comfortable"
+            density="compact"
             hide-details
             class="mb-4"
             @keyup.enter="applyFilters"
@@ -298,7 +298,7 @@ const disableApplication = async () => {
                 <template v-slot:append>
                   <v-menu v-if="card.isOwner" location="bottom end">
                     <template #activator="{ props }">
-                      <v-btn icon="mdi-dots-vertical" variant="text" density="comfortable" v-bind="props" />
+                      <v-btn icon="mdi-dots-vertical" variant="text" density="compact" v-bind="props" />
                     </template>
                     <v-list density="compact">
                       <v-list-item :title="t('platform.actions.edit')" @click="openEditModal(card)" />

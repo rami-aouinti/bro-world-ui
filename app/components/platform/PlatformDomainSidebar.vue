@@ -86,7 +86,7 @@ const isRouteInSection = (pathPrefix: string) => route.path.startsWith(pathPrefi
     <v-expand-transition>
       <div v-show="!isCollapsed" class="platform-domain-sidebar__content">
         <template v-if="domain === 'crm'">
-          <v-list nav density="comfortable" class="bg-transparent pa-0">
+          <v-list nav density="compact" class="bg-transparent pa-0">
             <v-list-item
               v-for="item in crmItems"
               :key="item.to"
@@ -174,7 +174,7 @@ const isRouteInSection = (pathPrefix: string) => route.path.startsWith(pathPrefi
         </template>
 
         <template v-else>
-          <v-list nav density="comfortable" class="bg-transparent pa-0">
+          <v-list nav density="compact" class="bg-transparent pa-0">
             <v-list-item
               v-for="item in schoolItems"
               :key="item.to"

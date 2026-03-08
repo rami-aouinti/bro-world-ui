@@ -143,7 +143,7 @@ const cta = computed<HomeCta>(() => {
 
     <v-card class="home-section mb-6" rounded="xl">
       <h2 class="text-h6 mb-4">{{ t('home.featuresTitle') }}</h2>
-      <v-row density="comfortable">
+      <v-row density="compact">
         <v-col v-for="card in featureCards" :key="card.title" cols="12" md="4">
           <v-card class="home-feature-card h-100" rounded="lg" hover variant="outlined">
             <v-icon :icon="card.icon" class="home-feature-card__icon mb-3" />
@@ -157,7 +157,7 @@ const cta = computed<HomeCta>(() => {
     <v-expand-transition>
       <v-card class="home-section mb-6" rounded="xl" variant="tonal">
         <h2 class="text-h6 mb-4">{{ t('home.metricsTitle') }}</h2>
-        <v-row density="comfortable">
+        <v-row density="compact">
           <v-col v-for="metric in metrics" :key="metric.label" cols="12" md="4">
             <v-card class="home-metric-card h-100" rounded="lg" variant="flat">
               <p class="home-metric-card__value text-h5 font-weight-bold mb-1">{{ metric.value }}</p>
@@ -171,7 +171,7 @@ const cta = computed<HomeCta>(() => {
     <v-expand-transition>
       <v-card class="home-section mb-6" rounded="xl" variant="outlined">
         <h2 class="text-h6 mb-4">{{ t('home.stepsTitle') }}</h2>
-        <v-row density="comfortable">
+        <v-row density="compact">
           <v-col v-for="(step, index) in steps" :key="step.title" cols="12" md="4">
             <v-card class="home-step-card h-100" rounded="lg">
               <div class="d-flex align-center ga-2 mb-2">

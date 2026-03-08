@@ -89,7 +89,7 @@ const onSave = async () => {
                 v-model="productForm.imageAlt"
                  :label="t('platform.shop.editProduct.form.imageAltText')"
                 variant="outlined"
-                density="comfortable"
+                density="compact"
                 hide-details="auto"
               />
 
@@ -111,7 +111,7 @@ const onSave = async () => {
                     v-model="productForm.name"
                      :label="t('platform.shop.editProduct.form.productName')"
                     variant="outlined"
-                    density="comfortable"
+                    density="compact"
                     hide-details="auto"
                   />
                 </v-col>
@@ -120,7 +120,7 @@ const onSave = async () => {
                     v-model="productForm.subtitle"
                      :label="t('platform.shop.editProduct.form.subtitle')"
                     variant="outlined"
-                    density="comfortable"
+                    density="compact"
                     hide-details="auto"
                   />
                 </v-col>
@@ -136,7 +136,7 @@ const onSave = async () => {
                     :items="shopAdminCategoryOptions"
                      :label="t('platform.shop.editProduct.form.category')"
                     variant="outlined"
-                    density="comfortable"
+                    density="compact"
                     hide-details="auto"
                   />
                 </v-col>
@@ -146,7 +146,7 @@ const onSave = async () => {
                     :items="shopAdminSizeOptions"
                      :label="t('platform.shop.editProduct.form.size')"
                     variant="outlined"
-                    density="comfortable"
+                    density="compact"
                     hide-details="auto"
                   />
                 </v-col>
@@ -156,7 +156,7 @@ const onSave = async () => {
                     type="number"
                      :label="t('platform.shop.editProduct.form.weight')"
                     variant="outlined"
-                    density="comfortable"
+                    density="compact"
                     hide-details="auto"
                   />
                 </v-col>
@@ -165,7 +165,7 @@ const onSave = async () => {
                     v-model="productForm.sku"
                      :label="t('platform.shop.editProduct.form.sku')"
                     variant="outlined"
-                    density="comfortable"
+                    density="compact"
                     hide-details="auto"
                   />
                 </v-col>
@@ -184,7 +184,7 @@ const onSave = async () => {
                     v-model="productForm.socials.website"
                      :label="t('platform.shop.editProduct.form.website')"
                     variant="outlined"
-                    density="comfortable"
+                    density="compact"
                     hide-details="auto"
                     prepend-inner-icon="mdi-web"
                   />
@@ -194,7 +194,7 @@ const onSave = async () => {
                     v-model="productForm.socials.instagram"
                      :label="t('platform.shop.editProduct.form.instagram')"
                     variant="outlined"
-                    density="comfortable"
+                    density="compact"
                     hide-details="auto"
                     prepend-inner-icon="mdi-instagram"
                   />
@@ -204,7 +204,7 @@ const onSave = async () => {
                     v-model="productForm.socials.facebook"
                      :label="t('platform.shop.editProduct.form.facebook')"
                     variant="outlined"
-                    density="comfortable"
+                    density="compact"
                     hide-details="auto"
                     prepend-inner-icon="mdi-facebook"
                   />
@@ -214,7 +214,7 @@ const onSave = async () => {
                     v-model="productForm.socials.tiktok"
                      :label="t('platform.shop.editProduct.form.tiktok')"
                     variant="outlined"
-                    density="comfortable"
+                    density="compact"
                     hide-details="auto"
                     prepend-inner-icon="mdi-music"
                   />
@@ -235,7 +235,7 @@ const onSave = async () => {
                     type="number"
                      :label="t('platform.shop.editProduct.form.price')"
                     variant="outlined"
-                    density="comfortable"
+                    density="compact"
                     hide-details="auto"
                   />
                 </v-col>
@@ -245,7 +245,7 @@ const onSave = async () => {
                     :items="shopAdminCurrencyOptions"
                      :label="t('platform.shop.editProduct.form.currency')"
                     variant="outlined"
-                    density="comfortable"
+                    density="compact"
                     hide-details="auto"
                   />
                 </v-col>
@@ -255,7 +255,7 @@ const onSave = async () => {
                     type="number"
                      :label="t('platform.shop.editProduct.form.compareAtPrice')"
                     variant="outlined"
-                    density="comfortable"
+                    density="compact"
                     hide-details="auto"
                   />
                 </v-col>
@@ -265,7 +265,7 @@ const onSave = async () => {
                     type="number"
                      :label="t('platform.shop.editProduct.form.costPerItem')"
                     variant="outlined"
-                    density="comfortable"
+                    density="compact"
                     hide-details="auto"
                   />
                 </v-col>
@@ -275,7 +275,7 @@ const onSave = async () => {
                     type="number"
                      :label="t('platform.shop.editProduct.form.taxRate')"
                     variant="outlined"
-                    density="comfortable"
+                    density="compact"
                     hide-details="auto"
                   />
                 </v-col>
@@ -285,7 +285,7 @@ const onSave = async () => {
                     type="number"
                      :label="t('platform.shop.editProduct.form.stock')"
                     variant="outlined"
-                    density="comfortable"
+                    density="compact"
                     hide-details="auto"
                   />
                 </v-col>

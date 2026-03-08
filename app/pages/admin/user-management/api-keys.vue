@@ -160,7 +160,7 @@ onMounted(async () => {
                 mandatory
                 color="primary"
                 variant="outlined"
-                density="comfortable"
+                density="compact"
                 @update:model-value="fetchApiKeys"
               >
                 <v-btn value="v1">v1</v-btn>

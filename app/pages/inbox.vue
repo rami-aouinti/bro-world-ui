@@ -150,7 +150,7 @@ const messages = computed(() => {
           auto-grow
           variant="outlined"
           hide-details
-          density="comfortable"
+          density="compact"
       />
       <div class="d-flex justify-end mt-1">
         <v-btn color="primary" prepend-icon="mdi-send">Envoyer</v-btn>

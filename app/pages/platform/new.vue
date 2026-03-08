@@ -205,7 +205,7 @@ const submit = async () => {
       <template v-if="step === 1">
           <h2 class="text-h5 mb-4">{{ t('platform.wizard.titleStepTitle') }}</h2>
 
-          <v-text-field v-model="form.title" :label="t('platform.wizard.fields.title')" density="comfortable" />
+          <v-text-field v-model="form.title" :label="t('platform.wizard.fields.title')" density="compact" />
           <v-textarea
               v-model="form.description"
               :label="t('platform.wizard.fields.description')"

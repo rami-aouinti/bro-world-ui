@@ -63,7 +63,7 @@ const routeMessage = computed(() => {
           <UiStateAlert
             type="warning"
             variant="tonal"
-            density="comfortable"
+            density="compact"
             :message="routeMessage"
           />
         </v-container>

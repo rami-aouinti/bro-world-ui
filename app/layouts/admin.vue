@@ -118,7 +118,7 @@ const openGroups = computed(() => {
             :opened="openGroups"
             nav
             color="primary"
-            density="comfortable"
+            density="compact"
             bg-color="transparent"
             class="admin-layout__menu-list"
           >

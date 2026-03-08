@@ -43,7 +43,7 @@ const kpis = [
       </v-row>
 
       <UiCard title="Prochaines actions">
-        <v-table density="comfortable">
+        <v-table density="compact">
           <thead>
             <tr><th>Compte</th><th>Responsable</th><th>Échéance</th><th>Statut</th></tr>
           </thead>

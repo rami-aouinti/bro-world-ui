@@ -37,11 +37,11 @@ defineEmits<{
         <v-alert v-if="applyError" type="error" variant="tonal" class="mb-4">{{ applyError }}</v-alert>
 
         <v-row>
-          <v-col cols="12" md="4"><v-text-field v-model="applyForm.firstName" label="First Name" variant="outlined" density="comfortable" /></v-col>
-          <v-col cols="12" md="4"><v-text-field v-model="applyForm.lastName" label="Last Name" variant="outlined" density="comfortable" /></v-col>
-          <v-col cols="12" md="4"><v-text-field v-model="applyForm.email" label="Email" type="email" variant="outlined" density="comfortable" /></v-col>
+          <v-col cols="12" md="4"><v-text-field v-model="applyForm.firstName" label="First Name" variant="outlined" density="compact" /></v-col>
+          <v-col cols="12" md="4"><v-text-field v-model="applyForm.lastName" label="Last Name" variant="outlined" density="compact" /></v-col>
+          <v-col cols="12" md="4"><v-text-field v-model="applyForm.email" label="Email" type="email" variant="outlined" density="compact" /></v-col>
 
-          <v-col cols="12"><v-textarea v-model="applyForm.coverLetter" label="Cover Letter" rows="5" auto-grow variant="outlined" density="comfortable" /></v-col>
+          <v-col cols="12"><v-textarea v-model="applyForm.coverLetter" label="Cover Letter" rows="5" auto-grow variant="outlined" density="compact" /></v-col>
 
           <v-col cols="12">
             <v-radio-group v-model="resumeMode" inline>
@@ -56,17 +56,17 @@ defineEmits<{
               v-model="selectedResumeId"
               label="Mes CV"
               variant="outlined"
-              density="comfortable"
+              density="compact"
               :loading="resumesStore.isLoading"
               :items="resumesStore.items.map(item => ({ title: `${item.experiences[0]?.title ?? 'CV sans titre'} (${item.id})`, value: item.id }))"
             />
           </v-col>
 
           <template v-if="resumeMode === 'existing' && selectedResume">
-            <v-col cols="12" md="6"><v-text-field v-model="selectedResume.experiences[0].title" label="Experience title" variant="outlined" density="comfortable" /></v-col>
-            <v-col cols="12" md="6"><v-text-field v-model="selectedResume.skills[0].title" label="Skill title" variant="outlined" density="comfortable" /></v-col>
-            <v-col cols="12" md="6"><v-textarea v-model="selectedResume.experiences[0].description" label="Experience description" rows="2" auto-grow variant="outlined" density="comfortable" /></v-col>
-            <v-col cols="12" md="6"><v-textarea v-model="selectedResume.skills[0].description" label="Skill description" rows="2" auto-grow variant="outlined" density="comfortable" /></v-col>
+            <v-col cols="12" md="6"><v-text-field v-model="selectedResume.experiences[0].title" label="Experience title" variant="outlined" density="compact" /></v-col>
+            <v-col cols="12" md="6"><v-text-field v-model="selectedResume.skills[0].title" label="Skill title" variant="outlined" density="compact" /></v-col>
+            <v-col cols="12" md="6"><v-textarea v-model="selectedResume.experiences[0].description" label="Experience description" rows="2" auto-grow variant="outlined" density="compact" /></v-col>
+            <v-col cols="12" md="6"><v-textarea v-model="selectedResume.skills[0].description" label="Skill description" rows="2" auto-grow variant="outlined" density="compact" /></v-col>
             <v-col cols="12">
               <div class="d-flex ga-2 justify-end">
                 <v-btn color="secondary" variant="tonal" :loading="resumeSaving" @click="$emit('saveResume')">Modifier ce CV</v-btn>
@@ -82,7 +82,7 @@ defineEmits<{
                 accept="application/pdf"
                 prepend-icon="mdi-file-pdf-box"
                 variant="outlined"
-                density="comfortable"
+                density="compact"
                 show-size
                 @update:model-value="$emit('fileChange', $event)"
               />
@@ -90,10 +90,10 @@ defineEmits<{
           </template>
 
           <template v-if="resumeMode === 'new'">
-            <v-col cols="12" md="6"><v-text-field v-model="resumeForm.title" label="Experience title" variant="outlined" density="comfortable" /></v-col>
-            <v-col cols="12" md="6"><v-text-field v-model="resumeForm.skillTitle" label="Skill title (optionnel)" variant="outlined" density="comfortable" /></v-col>
-            <v-col cols="12" md="6"><v-textarea v-model="resumeForm.description" label="Experience description" rows="2" auto-grow variant="outlined" density="comfortable" /></v-col>
-            <v-col cols="12" md="6"><v-textarea v-model="resumeForm.skillDescription" label="Skill description (optionnel)" rows="2" auto-grow variant="outlined" density="comfortable" /></v-col>
+            <v-col cols="12" md="6"><v-text-field v-model="resumeForm.title" label="Experience title" variant="outlined" density="compact" /></v-col>
+            <v-col cols="12" md="6"><v-text-field v-model="resumeForm.skillTitle" label="Skill title (optionnel)" variant="outlined" density="compact" /></v-col>
+            <v-col cols="12" md="6"><v-textarea v-model="resumeForm.description" label="Experience description" rows="2" auto-grow variant="outlined" density="compact" /></v-col>
+            <v-col cols="12" md="6"><v-textarea v-model="resumeForm.skillDescription" label="Skill description (optionnel)" rows="2" auto-grow variant="outlined" density="compact" /></v-col>
           </template>
         </v-row>
       </v-card-text>

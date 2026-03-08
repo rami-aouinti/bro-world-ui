@@ -109,7 +109,7 @@ const statusConfig: Record<ShopOrder['status'], { status: 'paid' | 'refunded' | 
       <p class="text-caption text-medium-emphasis mb-0">
         {{ t('platform.shop.orders.table.selectedSummary', { selected: selectedOrderIds.length, total: props.orders.length }) }}
       </p>
-      <v-pagination v-model="page" :length="pageCount" density="comfortable" total-visible="6" />
+      <v-pagination v-model="page" :length="pageCount" density="compact" total-visible="6" />
     </div>
   </ShopFormCard>
 </template>

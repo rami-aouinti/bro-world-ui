@@ -18,7 +18,7 @@ withDefaults(defineProps<{
     v-model="modelValue"
     :label="label"
     variant="outlined"
-    density="comfortable"
+    density="compact"
     hide-details="auto"
     :rows="rows"
     :hint="hint"

@@ -282,7 +282,7 @@ const updateApplicationStatus = async (applicationId: string, status: RecruitApp
                   <v-select
                     :model-value="application.status"
                     :items="statusOptionsWithLabels"
-                    density="comfortable"
+                    density="compact"
                     variant="outlined"
                     :label="t('platform.recruit.job.applications.statusLabel')"
                     :loading="statusUpdateLoading === application.id"

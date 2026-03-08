@@ -28,7 +28,7 @@ const props = withDefaults(defineProps<Props>(), {
     :rounded="props.rounded"
     :elevation="props.elevation"
     :loading="props.loading"
-    density="comfortable"
+    density="compact"
   >
     <slot name="header">
       <v-card-item

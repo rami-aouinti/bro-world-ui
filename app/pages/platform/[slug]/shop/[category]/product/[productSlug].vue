@@ -63,9 +63,9 @@ const selectedQuantity = ref(shopProductVariants.quantity[0])
               <p class="text-body-2 text-medium-emphasis mb-6">{{ product.description }}</p>
 
               <div class="d-flex flex-column ga-4">
-                <v-select v-model="selectedMaterial" :items="shopProductVariants.material" :label="t('platform.shop.productDetail.labels.material')" variant="outlined" density="comfortable" hide-details />
-                <v-select v-model="selectedColor" :items="shopProductVariants.color" :label="t('platform.shop.productDetail.labels.color')" variant="outlined" density="comfortable" hide-details />
-                <v-select v-model="selectedQuantity" :items="shopProductVariants.quantity" :label="t('platform.shop.productDetail.labels.quantity')" variant="outlined" density="comfortable" hide-details />
+                <v-select v-model="selectedMaterial" :items="shopProductVariants.material" :label="t('platform.shop.productDetail.labels.material')" variant="outlined" density="compact" hide-details />
+                <v-select v-model="selectedColor" :items="shopProductVariants.color" :label="t('platform.shop.productDetail.labels.color')" variant="outlined" density="compact" hide-details />
+                <v-select v-model="selectedQuantity" :items="shopProductVariants.quantity" :label="t('platform.shop.productDetail.labels.quantity')" variant="outlined" density="compact" hide-details />
                 <ShopPrimaryAction size="large" prepend-icon="mdi-cart-plus">{{ t('platform.shop.common.buttons.addToCart') }}</ShopPrimaryAction>
               </div>
             </v-col>

@@ -30,7 +30,7 @@ const availabilityColor = (availability: number) => {
       :headers="headers"
       :items="items"
       item-value="id"
-      density="comfortable"
+      density="compact"
       class="other-products-table"
       hide-default-footer
     >

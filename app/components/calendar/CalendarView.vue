@@ -160,7 +160,7 @@ const calendarOptions = computed(() => ({
         label="Période"
         variant="outlined"
         hide-details
-        density="comfortable"
+        density="compact"
         class="mb-3"
       />
 
@@ -170,7 +170,7 @@ const calendarOptions = computed(() => ({
         label="Type"
         variant="outlined"
         hide-details
-        density="comfortable"
+        density="compact"
       />
 
       <div class="platform-layout__sidebar-actions mt-4">

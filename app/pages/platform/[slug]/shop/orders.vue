@@ -147,7 +147,7 @@ const exportToCsv = async () => {
         :label="t('platform.shop.orders.searchLabel')" :aria-label="t('platform.shop.orders.searchLabel')"
         prepend-inner-icon="mdi-magnify"
         variant="outlined"
-        density="comfortable"
+        density="compact"
         clearable
         hide-details
       />

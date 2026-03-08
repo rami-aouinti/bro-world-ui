@@ -73,7 +73,7 @@ const submit = async () => {
       v-if="errorMessage"
       type="error"
       variant="tonal"
-      density="comfortable"
+      density="compact"
       class="mb-4"
       :message="errorMessage"
     />
