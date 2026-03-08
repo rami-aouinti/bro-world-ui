@@ -383,7 +383,7 @@ watch(filterQueryKey, () => {
       >
         <v-card-text class="pa-6">
           <div class="d-flex justify-end mb-2">
-            <v-menu v-if="job.owner" location="bottom end">
+            <v-menu v-if="job.owner && !job.apply" location="bottom end">
               <template #activator="{ props }">
                 <v-btn icon="mdi-dots-vertical" size="small" variant="text" v-bind="props" @click.prevent />
               </template>
@@ -399,8 +399,8 @@ watch(filterQueryKey, () => {
                 <v-chip size="small" color="teal" variant="tonal">
                   Passt hervorragend
                 </v-chip>
-                <v-chip v-if="job.apply" size="small" color="success" variant="tonal">
-                  Applied
+                <v-chip v-if="job.apply && !job.owner" size="small" color="success" variant="tonal">
+                  Applyed
                 </v-chip>
               </div>
               <h2 class="text-h5 font-weight-bold mb-2">{{ job.title }}</h2>
