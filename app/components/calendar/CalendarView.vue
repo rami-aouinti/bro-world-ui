@@ -115,18 +115,25 @@ const loadEvents = async () => {
   }
 }
 
-const filteredEvents = computed(() => {
-  const now = new Date()
-  const maxDate = new Date(now)
-  maxDate.setDate(now.getDate() + rangeInDays[selectedRange.value])
+const statusFilteredEvents = computed(() => {
+  return events.value.filter((event) => {
+    return selectedStatus.value === 'all' || event.status === selectedStatus.value
+  })
+})
 
-  return [...events.value]
+const filteredEvents = computed(() => {
+  const startDate = new Date()
+  startDate.setHours(0, 0, 0, 0)
+
+  const maxDate = new Date(startDate)
+  maxDate.setDate(startDate.getDate() + rangeInDays[selectedRange.value])
+
+  return [...statusFilteredEvents.value]
     .filter(event => {
       const eventStart = new Date(event.startAt)
-      const matchesStatus = selectedStatus.value === 'all' || event.status === selectedStatus.value
-      const inRange = eventStart >= now && eventStart <= maxDate
+      const inRange = eventStart >= startDate && eventStart <= maxDate
 
-      return matchesStatus && inRange
+      return inRange
     })
     .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
 })
@@ -134,14 +141,20 @@ const filteredEvents = computed(() => {
 const selectedEvent = computed(() => events.value.find(event => event.id === selectedEventId.value) || null)
 
 const calendarEvents = computed(() => {
-  return filteredEvents.value.map(event => ({
-    id: event.id,
-    title: event.title,
-    start: event.startAt,
-    end: event.endAt,
-    allDay: event.isAllDay,
-    color: fullCalendarColorByStatus[event.status],
-  }))
+  return statusFilteredEvents.value.map((event) => {
+    const startAt = new Date(event.startAt)
+    const endAt = new Date(event.endAt)
+    const safeEndAt = endAt >= startAt ? event.endAt : event.startAt
+
+    return {
+      id: event.id,
+      title: event.title,
+      start: event.startAt,
+      end: safeEndAt,
+      allDay: event.isAllDay,
+      color: fullCalendarColorByStatus[event.status],
+    }
+  })
 })
 
 const calendarOptions = computed(() => ({

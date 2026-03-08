@@ -24,8 +24,8 @@ export interface CalendarEventRead {
   isAllDay: boolean
   timezone: string | null
   isCancelled: boolean
-  attendees: CalendarEventAttendee[]
-  reminders: CalendarEventReminder[]
+  attendees: CalendarEventAttendee[] | null
+  reminders: CalendarEventReminder[] | null
   calendarId: UUID | null
   applicationSlug: string | null
   userId: UUID
