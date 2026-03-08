@@ -27,7 +27,7 @@ const props = withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <UiPageSection card="false" padding="px-0 py-4">
+  <UiPageSection :card="false" padding="px-0 py-4">
     <UiSectionHeader :title="props.title" :subtitle="props.subtitle">
       <template v-if="$slots.actions" #actions>
         <slot name="actions" />
