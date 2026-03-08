@@ -67,6 +67,7 @@ const {
 } = await useRecruitHome()
 
 const { isOwner } = usePlatformPermissions(slug)
+const { t } = useI18n()
 const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
 </script>
 
@@ -80,11 +81,11 @@ const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthe
 
     <section>
       <v-alert v-if="showAccessDenied" type="error" variant="tonal" class="mb-4">
-        Accès admin refusé : permissions insuffisantes pour cette application.
+        {{ t('platform.recruit.home.alerts.accessDenied') }}
       </v-alert>
 
       <v-alert v-if="error" type="error" variant="tonal" class="mb-4">
-        Impossible de charger les offres d'emploi pour le moment.
+        {{ t('platform.recruit.home.alerts.jobsLoadError') }}
       </v-alert>
 
       <div class="d-flex justify-space-between align-start flex-wrap ga-3 mb-2">
@@ -99,7 +100,7 @@ const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthe
           prepend-icon="mdi-briefcase-plus"
           @click="openCreateDialog"
         >
-          Create New Job
+          {{ t('platform.recruit.home.actions.createJob') }}
         </v-btn>
       </div>
 
@@ -114,7 +115,7 @@ const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthe
       />
 
       <v-alert v-if="!pending && !jobsData.jobs.length" type="info" variant="tonal">
-        Aucune offre trouvée. Essayez d'ajuster les filtres pour élargir la recherche.
+        {{ t('platform.recruit.home.alerts.emptyJobs') }}
       </v-alert>
 
       <div class="d-flex justify-center mt-6">
@@ -143,19 +144,19 @@ const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthe
 
   <v-dialog v-model="deleteDialog" max-width="520">
     <v-card rounded="xl">
-      <v-card-title class="text-h5 py-4 px-6">Supprimer l'offre</v-card-title>
+      <v-card-title class="text-h5 py-4 px-6">{{ t('platform.recruit.home.deleteDialog.title') }}</v-card-title>
       <v-card-text class="px-6">
         <v-alert v-if="ownerActionError" type="error" variant="tonal" class="mb-4">{{ ownerActionError }}</v-alert>
         <p class="text-body-1 mb-0">
-          Confirmez la suppression de l'offre
+          {{ t('platform.recruit.home.deleteDialog.confirmPrefix') }}
           <span class="font-weight-bold">{{ selectedJob?.title }}</span>
           ?
         </p>
       </v-card-text>
       <v-card-actions class="px-6 pb-6 pt-2">
         <v-spacer />
-        <v-btn variant="text" @click="closeOwnerDialogs">Annuler</v-btn>
-        <v-btn color="error" :loading="deleteLoading" @click="submitDeleteJob">Supprimer</v-btn>
+        <v-btn variant="text" @click="closeOwnerDialogs">{{ t('platform.recruit.home.actions.cancel') }}</v-btn>
+        <v-btn color="error" :loading="deleteLoading" @click="submitDeleteJob">{{ t('platform.recruit.home.actions.delete') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

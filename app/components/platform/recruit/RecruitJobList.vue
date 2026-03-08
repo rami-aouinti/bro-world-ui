@@ -6,6 +6,8 @@ defineProps<{
   slug: string
 }>()
 
+const { t } = useI18n()
+
 defineEmits<{
   edit: [job: RecruitJob]
   delete: [job: RecruitJob]
@@ -29,8 +31,8 @@ defineEmits<{
             <v-btn icon="mdi-dots-vertical" size="small" variant="text" v-bind="props" @click.prevent />
           </template>
           <v-list density="compact" min-width="160">
-            <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.prevent="$emit('edit', job)" />
-            <v-list-item prepend-icon="mdi-delete" title="Delete" @click.prevent="$emit('delete', job)" />
+            <v-list-item prepend-icon="mdi-pencil" :title="t('platform.recruit.jobList.actions.edit')" @click.prevent="$emit('edit', job)" />
+            <v-list-item prepend-icon="mdi-delete" :title="t('platform.recruit.jobList.actions.delete')" @click.prevent="$emit('delete', job)" />
           </v-list>
         </v-menu>
       </div>
@@ -38,8 +40,8 @@ defineEmits<{
       <div class="d-flex align-center justify-space-between gap-4">
         <div>
           <div class="d-flex align-center ga-2 flex-wrap mb-3">
-            <v-chip size="small" color="teal" variant="tonal">Passt hervorragend</v-chip>
-            <v-chip v-if="job.apply && !job.owner" size="small" color="success" variant="tonal">Applyed</v-chip>
+            <v-chip size="small" color="teal" variant="tonal">{{ t('platform.recruit.jobList.badges.strongMatch') }}</v-chip>
+            <v-chip v-if="job.apply && !job.owner" size="small" color="success" variant="tonal">{{ t('platform.recruit.jobList.badges.applied') }}</v-chip>
           </div>
           <h2 class="text-h5 font-weight-bold mb-2">{{ job.title }}</h2>
           <p class="text-body-1 mb-2">{{ job.company.name }} · {{ job.location }} · {{ formatRecruitSalary(job.salary) }}</p>
@@ -52,7 +54,7 @@ defineEmits<{
       </div>
 
       <div v-if="!job.owner && !job.apply" class="d-flex justify-end mt-4">
-        <v-btn color="primary" variant="flat" @click.prevent="$emit('apply', job)">Apply</v-btn>
+        <v-btn color="primary" variant="flat" @click.prevent="$emit('apply', job)">{{ t('platform.recruit.jobList.actions.apply') }}</v-btn>
       </div>
     </v-card-text>
   </v-card>

@@ -14,7 +14,17 @@ const { isAuthenticated } = useAuth()
 const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
 
 const { data, pending, error } = useRecruitMeJobs(slug)
+const { t, locale } = useI18n()
 const applications = computed(() => data.value?.appliedJobs ?? [])
+const applicationStatusLabelMap = {
+  WAITING: 'platform.recruit.status.waiting',
+  REVIEWING: 'platform.recruit.status.reviewing',
+  INTERVIEW: 'platform.recruit.status.interview',
+  REJECTED: 'platform.recruit.status.rejected',
+  ACCEPTED: 'platform.recruit.status.accepted',
+} as const
+
+const getApplicationStatusLabel = (status: string) => t(applicationStatusLabelMap[status as keyof typeof applicationStatusLabelMap] ?? 'platform.recruit.status.waiting')
 </script>
 
 <template>
@@ -31,11 +41,11 @@ const applications = computed(() => data.value?.appliedJobs ?? [])
       />
 
       <v-alert v-if="!isAuthenticated" type="info" variant="tonal" class="mb-4">
-        Connectez-vous pour consulter vos candidatures.
+        {{ t('platform.recruit.myApplications.alerts.signInRequired') }}
       </v-alert>
 
       <v-alert v-else-if="error" type="error" variant="tonal" class="mb-4">
-        Impossible de charger vos candidatures pour le moment.
+        {{ t('platform.recruit.myApplications.alerts.loadError') }}
       </v-alert>
 
       <v-skeleton-loader v-if="pending" type="article" class="mb-4" />
@@ -51,16 +61,16 @@ const applications = computed(() => data.value?.appliedJobs ?? [])
         <v-card-text class="pa-6">
           <div class="d-flex align-center justify-space-between mb-2">
             <h2 class="text-h5 font-weight-bold">{{ application.job.title }}</h2>
-            <v-chip size="small" color="primary" variant="tonal">{{ application.status }}</v-chip>
+            <v-chip size="small" color="primary" variant="tonal">{{ getApplicationStatusLabel(application.status) }}</v-chip>
           </div>
           <p class="text-body-1 mb-2">{{ application.job.company }} · {{ application.job.location }}</p>
           <p class="text-body-2 text-medium-emphasis mb-1">{{ application.job.contractType }} · {{ application.job.workMode }} · {{ application.job.schedule }}</p>
-          <p class="text-body-2 text-medium-emphasis mb-0">Candidature envoyée le {{ new Date(application.appliedAt).toLocaleDateString('fr-FR') }}</p>
+          <p class="text-body-2 text-medium-emphasis mb-0">{{ t('platform.recruit.myApplications.appliedOn', { date: new Date(application.appliedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US') }) }}</p>
         </v-card-text>
       </v-card>
 
       <v-alert v-if="isAuthenticated && !pending && !applications.length" type="info" variant="tonal">
-        Vous n'avez encore postulé à aucune offre.
+        {{ t('platform.recruit.myApplications.alerts.empty') }}
       </v-alert>
     </section>
   </PlatformSplitLayout>

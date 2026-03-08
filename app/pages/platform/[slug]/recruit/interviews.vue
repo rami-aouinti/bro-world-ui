@@ -12,10 +12,11 @@ const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const { isOwner } = usePlatformPermissions(slug)
 const { isAuthenticated } = useAuth()
+const { t } = useI18n()
 const interviewSlots = [
-  { role: 'Senior Frontend Engineer', interviewer: 'CTO', date: 'Mer 10:30', type: 'Tech interview' },
-  { role: 'Product Designer II', interviewer: 'Head of Design', date: 'Jeu 14:00', type: 'Case study' },
-  { role: 'Data Analyst Growth', interviewer: 'Lead Data', date: 'Ven 11:00', type: 'Business case' },
+  { role: 'Senior Frontend Engineer', interviewer: 'CTO', date: 'Wed 10:30', type: t('platform.recruit.interviews.slotTypes.techInterview') },
+  { role: 'Product Designer II', interviewer: 'Head of Design', date: 'Thu 14:00', type: t('platform.recruit.interviews.slotTypes.caseStudy') },
+  { role: 'Data Analyst Growth', interviewer: 'Lead Data', date: 'Fri 11:00', type: t('platform.recruit.interviews.slotTypes.businessCase') },
 ]
 const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
 </script>
@@ -31,12 +32,12 @@ const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthe
             <v-card-text>
               <p class="font-weight-bold">{{ slot.role }}</p>
               <p class="text-body-2">{{ slot.type }} · {{ slot.date }}</p>
-              <p class="text-caption text-medium-emphasis">Interviewer: {{ slot.interviewer }}</p>
+              <p class="text-caption text-medium-emphasis">{{ t('platform.recruit.interviews.interviewer', { interviewer: slot.interviewer }) }}</p>
             </v-card-text>
           </v-card>
         </v-timeline-item>
       </v-timeline>
-      <PlatformTicketBoard title="Backlog Recruit" :tickets="platformProposals.recruit" />
+      <PlatformTicketBoard :title="t('platform.recruit.tickets.boardTitle')" :tickets="platformProposals.recruit" />
     </section>
   </PlatformSplitLayout>
 </template>

@@ -14,6 +14,7 @@ const { isAuthenticated } = useAuth()
 const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
 
 const { data, pending, error } = useRecruitMeJobs(slug)
+const { t, locale } = useI18n()
 const jobs = computed(() => data.value?.createdJobs ?? [])
 </script>
 
@@ -31,11 +32,11 @@ const jobs = computed(() => data.value?.createdJobs ?? [])
       />
 
       <v-alert v-if="!isAuthenticated" type="info" variant="tonal" class="mb-4">
-        Connectez-vous pour consulter vos offres créées.
+        {{ t('platform.recruit.myJobs.alerts.signInRequired') }}
       </v-alert>
 
       <v-alert v-else-if="error" type="error" variant="tonal" class="mb-4">
-        Impossible de charger vos offres pour le moment.
+        {{ t('platform.recruit.myJobs.alerts.loadError') }}
       </v-alert>
 
       <v-skeleton-loader v-if="pending" type="article" class="mb-4" />
@@ -52,12 +53,12 @@ const jobs = computed(() => data.value?.createdJobs ?? [])
           <h2 class="text-h5 font-weight-bold mb-2">{{ job.title }}</h2>
           <p class="text-body-1 mb-2">{{ job.company }} · {{ job.location }}</p>
           <p class="text-body-2 text-medium-emphasis mb-1">{{ job.contractType }} · {{ job.workMode }} · {{ job.schedule }}</p>
-          <p class="text-body-2 text-medium-emphasis mb-0">Créée le {{ new Date(job.createdAt).toLocaleDateString('fr-FR') }}</p>
+          <p class="text-body-2 text-medium-emphasis mb-0">{{ t('platform.recruit.myJobs.createdOn', { date: new Date(job.createdAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US') }) }}</p>
         </v-card-text>
       </v-card>
 
       <v-alert v-if="isAuthenticated && !pending && !jobs.length" type="info" variant="tonal">
-        Vous n'avez encore créé aucune offre.
+        {{ t('platform.recruit.myJobs.alerts.empty') }}
       </v-alert>
     </section>
   </PlatformSplitLayout>
