@@ -46,68 +46,61 @@ const activeFilters = computed(() => {
 </script>
 
 <template>
-  <v-divider class="my-4" />
   <div class="d-flex align-center justify-space-between mb-2">
-    <p class="text-subtitle-2 mb-0">{{ $t('platform.recruit.filters.title') }}</p>
+    <v-text-field v-model="filters.q" density="compact" variant="outlined" :label="$t('platform.recruit.filters.fields.search')" hide-details clearable class="mb-3 mx-1" />
+    <v-text-field v-model="filters.company" density="compact" variant="outlined" :label="$t('platform.recruit.filters.fields.company')" hide-details clearable class="mb-3 mx-1" />
     <v-btn
-      size="small"
-      :variant="props.hasFilters ? 'flat' : 'text'"
-      :color="props.hasFilters ? 'warning' : undefined"
-      :disabled="!props.hasFilters"
-      @click="$emit('reset')"
+        size="small"
+        :variant="props.hasFilters ? 'flat' : 'text'"
+        :color="props.hasFilters ? 'warning' : undefined"
+        :disabled="!props.hasFilters"
+        @click="$emit('reset')"
     >
       {{ $t('platform.recruit.filters.actions.reset') }}
     </v-btn>
-  </div>
-
-  <v-sheet rounded="lg" border class="pa-3 mb-3">
-    <p class="text-caption text-medium-emphasis mb-3">{{ $t('platform.recruit.filters.sections.text') }}</p>
-    <v-text-field v-model="filters.q" density="comfortable" variant="outlined" :label="$t('platform.recruit.filters.fields.search')" hide-details clearable class="mb-3" />
-    <v-text-field v-model="filters.company" density="comfortable" variant="outlined" :label="$t('platform.recruit.filters.fields.company')" hide-details clearable class="mb-3" />
-    <v-text-field v-model="filters.location" density="comfortable" variant="outlined" :label="$t('platform.recruit.filters.fields.location')" hide-details clearable class="mb-3" />
-    <v-text-field v-model="filters.schedule" density="comfortable" variant="outlined" :label="$t('platform.recruit.filters.fields.schedule')" hide-details clearable class="mb-3" />
-    <v-text-field v-model="filters.postedAtLabel" density="comfortable" variant="outlined" :label="$t('platform.recruit.filters.fields.posted')" hide-details clearable />
-  </v-sheet>
-
-  <v-sheet rounded="lg" border class="pa-3 mb-3">
-    <p class="text-caption text-medium-emphasis mb-3">{{ $t('platform.recruit.filters.sections.contractAndMode') }}</p>
-    <v-select
-      v-model="filters.contractType"
-      :items="contractTypeItems"
-      density="comfortable"
-      variant="outlined"
-      :label="$t('platform.recruit.filters.fields.contractType')"
-      hide-details
-      class="mb-3"
-    />
-
-    <v-select
-      v-model="filters.workMode"
-      :items="workModeItems"
-      density="comfortable"
-      variant="outlined"
-      :label="$t('platform.recruit.filters.fields.workMode')"
-      hide-details
-    />
-  </v-sheet>
-
-  <v-sheet rounded="lg" border class="pa-3 mb-3">
-    <p class="text-caption text-medium-emphasis mb-3">{{ $t('platform.recruit.filters.sections.salary') }}</p>
-    <div class="d-flex ga-2">
-      <v-text-field v-model.number="filters.salaryMin" type="number" min="0" density="comfortable" variant="outlined" :label="$t('platform.recruit.filters.fields.salaryMin')" hide-details class="mb-3" />
-      <v-text-field v-model.number="filters.salaryMax" type="number" min="0" density="comfortable" variant="outlined" :label="$t('platform.recruit.filters.fields.salaryMax')" hide-details class="mb-3" />
+    <div v-if="activeFilters.length" class="d-flex flex-wrap ga-2">
+      <v-chip
+          v-for="filter in activeFilters"
+          :key="filter"
+          color="primary"
+          variant="tonal"
+          size="small"
+          class="mx-1"
+      >
+        {{ filter }}
+      </v-chip>
     </div>
-  </v-sheet>
+  </div>
+  <div class="d-flex align-center justify-space-between mb-2">
+    <v-text-field v-model="filters.location" density="compact" width="100%" variant="outlined" :label="$t('platform.recruit.filters.fields.location')" hide-details clearable class="mb-3 mx-1" />
+    <v-text-field v-model="filters.schedule" density="compact" width="100%" variant="outlined" :label="$t('platform.recruit.filters.fields.schedule')" hide-details clearable class="mb-3 mx-1" />
+    <v-text-field v-model="filters.postedAtLabel" density="compact" width="100%" variant="outlined" :label="$t('platform.recruit.filters.fields.posted')" hide-details clearable class="mb-3 mx-1"  />
+  </div>
+  <div class="d-flex align-center justify-space-between mb-2">
+    <v-select
+        v-model="filters.contractType"
+        :items="contractTypeItems"
+        density="compact"
+        variant="outlined"
+        :label="$t('platform.recruit.filters.fields.contractType')"
+        hide-details
+        width="100%"
+        class="mb-3 mx-1"
+    />
 
-  <div v-if="activeFilters.length" class="d-flex flex-wrap ga-2">
-    <v-chip
-      v-for="filter in activeFilters"
-      :key="filter"
-      color="primary"
-      variant="tonal"
-      size="small"
-    >
-      {{ filter }}
-    </v-chip>
+    <v-select
+        v-model="filters.workMode"
+        :items="workModeItems"
+        density="compact"
+        variant="outlined"
+        :label="$t('platform.recruit.filters.fields.workMode')"
+        hide-details
+        width="100%"
+        class="mb-3 mx-1"
+    />
+    <div class="d-flex ga-2">
+      <v-text-field v-model.number="filters.salaryMin" width="100%" type="number" min="0" density="compact" variant="outlined" :label="$t('platform.recruit.filters.fields.salaryMin')" hide-details class="mb-3 mx-1" />
+      <v-text-field v-model.number="filters.salaryMax" width="100%" type="number" min="0" density="compact" variant="outlined" :label="$t('platform.recruit.filters.fields.salaryMax')" hide-details class="mb-3 mx-1" />
+    </div>
   </div>
 </template>

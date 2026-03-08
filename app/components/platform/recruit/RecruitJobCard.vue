@@ -60,7 +60,7 @@ const avatarTextClass = computed(() => (props.variant === 'compact' ? 'text-h6' 
 </script>
 
 <template>
-  <v-card rounded="xl" class="recruit-job-card mb-4 border" hover :to="to">
+  <v-card rounded="xl" class="recruit-job-card mb-4" hover :to="to">
     <v-card-text class="recruit-job-card__content">
       <div class="d-flex justify-end mb-2">
         <v-menu v-if="managementActionsVisible" location="bottom end">

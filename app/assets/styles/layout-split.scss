@@ -21,6 +21,9 @@
 .app-split-shell__left {
   position: sticky;
   top: calc(var(--app-split-shell-appbar-height) + var(--app-split-shell-margin));
+  min-height: 83vh;
+  max-height: calc(100vh - var(--app-split-shell-appbar-height) - var(--app-split-shell-margin) * 2);
+  overflow-y: auto;
 }
 
 .app-split-shell__left,

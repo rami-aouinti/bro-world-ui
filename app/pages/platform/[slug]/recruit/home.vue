@@ -107,9 +107,7 @@ const handleApplyToJob = async () => {
 <template>
   <PlatformSplitLayout>
     <template #sidebar>
-      <PlatformSidebarNav title="platform.recruit.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems">
-        <RecruitJobsFiltersPanel v-model="filters" :has-filters="hasFilters" @reset="resetFilters" />
-      </PlatformSidebarNav>
+      <PlatformSidebarNav title="platform.recruit.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems"/>
     </template>
 
     <section>
@@ -121,23 +119,16 @@ const handleApplyToJob = async () => {
         {{ t('platform.recruit.home.alerts.jobsLoadError') }}
       </v-alert>
 
-      <PlatformHeroHeader
-        title="platform.recruit.hero.home.title"
-        subtitle="platform.recruit.hero.home.subtitle"
-        cta="platform.recruit.hero.home.cta"
-      />
-
-      <RecruitPageSection
-        title="Pilotage des offres"
-        subtitle="Tableau unifié des jobs, filtres et actions"
-        :stats="homeStats"
+       <RecruitPageSection
       >
         <template #actions>
+
+          <RecruitJobsFiltersPanel v-model="filters" :has-filters="hasFilters" @reset="resetFilters" />
           <v-btn
-            v-if="isAuthenticated"
-            color="primary"
-            prepend-icon="mdi-briefcase-plus"
-            @click="openCreateDialog"
+              v-if="isAuthenticated"
+              color="primary"
+              prepend-icon="mdi-briefcase-plus"
+              @click="openCreateDialog"
           >
             {{ t('platform.recruit.home.actions.createJob') }}
           </v-btn>

@@ -54,9 +54,7 @@ const props = withDefaults(defineProps<Props>(), {
       </v-col>
     </v-row>
 
-    <v-card rounded="xl" :variant="props.contentVariant" class="recruit-page-section__content" :class="props.contentClass">
-      <slot />
-    </v-card>
+    <slot />
   </UiPageSection>
 </template>
 
