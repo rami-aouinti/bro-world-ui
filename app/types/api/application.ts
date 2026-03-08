@@ -11,6 +11,7 @@ export interface ApplicationRead {
   platformId: UUID
   platformName: string
   platformKey?: string
+  pluginKeys?: string[]
   ownerId?: UUID
   author?: {
     id: UUID
