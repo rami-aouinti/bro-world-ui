@@ -45,6 +45,7 @@ type RecruitUpdateJobPayload = {
 definePageMeta({ public: true, requiresAuth: false })
 
 const DEFAULT_PAGE_SIZE = 10
+const PRIVATE_JOBS_TIMEOUT_MS = 6000
 
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
@@ -187,27 +188,38 @@ const normalizeJobsResponse = (response: RecruitJobsApiResponse | null) => {
   }
 }
 
+const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number) => {
+  return await Promise.race([
+    promise,
+    new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('REQUEST_TIMEOUT')), timeoutMs)
+    }),
+  ])
+}
+
+const fetchRecruitJobsWithFallback = async () => {
+  await initSession()
+
+  if (isAuthenticated.value) {
+    try {
+      const privateResponse = await withTimeout(fetchRecruitJobsPrivate(), PRIVATE_JOBS_TIMEOUT_MS)
+      return normalizeJobsResponse(privateResponse)
+    } catch {
+      // fallback sur l'endpoint public si le private échoue ou tarde trop
+    }
+  }
+
+  const publicResponse = await fetchRecruitJobsPublic()
+  return normalizeJobsResponse(publicResponse)
+}
+
 const { data: jobsData, pending, error, refresh } = await useAsyncData(
   () => `recruit-home-jobs-${slug.value}-${currentPage.value}-${filterQueryKey.value}`,
-  async () => {
-    await initSession()
-
-    if (isAuthenticated.value) {
-      try {
-        const privateResponse = await fetchRecruitJobsPrivate()
-        return normalizeJobsResponse(privateResponse)
-      } catch {
-        const publicResponse = await fetchRecruitJobsPublic()
-        return normalizeJobsResponse(publicResponse)
-      }
-    }
-
-    const publicResponse = await fetchRecruitJobsPublic()
-    return normalizeJobsResponse(publicResponse)
-  },
+  fetchRecruitJobsWithFallback,
   {
     watch: [slug, currentPage, filterQueryKey],
     default: () => ({ jobs: [], total: 0 }),
+    dedupe: 'defer',
   },
 )
 
