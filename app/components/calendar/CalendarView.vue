@@ -38,6 +38,7 @@ const selectedEventId = ref<string | null>(null)
 const isCreateDialogOpen = ref(false)
 const isEditDialogOpen = ref(false)
 const isShowDialogOpen = ref(false)
+const fullCalendarRef = ref<InstanceType<typeof FullCalendar> | null>(null)
 
 const canMutate = computed(() => isAuthenticated.value)
 const usePrivateList = computed(() => !props.applicationSlug || isAuthenticated.value)
@@ -271,6 +272,10 @@ const patchFromCalendarMove = async (eventId: string, startAt?: string, endAt?: 
   }
 }
 
+const refreshCalendarGeometry = () => {
+  fullCalendarRef.value?.getApi().updateSize()
+}
+
 const calendarOptions = computed(() => ({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
   initialView: 'dayGridMonth',
@@ -308,7 +313,25 @@ const calendarOptions = computed(() => ({
   },
 }))
 const items = computed(() => getCalendarNav())
-onMounted(loadEvents)
+onMounted(async () => {
+  await loadEvents()
+
+  await nextTick()
+  requestAnimationFrame(refreshCalendarGeometry)
+
+  // Le shell applique une animation d'entrée avec transform: translateY.
+  // On force un recalcul juste après l'animation pour éviter un décalage souris/grille.
+  setTimeout(refreshCalendarGeometry, 320)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', refreshCalendarGeometry)
+})
+
+onMounted(() => {
+  window.addEventListener('resize', refreshCalendarGeometry)
+})
+
 watch(() => props.applicationSlug, loadEvents)
 </script>
 
@@ -400,7 +423,7 @@ watch(() => props.applicationSlug, loadEvents)
     <v-card-text>
       <div class="calendar-page__slot">
         <ClientOnly>
-          <FullCalendar :options="calendarOptions" />
+          <FullCalendar ref="fullCalendarRef" :options="calendarOptions" />
         </ClientOnly>
       </div>
     </v-card-text>
