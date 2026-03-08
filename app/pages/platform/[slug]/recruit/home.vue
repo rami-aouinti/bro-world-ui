@@ -87,6 +87,8 @@ const filterQuery = computed(() => ({
   q: filters.value.q.trim(),
 }))
 
+const filterQueryKey = computed(() => JSON.stringify(filterQuery.value))
+
 const editDialog = ref(false)
 const deleteDialog = ref(false)
 const editLoading = ref(false)
@@ -174,7 +176,7 @@ const normalizeJobsResponse = (response: RecruitJobsApiResponse | null) => {
 }
 
 const { data: jobsData, pending, error, refresh } = await useAsyncData(
-  () => `recruit-home-jobs-${slug.value}-${currentPage.value}-${JSON.stringify(filterQuery.value)}`,
+  () => `recruit-home-jobs-${slug.value}-${currentPage.value}-${filterQueryKey.value}`,
   async () => {
     await initSession()
 
@@ -192,7 +194,7 @@ const { data: jobsData, pending, error, refresh } = await useAsyncData(
     return normalizeJobsResponse(publicResponse)
   },
   {
-    watch: [slug, currentPage, filterQuery],
+    watch: [slug, currentPage, filterQueryKey],
     default: () => ({ jobs: [], total: 0 }),
   },
 )
@@ -277,7 +279,7 @@ const resetFilters = async () => {
   currentPage.value = 1
 }
 
-watch(filterQuery, () => {
+watch(filterQueryKey, () => {
   currentPage.value = 1
 })
 </script>
