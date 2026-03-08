@@ -8,6 +8,15 @@ import type {
 } from '~/types/api/calendar'
 import type { UUID } from '~/types/api/common'
 
+type CalendarEventsListResponse =
+  | CalendarEventRead[]
+  | {
+    data?: CalendarEventRead[]
+    items?: CalendarEventRead[]
+    events?: CalendarEventRead[]
+    'hydra:member'?: CalendarEventRead[]
+  }
+
 export const useCalendarEventsApi = () => {
   const { apiFetch } = useApiClient()
 
@@ -23,7 +32,15 @@ export const useCalendarEventsApi = () => {
 
   return {
     list(applicationSlug?: string, isPrivate = true) {
-      return apiFetch<CalendarEventRead[]>(resolvePath(applicationSlug, isPrivate), { method: 'GET' })
+      return apiFetch<CalendarEventsListResponse>(resolvePath(applicationSlug, isPrivate), { method: 'GET' })
+        .then((response) => {
+          if (Array.isArray(response)) return response
+          if (Array.isArray(response.data)) return response.data
+          if (Array.isArray(response.items)) return response.items
+          if (Array.isArray(response.events)) return response.events
+          if (Array.isArray(response['hydra:member'])) return response['hydra:member']
+          return []
+        })
     },
     create(payload: CreateCalendarEventPayload, applicationSlug?: string) {
       return apiFetch<CalendarEventMutationResponse>(resolvePath(applicationSlug, true), {
