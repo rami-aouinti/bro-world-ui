@@ -91,10 +91,12 @@ const filterQueryKey = computed(() => JSON.stringify(filterQuery.value))
 
 const editDialog = ref(false)
 const deleteDialog = ref(false)
+const applyDialog = ref(false)
 const editLoading = ref(false)
 const deleteLoading = ref(false)
 const ownerActionError = ref('')
 const selectedJob = ref<RecruitJob | null>(null)
+const selectedApplyJob = ref<RecruitJob | null>(null)
 const editForm = ref<RecruitUpdateJobPayload>({
   title: '',
   location: '',
@@ -136,6 +138,16 @@ const closeOwnerDialogs = () => {
   editDialog.value = false
   deleteDialog.value = false
   selectedJob.value = null
+}
+
+const openApplyDialog = (job: RecruitJob) => {
+  selectedApplyJob.value = job
+  applyDialog.value = true
+}
+
+const closeApplyDialog = () => {
+  applyDialog.value = false
+  selectedApplyJob.value = null
 }
 
 const fetchRecruitJobsPrivate = async () => {
@@ -359,7 +371,7 @@ watch(filterQueryKey, () => {
       >
         <v-card-text class="pa-6">
           <div class="d-flex justify-end mb-2">
-            <v-menu v-if="job.owner" location="bottom end">
+            <v-menu v-if="job.owner && !job.apply" location="bottom end">
               <template #activator="{ props }">
                 <v-btn icon="mdi-dots-vertical" size="small" variant="text" v-bind="props" @click.prevent />
               </template>
@@ -375,8 +387,8 @@ watch(filterQueryKey, () => {
                 <v-chip size="small" color="teal" variant="tonal">
                   Passt hervorragend
                 </v-chip>
-                <v-chip v-if="job.apply" size="small" color="indigo" variant="outlined">
-                  Applied
+                <v-chip v-if="job.apply && !job.owner" size="small" color="success" variant="tonal">
+                  Applyed
                 </v-chip>
               </div>
               <h2 class="text-h5 font-weight-bold mb-2">{{ job.title }}</h2>
@@ -387,6 +399,12 @@ watch(filterQueryKey, () => {
             <v-avatar size="72" rounded="lg" color="deep-orange-lighten-4" class="text-deep-orange-darken-3 font-weight-bold">
               {{ job.company.logo }}
             </v-avatar>
+          </div>
+
+          <div v-if="!job.owner && !job.apply" class="d-flex justify-end mt-4">
+            <v-btn color="primary" variant="flat" @click.prevent="openApplyDialog(job)">
+              Apply
+            </v-btn>
           </div>
         </v-card-text>
       </v-card>
@@ -469,6 +487,22 @@ watch(filterQueryKey, () => {
         <v-spacer />
         <v-btn variant="text" @click="closeOwnerDialogs">Annuler</v-btn>
         <v-btn color="error" :loading="deleteLoading" @click="submitDeleteJob">Supprimer</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="applyDialog" max-width="520">
+    <v-card rounded="xl">
+      <v-card-title class="text-h5 py-4 px-6">Apply</v-card-title>
+      <v-card-text class="px-6">
+        <p class="text-body-1 mb-0">
+          Modal vide pour le moment
+          <span v-if="selectedApplyJob" class="font-weight-bold">: {{ selectedApplyJob.title }}</span>
+        </p>
+      </v-card-text>
+      <v-card-actions class="px-6 pb-6 pt-2">
+        <v-spacer />
+        <v-btn variant="text" @click="closeApplyDialog">Fermer</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
