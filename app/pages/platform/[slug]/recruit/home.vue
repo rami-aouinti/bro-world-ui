@@ -101,7 +101,7 @@ const visibleJobs = computed(() => jobsData.value.jobs.filter((job) => {
 
       <v-card
         v-for="job in visibleJobs"
-        :key="job.slug"
+        :key="job.id"
         rounded="xl"
         class="mb-4 border"
         hover

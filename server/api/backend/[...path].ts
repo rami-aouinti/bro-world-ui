@@ -36,12 +36,18 @@ const ENTITY_CACHE_PREFIXES = [
   '/api/v1/application/public',
   '/api/v1/platform/public',
   '/api/v1/plugin/public',
+  '/api/v1/recruit/public',
+  '/api/v1/recruit/private',
 ]
 
 const ENTITY_CACHE_INVALIDATION_RULES: Array<{ routePrefix: string, cachePrefixes: string[] }> = [
   {
     routePrefix: '/api/v1/profile/applications',
     cachePrefixes: ['/api/v1/application/public', '/api/v1/application/private'],
+  },
+  {
+    routePrefix: '/api/v1/recruit/',
+    cachePrefixes: ['/api/v1/recruit/public', '/api/v1/recruit/private'],
   },
 ]
 
