@@ -390,7 +390,10 @@
         "last": "Last page"
       }
     },
-    "badge": "Badge"
+    "badge": "Badge",
+    "input": {
+      "clear": "Clear {0}"
+    }
   },
   "errorPage": {
     "badge": "Error",
