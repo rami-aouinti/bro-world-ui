@@ -122,6 +122,10 @@ export const getShopNav = (slug: string, isOwner = false): PlatformNavItem[] => 
   ], isOwner)
 }
 
+export const getCalendarNav = (): PlatformNavItem[] => {
+  return []
+}
+
 export const getRecruitNav = (slug: string, isOwner = false, isAuthenticated = false): PlatformNavItem[] => {
   const base = `/platform/${slug}/recruit`
 

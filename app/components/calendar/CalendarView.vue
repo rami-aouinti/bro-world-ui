@@ -12,6 +12,10 @@ import type {
   EventStatus,
   PatchCalendarEventPayload,
 } from '~/types/api/calendar'
+import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
+import PlatformSidebarNav from "~/components/platform/PlatformSidebarNav.vue";
+import type {PlatformNavItem} from "~/data/platform-nav";
+import {getCalendarNav} from "~/data/platform-nav";
 
 const props = withDefaults(defineProps<{
   applicationSlug?: string
@@ -303,69 +307,58 @@ const calendarOptions = computed(() => ({
     patchFromCalendarMove(info.event.id, info.event.start?.toISOString(), info.event.end?.toISOString())
   },
 }))
-
+const items = computed(() => getCalendarNav())
 onMounted(loadEvents)
 watch(() => props.applicationSlug, loadEvents)
 </script>
 
 <template>
-  <v-alert
-    v-if="errorMessage"
-    type="error"
-    variant="tonal"
-    class="mb-3"
-    closable
-    @click:close="errorMessage = ''"
-  >
-    {{ errorMessage }}
-  </v-alert>
-
-  <v-row>
-    <v-col cols="12" md="4" lg="3">
-      <v-card variant="outlined" class="mb-4">
+  <PlatformSplitLayout>
+    <template #sidebar>
+      <PlatformSidebarNav :items="items" title="Calendar">
         <v-card-title class="d-flex align-center justify-space-between">
           <span class="text-subtitle-2">Prochains événements</span>
           <UiStatChip :value="filteredEvents.length" icon="mdi-calendar-clock-outline" color="info" />
         </v-card-title>
         <v-card-text>
           <v-select
-            v-model="selectedRange"
-            :items="rangeOptions"
-            label="Période"
-            variant="outlined"
-            hide-details
-            density="compact"
-            class="mb-3"
+              v-model="selectedRange"
+              :items="rangeOptions"
+              label="Période"
+              variant="outlined"
+              hide-details
+              density="compact"
+              class="mb-3"
           />
 
           <v-select
-            v-model="selectedStatus"
-            :items="statusOptions"
-            label="Statut"
-            variant="outlined"
-            hide-details
-            density="compact"
-            class="mb-4"
+              v-model="selectedStatus"
+              :items="statusOptions"
+              label="Statut"
+              variant="outlined"
+              hide-details
+              density="compact"
+              class="mb-4"
           />
 
           <v-btn
-            v-if="canMutate"
-            color="primary"
-            prepend-icon="mdi-plus"
-            block
-            class="mb-4"
-            @click="openCreateDialog"
+              v-if="canMutate"
+              color="primary"
+              prepend-icon="mdi-plus"
+              block
+              class="mb-4"
+              @click="openCreateDialog"
           >
             Créer un événement
           </v-btn>
 
           <v-list v-if="filteredEvents.length" class="bg-transparent pa-0" lines="two">
             <v-list-item
-              v-for="event in filteredEvents"
-              :key="event.id"
-              class="calendar-page__item px-0 rounded-lg"
-              :active="selectedEventId === event.id"
-              @click="openShowDialog(event)"
+                v-for="event in filteredEvents"
+                :key="event.id"
+                class="calendar-page__item px-0 rounded-lg"
+                :active="selectedEventId === event.id"
+                @click="openShowDialog(event)"
             >
               <template #prepend>
                 <v-avatar size="34" :color="statusToChipColor(event.status)" variant="tonal">
@@ -379,33 +372,38 @@ watch(() => props.applicationSlug, loadEvents)
           </v-list>
 
           <UiStateEmptyState
-            v-else
-            title="Aucun événement à venir"
-            description="Commencez par créer un événement pour alimenter votre planning."
-            icon="mdi-calendar-blank-outline"
+              v-else
+              title="Aucun événement à venir"
+              description="Commencez par créer un événement pour alimenter votre planning."
+              icon="mdi-calendar-blank-outline"
           />
         </v-card-text>
-      </v-card>
-    </v-col>
+      </PlatformSidebarNav>
+    </template>
+  <v-alert
+    v-if="errorMessage"
+    type="error"
+    variant="tonal"
+    class="mb-3"
+    closable
+    @click:close="errorMessage = ''"
+  >
+    {{ errorMessage }}
+  </v-alert>
 
-    <v-col cols="12" md="8" lg="9">
-      <v-progress-linear v-if="isLoading" indeterminate color="primary" class="mb-4" />
+    <v-progress-linear v-if="isLoading" indeterminate color="primary" class="mb-4" />
 
-      <v-card variant="outlined">
-        <v-card-title class="d-flex align-center justify-space-between flex-wrap ga-2">
-          <span class="text-subtitle-1 font-weight-bold">Vue calendrier</span>
-          <UiStatChip :value="`${calendarEvents.length} événements`" color="info" />
-        </v-card-title>
-        <v-card-text>
-          <div class="calendar-page__slot">
-            <ClientOnly>
-              <FullCalendar :options="calendarOptions" />
-            </ClientOnly>
-          </div>
-        </v-card-text>
-      </v-card>
-    </v-col>
-  </v-row>
+    <v-card-title class="d-flex align-center justify-space-between flex-wrap ga-2">
+      <span class="text-subtitle-1 font-weight-bold">Vue calendrier</span>
+      <UiStatChip :value="`${calendarEvents.length} événements`" color="info" />
+    </v-card-title>
+    <v-card-text>
+      <div class="calendar-page__slot">
+        <ClientOnly>
+          <FullCalendar :options="calendarOptions" />
+        </ClientOnly>
+      </div>
+    </v-card-text>
 
   <v-dialog v-model="isCreateDialogOpen" max-width="640">
     <v-card>
@@ -466,6 +464,7 @@ watch(() => props.applicationSlug, loadEvents)
       </v-card-actions>
     </v-card>
   </v-dialog>
+  </PlatformSplitLayout>
 </template>
 
 <style scoped>
