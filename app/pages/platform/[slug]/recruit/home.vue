@@ -34,12 +34,16 @@ type RecruitHomeFilters = {
 type RecruitUpdateJobPayload = {
   title: string
   location: string
+  missionTitle: string
+  missionDescription: string
+  matchScore: number
   contractType: RecruitContractType
   workMode: RecruitJob['workMode']
   schedule: string
   summary: string
-  salaryMin: number
-  salaryMax: number
+  responsibilities: string
+  profile: string
+  benefits: string
 }
 
 definePageMeta({ public: true, requiresAuth: false })
@@ -91,8 +95,10 @@ const filterQuery = computed(() => ({
 const filterQueryKey = computed(() => JSON.stringify(filterQuery.value))
 
 const editDialog = ref(false)
+const createDialog = ref(false)
 const deleteDialog = ref(false)
 const applyDialog = ref(false)
+const createLoading = ref(false)
 const editLoading = ref(false)
 const deleteLoading = ref(false)
 const applyLoading = ref(false)
@@ -113,25 +119,81 @@ const applyForm = ref({
 const editForm = ref<RecruitUpdateJobPayload>({
   title: '',
   location: '',
+  missionTitle: '',
+  missionDescription: '',
+  matchScore: 0,
   contractType: 'CDI',
   workMode: 'Onsite',
   schedule: '',
   summary: '',
-  salaryMin: 0,
-  salaryMax: 0,
+  responsibilities: '',
+  profile: '',
+  benefits: '',
 })
+
+const createForm = ref<RecruitUpdateJobPayload>({
+  title: '',
+  location: '',
+  missionTitle: '',
+  missionDescription: '',
+  matchScore: 0,
+  contractType: 'CDI',
+  workMode: 'Onsite',
+  schedule: 'Vollzeit',
+  summary: '',
+  responsibilities: '',
+  profile: '',
+  benefits: '',
+})
+
+const applicationSlug = computed(() => slug.value)
+const applicationId = computed(() => String(route.query.applicationId ?? slug.value))
+
+const parseMultilineList = (value: string) => {
+  return value
+    .split('\n')
+    .map(item => item.trim())
+    .filter(Boolean)
+}
 
 const loadEditForm = (job: RecruitJob) => {
   editForm.value = {
     title: job.title,
     location: job.location,
+    missionTitle: job.missionTitle,
+    missionDescription: job.missionDescription,
+    matchScore: job.matchScore,
     contractType: job.contractType,
     workMode: job.workMode,
     schedule: job.schedule,
     summary: job.summary,
-    salaryMin: job.salary.min,
-    salaryMax: job.salary.max,
+    responsibilities: job.responsibilities.join('\n'),
+    profile: job.profile.join('\n'),
+    benefits: job.benefits.join('\n'),
   }
+}
+
+const resetCreateForm = () => {
+  createForm.value = {
+    title: '',
+    location: '',
+    missionTitle: '',
+    missionDescription: '',
+    matchScore: 0,
+    contractType: 'CDI',
+    workMode: 'Onsite',
+    schedule: 'Vollzeit',
+    summary: '',
+    responsibilities: '',
+    profile: '',
+    benefits: '',
+  }
+}
+
+const openCreateDialog = () => {
+  resetCreateForm()
+  ownerActionError.value = ''
+  createDialog.value = true
 }
 
 const openEditDialog = (job: RecruitJob) => {
@@ -148,6 +210,7 @@ const openDeleteDialog = (job: RecruitJob) => {
 }
 
 const closeOwnerDialogs = () => {
+  createDialog.value = false
   editDialog.value = false
   deleteDialog.value = false
   selectedJob.value = null
@@ -328,19 +391,19 @@ const submitEditJob = async () => {
     const payload = {
       title: editForm.value.title.trim(),
       location: editForm.value.location.trim(),
+      missionTitle: editForm.value.missionTitle.trim(),
+      missionDescription: editForm.value.missionDescription.trim(),
+      matchScore: Math.max(0, Number(editForm.value.matchScore) || 0),
       contractType: editForm.value.contractType,
       workMode: editForm.value.workMode,
       schedule: editForm.value.schedule.trim(),
       summary: editForm.value.summary.trim(),
-      salary: {
-        min: Math.max(0, Number(editForm.value.salaryMin) || 0),
-        max: Math.max(0, Number(editForm.value.salaryMax) || 0),
-        currency: 'EUR',
-        period: 'year',
-      },
+      responsibilities: parseMultilineList(editForm.value.responsibilities),
+      profile: parseMultilineList(editForm.value.profile),
+      benefits: parseMultilineList(editForm.value.benefits),
     }
 
-    await apiFetch(`/api/v1/recruit/private/recruit-talent-hub/jobs/${selectedJob.value.id}`, {
+    await apiFetch(`/api/v1/recruit/applications/${applicationId.value}/jobs/${selectedJob.value.id}`, {
       method: 'PATCH',
       body: payload,
     })
@@ -363,7 +426,7 @@ const submitDeleteJob = async () => {
   ownerActionError.value = ''
 
   try {
-    await apiFetch(`/api/v1/recruit/private/recruit-talent-hub/jobs/${selectedJob.value.id}`, {
+    await apiFetch(`/api/v1/recruit/applications/${applicationId.value}/jobs/${selectedJob.value.id}`, {
       method: 'DELETE',
     })
 
@@ -373,6 +436,40 @@ const submitDeleteJob = async () => {
     ownerActionError.value = "La suppression de l'offre a échoué."
   } finally {
     deleteLoading.value = false
+  }
+}
+
+const submitCreateJob = async () => {
+  createLoading.value = true
+  ownerActionError.value = ''
+
+  try {
+    const payload = {
+      title: createForm.value.title.trim(),
+      location: createForm.value.location.trim(),
+      summary: createForm.value.summary.trim(),
+      missionTitle: createForm.value.missionTitle.trim(),
+      missionDescription: createForm.value.missionDescription.trim(),
+      matchScore: Math.max(0, Number(createForm.value.matchScore) || 0),
+      contractType: createForm.value.contractType,
+      workMode: createForm.value.workMode,
+      schedule: createForm.value.schedule.trim(),
+      responsibilities: parseMultilineList(createForm.value.responsibilities),
+      profile: parseMultilineList(createForm.value.profile),
+      benefits: parseMultilineList(createForm.value.benefits),
+    }
+
+    await apiFetch(`/api/v1/recruit/applications/${applicationSlug.value}/jobs`, {
+      method: 'POST',
+      body: payload,
+    })
+
+    await refresh()
+    closeOwnerDialogs()
+  } catch {
+    ownerActionError.value = "La création de l'offre a échoué."
+  } finally {
+    createLoading.value = false
   }
 }
 
@@ -454,11 +551,21 @@ watch(filterQueryKey, () => {
         Impossible de charger les offres d'emploi pour le moment.
       </v-alert>
 
-      <PlatformHeroHeader
-        title="platform.recruit.hero.home.title"
-        subtitle="platform.recruit.hero.home.subtitle"
-        cta="platform.recruit.hero.home.cta"
-      />
+      <div class="d-flex justify-space-between align-start flex-wrap ga-3">
+        <PlatformHeroHeader
+          title="platform.recruit.hero.home.title"
+          subtitle="platform.recruit.hero.home.subtitle"
+          cta="platform.recruit.hero.home.cta"
+        />
+        <v-btn
+          v-if="isAuthenticated"
+          color="primary"
+          prepend-icon="mdi-briefcase-plus"
+          @click="openCreateDialog"
+        >
+          Create New Job
+        </v-btn>
+      </div>
 
       <v-skeleton-loader
         v-if="pending"
@@ -533,6 +640,60 @@ watch(filterQueryKey, () => {
     </section>
   </PlatformSplitLayout>
 
+  <v-dialog v-model="createDialog" max-width="760">
+    <v-card rounded="xl">
+      <v-card-title class="text-h5 py-4 px-6">Créer une offre</v-card-title>
+      <v-card-text class="px-6 pb-0">
+        <v-alert v-if="ownerActionError" type="error" variant="tonal" class="mb-4">
+          {{ ownerActionError }}
+        </v-alert>
+        <v-row>
+          <v-col cols="12" md="8">
+            <v-text-field v-model="createForm.title" label="Titre" variant="outlined" density="comfortable" />
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-text-field v-model="createForm.location" label="Ville" variant="outlined" density="comfortable" />
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-select v-model="createForm.contractType" :items="['CDI', 'CDD', 'Freelance', 'Internship']" label="Contrat" variant="outlined" density="comfortable" />
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-select v-model="createForm.workMode" :items="['Onsite', 'Hybrid', 'Remote']" label="Mode" variant="outlined" density="comfortable" />
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-text-field v-model="createForm.schedule" label="Horaires" variant="outlined" density="comfortable" />
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-text-field v-model.number="createForm.matchScore" type="number" min="0" max="100" label="Match score" variant="outlined" density="comfortable" />
+          </v-col>
+          <v-col cols="12">
+            <v-textarea v-model="createForm.summary" label="Résumé" rows="3" auto-grow variant="outlined" density="comfortable" />
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-text-field v-model="createForm.missionTitle" label="Mission title" variant="outlined" density="comfortable" />
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-textarea v-model="createForm.missionDescription" label="Mission description" rows="3" auto-grow variant="outlined" density="comfortable" />
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-textarea v-model="createForm.responsibilities" label="Responsibilities (1 ligne par item)" rows="4" auto-grow variant="outlined" density="comfortable" />
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-textarea v-model="createForm.profile" label="Profile (1 ligne par item)" rows="4" auto-grow variant="outlined" density="comfortable" />
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-textarea v-model="createForm.benefits" label="Benefits (1 ligne par item)" rows="4" auto-grow variant="outlined" density="comfortable" />
+          </v-col>
+        </v-row>
+      </v-card-text>
+      <v-card-actions class="px-6 pb-6 pt-2">
+        <v-spacer />
+        <v-btn variant="text" @click="closeOwnerDialogs">Annuler</v-btn>
+        <v-btn color="primary" :loading="createLoading" @click="submitCreateJob">Créer</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
   <v-dialog v-model="editDialog" max-width="760">
     <v-card rounded="xl">
       <v-card-title class="text-h5 py-4 px-6">Modifier l'offre</v-card-title>
@@ -556,14 +717,26 @@ watch(filterQueryKey, () => {
           <v-col cols="12" md="4">
             <v-text-field v-model="editForm.schedule" label="Horaires" variant="outlined" density="comfortable" />
           </v-col>
-          <v-col cols="12" md="6">
-            <v-text-field v-model.number="editForm.salaryMin" type="number" min="0" label="Salaire min" variant="outlined" density="comfortable" />
-          </v-col>
-          <v-col cols="12" md="6">
-            <v-text-field v-model.number="editForm.salaryMax" type="number" min="0" label="Salaire max" variant="outlined" density="comfortable" />
+          <v-col cols="12" md="4">
+            <v-text-field v-model.number="editForm.matchScore" type="number" min="0" max="100" label="Match score" variant="outlined" density="comfortable" />
           </v-col>
           <v-col cols="12">
-            <v-textarea v-model="editForm.summary" label="Résumé" rows="4" auto-grow variant="outlined" density="comfortable" />
+            <v-textarea v-model="editForm.summary" label="Résumé" rows="3" auto-grow variant="outlined" density="comfortable" />
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-text-field v-model="editForm.missionTitle" label="Mission title" variant="outlined" density="comfortable" />
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-textarea v-model="editForm.missionDescription" label="Mission description" rows="3" auto-grow variant="outlined" density="comfortable" />
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-textarea v-model="editForm.responsibilities" label="Responsibilities (1 ligne par item)" rows="4" auto-grow variant="outlined" density="comfortable" />
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-textarea v-model="editForm.profile" label="Profile (1 ligne par item)" rows="4" auto-grow variant="outlined" density="comfortable" />
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-textarea v-model="editForm.benefits" label="Benefits (1 ligne par item)" rows="4" auto-grow variant="outlined" density="comfortable" />
           </v-col>
         </v-row>
       </v-card-text>
