@@ -3,6 +3,7 @@ import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { formatRecruitSalary, type RecruitJob } from '~/data/platform/recruit'
 import { getRecruitNav } from '~/data/platform-nav'
+import RecruitJobCard from '~/components/platform/recruit/RecruitJobCard.vue'
 
 type RecruitJobListResponse = {
   jobs?: RecruitJob[]
@@ -303,26 +304,19 @@ const updateApplicationStatus = async (applicationId: string, status: RecruitApp
 
         <div class="mb-8">
           <h2 class="text-h4 font-weight-bold mb-4">{{ t('platform.recruit.job.related.title') }}</h2>
-          <v-card
+          <RecruitJobCard
             v-for="relatedJob in relatedJobs"
             :key="relatedJob.slug"
-            rounded="xl"
-            class="mb-4 border"
+            variant="compact"
             :to="`/platform/${appSlug}/recruit/job/${relatedJob.slug}`"
-          >
-            <v-card-text class="pa-5">
-              <div class="d-flex align-center justify-space-between ga-4">
-                <div>
-                  <h3 class="text-h5 font-weight-bold mb-2">{{ relatedJob.title }}</h3>
-                  <p class="text-body-1 mb-1">{{ relatedJob.company.name }} · {{ relatedJob.location }} · {{ relatedJob.workMode }}</p>
-                  <p class="text-body-2 text-medium-emphasis mb-0">{{ relatedJob.postedAtLabel }}</p>
-                </div>
-                <v-avatar size="64" rounded="lg" color="deep-orange-lighten-4" class="text-deep-orange-darken-3 font-weight-bold">
-                  {{ relatedJob.company.logo }}
-                </v-avatar>
-              </div>
-            </v-card-text>
-          </v-card>
+            :title="relatedJob.title"
+            :company="relatedJob.company.name"
+            :location="relatedJob.location"
+            :salary="formatRecruitSalary(relatedJob.salary)"
+            :meta="relatedJob.workMode"
+            :posted-at="relatedJob.postedAtLabel"
+            :logo="relatedJob.company.logo"
+          />
         </div>
       </template>
     </section>

@@ -3,6 +3,7 @@ import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformHeroHeader from '~/components/platform/sections/PlatformHeroHeader.vue'
 import { getRecruitNav } from '~/data/platform-nav'
+import RecruitJobCard from '~/components/platform/recruit/RecruitJobCard.vue'
 
 definePageMeta({ public: true, requiresAuth: false })
 
@@ -50,24 +51,18 @@ const getApplicationStatusLabel = (status: string) => t(applicationStatusLabelMa
 
       <v-skeleton-loader v-if="pending" type="article" class="mb-4" />
 
-      <v-card
+      <RecruitJobCard
         v-for="application in applications"
         :key="application.applicationId"
-        rounded="xl"
-        class="mb-4 border"
-        hover
+        variant="detailed"
         :to="`/platform/${slug}/recruit/job/${application.job.slug}`"
-      >
-        <v-card-text class="pa-6">
-          <div class="d-flex align-center justify-space-between mb-2">
-            <h2 class="text-h5 font-weight-bold">{{ application.job.title }}</h2>
-            <v-chip size="small" color="primary" variant="tonal">{{ getApplicationStatusLabel(application.status) }}</v-chip>
-          </div>
-          <p class="text-body-1 mb-2">{{ application.job.company }} · {{ application.job.location }}</p>
-          <p class="text-body-2 text-medium-emphasis mb-1">{{ application.job.contractType }} · {{ application.job.workMode }} · {{ application.job.schedule }}</p>
-          <p class="text-body-2 text-medium-emphasis mb-0">{{ t('platform.recruit.myApplications.appliedOn', { date: new Date(application.appliedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US') }) }}</p>
-        </v-card-text>
-      </v-card>
+        :title="application.job.title"
+        :company="application.job.company"
+        :location="application.job.location"
+        :meta="`${application.job.contractType} · ${application.job.workMode} · ${application.job.schedule}`"
+        :posted-at="t('platform.recruit.myApplications.appliedOn', { date: new Date(application.appliedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US') })"
+        :status-badge="{ label: getApplicationStatusLabel(application.status), color: 'primary', variant: 'tonal' }"
+      />
 
       <v-alert v-if="isAuthenticated && !pending && !applications.length" type="info" variant="tonal">
         {{ t('platform.recruit.myApplications.alerts.empty') }}
