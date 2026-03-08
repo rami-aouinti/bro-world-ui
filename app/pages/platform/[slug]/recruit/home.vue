@@ -71,11 +71,12 @@ const {
 const { isOwner } = usePlatformPermissions(slug)
 const { t } = useI18n()
 const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
+const visibleJobsCount = computed(() => jobsData.value?.jobs?.length ?? 0)
 const homeStats = computed(() => [
-  { label: 'Offres visibles', value: jobsData.jobs.length, icon: 'mdi-briefcase-search-outline', color: 'primary' },
-  { label: 'Pages', value: totalPages, icon: 'mdi-book-open-page-variant-outline', color: 'info' },
-  { label: 'Filtres actifs', value: hasFilters ? 'Oui' : 'Non', icon: 'mdi-filter-outline', color: 'warning' },
-  { label: 'Compte', value: isAuthenticated ? 'Connecté' : 'Invité', icon: 'mdi-account-circle-outline', color: 'success' },
+  { label: 'Offres visibles', value: visibleJobsCount.value, icon: 'mdi-briefcase-search-outline', color: 'primary' },
+  { label: 'Pages', value: totalPages.value, icon: 'mdi-book-open-page-variant-outline', color: 'info' },
+  { label: 'Filtres actifs', value: hasFilters.value ? 'Oui' : 'Non', icon: 'mdi-filter-outline', color: 'warning' },
+  { label: 'Compte', value: isAuthenticated.value ? 'Connecté' : 'Invité', icon: 'mdi-account-circle-outline', color: 'success' },
 ])
 
 const handleCreateJob = async () => {
