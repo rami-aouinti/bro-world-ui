@@ -16,19 +16,21 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
   error: null,
 })
+
+const { t } = useI18n()
 </script>
 
 <template>
   <div>
     <h1 class="text-h5 font-weight-bold mb-1">{{ props.title }}</h1>
-    <p class="text-body-2 text-medium-emphasis mb-4">Pilotage des pipelines candidats, interviews et offres.</p>
+    <p class="text-body-2 text-medium-emphasis mb-4">{{ t('platform.recruit.pipelineBoard.description') }}</p>
 
-    <UiLoadingState v-if="props.loading" variant="cards" :cards="6" message="Chargement du board recrutement..." />
+    <UiLoadingState v-if="props.loading" variant="cards" :cards="6" :message="t('platform.recruit.pipelineBoard.loading')" />
     <UiStateAlert v-else-if="props.error" type="error" :message="props.error" />
     <UiEmptyState
       v-else-if="!props.sectionsMeta.length"
-      title="Aucune section recrutement"
-      description="Ajoutez vos sections de pipeline pour alimenter le board."
+      :title="t('platform.recruit.pipelineBoard.empty.title')"
+      :description="t('platform.recruit.pipelineBoard.empty.description')"
       icon="mdi-account-search-outline"
     />
 
@@ -44,8 +46,8 @@ const props = withDefaults(defineProps<Props>(), {
 
             <UiEmptyState
               v-if="!(props.sectionData[section.id]?.length)"
-              title="Colonne vide"
-              description="Aucun élément pour cette étape."
+              :title="t('platform.recruit.pipelineBoard.column.empty.title')"
+              :description="t('platform.recruit.pipelineBoard.column.empty.description')"
               icon="mdi-view-column-outline"
             />
 
@@ -57,7 +59,7 @@ const props = withDefaults(defineProps<Props>(), {
                     <v-chip v-if="item.status" size="x-small" color="primary" variant="tonal">{{ item.status }}</v-chip>
                   </div>
                   <p class="text-body-2 text-medium-emphasis mb-1">{{ item.description }}</p>
-                  <p v-if="item.owner" class="text-caption mb-2">Owner: {{ item.owner }}</p>
+                  <p v-if="item.owner" class="text-caption mb-2">{{ t('platform.recruit.pipelineBoard.owner', { owner: item.owner }) }}</p>
                   <div class="d-flex flex-wrap ga-2">
                     <v-chip
                       v-for="metric in item.metrics || []"

@@ -13,6 +13,7 @@ const platformPermissions = usePlatformPermissions(slug)
 const { isOwner } = platformPermissions
 const { isAuthenticated } = useAuth()
 const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
+const { t } = useI18n()
 const accessDenied = ref(false)
 
 onMounted(async () => {
@@ -33,7 +34,7 @@ onMounted(async () => {
     <template #sidebar><PlatformSidebarNav title="platform.recruit.sidebar.title" subtitle="platform.common.sidebar.admin" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
       <v-alert v-if="accessDenied" type="error" variant="tonal" class="mb-4">
-        Accès refusé à l’espace admin Recruit. Redirection en cours…
+        {{ t('platform.recruit.admin.accessDenied') }}
       </v-alert>
       <RecruitPipelineBoard
         v-else

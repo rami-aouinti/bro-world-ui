@@ -12,6 +12,7 @@ const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const { isOwner } = usePlatformPermissions(slug)
 const { isAuthenticated } = useAuth()
+const { t } = useI18n()
 const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
 </script>
 
@@ -20,7 +21,7 @@ const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthe
     <template #sidebar><PlatformSidebarNav title="platform.recruit.sidebar.tickets" subtitle="platform.common.sidebar.roadmap" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
       <PlatformHeroHeader title="platform.recruit.hero.tickets.title" subtitle="platform.recruit.hero.tickets.subtitle" cta="platform.recruit.hero.tickets.cta" />
-      <PlatformTicketBoard title="Backlog Recruit" :tickets="platformProposals.recruit" />
+      <PlatformTicketBoard :title="t('platform.recruit.tickets.boardTitle')" :tickets="platformProposals.recruit" />
     </section>
   </PlatformSplitLayout>
 </template>

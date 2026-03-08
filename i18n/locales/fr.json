@@ -730,7 +730,8 @@
         "title": "Recruit",
         "interviews": "Recruit Interviews",
         "tickets": "Recruit Tickets",
-        "jobDetail": "Détail offre"
+        "jobDetail": "Détail offre",
+        "jobDetailSubtitle": "Détail du poste"
       },
       "nav": {
         "home": "Jobs",
@@ -775,7 +776,120 @@
       "job": {
         "published": "Publication : {value}",
         "remote": "Remote possible",
-        "onsite": "Sur site"
+        "onsite": "Sur site",
+        "badges": {
+          "applied": "Candidature envoyée"
+        },
+        "estimatedFullTimeSalary": "{salary} (estimation temps plein)",
+        "grossSalaryPerYear": "{salary} brut/an (estimation temps plein)",
+        "match": {
+          "title": "Excellent matching",
+          "description": "Votre profil couvre les attentes principales de ce poste.",
+          "score": "Matching : {score}%"
+        },
+        "sections": {
+          "introduction": "Introduction",
+          "responsibilities": "Missions",
+          "profile": "Profil recherché",
+          "benefits": "Ce que nous offrons",
+          "salary": "Rémunération"
+        },
+        "alerts": {
+          "loadError": "Impossible de charger les détails de cette offre.",
+          "updateStatusError": "Impossible de mettre à jour le statut de la candidature."
+        },
+        "applications": {
+          "title": "Candidatures reçues",
+          "coverLetter": "Lettre de motivation :",
+          "meta": "ID candidature : {id} · CV : {resumeId}",
+          "statusLabel": "Statut",
+          "empty": "Aucune candidature pour cette offre."
+        },
+        "related": {
+          "title": "Offres similaires populaires"
+        }
+      },
+      "pipelineBoard": {
+        "description": "Pilotage du pipeline candidats, entretiens et offres.",
+        "loading": "Chargement du tableau de recrutement...",
+        "owner": "Responsable : {owner}",
+        "empty": {
+          "title": "Aucune section de recrutement",
+          "description": "Ajoutez des sections de pipeline pour alimenter le tableau."
+        },
+        "column": {
+          "empty": {
+            "title": "Colonne vide",
+            "description": "Aucun élément à cette étape."
+          }
+        }
+      },
+      "home": {
+        "actions": {
+          "createJob": "Créer une offre",
+          "cancel": "Annuler",
+          "delete": "Supprimer"
+        },
+        "alerts": {
+          "accessDenied": "Accès administrateur refusé : permissions insuffisantes pour cette application.",
+          "jobsLoadError": "Impossible de charger les offres d'emploi pour le moment.",
+          "emptyJobs": "Aucune offre trouvée. Essayez d'ajuster les filtres pour élargir la recherche."
+        },
+        "deleteDialog": {
+          "title": "Supprimer l'offre",
+          "confirmPrefix": "Confirmez la suppression de l'offre"
+        }
+      },
+      "admin": {
+        "accessDenied": "Accès refusé à l’espace admin Recruit. Redirection en cours…"
+      },
+      "interviews": {
+        "interviewer": "Interviewer : {interviewer}",
+        "slotTypes": {
+          "techInterview": "Entretien technique",
+          "caseStudy": "Étude de cas",
+          "businessCase": "Cas business"
+        }
+      },
+      "tickets": {
+        "boardTitle": "Backlog recrutement"
+      },
+      "myApplications": {
+        "alerts": {
+          "signInRequired": "Connectez-vous pour consulter vos candidatures.",
+          "loadError": "Impossible de charger vos candidatures pour le moment.",
+          "empty": "Vous n'avez encore postulé à aucune offre."
+        },
+        "appliedOn": "Candidature envoyée le {date}"
+      },
+      "myJobs": {
+        "alerts": {
+          "signInRequired": "Connectez-vous pour consulter vos offres créées.",
+          "loadError": "Impossible de charger vos offres pour le moment.",
+          "empty": "Vous n'avez encore créé aucune offre."
+        },
+        "createdOn": "Créée le {date}"
+      },
+      "jobs": {
+        "redirecting": "Redirection vers la nouvelle URL..."
+      },
+      "status": {
+        "waiting": "En attente",
+        "reviewing": "En revue",
+        "interview": "Entretien",
+        "rejected": "Refusée",
+        "accepted": "Acceptée"
+      },
+      "jobList": {
+        "actions": {
+          "edit": "Modifier",
+          "delete": "Supprimer",
+          "apply": "Postuler"
+        },
+        "badges": {
+          "strongMatch": "Excellent matching",
+          "applied": "Applied"
+        }
       }
     },
     "school": {

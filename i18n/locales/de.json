@@ -730,7 +730,8 @@
         "title": "Recruit",
         "interviews": "Recruit Interviews",
         "tickets": "Recruit Tickets",
-        "jobDetail": "Job detail"
+        "jobDetail": "Job detail",
+        "jobDetailSubtitle": "Job details"
       },
       "nav": {
         "home": "Jobs",
@@ -775,7 +776,120 @@
       "job": {
         "published": "Published: {value}",
         "remote": "Remote possible",
-        "onsite": "On-site"
+        "onsite": "On-site",
+        "badges": {
+          "applied": "Applied"
+        },
+        "estimatedFullTimeSalary": "{salary} (estimated full-time)",
+        "grossSalaryPerYear": "{salary} gross/year (estimated full-time)",
+        "match": {
+          "title": "Strong match",
+          "description": "Your profile matches the main expectations for this role.",
+          "score": "Match: {score}%"
+        },
+        "sections": {
+          "introduction": "Introduction",
+          "responsibilities": "Responsibilities",
+          "profile": "Profile",
+          "benefits": "What we offer",
+          "salary": "Salary"
+        },
+        "alerts": {
+          "loadError": "Unable to load job details.",
+          "updateStatusError": "Unable to update application status."
+        },
+        "applications": {
+          "title": "Received applications",
+          "coverLetter": "Cover letter:",
+          "meta": "Application ID: {id} · Resume: {resumeId}",
+          "statusLabel": "Status",
+          "empty": "No applications for this job."
+        },
+        "related": {
+          "title": "Popular related jobs"
+        }
+      },
+      "pipelineBoard": {
+        "description": "Track candidate pipeline, interviews, and jobs.",
+        "loading": "Loading recruitment board...",
+        "owner": "Owner: {owner}",
+        "empty": {
+          "title": "No recruitment sections",
+          "description": "Add pipeline sections to populate the board."
+        },
+        "column": {
+          "empty": {
+            "title": "Empty column",
+            "description": "No items for this stage."
+          }
+        }
+      },
+      "home": {
+        "actions": {
+          "createJob": "Create new job",
+          "cancel": "Cancel",
+          "delete": "Delete"
+        },
+        "alerts": {
+          "accessDenied": "Admin access denied: insufficient permissions for this application.",
+          "jobsLoadError": "Unable to load job offers right now.",
+          "emptyJobs": "No jobs found. Try adjusting filters to broaden your search."
+        },
+        "deleteDialog": {
+          "title": "Delete job offer",
+          "confirmPrefix": "Confirm deletion of job offer"
+        }
+      },
+      "admin": {
+        "accessDenied": "Access denied to Recruit admin area. Redirecting…"
+      },
+      "interviews": {
+        "interviewer": "Interviewer: {interviewer}",
+        "slotTypes": {
+          "techInterview": "Tech interview",
+          "caseStudy": "Case study",
+          "businessCase": "Business case"
+        }
+      },
+      "tickets": {
+        "boardTitle": "Recruit backlog"
+      },
+      "myApplications": {
+        "alerts": {
+          "signInRequired": "Sign in to view your applications.",
+          "loadError": "Unable to load your applications right now.",
+          "empty": "You haven't applied to any jobs yet."
+        },
+        "appliedOn": "Applied on {date}"
+      },
+      "myJobs": {
+        "alerts": {
+          "signInRequired": "Sign in to view your created jobs.",
+          "loadError": "Unable to load your jobs right now.",
+          "empty": "You haven't created any jobs yet."
+        },
+        "createdOn": "Created on {date}"
+      },
+      "jobs": {
+        "redirecting": "Redirecting to the new URL..."
+      },
+      "status": {
+        "waiting": "Waiting",
+        "reviewing": "Reviewing",
+        "interview": "Interview",
+        "rejected": "Rejected",
+        "accepted": "Accepted"
+      },
+      "jobList": {
+        "actions": {
+          "edit": "Edit",
+          "delete": "Delete",
+          "apply": "Apply"
+        },
+        "badges": {
+          "strongMatch": "Strong match",
+          "applied": "Applied"
+        }
       }
     },
     "school": {
