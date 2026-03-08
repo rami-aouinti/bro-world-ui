@@ -51,18 +51,21 @@ const getApplicationStatusLabel = (status: string) => t(applicationStatusLabelMa
 
       <v-skeleton-loader v-if="pending" type="article" class="mb-4" />
 
-      <RecruitJobCard
-        v-for="application in applications"
-        :key="application.applicationId"
-        variant="detailed"
-        :to="`/platform/${slug}/recruit/job/${application.job.slug}`"
-        :title="application.job.title"
-        :company="application.job.company"
-        :location="application.job.location"
-        :meta="`${application.job.contractType} · ${application.job.workMode} · ${application.job.schedule}`"
-        :posted-at="t('platform.recruit.myApplications.appliedOn', { date: new Date(application.appliedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US') })"
-        :status-badge="{ label: getApplicationStatusLabel(application.status), color: 'primary', variant: 'tonal' }"
-      />
+      <transition-group name="recruit-list" tag="div">
+        <RecruitJobCard
+          v-for="application in applications"
+          :key="application.applicationId"
+          class="recruit-card--interactive"
+          variant="detailed"
+          :to="`/platform/${slug}/recruit/job/${application.job.slug}`"
+          :title="application.job.title"
+          :company="application.job.company"
+          :location="application.job.location"
+          :meta="`${application.job.contractType} · ${application.job.workMode} · ${application.job.schedule}`"
+          :posted-at="t('platform.recruit.myApplications.appliedOn', { date: new Date(application.appliedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US') })"
+          :status-badge="{ label: getApplicationStatusLabel(application.status), color: 'primary', variant: 'tonal' }"
+        />
+      </transition-group>
 
       <v-alert v-if="isAuthenticated && !pending && !applications.length" type="info" variant="tonal">
         {{ t('platform.recruit.myApplications.alerts.empty') }}

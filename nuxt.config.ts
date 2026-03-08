@@ -23,6 +23,7 @@ export default defineNuxtConfig({
     '~/assets/styles/pages/index.scss',
     '~/assets/styles/pages/platform-layout.scss',
     '~/assets/styles/layout-split.scss',
+    '~/assets/styles/recruit.scss',
   ],
   i18n: {
     defaultLocale: 'en',
