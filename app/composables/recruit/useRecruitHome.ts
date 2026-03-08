@@ -326,15 +326,13 @@ export const useRecruitHome = () => {
 
     await initSession()
 
-    if (isAuthenticated.value) {
-      try {
-        const privateResponse = await withTimeout(fetchRecruitJobsPrivate(), PRIVATE_JOBS_TIMEOUT_MS)
-        const normalized = normalizeJobsResponse(privateResponse)
-        jobsCache.value[cacheKey] = { data: normalized, cachedAt: now }
-        return normalized
-      } catch {
-        // fallback sur l'endpoint public si le private échoue ou tarde trop
-      }
+    try {
+      const privateResponse = await withTimeout(fetchRecruitJobsPrivate(), PRIVATE_JOBS_TIMEOUT_MS)
+      const normalized = normalizeJobsResponse(privateResponse)
+      jobsCache.value[cacheKey] = { data: normalized, cachedAt: now }
+      return normalized
+    } catch {
+      // fallback sur l'endpoint public si le private échoue ou tarde trop
     }
 
     try {
