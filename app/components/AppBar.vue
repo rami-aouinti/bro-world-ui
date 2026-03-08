@@ -15,7 +15,7 @@ interface ActionNavItem extends NavItem {
 
 const router = useRouter()
 const route = useRoute()
-const { t, locale, locales, setLocale } = useI18n({ useScope: 'global' })
+const { t, te, locale, locales, setLocale } = useI18n({ useScope: 'global' })
 const authSession = useAuthSessionStore()
 const { can, canPermission } = useAccessControl()
 const { logout } = useAuth()
@@ -26,6 +26,7 @@ const isAuthenticated = computed(() => Boolean(authSession.profile))
 
 const mainHeaderItems = computed<NavItem[]>(() => [
   { key: 'app.navigation.platform', to: '/platform', icon: 'mdi-view-grid-outline' },
+  { key: 'Blog', to: '/blog', icon: 'mdi-post-outline' },
   { key: 'app.navigation.about', to: '/about', icon: 'mdi-information-outline' },
   { key: 'app.navigation.contact', to: '/contact', icon: 'mdi-email-outline' },
   { key: 'app.navigation.faq', to: '/faq', icon: 'mdi-frequently-asked-questions' },
@@ -133,7 +134,7 @@ const signOut = async () => {
           class="text-none app-bar__link-btn"
           :prepend-icon="item.icon"
         >
-          {{ t(item.key) }}
+          {{ te(item.key) ? t(item.key) : item.key }}
         </v-btn>
       </div>
 
@@ -221,7 +222,7 @@ const signOut = async () => {
           v-for="item in headerItems"
           :key="item.key"
           :to="item.to"
-          :title="t(item.key)"
+          :title="te(item.key) ? t(item.key) : item.key"
           :prepend-icon="item.icon"
           rounded="lg"
           class="mx-2 my-1"

@@ -21,15 +21,47 @@ const resolveLabel = (value?: string) => {
 
 const hasCalendarPlugin = computed(() => application.value?.pluginKeys?.includes('calendar') === true)
 
+const normalizedPlatformKey = computed(() => {
+  const platformFromApplication = application.value?.platformKey?.toLowerCase().trim()
+
+  if (platformFromApplication) {
+    return platformFromApplication
+  }
+
+  const [, , , segment] = route.path.split('/')
+  return (segment ?? '').toLowerCase().trim()
+})
+
+const hasBlogPlugin = computed(() => application.value?.pluginKeys?.includes('blog') === true)
+const hasQuizPlugin = computed(() => application.value?.pluginKeys?.includes('quiz') === true)
+
 const navItems = computed<NavItem[]>(() => {
   const withoutCalendarEntries = props.items.filter(item => !item.to.endsWith('/calendar'))
+  const normalized = normalizedPlatformKey.value
+  const withPlugins = [...withoutCalendarEntries]
+
+  if (hasBlogPlugin.value && slug.value && normalized) {
+    withPlugins.push({
+      title: 'Blog',
+      icon: 'mdi-post-outline',
+      to: `/platform/${slug.value}/${normalized}/blog`,
+    })
+  }
+
+  if (hasQuizPlugin.value && slug.value && normalized) {
+    withPlugins.push({
+      title: 'Quiz',
+      icon: 'mdi-help-circle-outline',
+      to: `/platform/${slug.value}/${normalized}/quiz`,
+    })
+  }
 
   if (!hasCalendarPlugin.value || !slug.value) {
-    return withoutCalendarEntries
+    return withPlugins
   }
 
   return [
-    ...withoutCalendarEntries,
+    ...withPlugins,
     {
       title: 'Calendar',
       icon: 'mdi-calendar-month-outline',
