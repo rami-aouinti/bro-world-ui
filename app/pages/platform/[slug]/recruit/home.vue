@@ -249,7 +249,6 @@ const handleResumeFileChange = (value: File | File[] | null) => {
 const canSubmitApplication = computed(() => {
   return Boolean(
     selectedApplyJob.value
-    && importedResumeFile.value
     && applyForm.value.coverLetter.trim()
     && applyForm.value.title.trim()
     && applyForm.value.description.trim(),
@@ -257,7 +256,7 @@ const canSubmitApplication = computed(() => {
 })
 
 const submitApply = async () => {
-  if (!selectedApplyJob.value || !importedResumeFile.value || !canSubmitApplication.value) {
+  if (!selectedApplyJob.value || !canSubmitApplication.value) {
     return
   }
 
@@ -265,14 +264,17 @@ const submitApply = async () => {
   applyError.value = ''
 
   try {
-    const resumeFormData = new FormData()
-    resumeFormData.append('title', applyForm.value.title.trim())
-    resumeFormData.append('description', applyForm.value.description.trim())
-    resumeFormData.append('file', importedResumeFile.value)
-
     const resumeResponse = await apiFetch<{ id: string }>('/api/v1/recruit/resumes', {
       method: 'POST',
-      body: resumeFormData,
+      body: {
+        experiences: [
+          {
+            title: applyForm.value.title.trim(),
+            description: applyForm.value.description.trim(),
+          },
+        ],
+        skills: [],
+      },
     })
 
     const applicantResponse = await apiFetch<{ id: string }>('/api/v1/recruit/applicants', {
@@ -288,6 +290,7 @@ const submitApply = async () => {
       body: {
         applicantId: applicantResponse.id,
         jobId: selectedApplyJob.value.id,
+        status: 'WAITING',
       },
     })
 
