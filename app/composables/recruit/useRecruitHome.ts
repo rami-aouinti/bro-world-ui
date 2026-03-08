@@ -31,7 +31,6 @@ export type RecruitUpdateJobPayload = {
   location: string
   missionTitle: string
   missionDescription: string
-  matchScore: number
   contractType: RecruitContractType
   workMode: RecruitJob['workMode']
   schedule: string
@@ -62,7 +61,6 @@ const createEmptyJobForm = (): RecruitUpdateJobPayload => ({
   location: '',
   missionTitle: '',
   missionDescription: '',
-  matchScore: 0,
   contractType: 'CDI',
   workMode: 'Onsite',
   schedule: 'Vollzeit',
@@ -191,7 +189,6 @@ export const useRecruitHome = () => {
       location: job.location,
       missionTitle: job.missionTitle,
       missionDescription: job.missionDescription,
-      matchScore: job.matchScore,
       contractType: job.contractType,
       workMode: job.workMode,
       schedule: job.schedule,
@@ -387,7 +384,6 @@ export const useRecruitHome = () => {
           summary: createForm.value.summary.trim(),
           missionTitle: createForm.value.missionTitle.trim(),
           missionDescription: createForm.value.missionDescription.trim(),
-          matchScore: Math.max(0, Number(createForm.value.matchScore) || 0),
           contractType: createForm.value.contractType,
           workMode: createForm.value.workMode,
           schedule: createForm.value.schedule.trim(),
@@ -424,7 +420,6 @@ export const useRecruitHome = () => {
           location: editForm.value.location.trim(),
           missionTitle: editForm.value.missionTitle.trim(),
           missionDescription: editForm.value.missionDescription.trim(),
-          matchScore: Math.max(0, Number(editForm.value.matchScore) || 0),
           contractType: editForm.value.contractType,
           workMode: editForm.value.workMode,
           schedule: editForm.value.schedule.trim(),
