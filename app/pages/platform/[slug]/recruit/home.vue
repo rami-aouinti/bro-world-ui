@@ -2,20 +2,48 @@
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformHeroHeader from '~/components/platform/sections/PlatformHeroHeader.vue'
-import { formatRecruitSalary, recruitJobs } from '~/data/platform/recruit'
+import { formatRecruitSalary, type RecruitContractType, type RecruitJob } from '~/data/platform/recruit'
 import { getRecruitNav } from '~/data/platform-nav'
+
+interface RecruitJobsApiResponse {
+  jobs: RecruitJob[]
+}
 
 definePageMeta({ public: true, requiresAuth: false })
 
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
-const filters = ref({ contract: 'all', workMode: 'all' })
+const filters = ref<{ contract: RecruitContractType | 'all', workMode: RecruitJob['workMode'] | 'all' }>({
+  contract: 'all',
+  workMode: 'all',
+})
+
 const { isOwner } = usePlatformPermissions(slug)
+const { initSession, isAuthenticated } = useAuth()
+const { apiFetch } = useApiClient()
 const showAccessDenied = computed(() => route.query.accessDenied === 'admin')
 
 const navItems = computed(() => getRecruitNav(slug.value, isOwner.value))
 
-const visibleJobs = computed(() => recruitJobs.filter((job) => {
+const { data: jobsData, pending, error } = await useAsyncData(
+  () => `recruit-home-jobs-${slug.value}`,
+  async () => {
+    await initSession()
+
+    const visibility = isAuthenticated.value ? 'private' : 'public'
+    const endpoint = `/api/v1/recruit/${visibility}/${slug.value}/jobs`
+
+    return apiFetch<RecruitJobsApiResponse>(endpoint, {
+      method: 'GET',
+    })
+  },
+  {
+    watch: [slug],
+    default: () => ({ jobs: [] }),
+  },
+)
+
+const visibleJobs = computed(() => jobsData.value.jobs.filter((job) => {
   if (filters.value.contract !== 'all' && job.contractType !== filters.value.contract)
     return false
   if (filters.value.workMode !== 'all' && job.workMode !== filters.value.workMode)
@@ -55,10 +83,20 @@ const visibleJobs = computed(() => recruitJobs.filter((job) => {
         Accès admin refusé : permissions insuffisantes pour cette application.
       </v-alert>
 
+      <v-alert v-if="error" type="error" variant="tonal" class="mb-4">
+        Impossible de charger les offres d'emploi pour le moment.
+      </v-alert>
+
       <PlatformHeroHeader
         title="platform.recruit.hero.home.title"
         subtitle="platform.recruit.hero.home.subtitle"
         cta="platform.recruit.hero.home.cta"
+      />
+
+      <v-skeleton-loader
+        v-if="pending"
+        type="article"
+        class="mb-4"
       />
 
       <v-card

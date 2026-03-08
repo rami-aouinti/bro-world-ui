@@ -65,7 +65,11 @@ const appHomePath = (
   application: (typeof applicationsStore.items.value)[number],
 ) => {
   const appSlug = application.slug ?? application.id;
-  const platformKey = application.platformKey ?? "crm";
+  const normalizedPlatformKey = application.platformKey?.toLowerCase();
+  const inferredPlatformKey = application.platformName?.toLowerCase();
+  const platformKey =
+    normalizedPlatformKey ??
+    (inferredPlatformKey === "recruit" ? "recruit" : "crm");
 
   return `/platform/${appSlug}/${platformKey}/home`;
 };
