@@ -6,6 +6,7 @@ import PlatformHeroHeader from '~/components/platform/sections/PlatformHeroHeade
 import RecruitJobsFiltersPanel from '~/components/platform/recruit/RecruitJobsFiltersPanel.vue'
 import RecruitJobList from '~/components/platform/recruit/RecruitJobList.vue'
 import { getRecruitNav } from '~/data/platform-nav'
+import { refreshRecruitMeJobsState } from '~/composables/useRecruitMeJobs'
 
 definePageMeta({ public: true, requiresAuth: false })
 
