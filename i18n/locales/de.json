@@ -873,6 +873,42 @@
       "jobs": {
         "redirecting": "Redirecting to the new URL..."
       },
+      "filters": {
+        "title": "Filters",
+        "actions": {
+          "reset": "Reset"
+        },
+        "sections": {
+          "text": "Text",
+          "contractAndMode": "Contract & work mode",
+          "salary": "Salary"
+        },
+        "fields": {
+          "search": "Search",
+          "company": "Company",
+          "location": "Location",
+          "schedule": "Schedule",
+          "posted": "Posted",
+          "contractType": "Contract type",
+          "workMode": "Work mode",
+          "salaryMin": "Min salary",
+          "salaryMax": "Max salary"
+        },
+        "options": {
+          "all": "All",
+          "contractType": {
+            "CDI": "Permanent (CDI)",
+            "CDD": "Fixed-term (CDD)",
+            "Freelance": "Freelance",
+            "Internship": "Internship"
+          },
+          "workMode": {
+            "Onsite": "On-site",
+            "Hybrid": "Hybrid",
+            "Remote": "Remote"
+          }
+        }
+      },
       "status": {
         "waiting": "Waiting",
         "reviewing": "Reviewing",

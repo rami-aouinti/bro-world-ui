@@ -873,6 +873,42 @@
       "jobs": {
         "redirecting": "Redirection vers la nouvelle URL..."
       },
+      "filters": {
+        "title": "Filtres",
+        "actions": {
+          "reset": "Réinitialiser"
+        },
+        "sections": {
+          "text": "Texte",
+          "contractAndMode": "Contrat & mode",
+          "salary": "Salaire"
+        },
+        "fields": {
+          "search": "Recherche",
+          "company": "Entreprise",
+          "location": "Localisation",
+          "schedule": "Horaires",
+          "posted": "Publié",
+          "contractType": "Type de contrat",
+          "workMode": "Mode de travail",
+          "salaryMin": "Salaire min",
+          "salaryMax": "Salaire max"
+        },
+        "options": {
+          "all": "Tous",
+          "contractType": {
+            "CDI": "CDI",
+            "CDD": "CDD",
+            "Freelance": "Freelance",
+            "Internship": "Stage"
+          },
+          "workMode": {
+            "Onsite": "Sur site",
+            "Hybrid": "Hybride",
+            "Remote": "Télétravail"
+          }
+        }
+      },
       "status": {
         "waiting": "En attente",
         "reviewing": "En revue",
