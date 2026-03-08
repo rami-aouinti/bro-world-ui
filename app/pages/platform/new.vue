@@ -5,10 +5,7 @@ import { usePlatformsApi } from '~/composables/api/usePlatformsApi'
 import { usePluginsApi } from '~/composables/api/usePluginsApi'
 import { useProfileApi } from '~/composables/api/useProfileApi'
 import { useApplicationsStore } from '~/stores/applications'
-import UiAside from '~/components/ui/layout/UiAside.vue'
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
-import UiStatChip from "~/components/ui/UiStatChip.vue";
-import UiSectionHeader from "~/components/ui/UiSectionHeader.vue";
 
 definePageMeta({
   public: false,
@@ -202,11 +199,10 @@ const submit = async () => {
       </div>
     </template>
 
-    <template>
-      <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
+    <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
 
-      <v-card v-if="!loading" class="pa-5 bg-transparent">
-        <template v-if="step === 1">
+    <v-card v-if="!loading" class="pa-5 bg-transparent">
+      <template v-if="step === 1">
           <h2 class="text-h5 mb-4">{{ t('platform.wizard.titleStepTitle') }}</h2>
 
           <v-text-field v-model="form.title" :label="t('platform.wizard.fields.title')" density="comfortable" />
@@ -237,9 +233,9 @@ const submit = async () => {
           <div class="d-flex justify-end">
             <v-btn :disabled="!canContinueToStep2" color="primary" @click="step = 2">{{ t('platform.wizard.next') }}</v-btn>
           </div>
-        </template>
+      </template>
 
-        <template v-else-if="step === 2">
+      <template v-else-if="step === 2">
           <h2 class="text-h5 mb-4">{{ t('platform.wizard.platformTitle') }}</h2>
           <div class="wizard-grid mb-4">
             <button
@@ -275,9 +271,9 @@ const submit = async () => {
             <v-btn variant="outlined" @click="step = 1">{{ t('platform.wizard.prev') }}</v-btn>
             <v-btn :disabled="!canContinueToStep3" color="primary" @click="step = 3">{{ t('platform.wizard.next') }}</v-btn>
           </div>
-        </template>
+      </template>
 
-        <template v-else>
+      <template v-else>
           <h2 class="text-h5 mb-4">{{ t('platform.wizard.pluginTitle') }}</h2>
           <div class="wizard-grid mb-4">
             <button
@@ -321,9 +317,8 @@ const submit = async () => {
               {{ t('platform.wizard.create') }}
             </v-btn>
           </div>
-        </template>
-      </v-card>
-    </template>
+      </template>
+    </v-card>
   </PlatformSplitLayout>
 </template>
 
