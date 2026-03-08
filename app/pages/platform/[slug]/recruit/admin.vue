@@ -2,6 +2,7 @@
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import RecruitPipelineBoard from '~/components/platform/sections/RecruitPipelineBoard.vue'
+import RecruitPageSection from '~/components/platform/recruit/RecruitPageSection.vue'
 import { platformPageSections } from '~/data/platform-demo'
 import { recruitAdminSections } from '~/data/platform-enhanced'
 import { getRecruitNav } from '~/data/platform-nav'
@@ -15,6 +16,12 @@ const { isAuthenticated } = useAuth()
 const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
 const { t } = useI18n()
 const accessDenied = ref(false)
+const adminStats = computed(() => [
+  { label: 'Pipelines', value: recruitAdminSections.pipeline.length, icon: 'mdi-source-branch', color: 'primary' },
+  { label: 'Interviews', value: recruitAdminSections.interviews.length, icon: 'mdi-account-voice', color: 'info' },
+  { label: 'Offers', value: recruitAdminSections.offers.length, icon: 'mdi-file-sign', color: 'success' },
+  { label: 'Modules', value: 3, icon: 'mdi-view-dashboard-outline', color: 'warning' },
+])
 
 onMounted(async () => {
   await platformPermissions.resolveApplication()
@@ -33,15 +40,21 @@ onMounted(async () => {
   <PlatformSplitLayout>
     <template #sidebar><PlatformSidebarNav title="platform.recruit.sidebar.title" subtitle="platform.common.sidebar.admin" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
-      <v-alert v-if="accessDenied" type="error" variant="tonal" class="mb-4">
-        {{ t('platform.recruit.admin.accessDenied') }}
-      </v-alert>
-      <RecruitPipelineBoard
-        v-else
+      <RecruitPageSection
         :title="platformPageSections.recruit.pageTitle"
-        :sections-meta="platformPageSections.recruit.sections"
-        :section-data="recruitAdminSections"
-      />
+        subtitle="Pilotage admin des workflows recrutement"
+        :stats="adminStats"
+      >
+        <v-alert v-if="accessDenied" type="error" variant="tonal" class="mb-4">
+          {{ t('platform.recruit.admin.accessDenied') }}
+        </v-alert>
+        <RecruitPipelineBoard
+          v-else
+          :title="platformPageSections.recruit.pageTitle"
+          :sections-meta="platformPageSections.recruit.sections"
+          :section-data="recruitAdminSections"
+        />
+      </RecruitPageSection>
     </section>
   </PlatformSplitLayout>
 </template>

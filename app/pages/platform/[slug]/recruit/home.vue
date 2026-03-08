@@ -5,6 +5,7 @@ import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformHeroHeader from '~/components/platform/sections/PlatformHeroHeader.vue'
 import RecruitJobsFiltersPanel from '~/components/platform/recruit/RecruitJobsFiltersPanel.vue'
 import RecruitJobList from '~/components/platform/recruit/RecruitJobList.vue'
+import RecruitPageSection from '~/components/platform/recruit/RecruitPageSection.vue'
 import { getRecruitNav } from '~/data/platform-nav'
 import { refreshRecruitMeJobsState } from '~/composables/useRecruitMeJobs'
 import { useRecruitHome } from '~/composables/recruit/useRecruitHome'
@@ -70,6 +71,12 @@ const {
 const { isOwner } = usePlatformPermissions(slug)
 const { t } = useI18n()
 const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
+const homeStats = computed(() => [
+  { label: 'Offres visibles', value: jobsData.jobs.length, icon: 'mdi-briefcase-search-outline', color: 'primary' },
+  { label: 'Pages', value: totalPages, icon: 'mdi-book-open-page-variant-outline', color: 'info' },
+  { label: 'Filtres actifs', value: hasFilters ? 'Oui' : 'Non', icon: 'mdi-filter-outline', color: 'warning' },
+  { label: 'Compte', value: isAuthenticated ? 'Connecté' : 'Invité', icon: 'mdi-account-circle-outline', color: 'success' },
+])
 
 const handleCreateJob = async () => {
   if (await submitCreateJob()) {
@@ -113,39 +120,46 @@ const handleApplyToJob = async () => {
         {{ t('platform.recruit.home.alerts.jobsLoadError') }}
       </v-alert>
 
-      <div class="d-flex justify-space-between align-start flex-wrap ga-3 mb-2">
-        <PlatformHeroHeader
-          title="platform.recruit.hero.home.title"
-          subtitle="platform.recruit.hero.home.subtitle"
-          cta="platform.recruit.hero.home.cta"
-        />
-        <v-btn
-          v-if="isAuthenticated"
-          color="primary"
-          prepend-icon="mdi-briefcase-plus"
-          @click="openCreateDialog"
-        >
-          {{ t('platform.recruit.home.actions.createJob') }}
-        </v-btn>
-      </div>
-
-      <v-skeleton-loader v-if="pending" type="article" class="mb-4" />
-
-      <RecruitJobList
-        :jobs="jobsData.jobs"
-        :slug="slug"
-        @edit="openEditDialog"
-        @delete="openDeleteDialog"
-        @apply="openApplyDialog"
+      <PlatformHeroHeader
+        title="platform.recruit.hero.home.title"
+        subtitle="platform.recruit.hero.home.subtitle"
+        cta="platform.recruit.hero.home.cta"
       />
 
-      <v-alert v-if="!pending && !jobsData.jobs.length" type="info" variant="tonal">
-        {{ t('platform.recruit.home.alerts.emptyJobs') }}
-      </v-alert>
+      <RecruitPageSection
+        title="Pilotage des offres"
+        subtitle="Tableau unifié des jobs, filtres et actions"
+        :stats="homeStats"
+      >
+        <template #actions>
+          <v-btn
+            v-if="isAuthenticated"
+            color="primary"
+            prepend-icon="mdi-briefcase-plus"
+            @click="openCreateDialog"
+          >
+            {{ t('platform.recruit.home.actions.createJob') }}
+          </v-btn>
+        </template>
 
-      <div class="d-flex justify-center mt-6">
-        <v-pagination v-model="currentPage" :length="totalPages" :total-visible="7" rounded="circle" />
-      </div>
+        <v-skeleton-loader v-if="pending" type="article" class="mb-4" />
+
+        <RecruitJobList
+          :jobs="jobsData.jobs"
+          :slug="slug"
+          @edit="openEditDialog"
+          @delete="openDeleteDialog"
+          @apply="openApplyDialog"
+        />
+
+        <v-alert v-if="!pending && !jobsData.jobs.length" type="info" variant="tonal">
+          {{ t('platform.recruit.home.alerts.emptyJobs') }}
+        </v-alert>
+
+        <div class="d-flex justify-center mt-6">
+          <v-pagination v-model="currentPage" :length="totalPages" :total-visible="7" rounded="circle" />
+        </div>
+      </RecruitPageSection>
     </section>
   </PlatformSplitLayout>
 
