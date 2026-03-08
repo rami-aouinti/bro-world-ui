@@ -10,29 +10,38 @@ import type { UUID } from '~/types/api/common'
 
 export const useCalendarEventsApi = () => {
   const { apiFetch } = useApiClient()
-  const basePath = '/api/v1/calendar/private/events'
+
+  const resolvePath = (applicationSlug?: string, isPrivate = true) => {
+    if (!applicationSlug) {
+      return '/api/v1/calendar/private/events'
+    }
+
+    return isPrivate
+      ? `/api/v1/calendar/private/applications/${applicationSlug}/events`
+      : `/api/v1/calendar/applications/${applicationSlug}/events`
+  }
 
   return {
-    list() {
-      return apiFetch<CalendarEventRead[]>(basePath, { method: 'GET' })
+    list(applicationSlug?: string, isPrivate = true) {
+      return apiFetch<CalendarEventRead[]>(resolvePath(applicationSlug, isPrivate), { method: 'GET' })
     },
-    create(payload: CreateCalendarEventPayload) {
-      return apiFetch<CalendarEventMutationResponse>(basePath, {
+    create(payload: CreateCalendarEventPayload, applicationSlug?: string) {
+      return apiFetch<CalendarEventMutationResponse>(resolvePath(applicationSlug, true), {
         method: 'POST',
         body: payload,
       })
     },
-    patch(id: UUID, payload: PatchCalendarEventPayload) {
-      return apiFetch<CalendarEventMutationResponse>(`${basePath}/${id}`, {
+    patch(id: UUID, payload: PatchCalendarEventPayload, applicationSlug?: string) {
+      return apiFetch<CalendarEventMutationResponse>(`${resolvePath(applicationSlug, true)}/${id}`, {
         method: 'PATCH',
         body: payload,
       })
     },
-    delete(id: UUID) {
-      return apiFetch<void>(`${basePath}/${id}`, { method: 'DELETE' })
+    delete(id: UUID, applicationSlug?: string) {
+      return apiFetch<void>(`${resolvePath(applicationSlug, true)}/${id}`, { method: 'DELETE' })
     },
-    cancel(id: UUID) {
-      return apiFetch<CalendarEventCancelResponse>(`${basePath}/${id}/cancel`, {
+    cancel(id: UUID, applicationSlug?: string) {
+      return apiFetch<CalendarEventCancelResponse>(`${resolvePath(applicationSlug, true)}/${id}/cancel`, {
         method: 'POST',
       })
     },

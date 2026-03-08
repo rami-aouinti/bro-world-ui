@@ -3,8 +3,6 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import FullCalendar from '@fullcalendar/vue3'
-import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
-import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import UiStatChip from '~/components/ui/UiStatChip.vue'
 import UiStateEmptyState from '~/components/ui/state/UiEmptyState.vue'
 import { useCalendarEventsApi } from '~/composables/api/useCalendarEventsApi'
@@ -15,6 +13,13 @@ import type {
   PatchCalendarEventPayload,
 } from '~/types/api/calendar'
 
+const props = withDefaults(defineProps<{
+  applicationSlug?: string
+}>(), {
+  applicationSlug: undefined,
+})
+
+const { isAuthenticated } = useAuth()
 const calendarApi = useCalendarEventsApi()
 
 const isLoading = ref(false)
@@ -22,13 +27,16 @@ const isSaving = ref(false)
 const errorMessage = ref('')
 
 const events = ref<CalendarEventRead[]>([])
-
 const selectedRange = ref<'7days' | '30days' | 'quarter'>('30days')
 const selectedStatus = ref<'all' | EventStatus>('all')
 const selectedEventId = ref<string | null>(null)
 
 const isCreateDialogOpen = ref(false)
 const isEditDialogOpen = ref(false)
+const isShowDialogOpen = ref(false)
+
+const canMutate = computed(() => isAuthenticated.value)
+const usePrivateList = computed(() => !props.applicationSlug || isAuthenticated.value)
 
 const eventForm = reactive({
   title: '',
@@ -51,16 +59,11 @@ const statusOptions = [
   { title: 'Annulé', value: 'cancelled' },
 ]
 
-const rangeInDays = {
-  '7days': 7,
-  '30days': 30,
-  'quarter': 90,
-}
+const rangeInDays = { '7days': 7, '30days': 30, 'quarter': 90 }
 
 const toDateTimeLocalValue = (isoDate: string) => {
   const date = new Date(isoDate)
   const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60_000))
-
   return localDate.toISOString().slice(0, 16)
 }
 
@@ -75,25 +78,15 @@ const formatEventDate = (isoDate: string) => {
 }
 
 const statusToChipColor = (status: EventStatus) => {
-  switch (status) {
-    case 'confirmed':
-      return 'success'
-    case 'tentative':
-      return 'warning'
-    case 'cancelled':
-      return 'error'
-  }
+  if (status === 'confirmed') return 'success'
+  if (status === 'tentative') return 'warning'
+  return 'error'
 }
 
 const statusLabel = (status: EventStatus) => {
-  switch (status) {
-    case 'confirmed':
-      return 'confirmé'
-    case 'tentative':
-      return 'tentative'
-    case 'cancelled':
-      return 'annulé'
-  }
+  if (status === 'confirmed') return 'confirmé'
+  if (status === 'tentative') return 'tentative'
+  return 'annulé'
 }
 
 const fullCalendarColorByStatus: Record<EventStatus, string> = {
@@ -106,7 +99,7 @@ const loadEvents = async () => {
   try {
     isLoading.value = true
     errorMessage.value = ''
-    events.value = await calendarApi.list()
+    events.value = await calendarApi.list(props.applicationSlug, usePrivateList.value)
   } catch (error) {
     console.error(error)
     errorMessage.value = 'Impossible de charger les événements du calendrier.'
@@ -116,24 +109,19 @@ const loadEvents = async () => {
 }
 
 const statusFilteredEvents = computed(() => {
-  return events.value.filter((event) => {
-    return selectedStatus.value === 'all' || event.status === selectedStatus.value
-  })
+  return events.value.filter(event => selectedStatus.value === 'all' || event.status === selectedStatus.value)
 })
 
 const filteredEvents = computed(() => {
   const startDate = new Date()
   startDate.setHours(0, 0, 0, 0)
-
   const maxDate = new Date(startDate)
   maxDate.setDate(startDate.getDate() + rangeInDays[selectedRange.value])
 
   return [...statusFilteredEvents.value]
-    .filter(event => {
+    .filter((event) => {
       const eventStart = new Date(event.startAt)
-      const inRange = eventStart >= startDate && eventStart <= maxDate
-
-      return inRange
+      return eventStart >= startDate && eventStart <= maxDate
     })
     .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
 })
@@ -157,6 +145,128 @@ const calendarEvents = computed(() => {
   })
 })
 
+const resetForm = () => {
+  eventForm.title = ''
+  eventForm.description = ''
+  eventForm.startAt = ''
+  eventForm.endAt = ''
+  eventForm.location = ''
+}
+
+const openCreateDialog = (startAt?: string, endAt?: string) => {
+  resetForm()
+  eventForm.startAt = startAt ? toDateTimeLocalValue(startAt) : ''
+  eventForm.endAt = endAt ? toDateTimeLocalValue(endAt) : ''
+  isCreateDialogOpen.value = true
+}
+
+const openEditDialog = (event: CalendarEventRead) => {
+  eventForm.title = event.title
+  eventForm.description = event.description || ''
+  eventForm.startAt = toDateTimeLocalValue(event.startAt)
+  eventForm.endAt = toDateTimeLocalValue(event.endAt)
+  eventForm.location = event.location || ''
+  selectedEventId.value = event.id
+  isEditDialogOpen.value = true
+}
+
+const openShowDialog = (event: CalendarEventRead) => {
+  selectedEventId.value = event.id
+  isShowDialogOpen.value = true
+}
+
+const buildPayload = (): CreateCalendarEventPayload => ({
+  title: eventForm.title,
+  description: eventForm.description,
+  startAt: new Date(eventForm.startAt).toISOString(),
+  endAt: new Date(eventForm.endAt).toISOString(),
+  location: eventForm.location,
+})
+
+const submitCreate = async () => {
+  if (!canMutate.value) return
+
+  try {
+    isSaving.value = true
+    await calendarApi.create(buildPayload(), props.applicationSlug)
+    isCreateDialogOpen.value = false
+    await loadEvents()
+  } catch (error) {
+    console.error(error)
+    errorMessage.value = 'Impossible de créer cet événement.'
+  } finally {
+    isSaving.value = false
+  }
+}
+
+const submitEdit = async () => {
+  if (!selectedEventId.value || !canMutate.value) return
+
+  try {
+    isSaving.value = true
+    const payload: PatchCalendarEventPayload = buildPayload()
+    await calendarApi.patch(selectedEventId.value, payload, props.applicationSlug)
+    isEditDialogOpen.value = false
+    isShowDialogOpen.value = false
+    await loadEvents()
+  } catch (error) {
+    console.error(error)
+    errorMessage.value = 'Impossible de modifier cet événement.'
+  } finally {
+    isSaving.value = false
+  }
+}
+
+const cancelEvent = async (event: CalendarEventRead) => {
+  if (!canMutate.value) return
+
+  try {
+    isSaving.value = true
+    await calendarApi.cancel(event.id, props.applicationSlug)
+    await loadEvents()
+  } catch (error) {
+    console.error(error)
+    errorMessage.value = 'Impossible d\'annuler cet événement.'
+  } finally {
+    isSaving.value = false
+  }
+}
+
+const deleteEvent = async (event: CalendarEventRead) => {
+  if (!canMutate.value) return
+
+  try {
+    isSaving.value = true
+    await calendarApi.delete(event.id, props.applicationSlug)
+    if (selectedEventId.value === event.id) selectedEventId.value = null
+    isShowDialogOpen.value = false
+    await loadEvents()
+  } catch (error) {
+    console.error(error)
+    errorMessage.value = 'Impossible de supprimer cet événement.'
+  } finally {
+    isSaving.value = false
+  }
+}
+
+const patchFromCalendarMove = async (eventId: string, startAt?: string, endAt?: string) => {
+  if (!canMutate.value || !startAt) return
+
+  try {
+    isSaving.value = true
+    await calendarApi.patch(eventId, {
+      startAt,
+      endAt: endAt || startAt,
+    }, props.applicationSlug)
+    await loadEvents()
+  } catch (error) {
+    console.error(error)
+    errorMessage.value = 'Impossible de déplacer ou redimensionner cet événement.'
+  } finally {
+    isSaving.value = false
+  }
+}
+
 const calendarOptions = computed(() => ({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
   initialView: 'dayGridMonth',
@@ -173,231 +283,129 @@ const calendarOptions = computed(() => ({
     day: 'Jour',
   },
   height: 'auto',
-  editable: false,
-  selectable: false,
+  editable: canMutate.value,
+  selectable: canMutate.value,
   events: calendarEvents.value,
+  dateClick: (info: { dateStr: string }) => {
+    if (!canMutate.value) return
+    const dayStart = new Date(`${info.dateStr}T09:00:00`).toISOString()
+    const dayEnd = new Date(`${info.dateStr}T10:00:00`).toISOString()
+    openCreateDialog(dayStart, dayEnd)
+  },
   eventClick: (info: { event: { id: string } }) => {
-    selectedEventId.value = info.event.id
+    const event = events.value.find(item => item.id === info.event.id)
+    if (event) openShowDialog(event)
+  },
+  eventDrop: (info: { event: { id: string, start?: Date | null, end?: Date | null } }) => {
+    patchFromCalendarMove(info.event.id, info.event.start?.toISOString(), info.event.end?.toISOString())
+  },
+  eventResize: (info: { event: { id: string, start?: Date | null, end?: Date | null } }) => {
+    patchFromCalendarMove(info.event.id, info.event.start?.toISOString(), info.event.end?.toISOString())
   },
 }))
 
-const resetForm = () => {
-  eventForm.title = ''
-  eventForm.description = ''
-  eventForm.startAt = ''
-  eventForm.endAt = ''
-  eventForm.location = ''
-}
-
-const openCreateDialog = () => {
-  resetForm()
-  isCreateDialogOpen.value = true
-}
-
-const openEditDialog = (event: CalendarEventRead) => {
-  eventForm.title = event.title
-  eventForm.description = event.description || ''
-  eventForm.startAt = toDateTimeLocalValue(event.startAt)
-  eventForm.endAt = toDateTimeLocalValue(event.endAt)
-  eventForm.location = event.location || ''
-  selectedEventId.value = event.id
-  isEditDialogOpen.value = true
-}
-
-const buildPayload = (): CreateCalendarEventPayload => ({
-  title: eventForm.title,
-  description: eventForm.description,
-  startAt: new Date(eventForm.startAt).toISOString(),
-  endAt: new Date(eventForm.endAt).toISOString(),
-  location: eventForm.location,
-})
-
-const submitCreate = async () => {
-  try {
-    isSaving.value = true
-    await calendarApi.create(buildPayload())
-    isCreateDialogOpen.value = false
-    await loadEvents()
-  } catch (error) {
-    console.error(error)
-    errorMessage.value = 'Impossible de créer cet événement.'
-  } finally {
-    isSaving.value = false
-  }
-}
-
-const submitEdit = async () => {
-  if (!selectedEventId.value) {
-    return
-  }
-
-  try {
-    isSaving.value = true
-    const payload: PatchCalendarEventPayload = buildPayload()
-    await calendarApi.patch(selectedEventId.value, payload)
-    isEditDialogOpen.value = false
-    await loadEvents()
-  } catch (error) {
-    console.error(error)
-    errorMessage.value = 'Impossible de modifier cet événement.'
-  } finally {
-    isSaving.value = false
-  }
-}
-
-const cancelEvent = async (event: CalendarEventRead) => {
-  try {
-    isSaving.value = true
-    await calendarApi.cancel(event.id)
-    await loadEvents()
-  } catch (error) {
-    console.error(error)
-    errorMessage.value = 'Impossible d\'annuler cet événement.'
-  } finally {
-    isSaving.value = false
-  }
-}
-
-const deleteEvent = async (event: CalendarEventRead) => {
-  try {
-    isSaving.value = true
-    await calendarApi.delete(event.id)
-    if (selectedEventId.value === event.id) {
-      selectedEventId.value = null
-    }
-    await loadEvents()
-  } catch (error) {
-    console.error(error)
-    errorMessage.value = 'Impossible de supprimer cet événement.'
-  } finally {
-    isSaving.value = false
-  }
-}
-
 onMounted(loadEvents)
+watch(() => props.applicationSlug, loadEvents)
 </script>
 
 <template>
-  <PlatformSplitLayout>
-    <template #sidebar>
-      <UiSectionHeader
-        title="Planification"
-        subtitle="Gérez vos événements privés avec les nouveaux endpoints CRUD."
-      />
+  <v-alert
+    v-if="errorMessage"
+    type="error"
+    variant="tonal"
+    class="mb-3"
+    closable
+    @click:close="errorMessage = ''"
+  >
+    {{ errorMessage }}
+  </v-alert>
 
-      <v-select
-        v-model="selectedRange"
-        :items="rangeOptions"
-        label="Période"
-        variant="outlined"
-        hide-details
-        density="compact"
-        class="mb-3"
-      />
-
-      <v-select
-        v-model="selectedStatus"
-        :items="statusOptions"
-        label="Statut"
-        variant="outlined"
-        hide-details
-        density="compact"
-      />
-
-      <div class="platform-layout__sidebar-actions mt-4">
-        <v-btn color="primary" prepend-icon="mdi-plus" block @click="openCreateDialog">Créer un événement</v-btn>
-      </div>
-    </template>
-
-    <template #default>
-      <v-alert
-        v-if="errorMessage"
-        type="error"
-        variant="tonal"
-        class="mb-3"
-        closable
-        @click:close="errorMessage = ''"
-      >
-        {{ errorMessage }}
-      </v-alert>
-
-      <div class="d-flex align-center justify-space-between mb-3 flex-wrap ga-2">
-        <h2 class="text-subtitle-1 font-weight-bold mb-0">Prochains événements</h2>
-        <UiStatChip :value="filteredEvents.length" icon="mdi-calendar-clock-outline" color="info" />
-      </div>
-
-      <v-progress-linear v-if="isLoading" indeterminate color="primary" class="mb-4" />
-
-      <v-list v-if="filteredEvents.length" class="bg-transparent pa-0" lines="two">
-        <v-list-item
-          v-for="event in filteredEvents"
-          :key="event.id"
-          class="calendar-page__item px-0 rounded-lg"
-          :active="selectedEventId === event.id"
-          @click="selectedEventId = event.id"
-        >
-          <template #prepend>
-            <v-avatar size="34" :color="statusToChipColor(event.status)" variant="tonal">
-              <v-icon icon="mdi-calendar-clock" size="18" />
-            </v-avatar>
-          </template>
-
-          <v-list-item-title class="font-weight-medium">{{ event.title }}</v-list-item-title>
-          <v-list-item-subtitle>{{ formatEventDate(event.startAt) }}</v-list-item-subtitle>
-
-          <template #append>
-            <div class="d-flex align-center ga-2">
-              <v-chip size="small" variant="tonal" :color="statusToChipColor(event.status)">{{ statusLabel(event.status) }}</v-chip>
-              <v-menu>
-                <template #activator="{ props }">
-                  <v-btn v-bind="props" icon="mdi-dots-vertical" size="x-small" variant="text" />
-                </template>
-                <v-list density="compact">
-                  <v-list-item prepend-icon="mdi-pencil" title="Modifier" @click="openEditDialog(event)" />
-                  <v-list-item prepend-icon="mdi-cancel" title="Annuler" @click="cancelEvent(event)" />
-                  <v-list-item prepend-icon="mdi-delete" title="Supprimer" @click="deleteEvent(event)" />
-                </v-list>
-              </v-menu>
-            </div>
-          </template>
-        </v-list-item>
-      </v-list>
-
-      <UiStateEmptyState
-        v-else
-        title="Aucun événement à venir"
-        description="Commencez par créer un événement pour alimenter votre planning."
-        icon="mdi-calendar-blank-outline"
-      >
-        <template #action>
-          <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreateDialog">Planifier maintenant</v-btn>
-        </template>
-      </UiStateEmptyState>
-
-      <v-divider class="my-5" />
-
-      <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
-        <h2 class="text-subtitle-1 font-weight-bold mb-0">Vue calendrier</h2>
-        <UiStatChip :value="`${calendarEvents.length} événements`" color="info" />
-      </div>
-
-      <div class="calendar-page__slot">
-        <ClientOnly>
-          <FullCalendar :options="calendarOptions" />
-        </ClientOnly>
-      </div>
-
-      <v-card v-if="selectedEvent" class="mt-4" variant="outlined">
-        <v-card-title>{{ selectedEvent.title }}</v-card-title>
+  <v-row>
+    <v-col cols="12" md="4" lg="3">
+      <v-card variant="outlined" class="mb-4">
+        <v-card-title class="d-flex align-center justify-space-between">
+          <span class="text-subtitle-2">Prochains événements</span>
+          <UiStatChip :value="filteredEvents.length" icon="mdi-calendar-clock-outline" color="info" />
+        </v-card-title>
         <v-card-text>
-          <div class="text-body-2">{{ selectedEvent.description || 'Sans description' }}</div>
-          <div class="text-caption mt-2">Début: {{ formatEventDate(selectedEvent.startAt) }}</div>
-          <div class="text-caption">Fin: {{ formatEventDate(selectedEvent.endAt) }}</div>
-          <div class="text-caption">Lieu: {{ selectedEvent.location || 'Non renseigné' }}</div>
+          <v-select
+            v-model="selectedRange"
+            :items="rangeOptions"
+            label="Période"
+            variant="outlined"
+            hide-details
+            density="compact"
+            class="mb-3"
+          />
+
+          <v-select
+            v-model="selectedStatus"
+            :items="statusOptions"
+            label="Statut"
+            variant="outlined"
+            hide-details
+            density="compact"
+            class="mb-4"
+          />
+
+          <v-btn
+            v-if="canMutate"
+            color="primary"
+            prepend-icon="mdi-plus"
+            block
+            class="mb-4"
+            @click="openCreateDialog"
+          >
+            Créer un événement
+          </v-btn>
+
+          <v-list v-if="filteredEvents.length" class="bg-transparent pa-0" lines="two">
+            <v-list-item
+              v-for="event in filteredEvents"
+              :key="event.id"
+              class="calendar-page__item px-0 rounded-lg"
+              :active="selectedEventId === event.id"
+              @click="openShowDialog(event)"
+            >
+              <template #prepend>
+                <v-avatar size="34" :color="statusToChipColor(event.status)" variant="tonal">
+                  <v-icon icon="mdi-calendar-clock" size="18" />
+                </v-avatar>
+              </template>
+
+              <v-list-item-title class="font-weight-medium">{{ event.title }}</v-list-item-title>
+              <v-list-item-subtitle>{{ formatEventDate(event.startAt) }}</v-list-item-subtitle>
+            </v-list-item>
+          </v-list>
+
+          <UiStateEmptyState
+            v-else
+            title="Aucun événement à venir"
+            description="Commencez par créer un événement pour alimenter votre planning."
+            icon="mdi-calendar-blank-outline"
+          />
         </v-card-text>
       </v-card>
-    </template>
-  </PlatformSplitLayout>
+    </v-col>
+
+    <v-col cols="12" md="8" lg="9">
+      <v-progress-linear v-if="isLoading" indeterminate color="primary" class="mb-4" />
+
+      <v-card variant="outlined">
+        <v-card-title class="d-flex align-center justify-space-between flex-wrap ga-2">
+          <span class="text-subtitle-1 font-weight-bold">Vue calendrier</span>
+          <UiStatChip :value="`${calendarEvents.length} événements`" color="info" />
+        </v-card-title>
+        <v-card-text>
+          <div class="calendar-page__slot">
+            <ClientOnly>
+              <FullCalendar :options="calendarOptions" />
+            </ClientOnly>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-col>
+  </v-row>
 
   <v-dialog v-model="isCreateDialogOpen" max-width="640">
     <v-card>
@@ -435,6 +443,26 @@ onMounted(loadEvents)
         <v-btn color="primary" :loading="isSaving" :disabled="!eventForm.title || !eventForm.startAt || !eventForm.endAt" @click="submitEdit">
           Mettre à jour
         </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="isShowDialogOpen" max-width="640">
+    <v-card v-if="selectedEvent">
+      <v-card-title>{{ selectedEvent.title }}</v-card-title>
+      <v-card-text>
+        <div class="text-body-2 mb-2">{{ selectedEvent.description || 'Sans description' }}</div>
+        <v-chip size="small" variant="tonal" :color="statusToChipColor(selectedEvent.status)" class="mb-2">{{ statusLabel(selectedEvent.status) }}</v-chip>
+        <div class="text-caption">Début: {{ formatEventDate(selectedEvent.startAt) }}</div>
+        <div class="text-caption">Fin: {{ formatEventDate(selectedEvent.endAt) }}</div>
+        <div class="text-caption">Lieu: {{ selectedEvent.location || 'Non renseigné' }}</div>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="isShowDialogOpen = false">Fermer</v-btn>
+        <v-btn v-if="canMutate" color="primary" variant="text" @click="openEditDialog(selectedEvent)">Modifier</v-btn>
+        <v-btn v-if="canMutate" color="warning" variant="text" @click="cancelEvent(selectedEvent)">Annuler</v-btn>
+        <v-btn v-if="canMutate" color="error" variant="text" @click="deleteEvent(selectedEvent)">Supprimer</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
