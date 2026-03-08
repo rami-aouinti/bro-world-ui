@@ -95,9 +95,21 @@ const deleteDialog = ref(false)
 const applyDialog = ref(false)
 const editLoading = ref(false)
 const deleteLoading = ref(false)
+const applyLoading = ref(false)
 const ownerActionError = ref('')
+const applyError = ref('')
 const selectedJob = ref<RecruitJob | null>(null)
 const selectedApplyJob = ref<RecruitJob | null>(null)
+const authSession = useAuthSessionStore()
+const importedResumeFile = ref<File | null>(null)
+const applyForm = ref({
+  firstName: '',
+  lastName: '',
+  email: '',
+  coverLetter: '',
+  title: '',
+  description: '',
+})
 const editForm = ref<RecruitUpdateJobPayload>({
   title: '',
   location: '',
@@ -141,7 +153,20 @@ const closeOwnerDialogs = () => {
   selectedJob.value = null
 }
 
-const openApplyDialog = (job: RecruitJob) => {
+const openApplyDialog = async (job: RecruitJob) => {
+  await initSession()
+  const profile = authSession.profile
+
+  applyForm.value = {
+    firstName: profile?.firstName ?? '',
+    lastName: profile?.lastName ?? '',
+    email: profile?.email ?? '',
+    coverLetter: '',
+    title: '',
+    description: '',
+  }
+  importedResumeFile.value = null
+  applyError.value = ''
   selectedApplyJob.value = job
   applyDialog.value = true
 }
@@ -149,6 +174,67 @@ const openApplyDialog = (job: RecruitJob) => {
 const closeApplyDialog = () => {
   applyDialog.value = false
   selectedApplyJob.value = null
+  importedResumeFile.value = null
+  applyError.value = ''
+}
+
+const handleResumeFileChange = (value: File | File[] | null) => {
+  const file = Array.isArray(value) ? (value[0] ?? null) : value
+  importedResumeFile.value = file
+}
+
+const canSubmitApplication = computed(() => {
+  return Boolean(
+    selectedApplyJob.value
+    && importedResumeFile.value
+    && applyForm.value.coverLetter.trim()
+    && applyForm.value.title.trim()
+    && applyForm.value.description.trim(),
+  )
+})
+
+const submitApply = async () => {
+  if (!selectedApplyJob.value || !importedResumeFile.value || !canSubmitApplication.value) {
+    return
+  }
+
+  applyLoading.value = true
+  applyError.value = ''
+
+  try {
+    const resumeFormData = new FormData()
+    resumeFormData.append('title', applyForm.value.title.trim())
+    resumeFormData.append('description', applyForm.value.description.trim())
+    resumeFormData.append('file', importedResumeFile.value)
+
+    const resumeResponse = await apiFetch<{ id: string }>('/api/v1/recruit/resumes', {
+      method: 'POST',
+      body: resumeFormData,
+    })
+
+    const applicantResponse = await apiFetch<{ id: string }>('/api/v1/recruit/applicants', {
+      method: 'POST',
+      body: {
+        resumeId: resumeResponse.id,
+        coverLetter: applyForm.value.coverLetter.trim(),
+      },
+    })
+
+    await apiFetch<{ id: string, status: string }>('/api/v1/recruit/applications', {
+      method: 'POST',
+      body: {
+        applicantId: applicantResponse.id,
+        jobId: selectedApplyJob.value.id,
+      },
+    })
+
+    await refresh()
+    closeApplyDialog()
+  } catch {
+    applyError.value = 'La candidature a échoué. Vérifiez les informations et réessayez.'
+  } finally {
+    applyLoading.value = false
+  }
 }
 
 const fetchRecruitJobsPrivate = async () => {
@@ -510,18 +596,62 @@ watch(filterQueryKey, () => {
     </v-card>
   </v-dialog>
 
-  <v-dialog v-model="applyDialog" max-width="520">
+  <v-dialog v-model="applyDialog" max-width="720">
     <v-card rounded="xl">
       <v-card-title class="text-h5 py-4 px-6">Apply</v-card-title>
       <v-card-text class="px-6">
-        <p class="text-body-1 mb-0">
-          Modal vide pour le moment
+        <p class="text-body-1 mb-4">
+          Job
           <span v-if="selectedApplyJob" class="font-weight-bold">: {{ selectedApplyJob.title }}</span>
         </p>
+
+        <v-alert v-if="applyError" type="error" variant="tonal" class="mb-4">
+          {{ applyError }}
+        </v-alert>
+
+        <v-row>
+          <v-col cols="12" md="4">
+            <v-text-field v-model="applyForm.firstName" label="First Name" variant="outlined" density="comfortable" />
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-text-field v-model="applyForm.lastName" label="Last Name" variant="outlined" density="comfortable" />
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-text-field v-model="applyForm.email" label="Email" type="email" variant="outlined" density="comfortable" />
+          </v-col>
+
+          <v-col cols="12">
+            <v-text-field v-model="applyForm.title" label="Title" variant="outlined" density="comfortable" />
+          </v-col>
+
+          <v-col cols="12">
+            <v-textarea v-model="applyForm.description" label="Description" rows="3" auto-grow variant="outlined" density="comfortable" />
+          </v-col>
+
+          <v-col cols="12">
+            <v-textarea v-model="applyForm.coverLetter" label="Cover Letter" rows="5" auto-grow variant="outlined" density="comfortable" />
+          </v-col>
+
+          <v-col cols="12">
+            <div class="d-flex flex-wrap ga-2 mb-3">
+              <v-btn color="secondary" variant="tonal">Create a resume</v-btn>
+              <v-file-input
+                accept="application/pdf"
+                density="comfortable"
+                variant="outlined"
+                label="Import CV (PDF)"
+                prepend-icon="mdi-file-pdf-box"
+                hide-details
+                @update:model-value="handleResumeFileChange"
+              />
+            </div>
+          </v-col>
+        </v-row>
       </v-card-text>
       <v-card-actions class="px-6 pb-6 pt-2">
         <v-spacer />
         <v-btn variant="text" @click="closeApplyDialog">Fermer</v-btn>
+        <v-btn color="primary" :loading="applyLoading" :disabled="!canSubmitApplication" @click="submitApply">Apply</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
