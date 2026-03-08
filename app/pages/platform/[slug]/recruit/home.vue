@@ -4,6 +4,7 @@ import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformHeroHeader from '~/components/platform/sections/PlatformHeroHeader.vue'
 import { formatRecruitSalary, type RecruitContractType, type RecruitJob } from '~/data/platform/recruit'
 import { getRecruitNav } from '~/data/platform-nav'
+import { refreshRecruitMeJobsState } from '~/composables/useRecruitMeJobs'
 
 interface RecruitJobsApiResponse {
   jobs?: RecruitJob[]
@@ -576,6 +577,7 @@ const submitCreateJob = async () => {
       body: payload,
     })
 
+    await refreshRecruitMeJobsState(slug.value)
     await refresh()
     closeOwnerDialogs()
   } catch {

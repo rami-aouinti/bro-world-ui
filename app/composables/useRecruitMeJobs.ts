@@ -35,6 +35,16 @@ type RecruitMeJobsResponse = {
 
 const CACHE_TTL_MS = 60_000
 
+export const refreshRecruitMeJobsState = async (slug: string) => {
+  const cache = useState<Record<string, { data: RecruitMeJobsResponse, cachedAt: number }>>(
+    'recruit-me-jobs-cache',
+    () => ({}),
+  )
+
+  delete cache.value[slug]
+  await refreshNuxtData(`recruit-me-jobs-${slug}`)
+}
+
 export const useRecruitMeJobs = (slug: Ref<string>) => {
   const { apiFetch } = useApiClient()
   const { initSession, isAuthenticated } = useAuth()
