@@ -37,21 +37,57 @@ const appSlug = computed(() => String(route.params.slug ?? ''))
 const jobSlug = computed(() => String(route.params.jobSlug ?? ''))
 const { isAuthenticated, initSession } = useAuth()
 const { apiFetch } = useApiClient()
+const REQUEST_TIMEOUT_MS = 6000
 
 const navItems = computed(() => getRecruitNav(appSlug.value, true, isAuthenticated.value))
+
+const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number) => {
+  return await Promise.race([
+    promise,
+    new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('REQUEST_TIMEOUT')), timeoutMs)
+    }),
+  ])
+}
+
+const fetchPrivateJobs = async (limit = 100) => {
+  return await apiFetch<RecruitJobListResponse>('/api/v1/recruit/private/recruit-talent-hub/jobs', {
+    method: 'GET',
+    query: {
+      page: 1,
+      limit,
+    },
+  })
+}
+
+const fetchPublicJobs = async (limit = 100) => {
+  return await apiFetch<RecruitJobListResponse>(`/api/v1/recruit/public/${appSlug.value}/jobs`, {
+    method: 'GET',
+    query: {
+      page: 1,
+      pageSize: limit,
+    },
+  })
+}
+
+const fetchJobsWithFallback = async (limit = 100) => {
+  await initSession()
+
+  if (isAuthenticated.value) {
+    try {
+      return await withTimeout(fetchPrivateJobs(limit), REQUEST_TIMEOUT_MS)
+    } catch {
+      // fallback public
+    }
+  }
+
+  return await withTimeout(fetchPublicJobs(limit), REQUEST_TIMEOUT_MS)
+}
 
 const { data: job, pending, error } = await useAsyncData(
   () => `recruit-job-${jobSlug.value}`,
   async () => {
-    await initSession()
-
-    const response = await apiFetch<RecruitJobListResponse>('/api/v1/recruit/private/recruit-talent-hub/jobs', {
-      method: 'GET',
-      query: {
-        page: 1,
-        limit: 100,
-      },
-    })
+    const response = await fetchJobsWithFallback(100)
 
     const jobs = response.jobs ?? []
     return jobs.find(item => item.slug === jobSlug.value) ?? null
@@ -65,13 +101,7 @@ const { data: job, pending, error } = await useAsyncData(
 const { data: relatedJobsData } = await useAsyncData(
   () => `recruit-related-jobs-${jobSlug.value}`,
   async () => {
-    const response = await apiFetch<RecruitJobListResponse>('/api/v1/recruit/private/recruit-talent-hub/jobs', {
-      method: 'GET',
-      query: {
-        page: 1,
-        limit: 4,
-      },
-    })
+    const response = await fetchJobsWithFallback(4)
 
     return response.jobs ?? []
   },

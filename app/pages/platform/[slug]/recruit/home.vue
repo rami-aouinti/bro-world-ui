@@ -209,8 +209,15 @@ const fetchRecruitJobsWithFallback = async () => {
     }
   }
 
-  const publicResponse = await fetchRecruitJobsPublic()
-  return normalizeJobsResponse(publicResponse)
+  try {
+    const publicResponse = await withTimeout(fetchRecruitJobsPublic(), PRIVATE_JOBS_TIMEOUT_MS)
+    return normalizeJobsResponse(publicResponse)
+  } catch {
+    return {
+      jobs: [],
+      total: 0,
+    }
+  }
 }
 
 const { data: jobsData, pending, error, refresh } = await useAsyncData(
@@ -219,7 +226,7 @@ const { data: jobsData, pending, error, refresh } = await useAsyncData(
   {
     watch: [slug, currentPage, filterQueryKey],
     default: () => ({ jobs: [], total: 0 }),
-    dedupe: 'defer',
+    dedupe: 'cancel',
   },
 )
 
