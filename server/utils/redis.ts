@@ -1,6 +1,18 @@
 import { createClient } from 'redis'
 
 let redisClient: ReturnType<typeof createClient> | null = null
+const REDIS_CONNECT_TIMEOUT_MS = 1_000
+
+const connectWithTimeout = async (client: ReturnType<typeof createClient>) => {
+  await Promise.race([
+    client.connect(),
+    new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error(`Redis connection timeout after ${REDIS_CONNECT_TIMEOUT_MS}ms`))
+      }, REDIS_CONNECT_TIMEOUT_MS)
+    }),
+  ])
+}
 
 export const getRedisClient = async () => {
   const config = useRuntimeConfig()
@@ -23,7 +35,13 @@ export const getRedisClient = async () => {
   }
 
   if (!redisClient.isOpen) {
-    await redisClient.connect()
+    try {
+      await connectWithTimeout(redisClient)
+    } catch (error) {
+      redisClient.disconnect().catch(() => undefined)
+      redisClient = null
+      throw error
+    }
   }
 
   return redisClient
