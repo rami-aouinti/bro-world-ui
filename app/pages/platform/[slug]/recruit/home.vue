@@ -7,6 +7,7 @@ import RecruitJobsFiltersPanel from '~/components/platform/recruit/RecruitJobsFi
 import RecruitJobList from '~/components/platform/recruit/RecruitJobList.vue'
 import { getRecruitNav } from '~/data/platform-nav'
 import { refreshRecruitMeJobsState } from '~/composables/useRecruitMeJobs'
+import { useRecruitHome } from '~/composables/recruit/useRecruitHome'
 
 definePageMeta({ public: true, requiresAuth: false })
 
