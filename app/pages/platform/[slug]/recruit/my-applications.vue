@@ -38,21 +38,12 @@ const applicationStats = computed(() => [
 <template>
   <PlatformSplitLayout>
     <template #sidebar>
-      <PlatformSidebarNav title="platform.recruit.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" />
+      <PlatformSidebarNav :items="navItems" />
     </template>
 
     <section>
-      <PlatformHeroHeader
-        title="platform.recruit.hero.myApplications.title"
-        subtitle="platform.recruit.hero.myApplications.subtitle"
-        cta="platform.recruit.hero.myApplications.cta"
-      />
 
-      <RecruitPageSection
-        title="Mes candidatures"
-        subtitle="Suivi des statuts sur les offres postées"
-        :stats="applicationStats"
-      >
+      <RecruitPageSection>
         <v-alert v-if="!isAuthenticated" type="info" variant="tonal" class="mb-4">
           {{ t('platform.recruit.myApplications.alerts.signInRequired') }}
         </v-alert>

@@ -29,20 +29,11 @@ const jobStats = computed(() => [
 <template>
   <PlatformSplitLayout>
     <template #sidebar>
-      <PlatformSidebarNav title="platform.recruit.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" />
+      <PlatformSidebarNav :items="navItems" />
     </template>
 
     <section>
-      <PlatformHeroHeader
-        title="platform.recruit.hero.myJobs.title"
-        subtitle="platform.recruit.hero.myJobs.subtitle"
-        cta="platform.recruit.hero.myJobs.cta"
-      />
-
       <RecruitPageSection
-        title="Mes postes publiés"
-        subtitle="Vue consolidée des offres créées"
-        :stats="jobStats"
       >
         <v-alert v-if="!isAuthenticated" type="info" variant="tonal" class="mb-4">
           {{ t('platform.recruit.myJobs.alerts.signInRequired') }}
