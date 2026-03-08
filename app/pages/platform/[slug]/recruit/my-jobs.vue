@@ -3,6 +3,7 @@ import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformHeroHeader from '~/components/platform/sections/PlatformHeroHeader.vue'
 import { getRecruitNav } from '~/data/platform-nav'
+import RecruitJobCard from '~/components/platform/recruit/RecruitJobCard.vue'
 
 definePageMeta({ public: true, requiresAuth: false })
 
@@ -41,21 +42,17 @@ const jobs = computed(() => data.value?.createdJobs ?? [])
 
       <v-skeleton-loader v-if="pending" type="article" class="mb-4" />
 
-      <v-card
+      <RecruitJobCard
         v-for="job in jobs"
         :key="job.id"
-        rounded="xl"
-        class="mb-4 border"
-        hover
+        variant="detailed"
         :to="`/platform/${slug}/recruit/job/${job.slug}`"
-      >
-        <v-card-text class="pa-6">
-          <h2 class="text-h5 font-weight-bold mb-2">{{ job.title }}</h2>
-          <p class="text-body-1 mb-2">{{ job.company }} · {{ job.location }}</p>
-          <p class="text-body-2 text-medium-emphasis mb-1">{{ job.contractType }} · {{ job.workMode }} · {{ job.schedule }}</p>
-          <p class="text-body-2 text-medium-emphasis mb-0">{{ t('platform.recruit.myJobs.createdOn', { date: new Date(job.createdAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US') }) }}</p>
-        </v-card-text>
-      </v-card>
+        :title="job.title"
+        :company="job.company"
+        :location="job.location"
+        :meta="`${job.contractType} · ${job.workMode} · ${job.schedule}`"
+        :posted-at="t('platform.recruit.myJobs.createdOn', { date: new Date(job.createdAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US') })"
+      />
 
       <v-alert v-if="isAuthenticated && !pending && !jobs.length" type="info" variant="tonal">
         {{ t('platform.recruit.myJobs.alerts.empty') }}
