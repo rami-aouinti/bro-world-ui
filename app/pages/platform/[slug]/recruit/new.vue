@@ -4,8 +4,8 @@ import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import RecruitPageSection from '~/components/platform/recruit/RecruitPageSection.vue'
 import { getRecruitNav } from '~/data/platform-nav'
 import { useRecruitHome } from '~/composables/recruit/useRecruitHome'
-import {defineAsyncComponent} from "vue";
-const RecruitJobEditDialog = defineAsyncComponent(() => import('~/components/platform/recruit/RecruitJobEditDialog.vue'))
+import { defineAsyncComponent } from 'vue'
+const RecruitJobCreateDialog = defineAsyncComponent(() => import('~/components/platform/recruit/RecruitJobCreateDialog.vue'))
 
 definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
@@ -31,7 +31,14 @@ const handleCreateJob = async () => {
 
 <template>
   <PlatformSplitLayout>
-    <template #sidebar><PlatformSidebarNav :items="navItems" /></template>
+    <template #sidebar>
+      <PlatformSidebarNav
+        title="platform.recruit.sidebar.title"
+        subtitle="platform.common.sidebar.application"
+        :subtitle-values="{ slug }"
+        :items="navItems"
+      />
+    </template>
     <section>
       <RecruitPageSection
       >
