@@ -492,4 +492,16 @@ watch(() => props.applicationSlug, loadEvents)
   background-color: rgb(var(--v-theme-primary));
   border-color: rgb(var(--v-theme-primary));
 }
+
+:deep(.fc .fc-daygrid-dot-event),
+:deep(.fc .fc-daygrid-dot-event:hover),
+:deep(.fc .fc-daygrid-dot-event:focus-visible) {
+  transform: none !important;
+  margin: 0;
+}
+
+:deep(.fc .fc-daygrid-dot-event .fc-event-time),
+:deep(.fc .fc-daygrid-dot-event .fc-event-title) {
+  line-height: 1.25;
+}
 </style>
