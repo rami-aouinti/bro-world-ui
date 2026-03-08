@@ -113,14 +113,6 @@ const handleApplyToJob = async () => {
         <template #actions>
 
           <RecruitJobsFiltersPanel v-model="filters" :has-filters="hasFilters" @reset="resetFilters" />
-          <v-btn
-              v-if="isAuthenticated"
-              color="primary"
-              prepend-icon="mdi-briefcase-plus"
-              @click="openCreateDialog"
-          >
-            {{ t('platform.recruit.home.actions.createJob') }}
-          </v-btn>
         </template>
 
         <v-skeleton-loader v-if="pending" type="article" class="mb-4" />
