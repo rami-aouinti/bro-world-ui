@@ -359,8 +359,8 @@ export const useRecruitHome = () => {
       watch: [slug, currentPage, filterQueryKey],
       default: () => ({ jobs: [], total: 0 }),
       dedupe: 'cancel',
-      lazy: true,
-      server: false,
+      lazy: false,
+      server: true,
     },
   )
 
