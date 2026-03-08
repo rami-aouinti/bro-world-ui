@@ -44,6 +44,6 @@ onMounted(async () => {
       />
     </template>
 
-    <CalendarView />
+    <CalendarView :application-slug="slug" />
   </PlatformSplitLayout>
 </template>
