@@ -19,9 +19,8 @@
 }
 
 .app-split-shell__left {
-  top: 83px;
   position: sticky;
-  max-height: 83vh;
+  top: calc(var(--app-split-shell-appbar-height) + var(--app-split-shell-margin));
 }
 
 .app-split-shell__left,
@@ -42,16 +41,11 @@
 }
 
 .app-split-shell__left-content {
-  position: sticky;
-  top: var(--split-sticky-top, calc(var(--app-split-shell-appbar-height) + var(--app-split-shell-margin)));
-  height: var(--split-left-height, calc(100vh - var(--app-split-shell-appbar-height) - (var(--app-split-shell-margin) * 2)));
-  overflow-y: auto;
   padding: var(--app-split-shell-margin);
 }
 
 .app-split-shell__right-content {
   min-height: 83vh;
-  overflow-y: auto;
   padding: var(--app-split-shell-margin);
 }
 
@@ -72,9 +66,13 @@
     grid-template-columns: 1fr;
   }
 
-  .app-split-shell__left-content {
+  .app-split-shell__left {
     position: static;
     top: auto;
+    max-height: none;
+  }
+
+  .app-split-shell__left-content {
     height: auto;
     max-height: none;
   }
