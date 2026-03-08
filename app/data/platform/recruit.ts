@@ -35,6 +35,8 @@ export interface RecruitJob {
   responsibilities: string[]
   profile: string[]
   benefits: string[]
+  owner?: boolean
+  apply?: boolean
 }
 
 export const recruitJobs: RecruitJob[] = [
