@@ -64,11 +64,35 @@ const {
   submitApply,
   saveSelectedResume,
   deleteSelectedResume,
-} = await useRecruitHome()
+} = useRecruitHome()
 
 const { isOwner } = usePlatformPermissions(slug)
 const { t } = useI18n()
 const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
+
+const handleCreateJob = async () => {
+  if (await submitCreateJob()) {
+    await refreshRecruitMeJobsState(slug.value)
+  }
+}
+
+const handleEditJob = async () => {
+  if (await submitEditJob()) {
+    await refreshRecruitMeJobsState(slug.value)
+  }
+}
+
+const handleDeleteJob = async () => {
+  if (await submitDeleteJob()) {
+    await refreshRecruitMeJobsState(slug.value)
+  }
+}
+
+const handleApplyToJob = async () => {
+  if (await submitApply()) {
+    await refreshRecruitMeJobsState(slug.value)
+  }
+}
 </script>
 
 <template>
@@ -130,7 +154,7 @@ const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthe
     :loading="createLoading"
     :error="ownerActionError"
     @close="closeOwnerDialogs"
-    @submit="submitCreateJob"
+    @submit="handleCreateJob"
   />
 
   <RecruitJobEditDialog
@@ -139,7 +163,7 @@ const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthe
     :loading="editLoading"
     :error="ownerActionError"
     @close="closeOwnerDialogs"
-    @submit="submitEditJob"
+    @submit="handleEditJob"
   />
 
   <v-dialog v-model="deleteDialog" max-width="520">
@@ -156,7 +180,7 @@ const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthe
       <v-card-actions class="px-6 pb-6 pt-2">
         <v-spacer />
         <v-btn variant="text" @click="closeOwnerDialogs">{{ t('platform.recruit.home.actions.cancel') }}</v-btn>
-        <v-btn color="error" :loading="deleteLoading" @click="submitDeleteJob">{{ t('platform.recruit.home.actions.delete') }}</v-btn>
+        <v-btn color="error" :loading="deleteLoading" @click="handleDeleteJob">{{ t('platform.recruit.home.actions.delete') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -176,7 +200,7 @@ const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthe
     :resume-saving="resumeSaving"
     :resume-deleting="resumeDeleting"
     @close="closeApplyDialog"
-    @submit="submitApply"
+    @submit="handleApplyToJob"
     @save-resume="saveSelectedResume"
     @delete-resume="deleteSelectedResume"
     @file-change="handleResumeFileChange"
