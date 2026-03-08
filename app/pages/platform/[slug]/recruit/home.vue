@@ -6,16 +6,42 @@ import { formatRecruitSalary, type RecruitContractType, type RecruitJob } from '
 import { getRecruitNav } from '~/data/platform-nav'
 
 interface RecruitJobsApiResponse {
-  jobs: RecruitJob[]
+  jobs?: RecruitJob[]
+  count?: number
+  results?: RecruitJob[]
+  next?: string | null
+  previous?: string | null
+}
+
+type RecruitHomeFilters = {
+  company: string
+  salaryMin: number
+  salaryMax: number
+  contractType: RecruitContractType | ''
+  workMode: RecruitJob['workMode'] | ''
+  schedule: string
+  postedAtLabel: string
+  location: string
+  q: string
 }
 
 definePageMeta({ public: true, requiresAuth: false })
 
+const DEFAULT_PAGE_SIZE = 10
+
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
-const filters = ref<{ contract: RecruitContractType | 'all', workMode: RecruitJob['workMode'] | 'all' }>({
-  contract: 'all',
-  workMode: 'all',
+const currentPage = ref(1)
+const filters = ref<RecruitHomeFilters>({
+  company: '',
+  salaryMin: 0,
+  salaryMax: 0,
+  contractType: '',
+  workMode: '',
+  schedule: '',
+  postedAtLabel: '',
+  location: '',
+  q: '',
 })
 
 const { isOwner } = usePlatformPermissions(slug)
@@ -24,32 +50,97 @@ const { apiFetch } = useApiClient()
 const showAccessDenied = computed(() => route.query.accessDenied === 'admin')
 
 const navItems = computed(() => getRecruitNav(slug.value, isOwner.value))
+const hasFilters = computed(() => Object.values(filters.value).some(value => {
+  if (typeof value === 'number') {
+    return value > 0
+  }
+
+  return value.trim() !== ''
+}))
+
+const filterQuery = computed(() => ({
+  company: filters.value.company.trim(),
+  salaryMin: Math.max(0, Number(filters.value.salaryMin) || 0),
+  salaryMax: Math.max(0, Number(filters.value.salaryMax) || 0),
+  contractType: filters.value.contractType,
+  workMode: filters.value.workMode,
+  schedule: filters.value.schedule.trim(),
+  postedAtLabel: filters.value.postedAtLabel.trim(),
+  location: filters.value.location.trim(),
+  q: filters.value.q.trim(),
+}))
+
+const fetchRecruitJobs = async (visibility: 'public' | 'private') => {
+  const endpoint = `/api/v1/recruit/${visibility}/${slug.value}/jobs`
+
+  return apiFetch<RecruitJobsApiResponse>(endpoint, {
+    method: 'GET',
+    query: {
+      page: currentPage.value,
+      pageSize: DEFAULT_PAGE_SIZE,
+      ...filterQuery.value,
+    },
+  })
+}
+
+const normalizeJobsResponse = (response: RecruitJobsApiResponse | null) => {
+  const items = response?.jobs ?? response?.results ?? []
+  const total = typeof response?.count === 'number' ? response.count : items.length
+
+  return {
+    jobs: items,
+    total,
+  }
+}
 
 const { data: jobsData, pending, error } = await useAsyncData(
-  () => `recruit-home-jobs-${slug.value}`,
+  () => `recruit-home-jobs-${slug.value}-${currentPage.value}-${JSON.stringify(filterQuery.value)}`,
   async () => {
     await initSession()
 
-    const visibility = isAuthenticated.value ? 'private' : 'public'
-    const endpoint = `/api/v1/recruit/${visibility}/${slug.value}/jobs`
+    if (isAuthenticated.value) {
+      try {
+        const privateResponse = await fetchRecruitJobs('private')
+        return normalizeJobsResponse(privateResponse)
+      } catch {
+        const publicResponse = await fetchRecruitJobs('public')
+        return normalizeJobsResponse(publicResponse)
+      }
+    }
 
-    return apiFetch<RecruitJobsApiResponse>(endpoint, {
-      method: 'GET',
-    })
+    const publicResponse = await fetchRecruitJobs('public')
+    return normalizeJobsResponse(publicResponse)
   },
   {
-    watch: [slug],
-    default: () => ({ jobs: [] }),
+    watch: [slug, currentPage, filterQuery],
+    default: () => ({ jobs: [], total: 0 }),
   },
 )
 
-const visibleJobs = computed(() => jobsData.value.jobs.filter((job) => {
-  if (filters.value.contract !== 'all' && job.contractType !== filters.value.contract)
-    return false
-  if (filters.value.workMode !== 'all' && job.workMode !== filters.value.workMode)
-    return false
-  return true
-}))
+const totalPages = computed(() => {
+  const total = jobsData.value.total
+  return total > 0 ? Math.ceil(total / DEFAULT_PAGE_SIZE) : 1
+})
+
+const resetFilters = async () => {
+  filters.value = {
+    company: '',
+    salaryMin: 0,
+    salaryMax: 0,
+    contractType: '',
+    workMode: '',
+    schedule: '',
+    postedAtLabel: '',
+    location: '',
+    q: '',
+  }
+  currentPage.value = 1
+}
+
+
+watch(filterQuery, () => {
+  currentPage.value = 1
+})
 </script>
 
 <template>
@@ -57,24 +148,42 @@ const visibleJobs = computed(() => jobsData.value.jobs.filter((job) => {
     <template #sidebar>
       <PlatformSidebarNav title="platform.recruit.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems">
         <v-divider class="my-4" />
-        <p class="text-subtitle-2 mb-2">Filtres</p>
+        <div class="d-flex align-center justify-space-between mb-2">
+          <p class="text-subtitle-2 mb-0">Filtres</p>
+          <v-btn size="small" variant="text" :disabled="!hasFilters" @click="resetFilters">Réinitialiser</v-btn>
+        </div>
+
+        <v-text-field v-model="filters.q" density="comfortable" variant="outlined" label="Recherche" hide-details clearable class="mb-3" />
+        <v-text-field v-model="filters.company" density="comfortable" variant="outlined" label="Entreprise" hide-details clearable class="mb-3" />
+        <v-text-field v-model="filters.location" density="comfortable" variant="outlined" label="Localisation" hide-details clearable class="mb-3" />
+
         <v-select
-          v-model="filters.contract"
-          :items="['all', 'CDI', 'CDD', 'Freelance', 'Internship']"
+          v-model="filters.contractType"
+          :items="['', 'CDI', 'CDD', 'Freelance', 'Internship']"
           density="comfortable"
           variant="outlined"
-          label="Contrat"
+          label="Type de contrat"
           hide-details
+          class="mb-3"
         />
+
         <v-select
           v-model="filters.workMode"
-          :items="['all', 'Onsite', 'Hybrid', 'Remote']"
+          :items="['', 'Onsite', 'Hybrid', 'Remote']"
           density="comfortable"
           variant="outlined"
-          label="Mode"
+          label="Mode de travail"
           hide-details
-          class="mt-3"
+          class="mb-3"
         />
+
+        <v-text-field v-model="filters.schedule" density="comfortable" variant="outlined" label="Horaires" hide-details clearable class="mb-3" />
+        <v-text-field v-model="filters.postedAtLabel" density="comfortable" variant="outlined" label="Publié" hide-details clearable class="mb-3" />
+
+        <div class="d-flex ga-2">
+          <v-text-field v-model.number="filters.salaryMin" type="number" min="0" density="comfortable" variant="outlined" label="Salaire min" hide-details class="mb-3" />
+          <v-text-field v-model.number="filters.salaryMax" type="number" min="0" density="comfortable" variant="outlined" label="Salaire max" hide-details class="mb-3" />
+        </div>
       </PlatformSidebarNav>
     </template>
 
@@ -100,7 +209,7 @@ const visibleJobs = computed(() => jobsData.value.jobs.filter((job) => {
       />
 
       <v-card
-        v-for="job in visibleJobs"
+        v-for="job in jobsData.jobs"
         :key="job.id"
         rounded="xl"
         class="mb-4 border"
@@ -124,6 +233,23 @@ const visibleJobs = computed(() => jobsData.value.jobs.filter((job) => {
           </div>
         </v-card-text>
       </v-card>
+
+      <v-alert
+        v-if="!pending && !jobsData.jobs.length"
+        type="info"
+        variant="tonal"
+      >
+        Aucune offre trouvée. Essayez d'ajuster les filtres pour élargir la recherche.
+      </v-alert>
+
+      <div class="d-flex justify-center mt-6">
+        <v-pagination
+          v-model="currentPage"
+          :length="totalPages"
+          :total-visible="7"
+          rounded="circle"
+        />
+      </div>
     </section>
   </PlatformSplitLayout>
 </template>
