@@ -146,14 +146,14 @@ const handleApplyToJob = async () => {
         <v-skeleton-loader v-if="pending" type="article" class="mb-4" />
 
         <RecruitJobList
-          :jobs="jobsData.jobs"
+          :jobs="jobsData?.jobs ?? []"
           :slug="slug"
           @edit="openEditDialog"
           @delete="openDeleteDialog"
           @apply="openApplyDialog"
         />
 
-        <v-alert v-if="!pending && !jobsData.jobs.length" type="info" variant="tonal">
+        <v-alert v-if="!pending && !(jobsData?.jobs?.length ?? 0)" type="info" variant="tonal">
           {{ t('platform.recruit.home.alerts.emptyJobs') }}
         </v-alert>
 
