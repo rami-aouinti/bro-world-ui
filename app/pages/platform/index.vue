@@ -194,7 +194,7 @@ const disableApplication = async () => {
   <PlatformSplitLayout>
 
     <template #sidebar>
-      <PlatformSidebarNav title="Platform" subtitle="platform.common.sidebar.application" items="">
+      <PlatformSidebarNav title="Platform" subtitle="platform.common.sidebar.application" :items="[]">
         <v-text-field
             v-model="search"
             :label="t('platform.filters.search')"
