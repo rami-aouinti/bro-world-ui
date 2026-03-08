@@ -313,10 +313,13 @@ export const useRecruitHome = () => {
     },
   })
 
-  const getJobsCacheKey = () => `${slug.value}-${currentPage.value}-${filterQueryKey.value}`
+  const getJobsCacheKey = (authScope: 'auth' | 'guest') => `${slug.value}-${authScope}-${currentPage.value}-${filterQueryKey.value}`
 
   const fetchRecruitJobsWithFallback = async () => {
-    const cacheKey = getJobsCacheKey()
+    await initSession()
+
+    const authScope: 'auth' | 'guest' = isAuthenticated.value ? 'auth' : 'guest'
+    const cacheKey = getJobsCacheKey(authScope)
     const now = Date.now()
     const cacheEntry = jobsCache.value[cacheKey]
 
@@ -324,21 +327,25 @@ export const useRecruitHome = () => {
       return cacheEntry.data
     }
 
-    await initSession()
-
-    try {
-      const privateResponse = await withTimeout(fetchRecruitJobsPrivate(), PRIVATE_JOBS_TIMEOUT_MS)
-      const normalized = normalizeJobsResponse(privateResponse)
-      jobsCache.value[cacheKey] = { data: normalized, cachedAt: now }
-      return normalized
-    } catch {
-      // fallback sur l'endpoint public si le private échoue ou tarde trop
+    if (isAuthenticated.value) {
+      try {
+        const privateResponse = await withTimeout(fetchRecruitJobsPrivate(), PRIVATE_JOBS_TIMEOUT_MS)
+        const normalized = normalizeJobsResponse(privateResponse)
+        jobsCache.value[cacheKey] = { data: normalized, cachedAt: now }
+        return normalized
+      } catch {
+        // fallback sur l'endpoint public si le private échoue ou tarde trop
+      }
     }
 
     try {
       const publicResponse = await withTimeout(fetchRecruitJobsPublic(), PRIVATE_JOBS_TIMEOUT_MS)
       const normalized = normalizeJobsResponse(publicResponse)
-      jobsCache.value[cacheKey] = { data: normalized, cachedAt: now }
+
+      if (!isAuthenticated.value) {
+        jobsCache.value[cacheKey] = { data: normalized, cachedAt: now }
+      }
+
       return normalized
     } catch {
       return cacheEntry?.data ?? { jobs: [], total: 0 }
@@ -353,6 +360,7 @@ export const useRecruitHome = () => {
       default: () => ({ jobs: [], total: 0 }),
       dedupe: 'cancel',
       lazy: true,
+      server: false,
     },
   )
 

@@ -74,15 +74,15 @@ const fetchPublicJobs = async (limit = 100) => {
 const fetchJobsWithFallback = async (limit = 100) => {
   const fetchPublic = () => withTimeout(fetchPublicJobs(limit), REQUEST_TIMEOUT_MS)
 
-  if (!isAuthenticated.value) {
-    return await fetchPublic()
+  if (isAuthenticated.value) {
+    try {
+      return await withTimeout(fetchPrivateJobs(limit), REQUEST_TIMEOUT_MS)
+    } catch {
+      // fallback to public jobs when the private endpoint fails or times out
+    }
   }
 
-  try {
-    return await withTimeout(fetchPrivateJobs(limit), REQUEST_TIMEOUT_MS)
-  } catch {
-    return await fetchPublic()
-  }
+  return await fetchPublic()
 }
 
 let sessionInitPromise: Promise<void> | null = null
