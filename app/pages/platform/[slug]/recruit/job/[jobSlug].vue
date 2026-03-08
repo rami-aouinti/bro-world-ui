@@ -11,8 +11,9 @@ const appSlug = computed(() => String(route.params.slug ?? ''))
 const jobSlug = computed(() => String(route.params.jobSlug ?? ''))
 const job = computed(() => recruitJobs.find((item) => item.slug === jobSlug.value) ?? recruitJobs[0])
 const relatedJobs = computed(() => recruitJobs.filter((item) => item.slug !== job.value.slug).slice(0, 3))
+const { isAuthenticated } = useAuth()
 
-const navItems = computed(() => getRecruitNav(appSlug.value, true))
+const navItems = computed(() => getRecruitNav(appSlug.value, true, isAuthenticated.value))
 </script>
 
 <template>

@@ -11,7 +11,8 @@ const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const platformPermissions = usePlatformPermissions(slug)
 const { isOwner } = platformPermissions
-const navItems = computed(() => getRecruitNav(slug.value, isOwner.value))
+const { isAuthenticated } = useAuth()
+const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
 const accessDenied = ref(false)
 
 onMounted(async () => {

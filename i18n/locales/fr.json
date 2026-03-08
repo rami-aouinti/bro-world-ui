@@ -736,7 +736,9 @@
         "home": "Jobs",
         "candidates": "Candidats",
         "interviews": "Interviews",
-        "tickets": "Tickets"
+        "tickets": "Tickets",
+        "myJobs": "My Jobs",
+        "myApplications": "My Applications"
       },
       "hero": {
         "home": {
@@ -758,6 +760,16 @@
           "title": "Tickets Recruit",
           "subtitle": "Pipeline talent, expérience candidat, analytics recrutement",
           "cta": "Nouveau ticket"
+        },
+        "myJobs": {
+          "title": "Mes offres créées",
+          "subtitle": "Retrouvez toutes les offres que vous avez publiées.",
+          "cta": "Nouvelle offre"
+        },
+        "myApplications": {
+          "title": "Mes candidatures",
+          "subtitle": "Suivez le statut des offres auxquelles vous avez postulé.",
+          "cta": "Postuler"
         }
       },
       "job": {
