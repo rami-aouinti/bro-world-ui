@@ -295,7 +295,7 @@ export const useRecruitHome = () => {
     ])
   }
 
-  const fetchRecruitJobsPrivate = async () => apiFetch<RecruitJobsApiResponse>('/api/v1/recruit/private/recruit-talent-hub/jobs', {
+  const fetchRecruitJobsPrivate = async () => apiFetch<RecruitJobsApiResponse>(`/api/v1/recruit/private/${slug.value}/jobs`, {
     method: 'GET',
     query: {
       page: currentPage.value,

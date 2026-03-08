@@ -52,7 +52,7 @@ const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number) => {
 }
 
 const fetchPrivateJobs = async (limit = 100) => {
-  return await apiFetch<RecruitJobListResponse>('/api/v1/recruit/private/recruit-talent-hub/jobs', {
+  return await apiFetch<RecruitJobListResponse>(`/api/v1/recruit/private/${appSlug.value}/jobs`, {
     method: 'GET',
     query: {
       page: 1,
