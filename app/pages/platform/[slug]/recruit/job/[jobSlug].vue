@@ -72,47 +72,54 @@ const fetchPublicJobs = async (limit = 100) => {
 }
 
 const fetchJobsWithFallback = async (limit = 100) => {
-  await initSession()
+  const fetchPublic = () => withTimeout(fetchPublicJobs(limit), REQUEST_TIMEOUT_MS)
 
-  if (isAuthenticated.value) {
-    try {
-      return await withTimeout(fetchPrivateJobs(limit), REQUEST_TIMEOUT_MS)
-    } catch {
-      // fallback public
-    }
+  if (!isAuthenticated.value) {
+    return await fetchPublic()
   }
 
-  return await withTimeout(fetchPublicJobs(limit), REQUEST_TIMEOUT_MS)
+  try {
+    return await withTimeout(fetchPrivateJobs(limit), REQUEST_TIMEOUT_MS)
+  } catch {
+    return await fetchPublic()
+  }
 }
 
-const { data: job, pending, error } = await useAsyncData(
-  () => `recruit-job-${jobSlug.value}`,
+let sessionInitPromise: Promise<void> | null = null
+const ensureSessionInitialized = async () => {
+  if (!sessionInitPromise) {
+    sessionInitPromise = initSession()
+  }
+
+  await sessionInitPromise
+}
+
+const { data: jobsData, pending: jobsPending, error: jobsError } = await useAsyncData(
+  () => `recruit-jobs-${appSlug.value}`,
   async () => {
+    await ensureSessionInitialized()
     const response = await fetchJobsWithFallback(100)
-
-    const jobs = response.jobs ?? []
-    return jobs.find(item => item.slug === jobSlug.value) ?? null
-  },
-  {
-    watch: [jobSlug],
-    default: () => null,
-  },
-)
-
-const { data: relatedJobsData } = await useAsyncData(
-  () => `recruit-related-jobs-${jobSlug.value}`,
-  async () => {
-    const response = await fetchJobsWithFallback(4)
-
     return response.jobs ?? []
   },
   {
-    watch: [jobSlug],
+    watch: [appSlug],
     default: () => [],
   },
 )
 
-const relatedJobs = computed(() => (relatedJobsData.value ?? []).filter(item => item.slug !== job.value?.slug).slice(0, 3))
+const job = computed(() => (jobsData.value ?? []).find(item => item.slug === jobSlug.value) ?? null)
+const relatedJobs = computed(() => (jobsData.value ?? []).filter(item => item.slug !== jobSlug.value).slice(0, 3))
+const jobViewState = computed<'loading' | 'error' | 'ready'>(() => {
+  if (jobsPending.value) {
+    return 'loading'
+  }
+
+  if (jobsError.value || !job.value) {
+    return 'error'
+  }
+
+  return 'ready'
+})
 
 const { data: applications, pending: applicationsPending, refresh: refreshApplications } = await useAsyncData(
   () => `job-applications-${job.value?.id ?? 'none'}`,
@@ -178,9 +185,9 @@ const updateApplicationStatus = async (applicationId: string, status: RecruitApp
     </template>
 
     <section>
-      <v-skeleton-loader v-if="pending" type="article" class="mb-4" />
+      <v-skeleton-loader v-if="jobViewState === 'loading'" type="article" class="mb-4" />
 
-      <v-alert v-else-if="error || !job" type="error" variant="tonal" class="mb-6">
+      <v-alert v-else-if="jobViewState === 'error'" type="error" variant="tonal" class="mb-6">
         {{ t('platform.recruit.job.alerts.loadError') }}
       </v-alert>
 
