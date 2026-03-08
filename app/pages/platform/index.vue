@@ -31,6 +31,9 @@ const platformKeyOptions = ["crm", "recruit", "school", "shop"] as const;
 const { pending: applicationsPending } = useAsyncData(
   "platform-applications",
   () => applicationsStore.fetch({ limit: 5 }),
+  {
+    server: false,
+  },
 );
 
 const loading = computed(
