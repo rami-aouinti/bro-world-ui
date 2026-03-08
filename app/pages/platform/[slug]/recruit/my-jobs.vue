@@ -42,17 +42,20 @@ const jobs = computed(() => data.value?.createdJobs ?? [])
 
       <v-skeleton-loader v-if="pending" type="article" class="mb-4" />
 
-      <RecruitJobCard
-        v-for="job in jobs"
-        :key="job.id"
-        variant="detailed"
-        :to="`/platform/${slug}/recruit/job/${job.slug}`"
-        :title="job.title"
-        :company="job.company"
-        :location="job.location"
-        :meta="`${job.contractType} · ${job.workMode} · ${job.schedule}`"
-        :posted-at="t('platform.recruit.myJobs.createdOn', { date: new Date(job.createdAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US') })"
-      />
+      <transition-group name="recruit-list" tag="div">
+        <RecruitJobCard
+          v-for="job in jobs"
+          :key="job.id"
+          class="recruit-card--interactive"
+          variant="detailed"
+          :to="`/platform/${slug}/recruit/job/${job.slug}`"
+          :title="job.title"
+          :company="job.company"
+          :location="job.location"
+          :meta="`${job.contractType} · ${job.workMode} · ${job.schedule}`"
+          :posted-at="t('platform.recruit.myJobs.createdOn', { date: new Date(job.createdAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US') })"
+        />
+      </transition-group>
 
       <v-alert v-if="isAuthenticated && !pending && !jobs.length" type="info" variant="tonal">
         {{ t('platform.recruit.myJobs.alerts.empty') }}
