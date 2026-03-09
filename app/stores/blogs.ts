@@ -43,9 +43,69 @@ export const useBlogsStore = defineStore('blogs', () => {
     }
   }
 
+  const invalidateGeneralCache = () => {
+    delete cache.value.general
+  }
+
+  const refreshGeneralInBackground = () => {
+    invalidateGeneralCache()
+    void fetchGeneral(true).catch((error) => {
+      console.error('Failed to refresh general blog in background.', error)
+    })
+  }
+
+  const createPost = async (blogId: string, payload: { content: string, filePath?: string | null }) => {
+    await blogsApi.createPost(blogId, payload)
+    refreshGeneralInBackground()
+  }
+
+  const updatePost = async (postId: string, payload: { content?: string, filePath?: string | null }) => {
+    await blogsApi.updatePost(postId, payload)
+    refreshGeneralInBackground()
+  }
+
+  const deletePost = async (postId: string) => {
+    await blogsApi.deletePost(postId)
+    refreshGeneralInBackground()
+  }
+
+  const createComment = async (postId: string, payload: { content: string, parentCommentId: string | null }) => {
+    await blogsApi.createComment(postId, payload)
+    refreshGeneralInBackground()
+  }
+
+  const updateComment = async (commentId: string, payload: { content: string }) => {
+    await blogsApi.updateComment(commentId, payload)
+    refreshGeneralInBackground()
+  }
+
+  const deleteComment = async (commentId: string) => {
+    await blogsApi.deleteComment(commentId)
+    refreshGeneralInBackground()
+  }
+
+  const createReaction = async (commentId: string, payload: { type: string }) => {
+    await blogsApi.createReaction(commentId, payload)
+    refreshGeneralInBackground()
+  }
+
+  const deleteReaction = async (reactionId: string) => {
+    await blogsApi.deleteReaction(reactionId)
+    refreshGeneralInBackground()
+  }
+
   return {
     general,
     isLoading,
     fetchGeneral,
+    invalidateGeneralCache,
+    createPost,
+    updatePost,
+    deletePost,
+    createComment,
+    updateComment,
+    deleteComment,
+    createReaction,
+    deleteReaction,
   }
 })
