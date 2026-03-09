@@ -1,5 +1,6 @@
 import { requireAuthCookie, setAuthCookie } from '~~/server/utils/authCookie'
 import { getRedisClient } from '~~/server/utils/redis'
+import { createHash } from 'node:crypto'
 
 const PUBLIC_BACKEND_PATHS = new Set([
   '/api/health',
@@ -40,6 +41,7 @@ const ENTITY_CACHE_PREFIXES = [
   '/api/v1/recruit/private',
   '/api/v1/blogs',
   '/api/v1/notifications',
+  '/api/v1/users/me',
 ]
 
 const NOTIFICATION_EVENTS_ROUTE_PREFIX = '/api/v1/notifications'
@@ -58,6 +60,10 @@ const ENTITY_CACHE_INVALIDATION_RULES: Array<{ routePrefix: string, cachePrefixe
   {
     routePrefix: '/api/v1/blogs/',
     cachePrefixes: ['/api/v1/blogs'],
+  },
+  {
+    routePrefix: '/api/v1/users/me',
+    cachePrefixes: ['/api/v1/users/me'],
   },
 ]
 
@@ -96,6 +102,30 @@ const getEntityCacheKey = (path: string, query: Record<string, any>) => {
   }
 
   return `entity:${path}?${suffix}`
+}
+
+const normalizeBearerToken = (rawToken: string | null | undefined) => {
+  if (!rawToken) {
+    return undefined
+  }
+
+  const trimmed = rawToken.trim()
+  if (!trimmed) {
+    return undefined
+  }
+
+  return trimmed.replace(/^Bearer\s+/i, '')
+}
+
+const getUsersMeCacheKey = (path: string, query: Record<string, any>, bearerToken: string) => {
+  const tokenHash = createHash('sha256').update(bearerToken).digest('hex').slice(0, 16)
+  const suffix = toSortedQuerySuffix(query)
+
+  if (!suffix) {
+    return `entity:${path}:token:${tokenHash}`
+  }
+
+  return `entity:${path}:token:${tokenHash}?${suffix}`
 }
 
 const readCache = async (cacheKey: string, label: string) => {
@@ -221,10 +251,11 @@ export default defineEventHandler(async (event) => {
   const isPublicRoute = PUBLIC_BACKEND_PATHS.has(targetPath)
     || PUBLIC_BACKEND_PATH_PREFIXES.some(prefix => targetPath.startsWith(prefix))
 
-  let bearerToken: string | undefined
+  const tokenFromAuthorizationHeader = normalizeBearerToken(getHeader(event, 'authorization'))
+  let bearerToken: string | undefined = tokenFromAuthorizationHeader
   let authCookiePayload: Awaited<ReturnType<typeof requireAuthCookie>> | undefined
 
-  if (!isPublicRoute) {
+  if (!isPublicRoute && !bearerToken) {
     authCookiePayload = await requireAuthCookie(event)
     bearerToken = authCookiePayload.token
   }
@@ -252,7 +283,9 @@ export default defineEventHandler(async (event) => {
   }
 
   if (shouldCacheEntity) {
-    const cacheKey = getEntityCacheKey(targetPath, query)
+    const cacheKey = targetPath.startsWith('/api/v1/users/me') && bearerToken
+      ? getUsersMeCacheKey(targetPath, query, bearerToken)
+      : getEntityCacheKey(targetPath, query)
     const cachedPayload = await readCache(cacheKey, 'Entity')
 
     if (cachedPayload !== null) {
@@ -281,7 +314,9 @@ export default defineEventHandler(async (event) => {
     }
 
     if (shouldCacheEntity) {
-      const cacheKey = getEntityCacheKey(targetPath, query)
+      const cacheKey = targetPath.startsWith('/api/v1/users/me') && bearerToken
+        ? getUsersMeCacheKey(targetPath, query, bearerToken)
+        : getEntityCacheKey(targetPath, query)
       await writeCache(cacheKey, response, ONE_DAY_IN_SECONDS, 'Entity')
     }
 

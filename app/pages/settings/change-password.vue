@@ -1,25 +1,58 @@
 <script setup lang="ts">
 definePageMeta({ public: true, requiresAuth: false })
+
+const currentUser = useCurrentUserStore()
+const loading = ref(false)
+const form = reactive({
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: '',
+})
+const errorMessage = ref('')
+const successMessage = ref('')
+
+const onSubmit = async () => {
+  errorMessage.value = ''
+  successMessage.value = ''
+
+  if (form.newPassword !== form.confirmPassword) {
+    errorMessage.value = 'Passwords do not match.'
+    return
+  }
+
+  loading.value = true
+  try {
+    await currentUser.updatePassword({
+      currentPassword: form.currentPassword,
+      newPassword: form.newPassword,
+    })
+    successMessage.value = 'Password updated successfully.'
+    form.currentPassword = ''
+    form.newPassword = ''
+    form.confirmPassword = ''
+  }
+  catch (error: any) {
+    errorMessage.value = error?.data?.message || 'Unable to update password.'
+  }
+  finally {
+    loading.value = false
+  }
+}
 </script>
 
 <template>
   <SettingsLayout>
     <h3 class="text-h5 font-weight-bold mb-6">Change Password</h3>
-    <v-text-field label="Current password" type="password" variant="outlined" class="mb-4" />
-    <v-text-field label="New password" type="password" variant="outlined" class="mb-4" />
-    <v-text-field label="Confirm new password" type="password" variant="outlined" class="mb-8" />
+    <v-form @submit.prevent="onSubmit">
+      <v-text-field v-model="form.currentPassword" label="Current password" type="password" variant="outlined" class="mb-4" />
+      <v-text-field v-model="form.newPassword" label="New password" type="password" variant="outlined" class="mb-4" />
+      <v-text-field v-model="form.confirmPassword" label="Confirm new password" type="password" variant="outlined" class="mb-4" />
+      <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
+      <v-alert v-if="successMessage" type="success" variant="tonal" class="mb-4">{{ successMessage }}</v-alert>
 
-    <h4 class="text-h5 font-weight-bold mb-2">Password requirements</h4>
-    <p class="text-body-1 text-medium-emphasis mb-4">Please follow this guide for a strong password:</p>
-    <ul class="ms-6 mb-6 text-medium-emphasis">
-      <li>One special character</li>
-      <li>Min 6 characters</li>
-      <li>One number (2 are recommended)</li>
-      <li>Change it often</li>
-    </ul>
-
-    <div class="d-flex justify-end">
-      <v-btn color="primary">Update password</v-btn>
-    </div>
+      <div class="d-flex justify-end">
+        <v-btn color="primary" type="submit" :loading="loading">Update password</v-btn>
+      </div>
+    </v-form>
   </SettingsLayout>
 </template>

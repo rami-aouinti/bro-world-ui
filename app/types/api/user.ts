@@ -48,6 +48,52 @@ export interface UserProfile {
   userGroups?: string[]
 }
 
+export interface UserMeProfileDetails {
+  title?: string
+  information?: string
+  gender?: string
+  birthday?: string
+  location?: string
+  phone?: string
+}
+
+export interface UserSocial {
+  provider: string
+  providerId: string
+}
+
+export interface UserSession {
+  id?: UUID
+  ip?: string
+  userAgent?: string
+  createdAt?: string
+  lastSeenAt?: string
+  current?: boolean
+}
+
+export interface UserMeRead {
+  id: UUID
+  username: string
+  email: string
+  firstName: string
+  lastName: string
+  photo?: string
+  profile?: UserMeProfileDetails
+  socials: UserSocial[]
+  sessions: UserSession[]
+}
+
+export interface UserMePasswordPayload {
+  currentPassword: string
+  newPassword: string
+}
+
+export type UserMeProfilePayload = Partial<UserMeProfileDetails & {
+  firstName: string
+  lastName: string
+  email: string
+}>
+
 export interface SessionResponse {
   authenticated: boolean
   profile: UserProfile | null
