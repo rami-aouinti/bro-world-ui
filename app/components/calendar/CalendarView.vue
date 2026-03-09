@@ -14,7 +14,6 @@ import type {
 } from '~/types/api/calendar'
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
 import PlatformSidebarNav from "~/components/platform/PlatformSidebarNav.vue";
-import type {PlatformNavItem} from "~/data/platform-nav";
 import {getCalendarNav} from "~/data/platform-nav";
 
 const props = withDefaults(defineProps<{
@@ -39,6 +38,10 @@ const isCreateDialogOpen = ref(false)
 const isEditDialogOpen = ref(false)
 const isShowDialogOpen = ref(false)
 const fullCalendarRef = ref<InstanceType<typeof FullCalendar> | null>(null)
+const calendarContainerRef = ref<HTMLElement | null>(null)
+
+let calendarResizeObserver: ResizeObserver | null = null
+let deferredGeometryRefreshId: ReturnType<typeof setTimeout> | null = null
 
 const canMutate = computed(() => isAuthenticated.value)
 const usePrivateList = computed(() => !props.applicationSlug || isAuthenticated.value)
@@ -276,6 +279,26 @@ const refreshCalendarGeometry = () => {
   fullCalendarRef.value?.getApi().updateSize()
 }
 
+const scheduleCalendarRefresh = () => {
+  requestAnimationFrame(refreshCalendarGeometry)
+}
+
+const observeCalendarContainerResize = () => {
+  if (typeof ResizeObserver === 'undefined' || !calendarContainerRef.value) return
+
+  calendarResizeObserver?.disconnect()
+  calendarResizeObserver = new ResizeObserver(() => {
+    scheduleCalendarRefresh()
+  })
+
+  calendarResizeObserver.observe(calendarContainerRef.value)
+
+  const splitShellRightPanel = calendarContainerRef.value.closest('.app-split-shell__right-content')
+  if (splitShellRightPanel instanceof HTMLElement) {
+    calendarResizeObserver.observe(splitShellRightPanel)
+  }
+}
+
 const calendarOptions = computed(() => ({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
   initialView: 'dayGridMonth',
@@ -313,23 +336,30 @@ const calendarOptions = computed(() => ({
   },
 }))
 const items = computed(() => getCalendarNav())
+
 onMounted(async () => {
   await loadEvents()
 
   await nextTick()
-  requestAnimationFrame(refreshCalendarGeometry)
+  observeCalendarContainerResize()
+  scheduleCalendarRefresh()
 
-  // Le shell applique une animation d'entrée avec transform: translateY.
-  // On force un recalcul juste après l'animation pour éviter un décalage souris/grille.
-  setTimeout(refreshCalendarGeometry, 320)
+  // Le layout split peut encore finaliser la largeur (sidebar + panneau droit) après montage.
+  // On refait un recalcul différé pour aligner précisément les interactions souris/cellules.
+  deferredGeometryRefreshId = setTimeout(refreshCalendarGeometry, 360)
+
+  window.addEventListener('resize', scheduleCalendarRefresh)
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', refreshCalendarGeometry)
-})
+  window.removeEventListener('resize', scheduleCalendarRefresh)
 
-onMounted(() => {
-  window.addEventListener('resize', refreshCalendarGeometry)
+  if (deferredGeometryRefreshId) {
+    clearTimeout(deferredGeometryRefreshId)
+  }
+
+  calendarResizeObserver?.disconnect()
+  calendarResizeObserver = null
 })
 
 watch(() => props.applicationSlug, loadEvents)
@@ -421,7 +451,7 @@ watch(() => props.applicationSlug, loadEvents)
       <UiStatChip :value="`${calendarEvents.length} événements`" color="info" />
     </v-card-title>
     <v-card-text>
-      <div class="calendar-page__slot">
+      <div ref="calendarContainerRef" class="calendar-page__slot">
         <ClientOnly>
           <FullCalendar ref="fullCalendarRef" :options="calendarOptions" />
         </ClientOnly>
