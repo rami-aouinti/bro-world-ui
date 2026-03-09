@@ -11,7 +11,6 @@ const PUBLIC_BACKEND_PATHS = new Set([
   '/api/v1/application/public',
   '/api/v1/platform/public',
   '/api/v1/plugin/public',
-  '/api/v1/blogs/general',
 ])
 
 const PUBLIC_BACKEND_PATH_PREFIXES = [
