@@ -28,6 +28,10 @@ const editPostContent = ref('')
 const editPostFilePath = ref('')
 
 const postAuthorName = (post: BlogRead['posts'][number]) => `${post.author?.firstName ?? 'Unknown'} ${post.author?.lastName ?? 'User'}`.trim()
+const postAuthorProfilePath = (post: BlogRead['posts'][number]) => {
+  const username = post.author?.username?.trim()
+  return username ? `/user/${encodeURIComponent(username)}/profile` : undefined
+}
 const countComments = (comments: BlogComment[]): number => comments.reduce((total, comment) => total + 1 + countComments(comment.children), 0)
 const flattenComments = (comments: BlogComment[]): BlogComment[] => comments.flatMap(comment => [comment, ...flattenComments(comment.children)])
 
@@ -175,7 +179,14 @@ const confirmDeletePost = async () => {
           <div class="d-flex align-center ga-3">
             <UiAvatar :src="post.author?.photo ?? undefined" :name="postAuthorName(post)" size="md" />
             <div>
-              <div class="text-subtitle-1 font-weight-bold">{{ postAuthorName(post) }}</div>
+              <NuxtLink
+                v-if="postAuthorProfilePath(post)"
+                :to="postAuthorProfilePath(post)"
+                class="text-subtitle-1 font-weight-bold text-decoration-none text-primary"
+              >
+                {{ postAuthorName(post) }}
+              </NuxtLink>
+              <div v-else class="text-subtitle-1 font-weight-bold">{{ postAuthorName(post) }}</div>
             </div>
           </div>
 

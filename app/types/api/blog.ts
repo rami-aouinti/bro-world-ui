@@ -11,6 +11,7 @@ export interface BlogReaction {
 export interface BlogAuthor {
   firstName: string
   lastName: string
+  username?: string
   photo: string | null
 }
 
