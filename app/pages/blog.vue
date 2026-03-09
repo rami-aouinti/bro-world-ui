@@ -13,12 +13,12 @@ const isLoading = ref(false)
 const errorMessage = ref('')
 const blogsStore = useBlogsStore()
 
-const blog = ref<any>(null)
+const blog = computed(() => blogsStore.general)
 const loadBlogs = async () => {
   try {
     isLoading.value = true
     errorMessage.value = ''
-    blog.value = await blogsStore.fetchGeneral()
+    await blogsStore.fetchGeneral()
   } catch (error) {
     console.error(error)
     errorMessage.value = 'Impossible de charger le blog.'
@@ -43,7 +43,7 @@ onMounted(async () => {
     <main>
       <v-progress-linear v-if="isLoading" color="primary" indeterminate class="mb-4" />
       <v-alert v-else-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
-      <BlogFeed v-else-if="blog" :blog="blog" :show-summary="false" @refresh="loadBlogs" />
+      <BlogFeed v-else-if="blog" :blog="blog" :show-summary="false" />
     </main>
   </NuxtLayout>
 </template>

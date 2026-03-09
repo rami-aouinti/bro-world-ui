@@ -3,7 +3,7 @@ import type { BlogComment, BlogRead } from '~/types/api/blog'
 import BlogSummaryCard from '~/components/plugins/BlogSummaryCard.vue'
 import BlogCommentItem from '~/components/plugins/BlogCommentItem.vue'
 import UiAvatar from '~/components/ui/UiAvatar.vue'
-import { useBlogsApi } from '~/composables/api/useBlogsApi'
+import { useBlogsStore } from '~/stores/blogs'
 
 withDefaults(defineProps<{
   blog: BlogRead
@@ -12,16 +12,18 @@ withDefaults(defineProps<{
   showSummary: true,
 })
 
-const emit = defineEmits<{
-  refresh: []
-}>()
-
-const blogsApi = useBlogsApi()
+const blogsStore = useBlogsStore()
 const actionError = ref('')
 const creatingPost = ref(false)
 const newPostContent = ref('')
 const newPostFilePath = ref('')
 const commentDrafts = ref<Record<string, string>>({})
+
+const editPostDialog = ref(false)
+const deletePostDialog = ref(false)
+const activePost = ref<BlogRead['posts'][number] | null>(null)
+const editPostContent = ref('')
+const editPostFilePath = ref('')
 
 const postAuthorName = (post: BlogRead['posts'][number]) => `${post.author?.firstName ?? 'Unknown'} ${post.author?.lastName ?? 'User'}`.trim()
 const countComments = (comments: BlogComment[]): number => comments.reduce((total, comment) => total + 1 + countComments(comment.children), 0)
@@ -57,7 +59,6 @@ const runAction = async (action: () => Promise<unknown>) => {
   try {
     actionError.value = ''
     await action()
-    emit('refresh')
   }
   catch (error) {
     console.error(error)
@@ -72,7 +73,7 @@ const submitPost = async (blogId: string) => {
   }
 
   creatingPost.value = true
-  await runAction(() => blogsApi.createPost(blogId, {
+  await runAction(() => blogsStore.createPost(blogId, {
     content,
     filePath: newPostFilePath.value.trim() || null,
   }))
@@ -87,7 +88,7 @@ const createComment = async (payload: { postId: string, parentCommentId: string 
     return
   }
 
-  await runAction(() => blogsApi.createComment(payload.postId, {
+  await runAction(() => blogsStore.createComment(payload.postId, {
     content,
     parentCommentId: payload.parentCommentId,
   }))
@@ -107,16 +108,37 @@ const createRootComment = async (postId: string) => {
   commentDrafts.value[postId] = ''
 }
 
-const editPost = async (postId: string, content: string, filePath: string | null) => {
-  const updatedContent = window.prompt('Modifier le post', content)
-  if (updatedContent === null) {
+const openEditPostDialog = (post: BlogRead['posts'][number]) => {
+  activePost.value = post
+  editPostContent.value = post.content
+  editPostFilePath.value = post.filePath ?? ''
+  editPostDialog.value = true
+}
+
+const openDeletePostDialog = (post: BlogRead['posts'][number]) => {
+  activePost.value = post
+  deletePostDialog.value = true
+}
+
+const confirmEditPost = async () => {
+  if (!activePost.value || !editPostContent.value.trim()) {
     return
   }
 
-  await runAction(() => blogsApi.updatePost(postId, {
-    content: updatedContent,
-    filePath,
+  await runAction(() => blogsStore.updatePost(activePost.value!.id, {
+    content: editPostContent.value.trim(),
+    filePath: editPostFilePath.value.trim() || null,
   }))
+  editPostDialog.value = false
+}
+
+const confirmDeletePost = async () => {
+  if (!activePost.value) {
+    return
+  }
+
+  await runAction(() => blogsStore.deletePost(activePost.value!.id))
+  deletePostDialog.value = false
 }
 </script>
 
@@ -142,10 +164,15 @@ const editPost = async (postId: string, content: string, filePath: string | null
             </div>
           </div>
 
-          <div v-if="post.isAuthor" class="d-flex ga-2">
-            <v-btn size="small" variant="text" @click="editPost(post.id, post.content, post.filePath)">Modifier</v-btn>
-            <v-btn size="small" variant="text" color="error" @click="runAction(() => blogsApi.deletePost(post.id))">Supprimer</v-btn>
-          </div>
+          <v-menu v-if="post.isAuthor" location="bottom end">
+            <template #activator="{ props: menuProps }">
+              <v-btn icon="mdi-dots-vertical" size="small" variant="text" v-bind="menuProps" />
+            </template>
+            <v-list density="compact" nav>
+              <v-list-item prepend-icon="mdi-pencil" title="Modifier" @click="openEditPostDialog(post)" />
+              <v-list-item prepend-icon="mdi-delete" title="Supprimer" base-color="error" @click="openDeletePostDialog(post)" />
+            </v-list>
+          </v-menu>
         </v-card-title>
 
         <v-card-text>
@@ -192,10 +219,10 @@ const editPost = async (postId: string, content: string, filePath: string | null
               :comment="comment"
               :post-id="post.id"
               @add-comment="createComment"
-              @edit-comment="runAction(() => blogsApi.updateComment($event.commentId, { content: $event.content }))"
-              @delete-comment="runAction(() => blogsApi.deleteComment($event))"
-              @add-reaction="runAction(() => blogsApi.createReaction($event.commentId, { type: $event.type }))"
-              @delete-reaction="runAction(() => blogsApi.deleteReaction($event))"
+              @edit-comment="runAction(() => blogsStore.updateComment($event.commentId, { content: $event.content }))"
+              @delete-comment="runAction(() => blogsStore.deleteComment($event))"
+              @add-reaction="runAction(() => blogsStore.createReaction($event.commentId, { type: $event.type }))"
+              @delete-reaction="runAction(() => blogsStore.deleteReaction($event))"
             />
           </div>
 
@@ -213,6 +240,31 @@ const editPost = async (postId: string, content: string, filePath: string | null
       </v-card>
     </v-col>
   </v-row>
+
+  <v-dialog v-model="editPostDialog" max-width="680">
+    <v-card rounded="xl">
+      <v-card-title>Modifier le post</v-card-title>
+      <v-card-text>
+        <v-textarea v-model="editPostContent" rows="4" variant="solo-filled" class="mb-3" />
+        <v-text-field v-model="editPostFilePath" variant="solo-filled" placeholder="URL image/fichier (optionnel)" />
+      </v-card-text>
+      <v-card-actions class="justify-end">
+        <v-btn variant="text" @click="editPostDialog = false">Annuler</v-btn>
+        <v-btn color="primary" @click="confirmEditPost">Enregistrer</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="deletePostDialog" max-width="420">
+    <v-card rounded="xl">
+      <v-card-title>Supprimer le post</v-card-title>
+      <v-card-text>Cette action est irréversible.</v-card-text>
+      <v-card-actions class="justify-end">
+        <v-btn variant="text" @click="deletePostDialog = false">Annuler</v-btn>
+        <v-btn color="error" @click="confirmDeletePost">Supprimer</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <style scoped>
