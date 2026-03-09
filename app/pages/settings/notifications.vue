@@ -35,19 +35,27 @@ const updatePreference = async (item: NotificationPreference, value: boolean) =>
   const previousValue = item.switchState
   item.switchState = value
   isSavingMap.value[item.text] = true
+  const updatedPreferences = preferences.value.map((preference) => {
+    if (preference.text === item.text) {
+      return {
+        ...preference,
+        switchState: value,
+      }
+    }
+
+    return preference
+  })
 
   try {
-    await apiFetch('/api/v1/profile/configuration/user.notifications.preferences', {
+    const response = await apiFetch<NotificationPreferencesResponse>('/api/v1/profile/configuration/user.notifications.preferences', {
       method: 'PATCH',
       body: {
-        configurationValue: [
-          {
-            switchState: value,
-            text: item.text,
-          },
-        ],
+        configurationValue: updatedPreferences,
       },
     })
+
+    await clearNuxtData('settings-notification-preferences')
+    preferences.value = response.configurationValue ?? updatedPreferences
   }
   catch {
     item.switchState = previousValue
