@@ -5,11 +5,13 @@ import BlogCommentItem from '~/components/plugins/BlogCommentItem.vue'
 import UiAvatar from '~/components/ui/UiAvatar.vue'
 import { useBlogsStore } from '~/stores/blogs'
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   blog: BlogRead
   showSummary?: boolean
+  canInteract?: boolean
 }>(), {
   showSummary: true,
+  canInteract: true,
 })
 
 const blogsStore = useBlogsStore()
@@ -67,6 +69,10 @@ const runAction = async (action: () => Promise<unknown>) => {
 }
 
 const submitPost = async (blogId: string) => {
+  if (!props.canInteract) {
+    return
+  }
+
   const content = newPostContent.value.trim()
   if (!content) {
     return
@@ -83,6 +89,10 @@ const submitPost = async (blogId: string) => {
 }
 
 const createComment = async (payload: { postId: string, parentCommentId: string | null, content: string }) => {
+  if (!props.canInteract) {
+    return
+  }
+
   const content = payload.content.trim()
   if (!content) {
     return
@@ -95,6 +105,10 @@ const createComment = async (payload: { postId: string, parentCommentId: string 
 }
 
 const createRootComment = async (postId: string) => {
+  if (!props.canInteract) {
+    return
+  }
+
   const draft = (commentDrafts.value[postId] ?? '').trim()
   if (!draft) {
     return
@@ -147,9 +161,10 @@ const confirmDeletePost = async () => {
 
   <v-card rounded="xl" class="mb-6 pa-4 create-post-card">
     <div class="text-subtitle-1 font-weight-bold mb-3 text-white">Créer un post</div>
-    <v-textarea v-model="newPostContent" rows="3" variant="solo-filled" placeholder="Quoi de neuf ?" hide-details class="mb-3" />
-    <v-text-field v-model="newPostFilePath" variant="solo-filled" placeholder="URL image/fichier (optionnel)" hide-details class="mb-3" />
-    <v-btn color="primary" :loading="creatingPost" @click="submitPost(blog.id)">Publier</v-btn>
+    <v-textarea v-model="newPostContent" rows="3" variant="solo-filled" placeholder="Quoi de neuf ?" hide-details class="mb-3" :disabled="!canInteract" />
+    <v-text-field v-model="newPostFilePath" variant="solo-filled" placeholder="URL image/fichier (optionnel)" hide-details class="mb-3" :disabled="!canInteract" />
+    <v-btn color="primary" :loading="creatingPost" :disabled="!canInteract" @click="submitPost(blog.id)">Publier</v-btn>
+    <v-alert v-if="!canInteract" type="info" variant="tonal" class="mt-3">Connectez-vous pour publier, commenter et réagir.</v-alert>
     <v-alert v-if="actionError" type="error" variant="tonal" class="mt-3">{{ actionError }}</v-alert>
   </v-card>
 
@@ -218,11 +233,12 @@ const confirmDeletePost = async () => {
               :key="comment.id"
               :comment="comment"
               :post-id="post.id"
+              :can-interact="canInteract"
               @add-comment="createComment"
-              @edit-comment="runAction(() => blogsStore.updateComment($event.commentId, { content: $event.content }))"
-              @delete-comment="runAction(() => blogsStore.deleteComment($event))"
-              @add-reaction="runAction(() => blogsStore.createReaction($event.commentId, { type: $event.type }))"
-              @delete-reaction="runAction(() => blogsStore.deleteReaction($event))"
+              @edit-comment="canInteract ? runAction(() => blogsStore.updateComment($event.commentId, { content: $event.content })) : undefined"
+              @delete-comment="canInteract ? runAction(() => blogsStore.deleteComment($event)) : undefined"
+              @add-reaction="canInteract ? runAction(() => blogsStore.createReaction($event.commentId, { type: $event.type })) : undefined"
+              @delete-reaction="canInteract ? runAction(() => blogsStore.deleteReaction($event)) : undefined"
             />
           </div>
 
@@ -233,8 +249,9 @@ const confirmDeletePost = async () => {
               variant="solo-filled"
               hide-details
               placeholder="Écrire un commentaire..."
+              :disabled="!canInteract"
             />
-            <v-btn color="primary" variant="flat" @click="createRootComment(post.id)">Envoyer</v-btn>
+            <v-btn color="primary" variant="flat" :disabled="!canInteract" @click="createRootComment(post.id)">Envoyer</v-btn>
           </div>
         </v-card-text>
       </v-card>

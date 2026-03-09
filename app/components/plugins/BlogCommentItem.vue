@@ -6,8 +6,10 @@ const props = withDefaults(defineProps<{
   comment: BlogComment
   postId: string
   depth?: number
+  canInteract?: boolean
 }>(), {
   depth: 0,
+  canInteract: true,
 })
 
 const emit = defineEmits<{
@@ -44,7 +46,7 @@ const deleteDialog = ref(false)
 const editContent = ref('')
 
 const submitReply = () => {
-  if (!replyContent.value.trim()) {
+  if (!props.canInteract || !replyContent.value.trim()) {
     return
   }
 
@@ -76,6 +78,10 @@ const confirmEdit = () => {
 }
 
 const addReaction = (type: string) => {
+  if (!props.canInteract) {
+    return
+  }
+
   emit('addReaction', { commentId: props.comment.id, type })
   showReactionPicker.value = false
 }
@@ -92,7 +98,7 @@ const addReaction = (type: string) => {
             <div class="font-weight-bold text-body-2">{{ commentAuthorName }}</div>
             <div class="d-flex align-center ga-2">
               <v-chip v-if="comment.isAuthor" size="x-small" variant="tonal" color="primary">Owner</v-chip>
-              <v-menu v-if="comment.isAuthor" location="bottom end">
+              <v-menu v-if="comment.isAuthor && canInteract" location="bottom end">
                 <template #activator="{ props: menuProps }">
                   <v-btn icon="mdi-dots-vertical" size="x-small" variant="text" v-bind="menuProps" />
                 </template>
@@ -107,8 +113,8 @@ const addReaction = (type: string) => {
         </div>
 
         <div class="d-flex align-center flex-wrap ga-3 mt-1 text-caption text-medium-emphasis action-row">
-          <button class="action-link" type="button" @click="showReactionPicker = !showReactionPicker">J'aime</button>
-          <button class="action-link" type="button" @click="isReplying = !isReplying">Répondre</button>
+          <button class="action-link" type="button" :disabled="!canInteract" @click="canInteract ? showReactionPicker = !showReactionPicker : undefined">J'aime</button>
+          <button class="action-link" type="button" :disabled="!canInteract" @click="canInteract ? isReplying = !isReplying : undefined">Répondre</button>
         </div>
 
         <div v-if="showReactionPicker" class="reaction-picker mt-2">
@@ -131,8 +137,8 @@ const addReaction = (type: string) => {
             type="button"
             class="reaction-pill"
             :class="reactionMeta[reaction.type]?.className"
-            :title="reaction.isAuthor ? 'Cliquer pour supprimer votre réaction' : ''"
-            @click="reaction.isAuthor ? emit('deleteReaction', reaction.id) : undefined"
+            :title="canInteract && reaction.isAuthor ? 'Cliquer pour supprimer votre réaction' : ''"
+            @click="canInteract && reaction.isAuthor ? emit('deleteReaction', reaction.id) : undefined"
           >
             <span>{{ reactionMeta[reaction.type]?.icon ?? '👍' }}</span>
             <span class="text-caption">{{ reaction.type }}</span>
@@ -140,8 +146,8 @@ const addReaction = (type: string) => {
         </div>
 
         <div v-if="isReplying" class="mt-3 d-flex ga-2 align-center">
-          <v-text-field v-model="replyContent" density="compact" hide-details variant="solo-filled" placeholder="Écrire une réponse..." />
-          <v-btn color="primary" variant="flat" @click="submitReply">Publier</v-btn>
+          <v-text-field v-model="replyContent" density="compact" hide-details variant="solo-filled" placeholder="Écrire une réponse..." :disabled="!canInteract" />
+          <v-btn color="primary" variant="flat" :disabled="!canInteract" @click="submitReply">Publier</v-btn>
         </div>
       </div>
     </div>
@@ -153,6 +159,7 @@ const addReaction = (type: string) => {
         :comment="child"
         :post-id="postId"
         :depth="depth + 1"
+        :can-interact="canInteract"
         @add-comment="emit('addComment', $event)"
         @edit-comment="emit('editComment', $event)"
         @delete-comment="emit('deleteComment', $event)"
