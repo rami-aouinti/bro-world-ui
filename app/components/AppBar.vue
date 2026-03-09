@@ -116,7 +116,6 @@ const availableLocales = computed(() => locales.value
   })
   .filter((value): value is { code: string, name: string } => Boolean(value)))
 
-const currentLocaleLabel = computed(() => locale.value.toUpperCase())
 
 const localeFlags: Record<string, string> = {
   en: '🇬🇧',

@@ -48,7 +48,7 @@ const fromLabel = computed(() => {
       />
 
       <v-btn to="/notifications" variant="outlined" prepend-icon="mdi-arrow-left" block>
-        Retour à la liste
+        Go back
       </v-btn>
     </template>
 

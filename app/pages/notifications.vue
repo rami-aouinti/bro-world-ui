@@ -1,10 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import UiListCard from '~/components/ui/UiListCard.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
-import UiStateEmptyState from '~/components/ui/state/UiEmptyState.vue'
-import type { NotificationListResponse } from '~/types/api/notification'
 import { useNotificationsApi } from '~/composables/api/useNotificationsApi'
 
 definePageMeta({
@@ -13,16 +10,29 @@ definePageMeta({
 })
 
 const notificationsApi = useNotificationsApi()
+const isLoading = ref(false)
+const errorMessage = ref('')
+const notificationsResponse = ref<any>(null)
+const notifications = ref<any>(null)
+const loadNotifications = async () => {
+  try {
+    isLoading.value = true
+    errorMessage.value = ''
+    notificationsResponse.value = await notificationsApi.getNotifications(100, 0)
+    notifications.value = await notificationsResponse?.value?.items
+} catch (error) {
+  console.error(error)
+  errorMessage.value = 'Impossible de charger les événements du calendrier.'
+} finally {
+  isLoading.value = false
+}
 
-const { data: notificationsResponse, pending, error } = await useAsyncData<NotificationListResponse>(
-  'notifications-all',
-  () => notificationsApi.getNotifications(100, 0),
-  {
-    default: () => ({ items: [], unreadCount: 0 }),
-  },
-)
+}
+onMounted(async () => {
+  await loadNotifications()
 
-const notifications = computed(() => notificationsResponse.value?.items ?? [])
+  await nextTick()
+})
 </script>
 
 <template>
@@ -40,16 +50,11 @@ const notifications = computed(() => notificationsResponse.value?.items ?? [])
       <v-col cols="12">
         <UiListCard>
           <div class="d-flex align-center justify-space-between mb-4">
-            <h2 class="text-subtitle-1 font-weight-bold mb-0">Toutes les notifications</h2>
-            <v-chip color="primary" size="small" variant="tonal">{{ notifications.length }}</v-chip>
+            <h2 class="text-subtitle-1 font-weight-bold mb-0">All Notifications</h2>
+            <v-chip color="primary" size="small" variant="tonal">{{ notifications?.length }}</v-chip>
           </div>
 
-          <UiStateEmptyState
-            v-if="!pending && (!notifications.length || error)"
-            title="Aucune notification"
-            description="Aucune notification n'est disponible pour le moment."
-            icon="mdi-bell-off-outline"
-          />
+          <v-progress-linear v-if="isLoading" color="primary" indeterminate class="mb-4" />
 
           <v-list v-else class="bg-transparent pa-0" lines="one">
             <v-list-item
