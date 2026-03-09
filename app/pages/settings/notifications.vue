@@ -81,6 +81,7 @@ onMounted(loadPreferences)
           <v-switch
             :model-value="item.switchState"
             :loading="isSavingMap[item.text]"
+            class="notification-switch"
             color="primary"
             hide-details
             @update:model-value="(value) => updatePreference(item, Boolean(value))"
@@ -91,3 +92,13 @@ onMounted(loadPreferences)
     </v-table>
   </SettingsLayout>
 </template>
+
+<style scoped>
+.notification-switch :deep(.v-selection-control) {
+  justify-content: flex-end;
+}
+
+.notification-switch :deep(.v-selection-control__wrapper) {
+  margin-inline-start: 0;
+}
+</style>
