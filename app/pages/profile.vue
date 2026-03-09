@@ -60,6 +60,24 @@ const cards = [
     description: 'Why would anyone pick blue over pink? Pink is obviously a better color.',
   },
 ]
+
+const { initSession } = useAuth()
+const authSession = useAuthSessionStore()
+
+await initSession()
+
+const profile = computed(() => authSession.profile)
+const fullName = computed(() => {
+  if (!profile.value) return 'Guest User'
+  return `${profile.value.firstName} ${profile.value.lastName}`.trim()
+})
+const phone = computed(() => profile.value?.timezone || '—')
+const email = computed(() => profile.value?.email || '—')
+const locationLabel = computed(() => profile.value?.locale || profile.value?.language || '—')
+const profileDescription = computed(() => {
+  if (!profile.value) return 'Connectez-vous pour afficher les informations de profil détaillées.'
+  return `Profil de ${fullName.value} (@${profile.value.username}).`
+})
 </script>
 
 <template>
@@ -67,15 +85,14 @@ const cards = [
     <template #sidebar>
       <h6 class="mb-4 text-h6 font-weight-bold">Profile Information</h6>
       <p class="text-body-1 mb-4 text-medium-emphasis">
-        Hi, I’m Alec Thompson, Decisions: If you can’t decide, the answer is no. If two equally difficult paths,
-        choose the one more painful in the short term.
+        {{ profileDescription }}
       </p>
       <v-divider class="mb-4" />
       <v-list class="pa-0 bg-transparent">
-        <v-list-item class="px-0"><strong>Full Name:</strong>&nbsp; Alec M. Thompson</v-list-item>
-        <v-list-item class="px-0"><strong>Mobile:</strong>&nbsp; (44) 123 1234 123</v-list-item>
-        <v-list-item class="px-0"><strong>Email:</strong>&nbsp; alecthompson@mail.com</v-list-item>
-        <v-list-item class="px-0"><strong>Location:</strong>&nbsp; USA</v-list-item>
+        <v-list-item class="px-0"><strong>Full Name:</strong>&nbsp; {{ fullName }}</v-list-item>
+        <v-list-item class="px-0"><strong>Timezone:</strong>&nbsp; {{ phone }}</v-list-item>
+        <v-list-item class="px-0"><strong>Email:</strong>&nbsp; {{ email }}</v-list-item>
+        <v-list-item class="px-0"><strong>Location:</strong>&nbsp; {{ locationLabel }}</v-list-item>
       </v-list>
     </template>
     <section>
