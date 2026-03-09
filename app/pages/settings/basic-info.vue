@@ -11,15 +11,23 @@ const form = reactive({
   firstName: '',
   lastName: '',
   email: '',
+  title: '',
+  information: '',
   gender: '',
   birthday: '',
   location: '',
   phone: '',
 })
 
+const infoDialog = ref(false)
+const infoForm = reactive({
+  title: '',
+  information: '',
+})
+
 const fullName = computed(() => currentUser.displayName || '—')
-const headline = computed(() => currentUser.me?.profile?.title || 'Member')
-const bio = computed(() => currentUser.me?.profile?.information || 'No bio yet.')
+const headline = computed(() => form.title || 'Member')
+const bio = computed(() => form.information || 'No bio yet.')
 
 const loadProfile = async () => {
   isLoading.value = true
@@ -28,6 +36,8 @@ const loadProfile = async () => {
     form.firstName = currentUser.me?.firstName || ''
     form.lastName = currentUser.me?.lastName || ''
     form.email = currentUser.me?.email || ''
+    form.title = currentUser.me?.profile?.title || ''
+    form.information = currentUser.me?.profile?.information || ''
     form.gender = currentUser.me?.profile?.gender || ''
     form.birthday = currentUser.me?.profile?.birthday || ''
     form.location = currentUser.me?.profile?.location || ''
@@ -63,6 +73,19 @@ const onUploadPhoto = async (event: Event) => {
   }
 }
 
+const onOpenInfoDialog = () => {
+  infoForm.title = form.title
+  infoForm.information = form.information
+  infoDialog.value = true
+}
+
+const onSaveInfoDialog = async () => {
+  form.title = infoForm.title
+  form.information = infoForm.information
+  await onSubmit()
+  infoDialog.value = false
+}
+
 onMounted(loadProfile)
 </script>
 
@@ -91,7 +114,9 @@ onMounted(loadProfile)
       <v-col cols="6">
         <div class="d-flex align-center mb-1">
           <h3 class="text-h6 font-weight-bold mb-0">Profile information</h3>
-          <v-icon class="mx-2">mdi-pencil</v-icon>
+          <v-btn icon variant="text" size="small" class="mx-2" @click="onOpenInfoDialog">
+            <v-icon>mdi-pencil</v-icon>
+          </v-btn>
         </div>
 
         <p class="text-body-1 text-medium-emphasis mb-4">{{ bio }}</p>
@@ -112,6 +137,30 @@ onMounted(loadProfile)
         <v-btn color="primary" type="submit" :loading="saving">Save changes</v-btn>
       </div>
     </v-form>
+
+    <v-dialog v-model="infoDialog" max-width="560">
+      <v-card>
+        <v-card-title>Edit profile information</v-card-title>
+        <v-card-text>
+          <v-text-field
+            v-model="infoForm.title"
+            label="Title"
+            variant="outlined"
+          />
+          <v-textarea
+            v-model="infoForm.information"
+            label="Information"
+            variant="outlined"
+            rows="4"
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="infoDialog = false">Cancel</v-btn>
+          <v-btn color="primary" :loading="saving" @click="onSaveInfoDialog">Save</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </SettingsLayout>
 </template>
 
