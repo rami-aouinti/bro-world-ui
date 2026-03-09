@@ -15,6 +15,13 @@ interface ActionNavItem extends NavItem {
   to: string
 }
 
+interface InboxConversationPreview {
+  id: number
+  name: string
+  excerpt: string
+  unread: number
+}
+
 const router = useRouter()
 const route = useRoute()
 const { t, te, locale, locales, setLocale } = useI18n({ useScope: 'global' })
@@ -25,8 +32,32 @@ const theme = useTheme()
 
 const isProfileMenuOpen = ref(false)
 const isNotificationsMenuOpen = ref(false)
+const isInboxMenuOpen = ref(false)
 const isAuthenticated = computed(() => Boolean(authSession.profile))
 const notificationsApi = useNotificationsApi()
+
+const inboxConversationsPreview = ref<InboxConversationPreview[]>([
+  {
+    id: 1,
+    name: 'Équipe Produit',
+    excerpt: 'On valide la roadmap demain matin.',
+    unread: 2,
+  },
+  {
+    id: 2,
+    name: 'Support Clients',
+    excerpt: '3 tickets urgents à traiter aujourd’hui.',
+    unread: 0,
+  },
+  {
+    id: 3,
+    name: 'Design Guild',
+    excerpt: 'Nouvelles maquettes disponibles sur Figma.',
+    unread: 1,
+  },
+])
+
+const inboxUnreadCount = computed(() => inboxConversationsPreview.value.reduce((total, item) => total + item.unread, 0))
 
 const mainHeaderItems = computed<NavItem[]>(() => [
   { key: 'app.navigation.platform', to: '/platform', icon: 'mdi-view-grid-outline' },
@@ -49,7 +80,6 @@ const actionItems = computed<ActionNavItem[]>(() => {
 
   return [
     { key: 'app.navigation.calendar', to: '/calendar', icon: 'mdi-calendar-month-outline' },
-    { key: 'app.navigation.inbox', to: '/inbox', icon: 'mdi-message-processing-outline' },
   ]
 })
 
@@ -184,6 +214,52 @@ const signOut = async () => {
         >
           <v-icon :icon="action.icon" />
         </v-btn>
+
+        <v-menu v-if="isAuthenticated" location="bottom end" v-model="isInboxMenuOpen">
+          <template #activator="{ props }">
+            <v-btn
+              icon
+              variant="text"
+              class="app-bar__icon-btn"
+              v-bind="props"
+              :aria-label="t('app.navigation.inbox')"
+            >
+              <v-badge :model-value="inboxUnreadCount > 0" :content="inboxUnreadCount" color="primary" offset-x="2" offset-y="2">
+                <v-icon icon="mdi-message-processing-outline" />
+              </v-badge>
+            </v-btn>
+          </template>
+
+          <v-list class="py-1 app-bar__menu" min-width="320">
+            <v-list-item
+              v-for="conversation in inboxConversationsPreview"
+              :key="conversation.id"
+              to="/inbox"
+              rounded="lg"
+              class="mx-2 my-1"
+            >
+              <v-list-item-title class="font-weight-medium text-truncate">{{ conversation.name }}</v-list-item-title>
+              <v-list-item-subtitle class="text-truncate">{{ conversation.excerpt }}</v-list-item-subtitle>
+
+              <template #append>
+                <v-badge
+                  v-if="conversation.unread"
+                  :content="conversation.unread"
+                  color="primary"
+                  inline
+                />
+              </template>
+            </v-list-item>
+
+            <v-list-item
+              to="/inbox"
+              rounded="lg"
+              class="mx-2 my-1 text-primary"
+              title="Show all"
+              prepend-icon="mdi-arrow-right"
+            />
+          </v-list>
+        </v-menu>
 
         <v-menu v-if="isAuthenticated" location="bottom end" v-model="isNotificationsMenuOpen">
           <template #activator="{ props }">
