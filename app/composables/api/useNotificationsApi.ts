@@ -1,5 +1,5 @@
 import { useApiClient } from '../useApiClient'
-import type { NotificationRead } from '~/types/api/notification'
+import type { NotificationListResponse, NotificationRead } from '~/types/api/notification'
 
 export const useNotificationsApi = () => {
   const { apiFetch } = useApiClient()
@@ -7,7 +7,7 @@ export const useNotificationsApi = () => {
 
   return {
     getNotifications(limit = 20, offset = 0) {
-      return apiFetch<NotificationRead[]>(basePath, {
+      return apiFetch<NotificationListResponse>(basePath, {
         method: 'GET',
         query: {
           limit,
@@ -17,6 +17,13 @@ export const useNotificationsApi = () => {
     },
     getNotificationById(id: string) {
       return apiFetch<NotificationRead>(`${basePath}/${id}`, { method: 'GET' })
+    },
+
+    markAllAsRead() {
+      return apiFetch<void>(`${basePath}/read-all`, {
+        method: 'PATCH',
+        body: {},
+      })
     },
   }
 }

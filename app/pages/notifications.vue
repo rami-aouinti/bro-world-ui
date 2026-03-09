@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import UiListCard from '~/components/ui/UiListCard.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import UiStateEmptyState from '~/components/ui/state/UiEmptyState.vue'
-import type { NotificationRead } from '~/types/api/notification'
+import type { NotificationListResponse } from '~/types/api/notification'
 import { useNotificationsApi } from '~/composables/api/useNotificationsApi'
 
 definePageMeta({
@@ -13,13 +14,15 @@ definePageMeta({
 
 const notificationsApi = useNotificationsApi()
 
-const { data: notifications, pending, error } = await useAsyncData<NotificationRead[]>(
+const { data: notificationsResponse, pending, error } = await useAsyncData<NotificationListResponse>(
   'notifications-all',
   () => notificationsApi.getNotifications(100, 0),
   {
-    default: () => [],
+    default: () => ({ items: [], unreadCount: 0 }),
   },
 )
+
+const notifications = computed(() => notificationsResponse.value?.items ?? [])
 </script>
 
 <template>
