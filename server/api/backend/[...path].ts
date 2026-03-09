@@ -39,7 +39,12 @@ const ENTITY_CACHE_PREFIXES = [
   '/api/v1/recruit/public',
   '/api/v1/recruit/private',
   '/api/v1/blogs',
+  '/api/v1/notifications',
 ]
+
+const NOTIFICATION_EVENTS_ROUTE_PREFIX = '/api/v1/notifications'
+const NOTIFICATION_EVENTS_REDIS_KEY = 'notifications:events'
+const NOTIFICATION_EVENTS_MAX_ITEMS = 200
 
 const ENTITY_CACHE_INVALIDATION_RULES: Array<{ routePrefix: string, cachePrefixes: string[] }> = [
   {
@@ -135,6 +140,26 @@ const clearCacheByPrefix = async (prefix: string) => {
     }
   } catch (error) {
     console.warn('Entity cache invalidation failed', error)
+  }
+}
+
+const storeNotificationEvent = async (input: {
+  path: string
+  method: string
+  query: Record<string, any>
+  hasBody: boolean
+}) => {
+  try {
+    const redis = await getRedisClient()
+    const payload = {
+      ...input,
+      createdAt: new Date().toISOString(),
+    }
+
+    await redis.lPush(NOTIFICATION_EVENTS_REDIS_KEY, JSON.stringify(payload))
+    await redis.lTrim(NOTIFICATION_EVENTS_REDIS_KEY, 0, NOTIFICATION_EVENTS_MAX_ITEMS - 1)
+  } catch (error) {
+    console.warn('Notification event store failed', error)
   }
 }
 
@@ -258,6 +283,16 @@ export default defineEventHandler(async (event) => {
     if (shouldCacheEntity) {
       const cacheKey = getEntityCacheKey(targetPath, query)
       await writeCache(cacheKey, response, ONE_DAY_IN_SECONDS, 'Entity')
+    }
+
+    const shouldStoreNotificationEvent = targetPath.startsWith(NOTIFICATION_EVENTS_ROUTE_PREFIX)
+    if (shouldStoreNotificationEvent) {
+      await storeNotificationEvent({
+        path: targetPath,
+        method,
+        query,
+        hasBody: body !== undefined,
+      })
     }
 
     const shouldInvalidateEntityCache = ['POST', 'PATCH', 'DELETE', 'PUT'].includes(method)
