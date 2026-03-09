@@ -68,29 +68,35 @@ onMounted(loadProfile)
 
 <template>
   <SettingsLayout>
-    <div class="d-flex align-center ga-4 mb-6">
-      <div class="profile-photo-wrap">
-        <UiAvatar :src="currentUser.me?.photo || '/images/placeholders/platform-media-fallback.svg'" :name="fullName" size="lg" />
-        <v-btn
-          class="profile-photo-upload-btn"
-          :loading="uploading"
-          size="small"
-          icon="mdi-camera"
-          color="primary"
-          @click="photoInput?.click()"
-        />
-        <input ref="photoInput" type="file" class="d-none" accept="image/*" @change="onUploadPhoto" />
-      </div>
-      <div>
-        <h2 class="text-h5 font-weight-bold mb-1">{{ fullName }}</h2>
-        <p class="text-body-1 text-medium-emphasis mb-0">{{ headline }}</p>
-      </div>
-    </div>
+    <v-row class="ga-4 mb-3">
+      <v-col cols="6">
+        <div class="d-flex align-center ga-2 mb-3">
+          <div class="profile-photo-wrap">
+            <UiAvatar :src="currentUser.me?.photo || '/images/placeholders/platform-media-fallback.svg'" :name="fullName" size="lg" />
+            <v-btn
+                class="profile-photo-upload-btn"
+                :loading="uploading"
+                size="sm"
+                icon="mdi-camera"
+                @click="photoInput?.click()"
+            />
+            <input ref="photoInput" type="file" class="d-none" accept="image/*" @change="onUploadPhoto" />
+          </div>
+          <div>
+            <h2 class="text-h5 font-weight-bold mb-0">{{ fullName }}</h2>
+            <h4 class="text-body-1 text-medium-emphasis mb-0">{{ headline }}</h4>
+          </div>
+        </div>
+      </v-col>
+      <v-col cols="6">
+        <div class="d-flex align-center mb-1">
+          <h3 class="text-h6 font-weight-bold mb-0">Profile information</h3>
+          <v-icon class="mx-2">mdi-pencil</v-icon>
+        </div>
 
-    <h3 class="text-h6 font-weight-bold mb-3">Profile information</h3>
-    <p class="text-body-1 text-medium-emphasis mb-6">{{ bio }}</p>
-
-    <h3 class="text-h5 font-weight-bold mb-6">Basic Info</h3>
+        <p class="text-body-1 text-medium-emphasis mb-4">{{ bio }}</p>
+      </v-col>
+    </v-row>
     <v-progress-linear v-if="isLoading" color="primary" indeterminate class="mb-4" />
     <v-form v-else @submit.prevent="onSubmit">
       <v-row>
