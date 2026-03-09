@@ -12,13 +12,14 @@ definePageMeta({
 const isLoading = ref(false)
 const errorMessage = ref('')
 const blogsStore = useBlogsStore()
+const { isAuthenticated } = useAuth()
 
 const blog = computed(() => blogsStore.general)
 const loadBlogs = async () => {
   try {
     isLoading.value = true
     errorMessage.value = ''
-    await blogsStore.fetchGeneral()
+    await blogsStore.fetchGeneral(false, !isAuthenticated.value)
   } catch (error) {
     console.error(error)
     errorMessage.value = 'Impossible de charger le blog.'
@@ -43,7 +44,7 @@ onMounted(async () => {
     <main>
       <v-progress-linear v-if="isLoading" color="primary" indeterminate class="mb-4" />
       <v-alert v-else-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
-      <BlogFeed v-else-if="blog" :blog="blog" :show-summary="false" />
+      <BlogFeed v-else-if="blog" :blog="blog" :show-summary="false" :can-interact="isAuthenticated" />
     </main>
   </NuxtLayout>
 </template>

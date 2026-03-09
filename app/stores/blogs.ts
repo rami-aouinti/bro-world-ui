@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import type { BlogRead } from '~/types/api/blog'
 import { useBlogsApi } from '~/composables/api/useBlogsApi'
 
+type BlogVisibility = 'public' | 'private'
+
 type BlogCacheEntry = {
   data: BlogRead
   cachedAt: number
@@ -15,9 +17,12 @@ export const useBlogsStore = defineStore('blogs', () => {
   const general = ref<BlogRead | null>(null)
   const cache = ref<Record<string, BlogCacheEntry>>({})
   const isLoading = ref(false)
+  const currentGeneralVisibility = ref<BlogVisibility>('private')
 
-  const fetchGeneral = async (forceRefresh = false) => {
-    const cacheKey = 'general'
+  const fetchGeneral = async (forceRefresh = false, isPublic = false) => {
+    const visibility: BlogVisibility = isPublic ? 'public' : 'private'
+    currentGeneralVisibility.value = visibility
+    const cacheKey = `general:${visibility}`
     const now = Date.now()
     const cacheEntry = cache.value[cacheKey]
 
@@ -29,7 +34,7 @@ export const useBlogsStore = defineStore('blogs', () => {
     isLoading.value = true
 
     try {
-      const response = await blogsApi.getGeneral()
+      const response = await blogsApi.getGeneral(isPublic)
       general.value = response
       cache.value[cacheKey] = {
         data: response,
@@ -44,12 +49,16 @@ export const useBlogsStore = defineStore('blogs', () => {
   }
 
   const invalidateGeneralCache = () => {
-    delete cache.value.general
+    Object.keys(cache.value)
+      .filter(key => key.startsWith('general:'))
+      .forEach((key) => {
+        delete cache.value[key]
+      })
   }
 
   const refreshGeneralInBackground = () => {
     invalidateGeneralCache()
-    void fetchGeneral(true).catch((error) => {
+    void fetchGeneral(true, currentGeneralVisibility.value === 'public').catch((error) => {
       console.error('Failed to refresh general blog in background.', error)
     })
   }

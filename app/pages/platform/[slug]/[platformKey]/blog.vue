@@ -43,7 +43,7 @@ const { data: blog, pending, error } = await useAsyncData(
     <section>
       <v-alert v-if="error" type="error" variant="tonal" class="mb-4">Impossible de charger le blog de cette platform.</v-alert>
       <v-progress-linear v-else-if="pending" color="primary" indeterminate class="mb-4" />
-      <BlogFeed v-else-if="blog" :blog="blog" />
+      <BlogFeed v-else-if="blog" :blog="blog" :can-interact="isAuthenticated" />
     </section>
   </PlatformSplitLayout>
 </template>

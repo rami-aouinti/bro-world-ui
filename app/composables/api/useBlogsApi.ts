@@ -6,8 +6,9 @@ export const useBlogsApi = () => {
   const basePath = '/api/v1/blogs'
 
   return {
-    getGeneral() {
-      return apiFetch<BlogRead>(`${basePath}/general`, { method: 'GET' })
+    getGeneral(isPublic = false) {
+      const endpoint = isPublic ? `${basePath}/general/public` : `${basePath}/general`
+      return apiFetch<BlogRead>(endpoint, { method: 'GET' })
     },
     getApplicationBlog(applicationSlug: string) {
       return apiFetch<BlogRead>(`${basePath}/application/${applicationSlug}`, { method: 'GET' })
