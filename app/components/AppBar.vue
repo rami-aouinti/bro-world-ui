@@ -2,6 +2,8 @@
 import UiAvatar from '~/components/ui/UiAvatar.vue'
 import { computed, ref } from 'vue'
 import { useDisplay, useTheme } from 'vuetify'
+import type { NotificationRead } from '~/types/api/notification'
+import { useNotificationsApi } from '~/composables/api/useNotificationsApi'
 
 interface NavItem {
   key: string
@@ -22,7 +24,9 @@ const { logout } = useAuth()
 const theme = useTheme()
 
 const isProfileMenuOpen = ref(false)
+const isNotificationsMenuOpen = ref(false)
 const isAuthenticated = computed(() => Boolean(authSession.profile))
+const notificationsApi = useNotificationsApi()
 
 const mainHeaderItems = computed<NavItem[]>(() => [
   { key: 'app.navigation.platform', to: '/platform', icon: 'mdi-view-grid-outline' },
@@ -46,9 +50,28 @@ const actionItems = computed<ActionNavItem[]>(() => {
   return [
     { key: 'app.navigation.calendar', to: '/calendar', icon: 'mdi-calendar-month-outline' },
     { key: 'app.navigation.inbox', to: '/inbox', icon: 'mdi-message-processing-outline' },
-    { key: 'app.navigation.notifications', to: '/notifications', icon: 'mdi-bell-outline' },
   ]
 })
+
+const { data: latestNotifications } = useAsyncData<NotificationRead[]>(
+  'appbar-notifications-latest',
+  () => notificationsApi.getNotifications(3, 0),
+  {
+    default: () => [],
+    watch: [isAuthenticated],
+    immediate: isAuthenticated.value,
+  },
+)
+
+const notificationPreviewItems = computed(() => latestNotifications.value ?? [])
+
+const getNotificationAvatarLabel = (notification: NotificationRead) => {
+  if (!notification.from) {
+    return notification.type
+  }
+
+  return `${notification.from.firstName} ${notification.from.lastName}`.trim()
+}
 
 const { mdAndUp } = useDisplay()
 const isDesktop = computed(() => mdAndUp.value)
@@ -152,6 +175,49 @@ const signOut = async () => {
         >
           <v-icon :icon="action.icon" />
         </v-btn>
+
+        <v-menu v-if="isAuthenticated" location="bottom end" v-model="isNotificationsMenuOpen">
+          <template #activator="{ props }">
+            <v-btn
+              icon
+              variant="text"
+              class="app-bar__icon-btn"
+              v-bind="props"
+              :aria-label="t('app.navigation.notifications')"
+            >
+              <v-icon icon="mdi-bell-outline" />
+            </v-btn>
+          </template>
+
+          <v-list class="py-1 app-bar__menu" min-width="320">
+            <v-list-item
+              v-for="notification in notificationPreviewItems"
+              :key="notification.id"
+              :to="`/notifications/${notification.id}`"
+              rounded="lg"
+              class="mx-2 my-1"
+            >
+              <template #prepend>
+                <v-avatar v-if="notification.from?.photo" size="34" class="me-3">
+                  <v-img :src="notification.from.photo" :alt="getNotificationAvatarLabel(notification)" cover />
+                </v-avatar>
+                <v-avatar v-else size="34" color="primary" variant="tonal" class="me-3">
+                  <v-icon icon="mdi-earth" size="18" />
+                </v-avatar>
+              </template>
+
+              <v-list-item-title class="font-weight-medium text-truncate">{{ notification.title }}</v-list-item-title>
+            </v-list-item>
+
+            <v-list-item
+              to="/notifications"
+              rounded="lg"
+              class="mx-2 my-1 text-primary"
+              title="Show all"
+              prepend-icon="mdi-arrow-right"
+            />
+          </v-list>
+        </v-menu>
 
         <v-menu location="bottom end" v-model="isProfileMenuOpen">
           <template #activator="{ props }">
