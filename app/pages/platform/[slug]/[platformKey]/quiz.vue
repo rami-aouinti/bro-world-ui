@@ -22,11 +22,19 @@ const navItems = computed<PlatformNavItem[]>(() => {
   return getCrmNav(slug.value, isOwner.value)
 })
 
-const { data: quiz, pending, error } = await useAsyncData(
+const { data: quiz, pending, error, execute: loadQuiz } = useAsyncData(
   () => `application-quiz-${slug.value}`,
   () => quizApi.getApplicationQuiz(slug.value),
-  { watch: [slug] },
+  {
+    watch: [slug],
+    server: false,
+    immediate: false,
+  },
 )
+
+onMounted(() => {
+  void loadQuiz()
+})
 </script>
 
 <template>

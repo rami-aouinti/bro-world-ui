@@ -22,11 +22,19 @@ const navItems = computed<PlatformNavItem[]>(() => {
   return getCrmNav(slug.value, isOwner.value)
 })
 
-const { data: blog, pending, error } = await useAsyncData(
+const { data: blog, pending, error, execute: loadBlog } = useAsyncData(
   () => `application-blog-${slug.value}`,
   () => blogsApi.getApplicationBlog(slug.value),
-  { watch: [slug] },
+  {
+    watch: [slug],
+    server: false,
+    immediate: false,
+  },
 )
+
+onMounted(() => {
+  void loadBlog()
+})
 </script>
 
 <template>
