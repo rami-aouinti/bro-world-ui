@@ -37,6 +37,11 @@ const commentAuthorName = computed(() => {
   return `${first} ${last}`.trim()
 })
 
+const commentAuthorProfilePath = computed(() => {
+  const username = props.comment.author?.username?.trim()
+  return username ? `/user/${encodeURIComponent(username)}/profile` : undefined
+})
+
 const isReplying = ref(false)
 const replyContent = ref('')
 const showReactionPicker = ref(false)
@@ -95,7 +100,14 @@ const addReaction = (type: string) => {
       <div class="flex-grow-1">
         <div class="comment-bubble px-3 py-2">
           <div class="d-flex align-center justify-space-between ga-2">
-            <div class="font-weight-bold text-body-2">{{ commentAuthorName }}</div>
+            <NuxtLink
+              v-if="commentAuthorProfilePath"
+              :to="commentAuthorProfilePath"
+              class="font-weight-bold text-body-2 text-decoration-none text-primary"
+            >
+              {{ commentAuthorName }}
+            </NuxtLink>
+            <div v-else class="font-weight-bold text-body-2">{{ commentAuthorName }}</div>
             <div class="d-flex align-center ga-2">
               <v-chip v-if="comment.isAuthor" size="x-small" variant="tonal" color="primary">Owner</v-chip>
               <v-menu v-if="comment.isAuthor && canInteract" location="bottom end">
