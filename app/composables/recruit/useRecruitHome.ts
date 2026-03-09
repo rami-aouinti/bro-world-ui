@@ -353,10 +353,9 @@ export const useRecruitHome = () => {
     () => `recruit-home-jobs-${slug.value}-${currentPage.value}-${filterQueryKey.value}`,
     fetchRecruitJobsWithFallback,
     {
-      watch: [slug, currentPage, filterQueryKey],
       default: () => ({ jobs: [], total: 0 }),
       dedupe: 'cancel',
-      lazy: false,
+      lazy: true,
       server: true,
     },
   )
