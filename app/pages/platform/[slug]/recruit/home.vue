@@ -23,6 +23,7 @@ const {
   filters,
   hasFilters,
   jobsData,
+  loadJobs,
   pending,
   error,
   totalPages,
@@ -70,6 +71,10 @@ const { isOwner } = usePlatformPermissions(slug)
 const { t } = useI18n()
 const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
 const visibleJobsCount = computed(() => jobsData.value?.jobs?.length ?? 0)
+
+onMounted(() => {
+  void loadJobs()
+})
 
 
 

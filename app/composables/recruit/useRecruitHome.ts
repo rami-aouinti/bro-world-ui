@@ -349,14 +349,21 @@ export const useRecruitHome = () => {
     }
   }
 
-  const { data: jobsData, pending, error, refresh } = useAsyncData(
+  const { data: jobsData, pending, error, refresh, execute: loadJobs } = useAsyncData(
     () => `recruit-home-jobs-${slug.value}-${currentPage.value}-${filterQueryKey.value}`,
     fetchRecruitJobsWithFallback,
     {
       default: () => ({ jobs: [], total: 0 }),
       dedupe: 'cancel',
-      lazy: true,
-      server: true,
+      server: false,
+      immediate: false,
+    },
+  )
+
+  watch(
+    () => [slug.value, currentPage.value, filterQueryKey.value],
+    () => {
+      void loadJobs()
     },
   )
 
@@ -579,6 +586,7 @@ export const useRecruitHome = () => {
     jobsData,
     pending,
     error,
+    loadJobs,
     totalPages,
     refresh,
     isAuthenticated,

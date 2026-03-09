@@ -95,7 +95,7 @@ const ensureSessionInitialized = async () => {
   await sessionInitPromise
 }
 
-const { data: jobsData, pending: jobsPending, error: jobsError } = await useAsyncData(
+const { data: jobsData, pending: jobsPending, error: jobsError, execute: loadJobs } = useAsyncData(
   () => `recruit-jobs-${appSlug.value}`,
   async () => {
     await ensureSessionInitialized()
@@ -103,7 +103,8 @@ const { data: jobsData, pending: jobsPending, error: jobsError } = await useAsyn
     return response.jobs ?? []
   },
   {
-    watch: [appSlug],
+    server: false,
+    immediate: false,
     default: () => [],
   },
 )
@@ -122,7 +123,7 @@ const jobViewState = computed<'loading' | 'error' | 'ready'>(() => {
   return 'ready'
 })
 
-const { data: applications, pending: applicationsPending, refresh: refreshApplications } = await useAsyncData(
+const { data: applications, pending: applicationsPending, refresh: refreshApplications, execute: loadApplications } = useAsyncData(
   () => `job-applications-${job.value?.id ?? 'none'}`,
   async () => {
     if (!job.value?.id || !job.value.owner) {
@@ -139,9 +140,22 @@ const { data: applications, pending: applicationsPending, refresh: refreshApplic
     return response
   },
   {
-    watch: [() => job.value?.id, () => job.value?.owner],
+    server: false,
+    immediate: false,
     default: () => [],
   },
+)
+
+onMounted(() => {
+  void loadJobs()
+})
+
+watch(
+  () => [job.value?.id, job.value?.owner],
+  () => {
+    void loadApplications()
+  },
+  { immediate: true },
 )
 
 const statusUpdateLoading = ref<string | null>(null)

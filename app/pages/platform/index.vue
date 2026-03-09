@@ -28,13 +28,18 @@ const selectedApp = ref<(typeof applicationsStore.items.value)[number] | null>(
 );
 const platformKeyOptions = ["crm", "recruit", "school", "shop"] as const;
 
-const { pending: applicationsPending } = useAsyncData(
+const { pending: applicationsPending, execute: loadApplications } = useAsyncData(
   "platform-applications",
   () => applicationsStore.fetch({ limit: 5 }),
   {
     server: false,
+    immediate: false,
   },
 );
+
+onMounted(() => {
+  void loadApplications();
+});
 
 const loading = computed(
   () => applicationsPending.value || applicationsStore.isLoading,
