@@ -7,17 +7,13 @@ import { crmSettingsSections } from '~/data/platform-enhanced'
 import { getCrmNav } from '~/data/platform-nav'
 
 definePageMeta({ public: true, requiresAuth: false })
-const route = useRoute()
-const slug = computed(() => String(route.params.slug ?? ''))
-const { isOwner } = usePlatformPermissions(slug)
-
-const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
+const { slug, navItems } = usePlatformSettingsNav(getCrmNav)
 </script>
 
 <template>
   <PlatformSplitLayout>
     <template #sidebar>
-      <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
+      <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" />
     </template>
 
     <section>

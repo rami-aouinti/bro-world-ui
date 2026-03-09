@@ -3,10 +3,10 @@ definePageMeta({ public: false, requiresAuth: true })
 
 const currentUser = useCurrentUserStore()
 const { logout } = useAuth()
-const deleting = ref(false)
-const confirmText = ref('')
 const router = useRouter()
 
+const deleting = ref(false)
+const confirmText = ref('')
 const canDelete = computed(() => confirmText.value.trim().toUpperCase() === 'DELETE')
 
 const onDelete = async () => {
@@ -22,40 +22,6 @@ const onDelete = async () => {
     deleting.value = false
   }
 }
-
-const isLoading = ref(true)
-const profile = ref<any>(null)
-const email = ref<any>(null)
-const username = ref<any>(null)
-const firstName = ref<any>(null)
-const lastName = ref<any>(null)
-const gender = ref<any>(null)
-const phone = ref<any>(null)
-const location = ref<any>(null)
-const birthday = ref<any>(null)
-const profileDescription = ref<any>(null)
-
-
-const loadProfile = async () => {
-  profile.value = await currentUser.fetchMe();
-  firstName.value = await currentUser.me?.firstName || '—';
-  lastName.value = await currentUser.me?.lastName || '—';
-  email.value = await currentUser.me?.email || '—';
-  gender.value = await currentUser.me?.profile?.gender || '—';
-  username.value = await currentUser.me?.username || '—';
-  location.value = await currentUser.me?.profile?.location || '—';
-  birthday.value = await currentUser.me?.profile?.birthday || '—';
-  phone.value = await currentUser.me?.profile?.phone || '—';
-  profileDescription.value = await currentUser.me?.profile?.information || 'No profile information yet.';
-  isLoading.value = false;
-
-}
-
-onMounted(async () => {
-  await loadProfile()
-
-  await nextTick()
-})
 </script>
 
 <template>
