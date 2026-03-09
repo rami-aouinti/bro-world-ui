@@ -34,8 +34,8 @@
   box-shadow: var(--app-split-shell-shadow);
   backdrop-filter: blur(var(--app-split-shell-blur));
   -webkit-backdrop-filter: blur(var(--app-split-shell-blur));
-  animation: app-split-shell-fade-slide var(--app-split-shell-transition);
-  transition: box-shadow var(--app-split-shell-transition), transform var(--app-split-shell-transition);
+  animation: app-split-shell-fade-in var(--app-split-shell-transition);
+  transition: box-shadow var(--app-split-shell-transition);
 }
 
 .app-split-shell__left:hover,
@@ -52,15 +52,13 @@
   padding: var(--app-split-shell-margin);
 }
 
-@keyframes app-split-shell-fade-slide {
+@keyframes app-split-shell-fade-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
