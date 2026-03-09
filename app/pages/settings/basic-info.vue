@@ -4,6 +4,8 @@ definePageMeta({ public: false, requiresAuth: true })
 const currentUser = useCurrentUserStore()
 const saving = ref(false)
 const isLoading = ref(true)
+const uploading = ref(false)
+const photoInput = ref<HTMLInputElement | null>(null)
 
 const form = reactive({
   firstName: '',
@@ -14,6 +16,10 @@ const form = reactive({
   location: '',
   phone: '',
 })
+
+const fullName = computed(() => currentUser.displayName || '—')
+const headline = computed(() => currentUser.me?.profile?.title || 'Member')
+const bio = computed(() => currentUser.me?.profile?.information || 'No bio yet.')
 
 const loadProfile = async () => {
   isLoading.value = true
@@ -42,11 +48,48 @@ const onSubmit = async () => {
   }
 }
 
+const onUploadPhoto = async (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  uploading.value = true
+  try {
+    await currentUser.uploadPhoto(file)
+  }
+  finally {
+    uploading.value = false
+    input.value = ''
+  }
+}
+
 onMounted(loadProfile)
 </script>
 
 <template>
   <SettingsLayout>
+    <div class="d-flex align-center ga-4 mb-6">
+      <div class="profile-photo-wrap">
+        <UiAvatar :src="currentUser.me?.photo || '/images/placeholders/platform-media-fallback.svg'" :name="fullName" size="lg" />
+        <v-btn
+          class="profile-photo-upload-btn"
+          :loading="uploading"
+          size="small"
+          icon="mdi-camera"
+          color="primary"
+          @click="photoInput?.click()"
+        />
+        <input ref="photoInput" type="file" class="d-none" accept="image/*" @change="onUploadPhoto" />
+      </div>
+      <div>
+        <h2 class="text-h5 font-weight-bold mb-1">{{ fullName }}</h2>
+        <p class="text-body-1 text-medium-emphasis mb-0">{{ headline }}</p>
+      </div>
+    </div>
+
+    <h3 class="text-h6 font-weight-bold mb-3">Profile information</h3>
+    <p class="text-body-1 text-medium-emphasis mb-6">{{ bio }}</p>
+
     <h3 class="text-h5 font-weight-bold mb-6">Basic Info</h3>
     <v-progress-linear v-if="isLoading" color="primary" indeterminate class="mb-4" />
     <v-form v-else @submit.prevent="onSubmit">
@@ -65,3 +108,16 @@ onMounted(loadProfile)
     </v-form>
   </SettingsLayout>
 </template>
+
+<style scoped>
+.profile-photo-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.profile-photo-upload-btn {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+}
+</style>
