@@ -9,6 +9,12 @@ export interface NotificationRead {
   title: string
   description: string
   type: string
+  read: boolean
   createdAt: string
   from: NotificationFrom | null
+}
+
+export interface NotificationListResponse {
+  items: NotificationRead[]
+  unreadCount: number
 }

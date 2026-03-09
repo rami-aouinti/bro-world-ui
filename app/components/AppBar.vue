@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import UiAvatar from '~/components/ui/UiAvatar.vue'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useDisplay, useTheme } from 'vuetify'
-import type { NotificationRead } from '~/types/api/notification'
+import type { NotificationListResponse, NotificationRead } from '~/types/api/notification'
 import { useNotificationsApi } from '~/composables/api/useNotificationsApi'
 
 interface NavItem {
@@ -53,17 +53,27 @@ const actionItems = computed<ActionNavItem[]>(() => {
   ]
 })
 
-const { data: latestNotifications } = useAsyncData<NotificationRead[]>(
+const { data: notificationsSummary, refresh: refreshNotificationsSummary } = useAsyncData<NotificationListResponse>(
   'appbar-notifications-latest',
   () => notificationsApi.getNotifications(3, 0),
   {
-    default: () => [],
+    default: () => ({ items: [], unreadCount: 0 }),
     watch: [isAuthenticated],
     immediate: isAuthenticated.value,
   },
 )
 
-const notificationPreviewItems = computed(() => latestNotifications.value ?? [])
+const notificationPreviewItems = computed(() => notificationsSummary.value?.items ?? [])
+const unreadNotificationsCount = computed(() => notificationsSummary.value?.unreadCount ?? 0)
+
+watch(isNotificationsMenuOpen, async (isOpen) => {
+  if (!isOpen || unreadNotificationsCount.value === 0) {
+    return
+  }
+
+  await notificationsApi.markAllAsRead()
+  await refreshNotificationsSummary()
+})
 
 const getNotificationAvatarLabel = (notification: NotificationRead) => {
   if (!notification.from) {
@@ -185,7 +195,9 @@ const signOut = async () => {
               v-bind="props"
               :aria-label="t('app.navigation.notifications')"
             >
-              <v-icon icon="mdi-bell-outline" />
+              <v-badge :model-value="unreadNotificationsCount > 0" :content="unreadNotificationsCount" color="error" offset-x="2" offset-y="2">
+                <v-icon icon="mdi-bell-outline" />
+              </v-badge>
             </v-btn>
           </template>
 
