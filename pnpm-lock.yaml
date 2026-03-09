@@ -2706,8 +2706,8 @@ packages:
   fast-levenshtein@2.0.6:
     resolution: {integrity: sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==}
 
-  fast-npm-meta@1.4.0:
-    resolution: {integrity: sha512-YT6/YWqttrjKqO0jtdyEgY/Spo4RTk3rKxzbxPNuqPVm73LAg0j3Csi0abGj/DaLmbT6EEQRvx1xmYr8hBripQ==}
+  fast-npm-meta@1.4.2:
+    resolution: {integrity: sha512-XXyd9d3ie/JeIIjm6WeKalvapGGFI4ShAjPJM78vgUFYzoEsuNSjvvVTuht0XZcwbVdOnEEGzhxwguRbxkIcDg==}
     hasBin: true
 
   fast-png@6.4.0:
@@ -5176,7 +5176,7 @@ snapshots:
       destr: 2.0.5
       error-stack-parser-es: 1.0.5
       execa: 8.0.1
-      fast-npm-meta: 1.4.0
+      fast-npm-meta: 1.4.2
       get-port-please: 3.2.0
       hookable: 6.0.1
       image-meta: 0.2.2
@@ -6969,7 +6969,7 @@ snapshots:
 
   fast-levenshtein@2.0.6: {}
 
-  fast-npm-meta@1.4.0: {}
+  fast-npm-meta@1.4.2: {}
 
   fast-png@6.4.0:
     dependencies:

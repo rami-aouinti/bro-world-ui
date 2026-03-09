@@ -138,8 +138,7 @@ const editPost = async (postId: string, content: string, filePath: string | null
           <div class="d-flex align-center ga-3">
             <UiAvatar :src="post.author?.photo ?? undefined" :name="postAuthorName(post)" size="md" />
             <div>
-              <div class="text-subtitle-1 font-weight-bold text-white">{{ postAuthorName(post) }}</div>
-              <div class="text-caption text-medium-emphasis">Publication</div>
+              <div class="text-subtitle-1 font-weight-bold">{{ postAuthorName(post) }}</div>
             </div>
           </div>
 
@@ -150,7 +149,7 @@ const editPost = async (postId: string, content: string, filePath: string | null
         </v-card-title>
 
         <v-card-text>
-          <p class="mb-4 text-body-1 text-white">{{ post?.content }}</p>
+          <p class="mb-4 text-body-1">{{ post?.content }}</p>
 
           <div v-if="post.filePath" class="mb-4">
             <v-img
@@ -217,13 +216,6 @@ const editPost = async (postId: string, content: string, filePath: string | null
 </template>
 
 <style scoped>
-.blog-post-card,
-.create-post-card {
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: #242526;
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28);
-}
-
 .stats-row {
   min-height: 24px;
 }

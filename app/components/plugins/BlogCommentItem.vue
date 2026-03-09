@@ -163,23 +163,14 @@ const addReaction = (type: string) => {
 }
 
 .comment-bubble {
-  background: #242526;
   border-radius: 18px;
-  color: rgba(255, 255, 255, 0.92);
 }
 
 .action-row {
   padding-inline-start: 8px;
 }
 
-.action-link {
-  color: rgba(255, 255, 255, 0.75);
-  font-weight: 600;
-}
 
-.action-link:hover {
-  color: rgba(255, 255, 255, 0.95);
-}
 
 .action-danger {
   color: #ff9a9a;
@@ -190,8 +181,6 @@ const addReaction = (type: string) => {
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  background: #3a3b3c;
-  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 999px;
   padding: 6px 8px;
 }
@@ -212,8 +201,6 @@ const addReaction = (type: string) => {
   gap: 6px;
   border-radius: 999px;
   padding: 4px 10px;
-  background: #3a3b3c;
-  color: #f0f2f5;
   border: 1px solid transparent;
 }
 
