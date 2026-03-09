@@ -1,62 +1,48 @@
 <script setup lang="ts">
 definePageMeta({ public: false, requiresAuth: true })
 
-const saving = ref(false)
 const currentUser = useCurrentUserStore()
+const saving = ref(false)
+const isLoading = ref(true)
+
+const form = reactive({
+  firstName: '',
+  lastName: '',
+  email: '',
+  gender: '',
+  birthday: '',
+  location: '',
+  phone: '',
+})
+
+const loadProfile = async () => {
+  isLoading.value = true
+  try {
+    await currentUser.fetchMe()
+    form.firstName = currentUser.me?.firstName || ''
+    form.lastName = currentUser.me?.lastName || ''
+    form.email = currentUser.me?.email || ''
+    form.gender = currentUser.me?.profile?.gender || ''
+    form.birthday = currentUser.me?.profile?.birthday || ''
+    form.location = currentUser.me?.profile?.location || ''
+    form.phone = currentUser.me?.profile?.phone || ''
+  }
+  finally {
+    isLoading.value = false
+  }
+}
 
 const onSubmit = async () => {
   saving.value = true
   try {
-    await currentUser.updateProfile({
-      ...form,
-    })
-    // updated
+    await currentUser.updateProfile({ ...form })
   }
   finally {
     saving.value = false
   }
 }
-const isLoading = ref(true)
-const profile = ref<any>(null)
-const email = ref<any>(null)
-const username = ref<any>(null)
-const firstName = ref<any>(null)
-const lastName = ref<any>(null)
-const gender = ref<any>(null)
-const phone = ref<any>(null)
-const location = ref<any>(null)
-const birthday = ref<any>(null)
-const profileDescription = ref<any>(null)
 
-
-const loadProfile = async () => {
-  profile.value = await currentUser.fetchMe();
-  firstName.value = await currentUser.me?.firstName || '—';
-  lastName.value = await currentUser.me?.lastName || '—';
-  email.value = await currentUser.me?.email || '—';
-  gender.value = await currentUser.me?.profile?.gender || '—';
-  username.value = await currentUser.me?.username || '—';
-  location.value = await currentUser.me?.profile?.location || '—';
-  birthday.value = await currentUser.me?.profile?.birthday || '—';
-  phone.value = await currentUser.me?.profile?.phone || '—';
-  profileDescription.value = await currentUser.me?.profile?.information || 'No profile information yet.';
-  isLoading.value = false;
-
-}
-const form = reactive({
-  firstName:  firstName ?? '',
-  lastName:  lastName ?? '',
-  email: email ?? '',
-  gender:  gender ?? '',
-  birthday:  birthday ?? '',
-  location:  location ?? '',
-  phone:  phone ?? '',
-})
-onMounted(async () => {
-  await loadProfile()
-
-  await nextTick()
-})
+onMounted(loadProfile)
 </script>
 
 <template>

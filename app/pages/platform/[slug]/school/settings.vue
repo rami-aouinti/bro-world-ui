@@ -7,10 +7,7 @@ import { schoolSettingsSections } from '~/data/platform-enhanced'
 import { getSchoolNav } from '~/data/platform-nav'
 
 definePageMeta({ public: true, requiresAuth: false })
-const route = useRoute()
-const slug = computed(() => String(route.params.slug ?? ''))
-const { isOwner } = usePlatformPermissions(slug)
-const navItems = computed(() => getSchoolNav(slug.value, isOwner.value))
+const { slug, navItems } = usePlatformSettingsNav(getSchoolNav)
 </script>
 
 <template>
