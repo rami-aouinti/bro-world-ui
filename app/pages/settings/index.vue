@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({
-  public: true,
-  requiresAuth: false,
+  public: false,
+  requiresAuth: true,
   redirect: '/settings/basic-info',
 })
 </script>
