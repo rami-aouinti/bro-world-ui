@@ -18,7 +18,7 @@ const countReactions = (comments: BlogComment[]): number => comments.reduce((tot
   <BlogSummaryCard v-if="showSummary" :blog="blog" />
 
   <v-row v-if="blog?.posts">
-    <v-col v-for="(post, index) in blog?.posts" :key="post.id" cols="12" md="6">
+    <v-col v-for="(post, index) in blog?.posts" :key="post.id" cols="12">
       <v-card rounded="xl" class="h-100">
         <v-card-title class="text-subtitle-1 font-weight-bold">Post #{{ index + 1 }}</v-card-title>
         <v-card-text>

@@ -37,9 +37,7 @@ onMounted(async () => {
 <template>
   <NuxtLayout name="default">
     <template #layout-sidebar>
-      <aside>
-        <BlogSummaryCard v-if="!isLoading && blog" :blog="blog" />
-      </aside>
+      <BlogSummaryCard v-if="!isLoading && blog" :blog="blog" />
     </template>
 
     <main>
