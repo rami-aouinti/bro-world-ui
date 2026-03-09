@@ -15,9 +15,19 @@ const emit = defineEmits<{
   editComment: [payload: { commentId: string, content: string }]
   deleteComment: [commentId: string]
   addReaction: [payload: { commentId: string, type: string }]
-  editReaction: [payload: { reactionId: string, type: string }]
   deleteReaction: [reactionId: string]
 }>()
+
+const reactionMeta: Record<string, { icon: string, label: string, className: string }> = {
+  like: { icon: '👍', label: 'Like', className: 'reaction-like' },
+  heart: { icon: '❤️', label: 'Love', className: 'reaction-heart' },
+  laugh: { icon: '😂', label: 'Haha', className: 'reaction-laugh' },
+  wow: { icon: '😮', label: 'Wow', className: 'reaction-wow' },
+  sad: { icon: '😢', label: 'Sad', className: 'reaction-sad' },
+  angry: { icon: '😡', label: 'Angry', className: 'reaction-angry' },
+}
+
+const availableReactionTypes = Object.keys(reactionMeta)
 
 const commentAuthorName = computed(() => {
   const first = props.comment.author?.firstName ?? 'Unknown'
@@ -27,7 +37,8 @@ const commentAuthorName = computed(() => {
 
 const isReplying = ref(false)
 const replyContent = ref('')
-const marginStart = computed(() => Math.min(props.depth * 20, 60))
+const showReactionPicker = ref(false)
+const marginStart = computed(() => Math.min(props.depth * 24, 72))
 
 const submitReply = () => {
   if (!replyContent.value.trim()) {
@@ -60,57 +71,71 @@ const editCurrentComment = () => {
   })
 }
 
-const reactionTypes = ['like', 'heart', 'laugh']
+const addReaction = (type: string) => {
+  emit('addReaction', { commentId: props.comment.id, type })
+  showReactionPicker.value = false
+}
 </script>
 
 <template>
   <div class="comment-item" :style="{ marginInlineStart: `${marginStart}px` }">
-    <div class="d-flex ga-3 align-start">
+    <div class="d-flex ga-2 align-start">
       <UiAvatar :src="comment.author?.photo ?? undefined" :name="commentAuthorName" size="sm" />
 
       <div class="flex-grow-1">
-        <div class="comment-bubble pa-3">
-          <div class="font-weight-bold text-body-2">{{ commentAuthorName }}</div>
+        <div class="comment-bubble px-3 py-2">
+          <div class="d-flex align-center justify-space-between ga-2">
+            <div class="font-weight-bold text-body-2">{{ commentAuthorName }}</div>
+            <v-chip v-if="comment.isAuthor" size="x-small" variant="tonal" color="primary">Owner</v-chip>
+          </div>
           <div class="text-body-2 mt-1">{{ comment.content }}</div>
         </div>
 
-        <div class="d-flex align-center flex-wrap ga-3 mt-2 text-caption text-medium-emphasis">
-          <button class="action-link" @click="isReplying = !isReplying">Répondre</button>
-          <button class="action-link" @click="editCurrentComment">Modifier</button>
-          <button class="action-link" @click="emit('deleteComment', comment.id)">Supprimer</button>
+        <div class="d-flex align-center flex-wrap ga-3 mt-1 text-caption text-medium-emphasis action-row">
+          <button class="action-link" type="button" @click="showReactionPicker = !showReactionPicker">J'aime</button>
+          <button class="action-link" type="button" @click="isReplying = !isReplying">Répondre</button>
+          <template v-if="comment.isAuthor">
+            <button class="action-link" type="button" @click="editCurrentComment">Modifier</button>
+            <button class="action-link action-danger" type="button" @click="emit('deleteComment', comment.id)">Supprimer</button>
+          </template>
+        </div>
 
-          <div class="d-flex ga-1">
-            <v-btn
-              v-for="type in reactionTypes"
-              :key="type"
-              size="x-small"
-              variant="tonal"
-              color="primary"
-              @click="emit('addReaction', { commentId: comment.id, type })"
-            >
-              {{ type }}
-            </v-btn>
-          </div>
+        <div v-if="showReactionPicker" class="reaction-picker mt-2">
+          <button
+            v-for="type in availableReactionTypes"
+            :key="type"
+            class="reaction-emoji"
+            type="button"
+            :title="reactionMeta[type]?.label"
+            @click="addReaction(type)"
+          >
+            {{ reactionMeta[type]?.icon ?? '👍' }}
+          </button>
         </div>
 
         <div v-if="comment.reactions?.length" class="d-flex flex-wrap ga-2 mt-2">
-          <v-chip v-for="reaction in comment.reactions" :key="reaction.id" size="small" variant="outlined">
-            {{ reaction.type }}
-            <template #append>
-              <v-icon size="14" icon="mdi-pencil" class="ms-1" @click="emit('editReaction', { reactionId: reaction.id, type: 'heart' })" />
-              <v-icon size="14" icon="mdi-close" class="ms-1" @click="emit('deleteReaction', reaction.id)" />
-            </template>
-          </v-chip>
+          <button
+            v-for="reaction in comment.reactions"
+            :key="reaction.id"
+            type="button"
+            class="reaction-pill"
+            :class="reactionMeta[reaction.type]?.className"
+            :title="reaction.isAuthor ? 'Cliquer pour supprimer votre réaction' : ''"
+            @click="reaction.isAuthor ? emit('deleteReaction', reaction.id) : undefined"
+          >
+            <span>{{ reactionMeta[reaction.type]?.icon ?? '👍' }}</span>
+            <span class="text-caption">{{ reaction.type }}</span>
+          </button>
         </div>
 
-        <div v-if="isReplying" class="mt-3 d-flex ga-2">
-          <v-text-field v-model="replyContent" density="compact" hide-details placeholder="Écrire une réponse..." />
-          <v-btn color="primary" @click="submitReply">Publier</v-btn>
+        <div v-if="isReplying" class="mt-3 d-flex ga-2 align-center">
+          <v-text-field v-model="replyContent" density="compact" hide-details variant="solo-filled" placeholder="Écrire une réponse..." />
+          <v-btn color="primary" variant="flat" @click="submitReply">Publier</v-btn>
         </div>
       </div>
     </div>
 
-    <div v-if="comment.children?.length" class="mt-3 d-flex flex-column ga-3">
+    <div v-if="comment.children?.length" class="mt-3 d-flex flex-column ga-3 children-wrapper">
       <BlogCommentItem
         v-for="child in comment.children"
         :key="child.id"
@@ -121,7 +146,6 @@ const reactionTypes = ['like', 'heart', 'laugh']
         @edit-comment="emit('editComment', $event)"
         @delete-comment="emit('deleteComment', $event)"
         @add-reaction="emit('addReaction', $event)"
-        @edit-reaction="emit('editReaction', $event)"
         @delete-reaction="emit('deleteReaction', $event)"
       />
     </div>
@@ -130,17 +154,77 @@ const reactionTypes = ['like', 'heart', 'laugh']
 
 <style scoped>
 .comment-item {
-  border-left: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  position: relative;
+}
+
+.children-wrapper {
+  border-left: 2px solid rgba(var(--v-theme-on-surface), 0.12);
   padding-inline-start: 12px;
 }
 
 .comment-bubble {
-  background: rgba(var(--v-theme-on-surface), 0.06);
-  border-radius: 12px;
+  background: #242526;
+  border-radius: 18px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.action-row {
+  padding-inline-start: 8px;
 }
 
 .action-link {
-  color: rgb(var(--v-theme-primary));
+  color: rgba(255, 255, 255, 0.75);
   font-weight: 600;
 }
+
+.action-link:hover {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.action-danger {
+  color: #ff9a9a;
+}
+
+.reaction-picker {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: #3a3b3c;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  padding: 6px 8px;
+}
+
+.reaction-emoji {
+  font-size: 22px;
+  line-height: 1;
+  transition: transform 0.15s ease;
+}
+
+.reaction-emoji:hover {
+  transform: translateY(-2px) scale(1.08);
+}
+
+.reaction-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: #3a3b3c;
+  color: #f0f2f5;
+  border: 1px solid transparent;
+}
+
+.reaction-pill:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.reaction-like { border-color: rgba(24, 119, 242, 0.5); }
+.reaction-heart { border-color: rgba(242, 82, 104, 0.5); }
+.reaction-laugh,
+.reaction-wow,
+.reaction-sad,
+.reaction-angry { border-color: rgba(252, 214, 103, 0.5); }
 </style>

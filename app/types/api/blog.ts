@@ -3,6 +3,7 @@ import type { UUID } from './common'
 export interface BlogReaction {
   id: UUID
   authorId: UUID
+  isAuthor: boolean
   author?: BlogAuthor
   type: string
 }
@@ -16,6 +17,7 @@ export interface BlogAuthor {
 export interface BlogComment {
   id: UUID
   authorId: UUID
+  isAuthor: boolean
   author?: BlogAuthor
   content: string
   filePath: string | null
@@ -26,6 +28,7 @@ export interface BlogComment {
 export interface BlogPost {
   id: UUID
   authorId: UUID
+  isAuthor: boolean
   author?: BlogAuthor
   content: string
   filePath: string | null
