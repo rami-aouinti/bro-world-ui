@@ -21,7 +21,7 @@ const loadBlogs = async () => {
     blog.value = await blogsStore.fetchGeneral()
   } catch (error) {
     console.error(error)
-    errorMessage.value = 'Impossible de charger les événements du calendrier.'
+    errorMessage.value = 'Impossible de charger le blog.'
   } finally {
     isLoading.value = false
   }
@@ -43,7 +43,7 @@ onMounted(async () => {
     <main>
       <v-progress-linear v-if="isLoading" color="primary" indeterminate class="mb-4" />
       <v-alert v-else-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
-      <BlogFeed v-else-if="blog" :blog="blog" :show-summary="false" />
+      <BlogFeed v-else-if="blog" :blog="blog" :show-summary="false" @refresh="loadBlogs" />
     </main>
   </NuxtLayout>
 </template>
