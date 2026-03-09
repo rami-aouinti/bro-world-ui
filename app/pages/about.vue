@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import UiPageSection from '~/components/ui/UiPageSection.vue'
-
 definePageMeta({
   public: true,
   requiresAuth: false,
@@ -47,70 +45,79 @@ interface AboutCta {
   secondaryAction: string
 }
 
-const { t, tm, rt } = useI18n()
+interface AboutPagePayload {
+  hero: AboutHero
+  metricsTitle: string
+  missionCards: AboutMissionCard[]
+  metrics: AboutMetric[]
+  timelineTitle: string
+  timeline: AboutTimelineItem[]
+  cta: AboutCta
+}
 
-const resolveText = (message: unknown) => rt(message as string)
-
-const hero = computed<AboutHero>(() => {
-  const rawHero = tm('about.hero') as AboutHero
-
-  return {
-    ...rawHero,
-    badge: resolveText(rawHero.badge),
-    title: resolveText(rawHero.title),
-    subtitle: resolveText(rawHero.subtitle),
-    paragraphs: rawHero.paragraphs.map(resolveText),
-    bullets: rawHero.bullets.map(resolveText),
-    primaryCta: resolveText(rawHero.primaryCta),
-    secondaryCta: resolveText(rawHero.secondaryCta),
-  }
-})
-
-const missionCards = computed<AboutMissionCard[]>(() => {
-  const rawMissionCards = tm('about.missionCards') as AboutMissionCard[]
-
-  return rawMissionCards.map((card) => ({
-    ...card,
-    title: resolveText(card.title),
-    description: resolveText(card.description),
-    paragraphs: card.paragraphs.map(resolveText),
-    bullets: card.bullets.map(resolveText),
-  }))
-})
-
-const metrics = computed<AboutMetric[]>(() => {
-  const rawMetrics = tm('about.metrics') as AboutMetric[]
-
-  return rawMetrics.map((metric) => ({
-    ...metric,
-    value: resolveText(metric.value),
-    label: resolveText(metric.label),
-    context: resolveText(metric.context),
-  }))
-})
-
-const timeline = computed<AboutTimelineItem[]>(() => {
-  const rawTimeline = tm('about.timeline') as AboutTimelineItem[]
-
-  return rawTimeline.map((entry) => ({
-    ...entry,
-    title: resolveText(entry.title),
-    period: resolveText(entry.period),
-    description: resolveText(entry.description),
-    highlights: entry.highlights.map(resolveText),
-  }))
-})
-
-const cta = computed<AboutCta>(() => {
-  const rawCta = tm('about.cta') as AboutCta
-
-  return {
-    ...rawCta,
-    title: resolveText(rawCta.title),
-    description: resolveText(rawCta.description),
-    primaryAction: resolveText(rawCta.primaryAction),
-    secondaryAction: resolveText(rawCta.secondaryAction),
-  }
+// Mock de réponse API (GET /api/public/pages/about)
+const aboutPagePayload = ref<AboutPagePayload>({
+  hero: {
+    badge: 'À propos',
+    title: 'Nous aidons les équipes à lancer plus vite',
+    subtitle: 'Page pilotée par un JSON mocké pour préparer le contrat backend.',
+    paragraphs: [
+      'Cette section représente le bloc hero que le backend devra retourner.',
+      'Chaque champ visible ici est un exemple de donnée dynamique venant d’un endpoint.',
+    ],
+    bullets: [
+      'Positionnement produit',
+      'Proposition de valeur',
+      'Actions principales',
+    ],
+    primaryCta: 'Demander une démo',
+    secondaryCta: 'Voir la roadmap',
+  },
+  metricsTitle: 'Chiffres clés',
+  missionCards: [
+    {
+      title: 'Mission',
+      description: 'Ce que nous voulons accomplir à long terme.',
+      paragraphs: ['Rendre la collaboration produit plus simple.', 'Réduire le temps de mise en production.'],
+      bullets: ['Qualité', 'Vitesse', 'Transparence'],
+      icon: 'mdi-rocket-launch-outline',
+    },
+    {
+      title: 'Valeurs',
+      description: 'Principes de fonctionnement pour l’équipe et les clients.',
+      paragraphs: ['Décisions basées sur la donnée.', 'Feedback continu des utilisateurs.'],
+      bullets: ['Ownership', 'Empathie', 'Amélioration continue'],
+      icon: 'mdi-hand-heart-outline',
+    },
+  ],
+  metrics: [
+    { value: '120+', label: 'Projets livrés', context: 'sur 24 derniers mois', icon: 'mdi-briefcase-outline' },
+    { value: '98%', label: 'Satisfaction client', context: 'NPS trimestriel', icon: 'mdi-thumb-up-outline' },
+    { value: '35%', label: 'Gain de productivité', context: 'moyenne observée', icon: 'mdi-chart-line' },
+  ],
+  timelineTitle: 'Timeline',
+  timeline: [
+    {
+      title: 'Lancement de la plateforme',
+      period: '2022',
+      description: 'Première version publique avec les fonctionnalités core.',
+      highlights: ['Gestion des utilisateurs', 'Tableau de bord', 'Auth sécurisée'],
+      icon: 'mdi-flag-outline',
+    },
+    {
+      title: 'Ouverture API',
+      period: '2024',
+      description: 'Mise à disposition d’API publiques pour les intégrations.',
+      highlights: ['Endpoints documentés', 'Clés API', 'Webhooks'],
+      icon: 'mdi-api',
+    },
+  ],
+  cta: {
+    title: 'Construisons la suite ensemble',
+    description: 'Ce bloc prépare les informations de fin de page récupérées côté backend.',
+    primaryAction: 'Parler à un expert',
+    secondaryAction: 'Télécharger la brochure',
+  },
 })
 </script>
 
@@ -119,29 +126,29 @@ const cta = computed<AboutCta>(() => {
     <v-fade-transition appear>
       <v-card class="about-hero mb-6 transition-elevation" elevation="4" rounded="xl" hover>
         <v-chip class="about-hero__badge" color="primary" variant="tonal">
-          {{ hero.badge }}
+          {{ aboutPagePayload.hero.badge }}
         </v-chip>
 
-        <h1 class="text-h4 text-md-h3 font-weight-bold mb-2">{{ hero.title }}</h1>
-        <p class="text-body-1 text-medium-emphasis mb-4">{{ hero.subtitle }}</p>
+        <h1 class="text-h4 text-md-h3 font-weight-bold mb-2">{{ aboutPagePayload.hero.title }}</h1>
+        <p class="text-body-1 text-medium-emphasis mb-4">{{ aboutPagePayload.hero.subtitle }}</p>
 
-        <p v-for="paragraph in hero.paragraphs" :key="paragraph" class="text-body-2 text-medium-emphasis mb-3">
+        <p v-for="paragraph in aboutPagePayload.hero.paragraphs" :key="paragraph" class="text-body-2 text-medium-emphasis mb-3">
           {{ paragraph }}
         </p>
 
         <ul class="text-body-2 mb-6 ps-5">
-          <li v-for="bullet in hero.bullets" :key="bullet" class="mb-1">{{ bullet }}</li>
+          <li v-for="bullet in aboutPagePayload.hero.bullets" :key="bullet" class="mb-1">{{ bullet }}</li>
         </ul>
 
         <div class="about-hero__actions">
-          <v-btn class="about-hero__btn" color="primary" size="large">{{ hero.primaryCta }}</v-btn>
-          <v-btn class="about-hero__btn" variant="outlined" size="large">{{ hero.secondaryCta }}</v-btn>
+          <v-btn class="about-hero__btn" color="primary" size="large">{{ aboutPagePayload.hero.primaryCta }}</v-btn>
+          <v-btn class="about-hero__btn" variant="outlined" size="large">{{ aboutPagePayload.hero.secondaryCta }}</v-btn>
         </div>
       </v-card>
     </v-fade-transition>
 
     <v-row class="about-section about-section--cards mb-4" dense>
-      <v-col v-for="card in missionCards" :key="card.title" cols="12" md="6">
+      <v-col v-for="card in aboutPagePayload.missionCards" :key="card.title" cols="12" md="6">
         <v-card class="about-mission-card h-100" rounded="xl" hover>
           <div class="d-flex align-center ga-2 mb-2">
             <v-icon :icon="card.icon" class="about-mission-card__icon" />
@@ -159,9 +166,9 @@ const cta = computed<AboutCta>(() => {
     </v-row>
 
     <v-card class="about-section mb-6" rounded="xl">
-      <h2 class="text-h6 mb-4">{{ t('about.metricsTitle') }}</h2>
+      <h2 class="text-h6 mb-4">{{ aboutPagePayload.metricsTitle }}</h2>
       <v-row class="about-values-grid" dense>
-        <v-col v-for="metric in metrics" :key="metric.label" cols="12" sm="4">
+        <v-col v-for="metric in aboutPagePayload.metrics" :key="metric.label" cols="12" sm="4">
           <div class="about-metric-card rounded-lg">
             <div class="d-flex align-center ga-3">
               <v-icon :icon="metric.icon" class="about-value-card__icon" />
@@ -178,14 +185,14 @@ const cta = computed<AboutCta>(() => {
 
     <v-expand-transition>
       <v-card class="about-section" rounded="xl" variant="outlined">
-        <h2 class="text-h6 mb-4">{{ t('about.timelineTitle') }}</h2>
+        <h2 class="text-h6 mb-4">{{ aboutPagePayload.timelineTitle }}</h2>
         <v-timeline class="about-timeline" density="compact" side="end" truncate-line="both">
           <v-timeline-item
-              v-for="entry in timeline"
-              :key="entry.title"
-              :dot-icon="entry.icon"
-              fill-dot
-              size="small"
+            v-for="entry in aboutPagePayload.timeline"
+            :key="entry.title"
+            :dot-icon="entry.icon"
+            fill-dot
+            size="small"
           >
             <v-card class="about-timeline-card" rounded="lg" hover>
               <p class="text-caption text-medium-emphasis mb-1">{{ entry.period }}</p>
@@ -202,11 +209,11 @@ const cta = computed<AboutCta>(() => {
 
     <v-fade-transition>
       <v-card class="about-section about-section--cta mt-6" rounded="xl" variant="tonal">
-        <h2 class="text-h6 mb-2">{{ cta.title }}</h2>
-        <p class="text-body-2 text-medium-emphasis mb-4">{{ cta.description }}</p>
+        <h2 class="text-h6 mb-2">{{ aboutPagePayload.cta.title }}</h2>
+        <p class="text-body-2 text-medium-emphasis mb-4">{{ aboutPagePayload.cta.description }}</p>
         <div class="about-cta-actions">
-          <v-btn class="about-cta-actions__btn" color="primary">{{ cta.primaryAction }}</v-btn>
-          <v-btn class="about-cta-actions__btn" variant="outlined">{{ cta.secondaryAction }}</v-btn>
+          <v-btn class="about-cta-actions__btn" color="primary">{{ aboutPagePayload.cta.primaryAction }}</v-btn>
+          <v-btn class="about-cta-actions__btn" variant="outlined">{{ aboutPagePayload.cta.secondaryAction }}</v-btn>
         </div>
       </v-card>
     </v-fade-transition>
