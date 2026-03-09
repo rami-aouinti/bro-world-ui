@@ -6,7 +6,9 @@ const appSlug = computed(() => String(route.path.split('/')[2] ?? ''))
 const { t } = useI18n()
 const jobSlug = computed(() => String(route.params.jobSlug ?? ''))
 
-await navigateTo(`/platform/${appSlug.value}/recruit/job/${jobSlug.value}`, { redirectCode: 301 })
+onMounted(() => {
+  void navigateTo(`/platform/${appSlug.value}/recruit/job/${jobSlug.value}`, { redirectCode: 301 })
+})
 </script>
 
 <template>
