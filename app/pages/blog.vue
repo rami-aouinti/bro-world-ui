@@ -6,23 +6,36 @@ definePageMeta({
   public: true,
   requiresAuth: false,
 })
-
+const isLoading = ref(false)
+const errorMessage = ref('')
 const blogsStore = useBlogsStore()
-const { data: blog, pending, error, refresh } = await useAsyncData(
-  'general-blog',
-  () => blogsStore.fetchGeneral(),
-)
+
+const blog = ref([])
+const loadBlogs = async () => {
+  try {
+    isLoading.value = true
+    errorMessage.value = ''
+    blog.value = await blogsStore.fetchGeneral()
+  } catch (error) {
+    console.error(error)
+    errorMessage.value = 'Impossible de charger les événements du calendrier.'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+
+
+onMounted(async () => {
+  await loadBlogs()
+
+  await nextTick()
+})
 </script>
 
 <template>
   <main>
-    <v-alert v-if="error" type="error" variant="tonal" class="mb-4">
-      Impossible de charger le blog général.
-      <template #append>
-        <v-btn color="error" variant="text" @click="refresh()">Réessayer</v-btn>
-      </template>
-    </v-alert>
-    <v-progress-linear v-else-if="pending" color="primary" indeterminate class="mb-4" />
-    <BlogFeed v-else-if="blog" :blog="blog" />
+    <v-progress-linear v-if="isLoading" color="primary" indeterminate class="mb-4" />
+    <BlogFeed v-else :blog="blog" />
   </main>
 </template>
