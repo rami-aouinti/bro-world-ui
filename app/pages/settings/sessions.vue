@@ -1,32 +1,23 @@
 <script setup lang="ts">
 definePageMeta({ public: true, requiresAuth: false })
 
-const sessions = [
-  { icon: 'mdi-desktop-classic', title: 'Bucharest 68.133.163.201', description: 'Your current session', badge: 'Active', city: 'EU' },
-  { icon: 'mdi-desktop-classic', title: 'Chrome on macOS', description: '', city: 'US' },
-  { icon: 'mdi-cellphone', title: 'Safari on iPhone', description: '', city: 'US' },
-]
+const currentUser = useCurrentUserStore()
+await currentUser.fetchMe()
 </script>
 
 <template>
   <SettingsLayout>
     <h3 class="text-h5 font-weight-bold mb-1">Sessions</h3>
-    <p class="text-body-1 text-medium-emphasis mb-6">
-      This is a list of devices that have logged into your account. Remove those that you do not recognize.
-    </p>
+    <p class="text-body-1 text-medium-emphasis mb-6">Devices connected to your account.</p>
 
     <v-list>
-      <template v-for="(session, index) in sessions" :key="session.title">
-        <v-list-item :prepend-icon="session.icon" :title="session.title" :subtitle="session.description">
+      <template v-for="(session, index) in currentUser.me?.sessions || []" :key="session.id || index">
+        <v-list-item :prepend-icon="session.current ? 'mdi-monitor' : 'mdi-cellphone'" :title="session.userAgent || 'Unknown device'" :subtitle="session.ip || 'Unknown IP'">
           <template #append>
-            <div class="d-flex align-center ga-4">
-              <v-chip v-if="session.badge" size="small" color="success" variant="tonal">{{ session.badge }}</v-chip>
-              <span class="text-body-2 text-medium-emphasis">{{ session.city }}</span>
-              <v-btn variant="text" color="primary">See More</v-btn>
-            </div>
+            <v-chip v-if="session.current" size="small" color="success" variant="tonal">Active</v-chip>
           </template>
         </v-list-item>
-        <v-divider v-if="index < sessions.length - 1" class="my-2" />
+        <v-divider v-if="index < (currentUser.me?.sessions?.length || 0) - 1" class="my-2" />
       </template>
     </v-list>
   </SettingsLayout>

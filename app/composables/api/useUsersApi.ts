@@ -12,6 +12,9 @@ import type {
   PatchUserPayload,
   UpdateUserPayload,
   UserGroupsResponse,
+  UserMePasswordPayload,
+  UserMeProfilePayload,
+  UserMeRead,
   UserRead,
   UserRolesResponse,
 } from '~/types/api/user'
@@ -21,6 +24,34 @@ export const useUsersApi = () => {
   const basePath = '/api/v1/user'
 
   return {
+
+    getMe() {
+      return apiFetch<UserMeRead>('/api/v1/users/me', { method: 'GET' })
+    },
+    updateMyPassword(payload: UserMePasswordPayload) {
+      return apiFetch<void>('/api/v1/users/me/password', {
+        method: 'PATCH',
+        body: payload,
+      })
+    },
+    updateMyProfile(payload: UserMeProfilePayload) {
+      return apiFetch<UserMeRead>('/api/v1/users/me/profile', {
+        method: 'PATCH',
+        body: payload,
+      })
+    },
+    uploadMyPhoto(photo: File) {
+      const formData = new FormData()
+      formData.append('photo', photo)
+
+      return apiFetch<{ photo: string }>('/api/v1/profile/photo', {
+        method: 'POST',
+        body: formData,
+      })
+    },
+    deleteMe() {
+      return apiFetch<void>('/api/v1/users/me', { method: 'DELETE' })
+    },
     list(query: ListQueryParams = {}, extraQuery: QueryParams = {}) {
       return apiFetch<UserRead[]>(basePath, {
         method: 'GET',
