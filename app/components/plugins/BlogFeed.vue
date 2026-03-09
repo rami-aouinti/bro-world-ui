@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import type { BlogComment, BlogRead } from '~/types/api/blog'
+import BlogSummaryCard from '~/components/plugins/BlogSummaryCard.vue'
 
-const { blog } = defineProps<{
+withDefaults(defineProps<{
   blog: BlogRead
-}>()
+  showSummary?: boolean
+}>(), {
+  showSummary: true,
+})
 
 const countComments = (comments: BlogComment[]): number => comments.reduce((total, comment) => total + 1 + countComments(comment.children), 0)
 
@@ -11,15 +15,7 @@ const countReactions = (comments: BlogComment[]): number => comments.reduce((tot
 </script>
 
 <template>
-  <v-card rounded="xl" class="mb-6" variant="tonal">
-    <v-card-text>
-      <p class="text-overline text-primary mb-1">{{ blog?.type?.toUpperCase() }}</p>
-      <h1 class="text-h5 font-weight-bold mb-2">{{ blog?.title }}</h1>
-      <p class="text-body-2 text-medium-emphasis mb-0">
-        {{ blog?.posts?.length }} posts · statut posts: {{ blog?.postStatus }} · statut commentaires: {{ blog?.commentStatus }}
-      </p>
-    </v-card-text>
-  </v-card>
+  <BlogSummaryCard v-if="showSummary" :blog="blog" />
 
   <v-row v-if="blog?.posts">
     <v-col v-for="(post, index) in blog?.posts" :key="post.id" cols="12" md="6">

@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import BlogFeed from '~/components/plugins/BlogFeed.vue'
+import BlogSummaryCard from '~/components/plugins/BlogSummaryCard.vue'
 import { useBlogsStore } from '~/stores/blogs'
 
 definePageMeta({
   public: true,
   requiresAuth: false,
+  layout: false,
 })
+
 const isLoading = ref(false)
 const errorMessage = ref('')
 const blogsStore = useBlogsStore()
 
-const blog = ref([])
+const blog = ref<any>(null)
 const loadBlogs = async () => {
   try {
     isLoading.value = true
@@ -24,8 +27,6 @@ const loadBlogs = async () => {
   }
 }
 
-
-
 onMounted(async () => {
   await loadBlogs()
 
@@ -34,8 +35,17 @@ onMounted(async () => {
 </script>
 
 <template>
-  <main>
-    <v-progress-linear v-if="isLoading" color="primary" indeterminate class="mb-4" />
-    <BlogFeed v-else :blog="blog" />
-  </main>
+  <NuxtLayout name="default">
+    <template #layout-sidebar>
+      <aside>
+        <BlogSummaryCard v-if="!isLoading && blog" :blog="blog" />
+      </aside>
+    </template>
+
+    <main>
+      <v-progress-linear v-if="isLoading" color="primary" indeterminate class="mb-4" />
+      <v-alert v-else-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
+      <BlogFeed v-else-if="blog" :blog="blog" :show-summary="false" />
+    </main>
+  </NuxtLayout>
 </template>
