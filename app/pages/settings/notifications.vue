@@ -1,36 +1,91 @@
 <script setup lang="ts">
 definePageMeta({ public: false, requiresAuth: true })
 
-const items = [
-  { title: 'Mentions', description: 'Notify when another user mentions you in a comment' },
-  { title: 'Comments', description: 'Notify when another user comments your item' },
-  { title: 'Follows', description: 'Notify when another user follows you' },
-  { title: 'Log in from a new device', description: '' },
-]
+type NotificationPreference = {
+  switchState: boolean
+  text: string
+}
+
+type NotificationPreferencesResponse = {
+  configurationKey: string
+  configurationValue: NotificationPreference[]
+}
+
+const { apiFetch } = useApiClient()
+const isLoading = ref(true)
+const isSavingMap = ref<Record<string, boolean>>({})
+const preferences = ref<NotificationPreference[]>([])
+
+const loadPreferences = async () => {
+  isLoading.value = true
+
+  try {
+    const response = await apiFetch<NotificationPreferencesResponse>('/api/v1/profile/configuration/user.notifications.preferences', {
+      method: 'GET',
+    })
+
+    preferences.value = response.configurationValue ?? []
+  }
+  finally {
+    isLoading.value = false
+  }
+}
+
+const updatePreference = async (item: NotificationPreference, value: boolean) => {
+  const previousValue = item.switchState
+  item.switchState = value
+  isSavingMap.value[item.text] = true
+
+  try {
+    await apiFetch('/api/v1/profile/configuration/user.notifications.preferences', {
+      method: 'PATCH',
+      body: {
+        configurationValue: [
+          {
+            switchState: value,
+            text: item.text,
+          },
+        ],
+      },
+    })
+  }
+  catch {
+    item.switchState = previousValue
+  }
+  finally {
+    isSavingMap.value[item.text] = false
+  }
+}
+
+onMounted(loadPreferences)
 </script>
 
 <template>
   <SettingsLayout>
     <h3 class="text-h5 font-weight-bold mb-1">Notifications</h3>
     <p class="text-body-1 text-medium-emphasis mb-6">Choose how you receive notifications.</p>
-    <v-table>
+
+    <v-progress-linear v-if="isLoading" color="primary" indeterminate class="mb-4" />
+
+    <v-table v-else>
       <thead>
       <tr>
-        <th>Activity</th>
-        <th class="text-center">Email</th>
-        <th class="text-center">Push</th>
-        <th class="text-center">SMS</th>
+        <th>Notification</th>
+        <th class="text-right">Enabled</th>
       </tr>
       </thead>
       <tbody>
-      <tr v-for="item in items" :key="item.title">
-        <td>
-          <div class="font-weight-medium">{{ item.title }}</div>
-          <div class="text-body-2 text-medium-emphasis">{{ item.description }}</div>
+      <tr v-for="item in preferences" :key="item.text">
+        <td class="font-weight-medium">{{ item.text }}</td>
+        <td class="text-right">
+          <v-switch
+            :model-value="item.switchState"
+            :loading="isSavingMap[item.text]"
+            color="primary"
+            hide-details
+            @update:model-value="(value) => updatePreference(item, Boolean(value))"
+          />
         </td>
-        <td class="text-center"><v-switch hide-details /></td>
-        <td class="text-center"><v-switch hide-details /></td>
-        <td class="text-center"><v-switch hide-details /></td>
       </tr>
       </tbody>
     </v-table>
