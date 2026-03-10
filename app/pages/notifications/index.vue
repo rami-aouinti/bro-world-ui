@@ -4,6 +4,8 @@ import UiListCard from '~/components/ui/UiListCard.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import { useNotificationsApi } from '~/composables/api/useNotificationsApi'
 import { useNotificationTarget } from '~/composables/useNotificationTarget'
+import type { NotificationRead } from '~/types/api/notification'
+import { useMercureEventSource } from '~/composables/useMercureEventSource'
 
 definePageMeta({
   public: false,
@@ -11,25 +13,37 @@ definePageMeta({
 })
 
 const notificationsApi = useNotificationsApi()
+const authSession = useAuthSessionStore()
 const isLoading = ref(false)
 const errorMessage = ref('')
 const notificationsResponse = ref<any>(null)
-const notifications = ref<any>(null)
+const notifications = ref<NotificationRead[]>([])
 const { getNotificationTarget } = useNotificationTarget()
+
+const mercureTopics = computed(() => authSession.profile?.id
+  ? [`/users/${authSession.profile.id}/notifications`]
+  : [])
+
 const loadNotifications = async () => {
   try {
     isLoading.value = true
     errorMessage.value = ''
     notificationsResponse.value = await notificationsApi.getNotifications(100, 0)
-    notifications.value = await notificationsResponse?.value?.items
-} catch (error) {
-  console.error(error)
-  errorMessage.value = 'Impossible de charger les événements du calendrier.'
-} finally {
-  isLoading.value = false
+    notifications.value = notificationsResponse?.value?.items ?? []
+  }
+  catch (error) {
+    console.error(error)
+    errorMessage.value = 'Impossible de charger les événements du calendrier.'
+  }
+  finally {
+    isLoading.value = false
+  }
 }
 
-}
+useMercureEventSource(mercureTopics, async () => {
+  await loadNotifications()
+})
+
 onMounted(async () => {
   await loadNotifications()
 

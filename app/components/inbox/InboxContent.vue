@@ -7,6 +7,7 @@ import ConversationAvatarGroup from '~/components/inbox/ConversationAvatarGroup.
 import UiAvatar from '~/components/ui/UiAvatar.vue'
 import type { PrivateChatConversation, PrivateChatMessage, PrivateConversationsResponse } from '~/types/api/chat'
 import { usePrivateChatApi } from '~/composables/api/usePrivateChatApi'
+import { useMercureEventSource } from '~/composables/useMercureEventSource'
 
 const props = withDefaults(defineProps<{
   selectedConversationId?: string | null
@@ -325,6 +326,28 @@ const goToConversation = async (conversationId: string) => {
 }
 
 const me = computed(() => authSession.profile?.id)
+
+const mercureTopics = computed(() => {
+  const topics: string[] = []
+
+  if (authSession.profile?.id) {
+    topics.push(`/users/${authSession.profile.id}/notifications`)
+  }
+
+  if (activeConversation.value?.id) {
+    topics.push(`/conversations/${activeConversation.value.id}/messages`)
+  }
+
+  return topics
+})
+
+useMercureEventSource(mercureTopics, async () => {
+  if (isUsingDemoData.value) {
+    return
+  }
+
+  await refreshConversationData()
+})
 
 const scrollMessagesToBottom = () => {
   const container = messagesContainerRef.value
