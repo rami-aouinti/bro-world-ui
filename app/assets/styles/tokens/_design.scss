@@ -1,0 +1,69 @@
+@use "../material-dashboard/variables" as md;
+
+:root,
+.v-theme--light {
+  --md-color-white: #{md.$white};
+  --md-color-gray-100: #{md.$gray-100};
+  --md-color-gray-200: #{md.$gray-200};
+  --md-color-gray-700: #{md.$gray-700};
+  --md-color-gray-900: #{md.$gray-900};
+  --md-color-default: #{md.$default};
+  --md-color-primary: #{md.$primary};
+  --md-color-secondary: #{md.$secondary};
+  --md-color-info: #{md.$info};
+  --md-color-success: #{md.$success};
+  --md-color-warning: #{md.$warning};
+  --md-color-danger: #{md.$danger};
+
+  --v-theme-background: 248, 249, 250;
+  --v-theme-surface: 255, 255, 255;
+  --v-theme-surface-variant: 240, 242, 245;
+  --v-theme-on-surface: 52, 71, 103;
+  --v-theme-on-background: 52, 71, 103;
+
+  --ui-color-bg: var(--md-color-gray-100);
+  --ui-color-surface: var(--md-color-white);
+  --ui-color-surface-muted: var(--md-color-gray-200);
+  --ui-color-border: rgb(var(--v-theme-on-surface), 0.08);
+  --ui-color-text: var(--md-color-default);
+}
+
+.v-theme--dark {
+  --md-color-white: #f9fafb;
+  --md-color-gray-100: #111827;
+  --md-color-gray-200: #1f2937;
+  --md-color-gray-700: #cbd5e1;
+  --md-color-gray-900: #f9fafb;
+  --md-color-default: #f9fafb;
+  --md-color-primary: #ec407a;
+  --md-color-secondary: #9aa2bf;
+  --md-color-info: #49a3f1;
+  --md-color-success: #66bb6a;
+  --md-color-warning: #ffa726;
+  --md-color-danger: #ef5350;
+
+  --v-theme-background: 17, 24, 39;
+  --v-theme-surface: 31, 41, 55;
+  --v-theme-surface-variant: 36, 48, 68;
+  --v-theme-on-surface: 249, 250, 251;
+  --v-theme-on-background: 249, 250, 251;
+
+  --ui-color-bg: rgb(var(--v-theme-background));
+  --ui-color-surface: rgb(var(--v-theme-surface));
+  --ui-color-surface-muted: rgb(var(--v-theme-surface-variant));
+  --ui-color-border: rgb(var(--v-theme-on-surface), 0.18);
+  --ui-color-text: var(--md-color-default);
+}
+
+.ui-surface {
+  background-color: rgb(var(--v-theme-surface));
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.ui-surface-muted {
+  background-color: rgb(var(--v-theme-surface-variant));
+}
+
+.ui-theme-border {
+  border-color: var(--ui-color-border) !important;
+}
