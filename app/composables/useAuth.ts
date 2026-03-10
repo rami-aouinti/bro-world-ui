@@ -39,6 +39,35 @@ export const useAuth = () => {
     }
   }
 
+
+  const warmupPrivateCaches = async (session: SessionResponse) => {
+    if (!session.authenticated || import.meta.server) {
+      return
+    }
+
+    try {
+      await Promise.allSettled([
+      authFetch('/api/backend/api/v1/notifications', {
+        method: 'GET',
+        query: {
+          limit: 3,
+          offset: 0,
+        },
+      }),
+      authFetch('/api/backend/api/v1/chat/private/conversations', {
+        method: 'GET',
+        query: {
+          limit: 20,
+          page: 1,
+        },
+      }),
+      ])
+    }
+    catch (error) {
+      console.warn('Auth warmup cache failed', error)
+    }
+  }
+
   const applySessionState = async (session: SessionResponse) => {
     token.value = session.authenticated ? '__server_session__' : null
     authSession.setUserSession({
@@ -53,6 +82,7 @@ export const useAuth = () => {
       : FALLBACK_LOCALE
 
     await applyLocalePreference(preferredLocale)
+    void warmupPrivateCaches(session)
   }
 
   const initSession = async (force = false) => {
