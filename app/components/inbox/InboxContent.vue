@@ -7,17 +7,38 @@ import ConversationAvatarGroup from '~/components/inbox/ConversationAvatarGroup.
 import type { PrivateChatConversation, PrivateChatMessage, PrivateConversationsResponse } from '~/types/api/chat'
 import { usePrivateChatApi } from '~/composables/api/usePrivateChatApi'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   selectedConversationId?: string | null
-  cachedConversation?: PrivateChatConversation | null
-}>()
+  selectedConversationMessages?: PrivateChatMessage[]
+  isConversationLoading?: boolean
+}>(), {
+  selectedConversationId: null,
+  selectedConversationMessages: () => [],
+  isConversationLoading: false,
+})
 
 const router = useRouter()
 const authSession = useAuthSessionStore()
 const privateChatApi = usePrivateChatApi()
 const draftMessage = ref('')
 const isSendingMessage = ref(false)
+const isUpdatingMessage = ref(false)
+const isDeletingMessage = ref(false)
 const messagesContainerRef = ref<HTMLElement | null>(null)
+const editingMessage = ref<PrivateChatMessage | null>(null)
+const editDialog = ref(false)
+const deleteDialog = ref(false)
+const messageToDelete = ref<PrivateChatMessage | null>(null)
+const editContent = ref('')
+const conversationMessages = ref<PrivateChatMessage[]>([])
+
+const availableReactions = [
+  { value: 'like', icon: '👍', label: 'Like' },
+  { value: 'love', icon: '❤️', label: 'Love' },
+  { value: 'laugh', icon: '😂', label: 'Laugh' },
+  { value: 'wow', icon: '😮', label: 'Wow' },
+  { value: 'sad', icon: '😢', label: 'Sad' },
+]
 
 const { data: inboxConversationsSummary, refresh: refreshInboxConversations } = useAsyncData<PrivateConversationsResponse>(
   'inbox-conversations',
@@ -71,27 +92,29 @@ const conversations = computed(() => (inboxConversationsSummary.value?.items ?? 
   .map(mapConversation)
   .sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()))
 
-const cachedSelectedConversation = computed(() => {
-  if (!props.cachedConversation) {
-    return null
-  }
 
-  return mapConversation(props.cachedConversation)
-})
+watch(
+  () => props.selectedConversationMessages,
+  (messages) => {
+    conversationMessages.value = [...(messages ?? [])].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+  },
+  { immediate: true, deep: true },
+)
 
 const activeConversation = computed(() => {
   if (props.selectedConversationId) {
     const selected = conversations.value.find(item => item.id === props.selectedConversationId)
     if (selected) {
-      return selected
-    }
-
-    if (cachedSelectedConversation.value?.id === props.selectedConversationId) {
-      return cachedSelectedConversation.value
+      return {
+        ...selected,
+        messages: conversationMessages.value.length
+          ? conversationMessages.value
+          : selected.messages,
+      }
     }
   }
 
-  return conversations.value[0] ?? cachedSelectedConversation.value ?? null
+  return conversations.value[0] ?? null
 })
 
 const formatMessageDate = (value: string) => new Date(value).toLocaleString('fr-FR', {
@@ -117,13 +140,25 @@ const scrollMessagesToBottom = () => {
 }
 
 watch(
-  () => [activeConversation.value?.id, activeConversation.value?.messages.length],
+  () => [activeConversation.value?.id, activeConversation.value?.messages.length, props.isConversationLoading],
   async () => {
     await nextTick()
-    scrollMessagesToBottom()
+    if (!props.isConversationLoading) {
+      scrollMessagesToBottom()
+    }
   },
   { immediate: true },
 )
+
+const refreshConversationData = async () => {
+  await refreshInboxConversations()
+
+  if (props.selectedConversationId) {
+    const response = await privateChatApi.getConversationMessages(props.selectedConversationId)
+    conversationMessages.value = [...(response.items ?? [])]
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+  }
+}
 
 const sendMessage = async () => {
   const conversationId = activeConversation.value?.id
@@ -138,17 +173,63 @@ const sendMessage = async () => {
 
     await privateChatApi.addMessage(conversationId, { content })
     draftMessage.value = ''
-
-    await Promise.all([
-      refreshInboxConversations(),
-      refreshNuxtData('inbox-selected-conversation-cache'),
-    ])
+    await refreshConversationData()
 
     await nextTick()
     scrollMessagesToBottom()
   }
   finally {
     isSendingMessage.value = false
+  }
+}
+
+const addReaction = async (messageId: string, reaction: string) => {
+  await privateChatApi.addReaction(messageId, { reaction })
+  await refreshConversationData()
+}
+
+const openEditDialog = (message: PrivateChatMessage) => {
+  editingMessage.value = message
+  editContent.value = message.content
+  editDialog.value = true
+}
+
+const updateMessage = async () => {
+  if (!editingMessage.value || !editContent.value.trim()) {
+    return
+  }
+
+  try {
+    isUpdatingMessage.value = true
+    await privateChatApi.updateMessage(editingMessage.value.id, {
+      content: editContent.value.trim(),
+    })
+    editDialog.value = false
+    await refreshConversationData()
+  }
+  finally {
+    isUpdatingMessage.value = false
+  }
+}
+
+const openDeleteDialog = (message: PrivateChatMessage) => {
+  messageToDelete.value = message
+  deleteDialog.value = true
+}
+
+const deleteMessage = async () => {
+  if (!messageToDelete.value) {
+    return
+  }
+
+  try {
+    isDeletingMessage.value = true
+    await privateChatApi.deleteMessage(messageToDelete.value.id)
+    deleteDialog.value = false
+    await refreshConversationData()
+  }
+  finally {
+    isDeletingMessage.value = false
   }
 }
 </script>
@@ -203,14 +284,66 @@ const sendMessage = async () => {
           </div>
         </div>
 
-        <div ref="messagesContainerRef" class="inbox-page__messages mb-2">
+        <div v-if="isConversationLoading" class="inbox-page__messages mb-2">
+          <v-skeleton-loader
+            v-for="index in 6"
+            :key="`message-skeleton-${index}`"
+            type="article"
+          />
+        </div>
+
+        <div v-else ref="messagesContainerRef" class="inbox-page__messages mb-2">
           <div
             v-for="message in activeConversation.messages"
             :key="message.id"
             class="inbox-page__bubble"
             :class="message.sender.id === me ? 'inbox-page__bubble--me' : 'inbox-page__bubble--other'"
           >
-            <p class="text-caption text-medium-emphasis mb-1">{{ message.sender.firstName }} {{ message.sender.lastName }} • {{ formatMessageDate(message.createdAt) }}</p>
+            <div class="d-flex justify-space-between align-start ga-2">
+              <p class="text-caption text-medium-emphasis mb-1">
+                {{ message.sender.firstName }} {{ message.sender.lastName }} • {{ formatMessageDate(message.createdAt) }}
+              </p>
+
+              <div class="d-flex align-center ga-1">
+                <v-menu location="bottom end">
+                  <template #activator="{ props: menuProps }">
+                    <v-btn
+                      v-bind="menuProps"
+                      icon="mdi-emoticon-outline"
+                      size="x-small"
+                      variant="text"
+                    />
+                  </template>
+
+                  <v-list density="compact">
+                    <v-list-item
+                      v-for="reaction in availableReactions"
+                      :key="`${message.id}-${reaction.value}`"
+                      @click="addReaction(message.id, reaction.value)"
+                    >
+                      <v-list-item-title>{{ reaction.icon }} {{ reaction.label }}</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+
+                <v-menu v-if="message.sender.id === me" location="bottom end">
+                  <template #activator="{ props: menuProps }">
+                    <v-btn
+                      v-bind="menuProps"
+                      icon="mdi-dots-vertical"
+                      size="x-small"
+                      variant="text"
+                    />
+                  </template>
+
+                  <v-list density="compact">
+                    <v-list-item prepend-icon="mdi-pencil" title="Modifier" @click="openEditDialog(message)" />
+                    <v-list-item prepend-icon="mdi-delete" title="Supprimer" base-color="error" @click="openDeleteDialog(message)" />
+                  </v-list>
+                </v-menu>
+              </div>
+            </div>
+
             <p class="text-body-2 mb-0">{{ message.content }}</p>
           </div>
         </div>
@@ -248,6 +381,29 @@ const sendMessage = async () => {
       description="Choisissez une conversation à gauche pour afficher les messages."
       icon="mdi-email-open-outline"
     />
+
+    <v-dialog v-model="editDialog" max-width="560">
+      <v-card>
+        <v-card-title>Modifier le message</v-card-title>
+        <v-card-text>
+          <v-textarea v-model="editContent" rows="3" variant="solo-filled" />
+        </v-card-text>
+        <v-card-actions class="justify-end">
+          <v-btn variant="text" @click="editDialog = false">Annuler</v-btn>
+          <v-btn color="primary" :loading="isUpdatingMessage" @click="updateMessage">Enregistrer</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="deleteDialog" max-width="420">
+      <v-card>
+        <v-card-title>Supprimer ce message ?</v-card-title>
+        <v-card-actions class="justify-end">
+          <v-btn variant="text" @click="deleteDialog = false">Annuler</v-btn>
+          <v-btn color="error" :loading="isDeletingMessage" @click="deleteMessage">Supprimer</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </PlatformSplitLayout>
 </template>
 

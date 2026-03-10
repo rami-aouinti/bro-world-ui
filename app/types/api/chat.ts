@@ -53,6 +53,11 @@ export interface PrivateConversationsResponse {
   filters: unknown[]
 }
 
+export interface PrivateConversationMessagesResponse {
+  conversationId: string
+  items: PrivateChatMessage[]
+}
+
 export interface UpdatePrivateConversationPayload {
   [key: string]: unknown
 }
