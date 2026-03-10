@@ -4,6 +4,7 @@ import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import UiStateEmptyState from '~/components/ui/state/UiEmptyState.vue'
 import UiStatChip from '~/components/ui/UiStatChip.vue'
 import ConversationAvatarGroup from '~/components/inbox/ConversationAvatarGroup.vue'
+import UiAvatar from '~/components/ui/UiAvatar.vue'
 import type { PrivateChatConversation, PrivateChatMessage, PrivateConversationsResponse } from '~/types/api/chat'
 import { usePrivateChatApi } from '~/composables/api/usePrivateChatApi'
 
@@ -31,6 +32,7 @@ const deleteDialog = ref(false)
 const messageToDelete = ref<PrivateChatMessage | null>(null)
 const editContent = ref('')
 const conversationMessages = ref<PrivateChatMessage[]>([])
+const readingConversationIds = ref<Set<string>>(new Set())
 
 const availableReactions = [
   { value: 'like', icon: '👍', label: 'Like' },
@@ -124,6 +126,66 @@ const formatMessageDate = (value: string) => new Date(value).toLocaleString('fr-
   month: 'short',
 })
 
+const reactionIconByValue: Record<string, string> = {
+  like: '👍',
+  love: '❤️',
+  laugh: '😂',
+  wow: '😮',
+  sad: '😢',
+}
+
+const getMessageReactionPreview = (message: PrivateChatMessage) => {
+  const latestReaction = message.reactions?.[message.reactions.length - 1]
+  if (!latestReaction) {
+    return null
+  }
+
+  return reactionIconByValue[latestReaction.reaction] ?? latestReaction.reaction
+}
+
+const markConversationAsReadIfNeeded = async (conversationId: string) => {
+  const conversation = conversations.value.find(item => item.id === conversationId)
+
+  if (!conversation || conversation.unread <= 0 || readingConversationIds.value.has(conversationId)) {
+    return
+  }
+
+  try {
+    readingConversationIds.value.add(conversationId)
+    await privateChatApi.markConversationAsReadAll(conversationId)
+
+    if (inboxConversationsSummary.value) {
+      inboxConversationsSummary.value.items = inboxConversationsSummary.value.items.map(item =>
+        item.id === conversationId
+          ? {
+              ...item,
+              unreadMessagesCount: 0,
+              messages: item.messages.map(message => message.read
+                ? message
+                : {
+                    ...message,
+                    read: true,
+                    readAt: message.readAt ?? new Date().toISOString(),
+                  }),
+            }
+          : item)
+    }
+
+    if (props.selectedConversationId === conversationId) {
+      conversationMessages.value = conversationMessages.value.map(message => message.read
+        ? message
+        : {
+            ...message,
+            read: true,
+            readAt: message.readAt ?? new Date().toISOString(),
+          })
+    }
+  }
+  finally {
+    readingConversationIds.value.delete(conversationId)
+  }
+}
+
 const goToConversation = async (conversationId: string) => {
   await router.push(`/inbox/${conversationId}`)
 }
@@ -151,6 +213,7 @@ watch(
 )
 
 const refreshConversationData = async () => {
+  clearNuxtData('inbox-conversations')
   await refreshInboxConversations()
 
   if (props.selectedConversationId) {
@@ -182,6 +245,18 @@ const sendMessage = async () => {
     isSendingMessage.value = false
   }
 }
+
+watch(
+  () => [activeConversation.value?.id, activeConversation.value?.unread, props.isConversationLoading],
+  async ([conversationId, unread, isConversationLoading]) => {
+    if (!conversationId || isConversationLoading || !unread) {
+      return
+    }
+
+    await markConversationAsReadIfNeeded(conversationId)
+  },
+  { immediate: true },
+)
 
 const addReaction = async (messageId: string, reaction: string) => {
   await privateChatApi.addReaction(messageId, { reaction })
@@ -299,7 +374,15 @@ const deleteMessage = async () => {
             class="inbox-page__bubble"
             :class="message.sender.id === me ? 'inbox-page__bubble--me' : 'inbox-page__bubble--other'"
           >
-            <div class="d-flex justify-space-between align-start ga-2">
+            <UiAvatar
+              :name="`${message.sender.firstName} ${message.sender.lastName}`"
+              :src="message.sender.photo ?? undefined"
+              size="32"
+              class="inbox-page__bubble-avatar"
+            />
+
+            <div class="inbox-page__bubble-main">
+              <div class="d-flex justify-space-between align-start ga-2">
               <p class="text-caption text-medium-emphasis mb-1">
                 {{ message.sender.firstName }} {{ message.sender.lastName }} • {{ formatMessageDate(message.createdAt) }}
               </p>
@@ -344,7 +427,12 @@ const deleteMessage = async () => {
               </div>
             </div>
 
-            <p class="text-body-2 mb-0">{{ message.content }}</p>
+              <p class="text-body-2 mb-0">{{ message.content }}</p>
+
+              <div v-if="getMessageReactionPreview(message)" class="inbox-page__reaction-preview">
+                {{ getMessageReactionPreview(message) }}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -442,6 +530,28 @@ const deleteMessage = async () => {
   border-radius: 14px;
   padding: 0.75rem 1rem;
   max-width: 92%;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+}
+
+.inbox-page__bubble-main {
+  flex: 1;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.inbox-page__bubble-avatar {
+  flex-shrink: 0;
+}
+
+.inbox-page__reaction-preview {
+  position: absolute;
+  right: -0.25rem;
+  bottom: -0.55rem;
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .inbox-page__bubble--other {
