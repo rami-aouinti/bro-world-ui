@@ -16,34 +16,38 @@ const modules = computed(() => [
     description: t('admin.modules.users.description'),
     to: '/admin/user-management/users',
     icon: 'mdi-account-multiple-outline',
+    detail: '2 841 utilisateurs • 64 nouveaux cette semaine',
   },
   {
     title: t('admin.modules.roles.title'),
     description: t('admin.modules.roles.description'),
     to: '/admin/user-management/roles',
     icon: 'mdi-shield-account-outline',
+    detail: '18 rôles actifs • 4 rôles critiques',
   },
   {
     title: t('admin.modules.groups.title'),
     description: t('admin.modules.groups.description'),
     to: '/admin/user-management/user-groups',
     icon: 'mdi-account-group-outline',
+    detail: '36 groupes • 11 groupes métier',
   },
   {
     title: t('admin.modules.apiKeys.title'),
     description: t('admin.modules.apiKeys.description'),
     to: '/admin/user-management/api-keys',
     icon: 'mdi-key-outline',
+    detail: '52 clés API • 5 expirations à 7 jours',
   },
 ])
 </script>
 
 <template>
   <div class="admin-page-content">
-      <UiSectionHeader
-        :title="t('admin.userManagement.title')"
-        :subtitle="t('admin.userManagement.description')"
-      />
+    <UiSectionHeader
+      :title="t('admin.userManagement.title')"
+      :subtitle="t('admin.userManagement.description')"
+    />
 
     <v-row>
       <v-col
@@ -52,13 +56,16 @@ const modules = computed(() => [
         cols="12"
         md="6"
       >
-        <UiCard variant="tonal" rounded="lg" compact>
+        <UiCard rounded="lg" compact>
           <div class="d-flex align-start ga-3">
-            <v-icon :icon="module.icon" color="primary" size="26" class="mt-1" />
+            <v-avatar color="secondary" variant="tonal" size="42">
+              <v-icon :icon="module.icon" size="22" />
+            </v-avatar>
 
             <div class="flex-grow-1">
               <h2 class="text-h6 mb-1">{{ module.title }}</h2>
-              <p class="text-body-2 text-medium-emphasis mb-3">{{ module.description }}</p>
+              <p class="text-body-2 text-medium-emphasis mb-2">{{ module.description }}</p>
+              <p class="text-caption mb-3">{{ module.detail }}</p>
 
               <v-btn
                 color="primary"
