@@ -16,8 +16,10 @@ const router = useRouter()
 const authSession = useAuthSessionStore()
 const privateChatApi = usePrivateChatApi()
 const draftMessage = ref('')
+const isSendingMessage = ref(false)
+const messagesContainerRef = ref<HTMLElement | null>(null)
 
-const { data: inboxConversationsSummary } = useAsyncData<PrivateConversationsResponse>(
+const { data: inboxConversationsSummary, refresh: refreshInboxConversations } = useAsyncData<PrivateConversationsResponse>(
   'inbox-conversations',
   () => privateChatApi.getConversations(20, 1),
   {
@@ -104,6 +106,51 @@ const goToConversation = async (conversationId: string) => {
 }
 
 const me = computed(() => authSession.profile?.id)
+
+const scrollMessagesToBottom = () => {
+  const container = messagesContainerRef.value
+  if (!container) {
+    return
+  }
+
+  container.scrollTop = container.scrollHeight
+}
+
+watch(
+  () => [activeConversation.value?.id, activeConversation.value?.messages.length],
+  async () => {
+    await nextTick()
+    scrollMessagesToBottom()
+  },
+  { immediate: true },
+)
+
+const sendMessage = async () => {
+  const conversationId = activeConversation.value?.id
+  const content = draftMessage.value.trim()
+
+  if (!conversationId || !content || isSendingMessage.value) {
+    return
+  }
+
+  try {
+    isSendingMessage.value = true
+
+    await privateChatApi.addMessage(conversationId, { content })
+    draftMessage.value = ''
+
+    await Promise.all([
+      refreshInboxConversations(),
+      refreshNuxtData('inbox-selected-conversation-cache'),
+    ])
+
+    await nextTick()
+    scrollMessagesToBottom()
+  }
+  finally {
+    isSendingMessage.value = false
+  }
+}
 </script>
 
 <template>
@@ -156,7 +203,7 @@ const me = computed(() => authSession.profile?.id)
           </div>
         </div>
 
-        <div class="inbox-page__messages mb-2">
+        <div ref="messagesContainerRef" class="inbox-page__messages mb-2">
           <div
             v-for="message in activeConversation.messages"
             :key="message.id"
@@ -181,7 +228,15 @@ const me = computed(() => authSession.profile?.id)
             density="comfortable"
           />
           <div class="d-flex justify-end mt-2">
-            <v-btn color="primary" prepend-icon="mdi-send">Envoyer</v-btn>
+            <v-btn
+              color="primary"
+              prepend-icon="mdi-send"
+              :loading="isSendingMessage"
+              :disabled="!draftMessage.trim()"
+              @click="sendMessage"
+            >
+              Envoyer
+            </v-btn>
           </div>
         </div>
       </section>
