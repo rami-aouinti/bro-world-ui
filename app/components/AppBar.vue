@@ -192,7 +192,7 @@ const signOut = async () => {
 <template>
   <v-app-bar
     :class="{ 'blur shadow-blur': !isDark }"
-    class="app-bar px-0 border-radius-xl toolbar-content-padding-y-none v-sheet v-toolbar v-toolbar--flat v-app-bar bg-transparent position-sticky top-1 z-index-sticky"
+    class="app-bar app-bar--kind-glass px-0 border-radius-xl toolbar-content-padding-y-none v-sheet v-toolbar v-toolbar--flat v-app-bar bg-transparent position-sticky top-1 z-index-sticky"
   >
     <v-toolbar-title class="app-bar__brand d-flex align-center ga-3 text-truncate">
       <NuxtLink to="/" class="app-bar__title-link d-flex align-center ga-2">
@@ -471,9 +471,13 @@ const signOut = async () => {
 .app-bar {
   margin: var(--ui-spacing-sm) var(--ui-spacing-md);
   padding-inline: var(--ui-spacing-lg);
-  background: rgb(var(--v-theme-surface));
+}
+
+.app-bar--kind-glass {
+  background: color-mix(in srgb, rgb(var(--v-theme-surface)) 82%, transparent);
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   box-shadow: 0 12px 24px rgba(var(--v-theme-on-surface), 0.08);
+  backdrop-filter: blur(12px);
 }
 
 .app-bar--dark {

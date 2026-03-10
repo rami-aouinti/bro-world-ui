@@ -16,6 +16,9 @@ interface Props {
   emptyTitle?: string
   emptyDescription?: string
   emptyIcon?: string
+  spacing?: 'compact' | 'comfortable' | 'spacious'
+  surface?: 'default' | 'glass' | 'interactive' | 'metric' | 'hero'
+  elevationPreset?: 'none' | 'soft' | 'raised'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -29,6 +32,9 @@ const props = withDefaults(defineProps<Props>(), {
   emptyTitle: '',
   emptyDescription: '',
   emptyIcon: 'mdi-information-outline',
+  spacing: 'comfortable',
+  surface: 'default',
+  elevationPreset: 'soft',
 })
 
 const route = useRoute()
@@ -46,7 +52,12 @@ const resolvedSkeleton = computed(() => {
 </script>
 
 <template>
-  <UiPageSection :max-width="props.maxWidth">
+  <UiPageSection
+    :max-width="props.maxWidth"
+    :spacing="props.spacing"
+    :surface="props.surface"
+    :elevation-preset="props.elevationPreset"
+  >
     <component :is="resolvedSkeleton" v-if="props.loading" class="ui-page-shell__loading" />
 
     <UiStateEmptyState

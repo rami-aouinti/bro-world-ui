@@ -1,22 +1,34 @@
+<script setup lang="ts">
+import UiCard from '~/components/ui/UiCard.vue'
+
+interface Props {
+  selected?: boolean
+  loading?: boolean
+  disabled?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  selected: false,
+  loading: false,
+  disabled: false,
+})
+</script>
+
 <template>
-  <v-card class="ui-list-card pa-4 pa-md-5 h-100" rounded="2xl" elevation="1">
+  <UiCard
+    class="ui-list-card h-100"
+    kind="interactive"
+    rounded="2xl"
+    :selected="props.selected"
+    :loading="props.loading"
+    :disabled="props.disabled"
+  >
     <slot />
-  </v-card>
+  </UiCard>
 </template>
 
 <style scoped>
 .ui-list-card {
-  transition:
-    border-color var(--motion-fast) var(--easing-standard),
-    box-shadow var(--motion-base) var(--easing-standard),
-    transform var(--motion-base) var(--easing-emphasized);
   border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
-}
-
-.ui-list-card:hover,
-.ui-list-card:focus-within {
-  transform: translateY(-4px);
-  border-color: rgba(var(--v-theme-primary), 0.3);
-  box-shadow: 0 8px 20px rgba(var(--v-theme-primary), 0.08);
 }
 </style>

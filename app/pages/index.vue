@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import UiCard from '~/components/ui/UiCard.vue'
 import { usePublicPagesStore } from '~/stores/publicPages'
 
 definePageMeta({
@@ -127,7 +128,7 @@ watch(locale, loadPageContent)
 <template>
   <main class="home-page">
     <v-fade-transition appear>
-      <v-card class="home-hero mb-6" rounded="xl" elevation="4" hover>
+      <UiCard class="home-hero mb-6" kind="hero">
         <v-chip class="home-hero__badge mb-4" color="primary" variant="tonal">
           {{ homePagePayload.hero.badge }}
         </v-chip>
@@ -143,63 +144,63 @@ watch(locale, loadPageContent)
         <ul class="home-hero__benefits text-body-2 ps-5 mb-0">
           <li v-for="benefit in homePagePayload.hero.benefits" :key="benefit" class="mb-1">{{ benefit }}</li>
         </ul>
-      </v-card>
+      </UiCard>
     </v-fade-transition>
 
-    <v-card class="home-section mb-6" rounded="xl">
+    <UiCard class="home-section mb-6" kind="default">
       <h2 class="text-h6 mb-4">{{ homePagePayload.featuresTitle }}</h2>
       <v-row density="compact">
         <v-col v-for="card in homePagePayload.featureCards" :key="card.title" cols="12" md="4">
-          <v-card class="home-feature-card h-100" rounded="lg" hover variant="outlined">
+          <UiCard class="home-feature-card h-100" kind="interactive" rounded="lg">
             <v-icon :icon="card.icon" class="home-feature-card__icon mb-3" />
             <h3 class="text-subtitle-1 font-weight-medium mb-2">{{ card.title }}</h3>
             <p class="text-body-2 text-medium-emphasis mb-0">{{ card.description }}</p>
-          </v-card>
+          </UiCard>
         </v-col>
       </v-row>
-    </v-card>
+    </UiCard>
 
     <v-expand-transition>
-      <v-card class="home-section mb-6" rounded="xl" variant="tonal">
+      <UiCard class="home-section mb-6" kind="metric">
         <h2 class="text-h6 mb-4">{{ homePagePayload.metricsTitle }}</h2>
         <v-row density="compact">
           <v-col v-for="metric in homePagePayload.metrics" :key="metric.label" cols="12" md="4">
-            <v-card class="home-metric-card h-100" rounded="lg" variant="flat">
+            <UiCard class="home-metric-card h-100" kind="metric" rounded="lg">
               <p class="home-metric-card__value text-h5 font-weight-bold mb-1">{{ metric.value }}</p>
               <p class="home-metric-card__label text-body-2 text-medium-emphasis mb-0">{{ metric.label }}</p>
-            </v-card>
+            </UiCard>
           </v-col>
         </v-row>
-      </v-card>
+      </UiCard>
     </v-expand-transition>
 
     <v-expand-transition>
-      <v-card class="home-section mb-6" rounded="xl" variant="outlined">
+      <UiCard class="home-section mb-6" kind="interactive">
         <h2 class="text-h6 mb-4">{{ homePagePayload.stepsTitle }}</h2>
         <v-row density="compact">
           <v-col v-for="(step, index) in homePagePayload.steps" :key="step.title" cols="12" md="4">
-            <v-card class="home-step-card h-100" rounded="lg">
+            <UiCard class="home-step-card h-100" kind="interactive" rounded="lg">
               <div class="d-flex align-center ga-2 mb-2">
                 <v-icon :icon="step.icon" class="home-step-card__icon" />
                 <p class="text-caption text-medium-emphasis mb-0">{{ homePagePayload.stepLabelPrefix }} {{ index + 1 }}</p>
               </div>
               <h3 class="text-subtitle-1 font-weight-medium mb-2">{{ step.title }}</h3>
               <p class="text-body-2 text-medium-emphasis mb-0">{{ step.description }}</p>
-            </v-card>
+            </UiCard>
           </v-col>
         </v-row>
-      </v-card>
+      </UiCard>
     </v-expand-transition>
 
     <v-fade-transition>
-      <v-card class="home-final-cta" rounded="xl" elevation="2">
+      <UiCard class="home-final-cta" kind="glass">
         <h2 class="text-h6 mb-2">{{ homePagePayload.cta.title }}</h2>
         <p class="text-body-2 text-medium-emphasis mb-4">{{ homePagePayload.cta.description }}</p>
         <div class="home-final-cta__actions">
           <v-btn class="home-final-cta__btn" color="primary">{{ homePagePayload.cta.primaryAction }}</v-btn>
           <v-btn class="home-final-cta__btn" variant="outlined">{{ homePagePayload.cta.secondaryAction }}</v-btn>
         </div>
-      </v-card>
+      </UiCard>
     </v-fade-transition>
   </main>
 </template>
