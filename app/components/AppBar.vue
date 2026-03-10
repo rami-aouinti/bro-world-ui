@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import UiAvatar from '~/components/ui/UiAvatar.vue'
+import ConversationAvatarGroup from '~/components/inbox/ConversationAvatarGroup.vue'
 import { computed, ref, watch } from 'vue'
 import { useDisplay, useTheme } from 'vuetify'
 import type { NotificationListResponse, NotificationRead } from '~/types/api/notification'
@@ -21,7 +22,10 @@ interface InboxConversationPreview {
   id: string
   name: string
   excerpt: string
+  participants: Array<{ id: string, photo: string | null, label: string }>
   unread: number
+  route: string
+  latestMessageAt: string
 }
 
 const router = useRouter()
@@ -48,19 +52,25 @@ const getLatestMessage = (conversation: PrivateChatConversation): PrivateChatMes
 }
 
 const buildConversationPreview = (conversation: PrivateChatConversation): InboxConversationPreview => {
-  const participantsWithoutOwner = conversation.participants
+  const participants = conversation.participants
     .filter(participant => !participant.user.owner)
-    .map(participant => `${participant.user.firstName} ${participant.user.lastName}`.trim())
-    .filter(Boolean)
+    .map(participant => ({
+      id: participant.user.id,
+      photo: participant.user.photo,
+      label: `${participant.user.firstName} ${participant.user.lastName}`.trim() || 'Utilisateur',
+    }))
 
-  const title = participantsWithoutOwner.length ? participantsWithoutOwner.join(', ') : 'Conversation'
-  const unread = conversation.messages.filter(message => !message.sender.owner && !message.readAt).length
+  const title = participants.length ? participants.map(item => item.label).join(', ') : 'Conversation'
+  const latestMessageAt = getLatestMessage(conversation)?.createdAt ?? conversation.createdAt
 
   return {
     id: conversation.id,
     name: title,
     excerpt: getLatestMessage(conversation)?.content ?? 'Aucun message',
-    unread,
+    participants,
+    unread: conversation.unreadMessagesCount,
+    route: `/inbox/${conversation.id}`,
+    latestMessageAt,
   }
 }
 
@@ -84,8 +94,9 @@ const { data: inboxConversationsSummary } = useAsyncData<PrivateConversationsRes
 )
 
 const inboxConversationsPreview = computed<InboxConversationPreview[]>(() => (inboxConversationsSummary.value?.items ?? [])
-  .slice(0, 3)
-  .map(buildConversationPreview))
+  .map(buildConversationPreview)
+  .sort((a, b) => new Date(b.latestMessageAt).getTime() - new Date(a.latestMessageAt).getTime())
+  .slice(0, 3))
 
 const inboxUnreadCount = computed(() => inboxConversationsPreview.value.reduce((total, item) => total + item.unread, 0))
 
@@ -264,10 +275,14 @@ const signOut = async () => {
             <v-list-item
               v-for="conversation in inboxConversationsPreview"
               :key="conversation.id"
-              to="/inbox"
+              :to="conversation.route"
               rounded="lg"
               class="mx-2 my-1"
             >
+              <template #prepend>
+                <ConversationAvatarGroup :participants="conversation.participants" :size="36" />
+              </template>
+
               <v-list-item-title class="font-weight-medium text-truncate">{{ conversation.name }}</v-list-item-title>
               <v-list-item-subtitle class="text-truncate">{{ conversation.excerpt }}</v-list-item-subtitle>
 
