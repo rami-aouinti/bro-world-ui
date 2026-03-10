@@ -3,6 +3,7 @@ import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import UiListCard from '~/components/ui/UiListCard.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import { useNotificationsApi } from '~/composables/api/useNotificationsApi'
+import { useNotificationTarget } from '~/composables/useNotificationTarget'
 
 definePageMeta({
   public: false,
@@ -14,6 +15,7 @@ const isLoading = ref(false)
 const errorMessage = ref('')
 const notificationsResponse = ref<any>(null)
 const notifications = ref<any>(null)
+const { getNotificationTarget } = useNotificationTarget()
 const loadNotifications = async () => {
   try {
     isLoading.value = true
@@ -60,7 +62,7 @@ onMounted(async () => {
             <v-list-item
               v-for="item in notifications"
               :key="item.id"
-              :to="`/notifications/${item.id}`"
+              :to="getNotificationTarget(item) ?? `/notifications/${item.id}`"
               class="notifications-page__item px-0 rounded-lg"
             >
               <template #prepend>
