@@ -162,7 +162,7 @@ const exportToCsv = async () => {
         v-else-if="uiStatus === 'error'"
         class="platform-shop-admin-state"
         type="error"
-        :message="t('platform.shop.orders.searchLabel') + ' indisponible sans données.'"
+        :message="t('platform.shop.orders.errors.searchUnavailableNoData', { label: t('platform.shop.orders.searchLabel') })"
       />
 
       <UiEmptyState

@@ -42,31 +42,33 @@ const buildPayload = (form: NewProductForm): ShopProductCreatePayload => ({
 })
 
 export const validateNewProductForm = (form: NewProductForm): string | null => {
+  const { t } = useI18n()
   if (!form.name.trim()) {
-    return 'Le nom du produit est requis.'
+    return t('validation.requiredField', { field: t('platform.shop.newProduct.form.name') })
   }
 
   if (!form.category) {
-    return 'La catégorie est requise.'
+    return t('validation.requiredField', { field: t('platform.shop.newProduct.form.category') })
   }
 
   if (!form.sku.trim()) {
-    return 'Le SKU est requis.'
+    return t('validation.requiredField', { field: t('platform.shop.newProduct.form.sku') })
   }
 
   if (!form.price || form.price <= 0) {
-    return 'Le prix doit être supérieur à 0.'
+    return t('platform.shop.newProduct.validation.pricePositive')
   }
 
   const oversizedImage = form.images.find((image) => image.size > MAX_IMAGE_SIZE_BYTES)
   if (oversizedImage) {
-    return `L'image "${oversizedImage.name}" dépasse la taille maximale de 5MB.`
+    return t('platform.shop.newProduct.validation.imageTooLarge', { name: oversizedImage.name })
   }
 
   return null
 }
 
 export const useNewProductSubmit = () => {
+  const { t } = useI18n()
   const { createProduct } = useShopProductsApi()
 
   const loading = ref(false)
@@ -90,7 +92,7 @@ export const useNewProductSubmit = () => {
         error.value = apiError.message
       }
       else {
-        error.value = 'Impossible de créer le produit pour le moment.'
+        error.value = t('platform.shop.newProduct.validation.createFailed')
       }
       return null
     }

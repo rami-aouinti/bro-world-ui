@@ -118,7 +118,7 @@ const setEmptyDemo = () => {
           {{ t('platform.filters.clear') }}
         </ShopSecondaryAction>
         <ShopSecondaryAction prepend-icon="mdi-database-off-outline" @click="setEmptyDemo">
-          {{ t('platform.shop.common.buttons.filters') }}: Empty
+          {{ t('platform.shop.newProduct.actions.showEmptyState') }}
         </ShopSecondaryAction>
       </div>
 
@@ -225,13 +225,13 @@ const setEmptyDemo = () => {
                 <template #preview>
                   <v-img
                     :src="stepSections[1]?.image"
-                    :alt="`${stepSections[1]?.title} preview`"
+                    :alt="t('platform.shop.newProduct.media.previewAlt', { title: stepSections[1]?.title ?? '' })"
                     height="180"
                     cover
                     class="rounded-lg"
                   >
                     <template #error>
-                      <v-img :src="productPlaceholder" :alt="`${stepSections[1]?.title} preview`" height="180" cover class="rounded-lg" />
+                      <v-img :src="productPlaceholder" :alt="t('platform.shop.newProduct.media.previewAlt', { title: stepSections[1]?.title ?? '' })" height="180" cover class="rounded-lg" />
                     </template>
                   </v-img>
                 </template>
