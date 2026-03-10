@@ -10,6 +10,9 @@ interface Props {
   elevation?: string | number
   rounded?: string | number | boolean
   padding?: string
+  spacing?: 'compact' | 'comfortable' | 'spacious'
+  surface?: 'default' | 'glass' | 'interactive' | 'metric' | 'hero'
+  elevationPreset?: 'none' | 'soft' | 'raised'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -17,23 +20,47 @@ const props = withDefaults(defineProps<Props>(), {
   title: undefined,
   subtitle: undefined,
   card: true,
-  elevation: 2,
-  rounded: '2xl',
-  padding: 'pa-6',
+  elevation: undefined,
+  rounded: undefined,
+  padding: undefined,
+  spacing: 'comfortable',
+  surface: 'default',
+  elevationPreset: 'soft',
 })
 
-const cardPaddingClass = computed(() => (props.padding === 'pa-6' ? undefined : props.padding))
+const spacingClass = computed(() => `ui-page-section--spacing-${props.spacing}`)
+const cardPaddingClass = computed(() => {
+  if (props.padding) {
+    return props.padding
+  }
+
+  const fallback: Record<NonNullable<Props['spacing']>, string> = {
+    compact: 'pa-4',
+    comfortable: 'pa-6',
+    spacious: 'pa-8',
+  }
+
+  return fallback[props.spacing]
+})
+
+const elevationByPreset: Record<NonNullable<Props['elevationPreset']>, number> = {
+  none: 0,
+  soft: 2,
+  raised: 6,
+}
+const resolvedElevation = computed(() => props.elevation ?? elevationByPreset[props.elevationPreset])
 </script>
 
 <template>
-  <v-container :max-width="props.maxWidth">
+  <v-container :max-width="props.maxWidth" class="ui-page-section" :class="spacingClass">
     <UiCard
       v-if="props.card"
       class="ui-page-section__card"
       :title="props.title"
       :subtitle="props.subtitle"
       :rounded="props.rounded"
-      :elevation="props.elevation"
+      :elevation="resolvedElevation"
+      :kind="props.surface"
       :class="cardPaddingClass"
     >
       <template v-if="$slots.header" #header>
@@ -47,7 +74,7 @@ const cardPaddingClass = computed(() => (props.padding === 'pa-6' ? undefined : 
       <slot />
     </UiCard>
 
-    <div v-else :class="props.padding">
+    <div v-else :class="cardPaddingClass">
       <slot name="header">
         <div
           v-if="props.title || props.subtitle || $slots.actions"
