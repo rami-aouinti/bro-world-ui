@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { useUsersApi } from '~/composables/api/useUsersApi'
+import type { UUID } from '~/types/api/common'
 import type { UserFriendRead } from '~/types/api/user'
 
 const RELATIONS_TTL_MS = 60_000
@@ -93,13 +94,28 @@ export const useFriendsStore = defineStore('friends', () => {
     }
   }
 
-  const sendRequest = (user: string) => runAction(() => usersApi.sendFriendRequest(user))
-  const cancelSentRequest = (user: string) => runAction(() => usersApi.cancelSentFriendRequest(user))
-  const acceptRequest = (user: string) => runAction(() => usersApi.acceptFriendRequest(user))
-  const rejectRequest = (user: string) => runAction(() => usersApi.rejectFriendRequest(user))
-  const removeFriend = (user: string) => runAction(() => usersApi.rejectFriendRequest(user))
-  const blockUser = (user: string) => runAction(() => usersApi.blockUser(user))
-  const unblockUser = (user: string) => runAction(() => usersApi.unblockUser(user))
+  const sendRequest = (userId: UUID) => runAction(() => usersApi.sendFriendRequest(userId))
+  const cancelSentRequest = (userId: UUID) => runAction(() => usersApi.cancelSentFriendRequest(userId))
+  const acceptRequest = (userId: UUID) => runAction(() => usersApi.acceptFriendRequest(userId))
+  const rejectRequest = (userId: UUID) => runAction(() => usersApi.rejectFriendRequest(userId))
+  const removeFriend = (userId: UUID) => runAction(() => usersApi.rejectFriendRequest(userId))
+  const blockUser = (userId: UUID) => runAction(() => usersApi.blockUser(userId))
+  const unblockUser = (userId: UUID) => runAction(() => usersApi.unblockUser(userId))
+
+  const findUserIdByUsername = (username: string): UUID | null => {
+    const normalized = username.trim().toLowerCase()
+    if (!normalized) return null
+
+    const allUsers = [
+      ...friends.value,
+      ...incomingRequests.value,
+      ...sentRequests.value,
+      ...blockedUsers.value,
+    ]
+
+    const user = allUsers.find(item => item.username.trim().toLowerCase() === normalized)
+    return user?.id ?? null
+  }
 
   const isUsernameInList = (list: UserFriendRead[], username: string) => {
     const normalized = username.trim().toLowerCase()
@@ -132,6 +148,7 @@ export const useFriendsStore = defineStore('friends', () => {
     removeFriend,
     blockUser,
     unblockUser,
+    findUserIdByUsername,
     relationForUsername,
   }
 })

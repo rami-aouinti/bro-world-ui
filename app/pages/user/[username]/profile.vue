@@ -17,43 +17,44 @@ const friendsStore = useFriendsStore()
 
 const username = computed(() => String(route.params.username ?? ''))
 const actionError = ref('')
+const targetUserId = ref<string | null>(null)
 
 const displayName = computed(() => username.value || 'Unknown user')
 const isMe = computed(() => currentUser.me?.username === username.value)
 const relation = computed(() => friendsStore.relationForUsername(username.value))
 
 const relationActions = computed(() => {
-  if (!isAuthenticated.value || isMe.value || !username.value) return [] as Array<{ key: string, label: string, color: string, variant?: 'flat' | 'tonal', run: () => Promise<void> }>
+  if (!isAuthenticated.value || isMe.value || !username.value || !targetUserId.value) return [] as Array<{ key: string, label: string, color: string, variant?: 'flat' | 'tonal', run: () => Promise<void> }>
 
   if (relation.value === 'blocked') {
-    return [{ key: 'unblock', label: 'Débloquer', color: 'warning', variant: 'tonal', run: () => friendsStore.unblockUser(username.value) }]
+    return [{ key: 'unblock', label: 'Débloquer', color: 'warning', variant: 'tonal', run: () => friendsStore.unblockUser(targetUserId.value!) }]
   }
 
   if (relation.value === 'friend') {
     return [
-      { key: 'remove-friend', label: 'Retirer des amis', color: 'warning', variant: 'tonal', run: () => friendsStore.removeFriend(username.value) },
-      { key: 'block', label: 'Bloquer', color: 'error', variant: 'tonal', run: () => friendsStore.blockUser(username.value) },
+      { key: 'remove-friend', label: 'Retirer des amis', color: 'warning', variant: 'tonal', run: () => friendsStore.removeFriend(targetUserId.value!) },
+      { key: 'block', label: 'Bloquer', color: 'error', variant: 'tonal', run: () => friendsStore.blockUser(targetUserId.value!) },
     ]
   }
 
   if (relation.value === 'sent_request') {
     return [
-      { key: 'cancel-request', label: 'Annuler la demande', color: 'warning', variant: 'tonal', run: () => friendsStore.cancelSentRequest(username.value) },
-      { key: 'block', label: 'Bloquer', color: 'error', variant: 'tonal', run: () => friendsStore.blockUser(username.value) },
+      { key: 'cancel-request', label: 'Annuler la demande', color: 'warning', variant: 'tonal', run: () => friendsStore.cancelSentRequest(targetUserId.value!) },
+      { key: 'block', label: 'Bloquer', color: 'error', variant: 'tonal', run: () => friendsStore.blockUser(targetUserId.value!) },
     ]
   }
 
   if (relation.value === 'incoming_request') {
     return [
-      { key: 'accept-request', label: 'Accepter', color: 'success', variant: 'tonal', run: () => friendsStore.acceptRequest(username.value) },
-      { key: 'reject-request', label: 'Refuser', color: 'warning', variant: 'tonal', run: () => friendsStore.rejectRequest(username.value) },
-      { key: 'block', label: 'Bloquer', color: 'error', variant: 'tonal', run: () => friendsStore.blockUser(username.value) },
+      { key: 'accept-request', label: 'Accepter', color: 'success', variant: 'tonal', run: () => friendsStore.acceptRequest(targetUserId.value!) },
+      { key: 'reject-request', label: 'Refuser', color: 'warning', variant: 'tonal', run: () => friendsStore.rejectRequest(targetUserId.value!) },
+      { key: 'block', label: 'Bloquer', color: 'error', variant: 'tonal', run: () => friendsStore.blockUser(targetUserId.value!) },
     ]
   }
 
   return [
-    { key: 'add-friend', label: 'Ajouter en ami', color: 'primary', variant: 'flat', run: () => friendsStore.sendRequest(username.value) },
-    { key: 'block', label: 'Bloquer', color: 'error', variant: 'tonal', run: () => friendsStore.blockUser(username.value) },
+    { key: 'add-friend', label: 'Ajouter en ami', color: 'primary', variant: 'flat', run: () => friendsStore.sendRequest(targetUserId.value!) },
+    { key: 'block', label: 'Bloquer', color: 'error', variant: 'tonal', run: () => friendsStore.blockUser(targetUserId.value!) },
   ]
 })
 
@@ -69,12 +70,23 @@ const runAction = async (action: () => Promise<void>) => {
 }
 
 watch(() => route.params.username, async () => {
+  targetUserId.value = null
+
   if (!isAuthenticated.value) {
     return
   }
 
   await currentUser.fetchMe()
   await friendsStore.fetchAll(true)
+
+  const knownUserId = friendsStore.findUserIdByUsername(username.value)
+  if (knownUserId) {
+    targetUserId.value = knownUserId
+    return
+  }
+
+  const targetUser = await useUsersApi().getByUsername(username.value)
+  targetUserId.value = targetUser?.id ?? null
 }, { immediate: true })
 </script>
 

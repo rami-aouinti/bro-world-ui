@@ -29,6 +29,14 @@ export const useUsersApi = () => {
     getMe() {
       return apiFetch<UserMeRead>('/api/v1/users/me', { method: 'GET' })
     },
+    async getByUsername(username: string) {
+      const users = await apiFetch<UserRead[]>(basePath, {
+        method: 'GET',
+        query: buildListQuery({}, { username }),
+      })
+
+      return users.find(user => user.username.toLowerCase() === username.trim().toLowerCase()) ?? null
+    },
 
     listMyFriends() {
       return apiFetch<UserFriendRead[]>('/api/v1/users/me/friends', { method: 'GET' })
@@ -42,23 +50,23 @@ export const useUsersApi = () => {
     listMyBlockedUsers() {
       return apiFetch<UserFriendRead[]>('/api/v1/users/me/friends/blocked', { method: 'GET' })
     },
-    sendFriendRequest(user: string) {
-      return apiFetch<void>(`/api/v1/users/${encodeURIComponent(user)}/friends/request`, { method: 'POST' })
+    sendFriendRequest(userId: UUID) {
+      return apiFetch<void>(`/api/v1/users/${encodeURIComponent(userId)}/friends/request`, { method: 'POST' })
     },
-    cancelSentFriendRequest(user: string) {
-      return apiFetch<void>(`/api/v1/users/${encodeURIComponent(user)}/friends/request`, { method: 'DELETE' })
+    cancelSentFriendRequest(userId: UUID) {
+      return apiFetch<void>(`/api/v1/users/${encodeURIComponent(userId)}/friends/cancel`, { method: 'POST' })
     },
-    acceptFriendRequest(user: string) {
-      return apiFetch<void>(`/api/v1/users/${encodeURIComponent(user)}/friends/accept`, { method: 'POST' })
+    acceptFriendRequest(userId: UUID) {
+      return apiFetch<void>(`/api/v1/users/${encodeURIComponent(userId)}/friends/accept`, { method: 'POST' })
     },
-    rejectFriendRequest(user: string) {
-      return apiFetch<void>(`/api/v1/users/${encodeURIComponent(user)}/friends/reject`, { method: 'POST' })
+    rejectFriendRequest(userId: UUID) {
+      return apiFetch<void>(`/api/v1/users/${encodeURIComponent(userId)}/friends/reject`, { method: 'POST' })
     },
-    blockUser(user: string) {
-      return apiFetch<void>(`/api/v1/users/${encodeURIComponent(user)}/block`, { method: 'POST' })
+    blockUser(userId: UUID) {
+      return apiFetch<void>(`/api/v1/users/${encodeURIComponent(userId)}/block`, { method: 'POST' })
     },
-    unblockUser(user: string) {
-      return apiFetch<void>(`/api/v1/users/${encodeURIComponent(user)}/block`, { method: 'DELETE' })
+    unblockUser(userId: UUID) {
+      return apiFetch<void>(`/api/v1/users/${encodeURIComponent(userId)}/block`, { method: 'DELETE' })
     },
     updateMyPassword(payload: UserMePasswordPayload) {
       return apiFetch<void>('/api/v1/users/me/password', {
