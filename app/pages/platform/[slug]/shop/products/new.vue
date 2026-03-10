@@ -145,7 +145,7 @@ const setEmptyDemo = () => {
           {{ t('platform.filters.clear') }}
         </ShopSecondaryAction>
         <ShopSecondaryAction prepend-icon="mdi-database-off-outline" @click="setEmptyDemo">
-          {{ t('platform.shop.common.buttons.filters') }}: Empty
+          {{ t('platform.shop.common.buttons.emptyStateDemo') }}
         </ShopSecondaryAction>
       </div>
 
@@ -174,7 +174,7 @@ const setEmptyDemo = () => {
         v-else-if="uiStatus === 'error'"
         class="platform-shop-admin-state"
         type="error"
-        :message="t('platform.shop.newProduct.form.name') + ' requis.'"
+        :message="t('validation.requiredField', { field: t('platform.shop.newProduct.form.name') })"
       />
 
       <template v-else>
@@ -252,13 +252,19 @@ const setEmptyDemo = () => {
                 <template #preview>
                   <v-img
                     :src="stepSections[1]?.image"
-                    :alt="`${stepSections[1]?.title} preview`"
+                    :alt="t('platform.shop.newProduct.media.previewAlt', { section: stepSections[1]?.title })"
                     height="180"
                     cover
                     class="rounded-lg"
                   >
                     <template #error>
-                      <v-img :src="productPlaceholder" :alt="`${stepSections[1]?.title} preview`" height="180" cover class="rounded-lg" />
+                      <v-img
+                        :src="productPlaceholder"
+                        :alt="t('platform.shop.newProduct.media.previewAlt', { section: stepSections[1]?.title })"
+                        height="180"
+                        cover
+                        class="rounded-lg"
+                      />
                     </template>
                   </v-img>
                 </template>

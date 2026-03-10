@@ -29,11 +29,11 @@ const { t } = useI18n()
 const { formatCurrency } = usePlatformI18n()
 
 const trackingTimeline: TimelineStep[] = [
-  { title: t('platform.shop.orders.tracking.steps.confirmed'), date: '12 Jan 2026 · 09:14', icon: 'mdiCheckCircle', state: 'done' },
-  { title: t('platform.shop.orders.tracking.steps.prepared'), date: '12 Jan 2026 · 13:58', icon: 'mdiPackageVariantClosed', state: 'done' },
-  { title: t('platform.shop.orders.tracking.steps.inTransit'), date: '13 Jan 2026 · 07:32', icon: 'mdiTruckDelivery', state: 'current' },
-  { title: t('platform.shop.orders.tracking.steps.outForDelivery'), date: t('platform.shop.orders.tracking.dates.expected', { date: '14 Jan 2026' }), icon: 'mdiMapMarkerPath', state: 'upcoming' },
-  { title: t('platform.shop.orders.tracking.steps.delivered'), date: t('platform.shop.orders.tracking.dates.expected', { date: '14 Jan 2026' }), icon: 'mdiHomeCheck', state: 'upcoming' }
+  { title: t('platform.shop.orders.tracking.steps.confirmed'), date: t('platform.shop.orders.tracking.dates.confirmed'), icon: 'mdiCheckCircle', state: 'done' },
+  { title: t('platform.shop.orders.tracking.steps.prepared'), date: t('platform.shop.orders.tracking.dates.prepared'), icon: 'mdiPackageVariantClosed', state: 'done' },
+  { title: t('platform.shop.orders.tracking.steps.inTransit'), date: t('platform.shop.orders.tracking.dates.inTransit'), icon: 'mdiTruckDelivery', state: 'current' },
+  { title: t('platform.shop.orders.tracking.steps.outForDelivery'), date: t('platform.shop.orders.tracking.dates.expected', { date: t('platform.shop.orders.tracking.dates.expectedDate') }), icon: 'mdiMapMarkerPath', state: 'upcoming' },
+  { title: t('platform.shop.orders.tracking.steps.delivered'), date: t('platform.shop.orders.tracking.dates.expected', { date: t('platform.shop.orders.tracking.dates.expectedDate') }), icon: 'mdiHomeCheck', state: 'upcoming' }
 ]
 
 const timelineColorMap: Record<TimelineState, string> = {
@@ -88,10 +88,10 @@ const timelineStateLabel: Record<TimelineState, string> = {
             <v-card-text class="d-flex flex-wrap ga-4 align-center">
               <v-img :src="orderedProductImage" width="170" cover class="rounded-lg border" />
               <div>
-                <p class="text-h6 font-weight-bold mb-1">Pro Headset X2</p>
-                <p class="text-body-2 text-medium-emphasis mb-1">{{ t('platform.shop.orders.tracking.productMeta', { color: 'Midnight Black', quantity: 1 }) }}</p>
-                <p class="text-body-2 text-medium-emphasis mb-1">{{ t('platform.shop.orders.tracking.warehouse', { warehouse: 'Paris North Hub' }) }}</p>
-                <p class="text-body-1 font-weight-medium">{{ t('platform.shop.orders.tracking.trackingNumber', { trackingNumber: 'FR-24-0089134' }) }}</p>
+                <p class="text-h6 font-weight-bold mb-1">{{ t('platform.shop.orders.tracking.productName') }}</p>
+                <p class="text-body-2 text-medium-emphasis mb-1">{{ t('platform.shop.orders.tracking.productMeta', { color: t('platform.shop.orders.tracking.colorMidnightBlack'), quantity: 1 }) }}</p>
+                <p class="text-body-2 text-medium-emphasis mb-1">{{ t('platform.shop.orders.tracking.warehouse', { warehouse: t('platform.shop.orders.tracking.warehouses.parisNorthHub') }) }}</p>
+                <p class="text-body-1 font-weight-medium">{{ t('platform.shop.orders.tracking.trackingNumber', { trackingNumber: t('platform.shop.orders.tracking.trackingNumberValue') }) }}</p>
               </div>
             </v-card-text>
           </v-card>
@@ -126,10 +126,10 @@ const timelineStateLabel: Record<TimelineState, string> = {
             </v-card-item>
             <v-divider />
             <v-card-text>
-              <p class="font-weight-bold mb-1">Nadia Bento</p>
-              <p class="text-body-2 text-medium-emphasis mb-1">18 Rue des Tilleuls</p>
-              <p class="text-body-2 text-medium-emphasis mb-1">75011 Paris · France</p>
-              <p class="text-body-2 text-medium-emphasis">nadia.bento@example.com · +33 6 12 34 56 78</p>
+              <p class="font-weight-bold mb-1">{{ t('platform.shop.orders.tracking.billing.name') }}</p>
+              <p class="text-body-2 text-medium-emphasis mb-1">{{ t('platform.shop.orders.tracking.billing.addressLine1') }}</p>
+              <p class="text-body-2 text-medium-emphasis mb-1">{{ t('platform.shop.orders.tracking.billing.addressLine2') }}</p>
+              <p class="text-body-2 text-medium-emphasis">{{ t('platform.shop.orders.tracking.billing.contact', { email: t('platform.shop.orders.tracking.billing.email'), phone: t('platform.shop.orders.tracking.billing.phone') }) }}</p>
             </v-card-text>
           </v-card>
         </v-col>
@@ -142,11 +142,11 @@ const timelineStateLabel: Record<TimelineState, string> = {
             <v-divider />
             <v-card-text class="d-flex ga-4 align-center">
               <v-avatar rounded="lg" size="58" color="grey-lighten-4">
-                <v-img :src="mastercardLogo" alt="Mastercard" />
+                <v-img :src="mastercardLogo" :alt="t('platform.shop.orders.tracking.paymentAlt')" />
               </v-avatar>
               <div>
-                <p class="font-weight-medium">{{ t('platform.shop.orders.tracking.paymentCard', { last4: '9086' }) }}</p>
-                <p class="text-body-2 text-medium-emphasis">{{ t('platform.shop.orders.tracking.paymentMeta', { expiry: '10/29', holder: 'Nadia Bento' }) }}</p>
+                <p class="font-weight-medium">{{ t('platform.shop.orders.tracking.paymentCard', { last4: t('platform.shop.orders.tracking.paymentLast4') }) }}</p>
+                <p class="text-body-2 text-medium-emphasis">{{ t('platform.shop.orders.tracking.paymentMeta', { expiry: t('platform.shop.orders.tracking.paymentExpiry'), holder: t('platform.shop.orders.tracking.billing.name') }) }}</p>
               </div>
             </v-card-text>
           </v-card>

@@ -33,7 +33,7 @@ const router = useRouter()
 const route = useRoute()
 const { t, te, locale, locales, setLocale } = useI18n({ useScope: 'global' })
 const authSession = useAuthSessionStore()
-const { can, canPermission } = useAccessControl()
+const { canPermission } = useAccessControl()
 const { logout } = useAuth()
 const theme = useTheme()
 
@@ -59,16 +59,16 @@ const buildConversationPreview = (conversation: PrivateChatConversation): InboxC
     .map(participant => ({
       id: participant.user.id,
       photo: participant.user.photo,
-      label: `${participant.user.firstName} ${participant.user.lastName}`.trim() || 'Utilisateur',
+      label: `${participant.user.firstName} ${participant.user.lastName}`.trim() || t('app.inbox.defaultUserLabel'),
     }))
 
-  const title = participants[0]?.label ?? 'Conversation'
+  const title = participants[0]?.label ?? t('app.inbox.defaultConversationTitle')
   const latestMessageAt = getLatestMessage(conversation)?.createdAt ?? conversation.createdAt
 
   return {
     id: conversation.id,
     name: title,
-    excerpt: getLatestMessage(conversation)?.content ?? 'Aucun message',
+    excerpt: getLatestMessage(conversation)?.content ?? t('app.inbox.emptyExcerpt'),
     participants,
     unread: conversation.unreadMessagesCount,
     route: `/inbox/${conversation.id}`,
@@ -112,7 +112,7 @@ watch(isInboxMenuOpen, async (isOpen) => {
 
 const mainHeaderItems = computed<NavItem[]>(() => [
   { key: 'app.navigation.platform', to: '/platform', icon: 'mdi-view-grid-outline' },
-  { key: 'Blog', to: '/blog', icon: 'mdi-post-outline' },
+  { key: 'app.navigation.blog', to: '/blog', icon: 'mdi-post-outline' },
   { key: 'app.navigation.about', to: '/about', icon: 'mdi-information-outline' },
   { key: 'app.navigation.contact', to: '/contact', icon: 'mdi-email-outline' },
   { key: 'app.navigation.faq', to: '/faq', icon: 'mdi-frequently-asked-questions' },
@@ -310,7 +310,7 @@ const signOut = async () => {
               to="/inbox"
               rounded="lg"
               class="mx-2 my-1 text-primary"
-              title="Show all"
+              :title="t('app.navigation.showAll')"
               prepend-icon="mdi-arrow-right"
             />
           </v-list>
@@ -355,7 +355,7 @@ const signOut = async () => {
               to="/notifications"
               rounded="lg"
               class="mx-2 my-1 text-primary"
-              title="Show all"
+              :title="t('app.navigation.showAll')"
               prepend-icon="mdi-arrow-right"
             />
           </v-list>

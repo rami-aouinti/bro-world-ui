@@ -23,7 +23,14 @@
       "adminApiKeys": "API keys",
       "settings": "Settings",
       "inbox": "Messages",
-      "register": "Register"
+      "register": "Register",
+      "blog": "Blog",
+      "showAll": "Ver todo"
+    },
+    "inbox": {
+      "defaultUserLabel": "Usuario",
+      "defaultConversationTitle": "Conversación",
+      "emptyExcerpt": "Sin mensajes"
     }
   },
   "login": {
@@ -598,7 +605,8 @@
         },
         "media": {
           "dropzoneTitle": "Drop your images here",
-          "dropzoneSubtitle": "Click to pick files, or drag and drop multiple images."
+          "dropzoneSubtitle": "Click to pick files, or drag and drop multiple images.",
+          "previewAlt": "Vista previa: {section}"
         },
         "actions": {
           "prev": "Prev",
@@ -625,7 +633,8 @@
           "backToOrders": "Back to orders",
           "viewDetails": "View details",
           "editVisual": "Edit visual",
-          "removeVisual": "Remove visual"
+          "removeVisual": "Remove visual",
+          "emptyStateDemo": "Mostrar estado vacío"
         }
       },
       "orders": {
@@ -694,8 +703,32 @@
             "delivered": "Delivered"
           },
           "dates": {
-            "expected": "Expected {date}"
-          }
+            "expected": "Expected {date}",
+            "confirmed": "12 ene 2026 · 09:14",
+            "prepared": "12 ene 2026 · 13:58",
+            "inTransit": "13 ene 2026 · 07:32",
+            "expectedDate": "14 ene 2026"
+          },
+          "productName": "Pro Headset X2",
+          "colorMidnightBlack": "Negro medianoche",
+          "warehouses": {
+            "parisNorthHub": "Hub Norte de París"
+          },
+          "trackingNumberValue": "FR-24-0089134",
+          "billing": {
+            "name": "Nadia Bento",
+            "addressLine1": "18 Rue des Tilleuls",
+            "addressLine2": "75011 París · Francia",
+            "contact": "{email} · {phone}",
+            "email": "nadia.bento@example.com",
+            "phone": "+33 6 12 34 56 78"
+          },
+          "paymentAlt": "Mastercard",
+          "paymentLast4": "9086",
+          "paymentExpiry": "10/29"
+        },
+        "messages": {
+          "searchUnavailable": "La búsqueda no está disponible sin datos."
         }
       },
       "checkout": {
@@ -753,6 +786,26 @@
           "stock": "Stock"
         },
         "saveSuccess": "Product updated successfully (mock)."
+      },
+      "tickets": {
+        "boardTitle": "Tickets de shop",
+        "backlogTitle": "Backlog de shop"
+      },
+      "admin": {
+        "messages": {
+          "loadingPermissions": "Cargando permisos de admin…",
+          "accessDeniedRedirect": "Acceso denegado al área admin de shop. Redirigiendo…"
+        },
+        "empty": {
+          "title": "Sin elementos",
+          "description": "Las tarjetas de administración aparecerán aquí cuando los datos estén disponibles."
+        },
+        "labels": {
+          "sectionAria": "Sección {section}"
+        },
+        "cards": {
+          "orderLabel": "Pedido #10{index}"
+        }
       }
     },
     "recruit": {
@@ -1387,5 +1440,8 @@
     "password": "Password",
     "repeatPassword": "Repeat password",
     "submit": "Create account"
+  },
+  "validation": {
+    "requiredField": "El campo {field} es obligatorio."
   }
 }

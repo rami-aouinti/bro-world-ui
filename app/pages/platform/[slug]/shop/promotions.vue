@@ -13,6 +13,7 @@ const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const { isOwner } = usePlatformPermissions(slug)
 const navItems = computed(() => getShopNav(slug.value, isOwner.value))
+const { t } = useI18n()
 </script>
 
 <template>
@@ -25,7 +26,7 @@ const navItems = computed(() => getShopNav(slug.value, isOwner.value))
           <PlatformMediaCard :item="item" />
         </v-col>
       </v-row>
-      <PlatformTicketBoard class="mt-6" title="Tickets Shop" :tickets="platformProposals.shop" />
+      <PlatformTicketBoard class="mt-6" :title="t('platform.shop.tickets.boardTitle')" :tickets="platformProposals.shop" />
     </section>
   </PlatformSplitLayout>
 </template>

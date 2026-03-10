@@ -23,7 +23,14 @@
       "adminGroups": "Groupes",
       "adminApiKeys": "Clés API",
       "settings": "Paramètres",
-      "register": "Inscription"
+      "register": "Inscription",
+      "blog": "Blog",
+      "showAll": "Tout afficher"
+    },
+    "inbox": {
+      "defaultUserLabel": "Utilisateur",
+      "defaultConversationTitle": "Conversation",
+      "emptyExcerpt": "Aucun message"
     }
   },
   "login": {
@@ -598,7 +605,8 @@
         },
         "media": {
           "dropzoneTitle": "Déposez vos images ici",
-          "dropzoneSubtitle": "Cliquez pour sélectionner des fichiers, ou glissez-déposez plusieurs images."
+          "dropzoneSubtitle": "Cliquez pour sélectionner des fichiers, ou glissez-déposez plusieurs images.",
+          "previewAlt": "Aperçu : {section}"
         },
         "actions": {
           "prev": "Précédent",
@@ -625,7 +633,8 @@
           "backToOrders": "Retour aux commandes",
           "viewDetails": "Voir les détails",
           "editVisual": "Modifier le visuel",
-          "removeVisual": "Supprimer le visuel"
+          "removeVisual": "Supprimer le visuel",
+          "emptyStateDemo": "Afficher un état vide"
         }
       },
       "orders": {
@@ -694,8 +703,32 @@
             "delivered": "Livrée"
           },
           "dates": {
-            "expected": "Prévue le {date}"
-          }
+            "expected": "Prévue le {date}",
+            "confirmed": "12 janv. 2026 · 09:14",
+            "prepared": "12 janv. 2026 · 13:58",
+            "inTransit": "13 janv. 2026 · 07:32",
+            "expectedDate": "14 janv. 2026"
+          },
+          "productName": "Pro Headset X2",
+          "colorMidnightBlack": "Noir minuit",
+          "warehouses": {
+            "parisNorthHub": "Hub Paris Nord"
+          },
+          "trackingNumberValue": "FR-24-0089134",
+          "billing": {
+            "name": "Nadia Bento",
+            "addressLine1": "18 rue des Tilleuls",
+            "addressLine2": "75011 Paris · France",
+            "contact": "{email} · {phone}",
+            "email": "nadia.bento@example.com",
+            "phone": "+33 6 12 34 56 78"
+          },
+          "paymentAlt": "Mastercard",
+          "paymentLast4": "9086",
+          "paymentExpiry": "10/29"
+        },
+        "messages": {
+          "searchUnavailable": "Recherche indisponible sans données."
         }
       },
       "checkout": {
@@ -753,6 +786,26 @@
           "stock": "Stock"
         },
         "saveSuccess": "Produit mis à jour avec succès (mock)."
+      },
+      "tickets": {
+        "boardTitle": "Tickets shop",
+        "backlogTitle": "Backlog shop"
+      },
+      "admin": {
+        "messages": {
+          "loadingPermissions": "Chargement des permissions admin…",
+          "accessDeniedRedirect": "Accès refusé à l’espace admin shop. Redirection en cours…"
+        },
+        "empty": {
+          "title": "Aucun élément",
+          "description": "Les cartes d’administration apparaîtront ici dès que les données seront disponibles."
+        },
+        "labels": {
+          "sectionAria": "Section {section}"
+        },
+        "cards": {
+          "orderLabel": "Commande n°10{index}"
+        }
       }
     },
     "recruit": {
@@ -1387,5 +1440,8 @@
     "password": "Mot de passe",
     "repeatPassword": "Confirmer le mot de passe",
     "submit": "Créer un compte"
+  },
+  "validation": {
+    "requiredField": "Le champ {field} est requis."
   }
 }
