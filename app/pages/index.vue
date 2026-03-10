@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { usePublicPagesStore } from '~/stores/publicPages'
+
 definePageMeta({
-  public: false,
-  requiresAuth: true,
+  public: true,
+  requiresAuth: false,
   splitShell: false,
 })
 
@@ -110,6 +112,16 @@ const homePagePayload = ref<HomePagePayload>({
     secondaryAction: 'Contacter un expert',
   },
 })
+
+const publicPagesStore = usePublicPagesStore()
+const { locale } = useI18n()
+
+const loadPageContent = async () => {
+  homePagePayload.value = await publicPagesStore.loadHome(locale.value)
+}
+
+onMounted(loadPageContent)
+watch(locale, loadPageContent)
 </script>
 
 <template>

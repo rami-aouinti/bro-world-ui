@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { usePublicPagesStore } from '~/stores/publicPages'
+
 import { computed, ref } from 'vue'
 
 definePageMeta({
@@ -113,6 +115,16 @@ const filteredFaqItems = computed(() => faqPagePayload.value.items.filter((item)
 }))
 
 const categoryLabel = (key: string) => faqPagePayload.value.categories.find((category) => category.key === key)?.label ?? key
+
+const publicPagesStore = usePublicPagesStore()
+const { locale } = useI18n()
+
+const loadPageContent = async () => {
+  faqPagePayload.value = await publicPagesStore.loadFaq(locale.value)
+}
+
+onMounted(loadPageContent)
+watch(locale, loadPageContent)
 </script>
 
 <template>

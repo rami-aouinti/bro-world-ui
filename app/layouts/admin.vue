@@ -79,6 +79,33 @@ const adminMenu = computed(() => [
       },
     ],
   },
+  {
+    title: t('admin.navigation.pageManagement.title'),
+    value: 'page-management',
+    icon: 'mdi-file-document-edit-outline',
+    children: [
+      {
+        title: t('admin.modules.pages.home'),
+        to: '/admin/page-management/home',
+        icon: 'mdi-home-outline',
+      },
+      {
+        title: t('admin.modules.pages.about'),
+        to: '/admin/page-management/about',
+        icon: 'mdi-information-outline',
+      },
+      {
+        title: t('admin.modules.pages.contact'),
+        to: '/admin/page-management/contact',
+        icon: 'mdi-card-account-phone-outline',
+      },
+      {
+        title: t('admin.modules.pages.faq'),
+        to: '/admin/page-management/faq',
+        icon: 'mdi-frequently-asked-questions',
+      },
+    ],
+  },
 ])
 
 const openGroups = computed(() => {
@@ -87,6 +114,7 @@ const openGroups = computed(() => {
   if (route.path.startsWith('/admin/user-management')) groups.push('user-management')
   if (route.path.startsWith('/admin/platform-management')) groups.push('platform-management')
   if (route.path.startsWith('/admin/configuration-management')) groups.push('configuration-management')
+  if (route.path.startsWith('/admin/page-management')) groups.push('page-management')
 
   return groups
 })

@@ -41,6 +41,12 @@ const adminModules = computed(() => [
     to: '/admin/configuration-management',
     icon: 'mdi-tune-variant',
   },
+  {
+    title: t('admin.navigation.pageManagement.title'),
+    description: t('admin.navigation.pageManagement.description'),
+    to: '/admin/page-management',
+    icon: 'mdi-file-document-edit-outline',
+  },
 ])
 </script>
 
