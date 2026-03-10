@@ -358,6 +358,20 @@
         "newAccounts": "New accounts (7 days)",
         "apiRequests": "API requests (24h)",
         "errors": "Critical errors"
+      },
+      "charts": {
+        "title": "Wöchentliche Statistiken",
+        "users": "Aktive Nutzer",
+        "apiRequests": "API-Anfragen",
+        "days": {
+          "mon": "Mo",
+          "tue": "Di",
+          "wed": "Mi",
+          "thu": "Do",
+          "fri": "Fr",
+          "sat": "Sa",
+          "sun": "So"
+        }
       }
     },
     "settings": {
