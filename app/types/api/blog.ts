@@ -6,6 +6,7 @@ export interface BlogReaction {
   isAuthor: boolean
   author?: BlogAuthor
   type: string
+  createdAt?: string
 }
 
 export interface BlogAuthor {
@@ -22,6 +23,7 @@ export interface BlogComment {
   author?: BlogAuthor
   content: string
   filePath: string | null
+  createdAt?: string
   reactions: BlogReaction[]
   children: BlogComment[]
 }
@@ -33,6 +35,8 @@ export interface BlogPost {
   author?: BlogAuthor
   content: string
   filePath: string | null
+  createdAt?: string
+  reactions?: BlogReaction[]
   comments: BlogComment[]
 }
 

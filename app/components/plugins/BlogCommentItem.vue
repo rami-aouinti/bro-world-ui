@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BlogComment } from '~/types/api/blog'
+import type { BlogComment, BlogReaction } from '~/types/api/blog'
 import UiAvatar from '~/components/ui/UiAvatar.vue'
 
 const props = withDefaults(defineProps<{
@@ -47,7 +47,22 @@ const reactionAuthorProfilePath = (username?: string) => {
   return normalized ? `/user/${encodeURIComponent(normalized)}/profile` : undefined
 }
 
-const reactionAuthorName = (firstName?: string, lastName?: string) => `${firstName ?? 'Unknown'} ${lastName ?? 'User'}`.trim()
+const commentRelativeDate = computed(() => formatRelativeTime(props.comment.createdAt))
+
+const groupedReactions = computed(() => {
+  const grouped = new Map<string, BlogReaction[]>()
+  for (const reaction of props.comment.reactions ?? []) {
+    const key = reaction.type
+    const current = grouped.get(key) ?? []
+    current.push(reaction)
+    grouped.set(key, current)
+  }
+
+  return Array.from(grouped.entries()).map(([type, reactions]) => ({
+    type,
+    reactions,
+  }))
+})
 
 const isReplying = ref(false)
 const replyContent = ref('')
@@ -97,24 +112,76 @@ const addReaction = (type: string) => {
   emit('addReaction', { commentId: props.comment.id, type })
   showReactionPicker.value = false
 }
+
+const formatRelativeTime = (dateInput?: string | null) => {
+  if (!dateInput) {
+    return ''
+  }
+
+  const date = new Date(dateInput)
+  if (Number.isNaN(date.getTime())) {
+    return ''
+  }
+
+  const diffSeconds = Math.round((date.getTime() - Date.now()) / 1000)
+  const formatter = new Intl.RelativeTimeFormat('fr', { numeric: 'auto' })
+
+  if (Math.abs(diffSeconds) < 60) {
+    return formatter.format(diffSeconds, 'second')
+  }
+
+  const diffMinutes = Math.round(diffSeconds / 60)
+  if (Math.abs(diffMinutes) < 60) {
+    return formatter.format(diffMinutes, 'minute')
+  }
+
+  const diffHours = Math.round(diffMinutes / 60)
+  if (Math.abs(diffHours) < 24) {
+    return formatter.format(diffHours, 'hour')
+  }
+
+  const diffDays = Math.round(diffHours / 24)
+  if (Math.abs(diffDays) < 7) {
+    return formatter.format(diffDays, 'day')
+  }
+
+  const diffWeeks = Math.round(diffDays / 7)
+  if (Math.abs(diffWeeks) < 5) {
+    return formatter.format(diffWeeks, 'week')
+  }
+
+  const diffMonths = Math.round(diffDays / 30)
+  if (Math.abs(diffMonths) < 12) {
+    return formatter.format(diffMonths, 'month')
+  }
+
+  const diffYears = Math.round(diffDays / 365)
+  return formatter.format(diffYears, 'year')
+}
 </script>
 
 <template>
   <div class="comment-item" :style="{ marginInlineStart: `${marginStart}px` }">
     <div class="d-flex ga-2 align-start">
-      <UiAvatar :src="comment.author?.photo ?? undefined" :name="commentAuthorName" size="sm" />
+      <NuxtLink v-if="commentAuthorProfilePath" :to="commentAuthorProfilePath" class="avatar-link">
+        <UiAvatar :src="comment.author?.photo ?? undefined" :name="commentAuthorName" size="sm" />
+      </NuxtLink>
+      <UiAvatar v-else :src="comment.author?.photo ?? undefined" :name="commentAuthorName" size="sm" />
 
       <div class="flex-grow-1">
         <div class="comment-bubble px-3 py-2">
           <div class="d-flex align-center justify-space-between ga-2">
-            <NuxtLink
-              v-if="commentAuthorProfilePath"
-              :to="commentAuthorProfilePath"
-              class="font-weight-bold text-body-2 text-decoration-none text-primary"
-            >
-              {{ commentAuthorName }}
-            </NuxtLink>
-            <div v-else class="font-weight-bold text-body-2">{{ commentAuthorName }}</div>
+            <div>
+              <NuxtLink
+                v-if="commentAuthorProfilePath"
+                :to="commentAuthorProfilePath"
+                class="font-weight-bold text-body-2 text-decoration-none text-primary"
+              >
+                {{ commentAuthorName }}
+              </NuxtLink>
+              <div v-else class="font-weight-bold text-body-2">{{ commentAuthorName }}</div>
+              <div v-if="commentRelativeDate" class="text-caption text-medium-emphasis">{{ commentRelativeDate }}</div>
+            </div>
             <div class="d-flex align-center ga-2">
               <v-chip v-if="comment.isAuthor" size="x-small" variant="tonal" color="primary">Owner</v-chip>
               <v-menu v-if="comment.isAuthor && canInteract" location="bottom end">
@@ -131,9 +198,54 @@ const addReaction = (type: string) => {
           <div class="text-body-2 mt-1">{{ comment.content }}</div>
         </div>
 
-        <div class="d-flex align-center flex-wrap ga-3 mt-1 text-caption text-medium-emphasis action-row">
-          <button class="action-link" type="button" :disabled="!canInteract" @click="canInteract ? showReactionPicker = !showReactionPicker : undefined">J'aime</button>
-          <button class="action-link" type="button" :disabled="!canInteract" @click="canInteract ? isReplying = !isReplying : undefined">Répondre</button>
+        <div class="d-flex align-center flex-wrap ga-2 mt-2 action-row">
+          <v-btn rounded="pill" size="small" variant="text" :disabled="!canInteract" @click="canInteract ? showReactionPicker = !showReactionPicker : undefined">J'aime</v-btn>
+          <v-btn rounded="pill" size="small" variant="text" :disabled="!canInteract" @click="canInteract ? isReplying = !isReplying : undefined">Répondre</v-btn>
+
+          <v-menu
+            v-if="comment.reactions?.length"
+            open-on-hover
+            location="top"
+            :close-on-content-click="false"
+            content-class="reaction-hover-menu"
+          >
+            <template #activator="{ props: menuProps }">
+              <v-btn icon="mdi-emoticon-outline" size="x-small" variant="text" v-bind="menuProps" />
+            </template>
+            <div class="reaction-hover-content pa-3">
+              <div
+                v-for="group in groupedReactions"
+                :key="group.type"
+                class="d-flex align-center justify-space-between ga-3 mb-2"
+              >
+                <div class="d-flex align-center ga-2">
+                  <span class="text-body-2">{{ reactionMeta[group.type]?.icon ?? '👍' }}</span>
+                  <span class="text-caption text-medium-emphasis">{{ reactionMeta[group.type]?.label ?? group.type }}</span>
+                </div>
+                <div class="d-flex align-center ga-1 flex-wrap justify-end">
+                  <template v-for="reaction in group.reactions" :key="reaction.id">
+                    <NuxtLink
+                      v-if="reactionAuthorProfilePath(reaction.author?.username)"
+                      :to="reactionAuthorProfilePath(reaction.author?.username)"
+                      class="avatar-link"
+                    >
+                      <UiAvatar
+                        :src="reaction.author?.photo ?? undefined"
+                        :name="`${reaction.author?.firstName ?? ''} ${reaction.author?.lastName ?? ''}`.trim() || 'Unknown User'"
+                        size="xs"
+                      />
+                    </NuxtLink>
+                    <UiAvatar
+                      v-else
+                      :src="reaction.author?.photo ?? undefined"
+                      :name="`${reaction.author?.firstName ?? ''} ${reaction.author?.lastName ?? ''}`.trim() || 'Unknown User'"
+                      size="xs"
+                    />
+                  </template>
+                </div>
+              </div>
+            </div>
+          </v-menu>
         </div>
 
         <div v-if="showReactionPicker" class="reaction-picker mt-2">
@@ -163,12 +275,21 @@ const addReaction = (type: string) => {
             <NuxtLink
               v-if="reactionAuthorProfilePath(reaction.author?.username)"
               :to="reactionAuthorProfilePath(reaction.author?.username)"
-              class="text-caption text-primary text-decoration-none"
+              class="avatar-link"
               @click.stop
             >
-              {{ reactionAuthorName(reaction.author?.firstName, reaction.author?.lastName) }}
+              <UiAvatar
+                :src="reaction.author?.photo ?? undefined"
+                :name="`${reaction.author?.firstName ?? ''} ${reaction.author?.lastName ?? ''}`.trim() || 'Unknown User'"
+                size="xs"
+              />
             </NuxtLink>
-            <span v-else class="text-caption">{{ reactionAuthorName(reaction.author?.firstName, reaction.author?.lastName) }}</span>
+            <UiAvatar
+              v-else
+              :src="reaction.author?.photo ?? undefined"
+              :name="`${reaction.author?.firstName ?? ''} ${reaction.author?.lastName ?? ''}`.trim() || 'Unknown User'"
+              size="xs"
+            />
           </button>
         </div>
 
@@ -233,14 +354,16 @@ const addReaction = (type: string) => {
 
 .comment-bubble {
   border-radius: 18px;
+  background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.08), rgba(var(--v-theme-surface-variant), 0.35));
+  border: 1px solid rgba(var(--v-theme-primary), 0.16);
 }
 
 .action-row {
-  padding-inline-start: 8px;
+  padding-inline-start: 4px;
 }
 
-.action-danger {
-  color: #ff9a9a;
+.avatar-link {
+  text-decoration: none;
 }
 
 .reaction-picker {
@@ -250,6 +373,8 @@ const addReaction = (type: string) => {
   gap: 8px;
   border-radius: 999px;
   padding: 6px 8px;
+  background: rgba(var(--v-theme-surface-variant), 0.35);
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.15);
 }
 
 .reaction-emoji {
@@ -262,12 +387,20 @@ const addReaction = (type: string) => {
   transform: translateY(-2px) scale(1.08);
 }
 
+.reaction-hover-content {
+  min-width: 220px;
+  border-radius: 14px;
+  backdrop-filter: blur(8px);
+  background: rgba(22, 22, 24, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
 .reaction-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   border-radius: 999px;
-  padding: 4px 10px;
+  padding: 4px 8px;
   border: 1px solid transparent;
 }
 
