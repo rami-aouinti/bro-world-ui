@@ -10,55 +10,80 @@ definePageMeta({
 
 const { t } = useI18n()
 
+const overviewStats = [
+  { label: 'Modules actifs', value: '6', icon: 'mdi-view-grid-plus-outline', color: 'primary' },
+  { label: 'Actions en attente', value: '14', icon: 'mdi-timer-sand', color: 'warning' },
+  { label: 'Automations OK', value: '31', icon: 'mdi-check-decagram-outline', color: 'success' },
+]
+
 const adminModules = computed(() => [
   {
     title: t('admin.navigation.dashboard.title'),
     description: t('admin.navigation.dashboard.description'),
     to: '/admin/dashboard',
     icon: 'mdi-view-dashboard-outline',
+    badge: 'Pilotage',
   },
   {
     title: t('admin.navigation.settings.title'),
     description: t('admin.navigation.settings.description'),
     to: '/admin/settings',
     icon: 'mdi-cog-outline',
+    badge: 'Configuration',
   },
   {
     title: t('admin.navigation.userManagement.title'),
     description: t('admin.navigation.userManagement.description'),
     to: '/admin/user-management',
     icon: 'mdi-account-cog-outline',
+    badge: 'Sécurité',
   },
   {
     title: t('admin.navigation.platformManagement.title'),
     description: t('admin.navigation.platformManagement.description'),
     to: '/admin/platform-management',
     icon: 'mdi-layers-outline',
+    badge: 'Produit',
   },
   {
     title: t('admin.navigation.configurationManagement.title'),
     description: t('admin.navigation.configurationManagement.description'),
     to: '/admin/configuration-management',
     icon: 'mdi-tune-variant',
+    badge: 'Système',
   },
   {
     title: t('admin.navigation.pageManagement.title'),
     description: t('admin.navigation.pageManagement.description'),
     to: '/admin/page-management',
     icon: 'mdi-file-document-edit-outline',
+    badge: 'Contenu',
   },
 ])
 </script>
 
 <template>
   <div class="admin-page-content">
-    max-width="1200"
-    card
-  >
-      <UiSectionHeader
-        :title="t('admin.title')"
-        :subtitle="t('admin.description')"
-      />
+    <UiSectionHeader
+      :title="t('admin.title')"
+      :subtitle="t('admin.description')"
+    />
+
+    <v-row class="mb-1">
+      <v-col v-for="item in overviewStats" :key="item.label" cols="12" md="4">
+        <UiCard rounded="lg" compact>
+          <div class="d-flex align-center justify-space-between">
+            <div>
+              <p class="text-caption text-medium-emphasis mb-1">{{ item.label }}</p>
+              <div class="text-h5 font-weight-bold">{{ item.value }}</div>
+            </div>
+            <v-avatar :color="item.color" variant="tonal">
+              <v-icon :icon="item.icon" />
+            </v-avatar>
+          </div>
+        </UiCard>
+      </v-col>
+    </v-row>
 
     <v-row>
       <v-col
@@ -67,26 +92,22 @@ const adminModules = computed(() => [
         cols="12"
         md="6"
       >
-        <UiCard
-          variant="tonal"
-          rounded="lg"
-          compact
-        >
+        <UiCard rounded="lg" class="module-card" compact>
           <div class="d-flex align-start ga-3">
-            <v-icon
-              :icon="module.icon"
-              color="primary"
-              size="28"
-              class="mt-1"
-            />
+            <v-avatar color="primary" variant="tonal" size="44">
+              <v-icon :icon="module.icon" size="24" />
+            </v-avatar>
 
             <div class="flex-grow-1">
-              <h2 class="text-h6 mb-1">{{ module.title }}</h2>
+              <div class="d-flex align-center justify-space-between ga-2 mb-1">
+                <h2 class="text-h6">{{ module.title }}</h2>
+                <v-chip size="small" color="primary" variant="outlined">{{ module.badge }}</v-chip>
+              </div>
               <p class="text-body-2 text-medium-emphasis mb-3">{{ module.description }}</p>
 
               <v-btn
                 color="primary"
-                variant="outlined"
+                variant="flat"
                 :to="module.to"
                 append-icon="mdi-arrow-right"
               >
@@ -99,3 +120,9 @@ const adminModules = computed(() => [
     </v-row>
   </div>
 </template>
+
+<style scoped>
+.module-card {
+  border: 1px solid rgba(var(--v-theme-primary), 0.12);
+}
+</style>

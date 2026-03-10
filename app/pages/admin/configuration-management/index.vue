@@ -16,16 +16,17 @@ const modules = computed(() => [
     description: t('admin.modules.configurations.description'),
     to: '/admin/configuration-management/configurations',
     icon: 'mdi-cog-sync-outline',
+    detail: '149 paramètres • 12 variables sensibles surveillées',
   },
 ])
 </script>
 
 <template>
   <div class="admin-page-content">
-      <UiSectionHeader
-        :title="t('admin.configurationManagement.title')"
-        :subtitle="t('admin.configurationManagement.description')"
-      />
+    <UiSectionHeader
+      :title="t('admin.configurationManagement.title')"
+      :subtitle="t('admin.configurationManagement.description')"
+    />
 
     <v-row>
       <v-col
@@ -34,13 +35,16 @@ const modules = computed(() => [
         cols="12"
         md="6"
       >
-        <UiCard variant="tonal" rounded="lg" compact>
+        <UiCard rounded="lg" compact>
           <div class="d-flex align-start ga-3">
-            <v-icon :icon="module.icon" color="primary" size="26" class="mt-1" />
+            <v-avatar color="deep-purple" variant="tonal" size="42">
+              <v-icon :icon="module.icon" size="22" />
+            </v-avatar>
 
             <div class="flex-grow-1">
               <h2 class="text-h6 mb-1">{{ module.title }}</h2>
-              <p class="text-body-2 text-medium-emphasis mb-3">{{ module.description }}</p>
+              <p class="text-body-2 text-medium-emphasis mb-2">{{ module.description }}</p>
+              <p class="text-caption mb-3">{{ module.detail }}</p>
 
               <v-btn
                 color="primary"
