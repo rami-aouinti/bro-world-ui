@@ -3,7 +3,9 @@ import UiAvatar from '~/components/ui/UiAvatar.vue'
 import { computed, ref, watch } from 'vue'
 import { useDisplay, useTheme } from 'vuetify'
 import type { NotificationListResponse, NotificationRead } from '~/types/api/notification'
+import type { PrivateChatConversation, PrivateConversationsResponse, PrivateChatMessage } from '~/types/api/chat'
 import { useNotificationsApi } from '~/composables/api/useNotificationsApi'
+import { usePrivateChatApi } from '~/composables/api/usePrivateChatApi'
 
 interface NavItem {
   key: string
@@ -16,7 +18,7 @@ interface ActionNavItem extends NavItem {
 }
 
 interface InboxConversationPreview {
-  id: number
+  id: string
   name: string
   excerpt: string
   unread: number
@@ -35,27 +37,55 @@ const isNotificationsMenuOpen = ref(false)
 const isInboxMenuOpen = ref(false)
 const isAuthenticated = computed(() => Boolean(authSession.profile))
 const notificationsApi = useNotificationsApi()
+const privateChatApi = usePrivateChatApi()
 
-const inboxConversationsPreview = ref<InboxConversationPreview[]>([
+const getLatestMessage = (conversation: PrivateChatConversation): PrivateChatMessage | null => {
+  if (!conversation.messages.length) {
+    return null
+  }
+
+  return [...conversation.messages].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0] ?? null
+}
+
+const buildConversationPreview = (conversation: PrivateChatConversation): InboxConversationPreview => {
+  const participantsWithoutOwner = conversation.participants
+    .filter(participant => !participant.user.owner)
+    .map(participant => `${participant.user.firstName} ${participant.user.lastName}`.trim())
+    .filter(Boolean)
+
+  const title = participantsWithoutOwner.length ? participantsWithoutOwner.join(', ') : 'Conversation'
+  const unread = conversation.messages.filter(message => !message.sender.owner && !message.readAt).length
+
+  return {
+    id: conversation.id,
+    name: title,
+    excerpt: getLatestMessage(conversation)?.content ?? 'Aucun message',
+    unread,
+  }
+}
+
+const { data: inboxConversationsSummary } = useAsyncData<PrivateConversationsResponse>(
+  'appbar-inbox-latest',
+  () => privateChatApi.getConversations(3, 1),
   {
-    id: 1,
-    name: 'Équipe Produit',
-    excerpt: 'On valide la roadmap demain matin.',
-    unread: 2,
+    default: () => ({
+      items: [],
+      pagination: {
+        page: 1,
+        limit: 3,
+        totalItems: 0,
+        totalPages: 0,
+      },
+      filters: [],
+    }),
+    watch: [isAuthenticated],
+    immediate: isAuthenticated.value,
   },
-  {
-    id: 2,
-    name: 'Support Clients',
-    excerpt: '3 tickets urgents à traiter aujourd’hui.',
-    unread: 0,
-  },
-  {
-    id: 3,
-    name: 'Design Guild',
-    excerpt: 'Nouvelles maquettes disponibles sur Figma.',
-    unread: 1,
-  },
-])
+)
+
+const inboxConversationsPreview = computed<InboxConversationPreview[]>(() => (inboxConversationsSummary.value?.items ?? [])
+  .slice(0, 3)
+  .map(buildConversationPreview))
 
 const inboxUnreadCount = computed(() => inboxConversationsPreview.value.reduce((total, item) => total + item.unread, 0))
 
