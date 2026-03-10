@@ -51,6 +51,8 @@ const ENTITY_CACHE_PREFIXES = [
   '/api/v1/recruit/public',
   '/api/v1/recruit/private',
   '/api/v1/blogs',
+  '/api/v1/profile',
+  '/api/v1/events',
   '/api/v1/notifications',
   '/api/v1/chat/private/conversations',
   '/api/v1/users/me',
@@ -63,6 +65,13 @@ const ENTITY_CACHE_PREFIXES = [
 
 const NOTIFICATION_EVENTS_ROUTE_PREFIX = '/api/v1/notifications'
 const NOTIFICATION_EVENTS_MAX_ITEMS = 200
+const CACHE_METRICS_KEY = buildCacheKey({
+  scope: 'system',
+  resource: 'cache',
+  identifier: 'metrics',
+})
+
+const MUTATION_METHODS = new Set(['POST', 'PATCH', 'DELETE', 'PUT'])
 
 const ENTITY_CACHE_INVALIDATION_RULES: Array<{ routePrefix: string, cachePrefixes: string[] }> = [
   {
@@ -99,9 +108,90 @@ const ONE_HOUR_IN_SECONDS = 60 * 60
 const SIX_HOURS_IN_SECONDS = ONE_HOUR_IN_SECONDS * 6
 const FIFTEEN_MINUTES_IN_SECONDS = 60 * 15
 const TEN_MINUTES_IN_SECONDS = 60 * 10
-const FIVE_MINUTES_IN_SECONDS = 60 * 5
+const THREE_MINUTES_IN_SECONDS = 60 * 3
+const TWO_MINUTES_IN_SECONDS = 60 * 2
+const THIRTY_SECONDS_IN_SECONDS = 30
 const ONE_DAY_IN_SECONDS = 60 * 60 * 24
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
+
+type CacheResource = 'profile' | 'conversation' | 'notifications' | 'events' | 'blog'
+type CacheMetricType = 'hit' | 'miss' | 'invalidate'
+
+interface CacheResourcePolicy {
+  name: CacheResource
+  ttlSeconds: number
+  isMatch: (path: string) => boolean
+  invalidationRules: Array<{
+    event: string
+    when: (path: string, method: string) => boolean
+    cachePrefixes: string[]
+    publicTags?: string[]
+  }>
+}
+
+const CACHE_RESOURCE_POLICIES: CacheResourcePolicy[] = [
+  {
+    name: 'profile',
+    ttlSeconds: THREE_MINUTES_IN_SECONDS,
+    isMatch: path => path.startsWith('/api/v1/profile') || path.startsWith('/api/v1/users/me'),
+    invalidationRules: [
+      {
+        event: 'profile.update',
+        when: (path, method) => ['PATCH', 'PUT'].includes(method) && (path.startsWith('/api/v1/profile') || path.startsWith('/api/v1/users/me')),
+        cachePrefixes: ['/api/v1/profile', '/api/v1/users/me'],
+      },
+    ],
+  },
+  {
+    name: 'conversation',
+    ttlSeconds: TWO_MINUTES_IN_SECONDS,
+    isMatch: path => path.startsWith('/api/v1/chat/private/conversations'),
+    invalidationRules: [
+      {
+        event: 'conversation.new_message',
+        when: (path, method) => method === 'POST' && path.startsWith('/api/v1/chat/private/conversations'),
+        cachePrefixes: ['/api/v1/chat/private/conversations'],
+      },
+    ],
+  },
+  {
+    name: 'notifications',
+    ttlSeconds: THIRTY_SECONDS_IN_SECONDS,
+    isMatch: path => path.startsWith('/api/v1/notifications'),
+    invalidationRules: [
+      {
+        event: 'notifications.read_or_create',
+        when: (path, method) => ['POST', 'PATCH', 'PUT', 'DELETE'].includes(method) && path.startsWith('/api/v1/notifications'),
+        cachePrefixes: ['/api/v1/notifications'],
+      },
+    ],
+  },
+  {
+    name: 'events',
+    ttlSeconds: FIFTEEN_MINUTES_IN_SECONDS,
+    isMatch: path => path.startsWith('/api/v1/events'),
+    invalidationRules: [
+      {
+        event: 'events.crud',
+        when: (path, method) => MUTATION_METHODS.has(method) && path.startsWith('/api/v1/events'),
+        cachePrefixes: ['/api/v1/events'],
+      },
+    ],
+  },
+  {
+    name: 'blog',
+    ttlSeconds: TEN_MINUTES_IN_SECONDS,
+    isMatch: path => path.startsWith('/api/v1/blogs'),
+    invalidationRules: [
+      {
+        event: 'blog.publish_or_update_or_delete',
+        when: (path, method) => MUTATION_METHODS.has(method) && path.startsWith('/api/v1/blogs'),
+        cachePrefixes: ['/api/v1/blogs'],
+        publicTags: ['blog:*'],
+      },
+    ],
+  },
+]
 
 interface PublicRouteCacheSpec {
   cacheKey: string
@@ -217,12 +307,25 @@ const getPrivateCacheKey = (path: string, query: Record<string, any>, userId: st
   })
 }
 
-const getEntityCacheTtl = (path: string) => {
-  if (path.startsWith('/api/v1/notifications') || path.startsWith('/api/v1/chat/private/conversations')) {
-    return FIVE_MINUTES_IN_SECONDS
+const getCacheResourcePolicy = (path: string) => CACHE_RESOURCE_POLICIES.find(policy => policy.isMatch(path))
+
+const getEntityCacheTtl = (path: string) => getCacheResourcePolicy(path)?.ttlSeconds || ONE_DAY_IN_SECONDS
+
+const recordCacheMetric = async (resource: CacheResource | 'generic', metric: CacheMetricType, detail: string) => {
+  const metricKey = `${resource}.${metric}`
+
+  try {
+    const redis = await getRedisClient()
+    await redis.hIncrBy(CACHE_METRICS_KEY, metricKey, 1)
+  } catch (error) {
+    console.warn('Cache metric write failed', error)
   }
 
-  return ONE_DAY_IN_SECONDS
+  console.info('[cache.metric]', {
+    resource,
+    metric,
+    detail,
+  })
 }
 
 const normalizeBearerToken = (rawToken: string | null | undefined) => {
@@ -250,22 +353,31 @@ const getUsersMeCacheKey = (path: string, query: Record<string, any>, bearerToke
   })
 }
 
-const readCache = async (cacheKey: string, label: string, options: { requiresUserContext?: boolean, userId?: string } = {}) => {
+const readCache = async (
+  cacheKey: string,
+  label: string,
+  options: { requiresUserContext?: boolean, userId?: string, resource?: CacheResource | 'generic' } = {},
+) => {
   if (options.requiresUserContext && !options.userId) {
     return null
   }
+
+  const metricResource = options.resource || 'generic'
 
   try {
     const redis = await getRedisClient()
     const cachedValue = await redis.get(cacheKey)
 
     if (!cachedValue) {
+      await recordCacheMetric(metricResource, 'miss', cacheKey)
       return null
     }
 
+    await recordCacheMetric(metricResource, 'hit', cacheKey)
     return JSON.parse(cachedValue)
   } catch (error) {
     console.warn(`${label} cache read failed`, error)
+    await recordCacheMetric(metricResource, 'miss', `${cacheKey}:read-failed`)
     return null
   }
 }
@@ -299,8 +411,11 @@ const clearCacheByPrefix = async (prefix: string) => {
     if (keysToDelete.length) {
       await redis.del(keysToDelete)
     }
+
+    return keysToDelete.length
   } catch (error) {
     console.warn('Entity cache invalidation failed', error)
+    return 0
   }
 }
 
@@ -317,9 +432,39 @@ const clearPublicCacheByTag = async (tagPattern: string) => {
     if (keysToDelete.length) {
       await redis.del(keysToDelete)
     }
+
+    return keysToDelete.length
   } catch (error) {
     console.warn('Public cache invalidation failed', error)
+    return 0
   }
+}
+
+const invalidateUserProfile = async () => {
+  const deletedByProfile = await clearCacheByPrefix('/api/v1/profile')
+  const deletedByUsersMe = await clearCacheByPrefix('/api/v1/users/me')
+  await recordCacheMetric('profile', 'invalidate', `profile:${deletedByProfile + deletedByUsersMe}`)
+}
+
+const invalidateConversation = async () => {
+  const deleted = await clearCacheByPrefix('/api/v1/chat/private/conversations')
+  await recordCacheMetric('conversation', 'invalidate', `conversation:${deleted}`)
+}
+
+const invalidateNotifications = async () => {
+  const deleted = await clearCacheByPrefix('/api/v1/notifications')
+  await recordCacheMetric('notifications', 'invalidate', `notifications:${deleted}`)
+}
+
+const invalidateEvents = async () => {
+  const deleted = await clearCacheByPrefix('/api/v1/events')
+  await recordCacheMetric('events', 'invalidate', `events:${deleted}`)
+}
+
+const invalidateBlog = async () => {
+  const deletedPrivate = await clearCacheByPrefix('/api/v1/blogs')
+  const deletedPublic = await clearPublicCacheByTag('blog:*')
+  await recordCacheMetric('blog', 'invalidate', `blog:${deletedPrivate + deletedPublic}`)
 }
 
 const storeNotificationEvent = async (input: {
@@ -373,6 +518,43 @@ const getPublicInvalidationTags = (targetPath: string) => {
   }
 
   return []
+}
+
+const getResourceInvalidationActions = (targetPath: string, method: string) => {
+  const actions: Array<() => Promise<void>> = []
+
+  const addAction = (resource: CacheResource) => {
+    if (resource === 'profile') {
+      actions.push(invalidateUserProfile)
+      return
+    }
+
+    if (resource === 'conversation') {
+      actions.push(invalidateConversation)
+      return
+    }
+
+    if (resource === 'notifications') {
+      actions.push(invalidateNotifications)
+      return
+    }
+
+    if (resource === 'events') {
+      actions.push(invalidateEvents)
+      return
+    }
+
+    actions.push(invalidateBlog)
+  }
+
+  for (const policy of CACHE_RESOURCE_POLICIES) {
+    const shouldInvalidate = policy.invalidationRules.some(rule => rule.when(targetPath, method))
+    if (shouldInvalidate) {
+      addAction(policy.name)
+    }
+  }
+
+  return actions
 }
 
 const buildForwardHeaders = (event: any): Record<string, string> => {
@@ -469,6 +651,7 @@ export default defineEventHandler(async (event) => {
 
   if (shouldCacheEntity) {
     const isPrivateRoute = isPrivateCacheRoute(targetPath)
+    const resourcePolicy = getCacheResourcePolicy(targetPath)
     const cacheKey = isPrivateRoute
       ? (authenticatedUserId ? getPrivateCacheKey(targetPath, query, authenticatedUserId) : undefined)
       : (targetPath.startsWith('/api/v1/users/me') && bearerToken
@@ -479,6 +662,7 @@ export default defineEventHandler(async (event) => {
       ? await readCache(cacheKey, 'Entity', {
           requiresUserContext: isPrivateRoute,
           userId: authenticatedUserId,
+          resource: resourcePolicy?.name,
         })
       : null
 
@@ -513,6 +697,7 @@ export default defineEventHandler(async (event) => {
 
     if (shouldCacheEntity) {
       const isPrivateRoute = isPrivateCacheRoute(targetPath)
+      const resourcePolicy = getCacheResourcePolicy(targetPath)
       const cacheKey = isPrivateRoute
         ? (authenticatedUserId ? getPrivateCacheKey(targetPath, query, authenticatedUserId) : undefined)
         : (targetPath.startsWith('/api/v1/users/me') && bearerToken
@@ -520,7 +705,7 @@ export default defineEventHandler(async (event) => {
             : getEntityCacheKey(targetPath, query))
 
       if (cacheKey) {
-        await writeCache(cacheKey, response, getEntityCacheTtl(targetPath), 'Entity')
+        await writeCache(cacheKey, response, getEntityCacheTtl(targetPath), resourcePolicy ? `Entity:${resourcePolicy.name}` : 'Entity')
       }
     }
 
@@ -534,16 +719,23 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const shouldInvalidateEntityCache = ['POST', 'PATCH', 'DELETE', 'PUT'].includes(method)
+    const shouldInvalidateEntityCache = MUTATION_METHODS.has(method)
     if (shouldInvalidateEntityCache) {
+      const resourceInvalidationActions = getResourceInvalidationActions(targetPath, method)
+      for (const action of resourceInvalidationActions) {
+        await action()
+      }
+
       const cachePrefixes = getInvalidationCachePrefixes(targetPath)
       for (const cachePrefix of cachePrefixes) {
-        await clearCacheByPrefix(cachePrefix)
+        const deleted = await clearCacheByPrefix(cachePrefix)
+        await recordCacheMetric('generic', 'invalidate', `${cachePrefix}:${deleted}`)
       }
 
       const publicTags = getPublicInvalidationTags(targetPath)
       for (const publicTag of publicTags) {
-        await clearPublicCacheByTag(publicTag)
+        const deleted = await clearPublicCacheByTag(publicTag)
+        await recordCacheMetric('generic', 'invalidate', `${publicTag}:${deleted}`)
       }
     }
 
