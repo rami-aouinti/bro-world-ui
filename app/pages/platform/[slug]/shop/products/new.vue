@@ -14,36 +14,22 @@ import productDetails1 from '~/assets/img/products/product-details-1.jpg'
 import productDetails2 from '~/assets/img/products/product-details-2.jpg'
 import productDetails3 from '~/assets/img/products/product-details-3.jpg'
 import productPlaceholder from '~/assets/img/products/product-12.jpg'
+import { useNewProductSubmit } from '~/composables/useNewProductSubmit'
+import type { NewProductForm } from '~/composables/useNewProductSubmit'
+import { submitAndRedirectNewProduct } from '~/composables/newProductPageSubmit'
 import { getShopNav } from '~/data/platform-nav'
 
 definePageMeta({ public: true, requiresAuth: false, splitShell: false })
-
-interface NewProductForm {
-  name: string
-  weight: number | null
-  description: string
-  category: string | null
-  sizes: string[]
-  images: File[]
-  socials: {
-    shopifyHandle: string
-    facebook: string
-    instagram: string
-  }
-  price: number | null
-  currency: string
-  sku: string
-  tags: string[]
-}
 
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const { isOwner } = usePlatformPermissions(slug)
 const navItems = computed(() => getShopNav(slug.value, isOwner.value))
 const { t } = useI18n()
+const { submit, loading, error } = useNewProductSubmit()
 
 const step = ref(1)
-const uiStatus = ref<'ready' | 'loading' | 'empty' | 'error'>('ready')
+const uiStatus = ref<'ready' | 'empty'>('ready')
 
 const stepSections = computed(() => [
   {
@@ -102,20 +88,7 @@ const nextStep = () => {
 }
 
 const handleSubmit = async () => {
-  uiStatus.value = 'loading'
-  await new Promise((resolve) => setTimeout(resolve, 700))
-
-  if (!newProductForm.name.trim()) {
-    uiStatus.value = 'error'
-    return
-  }
-
-  console.info('TODO: wire backend submission for new product', {
-    slug: slug.value,
-    payload: newProductForm,
-  })
-
-  uiStatus.value = 'ready'
+  await submitAndRedirectNewProduct(slug.value, newProductForm, submit, navigateTo)
 }
 
 const setEmptyDemo = () => {
@@ -150,7 +123,7 @@ const setEmptyDemo = () => {
       </div>
 
       <UiLoadingState
-        v-if="uiStatus === 'loading'"
+        v-if="loading"
         class="platform-shop-admin-state"
         variant="form"
         :message="t('platform.shop.newProduct.subtitle')"
@@ -171,10 +144,10 @@ const setEmptyDemo = () => {
       </UiEmptyState>
 
       <UiStateAlert
-        v-else-if="uiStatus === 'error'"
+        v-else-if="error"
         class="platform-shop-admin-state"
         type="error"
-        :message="t('platform.shop.newProduct.form.name') + ' requis.'"
+        :message="error"
       />
 
       <template v-else>
