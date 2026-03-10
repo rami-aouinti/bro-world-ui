@@ -70,6 +70,7 @@ watch([postId, isAuthenticated], loadPost, { immediate: true })
         v-else-if="blogWithSinglePost"
         :blog="blogWithSinglePost"
         :show-summary="false"
+        :show-create-post="false"
         :can-interact="isAuthenticated"
       />
     </main>
