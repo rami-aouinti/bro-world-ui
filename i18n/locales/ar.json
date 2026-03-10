@@ -354,24 +354,24 @@
       "title": "Admin dashboard",
       "description": "Overview of platform activity and usage metrics.",
       "stats": {
-        "activeUsers": "Active users",
-        "newAccounts": "New accounts (7 days)",
-        "apiRequests": "API requests (24h)",
-        "errors": "Critical errors"
+        "usersTotal": "Total users",
+        "applicationsTotal": "Total applications",
+        "pluginsTotal": "Total plugins",
+        "postsTotal": "Total posts",
+        "usersThisWeek": "Users this week",
+        "usersThisMonth": "Users this month",
+        "postsLast7Days": "Posts (last 7 days)",
+        "postsThisMonth": "Posts this month"
       },
       "charts": {
-        "title": "إحصائيات أسبوعية",
-        "users": "المستخدمون النشطون",
-        "apiRequests": "طلبات API",
-        "days": {
-          "mon": "الاثنين",
-          "tue": "الثلاثاء",
-          "wed": "الأربعاء",
-          "thu": "الخميس",
-          "fri": "الجمعة",
-          "sat": "السبت",
-          "sun": "الأحد"
-        }
+        "title": "Applications and plugins usage",
+        "applicationsByPlatform": "Applications by platform",
+        "pluginsUsage": "Plugin usage",
+        "countLabel": "Count"
+      },
+      "refresh": "Refresh",
+      "errors": {
+        "load": "Unable to load dashboard statistics."
       }
     },
     "settings": {

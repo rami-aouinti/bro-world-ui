@@ -1,73 +1,72 @@
 <script setup lang="ts">
 import type { ECharts, EChartsOption } from 'echarts'
-import { BarChart, LineChart } from 'echarts/charts'
+import { BarChart } from 'echarts/charts'
 import {
   GridComponent,
   LegendComponent,
-  TitleComponent,
   TooltipComponent,
 } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import { init, use } from 'echarts/core'
+import type { AdminStatisticsResponse } from '~/types/api/statistics'
 
-use([TitleComponent, TooltipComponent, LegendComponent, GridComponent, LineChart, BarChart, CanvasRenderer])
+use([TooltipComponent, LegendComponent, GridComponent, BarChart, CanvasRenderer])
+
+const props = defineProps<{
+  statistics: AdminStatisticsResponse | null
+}>()
 
 const { t } = useI18n()
 const chartContainer = ref<HTMLElement | null>(null)
 const chartInstance = ref<ECharts | null>(null)
 
-const option = computed<EChartsOption>(() => ({
-  tooltip: {
-    trigger: 'axis',
-  },
-  legend: {
-    data: [t('admin.dashboard.charts.users'), t('admin.dashboard.charts.apiRequests')],
-    top: 0,
-  },
-  grid: {
-    left: '3%',
-    right: '4%',
-    bottom: '3%',
-    containLabel: true,
-  },
-  xAxis: {
-    type: 'category',
-    boundaryGap: false,
-    data: [
-      t('admin.dashboard.charts.days.mon'),
-      t('admin.dashboard.charts.days.tue'),
-      t('admin.dashboard.charts.days.wed'),
-      t('admin.dashboard.charts.days.thu'),
-      t('admin.dashboard.charts.days.fri'),
-      t('admin.dashboard.charts.days.sat'),
-      t('admin.dashboard.charts.days.sun'),
+const option = computed<EChartsOption>(() => {
+  const byPlatform = props.statistics?.applications.byPlatform ?? []
+  const pluginUsage = props.statistics?.plugins.usage ?? []
+
+  return {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' },
+    },
+    legend: { data: [t('admin.dashboard.charts.applicationsByPlatform'), t('admin.dashboard.charts.pluginsUsage')], top: 0 },
+    grid: {
+      left: '3%', right: '4%', containLabel: true,
+    },
+    xAxis: [
+      {
+        type: 'category',
+        axisTick: { alignWithLabel: true },
+        data: byPlatform.map(item => item.name),
+      },
+      {
+        type: 'category',
+        axisTick: { alignWithLabel: true },
+        data: pluginUsage.map(item => item.name),
+      },
     ],
-  },
-  yAxis: [
-    {
-      type: 'value',
-      name: t('admin.dashboard.charts.users'),
-    },
-    {
-      type: 'value',
-      name: t('admin.dashboard.charts.apiRequests'),
-    },
-  ],
-  series: [
-    {
-      name: t('admin.dashboard.charts.users'),
-      type: 'line',
-      smooth: true,
-      data: [920, 1010, 970, 1100, 1248, 1180, 1212],
-    },
-    {
-      name: t('admin.dashboard.charts.apiRequests'),
-      type: 'bar',
-      yAxisIndex: 1,
-      data: [4800, 5200, 4950, 5500, 56320, 5340, 5100],
-    },
-  ],
-}))
+    yAxis: [
+      { type: 'value', name: t('admin.dashboard.charts.countLabel') },
+      { type: 'value', name: t('admin.dashboard.charts.countLabel') },
+    ],
+    series: [
+      {
+        name: t('admin.dashboard.charts.applicationsByPlatform'),
+        type: 'bar',
+        data: byPlatform.map(item => item.applicationCount ?? 0),
+        itemStyle: { borderRadius: [6, 6, 0, 0] },
+      },
+      {
+        name: t('admin.dashboard.charts.pluginsUsage'),
+        type: 'bar',
+        xAxisIndex: 1,
+        yAxisIndex: 1,
+        data: pluginUsage.map(item => item.usageCount ?? 0),
+        itemStyle: { borderRadius: [6, 6, 0, 0] },
+      },
+    ],
+  }
+})
 
 const resizeChart = () => {
   chartInstance.value?.resize()
@@ -77,7 +76,7 @@ watch(option, (newOption) => {
   if (!chartInstance.value)
     return
 
-  chartInstance.value.setOption(newOption)
+  chartInstance.value.setOption(newOption, true)
 })
 
 onMounted(() => {

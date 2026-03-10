@@ -354,24 +354,24 @@
       "title": "Dashboard administrateur",
       "description": "Vue d’ensemble de l’activité de la plateforme et des indicateurs d’usage.",
       "stats": {
-        "activeUsers": "Utilisateurs actifs",
-        "newAccounts": "Nouveaux comptes (7 jours)",
-        "apiRequests": "Requêtes API (24h)",
-        "errors": "Erreurs critiques"
+        "usersTotal": "Utilisateurs total",
+        "applicationsTotal": "Applications total",
+        "pluginsTotal": "Plugins total",
+        "postsTotal": "Posts total",
+        "usersThisWeek": "Utilisateurs cette semaine",
+        "usersThisMonth": "Utilisateurs ce mois",
+        "postsLast7Days": "Posts (7 derniers jours)",
+        "postsThisMonth": "Posts ce mois"
       },
       "charts": {
-        "title": "Statistiques hebdomadaires",
-        "users": "Utilisateurs actifs",
-        "apiRequests": "Requêtes API",
-        "days": {
-          "mon": "Lun",
-          "tue": "Mar",
-          "wed": "Mer",
-          "thu": "Jeu",
-          "fri": "Ven",
-          "sat": "Sam",
-          "sun": "Dim"
-        }
+        "title": "Utilisation des applications et plugins",
+        "applicationsByPlatform": "Applications par plateforme",
+        "pluginsUsage": "Utilisation des plugins",
+        "countLabel": "Nombre"
+      },
+      "refresh": "Actualiser",
+      "errors": {
+        "load": "Impossible de charger les statistiques du dashboard."
       }
     },
     "settings": {
