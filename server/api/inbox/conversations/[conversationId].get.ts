@@ -1,4 +1,5 @@
 import { requireAuthCookie } from '~~/server/utils/authCookie'
+import { buildCacheScanPattern } from '~~/server/utils/cacheKeyBuilder'
 import { getRedisClient } from '~~/server/utils/redis'
 import type { PrivateChatConversation } from '~~/app/types/api/chat'
 
@@ -6,7 +7,11 @@ interface PrivateConversationsResponse {
   items: PrivateChatConversation[]
 }
 
-const CONVERSATIONS_CACHE_PATTERN = 'entity:/api/v1/chat/private/conversations*'
+const CONVERSATIONS_CACHE_PATTERN = buildCacheScanPattern({
+  scope: 'private',
+  resource: 'chat',
+  identifierPattern: 'private.conversations*',
+})
 
 const readConversationFromRedis = async (conversationId: string) => {
   const redis = await getRedisClient()
