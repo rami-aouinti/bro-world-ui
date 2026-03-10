@@ -5,6 +5,7 @@ import UiStateEmptyState from '~/components/ui/state/UiEmptyState.vue'
 import UiStatChip from '~/components/ui/UiStatChip.vue'
 import ConversationAvatarGroup from '~/components/inbox/ConversationAvatarGroup.vue'
 import type { PrivateChatConversation, PrivateChatMessage, PrivateConversationsResponse } from '~/types/api/chat'
+import { usePrivateChatApi } from '~/composables/api/usePrivateChatApi'
 
 const props = defineProps<{
   selectedConversationId?: string | null
@@ -55,7 +56,7 @@ const conversations = computed(() => (inboxConversationsSummary.value?.items ?? 
     return {
       id: conversation.id,
       participants,
-      title: participants.map(item => item.label).join(', ') || 'Conversation',
+      title: participants[0]?.label ?? 'Conversation',
       excerpt: lastMessage?.content ?? 'Aucun message',
       unread: conversation.unreadMessagesCount,
       lastMessageAt: lastMessage?.createdAt ?? conversation.createdAt,

@@ -60,7 +60,7 @@ const buildConversationPreview = (conversation: PrivateChatConversation): InboxC
       label: `${participant.user.firstName} ${participant.user.lastName}`.trim() || 'Utilisateur',
     }))
 
-  const title = participants.length ? participants.map(item => item.label).join(', ') : 'Conversation'
+  const title = participants[0]?.label ?? 'Conversation'
   const latestMessageAt = getLatestMessage(conversation)?.createdAt ?? conversation.createdAt
 
   return {
@@ -74,15 +74,15 @@ const buildConversationPreview = (conversation: PrivateChatConversation): InboxC
   }
 }
 
-const { data: inboxConversationsSummary } = useAsyncData<PrivateConversationsResponse>(
+const { data: inboxConversationsSummary, refresh: refreshInboxConversationsSummary } = useAsyncData<PrivateConversationsResponse>(
   'appbar-inbox-latest',
-  () => privateChatApi.getConversations(3, 1),
+  () => privateChatApi.getConversations(20, 1),
   {
     default: () => ({
       items: [],
       pagination: {
         page: 1,
-        limit: 3,
+        limit: 20,
         totalItems: 0,
         totalPages: 0,
       },
@@ -99,6 +99,14 @@ const inboxConversationsPreview = computed<InboxConversationPreview[]>(() => (in
   .slice(0, 3))
 
 const inboxUnreadCount = computed(() => inboxConversationsPreview.value.reduce((total, item) => total + item.unread, 0))
+
+watch(isInboxMenuOpen, async (isOpen) => {
+  if (!isOpen || !isAuthenticated.value) {
+    return
+  }
+
+  await refreshInboxConversationsSummary()
+})
 
 const mainHeaderItems = computed<NavItem[]>(() => [
   { key: 'app.navigation.platform', to: '/platform', icon: 'mdi-view-grid-outline' },
