@@ -353,25 +353,25 @@
     "dashboard": {
       "title": "Admin dashboard",
       "description": "Overview of platform activity and usage metrics.",
+      "refresh": "Refresh",
+      "errors": {
+        "load": "Unable to load dashboard statistics."
+      },
       "stats": {
-        "activeUsers": "Active users",
-        "newAccounts": "New accounts (7 days)",
-        "apiRequests": "API requests (24h)",
-        "errors": "Critical errors"
+        "usersTotal": "Total users",
+        "applicationsTotal": "Total applications",
+        "pluginsTotal": "Total plugins",
+        "postsTotal": "Total posts",
+        "usersThisWeek": "Users this week",
+        "usersThisMonth": "Users this month",
+        "postsLast7Days": "Posts (last 7 days)",
+        "postsThisMonth": "Posts this month"
       },
       "charts": {
-        "title": "Weekly statistics",
-        "users": "Active users",
-        "apiRequests": "API requests",
-        "days": {
-          "mon": "Mon",
-          "tue": "Tue",
-          "wed": "Wed",
-          "thu": "Thu",
-          "fri": "Fri",
-          "sat": "Sat",
-          "sun": "Sun"
-        }
+        "title": "Applications and plugins usage",
+        "applicationsByPlatform": "Applications by platform",
+        "pluginsUsage": "Plugin usage",
+        "countLabel": "Count"
       }
     },
     "settings": {
