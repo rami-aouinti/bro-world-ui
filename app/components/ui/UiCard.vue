@@ -14,7 +14,7 @@ const props = withDefaults(defineProps<Props>(), {
   subtitle: undefined,
   loading: false,
   variant: 'elevated',
-  rounded: 'xl',
+  rounded: '2xl',
   elevation: 2,
   compact: false,
 })

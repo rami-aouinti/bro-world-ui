@@ -1,5 +1,5 @@
 <template>
-  <v-card class="ui-list-card pa-4 pa-md-5 rounded-xl h-100" elevation="1">
+  <v-card class="ui-list-card pa-4 pa-md-5 h-100" rounded="2xl" elevation="1">
     <slot />
   </v-card>
 </template>
