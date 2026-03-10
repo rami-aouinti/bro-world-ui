@@ -30,6 +30,13 @@ export const useBlogsApi = () => {
         body: payload,
       })
     },
+
+    createPostReaction(postId: string, payload: { type: string }) {
+      return apiFetch(`/api/v1/blog/posts/${postId}/reactions`, {
+        method: 'POST',
+        body: payload,
+      })
+    },
     createComment(postId: string, payload: { content: string, parentCommentId: string | null }) {
       return apiFetch(`/api/v1/blog/posts/${postId}/comments`, {
         method: 'POST',

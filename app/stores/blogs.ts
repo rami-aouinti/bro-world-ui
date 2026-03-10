@@ -78,6 +78,12 @@ export const useBlogsStore = defineStore('blogs', () => {
     refreshGeneralInBackground()
   }
 
+
+  const createPostReaction = async (postId: string, payload: { type: string }) => {
+    await blogsApi.createPostReaction(postId, payload)
+    refreshGeneralInBackground()
+  }
+
   const createComment = async (postId: string, payload: { content: string, parentCommentId: string | null }) => {
     await blogsApi.createComment(postId, payload)
     refreshGeneralInBackground()
@@ -111,6 +117,7 @@ export const useBlogsStore = defineStore('blogs', () => {
     createPost,
     updatePost,
     deletePost,
+    createPostReaction,
     createComment,
     updateComment,
     deleteComment,
