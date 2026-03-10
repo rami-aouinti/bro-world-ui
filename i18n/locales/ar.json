@@ -313,6 +313,12 @@
       "configurations": {
         "title": "Configurations",
         "description": "View and maintain available configuration sets."
+      },
+      "pages": {
+        "home": "Home",
+        "about": "About",
+        "contact": "Contact",
+        "faq": "FAQ"
       }
     },
     "navigation": {
@@ -335,6 +341,10 @@
       "configurationManagement": {
         "title": "Configuration Management",
         "description": "Access global configuration modules and settings lists."
+      },
+      "pageManagement": {
+        "title": "Page Management",
+        "description": "Manage Home, About, Contact and FAQ page contents."
       }
     },
     "dashboard": {

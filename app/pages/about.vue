@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { usePublicPagesStore } from '~/stores/publicPages'
+
 definePageMeta({
   public: true,
   requiresAuth: false,
@@ -119,6 +121,16 @@ const aboutPagePayload = ref<AboutPagePayload>({
     secondaryAction: 'Télécharger la brochure',
   },
 })
+
+const publicPagesStore = usePublicPagesStore()
+const { locale } = useI18n()
+
+const loadPageContent = async () => {
+  aboutPagePayload.value = await publicPagesStore.loadAbout(locale.value)
+}
+
+onMounted(loadPageContent)
+watch(locale, loadPageContent)
 </script>
 
 <template>

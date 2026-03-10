@@ -83,6 +83,18 @@ export const BUSINESS_PERMISSIONS = {
   'admin.access': {
     rolesAny: ['ROLE_ADMIN', 'ROLE_ROOT'],
   },
+  'page.home.readList': {
+    rolesAny: ['ROLE_ROOT'],
+  },
+  'page.about.readList': {
+    rolesAny: ['ROLE_ROOT'],
+  },
+  'page.contact.readList': {
+    rolesAny: ['ROLE_ROOT'],
+  },
+  'page.faq.readList': {
+    rolesAny: ['ROLE_ROOT'],
+  },
   'profile.readOwn': {
     condition: ({ context, isSelf, isAuthenticated }) => isAuthenticated && isSelf(context?.userId),
   },

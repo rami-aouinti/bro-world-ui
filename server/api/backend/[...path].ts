@@ -12,10 +12,19 @@ const PUBLIC_BACKEND_PATHS = new Set([
   '/api/v1/application/public',
   '/api/v1/platform/public',
   '/api/v1/plugin/public',
+  '/api/v1/page/public/home/en',
+  '/api/v1/page/public/home/fr',
+  '/api/v1/page/public/about/en',
+  '/api/v1/page/public/about/fr',
+  '/api/v1/page/public/contact/en',
+  '/api/v1/page/public/contact/fr',
+  '/api/v1/page/public/faq/en',
+  '/api/v1/page/public/faq/fr',
 ])
 
 const PUBLIC_BACKEND_PATH_PREFIXES = [
   '/api/v1/recruit/public/',
+  '/api/v1/page/public/',
 ]
 
 const LOCALIZATION_CACHE_PATHS = new Set([
@@ -43,6 +52,11 @@ const ENTITY_CACHE_PREFIXES = [
   '/api/v1/notifications',
   '/api/v1/chat/private/conversations',
   '/api/v1/users/me',
+  '/api/v1/page/home',
+  '/api/v1/page/about',
+  '/api/v1/page/contact',
+  '/api/v1/page/faq',
+  '/api/v1/page/public',
 ]
 
 const NOTIFICATION_EVENTS_ROUTE_PREFIX = '/api/v1/notifications'
@@ -73,6 +87,10 @@ const ENTITY_CACHE_INVALIDATION_RULES: Array<{ routePrefix: string, cachePrefixe
   {
     routePrefix: '/api/v1/users/',
     cachePrefixes: ['/api/v1/users/me'],
+  },
+  {
+    routePrefix: '/api/v1/page/',
+    cachePrefixes: ['/api/v1/page/home', '/api/v1/page/about', '/api/v1/page/contact', '/api/v1/page/faq', '/api/v1/page/public'],
   },
 ]
 

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { usePublicPagesStore } from '~/stores/publicPages'
+
 definePageMeta({
   public: true,
   requiresAuth: false,
@@ -130,6 +132,16 @@ const contactPagePayload = ref<ContactPagePayload>({
 })
 
 const topicLabels = computed(() => contactPagePayload.value.form.topics.map((topic) => topic.label))
+
+const publicPagesStore = usePublicPagesStore()
+const { locale } = useI18n()
+
+const loadPageContent = async () => {
+  contactPagePayload.value = await publicPagesStore.loadContact(locale.value)
+}
+
+onMounted(loadPageContent)
+watch(locale, loadPageContent)
 </script>
 
 <template>

@@ -313,6 +313,12 @@
       "configurations": {
         "title": "Configurations",
         "description": "Visualiser et maintenir les jeux de configuration disponibles."
+      },
+      "pages": {
+        "home": "Home",
+        "about": "About",
+        "contact": "Contact",
+        "faq": "FAQ"
       }
     },
     "navigation": {
@@ -335,6 +341,10 @@
       "configurationManagement": {
         "title": "Gestion de la configuration",
         "description": "Accédez aux modules globaux de configuration et listes de paramètres."
+      },
+      "pageManagement": {
+        "title": "Gestion des pages",
+        "description": "Gérer les contenus des pages Home, About, Contact et FAQ."
       }
     },
     "dashboard": {
