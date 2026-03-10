@@ -28,6 +28,63 @@ const selectedApp = ref<(typeof applicationsStore.items.value)[number] | null>(
 );
 const platformKeyOptions = ["crm", "recruit", "school", "shop"] as const;
 
+const fakeInsightsByPlatform: Record<
+  string,
+  {
+    health: string;
+    growth: string;
+    users: string;
+    activity: string;
+    spotlight: string;
+    tags: string[];
+  }
+> = {
+  crm: {
+    health: "98%",
+    growth: "+18%",
+    users: "124 clients",
+    activity: "42 deals en cours",
+    spotlight: "Pipeline B2B boosté par l'automatisation des relances.",
+    tags: ["Sales", "Pipeline", "Automation"],
+  },
+  recruit: {
+    health: "95%",
+    growth: "+26%",
+    users: "89 candidats actifs",
+    activity: "17 entretiens planifiés",
+    spotlight: "Matching IA optimisé sur les profils techniques senior.",
+    tags: ["Hiring", "Talent", "Interviews"],
+  },
+  school: {
+    health: "97%",
+    growth: "+11%",
+    users: "312 apprenants",
+    activity: "28 classes live cette semaine",
+    spotlight: "Nouveaux parcours hybrides avec suivi pédagogique continu.",
+    tags: ["Learning", "Classes", "Mentoring"],
+  },
+  shop: {
+    health: "96%",
+    growth: "+22%",
+    users: "1 240 clients",
+    activity: "68 commandes aujourd'hui",
+    spotlight: "Panier moyen en hausse grâce aux bundles saisonniers.",
+    tags: ["E-commerce", "Orders", "Conversion"],
+  },
+};
+
+const summaryHighlights = computed(() => {
+  const totalApps = applicationsStore.pagination.totalItems || applicationsStore.items.length;
+  const activeApps = applicationsStore.items.filter((item) => item.status === "active").length;
+  const privateApps = applicationsStore.items.filter((item) => item.private).length;
+
+  return [
+    { label: "Applications visibles", value: String(totalApps), icon: "mdi-view-grid-outline" },
+    { label: "Applications actives", value: String(activeApps), icon: "mdi-rocket-launch-outline" },
+    { label: "Applications privées", value: String(privateApps), icon: "mdi-lock-outline" },
+  ];
+});
+
 const { pending: applicationsPending, execute: loadApplications } = useAsyncData(
   "platform-applications",
   () => applicationsStore.fetch({ limit: 5 }),
@@ -196,6 +253,21 @@ const disableApplication = async () => {
     submitting.value = false;
   }
 };
+
+const getCardInsights = (
+  application: (typeof applicationsStore.items.value)[number],
+) => {
+  const key = application.platformKey?.toLowerCase() ?? application.platformName?.toLowerCase();
+
+  return fakeInsightsByPlatform[key || ""] ?? {
+    health: "94%",
+    growth: "+12%",
+    users: "60 utilisateurs",
+    activity: "24 actions récentes",
+    spotlight: "Performance stable avec des opportunités de montée en charge.",
+    tags: ["Operations", "Insights", "Monitoring"],
+  };
+};
 </script>
 
 <template>
@@ -268,6 +340,34 @@ const disableApplication = async () => {
         </template>
       </UiEmptyState>
       <div v-else class="platform-page__content">
+        <v-card class="platform-page__hero" rounded="xl" elevation="0">
+          <v-row>
+            <v-col cols="12" lg="7">
+              <p class="platform-page__hero-overline mb-2">Bro World Platform</p>
+              <h1 class="platform-page__hero-title mb-3">Pilotage unifié de vos applications</h1>
+              <p class="platform-page__hero-description mb-0">
+                Une vue claire pour suivre la santé de vos plateformes, identifier les leviers de croissance
+                et basculer rapidement vers les opérations critiques.
+              </p>
+            </v-col>
+            <v-col cols="12" lg="5">
+              <div class="platform-page__hero-stats">
+                <article
+                  v-for="highlight in summaryHighlights"
+                  :key="highlight.label"
+                  class="platform-page__highlight"
+                >
+                  <v-icon :icon="highlight.icon" size="20" color="primary" />
+                  <div>
+                    <p class="platform-page__highlight-label">{{ highlight.label }}</p>
+                    <p class="platform-page__highlight-value">{{ highlight.value }}</p>
+                  </div>
+                </article>
+              </div>
+            </v-col>
+          </v-row>
+        </v-card>
+
         <v-row class="mt-12">
           <v-col cols="12" md="6" lg="4">
             <v-card
@@ -323,6 +423,39 @@ const disableApplication = async () => {
                     </div>
                   </div>
                 </NuxtLink>
+              </div>
+
+              <div class="platform-page__insights">
+                <div class="platform-page__insight-grid">
+                  <div>
+                    <p class="platform-page__insight-label">Santé</p>
+                    <p class="platform-page__insight-value">{{ getCardInsights(card).health }}</p>
+                  </div>
+                  <div>
+                    <p class="platform-page__insight-label">Croissance</p>
+                    <p class="platform-page__insight-value">{{ getCardInsights(card).growth }}</p>
+                  </div>
+                  <div>
+                    <p class="platform-page__insight-label">Audience</p>
+                    <p class="platform-page__insight-value">{{ getCardInsights(card).users }}</p>
+                  </div>
+                  <div>
+                    <p class="platform-page__insight-label">Activité</p>
+                    <p class="platform-page__insight-value">{{ getCardInsights(card).activity }}</p>
+                  </div>
+                </div>
+                <p class="platform-page__spotlight mb-0">{{ getCardInsights(card).spotlight }}</p>
+                <div class="platform-page__chips-row mt-2">
+                  <v-chip
+                    v-for="tag in getCardInsights(card).tags"
+                    :key="tag"
+                    size="x-small"
+                    variant="tonal"
+                    color="primary"
+                  >
+                    {{ tag }}
+                  </v-chip>
+                </div>
               </div>
 
               <v-card-actions>
@@ -483,6 +616,65 @@ const disableApplication = async () => {
   min-width: 0;
 }
 
+.platform-page__hero {
+  border: 1px solid color-mix(in srgb, var(--platform-color-primary) 18%, var(--platform-color-border));
+  background: radial-gradient(circle at top right, rgba(39, 117, 255, 0.17), transparent 48%),
+    linear-gradient(180deg, color-mix(in srgb, var(--platform-color-surface) 90%, #fff 10%) 0%, var(--platform-color-surface) 100%);
+  padding: clamp(1rem, 1.4vw + 0.8rem, 1.8rem);
+}
+
+.platform-page__hero-overline {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--platform-color-primary);
+}
+
+.platform-page__hero-title {
+  margin: 0;
+  font-size: clamp(1.4rem, 1.8vw + 1rem, 2rem);
+  line-height: 1.2;
+  color: var(--platform-color-text-primary);
+}
+
+.platform-page__hero-description {
+  max-width: 62ch;
+  color: var(--platform-color-text-secondary);
+  font-size: 0.98rem;
+}
+
+.platform-page__hero-stats {
+  display: grid;
+  gap: var(--platform-space-2);
+}
+
+.platform-page__highlight {
+  border: 1px solid color-mix(in srgb, var(--platform-color-border) 70%, transparent);
+  border-radius: var(--platform-radius-md);
+  background: color-mix(in srgb, var(--platform-color-surface) 86%, #fff 14%);
+  padding: 0.7rem 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: var(--platform-space-2);
+}
+
+.platform-page__highlight-label {
+  margin: 0;
+  color: var(--platform-color-text-tertiary);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.platform-page__highlight-value {
+  margin: 0.1rem 0 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--platform-color-text-primary);
+}
+
 .platform-page__toolbar,
 .platform-page__row-brand,
 .platform-page__pagination {
@@ -494,6 +686,40 @@ const disableApplication = async () => {
   display: flex;
   justify-content: space-between;
   gap: var(--platform-space-2);
+}
+
+.platform-page__insights {
+  border-top: 1px solid color-mix(in srgb, var(--platform-color-border) 60%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--platform-color-border) 50%, transparent);
+  padding: var(--platform-space-3) 0;
+}
+
+.platform-page__insight-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--platform-space-2) var(--platform-space-3);
+}
+
+.platform-page__insight-label {
+  margin: 0;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--platform-color-text-tertiary);
+}
+
+.platform-page__insight-value {
+  margin: 0.2rem 0 0;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--platform-color-text-primary);
+}
+
+.platform-page__spotlight {
+  margin-top: var(--platform-space-2);
+  color: var(--platform-color-text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.35;
 }
 
 .platform-page__chips-row {
