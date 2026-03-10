@@ -1,6 +1,6 @@
 import { requireAuthCookie, setAuthCookie } from '~~/server/utils/authCookie'
 import { getRedisClient } from '~~/server/utils/redis'
-import { buildCacheKey, buildCacheScanPattern, toPathResourceIdentifier } from '~~/server/utils/cacheKeyBuilder'
+import { buildCacheKey, buildCacheScanPattern, buildCacheScopePrefix, buildQueryHash, toPathResourceIdentifier } from '~~/server/utils/cacheKeyBuilder'
 import { createHash } from 'node:crypto'
 
 const PUBLIC_BACKEND_PATHS = new Set([
@@ -94,8 +94,92 @@ const ENTITY_CACHE_INVALIDATION_RULES: Array<{ routePrefix: string, cachePrefixe
   },
 ]
 
+const ONE_HOUR_IN_SECONDS = 60 * 60
+const SIX_HOURS_IN_SECONDS = ONE_HOUR_IN_SECONDS * 6
+const FIFTEEN_MINUTES_IN_SECONDS = 60 * 15
+const TEN_MINUTES_IN_SECONDS = 60 * 10
 const ONE_DAY_IN_SECONDS = 60 * 60 * 24
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
+
+interface PublicRouteCacheSpec {
+  cacheKey: string
+  ttl: number
+}
+
+const getQueryLocale = (query: Record<string, any>) => {
+  const localeValue = query.locale || query.lang || query.language || 'en'
+  return String(localeValue).toLowerCase().startsWith('fr') ? 'fr' : 'en'
+}
+
+const getPublicRouteCacheSpec = (path: string, query: Record<string, any>): PublicRouteCacheSpec | null => {
+  if (path.startsWith('/api/v1/page/public/')) {
+    const segments = path.split('/').filter(Boolean)
+    const slug = segments[4]
+    const locale = segments[5]
+
+    if (!slug || !locale) {
+      return null
+    }
+
+    return {
+      cacheKey: buildCacheKey({
+        scope: 'public',
+        resource: 'pages',
+        identifier: `${slug}:${locale}`,
+      }),
+      ttl: SIX_HOURS_IN_SECONDS,
+    }
+  }
+
+  if (path === '/api/v1/blogs/general/public') {
+    const locale = getQueryLocale(query)
+    const page = Number(query.page || 1)
+    const { locale: _locale, lang: _lang, language: _language, page: _page, ...filters } = query
+    const filtersHash = buildQueryHash(filters)
+
+    return {
+      cacheKey: buildCacheKey({
+        scope: 'public',
+        resource: 'blog',
+        identifier: `list:${locale}:${page}:${filtersHash}`,
+      }),
+      ttl: TEN_MINUTES_IN_SECONDS,
+    }
+  }
+
+  if (path.startsWith('/api/v1/blogs/application/')) {
+    const segments = path.split('/').filter(Boolean)
+    const slug = segments[4]
+
+    if (!slug) {
+      return null
+    }
+
+    return {
+      cacheKey: buildCacheKey({
+        scope: 'public',
+        resource: 'blog',
+        identifier: `${slug}:${getQueryLocale(query)}`,
+      }),
+      ttl: ONE_HOUR_IN_SECONDS,
+    }
+  }
+
+  if (path === '/api/v1/application/public') {
+    const platform = String(query.platformKey || query.platform || 'all')
+
+    return {
+      cacheKey: buildCacheKey({
+        scope: 'public',
+        resource: 'applicationPlatform',
+        identifier: `${platform}:${getQueryLocale(query)}`,
+      }),
+      ttl: FIFTEEN_MINUTES_IN_SECONDS,
+    }
+  }
+
+  return null
+}
 
 const getLocalizationCacheKey = (path: string, query: Record<string, any>) => {
   const { resource, identifier } = toPathResourceIdentifier(path)
@@ -194,6 +278,24 @@ const clearCacheByPrefix = async (prefix: string) => {
   }
 }
 
+const clearPublicCacheByTag = async (tagPattern: string) => {
+  try {
+    const redis = await getRedisClient()
+    const pattern = `${buildCacheScopePrefix('public')}:${tagPattern}`
+    const keysToDelete: string[] = []
+
+    for await (const key of redis.scanIterator({ MATCH: pattern, COUNT: 100 })) {
+      keysToDelete.push(String(key))
+    }
+
+    if (keysToDelete.length) {
+      await redis.del(keysToDelete)
+    }
+  } catch (error) {
+    console.warn('Public cache invalidation failed', error)
+  }
+}
+
 const storeNotificationEvent = async (input: {
   path: string
   method: string
@@ -229,6 +331,22 @@ const getInvalidationCachePrefixes = (targetPath: string) => {
   const cachePrefix = ENTITY_CACHE_PREFIXES.find(prefix => targetPath.startsWith(prefix))
 
   return cachePrefix ? [cachePrefix] : []
+}
+
+const getPublicInvalidationTags = (targetPath: string) => {
+  if (targetPath.startsWith('/api/v1/blogs/') || targetPath.startsWith('/api/v1/blog/')) {
+    return ['blog:*']
+  }
+
+  if (targetPath.startsWith('/api/v1/page/')) {
+    return ['pages:*']
+  }
+
+  if (targetPath.startsWith('/api/v1/profile/applications') || targetPath.startsWith('/api/v1/application/')) {
+    return ['applicationPlatform:*']
+  }
+
+  return []
 }
 
 const buildForwardHeaders = (event: any): Record<string, string> => {
@@ -296,8 +414,17 @@ export default defineEventHandler(async (event) => {
       : await readBody(event)
   const query = getQuery(event)
 
+  const publicRouteCacheSpec = method === 'GET' ? getPublicRouteCacheSpec(targetPath, query) : null
   const shouldCacheLocalization = method === 'GET' && LOCALIZATION_CACHE_PATHS.has(targetPath)
-  const shouldCacheEntity = method === 'GET' && ENTITY_CACHE_PREFIXES.some(prefix => targetPath.startsWith(prefix))
+  const shouldCacheEntity = !publicRouteCacheSpec && method === 'GET' && ENTITY_CACHE_PREFIXES.some(prefix => targetPath.startsWith(prefix))
+
+  if (publicRouteCacheSpec) {
+    const cachedPayload = await readCache(publicRouteCacheSpec.cacheKey, 'Public route')
+
+    if (cachedPayload !== null) {
+      return cachedPayload
+    }
+  }
 
   if (shouldCacheLocalization) {
     const cacheKey = getLocalizationCacheKey(targetPath, query)
@@ -334,6 +461,10 @@ export default defineEventHandler(async (event) => {
       headers,
     })
 
+    if (publicRouteCacheSpec) {
+      await writeCache(publicRouteCacheSpec.cacheKey, response, publicRouteCacheSpec.ttl, 'Public route')
+    }
+
     if (shouldCacheLocalization) {
       const cacheKey = getLocalizationCacheKey(targetPath, query)
       await writeCache(cacheKey, response, ONE_YEAR_IN_SECONDS, 'Localization')
@@ -361,6 +492,11 @@ export default defineEventHandler(async (event) => {
       const cachePrefixes = getInvalidationCachePrefixes(targetPath)
       for (const cachePrefix of cachePrefixes) {
         await clearCacheByPrefix(cachePrefix)
+      }
+
+      const publicTags = getPublicInvalidationTags(targetPath)
+      for (const publicTag of publicTags) {
+        await clearPublicCacheByTag(publicTag)
       }
     }
 

@@ -98,6 +98,17 @@ export const buildCacheKey = ({ scope, resource, identifier, query = {} }: Cache
   ].join(':')
 }
 
+export const buildCacheScopePrefix = (scope: CacheScope) => {
+  const { env, app, version } = getCacheContext()
+
+  return [
+    env,
+    app,
+    version,
+    normalizeSegment(scope, 'public'),
+  ].join(':')
+}
+
 export const buildCacheScanPattern = ({
   scope,
   resource,
