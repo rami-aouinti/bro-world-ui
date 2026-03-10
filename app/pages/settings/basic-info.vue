@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { profileTips } from '~/data/settings-demo'
+
 definePageMeta({ public: false, requiresAuth: true })
 
 const currentUser = useCurrentUserStore()
@@ -122,6 +124,14 @@ onMounted(loadProfile)
         <p class="text-body-1 text-medium-emphasis mb-4">{{ bio }}</p>
       </v-col>
     </v-row>
+    <v-card rounded="xl" variant="outlined" class="mb-4">
+      <v-card-text>
+        <p class="text-overline mb-2">Profile completion tips</p>
+        <v-list density="compact" class="py-0">
+          <v-list-item v-for="tip in profileTips" :key="tip" :title="tip" prepend-icon="mdi-check-circle-outline" />
+        </v-list>
+      </v-card-text>
+    </v-card>
     <v-progress-linear v-if="isLoading" color="primary" indeterminate class="mb-4" />
     <v-form v-else @submit.prevent="onSubmit">
       <v-row>

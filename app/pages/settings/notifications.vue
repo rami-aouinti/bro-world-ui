@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { notificationChannels } from '~/data/settings-demo'
+
 definePageMeta({ public: false, requiresAuth: true })
 
 type NotificationPreference = {
@@ -71,7 +73,16 @@ onMounted(loadPreferences)
 <template>
   <SettingsLayout>
     <h3 class="text-h5 font-weight-bold mb-1">Notifications</h3>
-    <p class="text-body-1 text-medium-emphasis mb-6">Choose how you receive notifications.</p>
+    <p class="text-body-1 text-medium-emphasis mb-4">Choose how you receive notifications.</p>
+
+    <v-row class="mb-2">
+      <v-col v-for="channel in notificationChannels" :key="channel.channel" cols="12" md="4">
+        <v-sheet rounded="lg" color="surface-variant" class="pa-3">
+          <p class="text-subtitle-2 mb-1">{{ channel.channel }}</p>
+          <p class="text-body-2 text-medium-emphasis mb-0">{{ channel.status }}</p>
+        </v-sheet>
+      </v-col>
+    </v-row>
 
     <v-progress-linear v-if="isLoading" color="primary" indeterminate class="mb-4" />
 
