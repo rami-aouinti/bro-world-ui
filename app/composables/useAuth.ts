@@ -2,7 +2,7 @@ import { computed } from 'vue'
 import { useAuthSessionStore } from '~/stores/authSession'
 import { FALLBACK_LOCALE, getProfilePreferredLocale, normalizeLocaleCodes, resolveLocale } from '~/utils/locale'
 
-import type { LoginPayload } from '~/types/api/common'
+import type { LoginPayload, RegisterPayload } from '~/types/api/common'
 import type { SessionResponse } from '~/types/api/user'
 
 export const useAuth = () => {
@@ -123,6 +123,25 @@ export const useAuth = () => {
     return response
   }
 
+
+  const register = async (email: string, password: string, repeatPassword: string) => {
+    const payload: RegisterPayload = {
+      email,
+      password,
+      repeatPassword,
+    }
+
+    const response = await authFetch<SessionResponse>('/api/auth/register', {
+      method: 'POST',
+      body: payload,
+    })
+
+    initialized.value = true
+    await applySessionState(response)
+
+    return response
+  }
+
   const fetchProfile = async () => {
     const response = await authFetch<SessionResponse>('/api/auth/profile', {
       method: 'GET',
@@ -145,6 +164,7 @@ export const useAuth = () => {
     initSession,
     isAuthenticated,
     login,
+    register,
     fetchProfile,
     logout,
   }

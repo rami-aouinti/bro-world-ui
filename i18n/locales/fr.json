@@ -22,7 +22,8 @@
       "adminRoles": "Rôles",
       "adminGroups": "Groupes",
       "adminApiKeys": "Clés API",
-      "settings": "Paramètres"
+      "settings": "Paramètres",
+      "register": "Inscription"
     }
   },
   "login": {
@@ -53,7 +54,9 @@
     "auth": {
       "loginFailed": "Échec de connexion. Vérifiez vos identifiants.",
       "authRequired": "Vous devez être connecté pour accéder à cette page.",
-      "accessDenied": "Accès interdit: vous ne disposez pas des droits requis."
+      "accessDenied": "Accès interdit: vous ne disposez pas des droits requis.",
+      "registerFailed": "Échec de l'inscription. Vérifiez les informations saisies.",
+      "registerPasswordMismatch": "Les mots de passe ne correspondent pas."
     },
     "profile": {
       "noToken": "Aucun token en session, connectez-vous.",
@@ -1363,5 +1366,12 @@
     "title": "Paramètres de la plateforme",
     "description": "Configurez vos préférences personnelles et le comportement de la plateforme.",
     "notice": "D'autres options de paramétrage seront bientôt disponibles."
+  },
+  "register": {
+    "title": "Inscription",
+    "email": "Email",
+    "password": "Mot de passe",
+    "repeatPassword": "Confirmer le mot de passe",
+    "submit": "Créer un compte"
   }
 }

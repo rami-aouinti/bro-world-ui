@@ -22,7 +22,8 @@
       "adminGroups": "Groups",
       "adminApiKeys": "API keys",
       "settings": "Settings",
-      "inbox": "Messages"
+      "inbox": "Messages",
+      "register": "Register"
     }
   },
   "login": {
@@ -53,7 +54,9 @@
     "auth": {
       "loginFailed": "Login failed. Please check your credentials.",
       "authRequired": "You must be signed in to access this page.",
-      "accessDenied": "Access denied: you do not have the required permissions."
+      "accessDenied": "Access denied: you do not have the required permissions.",
+      "registerFailed": "Registration failed. Please check the provided details.",
+      "registerPasswordMismatch": "Passwords do not match."
     },
     "profile": {
       "noToken": "No active token found. Please sign in.",
@@ -1363,5 +1366,12 @@
     "title": "Platform settings",
     "description": "Configure your personal preferences and platform behavior.",
     "notice": "More setting options will be available soon."
+  },
+  "register": {
+    "title": "Register",
+    "email": "Email",
+    "password": "Password",
+    "repeatPassword": "Repeat password",
+    "submit": "Create account"
   }
 }

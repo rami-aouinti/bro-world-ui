@@ -366,24 +366,30 @@ const signOut = async () => {
           </template>
 
           <v-list class="py-1 app-bar__menu" min-width="220">
-            <v-list-item to="/profile" :title="t('app.navigation.profile')" prepend-icon="mdi-account-outline" rounded="lg" class="mx-2 my-1" />
-            <v-list-item to="/settings" :title="t('app.navigation.settings')" prepend-icon="mdi-cog-outline" rounded="lg" class="mx-2 my-1" />
-            <v-list-item
-              v-if="canPermission('admin.access')"
-              to="/admin"
-              :title="t('app.navigation.admin')"
-              prepend-icon="mdi-shield-account-outline"
-              rounded="lg"
-              class="mx-2 my-1"
-            />
-            <v-list-item
-              v-if="canPermission('profile.logout')"
-              :title="t('profile.logout')"
-              prepend-icon="mdi-logout"
-              rounded="lg"
-              class="mx-2 my-1"
-              @click="signOut"
-            />
+            <template v-if="isAuthenticated">
+              <v-list-item to="/profile" :title="t('app.navigation.profile')" prepend-icon="mdi-account-outline" rounded="lg" class="mx-2 my-1" />
+              <v-list-item to="/settings" :title="t('app.navigation.settings')" prepend-icon="mdi-cog-outline" rounded="lg" class="mx-2 my-1" />
+              <v-list-item
+                v-if="canPermission('admin.access')"
+                to="/admin"
+                :title="t('app.navigation.admin')"
+                prepend-icon="mdi-shield-account-outline"
+                rounded="lg"
+                class="mx-2 my-1"
+              />
+              <v-list-item
+                v-if="canPermission('profile.logout')"
+                :title="t('profile.logout')"
+                prepend-icon="mdi-logout"
+                rounded="lg"
+                class="mx-2 my-1"
+                @click="signOut"
+              />
+            </template>
+            <template v-else>
+              <v-list-item to="/login" :title="t('app.navigation.login')" prepend-icon="mdi-login" rounded="lg" class="mx-2 my-1" />
+              <v-list-item to="/register" :title="t('app.navigation.register')" prepend-icon="mdi-account-plus-outline" rounded="lg" class="mx-2 my-1" />
+            </template>
           </v-list>
         </v-menu>
 
@@ -447,6 +453,22 @@ const signOut = async () => {
           to="/settings"
           :title="t('app.navigation.settings')"
           prepend-icon="mdi-cog-outline"
+          rounded="lg"
+          class="mx-2 my-1"
+        />
+        <v-list-item
+          v-else
+          to="/login"
+          :title="t('app.navigation.login')"
+          prepend-icon="mdi-login"
+          rounded="lg"
+          class="mx-2 my-1"
+        />
+        <v-list-item
+          v-if="!isAuthenticated"
+          to="/register"
+          :title="t('app.navigation.register')"
+          prepend-icon="mdi-account-plus-outline"
           rounded="lg"
           class="mx-2 my-1"
         />
