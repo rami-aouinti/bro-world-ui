@@ -40,3 +40,16 @@ La stratégie est configurable via `runtimeConfig` :
 - `cacheVersion` (fallback: `CACHE_VERSION`, `v1`)
 
 Cette convention permet de versionner les clés pour des migrations de schéma cache sans collisions inter-environnements.
+
+## Clés privées structurées (user-scoped)
+
+Pour les ressources privées, utiliser un identifiant utilisateur **stable** (`userId` interne) et inclure les paramètres fonctionnels (pagination/filtres/plage de date) dans l'identifiant logique:
+
+- `private/{userId}/profile`
+- `private/{userId}/conversation:{conversationId}`
+- `private/{userId}/notifications`
+- `private/{userId}/events:{from}:{to}`
+- `private/{userId}/blog:{blogId}`
+
+Les clés privées ne doivent jamais être lues sans contexte d'authentification utilisateur, et l'accès cross-user (`userA` lisant `userB`) est interdit.
+

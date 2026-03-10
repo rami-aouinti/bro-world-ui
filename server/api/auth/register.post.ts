@@ -15,8 +15,9 @@ function normalizeBearerToken(rawToken: string | undefined) {
   return trimmed.replace(/^Bearer\s+/i, '')
 }
 
-const buildSessionProfile = (profile: UserProfile): Pick<UserProfile, 'id' | 'username' | 'firstName' | 'lastName' | 'email' | 'photo'> => ({
+const buildSessionProfile = (profile: UserProfile): Pick<UserProfile, 'id' | 'username' | 'firstName' | 'lastName' | 'email' | 'photo'> & { userId: string } => ({
   id: profile.id,
+  userId: String(profile.id),
   username: profile.username,
   firstName: profile.firstName,
   lastName: profile.lastName,

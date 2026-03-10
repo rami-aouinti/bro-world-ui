@@ -1,7 +1,8 @@
-import { requireAuthCookie, setAuthCookie } from '~~/server/utils/authCookie'
+import { readAuthCookie, requireAuthCookie, setAuthCookie } from '~~/server/utils/authCookie'
 import { getRedisClient } from '~~/server/utils/redis'
 import { buildCacheKey, buildCacheScanPattern, buildCacheScopePrefix, buildQueryHash, toPathResourceIdentifier } from '~~/server/utils/cacheKeyBuilder'
 import { createHash } from 'node:crypto'
+import { buildFunctionalQuerySegment, getAuthUserIdFromProfile, getPrivateResourceIdentifier, isPrivateCacheRoute } from '~~/server/utils/privateCacheKey'
 
 const PUBLIC_BACKEND_PATHS = new Set([
   '/api/health',
@@ -98,6 +99,7 @@ const ONE_HOUR_IN_SECONDS = 60 * 60
 const SIX_HOURS_IN_SECONDS = ONE_HOUR_IN_SECONDS * 6
 const FIFTEEN_MINUTES_IN_SECONDS = 60 * 15
 const TEN_MINUTES_IN_SECONDS = 60 * 10
+const FIVE_MINUTES_IN_SECONDS = 60 * 5
 const ONE_DAY_IN_SECONDS = 60 * 60 * 24
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 
@@ -203,6 +205,26 @@ const getEntityCacheKey = (path: string, query: Record<string, any>) => {
   })
 }
 
+const getPrivateCacheKey = (path: string, query: Record<string, any>, userId: string) => {
+  const functionalSegment = buildFunctionalQuerySegment(query)
+  const privateResource = getPrivateResourceIdentifier(path)
+
+  return buildCacheKey({
+    scope: 'private',
+    resource: userId,
+    identifier: `${privateResource}:${functionalSegment}`,
+    query,
+  })
+}
+
+const getEntityCacheTtl = (path: string) => {
+  if (path.startsWith('/api/v1/notifications') || path.startsWith('/api/v1/chat/private/conversations')) {
+    return FIVE_MINUTES_IN_SECONDS
+  }
+
+  return ONE_DAY_IN_SECONDS
+}
+
 const normalizeBearerToken = (rawToken: string | null | undefined) => {
   if (!rawToken) {
     return undefined
@@ -228,7 +250,11 @@ const getUsersMeCacheKey = (path: string, query: Record<string, any>, bearerToke
   })
 }
 
-const readCache = async (cacheKey: string, label: string) => {
+const readCache = async (cacheKey: string, label: string, options: { requiresUserContext?: boolean, userId?: string } = {}) => {
+  if (options.requiresUserContext && !options.userId) {
+    return null
+  }
+
   try {
     const redis = await getRedisClient()
     const cachedValue = await redis.get(cacheKey)
@@ -404,6 +430,12 @@ export default defineEventHandler(async (event) => {
     bearerToken = authCookiePayload.token
   }
 
+  if (!authCookiePayload && !isPublicRoute) {
+    authCookiePayload = await readAuthCookie(event) || undefined
+  }
+
+  const authenticatedUserId = getAuthUserIdFromProfile(authCookiePayload?.profile as Record<string, unknown> | null | undefined)
+
   const method = getMethod(event)
   const contentType = getHeader(event, 'content-type') || ''
   const isMultipartRequest = contentType.startsWith('multipart/form-data')
@@ -436,10 +468,19 @@ export default defineEventHandler(async (event) => {
   }
 
   if (shouldCacheEntity) {
-    const cacheKey = targetPath.startsWith('/api/v1/users/me') && bearerToken
-      ? getUsersMeCacheKey(targetPath, query, bearerToken)
-      : getEntityCacheKey(targetPath, query)
-    const cachedPayload = await readCache(cacheKey, 'Entity')
+    const isPrivateRoute = isPrivateCacheRoute(targetPath)
+    const cacheKey = isPrivateRoute
+      ? (authenticatedUserId ? getPrivateCacheKey(targetPath, query, authenticatedUserId) : undefined)
+      : (targetPath.startsWith('/api/v1/users/me') && bearerToken
+          ? getUsersMeCacheKey(targetPath, query, bearerToken)
+          : getEntityCacheKey(targetPath, query))
+
+    const cachedPayload = cacheKey
+      ? await readCache(cacheKey, 'Entity', {
+          requiresUserContext: isPrivateRoute,
+          userId: authenticatedUserId,
+        })
+      : null
 
     if (cachedPayload !== null) {
       return cachedPayload
@@ -471,10 +512,16 @@ export default defineEventHandler(async (event) => {
     }
 
     if (shouldCacheEntity) {
-      const cacheKey = targetPath.startsWith('/api/v1/users/me') && bearerToken
-        ? getUsersMeCacheKey(targetPath, query, bearerToken)
-        : getEntityCacheKey(targetPath, query)
-      await writeCache(cacheKey, response, ONE_DAY_IN_SECONDS, 'Entity')
+      const isPrivateRoute = isPrivateCacheRoute(targetPath)
+      const cacheKey = isPrivateRoute
+        ? (authenticatedUserId ? getPrivateCacheKey(targetPath, query, authenticatedUserId) : undefined)
+        : (targetPath.startsWith('/api/v1/users/me') && bearerToken
+            ? getUsersMeCacheKey(targetPath, query, bearerToken)
+            : getEntityCacheKey(targetPath, query))
+
+      if (cacheKey) {
+        await writeCache(cacheKey, response, getEntityCacheTtl(targetPath), 'Entity')
+      }
     }
 
     const shouldStoreNotificationEvent = targetPath.startsWith(NOTIFICATION_EVENTS_ROUTE_PREFIX)
