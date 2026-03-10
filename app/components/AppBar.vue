@@ -4,10 +4,11 @@ import ConversationAvatarGroup from '~/components/inbox/ConversationAvatarGroup.
 import { computed, ref, watch } from 'vue'
 import { useDisplay, useTheme } from 'vuetify'
 import type { NotificationListResponse, NotificationRead } from '~/types/api/notification'
-import type { PrivateChatConversation, PrivateConversationsResponse, PrivateChatMessage } from '~/types/api/chat'
+import type { PrivateConversationsResponse } from '~/types/api/chat'
 import { useNotificationsApi } from '~/composables/api/useNotificationsApi'
 import { usePrivateChatApi } from '~/composables/api/usePrivateChatApi'
 import { useNotificationTarget } from '~/composables/useNotificationTarget'
+import { buildConversationPreview } from '~/utils/inboxConversationPreview'
 
 interface NavItem {
   key: string
@@ -44,37 +45,6 @@ const isAuthenticated = computed(() => Boolean(authSession.profile))
 const notificationsApi = useNotificationsApi()
 const privateChatApi = usePrivateChatApi()
 const { getNotificationTarget } = useNotificationTarget()
-
-const getLatestMessage = (conversation: PrivateChatConversation): PrivateChatMessage | null => {
-  if (!conversation.messages.length) {
-    return null
-  }
-
-  return [...conversation.messages].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0] ?? null
-}
-
-const buildConversationPreview = (conversation: PrivateChatConversation): InboxConversationPreview => {
-  const participants = conversation.participants
-    .filter(participant => !participant.user.owner)
-    .map(participant => ({
-      id: participant.user.id,
-      photo: participant.user.photo,
-      label: `${participant.user.firstName} ${participant.user.lastName}`.trim() || 'Utilisateur',
-    }))
-
-  const title = participants[0]?.label ?? 'Conversation'
-  const latestMessageAt = getLatestMessage(conversation)?.createdAt ?? conversation.createdAt
-
-  return {
-    id: conversation.id,
-    name: title,
-    excerpt: getLatestMessage(conversation)?.content ?? 'Aucun message',
-    participants,
-    unread: conversation.unreadMessagesCount,
-    route: `/inbox/${conversation.id}`,
-    latestMessageAt,
-  }
-}
 
 const { data: inboxConversationsSummary, refresh: refreshInboxConversationsSummary } = useAsyncData<PrivateConversationsResponse>(
   'appbar-inbox-latest',
