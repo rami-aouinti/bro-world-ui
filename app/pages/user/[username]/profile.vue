@@ -18,6 +18,7 @@ const friendsStore = useFriendsStore()
 const username = computed(() => String(route.params.username ?? ''))
 const actionError = ref('')
 const targetUserId = ref<string | null>(null)
+const pendingActionKey = ref('')
 
 const displayName = computed(() => username.value || 'Unknown user')
 const isMe = computed(() => currentUser.me?.username === username.value)
@@ -58,8 +59,10 @@ const relationActions = computed(() => {
   ]
 })
 
-const runAction = async (action: () => Promise<void>) => {
+const runAction = async (actionKey: string, action: () => Promise<void>) => {
   actionError.value = ''
+  pendingActionKey.value = actionKey
+
   try {
     await action()
   }
@@ -67,10 +70,14 @@ const runAction = async (action: () => Promise<void>) => {
     console.error(error)
     actionError.value = 'Action impossible pour le moment.'
   }
+  finally {
+    pendingActionKey.value = ''
+  }
 }
 
 watch(() => route.params.username, async () => {
   targetUserId.value = null
+  pendingActionKey.value = ''
 
   if (!isAuthenticated.value) {
     return
@@ -117,8 +124,9 @@ watch(() => route.params.username, async () => {
           :key="action.key"
           :color="action.color"
           :variant="action.variant ?? 'tonal'"
-          :loading="friendsStore.actionLoading"
-          @click="runAction(action.run)"
+          :loading="pendingActionKey === action.key"
+          :disabled="friendsStore.actionLoading"
+          @click="runAction(action.key, action.run)"
         >
           {{ action.label }}
         </v-btn>
