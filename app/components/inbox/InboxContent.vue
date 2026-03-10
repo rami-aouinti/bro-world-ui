@@ -71,10 +71,10 @@ const activeConversation = computed(() => {
   }
 
   if (props.selectedConversationId) {
-    return conversations.value.find(item => item.id === props.selectedConversationId) ?? null
+    return conversations.value.find(item => item.id === props.selectedConversationId) ?? conversations.value[0] ?? null
   }
 
-  return null
+  return conversations.value[0] ?? null
 })
 
 const formatMessageDate = (value: string) => new Date(value).toLocaleString('fr-FR', {
