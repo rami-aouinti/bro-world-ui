@@ -90,9 +90,139 @@ const mapConversation = (conversation: PrivateChatConversation) => {
   }
 }
 
+type InboxConversation = ReturnType<typeof mapConversation> & {
+  channel?: string
+  sla?: string
+}
+
 const conversations = computed(() => (inboxConversationsSummary.value?.items ?? [])
   .map(mapConversation)
   .sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()))
+
+const formatRelativeTime = (value: string) => {
+  const now = Date.now()
+  const date = new Date(value).getTime()
+  const diffMinutes = Math.max(1, Math.round((now - date) / 60000))
+
+  if (diffMinutes < 60) {
+    return `il y a ${diffMinutes} min`
+  }
+
+  if (diffMinutes < 1440) {
+    return `il y a ${Math.round(diffMinutes / 60)} h`
+  }
+
+  return `il y a ${Math.round(diffMinutes / 1440)} j`
+}
+
+const demoConversations = computed<InboxConversation[]>(() => {
+  const now = Date.now()
+
+  return [
+    {
+      id: 'demo-customer-success',
+      title: 'Support Premium · Claire Martin',
+      excerpt: 'Le client confirme la réception du devis et souhaite un appel demain.',
+      unread: 3,
+      channel: 'Support',
+      sla: 'Réponse attendue sous 45 min',
+      participants: [
+        { id: 'demo-c1', label: 'Claire Martin', photo: null },
+        { id: 'demo-c2', label: 'Adrien Lopez', photo: null },
+      ],
+      lastMessageAt: new Date(now - 12 * 60000).toISOString(),
+      messages: [
+        {
+          id: 'demo-msg-1',
+          content: 'Bonjour, je viens de transmettre la proposition commerciale au client.',
+          sender: { id: 'demo-c2', firstName: 'Adrien', lastName: 'Lopez', photo: null, owner: false },
+          attachments: [],
+          read: true,
+          readAt: new Date(now - 34 * 60000).toISOString(),
+          createdAt: new Date(now - 35 * 60000).toISOString(),
+          reactions: [],
+        },
+        {
+          id: 'demo-msg-2',
+          content: 'Merci, le client souhaite aussi une projection trimestrielle par produit.',
+          sender: { id: 'demo-c1', firstName: 'Claire', lastName: 'Martin', photo: null, owner: false },
+          attachments: [],
+          read: false,
+          readAt: null,
+          createdAt: new Date(now - 20 * 60000).toISOString(),
+          reactions: [{ id: 'demo-react-1', userId: 'demo-c2', reaction: 'like' }],
+        },
+      ],
+    },
+    {
+      id: 'demo-sales-onboarding',
+      title: 'Equipe Sales · Onboarding',
+      excerpt: 'Checklist d’intégration mise à jour, reste la validation juridique.',
+      unread: 1,
+      channel: 'Interne',
+      sla: 'Suivi prévu aujourd’hui',
+      participants: [
+        { id: 'demo-c3', label: 'Nina Park', photo: null },
+        { id: 'demo-c4', label: 'Julien Perez', photo: null },
+      ],
+      lastMessageAt: new Date(now - 72 * 60000).toISOString(),
+      messages: [
+        {
+          id: 'demo-msg-3',
+          content: 'La documentation d’onboarding est publiée dans Notion.',
+          sender: { id: 'demo-c3', firstName: 'Nina', lastName: 'Park', photo: null, owner: false },
+          attachments: [],
+          read: true,
+          readAt: new Date(now - 91 * 60000).toISOString(),
+          createdAt: new Date(now - 92 * 60000).toISOString(),
+          reactions: [],
+        },
+      ],
+    },
+    {
+      id: 'demo-ops-billing',
+      title: 'Ops · Facturation EU',
+      excerpt: 'Correction TVA en attente du retour finance (ticket #FIN-342).',
+      unread: 0,
+      channel: 'Finance',
+      sla: 'Résolu à 80%',
+      participants: [
+        { id: 'demo-c5', label: 'Maël Roche', photo: null },
+        { id: 'demo-c6', label: 'Lucia Vento', photo: null },
+      ],
+      lastMessageAt: new Date(now - 5 * 3600 * 1000).toISOString(),
+      messages: [
+        {
+          id: 'demo-msg-4',
+          content: 'Le batch de correction TVA est lancé, monitoring en cours.',
+          sender: { id: 'demo-c6', firstName: 'Lucia', lastName: 'Vento', photo: null, owner: false },
+          attachments: [],
+          read: true,
+          readAt: new Date(now - 4 * 3600 * 1000).toISOString(),
+          createdAt: new Date(now - 5 * 3600 * 1000).toISOString(),
+          reactions: [{ id: 'demo-react-2', userId: 'demo-c5', reaction: 'wow' }],
+        },
+      ],
+    },
+  ]
+})
+
+const visibleConversations = computed<InboxConversation[]>(() => conversations.value.length
+  ? conversations.value
+  : demoConversations.value)
+const isUsingDemoData = computed(() => conversations.value.length === 0)
+
+const inboxInsights = computed(() => {
+  const total = visibleConversations.value.length
+  const unread = visibleConversations.value.reduce((acc, conversation) => acc + conversation.unread, 0)
+  const urgent = visibleConversations.value.filter(conversation => conversation.unread > 2).length
+
+  return [
+    { label: 'Conversations', value: total, icon: 'mdi-forum-outline', color: 'primary' },
+    { label: 'Non lus', value: unread, icon: 'mdi-email-alert-outline', color: 'warning' },
+    { label: 'Prioritaires', value: urgent, icon: 'mdi-clock-alert-outline', color: 'error' },
+  ]
+})
 
 
 watch(
@@ -105,7 +235,7 @@ watch(
 
 const activeConversation = computed(() => {
   if (props.selectedConversationId) {
-    const selected = conversations.value.find(item => item.id === props.selectedConversationId)
+    const selected = visibleConversations.value.find(item => item.id === props.selectedConversationId)
     if (selected) {
       return {
         ...selected,
@@ -116,7 +246,7 @@ const activeConversation = computed(() => {
     }
   }
 
-  return conversations.value[0] ?? null
+  return visibleConversations.value[0] ?? null
 })
 
 const formatMessageDate = (value: string) => new Date(value).toLocaleString('fr-FR', {
@@ -144,6 +274,10 @@ const getMessageReactionPreview = (message: PrivateChatMessage) => {
 }
 
 const markConversationAsReadIfNeeded = async (conversationId: string) => {
+  if (isUsingDemoData.value) {
+    return
+  }
+
   const conversation = conversations.value.find(item => item.id === conversationId)
 
   if (!conversation || conversation.unread <= 0 || readingConversationIds.value.has(conversationId)) {
@@ -227,7 +361,7 @@ const sendMessage = async () => {
   const conversationId = activeConversation.value?.id
   const content = draftMessage.value.trim()
 
-  if (!conversationId || !content || isSendingMessage.value) {
+  if (!conversationId || !content || isSendingMessage.value || isUsingDemoData.value) {
     return
   }
 
@@ -259,6 +393,10 @@ watch(
 )
 
 const addReaction = async (messageId: string, reaction: string) => {
+  if (isUsingDemoData.value) {
+    return
+  }
+
   await privateChatApi.addReaction(messageId, { reaction })
   await refreshConversationData()
 }
@@ -270,6 +408,10 @@ const openEditDialog = (message: PrivateChatMessage) => {
 }
 
 const updateMessage = async () => {
+  if (isUsingDemoData.value) {
+    return
+  }
+
   if (!editingMessage.value || !editContent.value.trim()) {
     return
   }
@@ -293,6 +435,10 @@ const openDeleteDialog = (message: PrivateChatMessage) => {
 }
 
 const deleteMessage = async () => {
+  if (isUsingDemoData.value) {
+    return
+  }
+
   if (!messageToDelete.value) {
     return
   }
@@ -314,17 +460,33 @@ const deleteMessage = async () => {
     <template #sidebar>
       <UiSectionHeader
         title="Inbox"
-        subtitle="Messagerie"
+        subtitle="Centre de conversations"
       />
 
-      <div class="d-flex align-center justify-space-between mb-3">
-        <h2 class="text-subtitle-1 font-weight-bold mb-0">Conversations</h2>
-        <UiStatChip :value="conversations.length" color="primary" />
+      <v-alert
+        v-if="isUsingDemoData"
+        type="info"
+        variant="tonal"
+        density="compact"
+        icon="mdi-flask-outline"
+        class="mb-3"
+      >
+        Données de démonstration enrichies actives (en attendant le backend).
+      </v-alert>
+
+      <div class="inbox-page__insights mb-4">
+        <article v-for="insight in inboxInsights" :key="insight.label" class="inbox-page__insight-card">
+          <v-icon :icon="insight.icon" :color="insight.color" size="20" />
+          <div>
+            <p class="text-caption text-medium-emphasis mb-0">{{ insight.label }}</p>
+            <p class="text-subtitle-2 font-weight-bold mb-0">{{ insight.value }}</p>
+          </div>
+        </article>
       </div>
 
       <v-list class="bg-transparent pa-0" nav>
         <v-list-item
-          v-for="conversation in conversations"
+          v-for="conversation in visibleConversations"
           :key="conversation.id"
           :active="activeConversation?.id === conversation.id"
           rounded="lg"
@@ -337,6 +499,10 @@ const deleteMessage = async () => {
 
           <v-list-item-title class="font-weight-medium">{{ conversation.title }}</v-list-item-title>
           <v-list-item-subtitle class="text-truncate">{{ conversation.excerpt }}</v-list-item-subtitle>
+          <div class="d-flex align-center ga-2 mt-1">
+            <UiStatChip :value="conversation.channel ?? 'Chat'" color="default" />
+            <span class="text-caption text-medium-emphasis">{{ formatRelativeTime(conversation.lastMessageAt) }}</span>
+          </div>
 
           <template #append>
             <v-badge
@@ -355,8 +521,9 @@ const deleteMessage = async () => {
         <div class="d-flex align-center justify-space-between mb-2 flex-wrap ga-2">
           <div>
             <h2 class="text-subtitle-1 font-weight-bold mb-1">{{ activeConversation.title }}</h2>
-            <p class="text-body-2 text-medium-emphasis mb-0">Conversation active</p>
+            <p class="text-body-2 text-medium-emphasis mb-0">{{ activeConversation.sla ?? 'Conversation active' }}</p>
           </div>
+          <UiStatChip :value="`${activeConversation.messages.length} messages`" color="primary" />
         </div>
 
         <div v-if="isConversationLoading" class="inbox-page__messages mb-2">
@@ -377,7 +544,7 @@ const deleteMessage = async () => {
             <UiAvatar
               :name="`${message.sender.firstName} ${message.sender.lastName}`"
               :src="message.sender.photo ?? undefined"
-              size="32"
+              size="sm"
               class="inbox-page__bubble-avatar"
             />
 
@@ -453,7 +620,7 @@ const deleteMessage = async () => {
               color="primary"
               prepend-icon="mdi-send"
               :loading="isSendingMessage"
-              :disabled="!draftMessage.trim()"
+              :disabled="!draftMessage.trim() || isUsingDemoData"
               @click="sendMessage"
             >
               Envoyer
@@ -498,11 +665,28 @@ const deleteMessage = async () => {
 <style scoped>
 .inbox-page__conversation {
   transition: background-color 0.2s ease;
+  border: 1px solid transparent;
 }
 
 .inbox-page__conversation:hover,
 .inbox-page__conversation:focus-within {
   background-color: rgba(var(--v-theme-primary), 0.06);
+  border-color: rgba(var(--v-theme-primary), 0.2);
+}
+
+.inbox-page__insights {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.inbox-page__insight-card {
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
+  border-radius: 12px;
+  padding: 0.5rem 0.625rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .inbox-page__content {
@@ -524,6 +708,12 @@ const deleteMessage = async () => {
 
 .inbox-page__composer {
   border-top: 1px solid rgba(var(--v-theme-on-surface), 0.08);
+}
+
+@media (max-width: 860px) {
+  .inbox-page__insights {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
 }
 
 .inbox-page__bubble {
