@@ -1,5 +1,6 @@
 import { requireAuthCookie, setAuthCookie } from '~~/server/utils/authCookie'
 import { getRedisClient } from '~~/server/utils/redis'
+import { buildCacheKey, buildCacheScanPattern, toPathResourceIdentifier } from '~~/server/utils/cacheKeyBuilder'
 import { createHash } from 'node:crypto'
 
 const PUBLIC_BACKEND_PATHS = new Set([
@@ -60,7 +61,6 @@ const ENTITY_CACHE_PREFIXES = [
 ]
 
 const NOTIFICATION_EVENTS_ROUTE_PREFIX = '/api/v1/notifications'
-const NOTIFICATION_EVENTS_REDIS_KEY = 'notifications:events'
 const NOTIFICATION_EVENTS_MAX_ITEMS = 200
 
 const ENTITY_CACHE_INVALIDATION_RULES: Array<{ routePrefix: string, cachePrefixes: string[] }> = [
@@ -97,38 +97,26 @@ const ENTITY_CACHE_INVALIDATION_RULES: Array<{ routePrefix: string, cachePrefixe
 const ONE_DAY_IN_SECONDS = 60 * 60 * 24
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 
-const toSortedQuerySuffix = (query: Record<string, any>) => {
-  const queryEntries = Object.entries(query)
-    .filter(([, value]) => value !== undefined && value !== null)
-    .sort(([a], [b]) => a.localeCompare(b))
-
-  if (!queryEntries.length) {
-    return ''
-  }
-
-  return queryEntries
-    .map(([key, value]) => `${key}=${Array.isArray(value) ? value.join(',') : String(value)}`)
-    .join('&')
-}
-
 const getLocalizationCacheKey = (path: string, query: Record<string, any>) => {
-  const suffix = toSortedQuerySuffix(query)
+  const { resource, identifier } = toPathResourceIdentifier(path)
 
-  if (!suffix) {
-    return `localization:${path}`
-  }
-
-  return `localization:${path}?${suffix}`
+  return buildCacheKey({
+    scope: 'public',
+    resource,
+    identifier,
+    query,
+  })
 }
 
 const getEntityCacheKey = (path: string, query: Record<string, any>) => {
-  const suffix = toSortedQuerySuffix(query)
+  const { resource, identifier } = toPathResourceIdentifier(path)
 
-  if (!suffix) {
-    return `entity:${path}`
-  }
-
-  return `entity:${path}?${suffix}`
+  return buildCacheKey({
+    scope: 'public',
+    resource,
+    identifier,
+    query,
+  })
 }
 
 const normalizeBearerToken = (rawToken: string | null | undefined) => {
@@ -146,13 +134,14 @@ const normalizeBearerToken = (rawToken: string | null | undefined) => {
 
 const getUsersMeCacheKey = (path: string, query: Record<string, any>, bearerToken: string) => {
   const tokenHash = createHash('sha256').update(bearerToken).digest('hex').slice(0, 16)
-  const suffix = toSortedQuerySuffix(query)
+  const { resource, identifier } = toPathResourceIdentifier(path)
 
-  if (!suffix) {
-    return `entity:${path}:token:${tokenHash}`
-  }
-
-  return `entity:${path}:token:${tokenHash}?${suffix}`
+  return buildCacheKey({
+    scope: 'private',
+    resource,
+    identifier: `${identifier}.token-${tokenHash}`,
+    query,
+  })
 }
 
 const readCache = async (cacheKey: string, label: string) => {
@@ -185,7 +174,12 @@ const writeCache = async (cacheKey: string, payload: unknown, ttl: number, label
 const clearCacheByPrefix = async (prefix: string) => {
   try {
     const redis = await getRedisClient()
-    const pattern = `entity:${prefix}*`
+    const { resource, identifier } = toPathResourceIdentifier(prefix)
+    const pattern = buildCacheScanPattern({
+      scope: prefix.includes('/private') ? 'private' : 'public',
+      resource,
+      identifierPattern: `${identifier}*`,
+    })
     const keysToDelete: string[] = []
 
     for await (const key of redis.scanIterator({ MATCH: pattern, COUNT: 100 })) {
@@ -208,13 +202,18 @@ const storeNotificationEvent = async (input: {
 }) => {
   try {
     const redis = await getRedisClient()
+    const notificationsRedisKey = buildCacheKey({
+      scope: 'system',
+      resource: 'notifications',
+      identifier: 'events',
+    })
     const payload = {
       ...input,
       createdAt: new Date().toISOString(),
     }
 
-    await redis.lPush(NOTIFICATION_EVENTS_REDIS_KEY, JSON.stringify(payload))
-    await redis.lTrim(NOTIFICATION_EVENTS_REDIS_KEY, 0, NOTIFICATION_EVENTS_MAX_ITEMS - 1)
+    await redis.lPush(notificationsRedisKey, JSON.stringify(payload))
+    await redis.lTrim(notificationsRedisKey, 0, NOTIFICATION_EVENTS_MAX_ITEMS - 1)
   } catch (error) {
     console.warn('Notification event store failed', error)
   }
