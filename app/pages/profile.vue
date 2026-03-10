@@ -116,8 +116,8 @@ onMounted(async () => {
                 <template #append>
                   <div class="d-flex ga-2">
                     <v-btn size="small" variant="text" :to="`/user/${encodeURIComponent(friend.username)}/profile`">Voir</v-btn>
-                    <v-btn size="small" color="warning" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.removeFriend(friend.username))">Retirer</v-btn>
-                    <v-btn size="small" color="error" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.blockUser(friend.username))">Bloquer</v-btn>
+                    <v-btn size="small" color="warning" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.removeFriend(friend.id))">Retirer</v-btn>
+                    <v-btn size="small" color="error" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.blockUser(friend.id))">Bloquer</v-btn>
                   </div>
                 </template>
               </v-list-item>
@@ -135,9 +135,9 @@ onMounted(async () => {
                 <v-list-item-subtitle>@{{ user.username }}</v-list-item-subtitle>
                 <template #append>
                   <div class="d-flex ga-2">
-                    <v-btn size="small" color="success" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.acceptRequest(user.username))">Accepter</v-btn>
-                    <v-btn size="small" color="warning" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.rejectRequest(user.username))">Refuser</v-btn>
-                    <v-btn size="small" color="error" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.blockUser(user.username))">Bloquer</v-btn>
+                    <v-btn size="small" color="success" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.acceptRequest(user.id))">Accepter</v-btn>
+                    <v-btn size="small" color="warning" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.rejectRequest(user.id))">Refuser</v-btn>
+                    <v-btn size="small" color="error" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.blockUser(user.id))">Bloquer</v-btn>
                   </div>
                 </template>
               </v-list-item>
@@ -155,8 +155,8 @@ onMounted(async () => {
                 <v-list-item-subtitle>@{{ user.username }}</v-list-item-subtitle>
                 <template #append>
                   <div class="d-flex ga-2">
-                    <v-btn size="small" color="warning" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.cancelSentRequest(user.username))">Annuler</v-btn>
-                    <v-btn size="small" color="error" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.blockUser(user.username))">Bloquer</v-btn>
+                    <v-btn size="small" color="warning" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.cancelSentRequest(user.id))">Annuler</v-btn>
+                    <v-btn size="small" color="error" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.blockUser(user.id))">Bloquer</v-btn>
                   </div>
                 </template>
               </v-list-item>
@@ -173,7 +173,7 @@ onMounted(async () => {
                 <v-list-item-title>{{ friendDisplayName(user) }}</v-list-item-title>
                 <v-list-item-subtitle>@{{ user.username }}</v-list-item-subtitle>
                 <template #append>
-                  <v-btn size="small" color="warning" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.unblockUser(user.username))">Débloquer</v-btn>
+                  <v-btn size="small" color="warning" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.unblockUser(user.id))">Débloquer</v-btn>
                 </template>
               </v-list-item>
             </v-list>
