@@ -35,6 +35,22 @@ export const buildFunctionalQuerySegment = (query = {}) => {
 }
 
 export const getPrivateResourceIdentifier = (path) => {
+  if (path.startsWith('/api/v1/users/me/friends/requests/sent')) {
+    return 'friends:requests:sent'
+  }
+
+  if (path.startsWith('/api/v1/users/me/friends/requests')) {
+    return 'friends:requests:incoming'
+  }
+
+  if (path.startsWith('/api/v1/users/me/friends/blocked')) {
+    return 'friends:blocked'
+  }
+
+  if (path.startsWith('/api/v1/users/me/friends')) {
+    return 'friends:list'
+  }
+
   if (path.startsWith('/api/v1/chat/private/conversations')) {
     const conversationId = path.split('/').filter(Boolean)[5]
     return conversationId ? `conversation:${conversationId}` : 'conversation:list'

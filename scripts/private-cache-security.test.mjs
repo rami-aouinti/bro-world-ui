@@ -27,6 +27,10 @@ test('functional parameters are encoded in private identifier segment', () => {
 
 test('private identifiers follow expected naming', () => {
   assert.equal(getPrivateResourceIdentifier('/api/v1/profile'), 'profile')
+  assert.equal(getPrivateResourceIdentifier('/api/v1/users/me/friends'), 'friends:list')
+  assert.equal(getPrivateResourceIdentifier('/api/v1/users/me/friends/requests'), 'friends:requests:incoming')
+  assert.equal(getPrivateResourceIdentifier('/api/v1/users/me/friends/requests/sent'), 'friends:requests:sent')
+  assert.equal(getPrivateResourceIdentifier('/api/v1/users/me/friends/blocked'), 'friends:blocked')
   assert.equal(getPrivateResourceIdentifier('/api/v1/chat/private/conversations/conv-1'), 'conversation:conv-1')
   assert.equal(getPrivateResourceIdentifier('/api/v1/notifications'), 'notifications')
 })
