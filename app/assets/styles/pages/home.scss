@@ -65,9 +65,9 @@ main.home-page {
   background: rgba(var(--v-theme-surface), 0.9);
   border: 1px solid rgba(var(--v-theme-outline-variant), 0.3);
   transition:
-    transform 220ms ease,
-    box-shadow 220ms ease,
-    border-color 220ms ease;
+    transform var(--motion-base) var(--easing-emphasized),
+    box-shadow var(--motion-base) var(--easing-standard),
+    border-color var(--motion-fast) var(--easing-standard);
 }
 
 .home-feature-card:hover,

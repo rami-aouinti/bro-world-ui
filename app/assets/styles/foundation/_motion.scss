@@ -1,0 +1,63 @@
+:root {
+  --motion-fast: 140ms;
+  --motion-base: 220ms;
+  --motion-slow: 320ms;
+  --easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --easing-emphasized: cubic-bezier(0.2, 0, 0, 1.2);
+}
+
+:where(.v-btn, .v-card, .v-list-item, .v-avatar, .v-menu > .v-overlay__content) {
+  transition-duration: var(--motion-base);
+  transition-timing-function: var(--easing-standard);
+}
+
+:where(.v-btn, .v-list-item, .v-avatar) {
+  transition-property: transform, box-shadow, background-color, border-color, color, opacity;
+}
+
+:where(.v-card, .v-menu > .v-overlay__content) {
+  transition-property: transform, box-shadow, border-color, background-color;
+}
+
+:where(.hover-lift, .v-card.hover-lift, .v-list-item.hover-lift) {
+  transition:
+    transform var(--motion-base) var(--easing-emphasized),
+    box-shadow var(--motion-base) var(--easing-standard),
+    border-color var(--motion-fast) var(--easing-standard);
+}
+
+:where(.hover-lift:hover, .hover-lift:focus-visible) {
+  transform: translateY(-4px);
+}
+
+:where(.press, .v-btn.press, .v-list-item.press) {
+  transition: transform var(--motion-fast) var(--easing-standard);
+}
+
+:where(.press:active) {
+  transform: translateY(1px) scale(0.985);
+}
+
+:where(.focus-ring, .v-btn, .v-list-item, .v-card, .v-avatar):focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 1ms;
+    --motion-base: 1ms;
+    --motion-slow: 1ms;
+  }
+
+  :where(.v-btn, .v-card, .v-list-item, .v-avatar, .v-menu > .v-overlay__content, .hover-lift, .press) {
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  :where(.hover-lift:hover, .hover-lift:focus-visible, .press:active) {
+    transform: none;
+  }
+}
