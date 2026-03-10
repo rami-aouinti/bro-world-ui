@@ -22,6 +22,12 @@ export interface TokenResponse {
   token: string
 }
 
+export interface RegisterPayload {
+  email: string
+  password: string
+  repeatPassword: string
+}
+
 export interface ListQueryParams {
   limit?: number
   offset?: number
