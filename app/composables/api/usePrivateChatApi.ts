@@ -3,6 +3,7 @@ import type {
   CreatePrivateMessagePayload,
   CreatePrivateReactionPayload,
   PrivateConversationsResponse,
+  PrivateConversationMessagesResponse,
   PrivateChatConversation,
   PrivateChatMessage,
   PrivateChatReaction,
@@ -25,6 +26,12 @@ export const usePrivateChatApi = () => {
           limit,
           page,
         },
+      })
+    },
+
+    getConversationMessages(conversationId: string) {
+      return apiFetch<PrivateConversationMessagesResponse>(`${conversationsBasePath}/${conversationId}`, {
+        method: 'GET',
       })
     },
 
