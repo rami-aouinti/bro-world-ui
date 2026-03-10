@@ -41,11 +41,12 @@ export const useAuth = () => {
 
 
   const warmupPrivateCaches = async (session: SessionResponse) => {
-    if (!session.authenticated) {
+    if (!session.authenticated || import.meta.server) {
       return
     }
 
-    await Promise.allSettled([
+    try {
+      await Promise.allSettled([
       authFetch('/api/backend/api/v1/notifications', {
         method: 'GET',
         query: {
@@ -60,7 +61,11 @@ export const useAuth = () => {
           page: 1,
         },
       }),
-    ])
+      ])
+    }
+    catch (error) {
+      console.warn('Auth warmup cache failed', error)
+    }
   }
 
   const applySessionState = async (session: SessionResponse) => {
@@ -77,7 +82,7 @@ export const useAuth = () => {
       : FALLBACK_LOCALE
 
     await applyLocalePreference(preferredLocale)
-    await warmupPrivateCaches(session)
+    void warmupPrivateCaches(session)
   }
 
   const initSession = async (force = false) => {
