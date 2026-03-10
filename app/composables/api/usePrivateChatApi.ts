@@ -49,11 +49,8 @@ export const usePrivateChatApi = () => {
     },
 
     markConversationAsReadAll(conversationId: string) {
-      return apiFetch<PrivateChatConversation>(`${conversationsBasePath}/${conversationId}`, {
-        method: 'PATCH',
-        body: {
-          readAll: true,
-        },
+      return apiFetch<PrivateChatConversation>(`${conversationsBasePath}/${conversationId}/messages/read`, {
+        method: 'POST',
       })
     },
 
