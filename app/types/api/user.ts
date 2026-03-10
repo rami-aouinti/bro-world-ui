@@ -83,6 +83,14 @@ export interface UserMeRead {
   sessions: UserSession[]
 }
 
+export interface UserFriendRead {
+  id: UUID
+  username: string
+  firstName: string
+  lastName: string
+  photo: string | null
+}
+
 export interface UserMePasswordPayload {
   currentPassword: string
   newPassword: string

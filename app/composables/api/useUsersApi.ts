@@ -14,6 +14,7 @@ import type {
   UserGroupsResponse,
   UserMePasswordPayload,
   UserMeProfilePayload,
+  UserFriendRead,
   UserMeRead,
   UserRead,
   UserRolesResponse,
@@ -27,6 +28,37 @@ export const useUsersApi = () => {
 
     getMe() {
       return apiFetch<UserMeRead>('/api/v1/users/me', { method: 'GET' })
+    },
+
+    listMyFriends() {
+      return apiFetch<UserFriendRead[]>('/api/v1/users/me/friends', { method: 'GET' })
+    },
+    listMyFriendRequests() {
+      return apiFetch<UserFriendRead[]>('/api/v1/users/me/friends/requests', { method: 'GET' })
+    },
+    listMySentFriendRequests() {
+      return apiFetch<UserFriendRead[]>('/api/v1/users/me/friends/requests/sent', { method: 'GET' })
+    },
+    listMyBlockedUsers() {
+      return apiFetch<UserFriendRead[]>('/api/v1/users/me/friends/blocked', { method: 'GET' })
+    },
+    sendFriendRequest(user: string) {
+      return apiFetch<void>(`/api/v1/users/${encodeURIComponent(user)}/friends/request`, { method: 'POST' })
+    },
+    cancelSentFriendRequest(user: string) {
+      return apiFetch<void>(`/api/v1/users/${encodeURIComponent(user)}/friends/request`, { method: 'DELETE' })
+    },
+    acceptFriendRequest(user: string) {
+      return apiFetch<void>(`/api/v1/users/${encodeURIComponent(user)}/friends/accept`, { method: 'POST' })
+    },
+    rejectFriendRequest(user: string) {
+      return apiFetch<void>(`/api/v1/users/${encodeURIComponent(user)}/friends/reject`, { method: 'POST' })
+    },
+    blockUser(user: string) {
+      return apiFetch<void>(`/api/v1/users/${encodeURIComponent(user)}/block`, { method: 'POST' })
+    },
+    unblockUser(user: string) {
+      return apiFetch<void>(`/api/v1/users/${encodeURIComponent(user)}/block`, { method: 'DELETE' })
     },
     updateMyPassword(payload: UserMePasswordPayload) {
       return apiFetch<void>('/api/v1/users/me/password', {
