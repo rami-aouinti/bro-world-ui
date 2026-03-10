@@ -7,6 +7,7 @@ import type { NotificationListResponse, NotificationRead } from '~/types/api/not
 import type { PrivateChatConversation, PrivateConversationsResponse, PrivateChatMessage } from '~/types/api/chat'
 import { useNotificationsApi } from '~/composables/api/useNotificationsApi'
 import { usePrivateChatApi } from '~/composables/api/usePrivateChatApi'
+import { useNotificationTarget } from '~/composables/useNotificationTarget'
 
 interface NavItem {
   key: string
@@ -42,6 +43,7 @@ const isInboxMenuOpen = ref(false)
 const isAuthenticated = computed(() => Boolean(authSession.profile))
 const notificationsApi = useNotificationsApi()
 const privateChatApi = usePrivateChatApi()
+const { getNotificationTarget } = useNotificationTarget()
 
 const getLatestMessage = (conversation: PrivateChatConversation): PrivateChatMessage | null => {
   if (!conversation.messages.length) {
@@ -333,7 +335,7 @@ const signOut = async () => {
             <v-list-item
               v-for="notification in notificationPreviewItems"
               :key="notification.id"
-              :to="`/notifications/${notification.id}`"
+              :to="getNotificationTarget(notification) ?? `/notifications/${notification.id}`"
               rounded="lg"
               class="mx-2 my-1"
             >
