@@ -18,7 +18,7 @@ const props = withDefaults(defineProps<Props>(), {
   subtitle: undefined,
   card: true,
   elevation: 2,
-  rounded: 'xl',
+  rounded: '2xl',
   padding: 'pa-6',
 })
 
