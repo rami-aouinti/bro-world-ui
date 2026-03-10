@@ -15,6 +15,7 @@ const friendsStore = useFriendsStore()
 const profile = ref<any>(null)
 const loadError = ref('')
 const actionError = ref('')
+const pendingActionKey = ref('')
 
 const fullName = computed(() => currentUser.displayName)
 const email = computed(() => currentUser.me?.email || '—')
@@ -37,14 +38,19 @@ const loadData = async () => {
   }
 }
 
-const runAction = async (action: () => Promise<void>) => {
+const runAction = async (actionKey: string, action: () => Promise<void>) => {
   actionError.value = ''
+  pendingActionKey.value = actionKey
+
   try {
     await action()
   }
   catch (error) {
     console.error(error)
     actionError.value = 'Action impossible pour le moment.'
+  }
+  finally {
+    pendingActionKey.value = ''
   }
 }
 
@@ -116,8 +122,8 @@ onMounted(async () => {
                 <template #append>
                   <div class="d-flex ga-2">
                     <v-btn size="small" variant="text" :to="`/user/${encodeURIComponent(friend.username)}/profile`">Voir</v-btn>
-                    <v-btn size="small" color="warning" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.removeFriend(friend.id))">Retirer</v-btn>
-                    <v-btn size="small" color="error" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.blockUser(friend.id))">Bloquer</v-btn>
+                    <v-btn size="small" color="warning" variant="tonal" :loading="pendingActionKey === `remove-${friend.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`remove-${friend.id}`, () => friendsStore.removeFriend(friend.id))">Retirer</v-btn>
+                    <v-btn size="small" color="error" variant="tonal" :loading="pendingActionKey === `block-friend-${friend.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`block-friend-${friend.id}`, () => friendsStore.blockUser(friend.id))">Bloquer</v-btn>
                   </div>
                 </template>
               </v-list-item>
@@ -135,9 +141,9 @@ onMounted(async () => {
                 <v-list-item-subtitle>@{{ user.username }}</v-list-item-subtitle>
                 <template #append>
                   <div class="d-flex ga-2">
-                    <v-btn size="small" color="success" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.acceptRequest(user.id))">Accepter</v-btn>
-                    <v-btn size="small" color="warning" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.rejectRequest(user.id))">Refuser</v-btn>
-                    <v-btn size="small" color="error" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.blockUser(user.id))">Bloquer</v-btn>
+                    <v-btn size="small" color="success" variant="tonal" :loading="pendingActionKey === `accept-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`accept-${user.id}`, () => friendsStore.acceptRequest(user.id))">Accepter</v-btn>
+                    <v-btn size="small" color="warning" variant="tonal" :loading="pendingActionKey === `reject-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`reject-${user.id}`, () => friendsStore.rejectRequest(user.id))">Refuser</v-btn>
+                    <v-btn size="small" color="error" variant="tonal" :loading="pendingActionKey === `block-incoming-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`block-incoming-${user.id}`, () => friendsStore.blockUser(user.id))">Bloquer</v-btn>
                   </div>
                 </template>
               </v-list-item>
@@ -155,8 +161,8 @@ onMounted(async () => {
                 <v-list-item-subtitle>@{{ user.username }}</v-list-item-subtitle>
                 <template #append>
                   <div class="d-flex ga-2">
-                    <v-btn size="small" color="warning" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.cancelSentRequest(user.id))">Annuler</v-btn>
-                    <v-btn size="small" color="error" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.blockUser(user.id))">Bloquer</v-btn>
+                    <v-btn size="small" color="warning" variant="tonal" :loading="pendingActionKey === `cancel-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`cancel-${user.id}`, () => friendsStore.cancelSentRequest(user.id))">Annuler</v-btn>
+                    <v-btn size="small" color="error" variant="tonal" :loading="pendingActionKey === `block-sent-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`block-sent-${user.id}`, () => friendsStore.blockUser(user.id))">Bloquer</v-btn>
                   </div>
                 </template>
               </v-list-item>
@@ -173,7 +179,7 @@ onMounted(async () => {
                 <v-list-item-title>{{ friendDisplayName(user) }}</v-list-item-title>
                 <v-list-item-subtitle>@{{ user.username }}</v-list-item-subtitle>
                 <template #append>
-                  <v-btn size="small" color="warning" variant="tonal" :loading="friendsStore.actionLoading" @click="runAction(() => friendsStore.unblockUser(user.id))">Débloquer</v-btn>
+                  <v-btn size="small" color="warning" variant="tonal" :loading="pendingActionKey === `unblock-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`unblock-${user.id}`, () => friendsStore.unblockUser(user.id))">Débloquer</v-btn>
                 </template>
               </v-list-item>
             </v-list>

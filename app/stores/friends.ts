@@ -74,12 +74,19 @@ export const useFriendsStore = defineStore('friends', () => {
     }
   }
 
-  const invalidateCache = () => {
+  const invalidateCache = (clearLists = false) => {
     cacheTimestamps.value = { friends: 0, incoming: 0, sent: 0, blocked: 0 }
+
+    if (clearLists) {
+      friends.value = []
+      incomingRequests.value = []
+      sentRequests.value = []
+      blockedUsers.value = []
+    }
   }
 
   const refreshAfterAction = async () => {
-    invalidateCache()
+    invalidateCache(true)
     await fetchAll(true)
   }
 
