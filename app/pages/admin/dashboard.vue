@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import UiCard from '~/components/ui/UiCard.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
+import AdminStatisticsChart from '~/components/admin/AdminStatisticsChart.vue'
 
 definePageMeta({
   layout: 'admin',
@@ -41,10 +42,10 @@ const statistics = computed(() => [
 
 <template>
   <div class="admin-page-content">
-      <UiSectionHeader
-        :title="t('admin.dashboard.title')"
-        :subtitle="t('admin.dashboard.description')"
-      />
+    <UiSectionHeader
+      :title="t('admin.dashboard.title')"
+      :subtitle="t('admin.dashboard.description')"
+    />
 
     <v-row>
       <v-col
@@ -60,6 +61,15 @@ const statistics = computed(() => [
             <v-icon :icon="item.icon" :color="item.color" />
           </div>
           <div class="text-h4 font-weight-bold">{{ item.value }}</div>
+        </UiCard>
+      </v-col>
+    </v-row>
+
+    <v-row>
+      <v-col cols="12">
+        <UiCard rounded="lg">
+          <div class="text-h6 mb-4">{{ t('admin.dashboard.charts.title') }}</div>
+          <AdminStatisticsChart />
         </UiCard>
       </v-col>
     </v-row>
