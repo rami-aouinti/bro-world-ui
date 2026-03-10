@@ -78,7 +78,7 @@ const isSkeletonVariant = computed(() => props.variant !== 'spinner')
 <style scoped lang="scss">
 .ui-loading-state {
   &__spinner {
-    animation: ui-loading-pulse 1.2s ease-in-out infinite;
+    animation: ui-loading-pulse calc(var(--motion-slow) * 4) var(--easing-standard) infinite;
   }
 
   :deep(.ui-skeleton-layout) {
@@ -129,7 +129,7 @@ const isSkeletonVariant = computed(() => props.variant !== 'spinner')
       rgba(var(--v-theme-surface-variant), 0.3) 90%
     );
     background-size: 250% 100%;
-    animation: ui-loading-shimmer 1.35s ease-in-out infinite;
+    animation: ui-loading-shimmer calc(var(--motion-slow) * 4.2) var(--easing-standard) infinite;
   }
 
   :deep(.ui-skeleton-block--section) {
@@ -167,6 +167,20 @@ const isSkeletonVariant = computed(() => props.variant !== 'spinner')
   :deep(.ui-skeleton-block--w-20) { width: 20%; }
   :deep(.ui-skeleton-block--w-25) { width: 25%; }
   :deep(.ui-skeleton-block--w-30) { width: 30%; }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-loading-state {
+    &__spinner {
+      animation: none;
+    }
+
+    :deep(.ui-skeleton-block) {
+      animation: none;
+      background-position: 0 0;
+    }
+  }
 }
 
 @keyframes ui-loading-shimmer {
