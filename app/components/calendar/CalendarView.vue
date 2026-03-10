@@ -5,16 +5,16 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import FullCalendar from '@fullcalendar/vue3'
 import UiStatChip from '~/components/ui/UiStatChip.vue'
 import UiStateEmptyState from '~/components/ui/state/UiEmptyState.vue'
+import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
+import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import { useCalendarEventsApi } from '~/composables/api/useCalendarEventsApi'
+import { getCalendarNav } from '~/data/platform-nav'
 import type {
   CalendarEventRead,
   CreateCalendarEventPayload,
   EventStatus,
   PatchCalendarEventPayload,
 } from '~/types/api/calendar'
-import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
-import PlatformSidebarNav from "~/components/platform/PlatformSidebarNav.vue";
-import {getCalendarNav} from "~/data/platform-nav";
 
 const props = withDefaults(defineProps<{
   applicationSlug?: string
@@ -28,6 +28,7 @@ const calendarApi = useCalendarEventsApi()
 const isLoading = ref(false)
 const isSaving = ref(false)
 const errorMessage = ref('')
+const usingFallbackData = ref(false)
 
 const events = ref<CalendarEventRead[]>([])
 const selectedRange = ref<'7days' | '30days' | 'quarter'>('30days')
@@ -69,6 +70,110 @@ const statusOptions = [
 
 const rangeInDays = { '7days': 7, '30days': 30, 'quarter': 90 }
 
+const createMockEvents = (): CalendarEventRead[] => {
+  const now = new Date()
+  const addHours = (base: Date, hours: number) => new Date(base.getTime() + hours * 3_600_000)
+  const setAt = (dayOffset: number, hour: number, minute = 0) => {
+    const date = new Date(now)
+    date.setDate(date.getDate() + dayOffset)
+    date.setHours(hour, minute, 0, 0)
+    return date
+  }
+
+  return [
+    {
+      id: 'demo-001',
+      title: 'Kickoff campagne Q2',
+      description: 'Alignement marketing + sales sur les objectifs de conversion et les messages clés.',
+      startAt: setAt(1, 9, 0).toISOString(),
+      endAt: setAt(1, 10, 30).toISOString(),
+      status: 'confirmed',
+      visibility: 'private',
+      location: 'Salle Atlas',
+      isAllDay: false,
+      timezone: 'Europe/Paris',
+      isCancelled: false,
+      attendees: [{ name: 'Sarah D.', email: 'sarah@demo.local' }, { name: 'Moussa K.', email: 'moussa@demo.local' }],
+      reminders: [{ method: 'email', minutesBefore: 30 }],
+      calendarId: null,
+      applicationSlug: props.applicationSlug || null,
+      userId: '00000000-0000-0000-0000-000000000001',
+    },
+    {
+      id: 'demo-002',
+      title: 'Point pipeline partenaires',
+      description: 'Revue des comptes en négociation et validation des prochaines actions.',
+      startAt: setAt(2, 14, 0).toISOString(),
+      endAt: setAt(2, 15, 0).toISOString(),
+      status: 'tentative',
+      visibility: 'private',
+      location: 'Visio Meet',
+      isAllDay: false,
+      timezone: 'Europe/Paris',
+      isCancelled: false,
+      attendees: [{ name: 'Alex T.', email: 'alex@demo.local' }],
+      reminders: [{ method: 'popup', minutesBefore: 15 }],
+      calendarId: null,
+      applicationSlug: props.applicationSlug || null,
+      userId: '00000000-0000-0000-0000-000000000001',
+    },
+    {
+      id: 'demo-003',
+      title: 'Journée support premium',
+      description: 'Slot bloqué pour traiter les tickets clients à priorité haute.',
+      startAt: setAt(4, 8, 30).toISOString(),
+      endAt: setAt(4, 17, 30).toISOString(),
+      status: 'confirmed',
+      visibility: 'private',
+      location: 'Centre relation client',
+      isAllDay: false,
+      timezone: 'Europe/Paris',
+      isCancelled: false,
+      attendees: null,
+      reminders: [{ method: 'email', minutesBefore: 60 }],
+      calendarId: null,
+      applicationSlug: props.applicationSlug || null,
+      userId: '00000000-0000-0000-0000-000000000001',
+    },
+    {
+      id: 'demo-004',
+      title: 'Formation onboarding équipe BDR',
+      description: 'Session interne sur l’argumentaire produit, les scripts d’appel et le CRM.',
+      startAt: setAt(6, 10, 0).toISOString(),
+      endAt: setAt(6, 12, 0).toISOString(),
+      status: 'confirmed',
+      visibility: 'private',
+      location: 'Room Nova',
+      isAllDay: false,
+      timezone: 'Europe/Paris',
+      isCancelled: false,
+      attendees: [{ name: 'Team BDR', email: 'bdr@demo.local' }],
+      reminders: [{ method: 'popup', minutesBefore: 20 }],
+      calendarId: null,
+      applicationSlug: props.applicationSlug || null,
+      userId: '00000000-0000-0000-0000-000000000001',
+    },
+    {
+      id: 'demo-005',
+      title: 'Maintenance plateforme (fenêtre technique)',
+      description: 'Intervention OPS planifiée avec équipe produit. Service potentiellement ralenti.',
+      startAt: addHours(setAt(8, 23, 0), 0).toISOString(),
+      endAt: addHours(setAt(9, 2, 0), 0).toISOString(),
+      status: 'cancelled',
+      visibility: 'private',
+      location: 'Datacenter virtuel',
+      isAllDay: false,
+      timezone: 'Europe/Paris',
+      isCancelled: true,
+      attendees: [{ name: 'Ops Squad', email: 'ops@demo.local' }],
+      reminders: [{ method: 'email', minutesBefore: 120 }],
+      calendarId: null,
+      applicationSlug: props.applicationSlug || null,
+      userId: '00000000-0000-0000-0000-000000000001',
+    },
+  ]
+}
+
 const toDateTimeLocalValue = (isoDate: string) => {
   const date = new Date(isoDate)
   const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60_000))
@@ -82,6 +187,14 @@ const formatEventDate = (isoDate: string) => {
     month: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
+  }).format(new Date(isoDate))
+}
+
+const formatDayLabel = (isoDate: string) => {
+  return new Intl.DateTimeFormat('fr-FR', {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
   }).format(new Date(isoDate))
 }
 
@@ -103,14 +216,29 @@ const fullCalendarColorByStatus: Record<EventStatus, string> = {
   cancelled: '#D32F2F',
 }
 
+const isDemoEvent = (event: CalendarEventRead) => event.id.startsWith('demo-')
+
 const loadEvents = async () => {
+  const mockEvents = createMockEvents()
+
   try {
     isLoading.value = true
     errorMessage.value = ''
-    events.value = await calendarApi.list(props.applicationSlug, usePrivateList.value)
+
+    const apiEvents = await calendarApi.list(props.applicationSlug, usePrivateList.value)
+    const eventMap = new Map<string, CalendarEventRead>()
+
+    for (const event of [...apiEvents, ...mockEvents]) {
+      eventMap.set(event.id, event)
+    }
+
+    events.value = [...eventMap.values()]
+    usingFallbackData.value = apiEvents.length === 0
   } catch (error) {
     console.error(error)
-    errorMessage.value = 'Impossible de charger les événements du calendrier.'
+    events.value = mockEvents
+    usingFallbackData.value = true
+    errorMessage.value = 'API indisponible : affichage des données de démonstration.'
   } finally {
     isLoading.value = false
   }
@@ -135,6 +263,63 @@ const filteredEvents = computed(() => {
 })
 
 const selectedEvent = computed(() => events.value.find(event => event.id === selectedEventId.value) || null)
+
+const upcomingEventsByDay = computed(() => {
+  const groups = new Map<string, { day: string, events: CalendarEventRead[] }>()
+
+  for (const event of filteredEvents.value.slice(0, 10)) {
+    const dayKey = new Date(event.startAt).toDateString()
+    if (!groups.has(dayKey)) {
+      groups.set(dayKey, {
+        day: formatDayLabel(event.startAt),
+        events: [],
+      })
+    }
+
+    groups.get(dayKey)?.events.push(event)
+  }
+
+  return [...groups.values()]
+})
+
+const dashboardStats = computed(() => {
+  const today = new Date()
+  const isToday = (isoDate: string) => {
+    const date = new Date(isoDate)
+    return date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear()
+  }
+
+  const confirmed = events.value.filter(event => event.status === 'confirmed').length
+  const tentative = events.value.filter(event => event.status === 'tentative').length
+  const cancelled = events.value.filter(event => event.status === 'cancelled').length
+
+  return [
+    {
+      label: 'Aujourd’hui',
+      value: events.value.filter(event => isToday(event.startAt)).length,
+      icon: 'mdi-calendar-today',
+      color: 'primary',
+    },
+    {
+      label: 'Confirmés',
+      value: confirmed,
+      icon: 'mdi-check-decagram-outline',
+      color: 'success',
+    },
+    {
+      label: 'Tentatifs',
+      value: tentative,
+      icon: 'mdi-progress-clock',
+      color: 'warning',
+    },
+    {
+      label: 'Annulés',
+      value: cancelled,
+      icon: 'mdi-close-octagon-outline',
+      color: 'error',
+    },
+  ]
+})
 
 const calendarEvents = computed(() => {
   return statusFilteredEvents.value.map((event) => {
@@ -226,7 +411,7 @@ const submitEdit = async () => {
 }
 
 const cancelEvent = async (event: CalendarEventRead) => {
-  if (!canMutate.value) return
+  if (!canMutate.value || isDemoEvent(event)) return
 
   try {
     isSaving.value = true
@@ -241,7 +426,7 @@ const cancelEvent = async (event: CalendarEventRead) => {
 }
 
 const deleteEvent = async (event: CalendarEventRead) => {
-  if (!canMutate.value) return
+  if (!canMutate.value || isDemoEvent(event)) return
 
   try {
     isSaving.value = true
@@ -258,7 +443,7 @@ const deleteEvent = async (event: CalendarEventRead) => {
 }
 
 const patchFromCalendarMove = async (eventId: string, startAt?: string, endAt?: string) => {
-  if (!canMutate.value || !startAt) return
+  if (!canMutate.value || !startAt || eventId.startsWith('demo-')) return
 
   try {
     isSaving.value = true
@@ -335,6 +520,7 @@ const calendarOptions = computed(() => ({
     patchFromCalendarMove(info.event.id, info.event.start?.toISOString(), info.event.end?.toISOString())
   },
 }))
+
 const items = computed(() => getCalendarNav())
 
 onMounted(async () => {
@@ -344,8 +530,6 @@ onMounted(async () => {
   observeCalendarContainerResize()
   scheduleCalendarRefresh()
 
-  // Le layout split peut encore finaliser la largeur (sidebar + panneau droit) après montage.
-  // On refait un recalcul différé pour aligner précisément les interactions souris/cellules.
   deferredGeometryRefreshId = setTimeout(refreshCalendarGeometry, 360)
 
   window.addEventListener('resize', scheduleCalendarRefresh)
@@ -370,157 +554,207 @@ watch(() => props.applicationSlug, loadEvents)
     <template #sidebar>
       <PlatformSidebarNav :items="items" title="Calendar">
         <v-card-title class="d-flex align-center justify-space-between">
-          <span class="text-subtitle-2">Prochains événements</span>
+          <span class="text-subtitle-2">Agenda intelligent</span>
           <UiStatChip :value="filteredEvents.length" icon="mdi-calendar-clock-outline" color="info" />
         </v-card-title>
+
         <v-card-text>
           <v-select
-              v-model="selectedRange"
-              :items="rangeOptions"
-              label="Période"
-              variant="outlined"
-              hide-details
-              density="compact"
-              class="mb-3"
+            v-model="selectedRange"
+            :items="rangeOptions"
+            label="Période"
+            variant="outlined"
+            hide-details
+            density="compact"
+            class="mb-3"
           />
 
           <v-select
-              v-model="selectedStatus"
-              :items="statusOptions"
-              label="Statut"
-              variant="outlined"
-              hide-details
-              density="compact"
-              class="mb-4"
+            v-model="selectedStatus"
+            :items="statusOptions"
+            label="Statut"
+            variant="outlined"
+            hide-details
+            density="compact"
+            class="mb-4"
           />
 
           <v-btn
-              v-if="canMutate"
-              color="primary"
-              prepend-icon="mdi-plus"
-              block
-              class="mb-4"
-              @click="openCreateDialog"
+            v-if="canMutate"
+            color="primary"
+            prepend-icon="mdi-plus"
+            block
+            class="mb-4"
+            @click="openCreateDialog"
           >
             Créer un événement
           </v-btn>
 
-          <v-list v-if="filteredEvents.length" class="bg-transparent pa-0" lines="two">
-            <v-list-item
-                v-for="event in filteredEvents"
-                :key="event.id"
-                class="calendar-page__item px-0 rounded-lg"
-                :active="selectedEventId === event.id"
-                @click="openShowDialog(event)"
-            >
-              <template #prepend>
-                <v-avatar size="34" :color="statusToChipColor(event.status)" variant="tonal">
-                  <v-icon icon="mdi-calendar-clock" size="18" />
-                </v-avatar>
-              </template>
+          <div v-if="upcomingEventsByDay.length" class="d-flex flex-column ga-4">
+            <div v-for="group in upcomingEventsByDay" :key="group.day">
+              <p class="text-overline mb-1 text-medium-emphasis">{{ group.day }}</p>
+              <v-list class="bg-transparent pa-0" lines="two">
+                <v-list-item
+                  v-for="event in group.events"
+                  :key="event.id"
+                  class="calendar-page__item px-0 rounded-lg"
+                  :active="selectedEventId === event.id"
+                  @click="openShowDialog(event)"
+                >
+                  <template #prepend>
+                    <v-avatar size="34" :color="statusToChipColor(event.status)" variant="tonal">
+                      <v-icon icon="mdi-calendar-clock" size="18" />
+                    </v-avatar>
+                  </template>
 
-              <v-list-item-title class="font-weight-medium">{{ event.title }}</v-list-item-title>
-              <v-list-item-subtitle>{{ formatEventDate(event.startAt) }}</v-list-item-subtitle>
-            </v-list-item>
-          </v-list>
+                  <v-list-item-title class="font-weight-medium">{{ event.title }}</v-list-item-title>
+                  <v-list-item-subtitle>{{ formatEventDate(event.startAt) }}</v-list-item-subtitle>
+                </v-list-item>
+              </v-list>
+            </div>
+          </div>
 
           <UiStateEmptyState
-              v-else
-              title="Aucun événement à venir"
-              description="Commencez par créer un événement pour alimenter votre planning."
-              icon="mdi-calendar-blank-outline"
+            v-else
+            title="Aucun événement à venir"
+            description="Commencez par créer un événement pour alimenter votre planning."
+            icon="mdi-calendar-blank-outline"
           />
         </v-card-text>
       </PlatformSidebarNav>
     </template>
-  <v-alert
-    v-if="errorMessage"
-    type="error"
-    variant="tonal"
-    class="mb-3"
-    closable
-    @click:close="errorMessage = ''"
-  >
-    {{ errorMessage }}
-  </v-alert>
+
+    <v-alert
+      v-if="errorMessage"
+      type="warning"
+      variant="tonal"
+      class="mb-3"
+      closable
+      @click:close="errorMessage = ''"
+    >
+      {{ errorMessage }}
+    </v-alert>
+
+    <v-sheet rounded="xl" color="surface" class="pa-4 pa-md-6 mb-4 calendar-page__hero">
+      <div class="d-flex flex-wrap justify-space-between align-center ga-4 mb-4">
+        <div>
+          <h2 class="text-h6 font-weight-bold mb-1">Pilotage du calendrier</h2>
+          <p class="text-body-2 text-medium-emphasis mb-0">
+            Vue consolidée des rendez-vous, deadlines et opérations internes.
+          </p>
+        </div>
+        <v-chip v-if="usingFallbackData" color="info" variant="tonal" prepend-icon="mdi-flask-outline">
+          Données de démo actives
+        </v-chip>
+      </div>
+
+      <v-row>
+        <v-col v-for="stat in dashboardStats" :key="stat.label" cols="12" sm="6" lg="3">
+          <v-card rounded="lg" variant="tonal" class="h-100">
+            <v-card-text class="d-flex align-center ga-3">
+              <v-avatar :color="stat.color" variant="tonal" size="38">
+                <v-icon :icon="stat.icon" />
+              </v-avatar>
+              <div>
+                <p class="text-caption text-medium-emphasis mb-1">{{ stat.label }}</p>
+                <p class="text-h6 font-weight-bold mb-0">{{ stat.value }}</p>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-sheet>
 
     <v-progress-linear v-if="isLoading" indeterminate color="primary" class="mb-4" />
 
-    <v-card-title class="d-flex align-center justify-space-between flex-wrap ga-2">
-      <span class="text-subtitle-1 font-weight-bold">Vue calendrier</span>
-      <UiStatChip :value="`${calendarEvents.length} événements`" color="info" />
-    </v-card-title>
-    <v-card-text>
-      <div ref="calendarContainerRef" class="calendar-page__slot">
-        <ClientOnly>
-          <FullCalendar ref="fullCalendarRef" :options="calendarOptions" />
-        </ClientOnly>
-      </div>
-    </v-card-text>
-
-  <v-dialog v-model="isCreateDialogOpen" max-width="640">
-    <v-card>
-      <v-card-title>Créer un événement</v-card-title>
+    <v-card rounded="xl" class="calendar-page__board">
+      <v-card-title class="d-flex align-center justify-space-between flex-wrap ga-2">
+        <span class="text-subtitle-1 font-weight-bold">Vue calendrier</span>
+        <UiStatChip :value="`${calendarEvents.length} événements`" color="info" />
+      </v-card-title>
       <v-card-text>
-        <v-text-field v-model="eventForm.title" label="Titre" class="mb-3" />
-        <v-textarea v-model="eventForm.description" label="Description" rows="3" class="mb-3" />
-        <v-text-field v-model="eventForm.startAt" label="Début" type="datetime-local" class="mb-3" />
-        <v-text-field v-model="eventForm.endAt" label="Fin" type="datetime-local" class="mb-3" />
-        <v-text-field v-model="eventForm.location" label="Lieu" />
+        <div ref="calendarContainerRef" class="calendar-page__slot">
+          <ClientOnly>
+            <FullCalendar ref="fullCalendarRef" :options="calendarOptions" />
+          </ClientOnly>
+        </div>
       </v-card-text>
-      <v-card-actions>
-        <v-spacer />
-        <v-btn variant="text" @click="isCreateDialogOpen = false">Annuler</v-btn>
-        <v-btn color="primary" :loading="isSaving" :disabled="!eventForm.title || !eventForm.startAt || !eventForm.endAt" @click="submitCreate">
-          Enregistrer
-        </v-btn>
-      </v-card-actions>
     </v-card>
-  </v-dialog>
 
-  <v-dialog v-model="isEditDialogOpen" max-width="640">
-    <v-card>
-      <v-card-title>Modifier l'événement</v-card-title>
-      <v-card-text>
-        <v-text-field v-model="eventForm.title" label="Titre" class="mb-3" />
-        <v-textarea v-model="eventForm.description" label="Description" rows="3" class="mb-3" />
-        <v-text-field v-model="eventForm.startAt" label="Début" type="datetime-local" class="mb-3" />
-        <v-text-field v-model="eventForm.endAt" label="Fin" type="datetime-local" class="mb-3" />
-        <v-text-field v-model="eventForm.location" label="Lieu" />
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer />
-        <v-btn variant="text" @click="isEditDialogOpen = false">Annuler</v-btn>
-        <v-btn color="primary" :loading="isSaving" :disabled="!eventForm.title || !eventForm.startAt || !eventForm.endAt" @click="submitEdit">
-          Mettre à jour
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+    <v-dialog v-model="isCreateDialogOpen" max-width="640">
+      <v-card>
+        <v-card-title>Créer un événement</v-card-title>
+        <v-card-text>
+          <v-text-field v-model="eventForm.title" label="Titre" class="mb-3" />
+          <v-textarea v-model="eventForm.description" label="Description" rows="3" class="mb-3" />
+          <v-text-field v-model="eventForm.startAt" label="Début" type="datetime-local" class="mb-3" />
+          <v-text-field v-model="eventForm.endAt" label="Fin" type="datetime-local" class="mb-3" />
+          <v-text-field v-model="eventForm.location" label="Lieu" />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="isCreateDialogOpen = false">Annuler</v-btn>
+          <v-btn color="primary" :loading="isSaving" :disabled="!eventForm.title || !eventForm.startAt || !eventForm.endAt" @click="submitCreate">
+            Enregistrer
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
-  <v-dialog v-model="isShowDialogOpen" max-width="640">
-    <v-card v-if="selectedEvent">
-      <v-card-title>{{ selectedEvent.title }}</v-card-title>
-      <v-card-text>
-        <div class="text-body-2 mb-2">{{ selectedEvent.description || 'Sans description' }}</div>
-        <v-chip size="small" variant="tonal" :color="statusToChipColor(selectedEvent.status)" class="mb-2">{{ statusLabel(selectedEvent.status) }}</v-chip>
-        <div class="text-caption">Début: {{ formatEventDate(selectedEvent.startAt) }}</div>
-        <div class="text-caption">Fin: {{ formatEventDate(selectedEvent.endAt) }}</div>
-        <div class="text-caption">Lieu: {{ selectedEvent.location || 'Non renseigné' }}</div>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer />
-        <v-btn variant="text" @click="isShowDialogOpen = false">Fermer</v-btn>
-        <v-btn v-if="canMutate" color="primary" variant="text" @click="openEditDialog(selectedEvent)">Modifier</v-btn>
-        <v-btn v-if="canMutate" color="warning" variant="text" @click="cancelEvent(selectedEvent)">Annuler</v-btn>
-        <v-btn v-if="canMutate" color="error" variant="text" @click="deleteEvent(selectedEvent)">Supprimer</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+    <v-dialog v-model="isEditDialogOpen" max-width="640">
+      <v-card>
+        <v-card-title>Modifier l'événement</v-card-title>
+        <v-card-text>
+          <v-text-field v-model="eventForm.title" label="Titre" class="mb-3" />
+          <v-textarea v-model="eventForm.description" label="Description" rows="3" class="mb-3" />
+          <v-text-field v-model="eventForm.startAt" label="Début" type="datetime-local" class="mb-3" />
+          <v-text-field v-model="eventForm.endAt" label="Fin" type="datetime-local" class="mb-3" />
+          <v-text-field v-model="eventForm.location" label="Lieu" />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="isEditDialogOpen = false">Annuler</v-btn>
+          <v-btn color="primary" :loading="isSaving" :disabled="!eventForm.title || !eventForm.startAt || !eventForm.endAt" @click="submitEdit">
+            Mettre à jour
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="isShowDialogOpen" max-width="640">
+      <v-card v-if="selectedEvent">
+        <v-card-title>{{ selectedEvent.title }}</v-card-title>
+        <v-card-text>
+          <div class="text-body-2 mb-2">{{ selectedEvent.description || 'Sans description' }}</div>
+          <v-chip size="small" variant="tonal" :color="statusToChipColor(selectedEvent.status)" class="mb-2">{{ statusLabel(selectedEvent.status) }}</v-chip>
+          <div class="text-caption">Début: {{ formatEventDate(selectedEvent.startAt) }}</div>
+          <div class="text-caption">Fin: {{ formatEventDate(selectedEvent.endAt) }}</div>
+          <div class="text-caption">Lieu: {{ selectedEvent.location || 'Non renseigné' }}</div>
+          <div v-if="isDemoEvent(selectedEvent)" class="text-caption mt-2 text-info">
+            Événement de démonstration (lecture seule).
+          </div>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="isShowDialogOpen = false">Fermer</v-btn>
+          <v-btn v-if="canMutate && !isDemoEvent(selectedEvent)" color="primary" variant="text" @click="openEditDialog(selectedEvent)">Modifier</v-btn>
+          <v-btn v-if="canMutate && !isDemoEvent(selectedEvent)" color="warning" variant="text" @click="cancelEvent(selectedEvent)">Annuler</v-btn>
+          <v-btn v-if="canMutate && !isDemoEvent(selectedEvent)" color="error" variant="text" @click="deleteEvent(selectedEvent)">Supprimer</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </PlatformSplitLayout>
 </template>
 
 <style scoped>
+.calendar-page__hero {
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
+}
+
+.calendar-page__board {
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
+}
+
 .calendar-page__item {
   transition: background-color 0.2s ease;
 }
