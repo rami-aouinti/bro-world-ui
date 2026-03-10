@@ -27,6 +27,7 @@ export interface PrivateChatMessage {
   content: string
   sender: PrivateChatUser
   attachments: PrivateChatAttachment | PrivateChatAttachment[]
+  read: boolean
   readAt: string | null
   createdAt: string
   reactions: PrivateChatReaction[]
@@ -37,6 +38,7 @@ export interface PrivateChatConversation {
   chatId: string
   participants: PrivateChatParticipant[]
   messages: PrivateChatMessage[]
+  unreadMessagesCount: number
   createdAt: string
 }
 
