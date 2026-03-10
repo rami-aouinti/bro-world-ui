@@ -1,73 +1,30 @@
 import type { LoginPayload, TokenResponse } from '../../../app/types/api/common'
-import type { SessionResponse, UserProfile } from '../../../app/types/api/user'
-import { setAuthCookie } from '../../../server/utils/authCookie'
+import { buildAuthSession } from '../../../server/utils/authSessionBuilder'
 
-
-function normalizeBearerToken(rawToken: string | undefined) {
-  if (!rawToken) {
-    return undefined
-  }
-
-  const trimmed = rawToken.trim()
-  if (!trimmed) {
-    return undefined
-  }
-
-  return trimmed.replace(/^Bearer\s+/i, '')
-}
-
-
-const buildSessionProfile = (profile: UserProfile): Pick<UserProfile, 'id' | 'username' | 'firstName' | 'lastName' | 'email' | 'photo'> & { userId: string } => ({
-  id: profile.id,
-  userId: String(profile.id),
-  username: profile.username,
-  firstName: profile.firstName,
-  lastName: profile.lastName,
-  email: profile.email,
-  photo: profile.photo,
+const createAuthProviderError = () => createError({
+  statusCode: 502,
+  statusMessage: 'Unable to authenticate credentials',
+  data: {
+    code: 'AUTH_PROVIDER_FAILED',
+  },
 })
 
-export default defineEventHandler(async (event): Promise<SessionResponse> => {
+export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const payload = await readBody<LoginPayload>(event)
 
-  const authResponse = await $fetch<TokenResponse>('/api/v1/auth/get_token', {
-    method: 'POST',
-    baseURL: config.public.apiBase,
-    body: payload,
-  })
+  let authResponse: TokenResponse
 
-  const token = normalizeBearerToken(authResponse?.token)
-  if (!token) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Invalid authentication token',
+  try {
+    authResponse = await $fetch<TokenResponse>('/api/v1/auth/get_token', {
+      method: 'POST',
+      baseURL: config.public.apiBase,
+      body: payload,
     })
   }
-
-  const profile = await $fetch<UserProfile>('/api/v1/profile', {
-    method: 'GET',
-    baseURL: config.public.apiBase,
-    headers: {
-      accept: 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-  })
-
-  const sessionProfile = buildSessionProfile(profile)
-
-  const authCookie = await setAuthCookie(event, {
-    token,
-    profile: sessionProfile,
-    roles: profile.roles ?? [],
-    locale: profile.locale || profile.language || 'en',
-  })
-
-  return {
-    authenticated: true,
-    profile: authCookie.profile as UserProfile,
-    roles: authCookie.roles,
-    locale: authCookie.locale,
-    expiresAt: authCookie.expiresAt,
+  catch {
+    throw createAuthProviderError()
   }
+
+  return buildAuthSession(event, authResponse?.token)
 })
