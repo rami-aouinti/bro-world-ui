@@ -8,9 +8,11 @@ import { useBlogsStore } from '~/stores/blogs'
 const props = withDefaults(defineProps<{
   blog: BlogRead
   showSummary?: boolean
+  showCreatePost?: boolean
   canInteract?: boolean
 }>(), {
   showSummary: true,
+  showCreatePost: true,
   canInteract: true,
 })
 
@@ -244,7 +246,7 @@ const confirmDeletePost = async () => {
 <template>
   <BlogSummaryCard v-if="showSummary" :blog="blog" />
 
-  <v-card rounded="xl" class="mb-6 pa-4 create-post-card">
+  <v-card v-if="showCreatePost" rounded="xl" class="mb-6 pa-4 create-post-card">
     <div class="text-subtitle-1 font-weight-bold mb-3 text-white">Créer un post</div>
     <v-textarea v-model="newPostContent" rows="3" variant="solo-filled" placeholder="Quoi de neuf ?" hide-details class="mb-3" :disabled="!canInteract" />
     <v-text-field v-model="newPostFilePath" variant="solo-filled" placeholder="URL image/fichier (optionnel)" hide-details class="mb-3" :disabled="!canInteract" />
