@@ -65,6 +65,10 @@ const ENTITY_CACHE_INVALIDATION_RULES: Array<{ routePrefix: string, cachePrefixe
     routePrefix: '/api/v1/users/me',
     cachePrefixes: ['/api/v1/users/me'],
   },
+  {
+    routePrefix: '/api/v1/users/',
+    cachePrefixes: ['/api/v1/users/me'],
+  },
 ]
 
 const ONE_DAY_IN_SECONDS = 60 * 60 * 24

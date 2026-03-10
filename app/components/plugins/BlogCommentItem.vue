@@ -42,6 +42,13 @@ const commentAuthorProfilePath = computed(() => {
   return username ? `/user/${encodeURIComponent(username)}/profile` : undefined
 })
 
+const reactionAuthorProfilePath = (username?: string) => {
+  const normalized = username?.trim()
+  return normalized ? `/user/${encodeURIComponent(normalized)}/profile` : undefined
+}
+
+const reactionAuthorName = (firstName?: string, lastName?: string) => `${firstName ?? 'Unknown'} ${lastName ?? 'User'}`.trim()
+
 const isReplying = ref(false)
 const replyContent = ref('')
 const showReactionPicker = ref(false)
@@ -153,7 +160,15 @@ const addReaction = (type: string) => {
             @click="canInteract && reaction.isAuthor ? emit('deleteReaction', reaction.id) : undefined"
           >
             <span>{{ reactionMeta[reaction.type]?.icon ?? '👍' }}</span>
-            <span class="text-caption">{{ reaction.type }}</span>
+            <NuxtLink
+              v-if="reactionAuthorProfilePath(reaction.author?.username)"
+              :to="reactionAuthorProfilePath(reaction.author?.username)"
+              class="text-caption text-primary text-decoration-none"
+              @click.stop
+            >
+              {{ reactionAuthorName(reaction.author?.firstName, reaction.author?.lastName) }}
+            </NuxtLink>
+            <span v-else class="text-caption">{{ reactionAuthorName(reaction.author?.firstName, reaction.author?.lastName) }}</span>
           </button>
         </div>
 
