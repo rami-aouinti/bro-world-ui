@@ -23,7 +23,11 @@
       "adminApiKeys": "API keys",
       "settings": "Settings",
       "inbox": "Messages",
-      "register": "Register"
+      "register": "Register",
+      "blog": "المدونة"
+    },
+    "common": {
+      "showAll": "عرض الكل"
     }
   },
   "login": {
@@ -598,12 +602,19 @@
         },
         "media": {
           "dropzoneTitle": "Drop your images here",
-          "dropzoneSubtitle": "Click to pick files, or drag and drop multiple images."
+          "dropzoneSubtitle": "Click to pick files, or drag and drop multiple images.",
+          "previewAlt": "معاينة {title}"
         },
         "actions": {
           "prev": "Prev",
           "next": "Next",
-          "send": "Send"
+          "send": "Send",
+          "showEmptyState": "إظهار الحالة الفارغة"
+        },
+        "validation": {
+          "pricePositive": "يجب أن يكون السعر أكبر من 0.",
+          "imageTooLarge": "الصورة \"{name}\" تتجاوز الحد الأقصى 5 ميجابايت.",
+          "createFailed": "يتعذر إنشاء المنتج حالياً."
         }
       },
       "common": {
@@ -696,6 +707,9 @@
           "dates": {
             "expected": "Expected {date}"
           }
+        },
+        "errors": {
+          "searchUnavailableNoData": "{label} غير متاح بدون بيانات."
         }
       },
       "checkout": {
@@ -753,6 +767,35 @@
           "stock": "Stock"
         },
         "saveSuccess": "Product updated successfully (mock)."
+      },
+      "admin": {
+        "states": {
+          "loadingPermissions": "جارٍ تحميل صلاحيات الإدارة…",
+          "accessDeniedRedirect": "تم رفض الوصول إلى منطقة إدارة المتجر. جارٍ إعادة التوجيه…",
+          "emptyTitle": "لا توجد عناصر",
+          "emptyDescription": "ستظهر بطاقات الإدارة هنا عند توفر البيانات."
+        },
+        "sectionAriaLabel": "القسم {section}",
+        "orderNumber": "الطلب #{number}"
+      },
+      "reviews": {
+        "items": {
+          "premiumHoodie": {
+            "product": "Premium Hoodie",
+            "author": "Sophie",
+            "body": "جودة ممتازة وتوصيل سريع."
+          },
+          "deskSetupKit": {
+            "product": "Desk Setup Kit",
+            "author": "Marc",
+            "body": "حزمة ممتازة، ينقصها فقط كابل واحد."
+          },
+          "sportPerformancePack": {
+            "product": "Sport Performance Pack",
+            "author": "Nora",
+            "body": "مفاجأة رائعة وتصميم مميز."
+          }
+        }
       }
     },
     "recruit": {
@@ -1387,5 +1430,8 @@
     "password": "Password",
     "repeatPassword": "Repeat password",
     "submit": "Create account"
+  },
+  "validation": {
+    "requiredField": "{field} مطلوب."
   }
 }

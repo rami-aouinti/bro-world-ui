@@ -23,7 +23,11 @@
       "adminApiKeys": "API keys",
       "settings": "Settings",
       "inbox": "Messages",
-      "register": "Register"
+      "register": "Register",
+      "blog": "Blog"
+    },
+    "common": {
+      "showAll": "Ver todo"
     }
   },
   "login": {
@@ -598,12 +602,19 @@
         },
         "media": {
           "dropzoneTitle": "Drop your images here",
-          "dropzoneSubtitle": "Click to pick files, or drag and drop multiple images."
+          "dropzoneSubtitle": "Click to pick files, or drag and drop multiple images.",
+          "previewAlt": "Vista previa de {title}"
         },
         "actions": {
           "prev": "Prev",
           "next": "Next",
-          "send": "Send"
+          "send": "Send",
+          "showEmptyState": "Mostrar estado vacío"
+        },
+        "validation": {
+          "pricePositive": "El precio debe ser superior a 0.",
+          "imageTooLarge": "La imagen \"{name}\" supera el tamaño máximo de 5 MB.",
+          "createFailed": "No se puede crear el producto por ahora."
         }
       },
       "common": {
@@ -696,6 +707,9 @@
           "dates": {
             "expected": "Expected {date}"
           }
+        },
+        "errors": {
+          "searchUnavailableNoData": "{label} no está disponible sin datos."
         }
       },
       "checkout": {
@@ -753,6 +767,35 @@
           "stock": "Stock"
         },
         "saveSuccess": "Product updated successfully (mock)."
+      },
+      "admin": {
+        "states": {
+          "loadingPermissions": "Cargando permisos de administración…",
+          "accessDeniedRedirect": "Acceso denegado al área de administración de Shop. Redirigiendo…",
+          "emptyTitle": "No hay elementos",
+          "emptyDescription": "Las tarjetas de administración aparecerán aquí cuando haya datos disponibles."
+        },
+        "sectionAriaLabel": "Sección {section}",
+        "orderNumber": "Pedido #{number}"
+      },
+      "reviews": {
+        "items": {
+          "premiumHoodie": {
+            "product": "Premium Hoodie",
+            "author": "Sophie",
+            "body": "Gran calidad y entrega rápida."
+          },
+          "deskSetupKit": {
+            "product": "Desk Setup Kit",
+            "author": "Marc",
+            "body": "Excelente pack, solo falta un cable."
+          },
+          "sportPerformancePack": {
+            "product": "Sport Performance Pack",
+            "author": "Nora",
+            "body": "Muy buena sorpresa, diseño premium."
+          }
+        }
       }
     },
     "recruit": {
@@ -1387,5 +1430,8 @@
     "password": "Password",
     "repeatPassword": "Repeat password",
     "submit": "Create account"
+  },
+  "validation": {
+    "requiredField": "{field} es obligatorio."
   }
 }

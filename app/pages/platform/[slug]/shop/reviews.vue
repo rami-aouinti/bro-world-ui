@@ -9,11 +9,27 @@ definePageMeta({ public: true, requiresAuth: false })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const { isOwner } = usePlatformPermissions(slug)
-const reviews = [
-  { product: 'Premium Hoodie', rating: 5, author: 'Sophie', body: 'Qualité top, livraison rapide.' },
-  { product: 'Desk Setup Kit', rating: 4, author: 'Marc', body: 'Excellent bundle, manque juste un câble.' },
-  { product: 'Sport Performance Pack', rating: 5, author: 'Nora', body: 'Très bonne surprise, design premium.' },
-]
+const { t } = useI18n()
+const reviews = computed(() => [
+  {
+    product: t('platform.shop.reviews.items.premiumHoodie.product'),
+    rating: 5,
+    author: t('platform.shop.reviews.items.premiumHoodie.author'),
+    body: t('platform.shop.reviews.items.premiumHoodie.body'),
+  },
+  {
+    product: t('platform.shop.reviews.items.deskSetupKit.product'),
+    rating: 4,
+    author: t('platform.shop.reviews.items.deskSetupKit.author'),
+    body: t('platform.shop.reviews.items.deskSetupKit.body'),
+  },
+  {
+    product: t('platform.shop.reviews.items.sportPerformancePack.product'),
+    rating: 5,
+    author: t('platform.shop.reviews.items.sportPerformancePack.author'),
+    body: t('platform.shop.reviews.items.sportPerformancePack.body'),
+  },
+])
 const navItems = computed(() => getShopNav(slug.value, isOwner.value))
 </script>
 

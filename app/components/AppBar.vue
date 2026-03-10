@@ -82,7 +82,7 @@ watch(isInboxMenuOpen, async (isOpen) => {
 
 const mainHeaderItems = computed<NavItem[]>(() => [
   { key: 'app.navigation.platform', to: '/platform', icon: 'mdi-view-grid-outline' },
-  { key: 'Blog', to: '/blog', icon: 'mdi-post-outline' },
+  { key: 'app.navigation.blog', to: '/blog', icon: 'mdi-post-outline' },
   { key: 'app.navigation.about', to: '/about', icon: 'mdi-information-outline' },
   { key: 'app.navigation.contact', to: '/contact', icon: 'mdi-email-outline' },
   { key: 'app.navigation.faq', to: '/faq', icon: 'mdi-frequently-asked-questions' },
@@ -280,7 +280,7 @@ const signOut = async () => {
               to="/inbox"
               rounded="lg"
               class="mx-2 my-1 text-primary"
-              title="Show all"
+              :title="t('app.common.showAll')"
               prepend-icon="mdi-arrow-right"
             />
           </v-list>
@@ -325,7 +325,7 @@ const signOut = async () => {
               to="/notifications"
               rounded="lg"
               class="mx-2 my-1 text-primary"
-              title="Show all"
+              :title="t('app.common.showAll')"
               prepend-icon="mdi-arrow-right"
             />
           </v-list>
