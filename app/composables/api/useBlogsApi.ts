@@ -1,5 +1,5 @@
 import { useApiClient } from '../useApiClient'
-import type { BlogRead, BlogWithPagination } from '~/types/api/blog'
+import type { BlogMutationAcceptedResponse, BlogRead, BlogWithPagination } from '~/types/api/blog'
 import type { ListResponse } from '~/types/api/common'
 
 export const useBlogsApi = () => {
@@ -25,7 +25,7 @@ export const useBlogsApi = () => {
       return apiFetch<ListResponse<string>>(`${basePath}/reactions/types`, { method: 'GET' })
     },
     createPost(blogId: string, payload: { content: string, filePath?: string | null }) {
-      return apiFetch(`${basePath}/${blogId}/posts`, {
+      return apiFetch<BlogMutationAcceptedResponse>(`${basePath}/${blogId}/posts`, {
         method: 'POST',
         body: payload,
       })
@@ -43,13 +43,13 @@ export const useBlogsApi = () => {
     },
 
     createPostReaction(postId: string, payload: { type: string }) {
-      return apiFetch(`/api/v1/blog/posts/${postId}/reactions`, {
+      return apiFetch<BlogMutationAcceptedResponse>(`/api/v1/blog/posts/${postId}/reactions`, {
         method: 'POST',
         body: payload,
       })
     },
     createComment(postId: string, payload: { content: string, parentCommentId: string | null }) {
-      return apiFetch(`/api/v1/blog/posts/${postId}/comments`, {
+      return apiFetch<BlogMutationAcceptedResponse>(`/api/v1/blog/posts/${postId}/comments`, {
         method: 'POST',
         body: payload,
       })
@@ -66,7 +66,7 @@ export const useBlogsApi = () => {
       })
     },
     createReaction(commentId: string, payload: { type: string }) {
-      return apiFetch(`/api/v1/blog/comments/${commentId}/reactions`, {
+      return apiFetch<BlogMutationAcceptedResponse>(`/api/v1/blog/comments/${commentId}/reactions`, {
         method: 'POST',
         body: payload,
       })

@@ -13,6 +13,11 @@ type BlogCacheEntry = {
 const BLOG_CACHE_TTL_MS = 60_000
 const DEFAULT_BLOG_PAGE_LIMIT = 5
 
+type BlogListQuery = {
+  page: number
+  limit: number
+}
+
 export const useBlogsStore = defineStore('blogs', () => {
   const blogsApi = useBlogsApi()
 
@@ -22,6 +27,7 @@ export const useBlogsStore = defineStore('blogs', () => {
   const isLoading = ref(false)
   const isLoadingMore = ref(false)
   const currentGeneralVisibility = ref<BlogVisibility>('private')
+  const lastPrivateGeneralQuery = ref<BlogListQuery>({ page: 1, limit: DEFAULT_BLOG_PAGE_LIMIT })
   const reactionTypes = ref<string[]>([...BLOG_REACTION_FALLBACK_TYPES])
 
   const mergeGeneralPosts = (currentBlog: BlogWithPagination | null, incomingBlog: BlogWithPagination) => {
@@ -55,6 +61,10 @@ export const useBlogsStore = defineStore('blogs', () => {
     const page = options?.page ?? 1
     const limit = options?.limit ?? DEFAULT_BLOG_PAGE_LIMIT
     const append = options?.append ?? page > 1
+
+    if (visibility === 'private') {
+      lastPrivateGeneralQuery.value = { page, limit }
+    }
 
     const cacheKey = `general:${visibility}:${page}:${limit}`
     const now = Date.now()
@@ -145,9 +155,36 @@ export const useBlogsStore = defineStore('blogs', () => {
     })
   }
 
+  const invalidatePrivateCacheForPagination = (query: BlogListQuery) => {
+    delete cache.value[`general:private:${query.page}:${query.limit}`]
+
+    if (currentGeneralVisibility.value === 'private') {
+      generalPagination.value = null
+    }
+  }
+
+  const refreshPrivateGeneralInBackground = (query: BlogListQuery) => {
+    invalidatePrivateCacheForPagination(query)
+    void fetchGeneral(true, false, {
+      page: query.page,
+      limit: query.limit,
+      append: false,
+    }).catch((error) => {
+      console.error('Failed to refresh private general blog in background.', error)
+    })
+  }
+
+  const refreshPrivateGeneralOnAccepted = (response: { status?: string }) => {
+    if (response?.status !== 'accepted') {
+      return
+    }
+
+    refreshPrivateGeneralInBackground(lastPrivateGeneralQuery.value)
+  }
+
   const createPost = async (blogId: string, payload: { content: string, filePath?: string | null }) => {
-    await blogsApi.createPost(blogId, payload)
-    refreshGeneralInBackground()
+    const response = await blogsApi.createPost(blogId, payload)
+    refreshPrivateGeneralOnAccepted(response)
   }
 
   const updatePost = async (postId: string, payload: { content?: string, filePath?: string | null }) => {
@@ -161,13 +198,13 @@ export const useBlogsStore = defineStore('blogs', () => {
   }
 
   const createPostReaction = async (postId: string, payload: { type: string }) => {
-    await blogsApi.createPostReaction(postId, payload)
-    refreshGeneralInBackground()
+    const response = await blogsApi.createPostReaction(postId, payload)
+    refreshPrivateGeneralOnAccepted(response)
   }
 
   const createComment = async (postId: string, payload: { content: string, parentCommentId: string | null }) => {
-    await blogsApi.createComment(postId, payload)
-    refreshGeneralInBackground()
+    const response = await blogsApi.createComment(postId, payload)
+    refreshPrivateGeneralOnAccepted(response)
   }
 
   const updateComment = async (commentId: string, payload: { content: string }) => {
@@ -181,8 +218,8 @@ export const useBlogsStore = defineStore('blogs', () => {
   }
 
   const createReaction = async (commentId: string, payload: { type: string }) => {
-    await blogsApi.createReaction(commentId, payload)
-    refreshGeneralInBackground()
+    const response = await blogsApi.createReaction(commentId, payload)
+    refreshPrivateGeneralOnAccepted(response)
   }
 
   const deleteReaction = async (reactionId: string) => {

@@ -63,3 +63,7 @@ export interface BlogPagination {
 export interface BlogWithPagination extends BlogRead {
   pagination?: BlogPagination
 }
+
+export interface BlogMutationAcceptedResponse {
+  status: 'accepted'
+}
