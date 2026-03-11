@@ -8,6 +8,7 @@ import type { PrivateConversationsResponse } from '~/types/api/chat'
 import { useNotificationsApi } from '~/composables/api/useNotificationsApi'
 import { usePrivateChatApi } from '~/composables/api/usePrivateChatApi'
 import { useNotificationTarget } from '~/composables/useNotificationTarget'
+import { useMercureEventSource } from '~/composables/useMercureEventSource'
 import { buildConversationPreview } from '~/utils/inboxConversationPreview'
 
 interface NavItem {
@@ -116,6 +117,92 @@ const { data: notificationsSummary, refresh: refreshNotificationsSummary } = use
 
 const notificationPreviewItems = computed(() => notificationsSummary.value?.items ?? [])
 const unreadNotificationsCount = computed(() => notificationsSummary.value?.unreadCount ?? 0)
+
+const mercureTopics = computed(() => {
+  if (!authSession.profile?.id) {
+    return []
+  }
+
+  return [
+    `/users/${authSession.profile.id}/notifications`,
+    ...(inboxConversationsSummary.value?.items ?? []).map(conversation => `/conversations/${conversation.id}/messages`),
+  ]
+})
+
+const isNotificationPayload = (payload: unknown): payload is {
+  id: string
+  title: string
+  description?: string
+  type: string
+  recipientId?: string
+} => {
+  if (!payload || typeof payload !== 'object') {
+    return false
+  }
+
+  const candidate = payload as Record<string, unknown>
+  return typeof candidate.id === 'string'
+    && typeof candidate.title === 'string'
+    && typeof candidate.type === 'string'
+}
+
+const isConversationMessagePayload = (payload: unknown): payload is {
+  id: string
+  conversationId: string
+  senderId: string
+  content: string
+} => {
+  if (!payload || typeof payload !== 'object') {
+    return false
+  }
+
+  const candidate = payload as Record<string, unknown>
+  return typeof candidate.id === 'string'
+    && typeof candidate.conversationId === 'string'
+    && typeof candidate.senderId === 'string'
+    && typeof candidate.content === 'string'
+}
+
+useMercureEventSource(mercureTopics, async (payload) => {
+  if (!isAuthenticated.value) {
+    return
+  }
+
+  if (isConversationMessagePayload(payload)) {
+    await refreshInboxConversationsSummary()
+    return
+  }
+
+  if (!isNotificationPayload(payload)) {
+    return
+  }
+
+  if (!notificationsSummary.value) {
+    await refreshNotificationsSummary()
+    return
+  }
+
+  if (notificationsSummary.value.items.some(item => item.id === payload.id)) {
+    return
+  }
+
+  notificationsSummary.value = {
+    ...notificationsSummary.value,
+    unreadCount: notificationsSummary.value.unreadCount + 1,
+    items: [
+      {
+        id: payload.id,
+        title: payload.title,
+        description: payload.description ?? '',
+        type: payload.type,
+        read: false,
+        createdAt: new Date().toISOString(),
+        from: null,
+      },
+      ...notificationsSummary.value.items,
+    ].slice(0, 3),
+  }
+})
 
 watch(isNotificationsMenuOpen, async (isOpen) => {
   if (!isOpen || unreadNotificationsCount.value === 0) {
