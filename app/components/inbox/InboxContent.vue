@@ -552,6 +552,8 @@ const sendMessage = async () => {
     conversationMessages.value = sortMessages([...conversationMessages.value, optimisticMessage])
     prependMessageToConversationCache(conversationId, optimisticMessage)
 
+    prependMessageToConversationCache(conversationId, normalizedCreatedMessage)
+
     draftMessage.value = ''
 
     await nextTick()
