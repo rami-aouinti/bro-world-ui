@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import UserIdentity from "~/components/UserIdentity.vue";
-import UiPageSection from "~/components/ui/UiPageSection.vue";
 import UiEmptyState from "~/components/ui/state/UiEmptyState.vue";
 import UiSkeletonCardGrid from "~/components/ui/state/UiSkeletonCardGrid.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
@@ -130,7 +129,9 @@ const { pending: applicationsPending, execute: loadApplications } = useAsyncData
 );
 
 onMounted(() => {
+  loading.value = true;
   void loadApplications();
+  loading.value = false;
 });
 
 const loading = computed(
@@ -306,11 +307,12 @@ const getCardInsights = (
 
     <template #sidebar>
       <PlatformSidebarNav title="Platform" subtitle="platform.common.sidebar.application" :items="[]">
+        <h3> Platform </h3>
         <v-text-field
             v-model="search"
             :label="t('platform.filters.search')"
             prepend-inner-icon="mdi-magnify"
-            variant="solo"
+            variant="outlined"
             flat
             density="compact"
             hide-details
@@ -333,7 +335,8 @@ const getCardInsights = (
                   "
               size="small"
               rounded="pill"
-              class="text-lowercase"
+              variant="test"
+              class="text-lowercase mx-auto"
               @click="togglePlatformKey(platformKey)"
           >
             {{ platformKey }}
@@ -352,6 +355,15 @@ const getCardInsights = (
           >{{ t("platform.filters.clear") }}</v-btn
           >
         </div>
+        <article
+            v-for="highlight in summaryHighlights"
+            :key="highlight.label"
+            class="platform-page__highlight"
+        >
+          <v-icon :icon="highlight.icon" size="20" color="primary" />
+          <p class="platform-page__highlight-label px-2">{{ highlight.label }}</p>
+          <p class="platform-page__highlight-value px-2">{{ highlight.value }}</p>
+        </article>
       </PlatformSidebarNav>
     </template>
 
@@ -371,34 +383,6 @@ const getCardInsights = (
         </template>
       </UiEmptyState>
       <div v-else class="platform-page__content">
-        <v-card class="platform-page__hero" rounded="xl" elevation="0">
-          <v-row>
-            <v-col cols="12" lg="7">
-              <p class="platform-page__hero-overline mb-2">Bro World Platform</p>
-              <h1 class="platform-page__hero-title mb-3">Pilotage unifié de vos applications</h1>
-              <p class="platform-page__hero-description mb-0">
-                Une vue claire pour suivre la santé de vos plateformes, identifier les leviers de croissance
-                et basculer rapidement vers les opérations critiques.
-              </p>
-            </v-col>
-            <v-col cols="12" lg="5">
-              <div class="platform-page__hero-stats">
-                <article
-                  v-for="highlight in summaryHighlights"
-                  :key="highlight.label"
-                  class="platform-page__highlight"
-                >
-                  <v-icon :icon="highlight.icon" size="20" color="primary" />
-                  <div>
-                    <p class="platform-page__highlight-label">{{ highlight.label }}</p>
-                    <p class="platform-page__highlight-value">{{ highlight.value }}</p>
-                  </div>
-                </article>
-              </div>
-            </v-col>
-          </v-row>
-        </v-card>
-
         <v-row class="mt-12">
           <v-col cols="12" md="6" lg="4">
             <v-card
@@ -454,39 +438,6 @@ const getCardInsights = (
                     </div>
                   </div>
                 </NuxtLink>
-              </div>
-
-              <div class="platform-page__insights">
-                <div class="platform-page__insight-grid">
-                  <div>
-                    <p class="platform-page__insight-label">Santé</p>
-                    <p class="platform-page__insight-value">{{ getCardInsights(card).health }}</p>
-                  </div>
-                  <div>
-                    <p class="platform-page__insight-label">Croissance</p>
-                    <p class="platform-page__insight-value">{{ getCardInsights(card).growth }}</p>
-                  </div>
-                  <div>
-                    <p class="platform-page__insight-label">Audience</p>
-                    <p class="platform-page__insight-value">{{ getCardInsights(card).users }}</p>
-                  </div>
-                  <div>
-                    <p class="platform-page__insight-label">Activité</p>
-                    <p class="platform-page__insight-value">{{ getCardInsights(card).activity }}</p>
-                  </div>
-                </div>
-                <p class="platform-page__spotlight mb-0">{{ getCardInsights(card).spotlight }}</p>
-                <div class="platform-page__chips-row mt-2">
-                  <v-chip
-                    v-for="tag in getCardInsights(card).tags"
-                    :key="tag"
-                    size="x-small"
-                    variant="tonal"
-                    color="primary"
-                  >
-                    {{ tag }}
-                  </v-chip>
-                </div>
               </div>
 
               <v-card-actions>
