@@ -419,6 +419,31 @@ const normalizeAttachments = (attachments: unknown) => {
   return Array.isArray(attachments) ? attachments : [attachments]
 }
 
+
+const prependMessageToConversationCache = (conversationId: string, message: PrivateChatMessage) => {
+  if (!inboxConversationsSummary.value) {
+    return
+  }
+
+  inboxConversationsSummary.value.items = inboxConversationsSummary.value.items.map((conversation) => {
+    if (conversation.id !== conversationId) {
+      return conversation
+    }
+
+    if (conversation.messages.some(item => item.id === message.id)) {
+      return conversation
+    }
+
+    return {
+      ...conversation,
+      messages: [...conversation.messages, message],
+      unreadMessagesCount: message.sender.id === authSession.profile?.id
+        ? conversation.unreadMessagesCount
+        : conversation.unreadMessagesCount + 1,
+    }
+  })
+}
+
 useMercureEventSource(mercureTopics, async (payload) => {
   if (isUsingDemoData.value || !isConversationMessagePayload(payload)) {
     return
@@ -433,21 +458,23 @@ useMercureEventSource(mercureTopics, async (payload) => {
     return
   }
 
+  const incomingMessage = normalizeMessage({
+    id: payload.id,
+    content: payload.content,
+    sender: resolveSenderFromPayload(payload.senderId),
+    attachments: normalizeAttachments(payload.attachments),
+    read: false,
+    readAt: null,
+    createdAt: payload.createdAt ?? new Date().toISOString(),
+    reactions: [],
+  })
+
   conversationMessages.value = sortMessages([
     ...conversationMessages.value,
-    normalizeMessage({
-      id: payload.id,
-      content: payload.content,
-      sender: resolveSenderFromPayload(payload.senderId),
-      attachments: normalizeAttachments(payload.attachments),
-      read: false,
-      readAt: null,
-      createdAt: payload.createdAt ?? new Date().toISOString(),
-      reactions: [],
-    }),
+    incomingMessage,
   ])
 
-  await refreshInboxConversations()
+  prependMessageToConversationCache(payload.conversationId, incomingMessage)
 
   await nextTick()
   scrollMessagesToBottom()
@@ -496,12 +523,15 @@ const sendMessage = async () => {
 
     const createdMessage = await privateChatApi.addMessage(conversationId, { content })
 
-    if (!conversationMessages.value.some(message => message.id === createdMessage.id)) {
-      conversationMessages.value = sortMessages([...conversationMessages.value, normalizeMessage(createdMessage)])
+    const normalizedCreatedMessage = normalizeMessage(createdMessage)
+
+    if (!conversationMessages.value.some(message => message.id === normalizedCreatedMessage.id)) {
+      conversationMessages.value = sortMessages([...conversationMessages.value, normalizedCreatedMessage])
     }
 
+    prependMessageToConversationCache(conversationId, normalizedCreatedMessage)
+
     draftMessage.value = ''
-    await refreshInboxConversations()
 
     await nextTick()
     scrollMessagesToBottom()
