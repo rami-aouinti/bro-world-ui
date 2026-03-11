@@ -109,6 +109,11 @@ export const useBlogsStore = defineStore('blogs', () => {
     refreshGeneralInBackground()
   }
 
+  const updateReaction = async (reactionId: string, payload: { type: string }) => {
+    await blogsApi.updateReaction(reactionId, payload)
+    refreshGeneralInBackground()
+  }
+
   return {
     general,
     isLoading,
@@ -123,5 +128,6 @@ export const useBlogsStore = defineStore('blogs', () => {
     deleteComment,
     createReaction,
     deleteReaction,
+    updateReaction,
   }
 })
