@@ -27,6 +27,41 @@ const selectedApp = ref<(typeof applicationsStore.items.value)[number] | null>(
   null,
 );
 const platformKeyOptions = ["crm", "recruit", "school", "shop"] as const;
+const allowedPlatformKeys = new Set(platformKeyOptions);
+const fallbackPlatformKey = "crm";
+
+const resolvePlatformKey = (
+  application: (typeof applicationsStore.items.value)[number],
+) => {
+  const normalizedPlatformKey = application.platformKey?.trim().toLowerCase();
+  if (normalizedPlatformKey && allowedPlatformKeys.has(normalizedPlatformKey as (typeof platformKeyOptions)[number])) {
+    return normalizedPlatformKey;
+  }
+
+  const normalizedPlatformName = application.platformName?.trim().toLowerCase() ?? "";
+  if (normalizedPlatformName) {
+    const matchedPlatformName = platformKeyOptions.find((platformKey) => {
+      return (
+        normalizedPlatformName === platformKey ||
+        normalizedPlatformName.includes(platformKey)
+      );
+    });
+
+    if (matchedPlatformName) {
+      return matchedPlatformName;
+    }
+  }
+
+  console.warn("[platform/index] Unknown platform key, using fallback.", {
+    applicationId: application.id,
+    slug: application.slug,
+    platformKey: application.platformKey,
+    platformName: application.platformName,
+    fallback: fallbackPlatformKey,
+  });
+
+  return fallbackPlatformKey;
+};
 
 const fakeInsightsByPlatform: Record<
   string,
@@ -130,11 +165,7 @@ const appHomePath = (
   application: (typeof applicationsStore.items.value)[number],
 ) => {
   const appSlug = application.slug ?? application.id;
-  const normalizedPlatformKey = application.platformKey?.toLowerCase();
-  const inferredPlatformKey = application.platformName?.toLowerCase();
-  const platformKey =
-    normalizedPlatformKey ??
-    (inferredPlatformKey === "recruit" ? "recruit" : "crm");
+  const platformKey = resolvePlatformKey(application);
 
   return `/platform/${appSlug}/${platformKey}/home`;
 };
@@ -257,7 +288,7 @@ const disableApplication = async () => {
 const getCardInsights = (
   application: (typeof applicationsStore.items.value)[number],
 ) => {
-  const key = application.platformKey?.toLowerCase() ?? application.platformName?.toLowerCase();
+  const key = resolvePlatformKey(application);
 
   return fakeInsightsByPlatform[key || ""] ?? {
     health: "94%",
