@@ -4,6 +4,7 @@ import BlogSummaryCard from '~/components/plugins/BlogSummaryCard.vue'
 import BlogCommentItem from '~/components/plugins/BlogCommentItem.vue'
 import UiAvatar from '~/components/ui/UiAvatar.vue'
 import { useBlogsStore } from '~/stores/blogs'
+import { BLOG_REACTION_FALLBACK_TYPES, BLOG_REACTION_META } from '~/constants/blogReactions'
 
 const props = withDefaults(defineProps<{
   blog: BlogRead
@@ -42,16 +43,12 @@ const reactionAuthorProfilePath = (username?: string) => {
 }
 const countComments = (comments: BlogComment[]): number => comments.reduce((total, comment) => total + 1 + countComments(comment.children), 0)
 
-const reactionMeta: Record<string, { icon: string, color: string, label: string }> = {
-  like: { icon: '👍', color: '#1877f2', label: 'Like' },
-  heart: { icon: '❤️', color: '#f25268', label: 'Love' },
-  laugh: { icon: '😂', color: '#f7b928', label: 'Haha' },
-  wow: { icon: '😮', color: '#f7b928', label: 'Wow' },
-  sad: { icon: '😢', color: '#f7b928', label: 'Sad' },
-  angry: { icon: '😡', color: '#f7b928', label: 'Angry' },
-}
+const reactionMeta = BLOG_REACTION_META
 
-const availableReactionTypes = Object.keys(reactionMeta)
+const availableReactionTypes = computed(() => {
+  const types = blogsStore.reactionTypes?.length ? blogsStore.reactionTypes : [...BLOG_REACTION_FALLBACK_TYPES]
+  return types.filter(type => reactionMeta[type])
+})
 
 const currentUserPostReaction = (post: BlogRead['posts'][number]) => post.reactions?.find(reaction => reaction.isAuthor)
 
@@ -131,6 +128,10 @@ const formatRelativeTime = (dateInput?: string | null) => {
   const diffYears = Math.round(diffDays / 365)
   return formatter.format(diffYears, 'year')
 }
+
+onMounted(() => {
+  void blogsStore.fetchReactionTypes()
+})
 
 const runAction = async (action: () => Promise<unknown>) => {
   try {
@@ -342,7 +343,7 @@ const confirmDeletePost = async () => {
                 <span
                   v-for="[type] in postReactionSummary(post.reactions ?? [])"
                   :key="type"
-                  class="reaction-badge"
+                  class="reaction-badge reaction-badge--stacked"
                   :style="{ backgroundColor: reactionMeta[type]?.color ?? '#5f6368' }"
                 >
                   {{ reactionMeta[type]?.icon ?? '👍' }}
@@ -355,7 +356,7 @@ const confirmDeletePost = async () => {
 
           <v-divider class="mb-3" />
 
-          <div class="d-flex align-center ga-2 mb-4">
+          <div class="d-flex align-center ga-2 mb-4 post-actions-row">
             <v-menu
               v-model="postReactionPicker[post.id]"
               open-on-hover
@@ -364,16 +365,16 @@ const confirmDeletePost = async () => {
               content-class="reaction-hover-menu"
             >
               <template #activator="{ props: menuProps }">
-                <v-btn
-                  icon
-                  size="small"
-                  variant="text"
+                <button
+                  type="button"
+                  class="post-action-btn"
                   :disabled="!canInteract"
                   v-bind="menuProps"
                   @click.stop.prevent="handlePostReactionButtonClick(post)"
                 >
                   <span class="reaction-action-icon">{{ reactionMeta[currentUserPostReaction(post)?.type ?? 'like']?.icon ?? '👍' }}</span>
-                </v-btn>
+                  <span>{{ currentUserPostReaction(post) ? reactionMeta[currentUserPostReaction(post)?.type ?? 'like']?.label : 'J’aime' }}</span>
+                </button>
               </template>
               <div class="reaction-hover-content pa-3">
                 <div class="reaction-picker mb-3">
@@ -415,36 +416,9 @@ const confirmDeletePost = async () => {
                 </div>
               </div>
             </v-menu>
-          </div>
-
-          <div v-if="post.reactions?.length" class="d-flex flex-wrap ga-2 mt-2 mb-4">
-            <button
-              v-for="reaction in post.reactions"
-              :key="reaction.id"
-              type="button"
-              class="reaction-pill"
-              :title="canInteract && reaction.isAuthor ? 'Cliquer pour supprimer votre réaction' : ''"
-              @click="canInteract && reaction.isAuthor ? deletePostReaction(reaction.id) : undefined"
-            >
-              <span>{{ reactionMeta[reaction.type]?.icon ?? '👍' }}</span>
-              <NuxtLink
-                v-if="reactionAuthorProfilePath(reaction.author?.username)"
-                :to="reactionAuthorProfilePath(reaction.author?.username)"
-                class="avatar-link"
-                @click.stop
-              >
-                <UiAvatar
-                  :src="reaction.author?.photo ?? undefined"
-                  :name="`${reaction.author?.firstName ?? ''} ${reaction.author?.lastName ?? ''}`.trim() || 'Unknown User'"
-                  size="xs"
-                />
-              </NuxtLink>
-              <UiAvatar
-                v-else
-                :src="reaction.author?.photo ?? undefined"
-                :name="`${reaction.author?.firstName ?? ''} ${reaction.author?.lastName ?? ''}`.trim() || 'Unknown User'"
-                size="xs"
-              />
+            <button type="button" class="post-action-btn" @click="toggleComments(post.id)">
+              <v-icon icon="mdi-comment-outline" size="18" />
+              <span>Commenter</span>
             </button>
           </div>
 
@@ -526,6 +500,7 @@ const confirmDeletePost = async () => {
 }
 
 .reaction-badge {
+  margin-inline-end: -8px;
   width: 22px;
   height: 22px;
   border-radius: 999px;
@@ -534,6 +509,33 @@ const confirmDeletePost = async () => {
   justify-content: center;
   font-size: 12px;
   box-shadow: 0 0 0 2px #242526;
+}
+
+
+.reaction-badge--stacked:last-child {
+  margin-inline-end: 0;
+}
+
+.post-actions-row {
+  border-top: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  padding: 6px 0;
+}
+
+.post-action-btn {
+  flex: 1;
+  min-height: 36px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: rgba(var(--v-theme-on-surface), 0.72);
+  font-weight: 600;
+}
+
+.post-action-btn:hover {
+  background: rgba(var(--v-theme-on-surface), 0.08);
 }
 
 .reaction-picker {

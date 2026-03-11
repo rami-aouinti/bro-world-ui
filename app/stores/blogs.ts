@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { BlogRead } from '~/types/api/blog'
+import { BLOG_REACTION_FALLBACK_TYPES } from '~/constants/blogReactions'
 import { useBlogsApi } from '~/composables/api/useBlogsApi'
 
 type BlogVisibility = 'public' | 'private'
@@ -18,6 +19,7 @@ export const useBlogsStore = defineStore('blogs', () => {
   const cache = ref<Record<string, BlogCacheEntry>>({})
   const isLoading = ref(false)
   const currentGeneralVisibility = ref<BlogVisibility>('private')
+  const reactionTypes = ref<string[]>([...BLOG_REACTION_FALLBACK_TYPES])
 
   const fetchGeneral = async (forceRefresh = false, isPublic = false) => {
     const visibility: BlogVisibility = isPublic ? 'public' : 'private'
@@ -45,6 +47,19 @@ export const useBlogsStore = defineStore('blogs', () => {
     }
     finally {
       isLoading.value = false
+    }
+  }
+
+
+  const fetchReactionTypes = async () => {
+    try {
+      const response = await blogsApi.getReactionTypes()
+      reactionTypes.value = response.items?.length ? response.items : [...BLOG_REACTION_FALLBACK_TYPES]
+      return reactionTypes.value
+    }
+    catch {
+      reactionTypes.value = [...BLOG_REACTION_FALLBACK_TYPES]
+      return reactionTypes.value
     }
   }
 
@@ -117,7 +132,9 @@ export const useBlogsStore = defineStore('blogs', () => {
   return {
     general,
     isLoading,
+    reactionTypes,
     fetchGeneral,
+    fetchReactionTypes,
     invalidateGeneralCache,
     createPost,
     updatePost,

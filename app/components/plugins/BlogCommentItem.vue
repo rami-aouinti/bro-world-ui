@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { BlogComment, BlogReaction } from '~/types/api/blog'
 import UiAvatar from '~/components/ui/UiAvatar.vue'
+import { BLOG_REACTION_FALLBACK_TYPES, BLOG_REACTION_META } from '~/constants/blogReactions'
 
 const props = withDefaults(defineProps<{
   comment: BlogComment
@@ -21,16 +22,9 @@ const emit = defineEmits<{
   deleteReaction: [reactionId: string]
 }>()
 
-const reactionMeta: Record<string, { icon: string, label: string, className: string }> = {
-  like: { icon: '👍', label: 'Like', className: 'reaction-like' },
-  heart: { icon: '❤️', label: 'Love', className: 'reaction-heart' },
-  laugh: { icon: '😂', label: 'Haha', className: 'reaction-laugh' },
-  wow: { icon: '😮', label: 'Wow', className: 'reaction-wow' },
-  sad: { icon: '😢', label: 'Sad', className: 'reaction-sad' },
-  angry: { icon: '😡', label: 'Angry', className: 'reaction-angry' },
-}
+const reactionMeta = BLOG_REACTION_META
 
-const availableReactionTypes = Object.keys(reactionMeta)
+const availableReactionTypes = [...BLOG_REACTION_FALLBACK_TYPES]
 
 const commentAuthorName = computed(() => {
   const first = props.comment.author?.firstName ?? 'Unknown'
@@ -301,7 +295,6 @@ const formatRelativeTime = (dateInput?: string | null) => {
             :key="reaction.id"
             type="button"
             class="reaction-pill"
-            :class="reactionMeta[reaction.type]?.className"
             :title="canInteract && reaction.isAuthor ? 'Cliquer pour supprimer votre réaction' : ''"
             @click="canInteract && reaction.isAuthor ? emit('deleteReaction', reaction.id) : undefined"
           >
@@ -452,10 +445,4 @@ const formatRelativeTime = (dateInput?: string | null) => {
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-.reaction-like { border-color: rgba(24, 119, 242, 0.5); }
-.reaction-heart { border-color: rgba(242, 82, 104, 0.5); }
-.reaction-laugh,
-.reaction-wow,
-.reaction-sad,
-.reaction-angry { border-color: rgba(252, 214, 103, 0.5); }
 </style>
