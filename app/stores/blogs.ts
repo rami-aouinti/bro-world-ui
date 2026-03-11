@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { useAuthSessionStore } from '~/stores/authSession'
-import type { BlogComment, BlogPagination, BlogPost, BlogRead, BlogReaction, BlogWithPagination } from '~/types/api/blog'
+import type { BlogComment, BlogPagination, BlogPost, BlogReaction, BlogWithPagination } from '~/types/api/blog'
+import type { UUID } from '~/types/api/common'
 import { BLOG_REACTION_FALLBACK_TYPES } from '~/constants/blogReactions'
 import { useBlogsApi } from '~/composables/api/useBlogsApi'
 
@@ -13,9 +14,14 @@ type BlogCacheEntry = {
 
 const BLOG_CACHE_TTL_MS = 60_000
 const DEFAULT_BLOG_PAGE_LIMIT = 5
-const PRIVATE_CACHE_PAGE_INVALIDATION_BUFFER = 2
 
 type BlogListQuery = {
+  page: number
+  limit: number
+}
+
+type GeneralCacheKeyParts = {
+  visibility: BlogVisibility
   page: number
   limit: number
 }
@@ -64,108 +70,67 @@ export const useBlogsStore = defineStore('blogs', () => {
     photo: authSession.profile?.photo ?? null,
   })
 
-  const addRootPostToStore = (payload: { content: string, filePath?: string | null }) => {
-    if (!general.value) {
-      return
+  const parseGeneralCacheKey = (cacheKey: string): GeneralCacheKeyParts | null => {
+    const parts = cacheKey.split(':')
+    if (parts.length !== 4 || parts[0] !== 'general') {
+      return null
     }
 
-    const now = new Date().toISOString()
-    const newPost: BlogPost = {
-      id: postTempId(),
-      authorId: authSession.profile?.id ?? postTempId(),
-      isAuthor: true,
-      author: currentAuthor(),
-      content: payload.content,
-      filePath: payload.filePath ?? null,
-      createdAt: now,
-      reactions: [],
-      comments: [],
+    const visibility = parts[1]
+    if (visibility !== 'private' && visibility !== 'public') {
+      return null
     }
 
-    general.value = {
-      ...general.value,
-      posts: [newPost, ...general.value.posts],
+    const page = Number(parts[2])
+    const limit = Number(parts[3])
+    if (!Number.isFinite(page) || !Number.isFinite(limit)) {
+      return null
     }
 
-    if (generalPagination.value) {
-      generalPagination.value = {
-        ...generalPagination.value,
-        totalItems: generalPagination.value.totalItems + 1,
+    return {
+      visibility,
+      page,
+      limit,
+    }
+  }
+
+  const applyMutationToGeneralAndCache = (mutator: (blog: BlogWithPagination) => BlogWithPagination) => {
+    if (general.value) {
+      general.value = mutator(general.value)
+      generalPagination.value = general.value.pagination ?? generalPagination.value
+    }
+
+    const now = Date.now()
+    for (const [cacheKey, cacheEntry] of Object.entries(cache.value)) {
+      if (!cacheKey.startsWith('general:')) {
+        continue
+      }
+
+      cache.value[cacheKey] = {
+        ...cacheEntry,
+        data: mutator(cacheEntry.data),
+        cachedAt: now,
       }
     }
   }
 
-  const updatePostInStore = (postId: string, updater: (post: BlogPost) => BlogPost) => {
-    if (!general.value) {
-      return
-    }
-
-    general.value = {
-      ...general.value,
-      posts: general.value.posts.map(post => post.id === postId ? updater(post) : post),
-    }
-  }
-
-  const addCommentToStore = (postId: string, payload: { content: string, parentCommentId: string | null }) => {
-    const now = new Date().toISOString()
-    const newComment: BlogComment = {
-      id: commentTempId(),
-      authorId: authSession.profile?.id ?? commentTempId(),
-      isAuthor: true,
-      author: currentAuthor(),
-      content: payload.content,
-      filePath: null,
-      createdAt: now,
-      reactions: [],
-      children: [],
-    }
-
-    const appendToParent = (comments: BlogComment[]): BlogComment[] => comments.map((comment) => {
-      if (comment.id === payload.parentCommentId) {
-        return {
-          ...comment,
-          children: [...comment.children, newComment],
-        }
-      }
-
-      if (!comment.children.length) {
-        return comment
-      }
-
+  const appendToParentComment = (comments: BlogComment[], parentCommentId: string, newComment: BlogComment): BlogComment[] => comments.map((comment) => {
+    if (comment.id === parentCommentId) {
       return {
         ...comment,
-        children: appendToParent(comment.children),
+        children: [...comment.children, newComment],
       }
-    })
+    }
 
-    updatePostInStore(postId, (post) => {
-      if (!payload.parentCommentId) {
-        return {
-          ...post,
-          comments: [...post.comments, newComment],
-        }
-      }
+    if (!comment.children.length) {
+      return comment
+    }
 
-      return {
-        ...post,
-        comments: appendToParent(post.comments),
-      }
-    })
-  }
-
-  const replaceOwnReaction = (reactions: BlogReaction[] = [], type: string): BlogReaction[] => {
-    const otherReactions = reactions.filter(reaction => !reaction.isAuthor)
-    const ownExistingReaction = reactions.find(reaction => reaction.isAuthor)
-
-    return [...otherReactions, {
-      id: ownExistingReaction?.id ?? reactionTempId(),
-      authorId: authSession.profile?.id ?? reactionTempId(),
-      isAuthor: true,
-      author: currentAuthor(),
-      type,
-      createdAt: new Date().toISOString(),
-    }]
-  }
+    return {
+      ...comment,
+      children: appendToParentComment(comment.children, parentCommentId, newComment),
+    }
+  })
 
   const updateCommentTree = (comments: BlogComment[], commentId: string, updater: (comment: BlogComment) => BlogComment): BlogComment[] => comments.map((comment) => {
     if (comment.id === commentId) {
@@ -182,29 +147,223 @@ export const useBlogsStore = defineStore('blogs', () => {
     }
   })
 
-  const addPostReactionToStore = (postId: string, type: string) => {
-    updatePostInStore(postId, post => ({
-      ...post,
-      reactions: replaceOwnReaction(post.reactions ?? [], type),
+  const removeCommentFromTree = (comments: BlogComment[], commentId: string): BlogComment[] => comments
+    .filter(comment => comment.id !== commentId)
+    .map(comment => ({
+      ...comment,
+      children: removeCommentFromTree(comment.children, commentId),
+    }))
+
+  const replaceOwnReaction = (reactions: BlogReaction[] = [], type: string): BlogReaction[] => {
+    const otherReactions = reactions.filter(reaction => !reaction.isAuthor)
+    const ownExistingReaction = reactions.find(reaction => reaction.isAuthor)
+
+    return [...otherReactions, {
+      id: ownExistingReaction?.id ?? reactionTempId(),
+      authorId: authSession.profile?.id ?? reactionTempId(),
+      isAuthor: true,
+      author: currentAuthor(),
+      type,
+      createdAt: new Date().toISOString(),
+    }]
+  }
+
+  const addRootPostToStore = (payload: { content: string, filePath?: string | null }, postId?: UUID) => {
+    const nowIso = new Date().toISOString()
+    const newPost: BlogPost = {
+      id: postId ?? postTempId(),
+      authorId: authSession.profile?.id ?? postTempId(),
+      isAuthor: true,
+      author: currentAuthor(),
+      content: payload.content,
+      filePath: payload.filePath ?? null,
+      createdAt: nowIso,
+      reactions: [],
+      comments: [],
+    }
+
+    applyMutationToGeneralAndCache((blog) => {
+      const nextPosts = [newPost, ...blog.posts]
+      const pagination = blog.pagination
+        ? {
+            ...blog.pagination,
+            totalItems: blog.pagination.totalItems + 1,
+            totalPages: Math.max(1, Math.ceil((blog.pagination.totalItems + 1) / blog.pagination.limit)),
+          }
+        : blog.pagination
+
+      return {
+        ...blog,
+        posts: nextPosts,
+        pagination,
+      }
+    })
+
+    for (const [cacheKey, cacheEntry] of Object.entries(cache.value)) {
+      const parts = parseGeneralCacheKey(cacheKey)
+      if (!parts || parts.visibility !== 'private' || parts.page !== 1) {
+        continue
+      }
+
+      cache.value[cacheKey] = {
+        ...cacheEntry,
+        data: {
+          ...cacheEntry.data,
+          posts: [newPost, ...cacheEntry.data.posts].slice(0, parts.limit),
+        },
+        cachedAt: Date.now(),
+      }
+    }
+
+    if (currentGeneralVisibility.value === 'private' && lastPrivateGeneralQuery.value.page === 1 && general.value) {
+      general.value = {
+        ...general.value,
+        posts: general.value.posts.slice(0, lastPrivateGeneralQuery.value.limit),
+      }
+    }
+  }
+
+  const updatePostInStore = (postId: string, updater: (post: BlogPost) => BlogPost) => {
+    applyMutationToGeneralAndCache(blog => ({
+      ...blog,
+      posts: blog.posts.map(post => post.id === postId ? updater(post) : post),
     }))
   }
 
-  const addCommentReactionToStore = (commentId: string, type: string) => {
-    if (!general.value) {
-      return
+  const deletePostFromStore = (postId: string) => {
+    applyMutationToGeneralAndCache((blog) => {
+      const hadPost = blog.posts.some(post => post.id === postId)
+      const pagination = hadPost && blog.pagination
+        ? {
+            ...blog.pagination,
+            totalItems: Math.max(0, blog.pagination.totalItems - 1),
+            totalPages: Math.max(1, Math.ceil(Math.max(0, blog.pagination.totalItems - 1) / blog.pagination.limit)),
+          }
+        : blog.pagination
+
+      return {
+        ...blog,
+        posts: blog.posts.filter(post => post.id !== postId),
+        pagination,
+      }
+    })
+  }
+
+  const addCommentToStore = (postId: string, payload: { content: string, parentCommentId: string | null }, commentId?: UUID) => {
+    const now = new Date().toISOString()
+    const newComment: BlogComment = {
+      id: commentId ?? commentTempId(),
+      authorId: authSession.profile?.id ?? commentTempId(),
+      isAuthor: true,
+      author: currentAuthor(),
+      content: payload.content,
+      filePath: null,
+      createdAt: now,
+      reactions: [],
+      children: [],
     }
 
-    general.value = {
-      ...general.value,
-      posts: general.value.posts.map(post => ({
+    updatePostInStore(postId, (post) => {
+      if (!payload.parentCommentId) {
+        return {
+          ...post,
+          comments: [...post.comments, newComment],
+        }
+      }
+
+      return {
+        ...post,
+        comments: appendToParentComment(post.comments, payload.parentCommentId, newComment),
+      }
+    })
+  }
+
+  const updateCommentInStore = (commentId: string, payload: { content: string }) => {
+    applyMutationToGeneralAndCache(blog => ({
+      ...blog,
+      posts: blog.posts.map(post => ({
         ...post,
         comments: updateCommentTree(post.comments, commentId, comment => ({
           ...comment,
-          reactions: replaceOwnReaction(comment.reactions ?? [], type),
+          content: payload.content,
         })),
       })),
-    }
+    }))
   }
+
+  const deleteCommentFromStore = (commentId: string) => {
+    applyMutationToGeneralAndCache(blog => ({
+      ...blog,
+      posts: blog.posts.map(post => ({
+        ...post,
+        comments: removeCommentFromTree(post.comments, commentId),
+      })),
+    }))
+  }
+
+  const addPostReactionToStore = (postId: string, type: string, reactionId?: UUID) => {
+    updatePostInStore(postId, post => ({
+      ...post,
+      reactions: replaceOwnReaction(post.reactions ?? [], type).map(reaction =>
+        reaction.isAuthor
+          ? { ...reaction, id: reactionId ?? reaction.id }
+          : reaction),
+    }))
+  }
+
+  const addCommentReactionToStore = (commentId: string, type: string, reactionId?: UUID) => {
+    applyMutationToGeneralAndCache(blog => ({
+      ...blog,
+      posts: blog.posts.map(post => ({
+        ...post,
+        comments: updateCommentTree(post.comments, commentId, comment => ({
+          ...comment,
+          reactions: replaceOwnReaction(comment.reactions ?? [], type).map(reaction =>
+            reaction.isAuthor
+              ? { ...reaction, id: reactionId ?? reaction.id }
+              : reaction),
+        })),
+      })),
+    }))
+  }
+
+  const deleteReactionFromStore = (reactionId: string) => {
+    applyMutationToGeneralAndCache(blog => ({
+      ...blog,
+      posts: blog.posts.map(post => ({
+        ...post,
+        reactions: (post.reactions ?? []).filter(reaction => reaction.id !== reactionId),
+        comments: post.comments.map(comment => ({
+          ...comment,
+          reactions: comment.reactions.filter(reaction => reaction.id !== reactionId),
+          children: removeReactionFromCommentChildren(comment.children, reactionId),
+        })),
+      })),
+    }))
+  }
+
+  const removeReactionFromCommentChildren = (comments: BlogComment[], reactionId: string): BlogComment[] => comments.map(comment => ({
+    ...comment,
+    reactions: comment.reactions.filter(reaction => reaction.id !== reactionId),
+    children: removeReactionFromCommentChildren(comment.children, reactionId),
+  }))
+
+  const updateReactionInStore = (reactionId: string, payload: { type: string }) => {
+    applyMutationToGeneralAndCache(blog => ({
+      ...blog,
+      posts: blog.posts.map(post => ({
+        ...post,
+        reactions: (post.reactions ?? []).map(reaction => reaction.id === reactionId ? { ...reaction, type: payload.type } : reaction),
+        comments: updateReactionInCommentTree(post.comments, reactionId, payload.type),
+      })),
+    }))
+  }
+
+  const updateReactionInCommentTree = (comments: BlogComment[], reactionId: string, type: string): BlogComment[] => comments.map(comment => ({
+    ...comment,
+    reactions: comment.reactions.map(reaction => reaction.id === reactionId ? { ...reaction, type } : reaction),
+    children: updateReactionInCommentTree(comment.children, reactionId, type),
+  }))
 
   const fetchGeneral = async (
     forceRefresh = false,
@@ -300,116 +459,71 @@ export const useBlogsStore = defineStore('blogs', () => {
     generalPagination.value = null
   }
 
-  const refreshGeneralInBackground = () => {
-    invalidateGeneralCache()
-    void fetchGeneral(true, currentGeneralVisibility.value === 'public', {
-      page: 1,
-      limit: DEFAULT_BLOG_PAGE_LIMIT,
-      append: false,
-    }).catch((error) => {
-      console.error('Failed to refresh general blog in background.', error)
-    })
-  }
-
-  const invalidatePrivateCacheForPagination = (query: BlogListQuery) => {
-    const lastPageToInvalidate = query.page + PRIVATE_CACHE_PAGE_INVALIDATION_BUFFER
-
-    for (let page = 1; page <= lastPageToInvalidate; page += 1) {
-      delete cache.value[`general:private:${page}:${query.limit}`]
-    }
-
-    if (currentGeneralVisibility.value === 'private') {
-      generalPagination.value = null
-    }
-  }
-
-  const refreshPrivateGeneralInBackground = (query: BlogListQuery) => {
-    invalidatePrivateCacheForPagination(query)
-    void fetchGeneral(true, false, {
-      page: query.page,
-      limit: query.limit,
-      append: false,
-    }).catch((error) => {
-      console.error('Failed to refresh private general blog in background.', error)
-    })
-  }
-
-  const refreshPrivateGeneralOnAccepted = (response: { status?: string }) => {
-    if (response?.status !== 'accepted') {
-      return
-    }
-
-    refreshPrivateGeneralInBackground(lastPrivateGeneralQuery.value)
-  }
-
   const createPost = async (blogId: string, payload: { content: string, filePath?: string | null }) => {
     const response = await blogsApi.createPost(blogId, payload)
 
     if (response?.status === 'accepted') {
-      addRootPostToStore(payload)
+      addRootPostToStore(payload, response.id)
     }
-
-    refreshPrivateGeneralOnAccepted(response)
   }
 
   const updatePost = async (postId: string, payload: { content?: string, filePath?: string | null }) => {
     await blogsApi.updatePost(postId, payload)
-    refreshGeneralInBackground()
+
+    updatePostInStore(postId, post => ({
+      ...post,
+      content: payload.content ?? post.content,
+      filePath: payload.filePath === undefined ? post.filePath : payload.filePath,
+    }))
   }
 
   const deletePost = async (postId: string) => {
     await blogsApi.deletePost(postId)
-    refreshGeneralInBackground()
+    deletePostFromStore(postId)
   }
 
   const createPostReaction = async (postId: string, payload: { type: string }) => {
     const response = await blogsApi.createPostReaction(postId, payload)
 
     if (response?.status === 'accepted') {
-      addPostReactionToStore(postId, payload.type)
+      addPostReactionToStore(postId, payload.type, response.id)
     }
-
-    refreshPrivateGeneralOnAccepted(response)
   }
 
   const createComment = async (postId: string, payload: { content: string, parentCommentId: string | null }) => {
     const response = await blogsApi.createComment(postId, payload)
 
     if (response?.status === 'accepted') {
-      addCommentToStore(postId, payload)
+      addCommentToStore(postId, payload, response.id)
     }
-
-    refreshPrivateGeneralOnAccepted(response)
   }
 
   const updateComment = async (commentId: string, payload: { content: string }) => {
     await blogsApi.updateComment(commentId, payload)
-    refreshGeneralInBackground()
+    updateCommentInStore(commentId, payload)
   }
 
   const deleteComment = async (commentId: string) => {
     await blogsApi.deleteComment(commentId)
-    refreshGeneralInBackground()
+    deleteCommentFromStore(commentId)
   }
 
   const createReaction = async (commentId: string, payload: { type: string }) => {
     const response = await blogsApi.createReaction(commentId, payload)
 
     if (response?.status === 'accepted') {
-      addCommentReactionToStore(commentId, payload.type)
+      addCommentReactionToStore(commentId, payload.type, response.id)
     }
-
-    refreshPrivateGeneralOnAccepted(response)
   }
 
   const deleteReaction = async (reactionId: string) => {
     await blogsApi.deleteReaction(reactionId)
-    refreshGeneralInBackground()
+    deleteReactionFromStore(reactionId)
   }
 
   const updateReaction = async (reactionId: string, payload: { type: string }) => {
     await blogsApi.updateReaction(reactionId, payload)
-    refreshGeneralInBackground()
+    updateReactionInStore(reactionId, payload)
   }
 
   return {
