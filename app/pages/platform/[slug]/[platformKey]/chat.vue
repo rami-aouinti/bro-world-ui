@@ -1,26 +1,12 @@
 <script setup lang="ts">
-import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
-import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { usePrivateChatApi } from '~/composables/api/usePrivateChatApi'
-import { getCrmNav, getRecruitNav, getSchoolNav, getShopNav } from '~/data/platform-nav'
-import type { PlatformNavItem } from '~/data/platform-nav'
+import { usePlatformPluginPage } from '~/composables/platform/usePlatformPluginPage'
 import type { PrivateChatConversation } from '~/types/api/chat'
 
 definePageMeta({ public: true, requiresAuth: false })
 
-const route = useRoute()
-const slug = computed(() => String(route.params.slug ?? ''))
-const platformKey = computed(() => String(route.params.platformKey ?? '').toLowerCase())
-const { isOwner } = usePlatformPermissions(slug)
-const { isAuthenticated } = useAuth()
+const { slug, navItems, isAuthenticated } = usePlatformPluginPage()
 const privateChatApi = usePrivateChatApi()
-
-const navItems = computed<PlatformNavItem[]>(() => {
-  if (platformKey.value === 'shop') return getShopNav(slug.value, isOwner.value)
-  if (platformKey.value === 'recruit') return getRecruitNav(slug.value, isOwner.value, isAuthenticated.value)
-  if (platformKey.value === 'school') return getSchoolNav(slug.value, isOwner.value)
-  return getCrmNav(slug.value, isOwner.value)
-})
 
 const noPluginDataMessage = 'Aucune API de chat publique liée à cette application n\'est disponible pour le moment.'
 
@@ -48,42 +34,31 @@ onMounted(() => {
 </script>
 
 <template>
-  <PlatformSplitLayout>
-    <template #sidebar>
-      <PlatformSidebarNav
-        title="Chat"
-        subtitle="platform.common.sidebar.application"
-        :subtitle-values="{ slug }"
-        :items="navItems"
-      />
+  <PlatformPluginPageShell title="Chat" :slug="slug" :nav-items="navItems">
+    <v-alert v-if="error" type="error" variant="tonal" class="mb-4">Impossible de charger le chat de cette platform.</v-alert>
+    <v-progress-linear v-else-if="pending" color="primary" indeterminate class="mb-4" />
+
+    <template v-else>
+      <v-alert v-if="!isAuthenticated" type="info" variant="tonal" class="mb-4">
+        {{ noPluginDataMessage }} Connectez-vous pour consulter vos conversations privées.
+      </v-alert>
+
+      <v-alert v-else-if="!conversations?.length" type="info" variant="tonal" class="mb-4">
+        Aucune conversation disponible pour le moment.
+      </v-alert>
+
+      <v-list v-else lines="two" density="comfortable" class="rounded-lg border">
+        <v-list-item
+          v-for="conversation in conversations"
+          :key="conversation.id"
+          :title="`Conversation #${conversation.id.slice(0, 8)}`"
+          :subtitle="`${conversation.unreadMessagesCount} message(s) non lu(s)`"
+        >
+          <template #append>
+            <v-chip size="small" variant="tonal">{{ conversation.participants.length }} participant(s)</v-chip>
+          </template>
+        </v-list-item>
+      </v-list>
     </template>
-
-    <section>
-      <v-alert v-if="error" type="error" variant="tonal" class="mb-4">Impossible de charger le chat de cette platform.</v-alert>
-      <v-progress-linear v-else-if="pending" color="primary" indeterminate class="mb-4" />
-
-      <template v-else>
-        <v-alert v-if="!isAuthenticated" type="info" variant="tonal" class="mb-4">
-          {{ noPluginDataMessage }} Connectez-vous pour consulter vos conversations privées.
-        </v-alert>
-
-        <v-alert v-else-if="!conversations?.length" type="info" variant="tonal" class="mb-4">
-          Aucune conversation disponible pour le moment.
-        </v-alert>
-
-        <v-list v-else lines="two" density="comfortable" class="rounded-lg border">
-          <v-list-item
-            v-for="conversation in conversations"
-            :key="conversation.id"
-            :title="`Conversation #${conversation.id.slice(0, 8)}`"
-            :subtitle="`${conversation.unreadMessagesCount} message(s) non lu(s)`"
-          >
-            <template #append>
-              <v-chip size="small" variant="tonal">{{ conversation.participants.length }} participant(s)</v-chip>
-            </template>
-          </v-list-item>
-        </v-list>
-      </template>
-    </section>
-  </PlatformSplitLayout>
+  </PlatformPluginPageShell>
 </template>
