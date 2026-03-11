@@ -52,6 +52,15 @@ const reactionMeta: Record<string, { icon: string, color: string, label: string 
 
 const availableReactionTypes = Object.keys(reactionMeta)
 
+const currentUserPostReaction = (post: BlogRead['posts'][number]) => post.reactions?.find(reaction => reaction.isAuthor)
+
+const isCurrentUserReaction = (post: BlogRead['posts'][number], type: string) => currentUserPostReaction(post)?.type === type
+
+const reactionButtonLabel = (post: BlogRead['posts'][number]) => {
+  const ownReaction = currentUserPostReaction(post)
+  return ownReaction ? (reactionMeta[ownReaction.type]?.label ?? ownReaction.type) : 'Réagir'
+}
+
 const postReactionSummary = (reactions: BlogReaction[] = []) => {
   const map = new Map<string, number>()
   reactions.forEach((reaction) => {
@@ -192,13 +201,23 @@ const createRootComment = async (postId: string) => {
   commentDrafts.value[postId] = ''
 }
 
-const addPostReaction = async (postId: string, type: string) => {
+const addPostReaction = async (post: BlogRead['posts'][number], type: string) => {
   if (!props.canInteract) {
     return
   }
 
-  await runAction(() => blogsStore.createPostReaction(postId, { type }))
-  postReactionPicker.value[postId] = false
+  const ownReaction = currentUserPostReaction(post)
+  if (ownReaction?.type === type) {
+    await runAction(() => blogsStore.deleteReaction(ownReaction.id))
+  }
+  else if (ownReaction) {
+    await runAction(() => blogsStore.updateReaction(ownReaction.id, { type }))
+  }
+  else {
+    await runAction(() => blogsStore.createPostReaction(post.id, { type }))
+  }
+
+  postReactionPicker.value[post.id] = false
 }
 
 const deletePostReaction = async (reactionId: string) => {
@@ -207,6 +226,17 @@ const deletePostReaction = async (reactionId: string) => {
   }
 
   await runAction(() => blogsStore.deleteReaction(reactionId))
+}
+
+const handlePostReactionButtonClick = async (post: BlogRead['posts'][number]) => {
+  const ownReaction = currentUserPostReaction(post)
+
+  if (ownReaction) {
+    await deletePostReaction(ownReaction.id)
+    return
+  }
+
+  postReactionPicker.value[post.id] = !postReactionPicker.value[post.id]
 }
 
 const openEditPostDialog = (post: BlogRead['posts'][number]) => {
@@ -318,7 +348,7 @@ const confirmDeletePost = async () => {
                   {{ reactionMeta[type]?.icon ?? '👍' }}
                 </span>
               </div>
-              <span>{{ postReactionCount(post.reactions ?? []) }}</span>
+              <span v-if="postReactionCount(post.reactions ?? []) > 0">{{ postReactionCount(post.reactions ?? []) }}</span>
             </div>
             <span>{{ countComments(post.comments) }} commentaires</span>
           </div>
@@ -326,27 +356,42 @@ const confirmDeletePost = async () => {
           <v-divider class="mb-3" />
 
           <div class="d-flex align-center ga-2 mb-4">
-            <v-btn
-              rounded="pill"
-              size="small"
-              variant="text"
-              :disabled="!canInteract"
-              @click="postReactionPicker[post.id] = !postReactionPicker[post.id]"
-            >
-              J'aime
-            </v-btn>
-
             <v-menu
-              v-if="(post.reactions?.length ?? 0) > 0"
+              v-model="postReactionPicker[post.id]"
               open-on-hover
               location="top"
               :close-on-content-click="false"
               content-class="reaction-hover-menu"
             >
               <template #activator="{ props: menuProps }">
-                <v-btn icon="mdi-emoticon-outline" size="x-small" variant="text" v-bind="menuProps" />
+                <v-btn
+                  rounded="pill"
+                  size="small"
+                  variant="text"
+                  :disabled="!canInteract"
+                  v-bind="menuProps"
+                  @click.stop.prevent="handlePostReactionButtonClick(post)"
+                >
+                  <span class="d-inline-flex align-center ga-2">
+                    <span>{{ reactionMeta[currentUserPostReaction(post)?.type ?? 'like']?.icon ?? '👍' }}</span>
+                    <span>{{ reactionButtonLabel(post) }}</span>
+                  </span>
+                </v-btn>
               </template>
               <div class="reaction-hover-content pa-3">
+                <div class="reaction-picker mb-3">
+                  <button
+                    v-for="type in availableReactionTypes"
+                    :key="type"
+                    class="reaction-emoji"
+                    :class="{ 'reaction-emoji--active': isCurrentUserReaction(post, type) }"
+                    type="button"
+                    :title="reactionMeta[type]?.label"
+                    @click="addPostReaction(post, type)"
+                  >
+                    {{ reactionMeta[type]?.icon ?? '👍' }}
+                  </button>
+                </div>
                 <div
                   v-for="group in groupedPostReactions(post.reactions ?? [])"
                   :key="group.type"
@@ -373,19 +418,6 @@ const confirmDeletePost = async () => {
                 </div>
               </div>
             </v-menu>
-          </div>
-
-          <div v-if="postReactionPicker[post.id]" class="reaction-picker mt-n2 mb-3">
-            <button
-              v-for="type in availableReactionTypes"
-              :key="type"
-              class="reaction-emoji"
-              type="button"
-              :title="reactionMeta[type]?.label"
-              @click="addPostReaction(post.id, type)"
-            >
-              {{ reactionMeta[type]?.icon ?? '👍' }}
-            </button>
           </div>
 
           <div v-if="post.reactions?.length" class="d-flex flex-wrap ga-2 mt-2 mb-4">
@@ -515,6 +547,10 @@ const confirmDeletePost = async () => {
 
 .reaction-emoji:hover {
   transform: translateY(-2px) scale(1.08);
+}
+
+.reaction-emoji--active {
+  transform: scale(1.2);
 }
 
 .reaction-hover-content {
