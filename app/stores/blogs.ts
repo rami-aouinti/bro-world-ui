@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import type { BlogPagination, BlogRead, BlogWithPagination } from '~/types/api/blog'
+import { useAuthSessionStore } from '~/stores/authSession'
+import type { BlogComment, BlogPagination, BlogPost, BlogRead, BlogReaction, BlogWithPagination } from '~/types/api/blog'
 import { BLOG_REACTION_FALLBACK_TYPES } from '~/constants/blogReactions'
 import { useBlogsApi } from '~/composables/api/useBlogsApi'
 
@@ -12,6 +13,7 @@ type BlogCacheEntry = {
 
 const BLOG_CACHE_TTL_MS = 60_000
 const DEFAULT_BLOG_PAGE_LIMIT = 5
+const PRIVATE_CACHE_PAGE_INVALIDATION_BUFFER = 2
 
 type BlogListQuery = {
   page: number
@@ -20,6 +22,7 @@ type BlogListQuery = {
 
 export const useBlogsStore = defineStore('blogs', () => {
   const blogsApi = useBlogsApi()
+  const authSession = useAuthSessionStore()
 
   const general = ref<BlogWithPagination | null>(null)
   const generalPagination = ref<BlogPagination | null>(null)
@@ -47,6 +50,159 @@ export const useBlogsStore = defineStore('blogs', () => {
     return {
       ...incomingBlog,
       posts: nextPosts,
+    }
+  }
+
+  const postTempId = () => `temp-post-${Date.now()}-${Math.random().toString(16).slice(2)}`
+  const commentTempId = () => `temp-comment-${Date.now()}-${Math.random().toString(16).slice(2)}`
+  const reactionTempId = () => `temp-reaction-${Date.now()}-${Math.random().toString(16).slice(2)}`
+
+  const currentAuthor = () => ({
+    firstName: authSession.profile?.firstName ?? 'Unknown',
+    lastName: authSession.profile?.lastName ?? 'User',
+    username: authSession.profile?.username,
+    photo: authSession.profile?.photo ?? null,
+  })
+
+  const addRootPostToStore = (payload: { content: string, filePath?: string | null }) => {
+    if (!general.value) {
+      return
+    }
+
+    const now = new Date().toISOString()
+    const newPost: BlogPost = {
+      id: postTempId(),
+      authorId: authSession.profile?.id ?? postTempId(),
+      isAuthor: true,
+      author: currentAuthor(),
+      content: payload.content,
+      filePath: payload.filePath ?? null,
+      createdAt: now,
+      reactions: [],
+      comments: [],
+    }
+
+    general.value = {
+      ...general.value,
+      posts: [newPost, ...general.value.posts],
+    }
+
+    if (generalPagination.value) {
+      generalPagination.value = {
+        ...generalPagination.value,
+        totalItems: generalPagination.value.totalItems + 1,
+      }
+    }
+  }
+
+  const updatePostInStore = (postId: string, updater: (post: BlogPost) => BlogPost) => {
+    if (!general.value) {
+      return
+    }
+
+    general.value = {
+      ...general.value,
+      posts: general.value.posts.map(post => post.id === postId ? updater(post) : post),
+    }
+  }
+
+  const addCommentToStore = (postId: string, payload: { content: string, parentCommentId: string | null }) => {
+    const now = new Date().toISOString()
+    const newComment: BlogComment = {
+      id: commentTempId(),
+      authorId: authSession.profile?.id ?? commentTempId(),
+      isAuthor: true,
+      author: currentAuthor(),
+      content: payload.content,
+      filePath: null,
+      createdAt: now,
+      reactions: [],
+      children: [],
+    }
+
+    const appendToParent = (comments: BlogComment[]): BlogComment[] => comments.map((comment) => {
+      if (comment.id === payload.parentCommentId) {
+        return {
+          ...comment,
+          children: [...comment.children, newComment],
+        }
+      }
+
+      if (!comment.children.length) {
+        return comment
+      }
+
+      return {
+        ...comment,
+        children: appendToParent(comment.children),
+      }
+    })
+
+    updatePostInStore(postId, (post) => {
+      if (!payload.parentCommentId) {
+        return {
+          ...post,
+          comments: [...post.comments, newComment],
+        }
+      }
+
+      return {
+        ...post,
+        comments: appendToParent(post.comments),
+      }
+    })
+  }
+
+  const replaceOwnReaction = (reactions: BlogReaction[] = [], type: string): BlogReaction[] => {
+    const otherReactions = reactions.filter(reaction => !reaction.isAuthor)
+    const ownExistingReaction = reactions.find(reaction => reaction.isAuthor)
+
+    return [...otherReactions, {
+      id: ownExistingReaction?.id ?? reactionTempId(),
+      authorId: authSession.profile?.id ?? reactionTempId(),
+      isAuthor: true,
+      author: currentAuthor(),
+      type,
+      createdAt: new Date().toISOString(),
+    }]
+  }
+
+  const updateCommentTree = (comments: BlogComment[], commentId: string, updater: (comment: BlogComment) => BlogComment): BlogComment[] => comments.map((comment) => {
+    if (comment.id === commentId) {
+      return updater(comment)
+    }
+
+    if (!comment.children.length) {
+      return comment
+    }
+
+    return {
+      ...comment,
+      children: updateCommentTree(comment.children, commentId, updater),
+    }
+  })
+
+  const addPostReactionToStore = (postId: string, type: string) => {
+    updatePostInStore(postId, post => ({
+      ...post,
+      reactions: replaceOwnReaction(post.reactions ?? [], type),
+    }))
+  }
+
+  const addCommentReactionToStore = (commentId: string, type: string) => {
+    if (!general.value) {
+      return
+    }
+
+    general.value = {
+      ...general.value,
+      posts: general.value.posts.map(post => ({
+        ...post,
+        comments: updateCommentTree(post.comments, commentId, comment => ({
+          ...comment,
+          reactions: replaceOwnReaction(comment.reactions ?? [], type),
+        })),
+      })),
     }
   }
 
@@ -156,7 +312,11 @@ export const useBlogsStore = defineStore('blogs', () => {
   }
 
   const invalidatePrivateCacheForPagination = (query: BlogListQuery) => {
-    delete cache.value[`general:private:${query.page}:${query.limit}`]
+    const lastPageToInvalidate = query.page + PRIVATE_CACHE_PAGE_INVALIDATION_BUFFER
+
+    for (let page = 1; page <= lastPageToInvalidate; page += 1) {
+      delete cache.value[`general:private:${page}:${query.limit}`]
+    }
 
     if (currentGeneralVisibility.value === 'private') {
       generalPagination.value = null
@@ -184,6 +344,11 @@ export const useBlogsStore = defineStore('blogs', () => {
 
   const createPost = async (blogId: string, payload: { content: string, filePath?: string | null }) => {
     const response = await blogsApi.createPost(blogId, payload)
+
+    if (response?.status === 'accepted') {
+      addRootPostToStore(payload)
+    }
+
     refreshPrivateGeneralOnAccepted(response)
   }
 
@@ -199,11 +364,21 @@ export const useBlogsStore = defineStore('blogs', () => {
 
   const createPostReaction = async (postId: string, payload: { type: string }) => {
     const response = await blogsApi.createPostReaction(postId, payload)
+
+    if (response?.status === 'accepted') {
+      addPostReactionToStore(postId, payload.type)
+    }
+
     refreshPrivateGeneralOnAccepted(response)
   }
 
   const createComment = async (postId: string, payload: { content: string, parentCommentId: string | null }) => {
     const response = await blogsApi.createComment(postId, payload)
+
+    if (response?.status === 'accepted') {
+      addCommentToStore(postId, payload)
+    }
+
     refreshPrivateGeneralOnAccepted(response)
   }
 
@@ -219,6 +394,11 @@ export const useBlogsStore = defineStore('blogs', () => {
 
   const createReaction = async (commentId: string, payload: { type: string }) => {
     const response = await blogsApi.createReaction(commentId, payload)
+
+    if (response?.status === 'accepted') {
+      addCommentReactionToStore(commentId, payload.type)
+    }
+
     refreshPrivateGeneralOnAccepted(response)
   }
 
