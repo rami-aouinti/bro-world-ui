@@ -55,6 +55,33 @@ const normalizeMessage = (message: Partial<PrivateChatMessage> & { id: string })
   reactions: message.reactions ?? [],
 })
 
+const getConnectedSender = (): PrivateChatMessage['sender'] => {
+  const profile = authSession.profile
+
+  if (!profile?.id) {
+    return fallbackSender
+  }
+
+  return {
+    id: profile.id,
+    firstName: profile.firstName,
+    lastName: profile.lastName,
+    photo: profile.photo,
+    owner: true,
+  }
+}
+
+const createLocalSentMessage = (content: string): PrivateChatMessage => normalizeMessage({
+  id: `local-msg-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+  content,
+  sender: getConnectedSender(),
+  attachments: [],
+  read: true,
+  readAt: new Date().toISOString(),
+  createdAt: new Date().toISOString(),
+  reactions: [],
+})
+
 const sortMessages = (messages: PrivateChatMessage[]) => [...messages]
   .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
 
@@ -419,6 +446,31 @@ const normalizeAttachments = (attachments: unknown) => {
   return Array.isArray(attachments) ? attachments : [attachments]
 }
 
+
+const prependMessageToConversationCache = (conversationId: string, message: PrivateChatMessage) => {
+  if (!inboxConversationsSummary.value) {
+    return
+  }
+
+  inboxConversationsSummary.value.items = inboxConversationsSummary.value.items.map((conversation) => {
+    if (conversation.id !== conversationId) {
+      return conversation
+    }
+
+    if (conversation.messages.some(item => item.id === message.id)) {
+      return conversation
+    }
+
+    return {
+      ...conversation,
+      messages: [...conversation.messages, message],
+      unreadMessagesCount: message.sender.id === authSession.profile?.id
+        ? conversation.unreadMessagesCount
+        : conversation.unreadMessagesCount + 1,
+    }
+  })
+}
+
 useMercureEventSource(mercureTopics, async (payload) => {
   if (isUsingDemoData.value || !isConversationMessagePayload(payload)) {
     return
@@ -433,21 +485,23 @@ useMercureEventSource(mercureTopics, async (payload) => {
     return
   }
 
+  const incomingMessage = normalizeMessage({
+    id: payload.id,
+    content: payload.content,
+    sender: resolveSenderFromPayload(payload.senderId),
+    attachments: normalizeAttachments(payload.attachments),
+    read: false,
+    readAt: null,
+    createdAt: payload.createdAt ?? new Date().toISOString(),
+    reactions: [],
+  })
+
   conversationMessages.value = sortMessages([
     ...conversationMessages.value,
-    normalizeMessage({
-      id: payload.id,
-      content: payload.content,
-      sender: resolveSenderFromPayload(payload.senderId),
-      attachments: normalizeAttachments(payload.attachments),
-      read: false,
-      readAt: null,
-      createdAt: payload.createdAt ?? new Date().toISOString(),
-      reactions: [],
-    }),
+    incomingMessage,
   ])
 
-  await refreshInboxConversations()
+  prependMessageToConversationCache(payload.conversationId, incomingMessage)
 
   await nextTick()
   scrollMessagesToBottom()
@@ -494,17 +548,44 @@ const sendMessage = async () => {
   try {
     isSendingMessage.value = true
 
-    const createdMessage = await privateChatApi.addMessage(conversationId, { content })
-
-    if (!conversationMessages.value.some(message => message.id === createdMessage.id)) {
-      conversationMessages.value = sortMessages([...conversationMessages.value, normalizeMessage(createdMessage)])
-    }
+    const optimisticMessage = createLocalSentMessage(content)
+    conversationMessages.value = sortMessages([...conversationMessages.value, optimisticMessage])
+    prependMessageToConversationCache(conversationId, optimisticMessage)
 
     draftMessage.value = ''
-    await refreshInboxConversations()
 
     await nextTick()
     scrollMessagesToBottom()
+
+    const createdMessage = await privateChatApi.addMessage(conversationId, { content })
+    const normalizedCreatedMessage = normalizeMessage({
+      ...createdMessage,
+      content,
+      sender: createdMessage.sender ?? getConnectedSender(),
+    })
+
+    conversationMessages.value = conversationMessages.value.map(message =>
+      message.id === optimisticMessage.id
+        ? normalizedCreatedMessage
+        : message,
+    )
+
+    if (inboxConversationsSummary.value) {
+      inboxConversationsSummary.value.items = inboxConversationsSummary.value.items.map((conversation) => {
+        if (conversation.id !== conversationId) {
+          return conversation
+        }
+
+        return {
+          ...conversation,
+          messages: conversation.messages.map(message =>
+            message.id === optimisticMessage.id
+              ? normalizedCreatedMessage
+              : message,
+          ),
+        }
+      })
+    }
   }
   finally {
     isSendingMessage.value = false
