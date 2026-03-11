@@ -17,6 +17,7 @@ const isLoading = ref(false)
 const errorMessage = ref('')
 
 const blog = computed(() => blogsStore.general)
+const blogPagination = computed(() => blogsStore.generalPagination)
 const postId = computed(() => String(route.params.postId ?? ''))
 
 const blogWithSinglePost = computed(() => {
@@ -39,7 +40,11 @@ const loadPost = async () => {
   try {
     isLoading.value = true
     errorMessage.value = ''
-    await blogsStore.fetchGeneral(false, !isAuthenticated.value)
+    await blogsStore.fetchGeneral(false, !isAuthenticated.value, { page: 1, limit: 5, append: false })
+
+    while (!blogWithSinglePost.value && blogPagination.value && blogPagination.value.page < blogPagination.value.totalPages) {
+      await blogsStore.fetchNextGeneralPage(!isAuthenticated.value, 5)
+    }
 
     if (!blogWithSinglePost.value) {
       errorMessage.value = 'Post introuvable.'

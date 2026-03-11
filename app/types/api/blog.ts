@@ -42,10 +42,24 @@ export interface BlogPost {
 
 export interface BlogRead {
   id: UUID
+  slug?: string
+  description?: string
   title: string
+  visibility?: 'public' | 'private' | string
   type: 'general' | 'application' | string
   postStatus: string
   commentStatus: string
   applicationSlug: string | null
   posts: BlogPost[]
+}
+
+export interface BlogPagination {
+  page: number
+  limit: number
+  totalItems: number
+  totalPages: number
+}
+
+export interface BlogWithPagination extends BlogRead {
+  pagination?: BlogPagination
 }

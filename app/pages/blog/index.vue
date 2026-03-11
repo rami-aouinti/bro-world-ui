@@ -59,6 +59,55 @@ const blogsStore = useBlogsStore()
 const { isAuthenticated } = useAuth()
 
 const blog = computed(() => blogsStore.general)
+const blogPagination = computed(() => blogsStore.generalPagination)
+
+const isLoadingMore = computed(() => blogsStore.isLoadingMore)
+const hasMorePosts = computed(() => {
+  if (!blogPagination.value) {
+    return false
+  }
+
+  return blogPagination.value.page < blogPagination.value.totalPages
+})
+
+const loadMorePosts = async () => {
+  if (!hasMorePosts.value || isLoadingMore.value || isLoading.value) {
+    return
+  }
+
+  try {
+    await blogsStore.fetchNextGeneralPage(!isAuthenticated.value, 5)
+  }
+  catch (error) {
+    console.error(error)
+  }
+}
+
+const infiniteSentinel = ref<HTMLElement | null>(null)
+let infiniteObserver: IntersectionObserver | null = null
+
+const setupInfiniteObserver = () => {
+  if (infiniteObserver) {
+    infiniteObserver.disconnect()
+    infiniteObserver = null
+  }
+
+  if (!infiniteSentinel.value) {
+    return
+  }
+
+  infiniteObserver = new IntersectionObserver((entries) => {
+    if (entries.some(entry => entry.isIntersecting)) {
+      void loadMorePosts()
+    }
+  }, {
+    rootMargin: '0px 0px 320px 0px',
+    threshold: 0,
+  })
+
+  infiniteObserver.observe(infiniteSentinel.value)
+}
+
 const keyTopics = computed(() => {
   const extractedTopics = blog.value?.posts
     ?.flatMap(post => post.content.split(/\s+/).slice(0, 8))
@@ -75,7 +124,7 @@ const loadBlogs = async () => {
   try {
     isLoading.value = true
     errorMessage.value = ''
-    await blogsStore.fetchGeneral(false, !isAuthenticated.value)
+    await blogsStore.fetchGeneral(false, !isAuthenticated.value, { page: 1, limit: 5, append: false })
   } catch (error) {
     console.error(error)
     errorMessage.value = 'Impossible de charger le blog.'
@@ -88,6 +137,18 @@ onMounted(async () => {
   await loadBlogs()
 
   await nextTick()
+  setupInfiniteObserver()
+})
+
+onBeforeUnmount(() => {
+  if (infiniteObserver) {
+    infiniteObserver.disconnect()
+  }
+})
+
+watch([infiniteSentinel, hasMorePosts], async () => {
+  await nextTick()
+  setupInfiniteObserver()
 })
 </script>
 
@@ -138,6 +199,10 @@ onMounted(async () => {
       <v-alert v-else-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
       <BlogFeed v-else-if="blog" :blog="blog" :show-summary="false" :can-interact="isAuthenticated" />
 
+      <div v-if="blog && hasMorePosts" ref="infiniteSentinel" class="infinite-sentinel py-4">
+        <v-progress-circular v-if="isLoadingMore" indeterminate color="primary" size="22" />
+      </div>
+
       <section class="mt-8">
         <div class="d-flex align-center justify-space-between mb-4 ga-3 flex-wrap">
           <h2 class="text-h6 text-md-h5 font-weight-bold mb-0">Insights complémentaires (fake data)</h2>
@@ -179,6 +244,11 @@ onMounted(async () => {
 .announcement-item {
   border-left: 2px solid rgba(var(--v-theme-primary), 0.38);
   padding-left: 10px;
+}
+
+.infinite-sentinel {
+  display: flex;
+  justify-content: center;
 }
 
 .insight-card {
