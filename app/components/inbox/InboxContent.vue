@@ -345,6 +345,9 @@ const isConversationMessagePayload = (payload: unknown): payload is {
   id: string
   conversationId: string
   senderId: string
+  content: string
+  createdAt?: string
+  attachments?: unknown
 } => {
   if (!payload || typeof payload !== 'object') {
     return false
@@ -354,6 +357,43 @@ const isConversationMessagePayload = (payload: unknown): payload is {
   return typeof candidate.id === 'string'
     && typeof candidate.conversationId === 'string'
     && typeof candidate.senderId === 'string'
+    && typeof candidate.content === 'string'
+}
+
+const resolveSenderFromPayload = (senderId: string) => {
+  const profile = authSession.profile
+  if (profile?.id === senderId) {
+    return {
+      id: profile.id,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      photo: profile.photo,
+      owner: true,
+    }
+  }
+
+  const conversation = inboxConversationsSummary.value?.items.find(item => item.id === activeConversation.value?.id)
+  const participant = conversation?.participants.find(item => item.user.id === senderId)?.user
+
+  if (participant) {
+    return participant
+  }
+
+  return {
+    id: senderId,
+    firstName: 'Utilisateur',
+    lastName: '',
+    photo: null,
+    owner: false,
+  }
+}
+
+const normalizeAttachments = (attachments: unknown) => {
+  if (!attachments) {
+    return []
+  }
+
+  return Array.isArray(attachments) ? attachments : [attachments]
 }
 
 useMercureEventSource(mercureTopics, async (payload) => {
@@ -370,7 +410,24 @@ useMercureEventSource(mercureTopics, async (payload) => {
     return
   }
 
-  await refreshConversationData()
+  conversationMessages.value = [
+    ...conversationMessages.value,
+    {
+      id: payload.id,
+      content: payload.content,
+      sender: resolveSenderFromPayload(payload.senderId),
+      attachments: normalizeAttachments(payload.attachments),
+      read: false,
+      readAt: null,
+      createdAt: payload.createdAt ?? new Date().toISOString(),
+      reactions: [],
+    },
+  ].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+
+  await refreshInboxConversations()
+
+  await nextTick()
+  scrollMessagesToBottom()
 })
 
 const scrollMessagesToBottom = () => {
