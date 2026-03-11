@@ -1,5 +1,5 @@
 import { useApiClient } from '../useApiClient'
-import type { BlogRead } from '~/types/api/blog'
+import type { BlogRead, BlogWithPagination } from '~/types/api/blog'
 import type { ListResponse } from '~/types/api/common'
 
 export const useBlogsApi = () => {
@@ -7,9 +7,15 @@ export const useBlogsApi = () => {
   const basePath = '/api/v1/blogs'
 
   return {
-    getGeneral(isPublic = false) {
+    getGeneral(isPublic = false, params?: { page?: number, limit?: number }) {
       const endpoint = isPublic ? `${basePath}/general/public` : `${basePath}/general`
-      return apiFetch<BlogRead>(endpoint, { method: 'GET' })
+      return apiFetch<BlogWithPagination>(endpoint, {
+        method: 'GET',
+        query: {
+          page: params?.page ?? 1,
+          limit: params?.limit ?? 5,
+        },
+      })
     },
     getApplicationBlog(applicationSlug: string) {
       return apiFetch<BlogRead>(`${basePath}/application/${applicationSlug}`, { method: 'GET' })
