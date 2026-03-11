@@ -19,11 +19,11 @@ export const useBlogsApi = () => {
       })
     },
     getApplicationBlog(applicationSlug: string) {
-      return apiFetch<BlogRead>(`${basePath}/application/${applicationSlug}`, { method: 'GET' })
+      return apiFetch<BlogRead>(`/api/v1/blog/${applicationSlug}/feed`, { method: 'GET' })
     },
 
     getReactionTypes() {
-      return apiFetch<ListResponse<string>>(`${basePath}/reactions/types`, { method: 'GET' })
+      return apiFetch<ListResponse<string>>(`${publicBasePath}/reactions/types`, { method: 'GET' })
     },
     createPost(blogId: string, payload: { content: string, filePath?: string | null }) {
       return apiFetch<BlogMutationAcceptedResponse>(`${basePath}/${blogId}/posts`, {
@@ -32,53 +32,53 @@ export const useBlogsApi = () => {
       })
     },
     deletePost(postId: string) {
-      return apiFetch(`/api/v1/blog/posts/${postId}`, {
+      return apiFetch(`/api/v1/private/blog/posts/${postId}`, {
         method: 'DELETE',
       })
     },
     updatePost(postId: string, payload: { content?: string, filePath?: string | null }) {
-      return apiFetch(`/api/v1/blog/posts/${postId}`, {
+      return apiFetch(`/api/v1/private/blog/posts/${postId}`, {
         method: 'PATCH',
         body: payload,
       })
     },
 
     createPostReaction(postId: string, payload: { type: string }) {
-      return apiFetch<BlogMutationAcceptedResponse>(`/api/v1/blog/posts/${postId}/reactions`, {
+      return apiFetch<BlogMutationAcceptedResponse>(`/api/v1/private/blog/posts/${postId}/reactions`, {
         method: 'POST',
         body: payload,
       })
     },
     createComment(postId: string, payload: { content: string, parentCommentId: string | null }) {
-      return apiFetch<BlogMutationAcceptedResponse>(`/api/v1/blog/posts/${postId}/comments`, {
+      return apiFetch<BlogMutationAcceptedResponse>(`/api/v1/private/blog/posts/${postId}/comments`, {
         method: 'POST',
         body: payload,
       })
     },
     deleteComment(commentId: string) {
-      return apiFetch(`/api/v1/blog/comments/${commentId}`, {
+      return apiFetch(`/api/v1/private/blog/comments/${commentId}`, {
         method: 'DELETE',
       })
     },
     updateComment(commentId: string, payload: { content: string }) {
-      return apiFetch(`/api/v1/blog/comments/${commentId}`, {
+      return apiFetch(`/api/v1/private/blog/comments/${commentId}`, {
         method: 'PATCH',
         body: payload,
       })
     },
     createReaction(commentId: string, payload: { type: string }) {
-      return apiFetch<BlogMutationAcceptedResponse>(`/api/v1/blog/comments/${commentId}/reactions`, {
+      return apiFetch<BlogMutationAcceptedResponse>(`/api/v1/private/blog/comments/${commentId}/reactions`, {
         method: 'POST',
         body: payload,
       })
     },
     deleteReaction(reactionId: string) {
-      return apiFetch(`/api/v1/blog/reactions/${reactionId}`, {
+      return apiFetch(`/api/v1/private/blog/reactions/${reactionId}`, {
         method: 'DELETE',
       })
     },
     updateReaction(reactionId: string, payload: { type: string }) {
-      return apiFetch(`/api/v1/blog/reactions/${reactionId}`, {
+      return apiFetch(`/api/v1/private/blog/reactions/${reactionId}`, {
         method: 'PATCH',
         body: payload,
       })
