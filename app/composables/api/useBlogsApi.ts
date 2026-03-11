@@ -1,5 +1,6 @@
 import { useApiClient } from '../useApiClient'
 import type { BlogRead } from '~/types/api/blog'
+import type { ListResponse } from '~/types/api/common'
 
 export const useBlogsApi = () => {
   const { apiFetch } = useApiClient()
@@ -12,6 +13,10 @@ export const useBlogsApi = () => {
     },
     getApplicationBlog(applicationSlug: string) {
       return apiFetch<BlogRead>(`${basePath}/application/${applicationSlug}`, { method: 'GET' })
+    },
+
+    getReactionTypes() {
+      return apiFetch<ListResponse<string>>(`${basePath}/reactions/types`, { method: 'GET' })
     },
     createPost(blogId: string, payload: { content: string, filePath?: string | null }) {
       return apiFetch(`${basePath}/${blogId}/posts`, {
