@@ -350,88 +350,71 @@ const confirmDeletePost = async () => {
                 </span>
               </div>
               <span v-if="postReactionCount(post.reactions ?? []) > 0">{{ postReactionCount(post.reactions ?? []) }}</span>
-            </div>
-            <span>{{ countComments(post.comments) }} commentaires</span>
-          </div>
-
-          <v-divider class="mb-3" />
-
-          <div class="d-flex align-center ga-2 mb-4 post-actions-row">
-            <v-menu
-              v-model="postReactionPicker[post.id]"
-              open-on-hover
-              location="top"
-              :close-on-content-click="false"
-              content-class="reaction-hover-menu"
-            >
-              <template #activator="{ props: menuProps }">
-                <button
-                  type="button"
-                  class="post-action-btn"
-                  :disabled="!canInteract"
-                  v-bind="menuProps"
-                  @click.stop.prevent="handlePostReactionButtonClick(post)"
-                >
-                  <span class="reaction-action-icon">{{ reactionMeta[currentUserPostReaction(post)?.type ?? 'like']?.icon ?? '👍' }}</span>
-                  <span>{{ currentUserPostReaction(post) ? reactionMeta[currentUserPostReaction(post)?.type ?? 'like']?.label : 'J’aime' }}</span>
-                </button>
-              </template>
-              <div class="reaction-hover-content pa-3">
-                <div class="reaction-picker mb-3">
-                  <button
-                    v-for="type in availableReactionTypes"
-                    :key="type"
-                    class="reaction-emoji"
-                    :class="{ 'reaction-emoji--active': isCurrentUserReaction(post, type) }"
-                    type="button"
-                    :title="reactionMeta[type]?.label"
-                    @click="addPostReaction(post, type)"
+              <v-menu
+                  v-model="postReactionPicker[post.id]"
+                  open-on-hover
+                  location="top"
+                  :close-on-content-click="false"
+                  content-class="reaction-hover-menu"
+              >
+                <template #activator="{ props: menuProps }">
+                  <v-btn
+                      variant="text"
+                      type="button"
+                      :disabled="!canInteract"
+                      v-bind="menuProps"
+                      @click.stop.prevent="handlePostReactionButtonClick(post)"
                   >
-                    {{ reactionMeta[type]?.icon ?? '👍' }}
-                  </button>
-                </div>
-                <div
-                  v-for="group in groupedPostReactions(post.reactions ?? [])"
-                  :key="group.type"
-                  class="d-flex align-center justify-space-between ga-3 mb-2"
-                >
-                  <div class="d-flex align-center ga-2">
-                    <span class="text-body-2">{{ reactionMeta[group.type]?.icon ?? '👍' }}</span>
-                    <span class="text-caption text-medium-emphasis">{{ reactionMeta[group.type]?.label ?? group.type }}</span>
-                  </div>
-                  <div class="d-flex align-center ga-1 flex-wrap justify-end">
-                    <NuxtLink
-                      v-for="reaction in group.reactions"
-                      :key="reaction.id"
-                      :to="reactionAuthorProfilePath(reaction.author?.username)"
-                      class="avatar-link"
+                    <span class="reaction-action-icon">{{ reactionMeta[currentUserPostReaction(post)?.type ?? 'like']?.icon ?? '👍' }}</span>
+                  </v-btn>
+                </template>
+                <div class="reaction-hover-content pa-3">
+                  <div class="reaction-picker mb-3">
+                    <button
+                        v-for="type in availableReactionTypes"
+                        :key="type"
+                        class="reaction-emoji"
+                        :class="{ 'reaction-emoji--active': isCurrentUserReaction(post, type) }"
+                        type="button"
+                        :title="reactionMeta[type]?.label"
+                        @click="addPostReaction(post, type)"
                     >
-                      <UiAvatar
-                        :src="reaction.author?.photo ?? undefined"
-                        :name="`${reaction.author?.firstName ?? ''} ${reaction.author?.lastName ?? ''}`.trim() || 'Unknown User'"
-                        size="xs"
-                      />
-                    </NuxtLink>
+                      {{ reactionMeta[type]?.icon ?? '👍' }}
+                    </button>
+                  </div>
+                  <div
+                      v-for="group in groupedPostReactions(post.reactions ?? [])"
+                      :key="group.type"
+                      class="d-flex align-center justify-space-between ga-3 mb-2"
+                  >
+                    <div class="d-flex align-center ga-2">
+                      <span class="text-body-2">{{ reactionMeta[group.type]?.icon ?? '👍' }}</span>
+                      <span class="text-caption text-medium-emphasis">{{ reactionMeta[group.type]?.label ?? group.type }}</span>
+                    </div>
+                    <div class="d-flex align-center ga-1 flex-wrap justify-end">
+                      <NuxtLink
+                          v-for="reaction in group.reactions"
+                          :key="reaction.id"
+                          :to="reactionAuthorProfilePath(reaction.author?.username)"
+                          class="avatar-link"
+                      >
+                        <UiAvatar
+                            :src="reaction.author?.photo ?? undefined"
+                            :name="`${reaction.author?.firstName ?? ''} ${reaction.author?.lastName ?? ''}`.trim() || 'Unknown User'"
+                            size="xs"
+                        />
+                      </NuxtLink>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </v-menu>
-            <button type="button" class="post-action-btn" @click="toggleComments(post.id)">
-              <v-icon icon="mdi-comment-outline" size="18" />
-              <span>Commenter</span>
-            </button>
+              </v-menu>
+            </div>
+
+            <span v-if="countComments(post.comments) > 0">{{ countComments(post.comments) }}
+            <v-icon icon="mdi-comment-outline" @click="toggleComments(post.id)" size="18" />
+            </span>
           </div>
-
-          <v-btn
-            v-if="post.comments?.length"
-            variant="text"
-            size="small"
-            class="mb-3"
-            @click="toggleComments(post.id)"
-          >
-            {{ expandedComments[post.id] ? 'Hide comments' : `Show all comments (${countComments(post.comments)})` }}
-          </v-btn>
-
+          <v-divider class="mb-3" />
           <div v-if="post.comments?.length && expandedComments[post.id]" class="d-flex flex-column ga-4 mb-3">
             <BlogCommentItem
               v-for="comment in post.comments"
