@@ -35,6 +35,29 @@ const editContent = ref('')
 const conversationMessages = ref<PrivateChatMessage[]>([])
 const readingConversationIds = ref<Set<string>>(new Set())
 
+
+const fallbackSender = {
+  id: 'unknown-user',
+  firstName: 'Utilisateur',
+  lastName: '',
+  photo: null,
+  owner: false,
+}
+
+const normalizeMessage = (message: Partial<PrivateChatMessage> & { id: string }): PrivateChatMessage => ({
+  id: message.id,
+  content: message.content ?? '',
+  sender: message.sender ?? fallbackSender,
+  attachments: message.attachments ?? [],
+  read: message.read ?? false,
+  readAt: message.readAt ?? null,
+  createdAt: message.createdAt ?? new Date().toISOString(),
+  reactions: message.reactions ?? [],
+})
+
+const sortMessages = (messages: PrivateChatMessage[]) => [...messages]
+  .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+
 const availableReactions = [
   { value: 'like', icon: '👍', label: 'Like' },
   { value: 'love', icon: '❤️', label: 'Love' },
@@ -229,7 +252,7 @@ const inboxInsights = computed(() => {
 watch(
   () => props.selectedConversationMessages,
   (messages) => {
-    conversationMessages.value = [...(messages ?? [])].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    conversationMessages.value = sortMessages((messages ?? []).map(item => normalizeMessage(item)))
   },
   { immediate: true, deep: true },
 )
@@ -341,12 +364,93 @@ const mercureTopics = computed(() => {
   return topics
 })
 
-useMercureEventSource(mercureTopics, async () => {
-  if (isUsingDemoData.value) {
+const isConversationMessagePayload = (payload: unknown): payload is {
+  id: string
+  conversationId: string
+  senderId: string
+  content: string
+  createdAt?: string
+  attachments?: unknown
+} => {
+  if (!payload || typeof payload !== 'object') {
+    return false
+  }
+
+  const candidate = payload as Record<string, unknown>
+  return typeof candidate.id === 'string'
+    && typeof candidate.conversationId === 'string'
+    && typeof candidate.senderId === 'string'
+    && typeof candidate.content === 'string'
+}
+
+const resolveSenderFromPayload = (senderId: string) => {
+  const profile = authSession.profile
+  if (profile?.id === senderId) {
+    return {
+      id: profile.id,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      photo: profile.photo,
+      owner: true,
+    }
+  }
+
+  const conversation = inboxConversationsSummary.value?.items.find(item => item.id === activeConversation.value?.id)
+  const participant = conversation?.participants.find(item => item.user.id === senderId)?.user
+
+  if (participant) {
+    return participant
+  }
+
+  return {
+    id: senderId,
+    firstName: 'Utilisateur',
+    lastName: '',
+    photo: null,
+    owner: false,
+  }
+}
+
+const normalizeAttachments = (attachments: unknown) => {
+  if (!attachments) {
+    return []
+  }
+
+  return Array.isArray(attachments) ? attachments : [attachments]
+}
+
+useMercureEventSource(mercureTopics, async (payload) => {
+  if (isUsingDemoData.value || !isConversationMessagePayload(payload)) {
     return
   }
 
-  await refreshConversationData()
+  if (payload.conversationId !== activeConversation.value?.id) {
+    await refreshInboxConversations()
+    return
+  }
+
+  if (conversationMessages.value.some(message => message.id === payload.id)) {
+    return
+  }
+
+  conversationMessages.value = sortMessages([
+    ...conversationMessages.value,
+    normalizeMessage({
+      id: payload.id,
+      content: payload.content,
+      sender: resolveSenderFromPayload(payload.senderId),
+      attachments: normalizeAttachments(payload.attachments),
+      read: false,
+      readAt: null,
+      createdAt: payload.createdAt ?? new Date().toISOString(),
+      reactions: [],
+    }),
+  ])
+
+  await refreshInboxConversations()
+
+  await nextTick()
+  scrollMessagesToBottom()
 })
 
 const scrollMessagesToBottom = () => {
@@ -375,8 +479,7 @@ const refreshConversationData = async () => {
 
   if (props.selectedConversationId) {
     const response = await privateChatApi.getConversationMessages(props.selectedConversationId)
-    conversationMessages.value = [...(response.items ?? [])]
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    conversationMessages.value = sortMessages((response.items ?? []).map(item => normalizeMessage(item)))
   }
 }
 
@@ -391,9 +494,14 @@ const sendMessage = async () => {
   try {
     isSendingMessage.value = true
 
-    await privateChatApi.addMessage(conversationId, { content })
+    const createdMessage = await privateChatApi.addMessage(conversationId, { content })
+
+    if (!conversationMessages.value.some(message => message.id === createdMessage.id)) {
+      conversationMessages.value = sortMessages([...conversationMessages.value, normalizeMessage(createdMessage)])
+    }
+
     draftMessage.value = ''
-    await refreshConversationData()
+    await refreshInboxConversations()
 
     await nextTick()
     scrollMessagesToBottom()
@@ -562,11 +670,11 @@ const deleteMessage = async () => {
             v-for="message in activeConversation.messages"
             :key="message.id"
             class="inbox-page__bubble"
-            :class="message.sender.id === me ? 'inbox-page__bubble--me' : 'inbox-page__bubble--other'"
+            :class="message.sender?.id === me ? 'inbox-page__bubble--me' : 'inbox-page__bubble--other'"
           >
             <UiAvatar
-              :name="`${message.sender.firstName} ${message.sender.lastName}`"
-              :src="message.sender.photo ?? undefined"
+              :name="`${message.sender?.firstName ?? 'Utilisateur'} ${message.sender?.lastName ?? ''}`"
+              :src="message.sender?.photo ?? undefined"
               size="sm"
               class="inbox-page__bubble-avatar"
             />
@@ -574,7 +682,7 @@ const deleteMessage = async () => {
             <div class="inbox-page__bubble-main">
               <div class="d-flex justify-space-between align-start ga-2">
               <p class="text-caption text-medium-emphasis mb-1">
-                {{ message.sender.firstName }} {{ message.sender.lastName }} • {{ formatMessageDate(message.createdAt) }}
+                {{ message.sender?.firstName ?? 'Utilisateur' }} {{ message.sender?.lastName ?? '' }} • {{ formatMessageDate(message.createdAt) }}
               </p>
 
               <div class="d-flex align-center ga-1">
@@ -599,7 +707,7 @@ const deleteMessage = async () => {
                   </v-list>
                 </v-menu>
 
-                <v-menu v-if="message.sender.id === me" location="bottom end">
+                <v-menu v-if="message.sender?.id === me" location="bottom end">
                   <template #activator="{ props: menuProps }">
                     <v-btn
                       v-bind="menuProps"
