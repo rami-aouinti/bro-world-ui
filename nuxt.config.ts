@@ -60,6 +60,7 @@ export default defineNuxtConfig({
     },
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost',
+      mercurePublicUrl: process.env.NUXT_PUBLIC_MERCURE_PUBLIC_URL || 'http://localhost:3100/.well-known/mercure',
     },
   },
   compatibilityDate: '2025-07-15',
