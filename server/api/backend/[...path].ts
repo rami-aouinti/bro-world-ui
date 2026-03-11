@@ -27,6 +27,8 @@ const PUBLIC_BACKEND_PATHS = new Set([
 const PUBLIC_BACKEND_PATH_PREFIXES = [
   '/api/v1/recruit/public/',
   '/api/v1/page/public/',
+  '/api/v1/public/blogs/',
+  '/api/v1/blog/',
 ]
 
 const LOCALIZATION_CACHE_PATHS = new Set([
@@ -50,7 +52,8 @@ const ENTITY_CACHE_PREFIXES = [
   '/api/v1/plugin/public',
   '/api/v1/recruit/public',
   '/api/v1/recruit/private',
-  '/api/v1/blogs',
+  '/api/v1/private/blogs',
+  '/api/v1/blog/',
   '/api/v1/profile',
   '/api/v1/events',
   '/api/v1/notifications',
@@ -83,8 +86,12 @@ const ENTITY_CACHE_INVALIDATION_RULES: Array<{ routePrefix: string, cachePrefixe
     cachePrefixes: ['/api/v1/recruit/public', '/api/v1/recruit/private'],
   },
   {
-    routePrefix: '/api/v1/blogs/',
-    cachePrefixes: ['/api/v1/blogs'],
+    routePrefix: '/api/v1/private/blogs/',
+    cachePrefixes: ['/api/v1/private/blogs'],
+  },
+  {
+    routePrefix: '/api/v1/private/blog/',
+    cachePrefixes: ['/api/v1/private/blogs'],
   },
   {
     routePrefix: '/api/v1/users/me',
@@ -181,12 +188,12 @@ const CACHE_RESOURCE_POLICIES: CacheResourcePolicy[] = [
   {
     name: 'blog',
     ttlSeconds: TEN_MINUTES_IN_SECONDS,
-    isMatch: path => path.startsWith('/api/v1/blogs'),
+    isMatch: path => path.startsWith('/api/v1/private/blogs') || path.startsWith('/api/v1/public/blogs') || path.startsWith('/api/v1/blogs') || path.startsWith('/api/v1/blog/'),
     invalidationRules: [
       {
         event: 'blog.publish_or_update_or_delete',
-        when: (path, method) => MUTATION_METHODS.has(method) && path.startsWith('/api/v1/blogs'),
-        cachePrefixes: ['/api/v1/blogs'],
+        when: (path, method) => MUTATION_METHODS.has(method) && (path.startsWith('/api/v1/private/blogs') || path.startsWith('/api/v1/private/blog/') || path.startsWith('/api/v1/blogs')),
+        cachePrefixes: ['/api/v1/private/blogs', '/api/v1/blogs'],
         publicTags: ['blog:*'],
       },
     ],
@@ -223,7 +230,7 @@ const getPublicRouteCacheSpec = (path: string, query: Record<string, any>): Publ
     }
   }
 
-  if (path === '/api/v1/blogs/general/public') {
+  if (path === '/api/v1/public/blogs/general' || path === '/api/v1/blogs/general/public') {
     const locale = getQueryLocale(query)
     const page = Number(query.page || 1)
     const { locale: _locale, lang: _lang, language: _language, page: _page, ...filters } = query
@@ -239,9 +246,13 @@ const getPublicRouteCacheSpec = (path: string, query: Record<string, any>): Publ
     }
   }
 
-  if (path.startsWith('/api/v1/blogs/application/')) {
+  if (path.startsWith('/api/v1/private/blogs/application/') || path.startsWith('/api/v1/blogs/application/') || (path.startsWith('/api/v1/blog/') && path.endsWith('/feed'))) {
     const segments = path.split('/').filter(Boolean)
-    const slug = segments[4]
+    const applicationIndex = segments.findIndex(segment => segment === 'application')
+    const blogIndex = segments.findIndex(segment => segment === 'blog')
+    const slug = applicationIndex >= 0
+      ? segments[applicationIndex + 1]
+      : (blogIndex >= 0 ? segments[blogIndex + 1] : undefined)
 
     if (!slug) {
       return null
@@ -462,7 +473,7 @@ const invalidateEvents = async () => {
 }
 
 const invalidateBlog = async () => {
-  const deletedPrivate = await clearCacheByPrefix('/api/v1/blogs')
+  const deletedPrivate = await clearCacheByPrefix('/api/v1/private/blogs')
   const deletedPublic = await clearPublicCacheByTag('blog:*')
   await recordCacheMetric('blog', 'invalidate', `blog:${deletedPrivate + deletedPublic}`)
 }
@@ -505,7 +516,7 @@ const getInvalidationCachePrefixes = (targetPath: string) => {
 }
 
 const getPublicInvalidationTags = (targetPath: string) => {
-  if (targetPath.startsWith('/api/v1/blogs/') || targetPath.startsWith('/api/v1/blog/')) {
+  if (targetPath.startsWith('/api/v1/private/blogs/') || targetPath.startsWith('/api/v1/private/blog/') || targetPath.startsWith('/api/v1/blogs/') || targetPath.startsWith('/api/v1/blog/')) {
     return ['blog:*']
   }
 

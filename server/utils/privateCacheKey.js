@@ -3,6 +3,7 @@ const PRIVATE_CACHE_ROUTE_PREFIXES = [
   '/api/v1/profile',
   '/api/v1/chat/private',
   '/api/v1/notifications',
+  '/api/v1/private/blogs',
 ]
 
 export const isPrivateCacheRoute = (path) => PRIVATE_CACHE_ROUTE_PREFIXES.some(prefix => path.startsWith(prefix))
@@ -64,8 +65,10 @@ export const getPrivateResourceIdentifier = (path) => {
     return 'profile'
   }
 
-  if (path.startsWith('/api/v1/blogs/')) {
-    const blogId = path.split('/').filter(Boolean)[3]
+  if (path.startsWith('/api/v1/private/blogs/') || path.startsWith('/api/v1/blogs/')) {
+    const segments = path.split('/').filter(Boolean)
+    const isPrivateBlogsPath = segments[2] === 'private' && segments[3] === 'blogs'
+    const blogId = isPrivateBlogsPath ? segments[4] : segments[3]
     return blogId ? `blog:${blogId}` : 'blog:list'
   }
 
