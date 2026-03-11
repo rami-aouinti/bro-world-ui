@@ -341,8 +341,32 @@ const mercureTopics = computed(() => {
   return topics
 })
 
-useMercureEventSource(mercureTopics, async () => {
-  if (isUsingDemoData.value) {
+const isConversationMessagePayload = (payload: unknown): payload is {
+  id: string
+  conversationId: string
+  senderId: string
+} => {
+  if (!payload || typeof payload !== 'object') {
+    return false
+  }
+
+  const candidate = payload as Record<string, unknown>
+  return typeof candidate.id === 'string'
+    && typeof candidate.conversationId === 'string'
+    && typeof candidate.senderId === 'string'
+}
+
+useMercureEventSource(mercureTopics, async (payload) => {
+  if (isUsingDemoData.value || !isConversationMessagePayload(payload)) {
+    return
+  }
+
+  if (payload.conversationId !== activeConversation.value?.id) {
+    await refreshInboxConversations()
+    return
+  }
+
+  if (conversationMessages.value.some(message => message.id === payload.id)) {
     return
   }
 
@@ -391,9 +415,14 @@ const sendMessage = async () => {
   try {
     isSendingMessage.value = true
 
-    await privateChatApi.addMessage(conversationId, { content })
+    const createdMessage = await privateChatApi.addMessage(conversationId, { content })
+
+    if (!conversationMessages.value.some(message => message.id === createdMessage.id)) {
+      conversationMessages.value = [...conversationMessages.value, createdMessage]
+    }
+
     draftMessage.value = ''
-    await refreshConversationData()
+    await refreshInboxConversations()
 
     await nextTick()
     scrollMessagesToBottom()
