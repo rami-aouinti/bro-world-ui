@@ -4,11 +4,12 @@ import type { ListResponse } from '~/types/api/common'
 
 export const useBlogsApi = () => {
   const { apiFetch } = useApiClient()
-  const basePath = '/api/v1/blogs'
+  const basePath = '/api/v1/private/blogs'
+  const publicBasePath = '/api/v1/public/blogs'
 
   return {
     getGeneral(isPublic = false, params?: { page?: number, limit?: number }) {
-      const endpoint = isPublic ? `${basePath}/general/public` : `${basePath}/general`
+      const endpoint = isPublic ? `${publicBasePath}/general` : `${basePath}/general`
       return apiFetch<BlogWithPagination>(endpoint, {
         method: 'GET',
         query: {
