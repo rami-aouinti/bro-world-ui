@@ -23,6 +23,7 @@ const newPostContent = ref('')
 const newPostFilePath = ref('')
 const commentDrafts = ref<Record<string, string>>({})
 const postReactionPicker = ref<Record<string, boolean>>({})
+const expandedComments = ref<Record<string, boolean>>({})
 
 const editPostDialog = ref(false)
 const deletePostDialog = ref(false)
@@ -51,6 +52,10 @@ const reactionMeta: Record<string, { icon: string, color: string, label: string 
 }
 
 const availableReactionTypes = Object.keys(reactionMeta)
+
+const currentUserPostReaction = (post: BlogRead['posts'][number]) => post.reactions?.find(reaction => reaction.isAuthor)
+
+const isCurrentUserReaction = (post: BlogRead['posts'][number], type: string) => currentUserPostReaction(post)?.type === type
 
 const postReactionSummary = (reactions: BlogReaction[] = []) => {
   const map = new Map<string, number>()
@@ -192,13 +197,23 @@ const createRootComment = async (postId: string) => {
   commentDrafts.value[postId] = ''
 }
 
-const addPostReaction = async (postId: string, type: string) => {
+const addPostReaction = async (post: BlogRead['posts'][number], type: string) => {
   if (!props.canInteract) {
     return
   }
 
-  await runAction(() => blogsStore.createPostReaction(postId, { type }))
-  postReactionPicker.value[postId] = false
+  const ownReaction = currentUserPostReaction(post)
+  if (ownReaction?.type === type) {
+    await runAction(() => blogsStore.deleteReaction(ownReaction.id))
+  }
+  else if (ownReaction) {
+    await runAction(() => blogsStore.updateReaction(ownReaction.id, { type }))
+  }
+  else {
+    await runAction(() => blogsStore.createPostReaction(post.id, { type }))
+  }
+
+  postReactionPicker.value[post.id] = false
 }
 
 const deletePostReaction = async (reactionId: string) => {
@@ -207,6 +222,21 @@ const deletePostReaction = async (reactionId: string) => {
   }
 
   await runAction(() => blogsStore.deleteReaction(reactionId))
+}
+
+const handlePostReactionButtonClick = async (post: BlogRead['posts'][number]) => {
+  const ownReaction = currentUserPostReaction(post)
+
+  if (ownReaction) {
+    await deletePostReaction(ownReaction.id)
+    return
+  }
+
+  postReactionPicker.value[post.id] = !postReactionPicker.value[post.id]
+}
+
+const toggleComments = (postId: string) => {
+  expandedComments.value[postId] = !expandedComments.value[postId]
 }
 
 const openEditPostDialog = (post: BlogRead['posts'][number]) => {
@@ -318,7 +348,7 @@ const confirmDeletePost = async () => {
                   {{ reactionMeta[type]?.icon ?? '👍' }}
                 </span>
               </div>
-              <span>{{ postReactionCount(post.reactions ?? []) }}</span>
+              <span v-if="postReactionCount(post.reactions ?? []) > 0">{{ postReactionCount(post.reactions ?? []) }}</span>
             </div>
             <span>{{ countComments(post.comments) }} commentaires</span>
           </div>
@@ -326,27 +356,39 @@ const confirmDeletePost = async () => {
           <v-divider class="mb-3" />
 
           <div class="d-flex align-center ga-2 mb-4">
-            <v-btn
-              rounded="pill"
-              size="small"
-              variant="text"
-              :disabled="!canInteract"
-              @click="postReactionPicker[post.id] = !postReactionPicker[post.id]"
-            >
-              J'aime
-            </v-btn>
-
             <v-menu
-              v-if="(post.reactions?.length ?? 0) > 0"
+              v-model="postReactionPicker[post.id]"
               open-on-hover
               location="top"
               :close-on-content-click="false"
               content-class="reaction-hover-menu"
             >
               <template #activator="{ props: menuProps }">
-                <v-btn icon="mdi-emoticon-outline" size="x-small" variant="text" v-bind="menuProps" />
+                <v-btn
+                  icon
+                  size="small"
+                  variant="text"
+                  :disabled="!canInteract"
+                  v-bind="menuProps"
+                  @click.stop.prevent="handlePostReactionButtonClick(post)"
+                >
+                  <span class="reaction-action-icon">{{ reactionMeta[currentUserPostReaction(post)?.type ?? 'like']?.icon ?? '👍' }}</span>
+                </v-btn>
               </template>
               <div class="reaction-hover-content pa-3">
+                <div class="reaction-picker mb-3">
+                  <button
+                    v-for="type in availableReactionTypes"
+                    :key="type"
+                    class="reaction-emoji"
+                    :class="{ 'reaction-emoji--active': isCurrentUserReaction(post, type) }"
+                    type="button"
+                    :title="reactionMeta[type]?.label"
+                    @click="addPostReaction(post, type)"
+                  >
+                    {{ reactionMeta[type]?.icon ?? '👍' }}
+                  </button>
+                </div>
                 <div
                   v-for="group in groupedPostReactions(post.reactions ?? [])"
                   :key="group.type"
@@ -373,19 +415,6 @@ const confirmDeletePost = async () => {
                 </div>
               </div>
             </v-menu>
-          </div>
-
-          <div v-if="postReactionPicker[post.id]" class="reaction-picker mt-n2 mb-3">
-            <button
-              v-for="type in availableReactionTypes"
-              :key="type"
-              class="reaction-emoji"
-              type="button"
-              :title="reactionMeta[type]?.label"
-              @click="addPostReaction(post.id, type)"
-            >
-              {{ reactionMeta[type]?.icon ?? '👍' }}
-            </button>
           </div>
 
           <div v-if="post.reactions?.length" class="d-flex flex-wrap ga-2 mt-2 mb-4">
@@ -419,7 +448,17 @@ const confirmDeletePost = async () => {
             </button>
           </div>
 
-          <div v-if="post.comments?.length" class="d-flex flex-column ga-4 mb-3">
+          <v-btn
+            v-if="post.comments?.length"
+            variant="text"
+            size="small"
+            class="mb-3"
+            @click="toggleComments(post.id)"
+          >
+            {{ expandedComments[post.id] ? 'Hide comments' : `Show all comments (${countComments(post.comments)})` }}
+          </v-btn>
+
+          <div v-if="post.comments?.length && expandedComments[post.id]" class="d-flex flex-column ga-4 mb-3">
             <BlogCommentItem
               v-for="comment in post.comments"
               :key="comment.id"
@@ -430,6 +469,7 @@ const confirmDeletePost = async () => {
               @edit-comment="canInteract ? runAction(() => blogsStore.updateComment($event.commentId, { content: $event.content })) : undefined"
               @delete-comment="canInteract ? runAction(() => blogsStore.deleteComment($event)) : undefined"
               @add-reaction="canInteract ? runAction(() => blogsStore.createReaction($event.commentId, { type: $event.type })) : undefined"
+              @update-reaction="canInteract ? runAction(() => blogsStore.updateReaction($event.reactionId, { type: $event.type })) : undefined"
               @delete-reaction="canInteract ? runAction(() => blogsStore.deleteReaction($event)) : undefined"
             />
           </div>
@@ -515,6 +555,15 @@ const confirmDeletePost = async () => {
 
 .reaction-emoji:hover {
   transform: translateY(-2px) scale(1.08);
+}
+
+.reaction-emoji--active {
+  transform: scale(1.2);
+}
+
+.reaction-action-icon {
+  font-size: 20px;
+  line-height: 1;
 }
 
 .reaction-hover-content {
