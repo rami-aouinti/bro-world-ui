@@ -537,6 +537,46 @@ const refreshConversationData = async () => {
   }
 }
 
+
+const applyReactionToMessageCaches = (messageId: string, reaction: { id: string, reaction: string }) => {
+  const addReactionToMessage = (message: PrivateChatMessage): PrivateChatMessage => {
+    const withoutOwn = message.reactions.filter(item => item.userId !== (authSession.profile?.id ?? ''))
+    return {
+      ...message,
+      reactions: [...withoutOwn, {
+        id: reaction.id,
+        userId: authSession.profile?.id ?? {},
+        reaction: reaction.reaction,
+      }],
+    }
+  }
+
+  conversationMessages.value = conversationMessages.value.map(message =>
+    message.id === messageId
+      ? addReactionToMessage(message)
+      : message,
+  )
+
+  if (!inboxConversationsSummary.value || !activeConversation.value?.id) {
+    return
+  }
+
+  inboxConversationsSummary.value.items = inboxConversationsSummary.value.items.map((conversation) => {
+    if (conversation.id !== activeConversation.value?.id) {
+      return conversation
+    }
+
+    return {
+      ...conversation,
+      messages: conversation.messages.map(message =>
+        message.id === messageId
+          ? addReactionToMessage(message)
+          : message,
+      ),
+    }
+  })
+}
+
 const sendMessage = async () => {
   const conversationId = activeConversation.value?.id
   const content = draftMessage.value.trim()
@@ -552,8 +592,6 @@ const sendMessage = async () => {
     conversationMessages.value = sortMessages([...conversationMessages.value, optimisticMessage])
     prependMessageToConversationCache(conversationId, optimisticMessage)
 
-    prependMessageToConversationCache(conversationId, normalizedCreatedMessage)
-
     draftMessage.value = ''
 
     await nextTick()
@@ -561,9 +599,11 @@ const sendMessage = async () => {
 
     const createdMessage = await privateChatApi.addMessage(conversationId, { content })
     const normalizedCreatedMessage = normalizeMessage({
-      ...createdMessage,
+      ...optimisticMessage,
+      ...(createdMessage as Partial<PrivateChatMessage>),
+      id: (createdMessage as Partial<PrivateChatMessage>)?.id ?? optimisticMessage.id,
       content,
-      sender: createdMessage.sender ?? getConnectedSender(),
+      sender: (createdMessage as Partial<PrivateChatMessage>)?.sender ?? getConnectedSender(),
     })
 
     conversationMessages.value = conversationMessages.value.map(message =>
@@ -611,8 +651,11 @@ const addReaction = async (messageId: string, reaction: string) => {
     return
   }
 
-  await privateChatApi.addReaction(messageId, { reaction })
-  await refreshConversationData()
+  const createdReaction = await privateChatApi.addReaction(messageId, { reaction })
+  applyReactionToMessageCaches(messageId, {
+    id: createdReaction.id,
+    reaction: createdReaction.reaction ?? reaction,
+  })
 }
 
 const openEditDialog = (message: PrivateChatMessage) => {

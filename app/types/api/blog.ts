@@ -66,4 +66,5 @@ export interface BlogWithPagination extends BlogRead {
 
 export interface BlogMutationAcceptedResponse {
   status: 'accepted'
+  id?: UUID
 }

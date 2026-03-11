@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { useAuthSessionStore } from '~/stores/authSession'
 import type { BlogComment, BlogPagination, BlogPost, BlogReaction, BlogWithPagination } from '~/types/api/blog'
+import type { UUID } from '~/types/api/common'
 import { BLOG_REACTION_FALLBACK_TYPES } from '~/constants/blogReactions'
 import { useBlogsApi } from '~/composables/api/useBlogsApi'
 
@@ -167,10 +168,10 @@ export const useBlogsStore = defineStore('blogs', () => {
     }]
   }
 
-  const addRootPostToStore = (payload: { content: string, filePath?: string | null }) => {
+  const addRootPostToStore = (payload: { content: string, filePath?: string | null }, postId?: UUID) => {
     const nowIso = new Date().toISOString()
     const newPost: BlogPost = {
-      id: postTempId(),
+      id: postId ?? postTempId(),
       authorId: authSession.profile?.id ?? postTempId(),
       isAuthor: true,
       author: currentAuthor(),
@@ -248,10 +249,10 @@ export const useBlogsStore = defineStore('blogs', () => {
     })
   }
 
-  const addCommentToStore = (postId: string, payload: { content: string, parentCommentId: string | null }) => {
+  const addCommentToStore = (postId: string, payload: { content: string, parentCommentId: string | null }, commentId?: UUID) => {
     const now = new Date().toISOString()
     const newComment: BlogComment = {
-      id: commentTempId(),
+      id: commentId ?? commentTempId(),
       authorId: authSession.profile?.id ?? commentTempId(),
       isAuthor: true,
       author: currentAuthor(),
@@ -300,21 +301,27 @@ export const useBlogsStore = defineStore('blogs', () => {
     }))
   }
 
-  const addPostReactionToStore = (postId: string, type: string) => {
+  const addPostReactionToStore = (postId: string, type: string, reactionId?: UUID) => {
     updatePostInStore(postId, post => ({
       ...post,
-      reactions: replaceOwnReaction(post.reactions ?? [], type),
+      reactions: replaceOwnReaction(post.reactions ?? [], type).map(reaction =>
+        reaction.isAuthor
+          ? { ...reaction, id: reactionId ?? reaction.id }
+          : reaction),
     }))
   }
 
-  const addCommentReactionToStore = (commentId: string, type: string) => {
+  const addCommentReactionToStore = (commentId: string, type: string, reactionId?: UUID) => {
     applyMutationToGeneralAndCache(blog => ({
       ...blog,
       posts: blog.posts.map(post => ({
         ...post,
         comments: updateCommentTree(post.comments, commentId, comment => ({
           ...comment,
-          reactions: replaceOwnReaction(comment.reactions ?? [], type),
+          reactions: replaceOwnReaction(comment.reactions ?? [], type).map(reaction =>
+            reaction.isAuthor
+              ? { ...reaction, id: reactionId ?? reaction.id }
+              : reaction),
         })),
       })),
     }))
@@ -456,7 +463,7 @@ export const useBlogsStore = defineStore('blogs', () => {
     const response = await blogsApi.createPost(blogId, payload)
 
     if (response?.status === 'accepted') {
-      addRootPostToStore(payload)
+      addRootPostToStore(payload, response.id)
     }
   }
 
@@ -479,7 +486,7 @@ export const useBlogsStore = defineStore('blogs', () => {
     const response = await blogsApi.createPostReaction(postId, payload)
 
     if (response?.status === 'accepted') {
-      addPostReactionToStore(postId, payload.type)
+      addPostReactionToStore(postId, payload.type, response.id)
     }
   }
 
@@ -487,7 +494,7 @@ export const useBlogsStore = defineStore('blogs', () => {
     const response = await blogsApi.createComment(postId, payload)
 
     if (response?.status === 'accepted') {
-      addCommentToStore(postId, payload)
+      addCommentToStore(postId, payload, response.id)
     }
   }
 
@@ -505,7 +512,7 @@ export const useBlogsStore = defineStore('blogs', () => {
     const response = await blogsApi.createReaction(commentId, payload)
 
     if (response?.status === 'accepted') {
-      addCommentReactionToStore(commentId, payload.type)
+      addCommentReactionToStore(commentId, payload.type, response.id)
     }
   }
 
