@@ -55,6 +55,33 @@ const normalizeMessage = (message: Partial<PrivateChatMessage> & { id: string })
   reactions: message.reactions ?? [],
 })
 
+const getConnectedSender = (): PrivateChatMessage['sender'] => {
+  const profile = authSession.profile
+
+  if (!profile?.id) {
+    return fallbackSender
+  }
+
+  return {
+    id: profile.id,
+    firstName: profile.firstName,
+    lastName: profile.lastName,
+    photo: profile.photo,
+    owner: true,
+  }
+}
+
+const createLocalSentMessage = (content: string): PrivateChatMessage => normalizeMessage({
+  id: `local-msg-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+  content,
+  sender: getConnectedSender(),
+  attachments: [],
+  read: true,
+  readAt: new Date().toISOString(),
+  createdAt: new Date().toISOString(),
+  reactions: [],
+})
+
 const sortMessages = (messages: PrivateChatMessage[]) => [...messages]
   .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
 
@@ -521,13 +548,9 @@ const sendMessage = async () => {
   try {
     isSendingMessage.value = true
 
-    const createdMessage = await privateChatApi.addMessage(conversationId, { content })
-
-    const normalizedCreatedMessage = normalizeMessage(createdMessage)
-
-    if (!conversationMessages.value.some(message => message.id === normalizedCreatedMessage.id)) {
-      conversationMessages.value = sortMessages([...conversationMessages.value, normalizedCreatedMessage])
-    }
+    const optimisticMessage = createLocalSentMessage(content)
+    conversationMessages.value = sortMessages([...conversationMessages.value, optimisticMessage])
+    prependMessageToConversationCache(conversationId, optimisticMessage)
 
     prependMessageToConversationCache(conversationId, normalizedCreatedMessage)
 
@@ -535,6 +558,36 @@ const sendMessage = async () => {
 
     await nextTick()
     scrollMessagesToBottom()
+
+    const createdMessage = await privateChatApi.addMessage(conversationId, { content })
+    const normalizedCreatedMessage = normalizeMessage({
+      ...createdMessage,
+      content,
+      sender: createdMessage.sender ?? getConnectedSender(),
+    })
+
+    conversationMessages.value = conversationMessages.value.map(message =>
+      message.id === optimisticMessage.id
+        ? normalizedCreatedMessage
+        : message,
+    )
+
+    if (inboxConversationsSummary.value) {
+      inboxConversationsSummary.value.items = inboxConversationsSummary.value.items.map((conversation) => {
+        if (conversation.id !== conversationId) {
+          return conversation
+        }
+
+        return {
+          ...conversation,
+          messages: conversation.messages.map(message =>
+            message.id === optimisticMessage.id
+              ? normalizedCreatedMessage
+              : message,
+          ),
+        }
+      })
+    }
   }
   finally {
     isSendingMessage.value = false
