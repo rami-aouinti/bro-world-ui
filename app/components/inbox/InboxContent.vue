@@ -861,4 +861,12 @@ const deleteMessage = async () => {
   background: rgba(var(--v-theme-surface-variant), 0.65);
   margin-left: auto;
 }
+
+:deep(.v-theme--dark .app-split-shell__left),
+:deep(.v-theme--dark .app-split-shell__right) {
+  background: transparent !important;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
 </style>
