@@ -19,7 +19,14 @@ const resolveLabel = (value?: string) => {
   return te(value) ? t(value) : value
 }
 
-const hasCalendarPlugin = computed(() => application.value?.pluginKeys?.includes('calendar') === true)
+const ALLOWED_PLUGINS = [
+  { key: 'chat', title: 'Chat', icon: 'mdi-chat-outline' },
+  { key: 'calendar', title: 'Calendar', icon: 'mdi-calendar-month-outline' },
+  { key: 'quiz', title: 'Quiz', icon: 'mdi-help-circle-outline' },
+  { key: 'blog', title: 'Blog', icon: 'mdi-post-outline' },
+] as const
+
+const ALLOWED_PLUGIN_KEYS = new Set(ALLOWED_PLUGINS.map(plugin => plugin.key))
 
 const normalizedPlatformKey = computed(() => {
   const platformFromApplication = application.value?.platformKey?.toLowerCase().trim()
@@ -32,42 +39,31 @@ const normalizedPlatformKey = computed(() => {
   return (segment ?? '').toLowerCase().trim()
 })
 
-const hasBlogPlugin = computed(() => application.value?.pluginKeys?.includes('blog') === true)
-const hasQuizPlugin = computed(() => application.value?.pluginKeys?.includes('quiz') === true)
+const pluginItems = computed<NavItem[]>(() => {
+  const normalized = normalizedPlatformKey.value
+
+  if (!slug.value || !normalized) {
+    return []
+  }
+
+  const pluginKeys = application.value?.pluginKeys ?? []
+  const presentPluginKeys = new Set(pluginKeys.filter(pluginKey => ALLOWED_PLUGIN_KEYS.has(pluginKey)))
+
+  return ALLOWED_PLUGINS
+    .filter(plugin => presentPluginKeys.has(plugin.key))
+    .map(plugin => ({
+      title: plugin.title,
+      icon: plugin.icon,
+      to: `/platform/${slug.value}/${normalized}/${plugin.key}`,
+    }))
+})
 
 const navItems = computed<NavItem[]>(() => {
-  const withoutCalendarEntries = props.items.filter(item => !item.to.endsWith('/calendar'))
-  const normalized = normalizedPlatformKey.value
-  const withPlugins = [...withoutCalendarEntries]
+  const filteredBaseItems = props.items.filter((item) => {
+    return !ALLOWED_PLUGINS.some(plugin => item.to.endsWith(`/${plugin.key}`))
+  })
 
-  if (hasBlogPlugin.value && slug.value && normalized) {
-    withPlugins.push({
-      title: 'Blog',
-      icon: 'mdi-post-outline',
-      to: `/platform/${slug.value}/${normalized}/blog`,
-    })
-  }
-
-  if (hasQuizPlugin.value && slug.value && normalized) {
-    withPlugins.push({
-      title: 'Quiz',
-      icon: 'mdi-help-circle-outline',
-      to: `/platform/${slug.value}/${normalized}/quiz`,
-    })
-  }
-
-  if (!hasCalendarPlugin.value || !slug.value) {
-    return withPlugins
-  }
-
-  return [
-    ...withPlugins,
-    {
-      title: 'Calendar',
-      icon: 'mdi-calendar-month-outline',
-      to: `/platform/${slug.value}/calendar`,
-    },
-  ]
+  return [...filteredBaseItems, ...pluginItems.value]
 })
 
 onMounted(async () => {
