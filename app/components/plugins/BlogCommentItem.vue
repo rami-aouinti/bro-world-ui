@@ -17,6 +17,7 @@ const emit = defineEmits<{
   editComment: [payload: { commentId: string, content: string }]
   deleteComment: [commentId: string]
   addReaction: [payload: { commentId: string, type: string }]
+  updateReaction: [payload: { reactionId: string, type: string }]
   deleteReaction: [reactionId: string]
 }>()
 
@@ -109,8 +110,33 @@ const addReaction = (type: string) => {
     return
   }
 
-  emit('addReaction', { commentId: props.comment.id, type })
+  const ownReaction = props.comment.reactions?.find(reaction => reaction.isAuthor)
+  if (ownReaction?.type === type) {
+    emit('deleteReaction', ownReaction.id)
+  }
+  else if (ownReaction) {
+    emit('updateReaction', { reactionId: ownReaction.id, type })
+  }
+  else {
+    emit('addReaction', { commentId: props.comment.id, type })
+  }
+
   showReactionPicker.value = false
+}
+
+const ownReaction = computed(() => props.comment.reactions?.find(reaction => reaction.isAuthor))
+
+const onReactionActionClick = () => {
+  if (!props.canInteract) {
+    return
+  }
+
+  if (ownReaction.value) {
+    emit('deleteReaction', ownReaction.value.id)
+    return
+  }
+
+  showReactionPicker.value = !showReactionPicker.value
 }
 
 const formatRelativeTime = (dateInput?: string | null) => {
@@ -199,20 +225,40 @@ const formatRelativeTime = (dateInput?: string | null) => {
         </div>
 
         <div class="d-flex align-center flex-wrap ga-2 mt-2 action-row">
-          <v-btn rounded="pill" size="small" variant="text" :disabled="!canInteract" @click="canInteract ? showReactionPicker = !showReactionPicker : undefined">J'aime</v-btn>
-          <v-btn rounded="pill" size="small" variant="text" :disabled="!canInteract" @click="canInteract ? isReplying = !isReplying : undefined">Répondre</v-btn>
-
           <v-menu
-            v-if="comment.reactions?.length"
+            v-model="showReactionPicker"
             open-on-hover
             location="top"
             :close-on-content-click="false"
             content-class="reaction-hover-menu"
           >
             <template #activator="{ props: menuProps }">
-              <v-btn icon="mdi-emoticon-outline" size="x-small" variant="text" v-bind="menuProps" />
+              <v-btn
+                icon
+                size="small"
+                variant="text"
+                :disabled="!canInteract"
+                :title="ownReaction ? 'Supprimer ma réaction' : 'Réagir'"
+                v-bind="menuProps"
+                @click.stop.prevent="onReactionActionClick"
+              >
+                <span class="reaction-action-icon">{{ reactionMeta[ownReaction?.type ?? 'like']?.icon ?? '👍' }}</span>
+              </v-btn>
             </template>
             <div class="reaction-hover-content pa-3">
+              <div class="reaction-picker mb-3">
+                <button
+                  v-for="type in availableReactionTypes"
+                  :key="type"
+                  class="reaction-emoji"
+                  :class="{ 'reaction-emoji--active': ownReaction?.type === type }"
+                  type="button"
+                  :title="reactionMeta[type]?.label"
+                  @click="addReaction(type)"
+                >
+                  {{ reactionMeta[type]?.icon ?? '👍' }}
+                </button>
+              </div>
               <div
                 v-for="group in groupedReactions"
                 :key="group.type"
@@ -246,19 +292,7 @@ const formatRelativeTime = (dateInput?: string | null) => {
               </div>
             </div>
           </v-menu>
-        </div>
-
-        <div v-if="showReactionPicker" class="reaction-picker mt-2">
-          <button
-            v-for="type in availableReactionTypes"
-            :key="type"
-            class="reaction-emoji"
-            type="button"
-            :title="reactionMeta[type]?.label"
-            @click="addReaction(type)"
-          >
-            {{ reactionMeta[type]?.icon ?? '👍' }}
-          </button>
+          <v-btn icon="mdi-reply-outline" size="small" variant="text" :disabled="!canInteract" title="Répondre" @click="canInteract ? isReplying = !isReplying : undefined" />
         </div>
 
         <div v-if="comment.reactions?.length" class="d-flex flex-wrap ga-2 mt-2">
@@ -312,6 +346,7 @@ const formatRelativeTime = (dateInput?: string | null) => {
         @edit-comment="emit('editComment', $event)"
         @delete-comment="emit('deleteComment', $event)"
         @add-reaction="emit('addReaction', $event)"
+        @update-reaction="emit('updateReaction', $event)"
         @delete-reaction="emit('deleteReaction', $event)"
       />
     </div>
@@ -385,6 +420,15 @@ const formatRelativeTime = (dateInput?: string | null) => {
 
 .reaction-emoji:hover {
   transform: translateY(-2px) scale(1.08);
+}
+
+.reaction-emoji--active {
+  transform: scale(1.2);
+}
+
+.reaction-action-icon {
+  font-size: 20px;
+  line-height: 1;
 }
 
 .reaction-hover-content {

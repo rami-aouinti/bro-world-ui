@@ -23,6 +23,7 @@ const newPostContent = ref('')
 const newPostFilePath = ref('')
 const commentDrafts = ref<Record<string, string>>({})
 const postReactionPicker = ref<Record<string, boolean>>({})
+const expandedComments = ref<Record<string, boolean>>({})
 
 const editPostDialog = ref(false)
 const deletePostDialog = ref(false)
@@ -55,11 +56,6 @@ const availableReactionTypes = Object.keys(reactionMeta)
 const currentUserPostReaction = (post: BlogRead['posts'][number]) => post.reactions?.find(reaction => reaction.isAuthor)
 
 const isCurrentUserReaction = (post: BlogRead['posts'][number], type: string) => currentUserPostReaction(post)?.type === type
-
-const reactionButtonLabel = (post: BlogRead['posts'][number]) => {
-  const ownReaction = currentUserPostReaction(post)
-  return ownReaction ? (reactionMeta[ownReaction.type]?.label ?? ownReaction.type) : 'Réagir'
-}
 
 const postReactionSummary = (reactions: BlogReaction[] = []) => {
   const map = new Map<string, number>()
@@ -239,6 +235,10 @@ const handlePostReactionButtonClick = async (post: BlogRead['posts'][number]) =>
   postReactionPicker.value[post.id] = !postReactionPicker.value[post.id]
 }
 
+const toggleComments = (postId: string) => {
+  expandedComments.value[postId] = !expandedComments.value[postId]
+}
+
 const openEditPostDialog = (post: BlogRead['posts'][number]) => {
   activePost.value = post
   editPostContent.value = post.content
@@ -365,17 +365,14 @@ const confirmDeletePost = async () => {
             >
               <template #activator="{ props: menuProps }">
                 <v-btn
-                  rounded="pill"
+                  icon
                   size="small"
                   variant="text"
                   :disabled="!canInteract"
                   v-bind="menuProps"
                   @click.stop.prevent="handlePostReactionButtonClick(post)"
                 >
-                  <span class="d-inline-flex align-center ga-2">
-                    <span>{{ reactionMeta[currentUserPostReaction(post)?.type ?? 'like']?.icon ?? '👍' }}</span>
-                    <span>{{ reactionButtonLabel(post) }}</span>
-                  </span>
+                  <span class="reaction-action-icon">{{ reactionMeta[currentUserPostReaction(post)?.type ?? 'like']?.icon ?? '👍' }}</span>
                 </v-btn>
               </template>
               <div class="reaction-hover-content pa-3">
@@ -451,7 +448,17 @@ const confirmDeletePost = async () => {
             </button>
           </div>
 
-          <div v-if="post.comments?.length" class="d-flex flex-column ga-4 mb-3">
+          <v-btn
+            v-if="post.comments?.length"
+            variant="text"
+            size="small"
+            class="mb-3"
+            @click="toggleComments(post.id)"
+          >
+            {{ expandedComments[post.id] ? 'Hide comments' : `Show all comments (${countComments(post.comments)})` }}
+          </v-btn>
+
+          <div v-if="post.comments?.length && expandedComments[post.id]" class="d-flex flex-column ga-4 mb-3">
             <BlogCommentItem
               v-for="comment in post.comments"
               :key="comment.id"
@@ -462,6 +469,7 @@ const confirmDeletePost = async () => {
               @edit-comment="canInteract ? runAction(() => blogsStore.updateComment($event.commentId, { content: $event.content })) : undefined"
               @delete-comment="canInteract ? runAction(() => blogsStore.deleteComment($event)) : undefined"
               @add-reaction="canInteract ? runAction(() => blogsStore.createReaction($event.commentId, { type: $event.type })) : undefined"
+              @update-reaction="canInteract ? runAction(() => blogsStore.updateReaction($event.reactionId, { type: $event.type })) : undefined"
               @delete-reaction="canInteract ? runAction(() => blogsStore.deleteReaction($event)) : undefined"
             />
           </div>
@@ -551,6 +559,11 @@ const confirmDeletePost = async () => {
 
 .reaction-emoji--active {
   transform: scale(1.2);
+}
+
+.reaction-action-icon {
+  font-size: 20px;
+  line-height: 1;
 }
 
 .reaction-hover-content {
