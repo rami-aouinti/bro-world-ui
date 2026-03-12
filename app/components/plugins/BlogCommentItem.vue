@@ -350,9 +350,32 @@ const formatRelativeTime = (dateInput?: string | null) => {
           />
         </div>
 
-        <div v-if="isReplying" class="mt-3 d-flex ga-2 align-center">
-          <v-text-field v-model="replyContent" density="compact" hide-details variant="solo-filled" placeholder="Écrire une réponse..." :disabled="!canInteract" />
-          <v-btn color="primary" variant="flat" :disabled="!canInteract" @click="submitReply">Publier</v-btn>
+        <div v-if="isReplying" class="mt-3 comment-reply-composer">
+          <div class="comment-reply-composer-panel">
+            <v-text-field
+              v-model="replyContent"
+              density="comfortable"
+              variant="plain"
+              hide-details
+              single-line
+              class="comment-reply-composer-input"
+              placeholder="Écrire une réponse..."
+              :disabled="!canInteract"
+              @keydown.enter.prevent="submitReply"
+            />
+            <div class="comment-reply-composer-actions">
+              <v-spacer />
+              <v-btn
+                icon="mdi-send"
+                size="small"
+                variant="text"
+                color="primary"
+                :disabled="!canInteract || !replyContent.trim()"
+                title="Envoyer"
+                @click="submitReply"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -475,6 +498,38 @@ const formatRelativeTime = (dateInput?: string | null) => {
   backdrop-filter: blur(8px);
   background: rgba(22, 22, 24, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.comment-reply-composer {
+  padding-top: 4px;
+}
+
+.comment-reply-composer-panel {
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 6px 12px 8px;
+}
+
+.comment-reply-composer-input :deep(.v-field) {
+  box-shadow: none;
+  background: transparent;
+}
+
+.comment-reply-composer-input :deep(.v-field__input) {
+  min-height: 32px;
+  padding-top: 2px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.comment-reply-composer-actions {
+  display: flex;
+  align-items: center;
+  min-height: 34px;
+}
+
+.comment-reply-composer-actions :deep(.v-btn) {
+  border-radius: 50%;
 }
 
 </style>
