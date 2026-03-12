@@ -17,32 +17,45 @@ export type RecruitResume = {
 }
 
 const CACHE_TTL_MS = 60_000
+const DEFAULT_CACHE_KEY = '__default__'
 
 export const useRecruitResumesStore = defineStore('recruit-resumes', () => {
   const { apiFetch } = useApiClient()
 
-  const cache = useState<{ items: RecruitResume[], cachedAt: number } | null>('recruit-my-resumes-cache', () => null)
+  const cache = useState<Record<string, { items: RecruitResume[], cachedAt: number }>>('recruit-my-resumes-cache', () => ({}))
 
   const items = ref<RecruitResume[]>([])
   const isLoading = ref(false)
 
-  const fetchMine = async (options?: { force?: boolean }) => {
-    const now = Date.now()
+  const resolveScope = (applicationSlug?: string) => applicationSlug?.trim() || DEFAULT_CACHE_KEY
 
-    if (!options?.force && cache.value && now - cache.value.cachedAt < CACHE_TTL_MS) {
-      items.value = cache.value.items
+  const resolveBasePath = (applicationSlug?: string) => applicationSlug?.trim()
+    ? `/api/v1/recruit/applications/${applicationSlug}/private/me/resumes`
+    : '/api/v1/recruit/private/me/resumes'
+
+  const resolveCreatePath = (applicationSlug?: string) => applicationSlug?.trim()
+    ? `/api/v1/recruit/applications/${applicationSlug}/resumes`
+    : '/api/v1/recruit/resumes'
+
+  const fetchMine = async (options?: { force?: boolean, applicationSlug?: string }) => {
+    const now = Date.now()
+    const scope = resolveScope(options?.applicationSlug)
+    const cacheEntry = cache.value[scope]
+
+    if (!options?.force && cacheEntry && now - cacheEntry.cachedAt < CACHE_TTL_MS) {
+      items.value = cacheEntry.items
       return items.value
     }
 
     isLoading.value = true
 
     try {
-      const response = await apiFetch<RecruitResume[]>('/api/v1/recruit/private/me/resumes', {
+      const response = await apiFetch<RecruitResume[]>(resolveBasePath(options?.applicationSlug), {
         method: 'GET',
       })
 
       items.value = response
-      cache.value = {
+      cache.value[scope] = {
         items: response,
         cachedAt: now,
       }
@@ -54,18 +67,18 @@ export const useRecruitResumesStore = defineStore('recruit-resumes', () => {
     }
   }
 
-  const create = async (payload: { experiences: RecruitResumePayloadEntry[], skills: RecruitResumePayloadEntry[] }) => {
-    const created = await apiFetch<Pick<RecruitResume, 'id'>>('/api/v1/recruit/resumes', {
+  const create = async (payload: { experiences: RecruitResumePayloadEntry[], skills: RecruitResumePayloadEntry[] }, applicationSlug?: string) => {
+    const created = await apiFetch<Pick<RecruitResume, 'id'>>(resolveCreatePath(applicationSlug), {
       method: 'POST',
       body: payload,
     })
 
-    await fetchMine({ force: true })
+    await fetchMine({ force: true, applicationSlug })
     return created
   }
 
 
-  const createFromDocument = async (document: File) => {
+  const createFromDocument = async (document: File, applicationSlug?: string) => {
     const formData = new FormData()
     formData.append('experiences', '[]')
     formData.append('skills', '[]')
@@ -77,31 +90,33 @@ export const useRecruitResumesStore = defineStore('recruit-resumes', () => {
     formData.append('hobbies', '[]')
     formData.append('document', document)
 
-    const created = await apiFetch<Pick<RecruitResume, 'id'>>('/api/v1/recruit/resumes', {
+    const created = await apiFetch<Pick<RecruitResume, 'id'>>(resolveCreatePath(applicationSlug), {
       method: 'POST',
       body: formData,
     })
 
-    await fetchMine({ force: true })
+    await fetchMine({ force: true, applicationSlug })
     return created
   }
 
-  const update = async (id: string, payload: { experiences: RecruitResumePayloadEntry[], skills: RecruitResumePayloadEntry[] }) => {
-    await apiFetch(`/api/v1/recruit/private/me/resumes/${id}`, {
+  const update = async (id: string, payload: { experiences: RecruitResumePayloadEntry[], skills: RecruitResumePayloadEntry[] }, applicationSlug?: string) => {
+    await apiFetch(`${resolveBasePath(applicationSlug)}/${id}`, {
       method: 'PATCH',
       body: payload,
     })
 
-    await fetchMine({ force: true })
+    await fetchMine({ force: true, applicationSlug })
   }
 
-  const remove = async (id: string) => {
-    await apiFetch(`/api/v1/recruit/private/me/resumes/${id}`, {
+  const remove = async (id: string, applicationSlug?: string) => {
+    const scope = resolveScope(applicationSlug)
+
+    await apiFetch(`${resolveBasePath(applicationSlug)}/${id}`, {
       method: 'DELETE',
     })
 
     items.value = items.value.filter(item => item.id !== id)
-    cache.value = {
+    cache.value[scope] = {
       items: items.value,
       cachedAt: Date.now(),
     }

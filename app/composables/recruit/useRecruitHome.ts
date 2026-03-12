@@ -237,7 +237,7 @@ export const useRecruitHome = () => {
       coverLetter: '',
     }
 
-    await resumesStore.fetchMine()
+    await resumesStore.fetchMine({ applicationSlug: applicationSlug.value })
     selectedResumeId.value = resumesStore.items[0]?.id ?? ''
     resumeMode.value = selectedResumeId.value ? 'existing' : 'new'
     uploadedResumeFile.value = null
@@ -494,12 +494,12 @@ export const useRecruitHome = () => {
                 description: resumeForm.value.skillDescription.trim(),
               }]
             : [],
-        })
+        }, applicationSlug.value)
         resumeId = resumeResponse.id
       }
 
       if (resumeMode.value === 'pdf' && uploadedResumeFile.value) {
-        const resumeResponse = await resumesStore.createFromDocument(uploadedResumeFile.value)
+        const resumeResponse = await resumesStore.createFromDocument(uploadedResumeFile.value, applicationSlug.value)
         resumeId = resumeResponse.id
       }
 
@@ -549,7 +549,7 @@ export const useRecruitHome = () => {
           title: item.title.trim(),
           description: item.description.trim(),
         })),
-      })
+      }, applicationSlug.value)
     } catch {
       applyError.value = 'La mise à jour du CV a échoué.'
     } finally {
@@ -566,7 +566,7 @@ export const useRecruitHome = () => {
     applyError.value = ''
 
     try {
-      await resumesStore.remove(selectedResume.value.id)
+      await resumesStore.remove(selectedResume.value.id, applicationSlug.value)
       selectedResumeId.value = resumesStore.items[0]?.id ?? ''
       if (!selectedResumeId.value) {
         resumeMode.value = 'new'
