@@ -66,7 +66,7 @@ export const useBlogsApi = () => {
         body: payload,
       })
     },
-    createComment(postId: string, payload: { content: string, parentCommentId: string | null }) {
+    createComment(postId: string, payload: { content: string, parentCommentId: string | null, filePath?: string | null }) {
       return apiFetch<BlogMutationAcceptedResponse>(`/api/v1/private/blog/posts/${postId}/comments`, {
         method: 'POST',
         body: payload,

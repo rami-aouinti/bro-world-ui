@@ -44,6 +44,25 @@ const reactionAuthorProfilePath = (username?: string) => {
 
 const commentRelativeDate = computed(() => formatRelativeTime(props.comment.createdAt))
 
+
+const normalizeAttachmentUrl = (filePath?: string | null) => {
+  if (!filePath) {
+    return ''
+  }
+
+  return filePath.trim()
+}
+
+const isImageAttachment = (filePath?: string | null) => {
+  const normalized = normalizeAttachmentUrl(filePath)
+  return Boolean(normalized && /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i.test(normalized))
+}
+
+const isVideoAttachment = (filePath?: string | null) => {
+  const normalized = normalizeAttachmentUrl(filePath)
+  return Boolean(normalized && /\.(mp4|webm|mov|m4v|avi|mkv)(\?.*)?$/i.test(normalized))
+}
+
 const groupedReactions = computed(() => {
   const grouped = new Map<string, BlogReaction[]>()
   for (const reaction of props.comment.reactions ?? []) {
@@ -224,6 +243,21 @@ const formatRelativeTime = (dateInput?: string | null) => {
             </div>
           </div>
           <div class="text-body-2 mt-1">{{ comment.content }}</div>
+          <div v-if="comment.filePath" class="mt-2">
+            <img
+              v-if="isImageAttachment(comment.filePath)"
+              :src="comment.filePath"
+              alt="Pièce jointe du commentaire"
+              class="comment-attachment-image"
+            >
+            <video
+              v-else-if="isVideoAttachment(comment.filePath)"
+              :src="comment.filePath"
+              controls
+              class="comment-attachment-image"
+            />
+            <a v-else :href="comment.filePath" target="_blank" rel="noopener" class="text-primary text-decoration-underline">Voir la pièce jointe</a>
+          </div>
         </div>
 
         <div class="d-flex align-center justify-space-between text-medium-emphasis text-body-2 mt-2 action-row">
