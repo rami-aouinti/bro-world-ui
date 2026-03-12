@@ -9,7 +9,7 @@ const selectedAnswers = ref<Record<string, string>>({})
 const isSubmitted = ref(false)
 
 const questionList = computed(() => {
-  if (!props.quiz.configuration.shuffleQuestions) {
+  if (!props.quiz.configuration?.shuffleQuestions) {
     return props.quiz.questions
   }
 
@@ -28,7 +28,7 @@ const score = computed(() => questionList.value.reduce((points, question) => {
   <v-card rounded="xl" variant="tonal" class="mb-6">
     <v-card-text>
       <h1 class="text-h5 font-weight-bold mb-2">Quiz</h1>
-      <p class="text-body-2 text-medium-emphasis mb-2">{{ quiz.questions.length }} questions · Timer: {{ quiz.configuration.timerSec }}s</p>
+      <p class="text-body-2 text-medium-emphasis mb-2">{{ quiz.questions.length }} questions · Timer: {{ quiz.configuration?.timerSec ?? 'N/A' }}s</p>
       <p class="text-body-2 mb-0">{{ answeredCount }} / {{ quiz.questions.length }} réponses sélectionnées</p>
     </v-card-text>
   </v-card>
