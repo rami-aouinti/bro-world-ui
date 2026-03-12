@@ -21,6 +21,7 @@ const editDialog = ref(false);
 const deleteDialog = ref(false);
 const submitting = ref(false);
 const search = ref("");
+const loading = ref(true);
 const selectedPlatformKey = ref("");
 const selectedApp = ref<(typeof applicationsStore.items.value)[number] | null>(
   null,
@@ -128,17 +129,13 @@ const { pending: applicationsPending, execute: loadApplications } = useAsyncData
   },
 );
 
-onMounted(() => {
-  loading.value = true;
-  void loadApplications();
-  loading.value = false;
-});
-
-const loading = computed(
-  () => applicationsPending.value || applicationsStore.isLoading,
-);
+onMounted(async () => {
+  await loadApplications()
+  await nextTick()
+  loading.value = false
+})
 const isEmpty = computed(
-  () => !loading.value && applicationsStore.items.length === 0,
+  () => applicationsStore.items.length === 0,
 );
 
 const goToNewPlatform = () => {
@@ -148,18 +145,6 @@ const goToNewPlatform = () => {
   }
 
   router.push("/login");
-};
-
-const formatDate = (value?: string) => {
-  if (!value) {
-    return "";
-  }
-
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "2-digit",
-  }).format(new Date(value));
 };
 
 const appHomePath = (
@@ -200,6 +185,7 @@ const authorProfilePath = (
 };
 
 const applyFilters = async () => {
+  loading.value = true;
   applicationsStore.setPage(1);
   await applicationsStore.fetch({
     page: 1,
@@ -209,21 +195,27 @@ const applyFilters = async () => {
       platformKey: selectedPlatformKey.value,
     },
   });
+  loading.value = false;
 };
 
 const clearFilters = async () => {
+  loading.value = true;
   search.value = "";
   selectedPlatformKey.value = "";
   await applyFilters();
+  loading.value = false;
 };
 
 const togglePlatformKey = async (platformKey: string) => {
+  loading.value = true;
   selectedPlatformKey.value =
     selectedPlatformKey.value === platformKey ? "" : platformKey;
   await applyFilters();
+  loading.value = false;
 };
 
 const onPageChange = async (page: number) => {
+  loading.value = true;
   applicationsStore.setPage(page);
   await applicationsStore.fetch({
     page,
@@ -233,6 +225,7 @@ const onPageChange = async (page: number) => {
       platformKey: selectedPlatformKey.value,
     },
   });
+  loading.value = false;
 };
 
 const openEditModal = (
@@ -368,23 +361,16 @@ const getCardInsights = (
     </template>
 
     <section>
-      <UiSkeletonCardGrid v-if="loading" class="platform-page__state" />
-      <UiEmptyState
-          v-else-if="isEmpty"
-          :title="t('platform.title')"
-          :description="t('platform.filters.clear')"
-          icon="mdi-earth-off"
-          class="platform-page__state"
-      >
-        <template #action>
-          <v-btn color="primary" rounded="pill" @click="goToNewPlatform">
-            {{ t("platform.newPlatform.worldTitle") }}
-          </v-btn>
-        </template>
-      </UiEmptyState>
-      <div v-else class="platform-page__content">
-        <v-row class="mt-12">
-          <v-col cols="12" md="6" lg="4">
+      <UiSkeletonCardGrid :cards="6" :columns="4"  v-if="loading" />
+      <div v-else>
+        <UiEmptyState
+            v-if="isEmpty"
+            :title="t('platform.title')"
+            :description="t('platform.filters.clear')"
+            icon="mdi-earth-off"
+            class="platform-page__state"
+        >
+          <template #action>
             <v-card
                 @click="goToNewPlatform"
                 class="platform-page__application-card"
@@ -398,77 +384,96 @@ const getCardInsights = (
                 </div>
               </v-card-text>
             </v-card>
-          </v-col>
-          <v-col cols="12" md="6" lg="4" v-for="card in applicationsStore.items" :key="card.id">
-            <v-card
-                class="platform-page__application-card"
-                rounded="xl"
-                elevation="8"
-            >
-              <v-toolbar color="transparent">
-                <template v-slot:prepend>
-                  <v-img rounded="xl" :src="card.photo" cover color="primary" :alt="card.title" height="40" width="40" />
-                </template>
-                <NuxtLink :to="appHomePath(card)" class="platform-page__row-main-link">
-                  <v-toolbar-title class="mt-4 mx-auto">
-                    <p class="platform-page__row-title">{{ card.title }}</p>
-                  </v-toolbar-title>
-                </NuxtLink>
+          </template>
+        </UiEmptyState>
+        <div v-else class="platform-page__content">
+          <v-row class="mt-12">
+            <v-col cols="12" md="6" lg="4">
+              <v-card
+                  @click="goToNewPlatform"
+                  class="platform-page__application-card"
+                  rounded="xl"
+                  elevation="8"
+              >
+                <v-card-text>
+                  <div class="d-flex flex-column align-center">
+                    <v-icon icon="mdi-earth" size="64" class="mx-auto" color="primary" />
+                    <h2> {{ t("platform.newPlatform.worldTitle") }} </h2>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+            <v-col cols="12" md="6" lg="4" v-for="card in applicationsStore.items" :key="card.id">
+              <v-card
+                  class="platform-page__application-card"
+                  rounded="xl"
+                  elevation="8"
+              >
+                <v-toolbar color="transparent">
+                  <template v-slot:prepend>
+                    <v-img rounded="xl" :src="card.photo" cover color="primary" :alt="card.title" height="40" width="40" />
+                  </template>
+                  <NuxtLink :to="appHomePath(card)" class="platform-page__row-main-link">
+                    <v-toolbar-title class="mt-4 mx-auto">
+                      <p class="platform-page__row-title">{{ card.title }}</p>
+                    </v-toolbar-title>
+                  </NuxtLink>
 
-                <template v-slot:append>
-                  <v-menu v-if="card.isOwner" location="bottom end">
-                    <template #activator="{ props }">
-                      <v-btn icon="mdi-dots-vertical" variant="text" density="compact" v-bind="props" />
-                    </template>
-                    <v-list density="compact">
-                      <v-list-item :title="t('platform.actions.edit')" @click="openEditModal(card)" />
-                      <v-list-item :title="t('platform.actions.delete')" @click="openDeleteModal(card)" />
-                    </v-list>
-                  </v-menu>
-                </template>
-              </v-toolbar>
+                  <template v-slot:append>
+                    <v-menu v-if="card.isOwner" location="bottom end">
+                      <template #activator="{ props }">
+                        <v-btn icon="mdi-dots-vertical" variant="text" density="compact" v-bind="props" />
+                      </template>
+                      <v-list density="compact">
+                        <v-list-item :title="t('platform.actions.edit')" @click="openEditModal(card)" />
+                        <v-list-item :title="t('platform.actions.delete')" @click="openDeleteModal(card)" />
+                      </v-list>
+                    </v-menu>
+                  </template>
+                </v-toolbar>
 
-              <div class="platform-page__card-header">
-                <NuxtLink :to="appHomePath(card)" class="platform-page__row-main-link">
-                  <div class="platform-page__row-brand">
-                    <div class="platform-page__headline">
-                      <p class="platform-page__row-description">
-                        {{ card.description || card.platformName }}
-                      </p>
+                <div class="platform-page__card-header">
+                  <NuxtLink :to="appHomePath(card)" class="platform-page__row-main-link">
+                    <div class="platform-page__row-brand">
+                      <div class="platform-page__headline">
+                        <p class="platform-page__row-description">
+                          {{ card.description || card.platformName }}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </NuxtLink>
-              </div>
+                  </NuxtLink>
+                </div>
 
-              <v-card-actions>
-                <v-row>
-                  <div class="justify-self-start">
-                    <UserIdentity
-                        :first-name="card.author?.firstName"
-                        :last-name="card.author?.lastName"
-                        :username="authorUsername(card)"
-                        :photo="card.author?.photo"
-                        :profile-path="authorProfilePath(card)"
-                    />
-                  </div>
-                  <v-spacer></v-spacer>
-                  <div class="justify-items-end">
-                    <v-chip size="small" variant="tonal" class="text-uppercase">
-                      {{ card.platformKey }}
-                    </v-chip>
-                  </div>
-                </v-row>
-              </v-card-actions>
-            </v-card>
-          </v-col>
-        </v-row>
-        <div class="platform-pagination">
-          <v-pagination
-              :model-value="applicationsStore.pagination.page"
-              :length="applicationsStore.pagination.totalPages"
-              :total-visible="6"
-              @update:model-value="onPageChange"
-          />
+                <v-card-actions>
+                  <v-row>
+                    <div class="justify-self-start">
+                      <UserIdentity
+                          :first-name="card.author?.firstName"
+                          :last-name="card.author?.lastName"
+                          :username="authorUsername(card)"
+                          :photo="card.author?.photo"
+                          :profile-path="authorProfilePath(card)"
+                      />
+                    </div>
+                    <v-spacer></v-spacer>
+                    <div class="justify-items-end">
+                      <v-chip size="small" variant="tonal" class="text-uppercase">
+                        {{ card.platformKey }}
+                      </v-chip>
+                    </div>
+                  </v-row>
+                </v-card-actions>
+              </v-card>
+            </v-col>
+          </v-row>
+          <div class="platform-pagination">
+            <v-pagination
+                :model-value="applicationsStore.pagination.page"
+                :length="applicationsStore.pagination.totalPages"
+                :total-visible="6"
+                @update:model-value="onPageChange"
+            />
+          </div>
         </div>
       </div>
       <UiActionDialog

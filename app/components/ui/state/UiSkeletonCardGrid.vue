@@ -1,21 +1,21 @@
 <script setup lang="ts">
 interface Props {
   cards?: number
+  columns?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  cards: 6,
+  cards: 1,
+  columns: 12,
 })
 </script>
 
 <template>
   <div class="ui-skeleton-layout ui-skeleton-card-grid">
-    <div class="ui-skeleton-grid ui-skeleton-grid--cards">
-      <div
-        v-for="idx in props.cards"
-        :key="`card-grid-${idx}`"
-        class="ui-skeleton-block ui-skeleton-block--card"
-      />
-    </div>
+    <v-row>
+      <v-col v-for="idx in props.cards" :key="`card-grid-${idx}`" :cols="columns">
+        <v-skeleton-loader type="card"></v-skeleton-loader>
+      </v-col>
+    </v-row>
   </div>
 </template>
