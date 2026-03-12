@@ -4,7 +4,7 @@ import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { crmCompanies, crmProjects } from '~/data/platform-demo'
 import { getCrmNav } from '~/data/platform-nav'
 
-definePageMeta({ public: true, requiresAuth: false })
+definePageMeta({ public: false, requiresAuth: true })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const page = computed(() => route.path.split('/').pop() || 'home')

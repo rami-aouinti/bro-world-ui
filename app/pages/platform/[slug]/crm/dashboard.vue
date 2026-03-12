@@ -2,6 +2,7 @@
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
+import { useCrmStore } from '~/stores/crm'
 
 definePageMeta({ public: true, requiresAuth: false })
 

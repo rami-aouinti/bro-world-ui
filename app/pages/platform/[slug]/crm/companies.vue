@@ -2,6 +2,7 @@
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
+import { useCrmStore } from '~/stores/crm'
 
 definePageMeta({ public: true, requiresAuth: false })
 
@@ -9,7 +10,7 @@ const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const { isOwner } = usePlatformPermissions(slug)
 const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
-
+const loading = ref(true);
 const crmStore = useCrmStore()
 const errorMessage = ref('')
 
@@ -30,7 +31,11 @@ const loadCompanies = async (force = false) => {
   }
 }
 
-await loadCompanies()
+onMounted(async () => {
+  await loadCompanies()
+  await nextTick()
+  loading.value = false
+})
 </script>
 
 <template>
