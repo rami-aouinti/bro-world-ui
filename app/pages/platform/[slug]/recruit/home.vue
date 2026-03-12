@@ -13,7 +13,7 @@ definePageMeta({ public: true, requiresAuth: false })
 
 const RecruitJobEditDialog = defineAsyncComponent(() => import('~/components/platform/recruit/RecruitJobEditDialog.vue'))
 const RecruitApplyDialog = defineAsyncComponent(() => import('~/components/platform/recruit/RecruitApplyDialog.vue'))
-
+const loading = ref(true);
 const route = useRoute()
 const showAccessDenied = computed(() => route.query.accessDenied === 'admin')
 
@@ -72,10 +72,11 @@ const { t } = useI18n()
 const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
 const visibleJobsCount = computed(() => jobsData.value?.jobs?.length ?? 0)
 
-onMounted(() => {
-  void loadJobs()
+onMounted(async () => {
+  await loadJobs()
+  await nextTick()
+  loading.value = false
 })
-
 
 
 const handleEditJob = async () => {
@@ -119,7 +120,7 @@ const handleApplyToJob = async () => {
           <RecruitJobsFiltersPanel v-model="filters" :has-filters="hasFilters" @reset="resetFilters" />
         </template>
 
-        <v-skeleton-loader v-if="pending" type="article" class="mb-4" />
+        <v-skeleton-loader v-if="loading" type="article" class="mb-4" />
 
         <RecruitJobList
           :jobs="jobsData?.jobs ?? []"
