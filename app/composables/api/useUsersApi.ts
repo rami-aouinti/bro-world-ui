@@ -18,6 +18,7 @@ import type {
   UserMeRead,
   UserRead,
   UserRolesResponse,
+  UserApplication,
 } from '~/types/api/user'
 
 export const useUsersApi = () => {
@@ -28,6 +29,12 @@ export const useUsersApi = () => {
 
     getMe() {
       return apiFetch<UserMeRead>('/api/v1/users/me', { method: 'GET' })
+    },
+    listMyApplications() {
+      return apiFetch<UserApplication[]>('/api/v1/users/me/applications', { method: 'GET' })
+    },
+    listMyLatestApplications() {
+      return apiFetch<UserApplication[]>('/api/v1/users/me/applications/latest', { method: 'GET' })
     },
     async getByUsername(username: string) {
       const users = await apiFetch<UserRead[]>(basePath, {

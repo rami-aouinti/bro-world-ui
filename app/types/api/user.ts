@@ -71,6 +71,19 @@ export interface UserSession {
   current?: boolean
 }
 
+export interface UserApplication {
+  id: UUID
+  platformId: UUID
+  platformName: string
+  title: string
+  slug: string
+  description?: string
+  status: string
+  private: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
 export interface UserMeRead {
   id: UUID
   username: string

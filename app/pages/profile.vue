@@ -2,7 +2,7 @@
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { useCurrentUserStore } from '~/stores/currentUser'
 import { useFriendsStore } from '~/stores/friends'
-import type { UserFriendRead } from '~/types/api/user'
+import type { UserApplication, UserFriendRead } from '~/types/api/user'
 
 definePageMeta({
   public: false,
@@ -13,6 +13,7 @@ const currentUser = useCurrentUserStore()
 const friendsStore = useFriendsStore()
 
 const profile = ref<any>(null)
+const latestApplications = ref<UserApplication[]>([])
 const loadError = ref('')
 const actionError = ref('')
 const pendingActionKey = ref('')
@@ -95,6 +96,21 @@ const fakeActivityTimeline = [
   },
 ]
 
+const latestApplicationsCount = computed(() => latestApplications.value.length)
+
+const applicationStatusColor = (status: string) => {
+  switch (status) {
+    case 'active':
+      return 'success'
+    case 'maintenance':
+      return 'warning'
+    case 'disabled':
+      return 'error'
+    default:
+      return 'default'
+  }
+}
+
 const fakeBadges = [
   { label: 'Ambassadeur', color: 'deep-purple' },
   { label: 'Mentor actif', color: 'teal' },
@@ -108,7 +124,13 @@ const loadData = async () => {
   isLoading.value = true
   try {
     profile.value = await currentUser.fetchMe(true)
-    await friendsStore.fetchAll(true)
+    const [friendsResult, latestApplicationsResult] = await Promise.all([
+      friendsStore.fetchAll(true),
+      currentUser.fetchMyLatestApplications(),
+    ])
+
+    latestApplications.value = latestApplicationsResult
+    await friendsResult
   }
   catch (error) {
     console.error(error)
@@ -168,6 +190,7 @@ onMounted(async () => {
 
         <v-list class="pa-0 bg-transparent mb-4">
           <v-list-item class="px-0" to="/profile/blogs" prepend-icon="mdi-post-outline" title="My posts" rounded="lg" />
+          <v-list-item class="px-0" to="/profile/applications" prepend-icon="mdi-apps" title="My applications" rounded="lg" />
         </v-list>
 
         <v-divider class="mb-4" />
@@ -251,6 +274,25 @@ onMounted(async () => {
                 </template>
               </v-list-item>
             </v-list>
+          </v-card>
+        </v-col>
+
+        <v-col cols="12" md="6">
+          <v-card class="h-100 pa-5" elevation="2" rounded="xl">
+            <div class="d-flex align-center justify-space-between mb-4">
+              <h6 class="text-h6 font-weight-bold mb-0">Latest applications ({{ latestApplicationsCount }})</h6>
+              <v-btn size="small" variant="text" to="/profile/applications">See all</v-btn>
+            </div>
+            <v-list v-if="latestApplicationsCount" class="pa-0 bg-transparent">
+              <v-list-item v-for="application in latestApplications" :key="application.id" class="px-0">
+                <v-list-item-title>{{ application.title }}</v-list-item-title>
+                <v-list-item-subtitle>{{ application.platformName }} • {{ application.slug }}</v-list-item-subtitle>
+                <template #append>
+                  <v-chip size="small" :color="applicationStatusColor(application.status)" variant="tonal">{{ application.status }}</v-chip>
+                </template>
+              </v-list-item>
+            </v-list>
+            <p v-else class="text-body-2 text-medium-emphasis mb-0">No applications yet.</p>
           </v-card>
         </v-col>
 

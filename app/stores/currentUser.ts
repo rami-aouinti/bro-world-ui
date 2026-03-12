@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { useUsersApi } from '~/composables/api/useUsersApi'
-import type { UserMeRead, UserMePasswordPayload, UserMeProfilePayload } from '~/types/api/user'
+import type { UserApplication, UserMeRead, UserMePasswordPayload, UserMeProfilePayload } from '~/types/api/user'
 
 export const useCurrentUserStore = defineStore('current-user', () => {
   const api = useUsersApi()
@@ -26,6 +26,15 @@ export const useCurrentUserStore = defineStore('current-user', () => {
     finally {
       loading.value = false
     }
+  }
+
+
+  const fetchMyApplications = async (): Promise<UserApplication[]> => {
+    return api.listMyApplications()
+  }
+
+  const fetchMyLatestApplications = async (): Promise<UserApplication[]> => {
+    return api.listMyLatestApplications()
   }
 
   const updateProfile = async (payload: UserMeProfilePayload) => {
@@ -63,6 +72,8 @@ export const useCurrentUserStore = defineStore('current-user', () => {
     initialized,
     displayName,
     fetchMe,
+    fetchMyApplications,
+    fetchMyLatestApplications,
     updateProfile,
     updatePassword,
     deleteAccount,
