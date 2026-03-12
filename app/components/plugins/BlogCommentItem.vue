@@ -78,6 +78,14 @@ const groupedReactions = computed(() => {
   }))
 })
 
+const reactionSummary = computed(() => {
+  return groupedReactions.value
+    .map(group => [group.type, group.reactions.length] as const)
+    .sort(([, countA], [, countB]) => countB - countA)
+})
+
+const reactionCount = computed(() => props.comment.reactions?.length ?? 0)
+
 const isReplying = ref(false)
 const replyContent = ref('')
 const showReactionPicker = ref(false)
@@ -252,106 +260,94 @@ const formatRelativeTime = (dateInput?: string | null) => {
           </div>
         </div>
 
-        <div class="d-flex align-center flex-wrap ga-2 mt-2 action-row">
-          <v-menu
-            v-model="showReactionPicker"
-            open-on-hover
-            location="top"
-            :close-on-content-click="false"
-            content-class="reaction-hover-menu"
-          >
-            <template #activator="{ props: menuProps }">
-              <v-btn
-                icon
-                size="small"
-                variant="text"
-                :disabled="!canInteract"
-                :title="ownReaction ? 'Supprimer ma réaction' : 'Réagir'"
-                v-bind="menuProps"
-                @click.stop.prevent="onReactionActionClick"
+        <div class="d-flex align-center justify-space-between text-medium-emphasis text-body-2 mt-2 action-row">
+          <div class="d-flex align-center ga-2">
+            <div class="d-flex align-center ga-1">
+              <span
+                v-for="[type] in reactionSummary"
+                :key="type"
+                class="reaction-badge reaction-badge--stacked"
+                :style="{ backgroundColor: reactionMeta[type]?.color ?? '#5f6368' }"
               >
-                <span class="reaction-action-icon">{{ reactionMeta[ownReaction?.type ?? 'like']?.icon ?? '👍' }}</span>
-              </v-btn>
-            </template>
-            <div class="reaction-hover-content pa-3">
-              <div class="reaction-picker mb-3">
-                <button
-                  v-for="type in availableReactionTypes"
-                  :key="type"
-                  class="reaction-emoji"
-                  :class="{ 'reaction-emoji--active': ownReaction?.type === type }"
+                {{ reactionMeta[type]?.icon ?? '👍' }}
+              </span>
+            </div>
+            <span v-if="reactionCount > 0">{{ reactionCount }}</span>
+            <v-menu
+              v-model="showReactionPicker"
+              open-on-hover
+              location="top"
+              :close-on-content-click="false"
+              content-class="reaction-hover-menu"
+            >
+              <template #activator="{ props: menuProps }">
+                <v-btn
+                  variant="text"
                   type="button"
-                  :title="reactionMeta[type]?.label"
-                  @click="addReaction(type)"
+                  :disabled="!canInteract"
+                  :title="ownReaction ? 'Supprimer ma réaction' : 'Réagir'"
+                  v-bind="menuProps"
+                  @click.stop.prevent="onReactionActionClick"
                 >
-                  {{ reactionMeta[type]?.icon ?? '👍' }}
-                </button>
-              </div>
-              <div
-                v-for="group in groupedReactions"
-                :key="group.type"
-                class="d-flex align-center justify-space-between ga-3 mb-2"
-              >
-                <div class="d-flex align-center ga-2">
-                  <span class="text-body-2">{{ reactionMeta[group.type]?.icon ?? '👍' }}</span>
-                  <span class="text-caption text-medium-emphasis">{{ reactionMeta[group.type]?.label ?? group.type }}</span>
+                  <span class="reaction-action-icon">{{ reactionMeta[ownReaction?.type ?? 'like']?.icon ?? '👍' }}</span>
+                </v-btn>
+              </template>
+              <div class="reaction-hover-content pa-3">
+                <div class="reaction-picker mb-3">
+                  <button
+                    v-for="type in availableReactionTypes"
+                    :key="type"
+                    class="reaction-emoji"
+                    :class="{ 'reaction-emoji--active': ownReaction?.type === type }"
+                    type="button"
+                    :title="reactionMeta[type]?.label"
+                    @click="addReaction(type)"
+                  >
+                    {{ reactionMeta[type]?.icon ?? '👍' }}
+                  </button>
                 </div>
-                <div class="d-flex align-center ga-1 flex-wrap justify-end">
-                  <template v-for="reaction in group.reactions" :key="reaction.id">
-                    <NuxtLink
-                      v-if="reactionAuthorProfilePath(reaction.author?.username)"
-                      :to="reactionAuthorProfilePath(reaction.author?.username)"
-                      class="avatar-link"
-                    >
+                <div
+                  v-for="group in groupedReactions"
+                  :key="group.type"
+                  class="d-flex align-center justify-space-between ga-3 mb-2"
+                >
+                  <div class="d-flex align-center ga-2">
+                    <span class="text-body-2">{{ reactionMeta[group.type]?.icon ?? '👍' }}</span>
+                    <span class="text-caption text-medium-emphasis">{{ reactionMeta[group.type]?.label ?? group.type }}</span>
+                  </div>
+                  <div class="d-flex align-center ga-1 flex-wrap justify-end">
+                    <template v-for="reaction in group.reactions" :key="reaction.id">
+                      <NuxtLink
+                        v-if="reactionAuthorProfilePath(reaction.author?.username)"
+                        :to="reactionAuthorProfilePath(reaction.author?.username)"
+                        class="avatar-link"
+                      >
+                        <UiAvatar
+                          :src="reaction.author?.photo ?? undefined"
+                          :name="`${reaction.author?.firstName ?? ''} ${reaction.author?.lastName ?? ''}`.trim() || 'Unknown User'"
+                          size="xs"
+                        />
+                      </NuxtLink>
                       <UiAvatar
+                        v-else
                         :src="reaction.author?.photo ?? undefined"
                         :name="`${reaction.author?.firstName ?? ''} ${reaction.author?.lastName ?? ''}`.trim() || 'Unknown User'"
                         size="xs"
                       />
-                    </NuxtLink>
-                    <UiAvatar
-                      v-else
-                      :src="reaction.author?.photo ?? undefined"
-                      :name="`${reaction.author?.firstName ?? ''} ${reaction.author?.lastName ?? ''}`.trim() || 'Unknown User'"
-                      size="xs"
-                    />
-                  </template>
+                    </template>
+                  </div>
                 </div>
               </div>
-            </div>
-          </v-menu>
-          <v-btn icon="mdi-reply-outline" size="small" variant="text" :disabled="!canInteract" title="Répondre" @click="canInteract ? isReplying = !isReplying : undefined" />
-        </div>
-
-        <div v-if="comment.reactions?.length" class="d-flex flex-wrap ga-2 mt-2">
-          <button
-            v-for="reaction in comment.reactions"
-            :key="reaction.id"
-            type="button"
-            class="reaction-pill"
-            :title="canInteract && reaction.isAuthor ? 'Cliquer pour supprimer votre réaction' : ''"
-            @click="canInteract && reaction.isAuthor ? emit('deleteReaction', reaction.id) : undefined"
-          >
-            <span>{{ reactionMeta[reaction.type]?.icon ?? '👍' }}</span>
-            <NuxtLink
-              v-if="reactionAuthorProfilePath(reaction.author?.username)"
-              :to="reactionAuthorProfilePath(reaction.author?.username)"
-              class="avatar-link"
-              @click.stop
-            >
-              <UiAvatar
-                :src="reaction.author?.photo ?? undefined"
-                :name="`${reaction.author?.firstName ?? ''} ${reaction.author?.lastName ?? ''}`.trim() || 'Unknown User'"
-                size="xs"
-              />
-            </NuxtLink>
-            <UiAvatar
-              v-else
-              :src="reaction.author?.photo ?? undefined"
-              :name="`${reaction.author?.firstName ?? ''} ${reaction.author?.lastName ?? ''}`.trim() || 'Unknown User'"
-              size="xs"
-            />
-          </button>
+            </v-menu>
+          </div>
+          <v-btn
+            icon="mdi-message-outline"
+            size="small"
+            variant="text"
+            :disabled="!canInteract"
+            title="Répondre"
+            @click="canInteract ? isReplying = !isReplying : undefined"
+          />
         </div>
 
         <div v-if="isReplying" class="mt-3 d-flex ga-2 align-center">
@@ -424,6 +420,21 @@ const formatRelativeTime = (dateInput?: string | null) => {
   padding-inline-start: 4px;
 }
 
+.reaction-badge {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: white;
+}
+
+.reaction-badge--stacked + .reaction-badge--stacked {
+  margin-inline-start: -6px;
+}
+
 .avatar-link {
   text-decoration: none;
 }
@@ -464,27 +475,6 @@ const formatRelativeTime = (dateInput?: string | null) => {
   backdrop-filter: blur(8px);
   background: rgba(22, 22, 24, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.14);
-}
-
-.reaction-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border-radius: 999px;
-  padding: 4px 8px;
-  border: 1px solid transparent;
-}
-
-.reaction-pill:hover {
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-
-.comment-attachment-image {
-  display: block;
-  max-width: min(100%, 380px);
-  border-radius: 12px;
-  border: 1px solid rgba(var(--v-theme-on-surface), 0.15);
 }
 
 </style>
