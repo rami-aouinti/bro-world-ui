@@ -4,6 +4,7 @@ import BlogSummaryCard from '~/components/plugins/BlogSummaryCard.vue'
 import BlogCommentItem from '~/components/plugins/BlogCommentItem.vue'
 import UiAvatar from '~/components/ui/UiAvatar.vue'
 import { useBlogsStore } from '~/stores/blogs'
+import { useAuthSessionStore } from '~/stores/authSession'
 import { BLOG_REACTION_FALLBACK_TYPES, BLOG_REACTION_META } from '~/constants/blogReactions'
 
 const props = withDefaults(defineProps<{
@@ -18,10 +19,12 @@ const props = withDefaults(defineProps<{
 })
 
 const blogsStore = useBlogsStore()
+const authSession = useAuthSessionStore()
 const actionError = ref('')
 const creatingPost = ref(false)
 const newPostContent = ref('')
 const newPostFilePath = ref('')
+const createPostDialog = ref(false)
 const commentDrafts = ref<Record<string, string>>({})
 const postReactionPicker = ref<Record<string, boolean>>({})
 const expandedComments = ref<Record<string, boolean>>({})
@@ -33,6 +36,10 @@ const editPostContent = ref('')
 const editPostFilePath = ref('')
 
 const postAuthorName = (post: BlogRead['posts'][number]) => `${post.author?.firstName ?? 'Unknown'} ${post.author?.lastName ?? 'User'}`.trim()
+const currentUserName = computed(() => {
+  const firstName = authSession.profile?.firstName?.trim() ?? ''
+  return firstName || 'there'
+})
 const postAuthorProfilePath = (post: BlogRead['posts'][number]) => {
   const username = post.author?.username?.trim()
   return username ? `/user/${encodeURIComponent(username)}/profile` : undefined
@@ -162,6 +169,7 @@ const submitPost = async (blogId: string) => {
   creatingPost.value = false
   newPostContent.value = ''
   newPostFilePath.value = ''
+  createPostDialog.value = false
 }
 
 const createComment = async (payload: { postId: string, parentCommentId: string | null, content: string }) => {
@@ -278,13 +286,56 @@ const confirmDeletePost = async () => {
   <BlogSummaryCard v-if="showSummary" :blog="blog" />
 
   <v-card v-if="showCreatePost" rounded="xl" class="mb-6 pa-4 create-post-card">
-    <div class="text-subtitle-1 font-weight-bold mb-3 text-white">Créer un post</div>
-    <v-textarea v-model="newPostContent" rows="3" variant="solo-filled" placeholder="Quoi de neuf ?" hide-details class="mb-3" :disabled="!canInteract" />
-    <v-text-field v-model="newPostFilePath" variant="solo-filled" placeholder="URL image/fichier (optionnel)" hide-details class="mb-3" :disabled="!canInteract" />
-    <v-btn color="primary" :loading="creatingPost" :disabled="!canInteract" @click="submitPost(blog.id)">Publier</v-btn>
+    <div class="d-flex align-center ga-3">
+      <UiAvatar
+        :src="authSession.profile?.photo ?? undefined"
+        :name="`${authSession.profile?.firstName ?? ''} ${authSession.profile?.lastName ?? ''}`.trim() || 'User'"
+        size="md"
+      />
+      <button
+        type="button"
+        class="create-post-trigger text-left"
+        :disabled="!canInteract"
+        @click="createPostDialog = true"
+      >
+        Was machst du gerade, {{ currentUserName }}?
+      </button>
+      <v-btn icon="mdi-image-outline" variant="text" :disabled="!canInteract" @click="createPostDialog = true" />
+      <v-btn icon="mdi-emoticon-happy-outline" variant="text" :disabled="!canInteract" @click="createPostDialog = true" />
+    </div>
     <v-alert v-if="!canInteract" type="info" variant="tonal" class="mt-3">Connectez-vous pour publier, commenter et réagir.</v-alert>
     <v-alert v-if="actionError" type="error" variant="tonal" class="mt-3">{{ actionError }}</v-alert>
   </v-card>
+
+  <v-dialog v-model="createPostDialog" max-width="720">
+    <v-card rounded="xl" class="pa-2">
+      <v-card-title class="text-h5 text-center font-weight-bold">Beitrag erstellen</v-card-title>
+      <v-card-text>
+        <div class="d-flex align-center ga-3 mb-4">
+          <UiAvatar
+            :src="authSession.profile?.photo ?? undefined"
+            :name="`${authSession.profile?.firstName ?? ''} ${authSession.profile?.lastName ?? ''}`.trim() || 'User'"
+            size="md"
+          />
+          <div class="text-subtitle-1 font-weight-bold">
+            {{ `${authSession.profile?.firstName ?? ''} ${authSession.profile?.lastName ?? ''}`.trim() || 'User' }}
+          </div>
+        </div>
+        <v-textarea
+          v-model="newPostContent"
+          rows="6"
+          variant="plain"
+          auto-grow
+          hide-details
+          class="mb-3"
+          :placeholder="`Was machst du gerade, ${currentUserName}?`"
+          :disabled="!canInteract"
+        />
+        <v-text-field v-model="newPostFilePath" variant="solo-filled" placeholder="URL image/fichier (optionnel)" hide-details class="mb-3" :disabled="!canInteract" />
+        <v-btn block color="primary" :loading="creatingPost" :disabled="!canInteract || !newPostContent.trim()" @click="submitPost(blog.id)">Posten</v-btn>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
 
   <v-row v-if="blog?.posts">
     <v-col v-for="post in blog?.posts" :key="post.id" cols="12">
@@ -566,5 +617,23 @@ const confirmDeletePost = async () => {
   border-radius: 999px;
   padding: 4px 8px;
   border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.create-post-trigger {
+  flex: 1;
+  min-height: 48px;
+  border-radius: 999px;
+  padding: 0 18px;
+  border: 0;
+  color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.create-post-trigger:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.create-post-trigger:disabled {
+  opacity: 0.6;
 }
 </style>
