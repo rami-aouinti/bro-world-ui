@@ -25,6 +25,9 @@ const creatingPost = ref(false)
 const newPostContent = ref('')
 const newPostFilePath = ref('')
 const createPostDialog = ref(false)
+const showEmojiMenu = ref(false)
+const showPostOptionsDialog = ref(false)
+const postPhotoInput = ref<HTMLInputElement | null>(null)
 const commentDrafts = ref<Record<string, string>>({})
 const postReactionPicker = ref<Record<string, boolean>>({})
 const expandedComments = ref<Record<string, boolean>>({})
@@ -40,6 +43,22 @@ const currentUserName = computed(() => {
   const firstName = authSession.profile?.firstName?.trim() ?? ''
   return firstName || 'there'
 })
+const composerEmojis = ['😀', '😍', '🔥', '🎉', '💡', '🚀']
+const postQuickActions = [
+  { icon: 'mdi-image-multiple', label: 'Foto/Video', color: '#42c96f' },
+  { icon: 'mdi-account-plus', label: 'Personen markieren', color: '#2d8cff' },
+  { icon: 'mdi-emoticon-happy-outline', label: 'Gefühl/Aktivität', color: '#f6c244' },
+]
+const postAllOptions = [
+  { icon: 'mdi-image-multiple', label: 'Foto/Video', color: '#42c96f' },
+  { icon: 'mdi-account-plus', label: 'Personen markieren', color: '#2d8cff' },
+  { icon: 'mdi-emoticon-happy-outline', label: 'Gefühl/Aktivität', color: '#f6c244' },
+  { icon: 'mdi-map-marker', label: 'Ort hinzufügen', color: '#ff5d47' },
+  { icon: 'mdi-gif', label: 'GIF', color: '#35d0c4' },
+  { icon: 'mdi-video-outline', label: 'Live-Video', color: '#ff2f67' },
+  { icon: 'mdi-flag-outline', label: 'Lebensereignis', color: '#33a8ff' },
+  { icon: 'mdi-heart-circle-outline', label: 'Spenden sammeln', color: '#ff72bb' },
+]
 const postAuthorProfilePath = (post: BlogRead['posts'][number]) => {
   const username = post.author?.username?.trim()
   return username ? `/user/${encodeURIComponent(username)}/profile` : undefined
@@ -151,6 +170,42 @@ const runAction = async (action: () => Promise<unknown>) => {
   }
 }
 
+const openCreatePostDialog = (seedText?: string) => {
+  if (seedText) {
+    const spacer = newPostContent.value.trim().length ? ' ' : ''
+    newPostContent.value = `${newPostContent.value}${spacer}${seedText}`.trim()
+  }
+  createPostDialog.value = true
+  showEmojiMenu.value = false
+}
+
+const triggerPhotoPicker = () => {
+  if (!props.canInteract) {
+    return
+  }
+
+  postPhotoInput.value?.click()
+}
+
+const handlePhotoSelected = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) {
+    return
+  }
+
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result ?? ''))
+    reader.onerror = () => reject(new Error('Unable to read file'))
+    reader.readAsDataURL(file)
+  })
+
+  newPostFilePath.value = dataUrl
+  openCreatePostDialog()
+  target.value = ''
+}
+
 const submitPost = async (blogId: string) => {
   if (!props.canInteract) {
     return
@@ -170,6 +225,7 @@ const submitPost = async (blogId: string) => {
   newPostContent.value = ''
   newPostFilePath.value = ''
   createPostDialog.value = false
+  showPostOptionsDialog.value = false
 }
 
 const createComment = async (payload: { postId: string, parentCommentId: string | null, content: string }) => {
@@ -286,6 +342,13 @@ const confirmDeletePost = async () => {
   <BlogSummaryCard v-if="showSummary" :blog="blog" />
 
   <v-card v-if="showCreatePost" rounded="xl" class="mb-6 pa-4 create-post-card">
+    <input
+      ref="postPhotoInput"
+      type="file"
+      accept="image/*"
+      class="d-none"
+      @change="handlePhotoSelected"
+    >
     <div class="d-flex align-center ga-3">
       <UiAvatar
         :src="authSession.profile?.photo ?? undefined"
@@ -296,12 +359,26 @@ const confirmDeletePost = async () => {
         type="button"
         class="create-post-trigger text-left"
         :disabled="!canInteract"
-        @click="createPostDialog = true"
+        @click="openCreatePostDialog()"
       >
         Was machst du gerade, {{ currentUserName }}?
       </button>
-      <v-btn icon="mdi-image-outline" variant="text" :disabled="!canInteract" @click="createPostDialog = true" />
-      <v-btn icon="mdi-emoticon-happy-outline" variant="text" :disabled="!canInteract" @click="createPostDialog = true" />
+      <v-btn icon="mdi-video-outline" variant="text" :disabled="!canInteract" @click="openCreatePostDialog('🎥')" />
+      <v-btn icon="mdi-image-outline" variant="text" :disabled="!canInteract" @click="triggerPhotoPicker" />
+      <v-menu v-model="showEmojiMenu" location="bottom end">
+        <template #activator="{ props: menuProps }">
+          <v-btn icon="mdi-emoticon-happy-outline" variant="text" :disabled="!canInteract" v-bind="menuProps" />
+        </template>
+        <v-list density="compact" class="emoji-menu-list">
+          <v-list-item
+            v-for="emoji in composerEmojis"
+            :key="emoji"
+            @click="openCreatePostDialog(emoji)"
+          >
+            <v-list-item-title class="text-h6">{{ emoji }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </div>
     <v-alert v-if="!canInteract" type="info" variant="tonal" class="mt-3">Connectez-vous pour publier, commenter et réagir.</v-alert>
     <v-alert v-if="actionError" type="error" variant="tonal" class="mt-3">{{ actionError }}</v-alert>
@@ -331,8 +408,59 @@ const confirmDeletePost = async () => {
           :placeholder="`Was machst du gerade, ${currentUserName}?`"
           :disabled="!canInteract"
         />
-        <v-text-field v-model="newPostFilePath" variant="solo-filled" placeholder="URL image/fichier (optionnel)" hide-details class="mb-3" :disabled="!canInteract" />
+
+        <v-img
+          v-if="newPostFilePath"
+          :src="newPostFilePath"
+          max-height="260"
+          cover
+          class="rounded-lg mb-3"
+        />
+
+        <v-sheet rounded="lg" variant="outlined" class="pa-3 mb-3 add-to-post-sheet">
+          <div class="d-flex align-center justify-space-between flex-wrap ga-3">
+            <div class="text-subtitle-1 font-weight-bold">Füge noch etwas zu deinem Beitrag hinzu</div>
+            <div class="d-flex align-center ga-2">
+              <v-btn
+                v-for="action in postQuickActions"
+                :key="action.label"
+                icon
+                variant="text"
+                :disabled="!canInteract"
+                @click="showPostOptionsDialog = true"
+              >
+                <v-icon :icon="action.icon" :color="action.color" />
+              </v-btn>
+            </div>
+          </div>
+        </v-sheet>
+
         <v-btn block color="primary" :loading="creatingPost" :disabled="!canInteract || !newPostContent.trim()" @click="submitPost(blog.id)">Posten</v-btn>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="showPostOptionsDialog" max-width="760">
+    <v-card rounded="xl">
+      <v-card-title class="d-flex align-center ga-3 py-4">
+        <v-btn icon="mdi-arrow-left" variant="text" @click="showPostOptionsDialog = false" />
+        <span>Füge noch etwas zu deinem Beitrag hinzu</span>
+      </v-card-title>
+      <v-divider />
+      <v-card-text>
+        <v-row>
+          <v-col v-for="option in postAllOptions" :key="option.label" cols="12" sm="6">
+            <v-btn
+              block
+              variant="text"
+              class="justify-start text-none option-btn"
+              @click="showPostOptionsDialog = false"
+            >
+              <v-icon :icon="option.icon" :color="option.color" class="mr-3" />
+              {{ option.label }}
+            </v-btn>
+          </v-col>
+        </v-row>
       </v-card-text>
     </v-card>
   </v-dialog>
@@ -625,15 +753,28 @@ const confirmDeletePost = async () => {
   border-radius: 999px;
   padding: 0 18px;
   border: 0;
-  color: rgba(255, 255, 255, 0.72);
-  background: rgba(255, 255, 255, 0.08);
+  color: rgba(var(--v-theme-on-surface), 0.72);
+  background: rgba(var(--v-theme-on-surface), 0.08);
 }
 
 .create-post-trigger:hover {
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(var(--v-theme-on-surface), 0.16);
 }
 
 .create-post-trigger:disabled {
   opacity: 0.6;
+}
+
+.emoji-menu-list :deep(.v-list-item) {
+  min-height: 40px;
+}
+
+.add-to-post-sheet {
+  border-color: rgba(var(--v-theme-on-surface), 0.2);
+}
+
+.option-btn {
+  min-height: 46px;
+  font-weight: 600;
 }
 </style>
