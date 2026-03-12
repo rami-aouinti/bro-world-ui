@@ -8,6 +8,12 @@ definePageMeta({
   requiredPermissions: ['page.home.readList'],
 })
 
+const isPageLoading = ref(true)
+
+onMounted(() => {
+  isPageLoading.value = false
+})
+
 const modules = [
   { title: 'Home', to: '/admin/page-management/home', icon: 'mdi-home-outline', detail: 'Dernière MAJ: il y a 2 jours' },
   { title: 'About', to: '/admin/page-management/about', icon: 'mdi-information-outline', detail: 'Dernière MAJ: hier à 18:20' },
@@ -18,6 +24,18 @@ const modules = [
 
 <template>
   <div class="admin-page-content">
+    <template v-if="isPageLoading">
+      <v-skeleton-loader type="heading, text" class="mb-4" />
+      <v-row>
+        <v-col v-for="index in 4" :key="`admin-skeleton-${index}`" cols="12" md="6">
+          <v-card rounded="lg" class="pa-4">
+            <v-skeleton-loader type="list-item-avatar-two-line, button" />
+          </v-card>
+        </v-col>
+      </v-row>
+    </template>
+
+    <template v-else>
     <UiSectionHeader title="Page Management" subtitle="Gérer, éditer et publier les contenus institutionnels." />
     <v-row>
       <v-col v-for="module in modules" :key="module.to" cols="12" md="6">
@@ -35,5 +53,6 @@ const modules = [
         </UiCard>
       </v-col>
     </v-row>
+      </template>
   </div>
 </template>

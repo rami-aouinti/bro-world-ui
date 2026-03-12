@@ -8,7 +8,6 @@ import ShopRichTextField from '~/components/platform/shop/admin/ShopRichTextFiel
 import ShopSecondaryAction from '~/components/platform/shop/admin/ShopSecondaryAction.vue'
 import ShopSectionTitle from '~/components/platform/shop/admin/ShopSectionTitle.vue'
 import UiEmptyState from '~/components/ui/state/UiEmptyState.vue'
-import UiLoadingState from '~/components/ui/state/UiLoadingState.vue'
 import UiStateAlert from '~/components/ui/state/UiStateAlert.vue'
 import productDetails1 from '~/assets/img/products/product-details-1.jpg'
 import productDetails2 from '~/assets/img/products/product-details-2.jpg'
@@ -122,12 +121,9 @@ const setEmptyDemo = () => {
         </ShopSecondaryAction>
       </div>
 
-      <UiLoadingState
-        v-if="loading"
-        class="platform-shop-admin-state"
-        variant="form"
-        :message="t('platform.shop.newProduct.subtitle')"
-      />
+      <v-card v-if="loading" class="platform-shop-admin-state pa-4" rounded="xl" variant="outlined">
+        <v-skeleton-loader type="heading, text, article@2" />
+      </v-card>
 
       <UiEmptyState
         v-else-if="uiStatus === 'empty'"

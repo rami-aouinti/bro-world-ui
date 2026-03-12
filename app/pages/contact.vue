@@ -135,9 +135,16 @@ const topicLabels = computed(() => contactPagePayload.value.form.topics.map((top
 
 const publicPagesStore = usePublicPagesStore()
 const { locale } = useI18n()
+const isLoading = ref(true)
 
 const loadPageContent = async () => {
-  contactPagePayload.value = await publicPagesStore.loadContact(locale.value)
+  isLoading.value = true
+  try {
+    contactPagePayload.value = await publicPagesStore.loadContact(locale.value)
+  }
+  finally {
+    isLoading.value = false
+  }
 }
 
 onMounted(loadPageContent)
@@ -146,6 +153,40 @@ watch(locale, loadPageContent)
 
 <template>
   <main class="contact-page">
+    <template v-if="isLoading">
+      <v-card class="contact-panel contact-panel--primary mb-6" rounded="xl">
+        <v-skeleton-loader type="chip" class="mb-3" />
+        <v-skeleton-loader type="heading" class="mb-2" />
+        <v-skeleton-loader type="text@2" class="mb-4" />
+        <v-skeleton-loader type="button@2" />
+      </v-card>
+
+      <v-row dense>
+        <v-col cols="12" md="5">
+          <v-card rounded="xl" class="mb-4 pa-4">
+            <v-skeleton-loader type="heading" class="mb-3" />
+            <v-skeleton-loader type="list-item-two-line@2" />
+          </v-card>
+          <v-card rounded="xl" class="pa-4">
+            <v-skeleton-loader type="heading" class="mb-2" />
+            <v-skeleton-loader type="text@4" />
+          </v-card>
+        </v-col>
+        <v-col cols="12" md="7">
+          <v-card rounded="xl" class="pa-4 mb-4">
+            <v-skeleton-loader type="heading" class="mb-2" />
+            <v-skeleton-loader type="text" class="mb-3" />
+            <v-skeleton-loader type="text@6" />
+          </v-card>
+          <v-card rounded="xl" class="pa-4">
+            <v-skeleton-loader type="heading" class="mb-2" />
+            <v-skeleton-loader type="button@2" />
+          </v-card>
+        </v-col>
+      </v-row>
+    </template>
+
+    <template v-else>
     <v-fade-transition appear>
       <v-card class="contact-panel contact-panel--primary mb-6 transition-elevation" elevation="4" rounded="xl" hover>
         <v-chip class="contact-badge" color="primary" variant="tonal">{{ contactPagePayload.hero.badge }}</v-chip>
@@ -247,6 +288,7 @@ watch(locale, loadPageContent)
         </v-card>
       </v-col>
     </v-row>
+    </template>
   </main>
 </template>
 <style scoped>

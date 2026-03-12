@@ -9,6 +9,7 @@ const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const { isAuthenticated } = useAuth()
 const { isOwner, application, resolveApplication } = usePlatformPermissions(slug)
+const resolvingApplication = ref(true)
 
 const platformKey = computed(() => application.value?.platformKey?.toLowerCase() ?? 'crm')
 
@@ -29,7 +30,12 @@ const navItems = computed(() => {
 })
 
 onMounted(async () => {
-  await resolveApplication()
+  try {
+    await resolveApplication()
+  }
+  finally {
+    resolvingApplication.value = false
+  }
 })
 </script>
 
@@ -44,6 +50,9 @@ onMounted(async () => {
       />
     </template>
 
-    <CalendarView :application-slug="slug" />
+    <template v-if="resolvingApplication">
+      <v-skeleton-loader type="card, image" />
+    </template>
+    <CalendarView v-else :application-slug="slug" />
   </PlatformSplitLayout>
 </template>

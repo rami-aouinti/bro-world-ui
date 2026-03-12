@@ -9,6 +9,11 @@ definePageMeta({
 })
 
 const { t } = useI18n()
+const isPageLoading = ref(true)
+
+onMounted(() => {
+  isPageLoading.value = false
+})
 
 const overviewStats = [
   { label: 'Modules actifs', value: '6', icon: 'mdi-view-grid-plus-outline', color: 'primary' },
@@ -64,6 +69,18 @@ const adminModules = computed(() => [
 
 <template>
   <div class="admin-page-content">
+    <template v-if="isPageLoading">
+      <v-skeleton-loader type="heading, text" class="mb-4" />
+      <v-row>
+        <v-col v-for="index in 4" :key="`admin-skeleton-${index}`" cols="12" md="6">
+          <v-card rounded="lg" class="pa-4">
+            <v-skeleton-loader type="list-item-avatar-two-line, button" />
+          </v-card>
+        </v-col>
+      </v-row>
+    </template>
+
+    <template v-else>
     <UiSectionHeader
       :title="t('admin.title')"
       :subtitle="t('admin.description')"
@@ -118,6 +135,7 @@ const adminModules = computed(() => [
         </UiCard>
       </v-col>
     </v-row>
+      </template>
   </div>
 </template>
 

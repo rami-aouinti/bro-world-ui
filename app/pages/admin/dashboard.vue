@@ -152,6 +152,31 @@ onMounted(async () => {
       {{ errorMessage }}
     </v-alert>
 
+    <template v-if="loading">
+      <v-row class="mb-1">
+        <v-col cols="12" lg="8">
+          <UiCard rounded="lg">
+            <v-skeleton-loader type="heading, text, list-item-two-line@3" />
+          </UiCard>
+        </v-col>
+
+        <v-col cols="12" lg="4">
+          <UiCard rounded="lg" class="h-100">
+            <v-skeleton-loader type="heading, list-item-three-line@4" />
+          </UiCard>
+        </v-col>
+      </v-row>
+
+      <v-row class="mb-1">
+        <v-col v-for="index in 4" :key="`stats-skeleton-${index}`" cols="12" md="6" lg="3">
+          <UiCard rounded="lg">
+            <v-skeleton-loader type="list-item-avatar-two-line" />
+          </UiCard>
+        </v-col>
+      </v-row>
+    </template>
+
+    <template v-else>
     <v-row class="mb-1">
       <v-col cols="12" lg="8">
         <UiCard rounded="lg">
@@ -241,6 +266,7 @@ onMounted(async () => {
         </UiCard>
       </v-col>
     </v-row>
+      </template>
   </div>
 </template>
 
