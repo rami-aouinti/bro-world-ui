@@ -122,6 +122,48 @@ const postReactionCount = (reactions: BlogReaction[] = []) => reactions.length
 
 const isImageFile = (filePath: string | null): boolean => Boolean(filePath && /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(filePath))
 
+const escapeHtml = (text: string) => text
+  .replaceAll('&', '&amp;')
+  .replaceAll('<', '&lt;')
+  .replaceAll('>', '&gt;')
+  .replaceAll('"', '&quot;')
+  .replaceAll("'", '&#39;')
+
+const trimTrailingPunctuation = (url: string) => {
+  const trailing = /[),.!?:;]+$/
+  const punctuation = url.match(trailing)?.[0] ?? ''
+  const cleanUrl = punctuation ? url.slice(0, -punctuation.length) : url
+
+  return { cleanUrl, punctuation }
+}
+
+const buildSafeUrl = (url: string) => {
+  if (/^https?:\/\//i.test(url)) {
+    return url
+  }
+
+  return `https://${url}`
+}
+
+const formatPostContentAsHtml = (content: string) => {
+  const escapedContent = escapeHtml(content)
+  const urlPattern = /(https?:\/\/[^\s<]+|www\.[^\s<]+|(?:[\w-]+\.)+[\w-]{2,}(?:\/[^\s<]*)?)/gi
+
+  const linkifiedContent = escapedContent.replace(urlPattern, (rawUrl) => {
+    const { cleanUrl, punctuation } = trimTrailingPunctuation(rawUrl)
+    if (!cleanUrl) {
+      return rawUrl
+    }
+
+    const href = escapeHtml(buildSafeUrl(cleanUrl))
+    const label = escapeHtml(cleanUrl)
+
+    return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="text-primary text-decoration-underline">${label}</a>${punctuation}`
+  })
+
+  return linkifiedContent.replace(/\n/g, '<br>')
+}
+
 const formatRelativeTime = (dateInput?: string | null) => {
   if (!dateInput) {
     return ''
@@ -717,7 +759,7 @@ const confirmDeletePost = async () => {
         </v-card-title>
 
         <v-card-text>
-          <p class="mb-4 text-body-1">{{ post?.content }}</p>
+          <p class="mb-4 text-body-1" v-html="formatPostContentAsHtml(post?.content ?? '')" />
 
           <div v-if="post.filePath" class="mb-4">
             <v-img
