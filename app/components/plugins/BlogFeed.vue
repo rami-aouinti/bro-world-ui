@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BlogComment, BlogRead, BlogReaction } from '~/types/api/blog'
+import type { BlogAuthor, BlogComment, BlogPost, BlogRead, BlogReaction } from '~/types/api/blog'
 import BlogSummaryCard from '~/components/plugins/BlogSummaryCard.vue'
 import BlogCommentItem from '~/components/plugins/BlogCommentItem.vue'
 import UiAvatar from '~/components/ui/UiAvatar.vue'
@@ -49,6 +49,11 @@ const deletePostDialog = ref(false)
 const activePost = ref<BlogRead['posts'][number] | null>(null)
 const editPostContent = ref('')
 const editPostFilePath = ref('')
+const sharePostDialog = ref(false)
+const shareAuthorsDialog = ref(false)
+const sharePostTarget = ref<BlogRead['posts'][number] | null>(null)
+const shareDraftContent = ref('')
+const shareAuthors = ref<BlogAuthor[]>([])
 
 const postAuthorName = (post: BlogRead['posts'][number]) => `${post.author?.firstName ?? 'Unknown'} ${post.author?.lastName ?? 'User'}`.trim()
 const currentUserName = computed(() => {
@@ -121,6 +126,16 @@ const groupedPostReactions = (reactions: BlogReaction[] = []) => {
 const postReactionCount = (reactions: BlogReaction[] = []) => reactions.length
 
 const isImageFile = (filePath: string | null): boolean => Boolean(filePath && /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(filePath))
+const isVideoFile = (filePath: string): boolean => /\.(mp4|webm|mov|m4v|avi|mkv)(\?.*)?$/i.test(filePath)
+const normalizeMediaUrls = (post: BlogPost) => post.mediaUrls?.filter(Boolean) ?? []
+const normalizedSharedUrl = (post: BlogPost) => {
+  const value = post.sharedUrl?.trim()
+  if (!value) {
+    return ''
+  }
+
+  return /^https?:\/\//i.test(value) ? value : `https://${value}`
+}
 
 const escapeHtml = (text: string) => text
   .replaceAll('&', '&amp;')
@@ -498,7 +513,7 @@ const toggleComments = (postId: string) => {
 
 const openEditPostDialog = (post: BlogRead['posts'][number]) => {
   activePost.value = post
-  editPostContent.value = post.content
+  editPostContent.value = post.content ?? ''
   editPostFilePath.value = post.filePath ?? ''
   editPostDialog.value = true
 }
@@ -527,6 +542,30 @@ const confirmDeletePost = async () => {
 
   await runAction(() => blogsStore.deletePost(activePost.value!.id))
   deletePostDialog.value = false
+}
+
+const openSharePostDialog = (post: BlogRead['posts'][number]) => {
+  sharePostTarget.value = post
+  shareDraftContent.value = ''
+  sharePostDialog.value = true
+}
+
+const openShareAuthorsDialog = (post: BlogRead['posts'][number]) => {
+  shareAuthors.value = post.children?.authors ?? []
+  shareAuthorsDialog.value = true
+}
+
+const submitSharePost = async () => {
+  if (!sharePostTarget.value || !props.canInteract) {
+    return
+  }
+
+  await runAction(() => blogsStore.createPost(blog.id, {
+    content: shareDraftContent.value.trim() || null,
+    parentPostId: sharePostTarget.value!.id,
+  }))
+  sharePostDialog.value = false
+  shareDraftContent.value = ''
 }
 </script>
 
@@ -759,7 +798,8 @@ const confirmDeletePost = async () => {
         </v-card-title>
 
         <v-card-text>
-          <p class="mb-4 text-body-1" v-html="formatPostContentAsHtml(post?.content ?? '')" />
+          <h3 v-if="post.title" class="text-h6 mb-2">{{ post.title }}</h3>
+          <p v-if="post.content" class="mb-4 text-body-1" v-html="formatPostContentAsHtml(post.content)" />
 
           <div v-if="post.filePath" class="mb-4">
             <v-img
@@ -775,6 +815,23 @@ const confirmDeletePost = async () => {
               <a :href="post.filePath" target="_blank" rel="noopener" class="text-primary text-decoration-underline">Voir la pièce jointe</a>
             </v-card>
           </div>
+
+          <div v-if="normalizeMediaUrls(post).length" class="mb-4 d-flex flex-column ga-3">
+            <template v-for="mediaUrl in normalizeMediaUrls(post)" :key="mediaUrl">
+              <v-img
+                v-if="!isVideoFile(mediaUrl)"
+                :src="mediaUrl"
+                max-height="500"
+                cover
+                class="rounded-xl"
+              />
+              <video v-else :src="mediaUrl" controls class="w-100 rounded-xl" style="max-height: 500px;" />
+            </template>
+          </div>
+
+          <v-card v-if="normalizedSharedUrl(post)" variant="outlined" rounded="lg" class="mb-4 pa-3">
+            <a :href="normalizedSharedUrl(post)" target="_blank" rel="noopener noreferrer" class="text-primary text-decoration-underline">{{ normalizedSharedUrl(post) }}</a>
+          </v-card>
 
           <div class="d-flex align-center justify-space-between text-medium-emphasis text-body-2 mb-3 stats-row">
             <div class="d-flex align-center ga-2">
@@ -849,9 +906,29 @@ const confirmDeletePost = async () => {
               </v-menu>
             </div>
 
-            <span v-if="countComments(post.comments) > 0">{{ countComments(post.comments) }}
-            <v-icon icon="mdi-comment-outline" @click="toggleComments(post.id)" size="18" />
-            </span>
+            <div class="d-flex align-center ga-3">
+              <span v-if="countComments(post.comments) > 0" class="d-inline-flex align-center ga-1">{{ countComments(post.comments) }}
+                <v-icon icon="mdi-comment-outline" @click="toggleComments(post.id)" size="18" />
+              </span>
+              <span class="d-inline-flex align-center ga-1">
+                <v-btn
+                  icon="mdi-share-outline"
+                  size="x-small"
+                  variant="text"
+                  :disabled="!canInteract"
+                  @click="openSharePostDialog(post)"
+                />
+                <v-btn
+                  v-if="(post.children?.count ?? 0) > 0"
+                  variant="text"
+                  size="small"
+                  class="px-1"
+                  @click="openShareAuthorsDialog(post)"
+                >
+                  {{ post.children?.count }}
+                </v-btn>
+              </span>
+            </div>
           </div>
           <v-divider class="mb-3" />
           <div v-if="post.comments?.length && expandedComments[post.id]" class="d-flex flex-column ga-4 mb-3">
@@ -907,6 +984,53 @@ const confirmDeletePost = async () => {
       <v-card-actions class="justify-end">
         <v-btn variant="text" @click="deletePostDialog = false">Annuler</v-btn>
         <v-btn color="error" @click="confirmDeletePost">Supprimer</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="sharePostDialog" max-width="760">
+    <v-card rounded="xl">
+      <v-card-title>Partager ce post</v-card-title>
+      <v-card-text>
+        <v-card v-if="sharePostTarget" variant="tonal" rounded="lg" class="mb-4 pa-4">
+          <div class="text-subtitle-1 font-weight-bold mb-1">{{ sharePostTarget.title || 'Post' }}</div>
+          <div v-if="sharePostTarget.content" class="text-body-2" v-html="formatPostContentAsHtml(sharePostTarget.content)" />
+        </v-card>
+        <v-textarea
+          v-model="shareDraftContent"
+          variant="solo-filled"
+          rows="4"
+          label="Votre message (optionnel)"
+          :disabled="!canInteract"
+        />
+      </v-card-text>
+      <v-card-actions class="justify-end">
+        <v-btn variant="text" @click="sharePostDialog = false">Annuler</v-btn>
+        <v-btn color="primary" :disabled="!canInteract" @click="submitSharePost">Partager</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="shareAuthorsDialog" max-width="560">
+    <v-card rounded="xl">
+      <v-card-title>Utilisateurs ayant partagé</v-card-title>
+      <v-card-text>
+        <v-list>
+          <v-list-item v-for="author in shareAuthors" :key="`${author.id ?? author.username ?? author.firstName}-${author.lastName}`" class="px-0">
+            <template #prepend>
+              <UiAvatar
+                :src="author.photo ?? undefined"
+                :name="`${author.firstName} ${author.lastName}`.trim()"
+                size="sm"
+              />
+            </template>
+            <v-list-item-title>{{ `${author.firstName} ${author.lastName}`.trim() }}</v-list-item-title>
+            <v-list-item-subtitle v-if="author.username">@{{ author.username }}</v-list-item-subtitle>
+          </v-list-item>
+        </v-list>
+      </v-card-text>
+      <v-card-actions class="justify-end">
+        <v-btn variant="text" @click="shareAuthorsDialog = false">Fermer</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

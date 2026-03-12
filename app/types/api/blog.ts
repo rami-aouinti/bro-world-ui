@@ -10,10 +10,16 @@ export interface BlogReaction {
 }
 
 export interface BlogAuthor {
+  id?: UUID
   firstName: string
   lastName: string
   username?: string
   photo: string | null
+}
+
+export interface BlogPostChildrenSummary {
+  count: number
+  authors: BlogAuthor[]
 }
 
 export interface BlogComment {
@@ -30,14 +36,20 @@ export interface BlogComment {
 
 export interface BlogPost {
   id: UUID
+  slug?: string
   authorId: UUID
   isAuthor: boolean
   author?: BlogAuthor
-  content: string
+  title?: string
+  content: string | null
+  sharedUrl?: string | null
+  mediaUrls?: string[]
+  parent?: BlogPost | null
   filePath: string | null
   createdAt?: string
   reactions?: BlogReaction[]
   comments: BlogComment[]
+  children?: BlogPostChildrenSummary
 }
 
 export interface BlogRead {
