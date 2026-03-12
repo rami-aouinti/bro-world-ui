@@ -1,59 +1,65 @@
 <script setup lang="ts">
+import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
-import UiCard from '~/components/ui/UiCard.vue'
-import UiListCard from '~/components/ui/UiListCard.vue'
-import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
+import { getCrmNav } from '~/data/platform-nav'
 
 definePageMeta({ public: true, requiresAuth: false })
 
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
-const crmPath = (page: string) => `/platform/${slug.value}/crm/${page}`
+const { isOwner } = usePlatformPermissions(slug)
+const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
 
-const kpis = [
-  { label: 'Pipeline', value: '€ 128k', trend: '+12%' },
-  { label: 'Opportunités', value: '43', trend: '+5' },
-  { label: 'Taux de conversion', value: '34%', trend: '+2.1%' },
-]
+const crmStore = useCrmStore()
+const dashboard = computed(() => crmStore.getDashboard(slug.value))
+
+if (slug.value) {
+  await crmStore.fetchDashboard(slug.value)
+}
+
+const kpis = computed(() => {
+  if (!dashboard.value) {
+    return []
+  }
+
+  return [
+    { label: 'Companies', value: dashboard.value.companies },
+    { label: 'Projects', value: dashboard.value.projects },
+    { label: 'Tasks', value: dashboard.value.tasks },
+    { label: 'Pending requests', value: dashboard.value.taskRequests.pending },
+  ]
+})
 </script>
 
 <template>
   <PlatformSplitLayout>
     <template #sidebar>
-      <UiSectionHeader title="CRM" :subtitle="`Application ${slug}`" dense />
-      <div class="platform-layout__sidebar-actions">
-        <v-btn variant="outlined" block :to="crmPath('home')">Home</v-btn>
-        <v-btn variant="outlined" block class="mt-2" :to="crmPath('dashboard')">Dashboard</v-btn>
-        <v-btn variant="outlined" block class="mt-2" :to="crmPath('companies')">Companies</v-btn>
-        <v-btn variant="text" block class="mt-2" to="/platform">Retour liste</v-btn>
-      </div>
+      <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
 
-    <template #default>
-      <UiSectionHeader title="Dashboard CRM" subtitle="Performance commerciale du trimestre" />
+    <section>
+      <h1 class="text-h5 font-weight-bold mb-1">Dashboard CRM</h1>
+      <p class="text-body-2 text-medium-emphasis mb-6">Indicateurs consolidés depuis l'endpoint dashboard.</p>
 
-      <v-row class="mb-2">
-        <v-col v-for="item in kpis" :key="item.label" cols="12" md="4">
-          <UiListCard>
-            <p class="text-overline mb-1">{{ item.label }}</p>
-            <p class="text-h5 font-weight-bold mb-1">{{ item.value }}</p>
-            <v-chip size="small" color="success" variant="tonal">{{ item.trend }}</v-chip>
-          </UiListCard>
+      <v-row class="mb-4">
+        <v-col v-for="item in kpis" :key="item.label" cols="12" md="6" lg="3">
+          <v-card rounded="xl">
+            <v-card-text>
+              <p class="text-overline mb-1">{{ item.label }}</p>
+              <p class="text-h5 font-weight-bold mb-0">{{ item.value }}</p>
+            </v-card-text>
+          </v-card>
         </v-col>
       </v-row>
 
-      <UiCard title="Prochaines actions">
-        <v-table density="compact">
-          <thead>
-            <tr><th>Compte</th><th>Responsable</th><th>Échéance</th><th>Statut</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>Northwind</td><td>Amina</td><td>12/06</td><td><v-chip size="x-small" color="warning">À relancer</v-chip></td></tr>
-            <tr><td>BlueSoft</td><td>Lucas</td><td>14/06</td><td><v-chip size="x-small" color="info">Démo planifiée</v-chip></td></tr>
-            <tr><td>Vertex</td><td>Sarah</td><td>19/06</td><td><v-chip size="x-small" color="success">Signature</v-chip></td></tr>
-          </tbody>
-        </v-table>
-      </UiCard>
-    </template>
+      <v-card v-if="dashboard" rounded="xl">
+        <v-card-text>
+          <p class="text-subtitle-1 font-weight-bold mb-2">Task requests</p>
+          <v-chip size="small" color="warning" class="mr-2">Pending: {{ dashboard.taskRequests.pending }}</v-chip>
+          <v-chip size="small" color="success" class="mr-2">Approved: {{ dashboard.taskRequests.approved }}</v-chip>
+          <v-chip size="small" color="error">Rejected: {{ dashboard.taskRequests.rejected }}</v-chip>
+        </v-card-text>
+      </v-card>
+    </section>
   </PlatformSplitLayout>
 </template>

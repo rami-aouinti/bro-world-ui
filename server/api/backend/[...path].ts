@@ -64,6 +64,7 @@ const ENTITY_CACHE_PREFIXES = [
   '/api/v1/page/contact',
   '/api/v1/page/faq',
   '/api/v1/page/public',
+  '/api/v1/crm/applications',
 ]
 
 const NOTIFICATION_EVENTS_ROUTE_PREFIX = '/api/v1/notifications'
@@ -108,6 +109,10 @@ const ENTITY_CACHE_INVALIDATION_RULES: Array<{ routePrefix: string, cachePrefixe
   {
     routePrefix: '/api/v1/page/',
     cachePrefixes: ['/api/v1/page/home', '/api/v1/page/about', '/api/v1/page/contact', '/api/v1/page/faq', '/api/v1/page/public'],
+  },
+  {
+    routePrefix: '/api/v1/crm/applications/',
+    cachePrefixes: ['/api/v1/crm/applications'],
   },
 ]
 
