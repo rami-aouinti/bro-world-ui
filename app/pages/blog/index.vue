@@ -157,44 +157,10 @@ watch([infiniteSentinel, hasMorePosts], async () => {
     <template #layout-sidebar>
       <div class="d-flex flex-column ga-4">
         <BlogSummaryCard v-if="!isLoading && blog" :blog="blog" />
-
-        <v-card rounded="xl" variant="tonal" class="pa-4">
-          <p class="text-overline mb-2 text-primary">Roadmap éditoriale</p>
-          <div class="d-flex flex-column ga-3">
-            <div v-for="announcement in roadmapAnnouncements" :key="announcement.title" class="announcement-item">
-              <div class="d-flex align-center justify-space-between ga-2 mb-1">
-                <span class="text-caption text-medium-emphasis">{{ announcement.date }}</span>
-                <v-chip size="x-small" color="primary" variant="flat">{{ announcement.tag }}</v-chip>
-              </div>
-              <p class="text-body-2 mb-0">{{ announcement.title }}</p>
-            </div>
-          </div>
-        </v-card>
       </div>
     </template>
 
     <main>
-      <section class="blog-hero mb-6 pa-6 pa-md-8">
-        <p class="text-overline text-primary mb-2">Magazine Bro World</p>
-        <h1 class="text-h4 text-md-h3 font-weight-bold mb-3">Un blog plus riche pour préparer votre futur backend</h1>
-        <p class="text-body-1 text-medium-emphasis mb-5 hero-description">
-          Cette version intègre une structure éditoriale plus complète avec des cartes d’insights, des thèmes clés
-          et une roadmap de publication pour visualiser clairement la direction produit et contenu.
-        </p>
-
-        <div class="d-flex flex-wrap ga-2 mb-3">
-          <v-chip
-            v-for="topic in keyTopics"
-            :key="topic"
-            size="small"
-            variant="outlined"
-            prepend-icon="mdi-pound"
-          >
-            {{ topic }}
-          </v-chip>
-        </div>
-      </section>
-
       <v-progress-linear v-if="isLoading" color="primary" indeterminate class="mb-4" />
       <v-alert v-else-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
       <BlogFeed v-else-if="blog" :blog="blog" :show-summary="false" :can-interact="isAuthenticated" />
@@ -202,27 +168,6 @@ watch([infiniteSentinel, hasMorePosts], async () => {
       <div v-if="blog && hasMorePosts" ref="infiniteSentinel" class="infinite-sentinel py-4">
         <v-progress-circular v-if="isLoadingMore" indeterminate color="primary" size="22" />
       </div>
-
-      <section class="mt-8">
-        <div class="d-flex align-center justify-space-between mb-4 ga-3 flex-wrap">
-          <h2 class="text-h6 text-md-h5 font-weight-bold mb-0">Insights complémentaires (fake data)</h2>
-          <v-chip size="small" color="secondary" variant="flat">Pré-backend</v-chip>
-        </div>
-
-        <v-row>
-          <v-col v-for="insight in editorialInsights" :key="insight.title" cols="12" md="4">
-            <v-card rounded="xl" class="h-100 pa-4 insight-card" variant="outlined">
-              <div class="d-flex align-center justify-space-between ga-2 mb-3">
-                <v-chip size="x-small" color="primary" variant="flat">{{ insight.category }}</v-chip>
-                <span class="text-caption text-medium-emphasis">{{ insight.readTime }}</span>
-              </div>
-              <h3 class="text-subtitle-1 font-weight-bold mb-2">{{ insight.title }}</h3>
-              <p class="text-body-2 text-medium-emphasis mb-4">{{ insight.excerpt }}</p>
-              <v-alert type="success" density="compact" variant="tonal" class="mb-0">{{ insight.trend }}</v-alert>
-            </v-card>
-          </v-col>
-        </v-row>
-      </section>
     </main>
   </NuxtLayout>
 </template>
