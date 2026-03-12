@@ -2,6 +2,7 @@
 import BlogFeed from '~/components/plugins/BlogFeed.vue'
 import BlogSummaryCard from '~/components/plugins/BlogSummaryCard.vue'
 import { useBlogsStore } from '~/stores/blogs'
+import UiSkeletonCardGrid from "~/components/ui/state/UiSkeletonCardGrid.vue";
 
 definePageMeta({
   public: true,
@@ -161,7 +162,7 @@ watch([infiniteSentinel, hasMorePosts], async () => {
     </template>
 
     <main>
-      <v-progress-linear v-if="isLoading" color="primary" indeterminate class="mb-4" />
+      <UiSkeletonCardGrid :cards="5" :columns="12" v-if="isLoading" />
       <v-alert v-else-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
       <BlogFeed v-else-if="blog" :blog="blog" :show-summary="false" :can-interact="isAuthenticated" />
 
