@@ -25,10 +25,3 @@ const publicationHealthTone = computed(() => {
     Vue d’ensemble du contenu publié, de l’activité communautaire et du rythme éditorial.
   </p>
 </template>
-
-<style scoped>
-.summary-card {
-  border-color: rgba(var(--v-theme-on-surface), 0.12);
-  background: linear-gradient(180deg, rgba(var(--v-theme-surface), 0.96), rgba(var(--v-theme-surface-variant), 0.3));
-}
-</style>
