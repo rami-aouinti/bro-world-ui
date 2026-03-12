@@ -503,7 +503,7 @@ export const useRecruitHome = () => {
         resumeId = resumeResponse.id
       }
 
-      const applicantResponse = await apiFetch<{ id: string }>('/api/v1/recruit/applicants', {
+      const applicantResponse = await apiFetch<{ id: string }>(`/api/v1/recruit/applications/${applicationSlug.value}/applicants`, {
         method: 'POST',
         body: {
           resumeId,
