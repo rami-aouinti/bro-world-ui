@@ -26,6 +26,17 @@ type GeneralCacheKeyParts = {
   limit: number
 }
 
+
+type CreatePostPayload = {
+  content?: string | null
+  title?: string
+  filePath?: string | null
+  mediaUrls?: string[]
+  sharedUrl?: string | null
+  parentPostId?: string | null
+  isPinned?: boolean
+}
+
 export const useBlogsStore = defineStore('blogs', () => {
   const blogsApi = useBlogsApi()
   const authSession = useAuthSessionStore()
@@ -168,18 +179,27 @@ export const useBlogsStore = defineStore('blogs', () => {
     }]
   }
 
-  const addRootPostToStore = (payload: { content: string, filePath?: string | null }, postId?: UUID) => {
+  const addRootPostToStore = (payload: CreatePostPayload, postId?: UUID) => {
     const nowIso = new Date().toISOString()
     const newPost: BlogPost = {
       id: postId ?? postTempId(),
+      slug: undefined,
       authorId: authSession.profile?.id ?? postTempId(),
       isAuthor: true,
       author: currentAuthor(),
-      content: payload.content,
+      title: payload.title,
+      content: payload.content ?? null,
+      sharedUrl: payload.sharedUrl ?? null,
+      mediaUrls: payload.mediaUrls ?? [],
+      parent: null,
       filePath: payload.filePath ?? null,
       createdAt: nowIso,
       reactions: [],
       comments: [],
+      children: {
+        count: 0,
+        authors: [],
+      },
     }
 
     applyMutationToGeneralAndCache((blog) => {
@@ -459,7 +479,7 @@ export const useBlogsStore = defineStore('blogs', () => {
     generalPagination.value = null
   }
 
-  const createPost = async (blogId: string, payload: { content: string, filePath?: string | null }) => {
+  const createPost = async (blogId: string, payload: CreatePostPayload) => {
     const response = await blogsApi.createPost(blogId, payload)
 
     if (response?.status === 'accepted') {

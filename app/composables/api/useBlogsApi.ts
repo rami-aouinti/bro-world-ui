@@ -25,7 +25,15 @@ export const useBlogsApi = () => {
     getReactionTypes() {
       return apiFetch<ListResponse<string>>(`${publicBasePath}/reactions/types`, { method: 'GET' })
     },
-    createPost(blogId: string, payload: { content: string, filePath?: string | null }) {
+    createPost(blogId: string, payload: {
+      content?: string | null
+      title?: string
+      filePath?: string | null
+      mediaUrls?: string[]
+      sharedUrl?: string | null
+      parentPostId?: string | null
+      isPinned?: boolean
+    }) {
       return apiFetch<BlogMutationAcceptedResponse>(`${basePath}/${blogId}/posts`, {
         method: 'POST',
         body: payload,
