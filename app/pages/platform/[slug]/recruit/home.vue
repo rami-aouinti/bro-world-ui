@@ -13,7 +13,7 @@ definePageMeta({ public: true, requiresAuth: false })
 
 const RecruitJobEditDialog = defineAsyncComponent(() => import('~/components/platform/recruit/RecruitJobEditDialog.vue'))
 const RecruitApplyDialog = defineAsyncComponent(() => import('~/components/platform/recruit/RecruitApplyDialog.vue'))
-const loading = ref(true);
+const loading = ref(true)
 const route = useRoute()
 const showAccessDenied = computed(() => route.query.accessDenied === 'admin')
 
@@ -73,9 +73,12 @@ const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthe
 const visibleJobsCount = computed(() => jobsData.value?.jobs?.length ?? 0)
 
 onMounted(async () => {
-  await loadJobs()
-  await nextTick()
-  loading.value = false
+  try {
+    await loadJobs()
+    await nextTick()
+  } finally {
+    loading.value = false
+  }
 })
 
 
