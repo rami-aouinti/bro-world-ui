@@ -124,9 +124,16 @@ const aboutPagePayload = ref<AboutPagePayload>({
 
 const publicPagesStore = usePublicPagesStore()
 const { locale } = useI18n()
+const isLoading = ref(true)
 
 const loadPageContent = async () => {
-  aboutPagePayload.value = await publicPagesStore.loadAbout(locale.value)
+  isLoading.value = true
+  try {
+    aboutPagePayload.value = await publicPagesStore.loadAbout(locale.value)
+  }
+  finally {
+    isLoading.value = false
+  }
 }
 
 onMounted(loadPageContent)
@@ -135,6 +142,30 @@ watch(locale, loadPageContent)
 
 <template>
   <main class="about-page">
+    <template v-if="isLoading">
+      <v-card class="about-hero mb-6" rounded="xl">
+        <v-skeleton-loader type="chip" class="mb-3" />
+        <v-skeleton-loader type="heading" class="mb-2" />
+        <v-skeleton-loader type="text@4" class="mb-4" />
+        <v-skeleton-loader type="button@2" />
+      </v-card>
+
+      <v-row class="mb-4" dense>
+        <v-col v-for="index in 2" :key="`mission-skeleton-${index}`" cols="12" md="6">
+          <v-card rounded="xl" class="pa-4 h-100">
+            <v-skeleton-loader type="heading" class="mb-2" />
+            <v-skeleton-loader type="text@5" />
+          </v-card>
+        </v-col>
+      </v-row>
+
+      <v-card class="mb-6" rounded="xl">
+        <v-skeleton-loader type="heading" class="mb-3" />
+        <v-skeleton-loader type="list-item-three-line@3" />
+      </v-card>
+    </template>
+
+    <template v-else>
     <v-fade-transition appear>
       <v-card class="about-hero mb-6 transition-elevation" elevation="4" rounded="xl" hover>
         <v-chip class="about-hero__badge" color="primary" variant="tonal">
@@ -229,6 +260,7 @@ watch(locale, loadPageContent)
         </div>
       </v-card>
     </v-fade-transition>
+    </template>
   </main>
 </template>
 <style scoped>

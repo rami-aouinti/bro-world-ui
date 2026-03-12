@@ -16,6 +16,7 @@ const profile = ref<any>(null)
 const loadError = ref('')
 const actionError = ref('')
 const pendingActionKey = ref('')
+const isLoading = ref(true)
 
 const fullName = computed(() => currentUser.displayName)
 const email = computed(() => currentUser.me?.email || '—')
@@ -104,6 +105,7 @@ const friendDisplayName = (friend: UserFriendRead) => `${friend.firstName} ${fri
 
 const loadData = async () => {
   loadError.value = ''
+  isLoading.value = true
   try {
     profile.value = await currentUser.fetchMe(true)
     await friendsStore.fetchAll(true)
@@ -111,6 +113,9 @@ const loadData = async () => {
   catch (error) {
     console.error(error)
     loadError.value = 'Impossible de charger les relations sociales.'
+  }
+  finally {
+    isLoading.value = false
   }
 }
 
@@ -139,7 +144,10 @@ onMounted(async () => {
 <template>
   <PlatformSplitLayout>
     <template #sidebar>
-      <v-card class="pa-5 profile-sidebar-card" elevation="2" rounded="xl">
+      <v-card v-if="isLoading" class="pa-5" rounded="xl">
+        <v-skeleton-loader type="avatar, heading, text@4" />
+      </v-card>
+      <v-card v-else class="pa-5 profile-sidebar-card" elevation="2" rounded="xl">
         <div class="d-flex align-center ga-3 mb-4">
           <v-avatar size="56" color="primary" variant="tonal">
             <v-icon icon="mdi-account-circle-outline" size="32" />
@@ -168,6 +176,16 @@ onMounted(async () => {
     </template>
 
     <section>
+      <template v-if="isLoading">
+        <v-row>
+          <v-col cols="12" sm="6" md="3" v-for="index in 4" :key="`stat-skeleton-${index}`">
+            <v-skeleton-loader type="card" />
+          </v-col>
+        </v-row>
+        <v-skeleton-loader type="list-item-three-line@6" />
+      </template>
+
+      <template v-else>
       <v-alert v-if="loadError" type="error" variant="tonal" class="mb-4">{{ loadError }}</v-alert>
       <v-alert v-if="actionError" type="error" variant="tonal" class="mb-4">{{ actionError }}</v-alert>
 
@@ -330,6 +348,7 @@ onMounted(async () => {
           </v-card>
         </v-col>
       </v-row>
+      </template>
     </section>
   </PlatformSplitLayout>
 </template>
