@@ -41,6 +41,7 @@ let recorderStream: MediaStream | null = null
 let mediaRecorder: MediaRecorder | null = null
 let recordedChunks: Blob[] = []
 const commentDrafts = ref<Record<string, string>>({})
+const commentPhotoInput = ref<Record<string, HTMLInputElement | null>>({})
 const postReactionPicker = ref<Record<string, boolean>>({})
 const expandedComments = ref<Record<string, boolean>>({})
 
@@ -59,6 +60,11 @@ const postAuthorName = (post: BlogRead['posts'][number]) => `${post.author?.firs
 const currentUserName = computed(() => {
   const firstName = authSession.profile?.firstName?.trim() ?? ''
   return firstName || 'there'
+})
+const currentUserDisplayName = computed(() => {
+  const first = authSession.profile?.firstName?.trim() ?? ''
+  const last = authSession.profile?.lastName?.trim() ?? ''
+  return `${first} ${last}`.trim() || 'You'
 })
 const composerEmojis = ['😀', '😍', '🔥', '🎉', '💡', '🚀']
 const postQuickActions = [
@@ -467,6 +473,32 @@ const createRootComment = async (postId: string) => {
     content: draft,
   })
   commentDrafts.value[postId] = ''
+}
+
+const insertCommentEmoji = (postId: string, emoji: string) => {
+  const current = commentDrafts.value[postId] ?? ''
+  commentDrafts.value[postId] = `${current}${emoji}`
+}
+
+const triggerCommentPhotoPicker = (postId: string) => {
+  if (!props.canInteract) {
+    return
+  }
+
+  commentPhotoInput.value[postId]?.click()
+}
+
+const handleCommentPhotoSelect = (postId: string, event: Event) => {
+  const target = event.target as HTMLInputElement
+  if (!target.files?.length) {
+    return
+  }
+
+  const selectedNames = Array.from(target.files).map(file => file.name)
+  const current = commentDrafts.value[postId] ?? ''
+  const attachmentNote = selectedNames.map(name => ` [📎 ${name}]`).join('')
+  commentDrafts.value[postId] = `${current}${attachmentNote}`.trim()
+  target.value = ''
 }
 
 const addPostReaction = async (post: BlogRead['posts'][number], type: string) => {
@@ -947,16 +979,106 @@ const submitSharePost = async () => {
             />
           </div>
 
-          <div class="d-flex ga-2 align-center">
-            <v-text-field
-              v-model="commentDrafts[post.id]"
-              density="comfortable"
-              variant="solo-filled"
-              hide-details
-              placeholder="Écrire un commentaire..."
-              :disabled="!canInteract"
+          <div class="comment-composer d-flex ga-2 align-start">
+            <UiAvatar
+              :src="authSession.profile?.photo ?? undefined"
+              :name="currentUserDisplayName"
+              size="sm"
+              class="comment-composer-avatar"
             />
-            <v-btn color="primary" variant="flat" :disabled="!canInteract" @click="createRootComment(post.id)">Envoyer</v-btn>
+            <div class="comment-composer-panel flex-grow-1">
+              <v-text-field
+                v-model="commentDrafts[post.id]"
+                density="comfortable"
+                variant="plain"
+                hide-details
+                single-line
+                class="comment-composer-input"
+                :placeholder="`${currentUserDisplayName} kommentieren`"
+                :disabled="!canInteract"
+                @keydown.enter.prevent="createRootComment(post.id)"
+              />
+
+              <div class="comment-composer-actions">
+                <v-btn
+                  icon="mdi-sticker-emoji"
+                  size="small"
+                  variant="text"
+                  color="grey"
+                  :disabled="!canInteract"
+                  title="Mit Avatar-Sticker kommentieren"
+                />
+                <v-menu location="top start">
+                  <template #activator="{ props: menuProps }">
+                    <v-btn
+                      icon="mdi-emoticon-outline"
+                      size="small"
+                      variant="text"
+                      color="grey"
+                      :disabled="!canInteract"
+                      title="Emoji hinzufügen"
+                      v-bind="menuProps"
+                    />
+                  </template>
+                  <v-card rounded="lg" class="pa-2">
+                    <div class="d-flex ga-1">
+                      <v-btn
+                        v-for="emoji in composerEmojis"
+                        :key="`comment-${post.id}-${emoji}`"
+                        size="small"
+                        variant="text"
+                        @click="insertCommentEmoji(post.id, emoji)"
+                      >
+                        {{ emoji }}
+                      </v-btn>
+                    </div>
+                  </v-card>
+                </v-menu>
+                <v-btn
+                  icon="mdi-camera-outline"
+                  size="small"
+                  variant="text"
+                  color="grey"
+                  :disabled="!canInteract"
+                  title="Foto oder Video anhängen"
+                  @click="triggerCommentPhotoPicker(post.id)"
+                />
+                <input
+                  :ref="(el) => { commentPhotoInput[post.id] = el as HTMLInputElement | null }"
+                  type="file"
+                  class="d-none"
+                  accept="image/*,video/*"
+                  multiple
+                  @change="handleCommentPhotoSelect(post.id, $event)"
+                >
+                <v-btn
+                  icon="mdi-gif"
+                  size="small"
+                  variant="text"
+                  color="grey"
+                  :disabled="!canInteract"
+                  title="GIF hinzufügen"
+                />
+                <v-btn
+                  icon="mdi-palette-outline"
+                  size="small"
+                  variant="text"
+                  color="grey"
+                  :disabled="!canInteract"
+                  title="Effekte"
+                />
+                <v-spacer />
+                <v-btn
+                  icon="mdi-send"
+                  size="small"
+                  variant="text"
+                  color="primary"
+                  :disabled="!canInteract || !(commentDrafts[post.id] ?? '').trim()"
+                  title="Envoyer"
+                  @click="createRootComment(post.id)"
+                />
+              </div>
+            </div>
           </div>
         </v-card-text>
       </v-card>
@@ -1185,4 +1307,42 @@ const submitSharePost = async () => {
   top: 6px;
   right: 6px;
 }
+
+.comment-composer {
+  padding-top: 4px;
+}
+
+.comment-composer-avatar {
+  margin-top: 6px;
+}
+
+.comment-composer-panel {
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 6px 12px 8px;
+}
+
+.comment-composer-input :deep(.v-field) {
+  box-shadow: none;
+  background: transparent;
+}
+
+.comment-composer-input :deep(.v-field__input) {
+  min-height: 32px;
+  padding-top: 2px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.comment-composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 34px;
+}
+
+.comment-composer-actions :deep(.v-btn) {
+  border-radius: 50%;
+}
+
 </style>
