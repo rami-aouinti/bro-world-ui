@@ -128,8 +128,83 @@ const postReactionCount = (reactions: BlogReaction[] = []) => reactions.length
 const isImageFile = (filePath: string | null): boolean => Boolean(filePath && /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(filePath))
 const isVideoFile = (filePath: string): boolean => /\.(mp4|webm|mov|m4v|avi|mkv)(\?.*)?$/i.test(filePath)
 const normalizeMediaUrls = (post: BlogPost) => post.mediaUrls?.filter(Boolean) ?? []
+const extractUrlsFromText = (content?: string | null) => {
+  if (!content) {
+    return []
+  }
+
+  const urlPattern = /(https?:\/\/[^\s<]+|www\.[^\s<]+|(?:[\w-]+\.)+[\w-]{2,}(?:\/[^\s<]*)?)/gi
+  const matches = content.match(urlPattern) ?? []
+  return matches
+    .map(rawUrl => trimTrailingPunctuation(rawUrl).cleanUrl.trim())
+    .filter(Boolean)
+}
+
+const getYoutubeEmbedUrl = (rawUrl?: string | null) => {
+  if (!rawUrl) {
+    return ''
+  }
+
+  try {
+    const normalized = buildSafeUrl(rawUrl)
+    const parsed = new URL(normalized)
+    const host = parsed.hostname.replace(/^www\./i, '').toLowerCase()
+    let videoId = ''
+
+    if (host === 'youtu.be') {
+      videoId = parsed.pathname.split('/').filter(Boolean)[0] ?? ''
+    }
+    else if (host === 'youtube.com' || host.endsWith('.youtube.com')) {
+      if (parsed.pathname === '/watch') {
+        videoId = parsed.searchParams.get('v') ?? ''
+      }
+      else if (parsed.pathname.startsWith('/shorts/')) {
+        videoId = parsed.pathname.split('/')[2] ?? ''
+      }
+      else if (parsed.pathname.startsWith('/embed/')) {
+        videoId = parsed.pathname.split('/')[2] ?? ''
+      }
+    }
+
+    if (!videoId) {
+      return ''
+    }
+
+    return `https://www.youtube.com/embed/${videoId}`
+  }
+  catch {
+    return ''
+  }
+}
+
+const findPostPreviewUrl = (post: BlogPost) => {
+  const shared = post.sharedUrl?.trim()
+  if (shared) {
+    return shared
+  }
+
+  return extractUrlsFromText(post.content)[0] ?? ''
+}
+
+const composerDetectedSharedUrl = computed(() => extractUrlsFromText(newPostContent.value)[0] ?? '')
+const composerYoutubeEmbedUrl = computed(() => getYoutubeEmbedUrl(composerDetectedSharedUrl.value))
+const composerVideoUrl = computed(() => {
+  const url = composerDetectedSharedUrl.value
+  return url && isVideoFile(url) ? buildSafeUrl(url) : ''
+})
+
+const postYoutubeEmbedUrl = (post: BlogPost) => getYoutubeEmbedUrl(findPostPreviewUrl(post))
+const postSharedVideoUrl = (post: BlogPost) => {
+  const url = findPostPreviewUrl(post)
+  if (!url || getYoutubeEmbedUrl(url)) {
+    return ''
+  }
+
+  return isVideoFile(url) ? buildSafeUrl(url) : ''
+}
+
 const normalizedSharedUrl = (post: BlogPost) => {
-  const value = post.sharedUrl?.trim()
+  const value = findPostPreviewUrl(post)
   if (!value) {
     return ''
   }
@@ -144,7 +219,7 @@ const escapeHtml = (text: string) => text
   .replaceAll('"', '&quot;')
   .replaceAll("'", '&#39;')
 
-const trimTrailingPunctuation = (url: string) => {
+function trimTrailingPunctuation(url: string) {
   const trailing = /[),.!?:;]+$/
   const punctuation = url.match(trailing)?.[0] ?? ''
   const cleanUrl = punctuation ? url.slice(0, -punctuation.length) : url
@@ -152,7 +227,7 @@ const trimTrailingPunctuation = (url: string) => {
   return { cleanUrl, punctuation }
 }
 
-const buildSafeUrl = (url: string) => {
+function buildSafeUrl(url: string) {
   if (/^https?:\/\//i.test(url)) {
     return url
   }
@@ -563,6 +638,7 @@ const submitSharePost = async () => {
   await runAction(() => blogsStore.createPost(blog.id, {
     content: shareDraftContent.value.trim() || null,
     parentPostId: sharePostTarget.value!.id,
+    sharedUrl: findPostPreviewUrl(sharePostTarget.value!),
   }))
   sharePostDialog.value = false
   shareDraftContent.value = ''
@@ -673,6 +749,22 @@ const submitSharePost = async () => {
         </div>
 
         <video v-else-if="newPostFilePath" :src="newPostFilePath" controls class="w-100 rounded-lg mb-3" />
+
+        <iframe
+          v-else-if="composerYoutubeEmbedUrl"
+          :src="composerYoutubeEmbedUrl"
+          title="YouTube preview"
+          class="w-100 rounded-lg mb-3 youtube-embed"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+        />
+
+        <video
+          v-else-if="composerVideoUrl"
+          :src="composerVideoUrl"
+          controls
+          class="w-100 rounded-lg mb-3"
+        />
 
         <v-sheet rounded="lg" variant="outlined" class="pa-3 mb-3 add-to-post-sheet">
           <div class="d-flex align-center justify-space-between flex-wrap ga-3">
@@ -810,6 +902,14 @@ const submitSharePost = async () => {
               class="rounded-xl"
             />
 
+            <video
+              v-else-if="isVideoFile(post.filePath)"
+              :src="post.filePath"
+              controls
+              class="w-100 rounded-xl"
+              style="max-height: 500px;"
+            />
+
             <v-card v-else variant="outlined" rounded="lg" class="pa-3 d-inline-flex align-center ga-2">
               <v-icon icon="mdi-paperclip" />
               <a :href="post.filePath" target="_blank" rel="noopener" class="text-primary text-decoration-underline">Voir la pièce jointe</a>
@@ -830,6 +930,15 @@ const submitSharePost = async () => {
           </div>
 
           <v-card v-if="normalizedSharedUrl(post)" variant="outlined" rounded="lg" class="mb-4 pa-3">
+            <iframe
+              v-if="postYoutubeEmbedUrl(post)"
+              :src="postYoutubeEmbedUrl(post)"
+              title="YouTube video"
+              class="w-100 rounded-lg mb-3 youtube-embed"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen
+            />
+            <video v-else-if="postSharedVideoUrl(post)" :src="postSharedVideoUrl(post)" controls class="w-100 rounded-lg mb-3" />
             <a :href="normalizedSharedUrl(post)" target="_blank" rel="noopener noreferrer" class="text-primary text-decoration-underline">{{ normalizedSharedUrl(post) }}</a>
           </v-card>
 
@@ -1043,6 +1152,11 @@ const submitSharePost = async () => {
 
 .avatar-link {
   text-decoration: none;
+}
+
+.youtube-embed {
+  border: 0;
+  min-height: 320px;
 }
 
 .reaction-badge {
