@@ -237,7 +237,7 @@ export const useRecruitHome = () => {
       coverLetter: '',
     }
 
-    await resumesStore.fetchMine()
+    await resumesStore.fetchMine({ applicationSlug: applicationSlug.value })
     selectedResumeId.value = resumesStore.items[0]?.id ?? ''
     resumeMode.value = selectedResumeId.value ? 'existing' : 'new'
     uploadedResumeFile.value = null
@@ -494,16 +494,16 @@ export const useRecruitHome = () => {
                 description: resumeForm.value.skillDescription.trim(),
               }]
             : [],
-        })
+        }, applicationSlug.value)
         resumeId = resumeResponse.id
       }
 
       if (resumeMode.value === 'pdf' && uploadedResumeFile.value) {
-        const resumeResponse = await resumesStore.createFromDocument(uploadedResumeFile.value)
+        const resumeResponse = await resumesStore.createFromDocument(uploadedResumeFile.value, applicationSlug.value)
         resumeId = resumeResponse.id
       }
 
-      const applicantResponse = await apiFetch<{ id: string }>('/api/v1/recruit/applicants', {
+      const applicantResponse = await apiFetch<{ id: string }>(`/api/v1/recruit/applications/${applicationSlug.value}/applicants`, {
         method: 'POST',
         body: {
           resumeId,
@@ -511,7 +511,7 @@ export const useRecruitHome = () => {
         },
       })
 
-      await apiFetch<{ id: string, status: string }>('/api/v1/recruit/applications', {
+      await apiFetch<{ id: string, status: string }>(`/api/v1/recruit/applications/${applicationSlug.value}/applications`, {
         method: 'POST',
         body: {
           applicantId: applicantResponse.id,
@@ -549,7 +549,7 @@ export const useRecruitHome = () => {
           title: item.title.trim(),
           description: item.description.trim(),
         })),
-      })
+      }, applicationSlug.value)
     } catch {
       applyError.value = 'La mise à jour du CV a échoué.'
     } finally {
@@ -566,7 +566,7 @@ export const useRecruitHome = () => {
     applyError.value = ''
 
     try {
-      await resumesStore.remove(selectedResume.value.id)
+      await resumesStore.remove(selectedResume.value.id, applicationSlug.value)
       selectedResumeId.value = resumesStore.items[0]?.id ?? ''
       if (!selectedResumeId.value) {
         resumeMode.value = 'new'
