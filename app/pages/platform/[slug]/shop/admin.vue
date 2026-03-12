@@ -4,7 +4,6 @@ import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import { shopProducts } from '~/data/platform-demo'
 import { getShopNav } from '~/data/platform-nav'
 import UiEmptyState from '~/components/ui/state/UiEmptyState.vue'
-import UiLoadingState from '~/components/ui/state/UiLoadingState.vue'
 import UiStateAlert from '~/components/ui/state/UiStateAlert.vue'
 
 definePageMeta({ public: true, requiresAuth: false })
@@ -36,7 +35,9 @@ onMounted(async () => {
   <PlatformSplitLayout>
     <template #sidebar><PlatformSidebarNav title="platform.shop.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section class="platform-shop-admin-page">
-      <UiLoadingState v-if="checkingAccess" class="platform-shop-admin-state" variant="spinner" :message="t('platform.shop.admin.states.loadingPermissions')" />
+      <v-card v-if="checkingAccess" class="platform-shop-admin-state pa-4" rounded="xl" variant="outlined">
+        <v-skeleton-loader type="heading, text@2, list-item-two-line@3" />
+      </v-card>
       <UiStateAlert v-else-if="accessDenied" type="error" class="mb-4 platform-shop-admin-state">
         {{ t('platform.shop.admin.states.accessDeniedRedirect') }}
       </UiStateAlert>

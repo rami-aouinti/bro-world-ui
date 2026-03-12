@@ -36,7 +36,7 @@ onMounted(() => {
 <template>
   <PlatformPluginPageShell title="Chat" :slug="slug" :nav-items="navItems">
     <v-alert v-if="error" type="error" variant="tonal" class="mb-4">Impossible de charger le chat de cette platform.</v-alert>
-    <v-progress-linear v-else-if="pending" color="primary" indeterminate class="mb-4" />
+    <v-skeleton-loader v-else-if="pending" type="list-item-two-line@5" class="mb-4" />
 
     <template v-else>
       <v-alert v-if="!isAuthenticated" type="info" variant="tonal" class="mb-4">

@@ -665,7 +665,11 @@ watch(() => props.applicationSlug, loadEvents)
       </v-row>
     </v-sheet>
 
-    <v-progress-linear v-if="isLoading" indeterminate color="primary" class="mb-4" />
+    <v-card v-if="isLoading" rounded="xl" class="mb-4 pa-4">
+      <v-skeleton-loader type="heading" class="mb-2" />
+      <v-skeleton-loader type="image" height="360" class="mb-3" />
+      <v-skeleton-loader type="text@2" />
+    </v-card>
 
     <v-card rounded="xl" class="calendar-page__board">
       <v-card-title class="d-flex align-center justify-space-between flex-wrap ga-2">

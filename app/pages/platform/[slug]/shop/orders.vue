@@ -6,7 +6,6 @@ import ShopSecondaryAction from '~/components/platform/shop/admin/ShopSecondaryA
 import ShopSectionTitle from '~/components/platform/shop/admin/ShopSectionTitle.vue'
 import ShopOrdersTable from '~/components/platform/shop/ShopOrdersTable.vue'
 import UiEmptyState from '~/components/ui/state/UiEmptyState.vue'
-import UiLoadingState from '~/components/ui/state/UiLoadingState.vue'
 import UiStateAlert from '~/components/ui/state/UiStateAlert.vue'
 import { shopOrders, type ShopOrderStatus } from '~/data/shop-orders'
 import { getShopNav } from '~/data/platform-nav'
@@ -152,11 +151,14 @@ const exportToCsv = async () => {
         hide-details
       />
 
-      <UiLoadingState
+      <v-card
         v-if="uiStatus === 'loading'"
-        class="platform-shop-admin-state"
-        variant="datatable"
-      />
+        class="platform-shop-admin-state pa-4"
+        rounded="xl"
+        variant="outlined"
+      >
+        <v-skeleton-loader type="heading, table-tbody@6" />
+      </v-card>
 
       <UiStateAlert
         v-else-if="uiStatus === 'error'"

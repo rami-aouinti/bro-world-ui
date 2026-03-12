@@ -26,7 +26,7 @@ onMounted(() => {
 <template>
   <PlatformPluginPageShell title="Quiz" :slug="slug" :nav-items="navItems">
     <v-alert v-if="error" type="error" variant="tonal" class="mb-4">Impossible de charger le quiz de cette platform.</v-alert>
-    <v-progress-linear v-else-if="pending" color="primary" indeterminate class="mb-4" />
+    <v-skeleton-loader v-else-if="pending" type="card, list-item-two-line@4" class="mb-4" />
     <QuizBoard v-else-if="quiz" :quiz="quiz" />
   </PlatformPluginPageShell>
 </template>

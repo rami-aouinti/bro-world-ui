@@ -70,7 +70,9 @@ onMounted(async () => {
             <v-chip color="primary" size="small" variant="tonal">{{ notifications?.length }}</v-chip>
           </div>
 
-          <v-progress-linear v-if="isLoading" color="primary" indeterminate class="mb-4" />
+          <template v-if="isLoading">
+            <v-skeleton-loader type="list-item-avatar-one-line@6" class="mb-4" />
+          </template>
 
           <v-list v-else class="bg-transparent pa-0" lines="one">
             <v-list-item

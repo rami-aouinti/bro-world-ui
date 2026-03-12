@@ -54,7 +54,11 @@ const fromLabel = computed(() => {
 
     <v-row>
       <v-col cols="12">
-        <UiListCard v-if="notification && !pending && !error">
+        <UiListCard v-if="pending">
+          <v-skeleton-loader type="avatar, heading, text@4" />
+        </UiListCard>
+
+        <UiListCard v-else-if="notification && !error">
           <div class="d-flex align-center ga-3 mb-4">
             <v-avatar v-if="notification.from?.photo" size="44">
               <v-img :src="notification.from.photo" :alt="fromLabel" cover />
