@@ -65,8 +65,10 @@ const loadWizardData = async () => {
   }
 }
 
-onMounted(() => {
-  void loadWizardData()
+onMounted(async () => {
+  await loadWizardData()
+  await nextTick()
+  loading.value = false
 })
 
 const togglePlugin = (pluginId: string) => {
