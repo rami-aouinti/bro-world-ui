@@ -73,7 +73,7 @@ export const useRecruitMeJobs = (slug: Ref<string>) => {
         return cacheEntry.data
       }
 
-      const response = await apiFetch<RecruitMeJobsResponse>('/api/v1/recruit/private/me/jobs', {
+      const response = await apiFetch<RecruitMeJobsResponse>(`/api/v1/recruit/applications/${slug.value}/private/me/jobs`, {
         method: 'GET',
       })
 
