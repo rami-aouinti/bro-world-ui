@@ -24,10 +24,22 @@ const actionError = ref('')
 const creatingPost = ref(false)
 const newPostContent = ref('')
 const newPostFilePath = ref('')
+const newPostImageFiles = ref<string[]>([])
 const createPostDialog = ref(false)
 const showEmojiMenu = ref(false)
 const showPostOptionsDialog = ref(false)
 const postPhotoInput = ref<HTMLInputElement | null>(null)
+const postModalPhotoInput = ref<HTMLInputElement | null>(null)
+const postVideoInput = ref<HTMLInputElement | null>(null)
+const showVideoChoiceDialog = ref(false)
+const showVideoRecorderDialog = ref(false)
+const showVideoReviewDialog = ref(false)
+const recordingVideo = ref(false)
+const capturedVideo = ref('')
+const recorderPreview = ref<HTMLVideoElement | null>(null)
+let recorderStream: MediaStream | null = null
+let mediaRecorder: MediaRecorder | null = null
+let recordedChunks: Blob[] = []
 const commentDrafts = ref<Record<string, string>>({})
 const postReactionPicker = ref<Record<string, boolean>>({})
 const expandedComments = ref<Record<string, boolean>>({})
@@ -45,9 +57,10 @@ const currentUserName = computed(() => {
 })
 const composerEmojis = ['😀', '😍', '🔥', '🎉', '💡', '🚀']
 const postQuickActions = [
-  { icon: 'mdi-image-multiple', label: 'Foto/Video', color: '#42c96f' },
-  { icon: 'mdi-account-plus', label: 'Personen markieren', color: '#2d8cff' },
-  { icon: 'mdi-emoticon-happy-outline', label: 'Gefühl/Aktivität', color: '#f6c244' },
+  { key: 'photo', icon: 'mdi-image-multiple', label: 'Foto/Video', color: '#42c96f' },
+  { key: 'tag', icon: 'mdi-account-plus', label: 'Personen markieren', color: '#2d8cff' },
+  { key: 'emoji', icon: 'mdi-emoticon-happy-outline', label: 'Gefühl/Aktivität', color: '#f6c244' },
+  { key: 'more', icon: 'mdi-dots-horizontal', label: 'Mehr', color: '#8b9098' },
 ]
 const postAllOptions = [
   { icon: 'mdi-image-multiple', label: 'Foto/Video', color: '#42c96f' },
@@ -159,6 +172,10 @@ onMounted(() => {
   void blogsStore.fetchReactionTypes()
 })
 
+onUnmounted(() => {
+  stopRecorderStream()
+})
+
 const runAction = async (action: () => Promise<unknown>) => {
   try {
     actionError.value = ''
@@ -187,23 +204,155 @@ const triggerPhotoPicker = () => {
   postPhotoInput.value?.click()
 }
 
+const triggerModalPhotoPicker = () => {
+  if (!props.canInteract) {
+    return
+  }
+
+  postModalPhotoInput.value?.click()
+}
+
+const readFilesAsDataUrls = async (files: File[]) => Promise.all(files.map(file => new Promise<string>((resolve, reject) => {
+  const reader = new FileReader()
+  reader.onload = () => resolve(String(reader.result ?? ''))
+  reader.onerror = () => reject(new Error('Unable to read file'))
+  reader.readAsDataURL(file)
+})))
+
 const handlePhotoSelected = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const files = target.files ? Array.from(target.files) : []
+  if (!files.length) {
+    return
+  }
+
+  const dataUrls = await readFilesAsDataUrls(files)
+  newPostImageFiles.value = [...newPostImageFiles.value, ...dataUrls]
+  newPostFilePath.value = newPostImageFiles.value[0] ?? ''
+  openCreatePostDialog()
+  target.value = ''
+}
+
+const removeImageAt = (index: number) => {
+  newPostImageFiles.value.splice(index, 1)
+  newPostFilePath.value = newPostImageFiles.value[0] ?? ''
+}
+
+const openVideoChoiceDialog = () => {
+  if (!props.canInteract) {
+    return
+  }
+
+  showVideoChoiceDialog.value = true
+}
+
+const triggerVideoPicker = () => {
+  postVideoInput.value?.click()
+}
+
+const stopRecorderStream = () => {
+  recorderStream?.getTracks().forEach(track => track.stop())
+  recorderStream = null
+  mediaRecorder = null
+}
+
+const openVideoRecorder = async () => {
+  showVideoChoiceDialog.value = false
+  showVideoRecorderDialog.value = true
+  recordedChunks = []
+
+  recorderStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+  if (recorderPreview.value) {
+    recorderPreview.value.srcObject = recorderStream
+    await recorderPreview.value.play()
+  }
+}
+
+const startVideoRecording = () => {
+  if (!recorderStream) {
+    return
+  }
+
+  recordedChunks = []
+  mediaRecorder = new MediaRecorder(recorderStream)
+  mediaRecorder.ondataavailable = (event) => {
+    if (event.data.size > 0) {
+      recordedChunks.push(event.data)
+    }
+  }
+  mediaRecorder.onstop = async () => {
+    const videoBlob = new Blob(recordedChunks, { type: 'video/webm' })
+    capturedVideo.value = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(String(reader.result ?? ''))
+      reader.onerror = () => reject(new Error('Unable to read video'))
+      reader.readAsDataURL(videoBlob)
+    })
+    showVideoRecorderDialog.value = false
+    showVideoReviewDialog.value = true
+    stopRecorderStream()
+  }
+
+  mediaRecorder.start()
+  recordingVideo.value = true
+}
+
+const stopVideoRecording = () => {
+  if (mediaRecorder && recordingVideo.value) {
+    mediaRecorder.stop()
+  }
+  recordingVideo.value = false
+}
+
+const cancelVideoFlow = () => {
+  recordingVideo.value = false
+  capturedVideo.value = ''
+  showVideoChoiceDialog.value = false
+  showVideoRecorderDialog.value = false
+  showVideoReviewDialog.value = false
+  stopRecorderStream()
+}
+
+const confirmVideoUpload = () => {
+  if (capturedVideo.value) {
+    newPostFilePath.value = capturedVideo.value
+    newPostImageFiles.value = []
+  }
+  cancelVideoFlow()
+  openCreatePostDialog('🎥')
+}
+
+const handleVideoSelected = async (event: Event) => {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
   if (!file) {
     return
   }
 
-  const dataUrl = await new Promise<string>((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(String(reader.result ?? ''))
-    reader.onerror = () => reject(new Error('Unable to read file'))
-    reader.readAsDataURL(file)
-  })
-
-  newPostFilePath.value = dataUrl
-  openCreatePostDialog()
+  newPostFilePath.value = (await readFilesAsDataUrls([file]))[0] ?? ''
+  newPostImageFiles.value = []
+  showVideoChoiceDialog.value = false
+  openCreatePostDialog('🎥')
   target.value = ''
+}
+
+const handleQuickAction = (actionKey: string) => {
+  if (actionKey === 'photo') {
+    triggerModalPhotoPicker()
+    return
+  }
+
+  if (actionKey === 'tag') {
+    openCreatePostDialog('@friend')
+    return
+  }
+
+  if (actionKey === 'emoji') {
+    openCreatePostDialog('😊')
+    return
+  }
+
+  showPostOptionsDialog.value = true
 }
 
 const submitPost = async (blogId: string) => {
@@ -224,6 +373,7 @@ const submitPost = async (blogId: string) => {
   creatingPost.value = false
   newPostContent.value = ''
   newPostFilePath.value = ''
+  newPostImageFiles.value = []
   createPostDialog.value = false
   showPostOptionsDialog.value = false
 }
@@ -346,8 +496,16 @@ const confirmDeletePost = async () => {
       ref="postPhotoInput"
       type="file"
       accept="image/*"
+      multiple
       class="d-none"
       @change="handlePhotoSelected"
+    >
+    <input
+      ref="postVideoInput"
+      type="file"
+      accept="video/*"
+      class="d-none"
+      @change="handleVideoSelected"
     >
     <div class="d-flex align-center ga-3">
       <UiAvatar
@@ -363,7 +521,7 @@ const confirmDeletePost = async () => {
       >
         Was machst du gerade, {{ currentUserName }}?
       </button>
-      <v-btn icon="mdi-video-outline" variant="text" :disabled="!canInteract" @click="openCreatePostDialog('🎥')" />
+      <v-btn icon="mdi-video-outline" variant="text" :disabled="!canInteract" @click="openVideoChoiceDialog" />
       <v-btn icon="mdi-image-outline" variant="text" :disabled="!canInteract" @click="triggerPhotoPicker" />
       <v-menu v-model="showEmojiMenu" location="bottom end">
         <template #activator="{ props: menuProps }">
@@ -386,8 +544,19 @@ const confirmDeletePost = async () => {
 
   <v-dialog v-model="createPostDialog" max-width="720">
     <v-card rounded="xl" class="pa-2">
-      <v-card-title class="text-h5 text-center font-weight-bold">Beitrag erstellen</v-card-title>
+      <v-card-title class="text-h5 text-center font-weight-bold position-relative pr-12">
+        Beitrag erstellen
+        <v-btn icon="mdi-close" variant="text" class="close-dialog-btn" @click="createPostDialog = false" />
+      </v-card-title>
       <v-card-text>
+        <input
+          ref="postModalPhotoInput"
+          type="file"
+          accept="image/*"
+          multiple
+          class="d-none"
+          @change="handlePhotoSelected"
+        >
         <div class="d-flex align-center ga-3 mb-4">
           <UiAvatar
             :src="authSession.profile?.photo ?? undefined"
@@ -409,13 +578,20 @@ const confirmDeletePost = async () => {
           :disabled="!canInteract"
         />
 
-        <v-img
-          v-if="newPostFilePath"
-          :src="newPostFilePath"
-          max-height="260"
-          cover
-          class="rounded-lg mb-3"
-        />
+        <div v-if="newPostImageFiles.length" class="mb-3 image-preview-grid">
+          <div v-for="(imageSrc, index) in newPostImageFiles" :key="`${imageSrc}-${index}`" class="image-preview-item">
+            <v-img :src="imageSrc" height="150" cover class="rounded-lg" />
+            <v-btn
+              icon="mdi-close"
+              size="x-small"
+              color="error"
+              class="image-remove-btn"
+              @click="removeImageAt(index)"
+            />
+          </div>
+        </div>
+
+        <video v-else-if="newPostFilePath" :src="newPostFilePath" controls class="w-100 rounded-lg mb-3" />
 
         <v-sheet rounded="lg" variant="outlined" class="pa-3 mb-3 add-to-post-sheet">
           <div class="d-flex align-center justify-space-between flex-wrap ga-3">
@@ -423,11 +599,11 @@ const confirmDeletePost = async () => {
             <div class="d-flex align-center ga-2">
               <v-btn
                 v-for="action in postQuickActions"
-                :key="action.label"
+                :key="action.key"
                 icon
                 variant="text"
                 :disabled="!canInteract"
-                @click="showPostOptionsDialog = true"
+                @click="handleQuickAction(action.key)"
               >
                 <v-icon :icon="action.icon" :color="action.color" />
               </v-btn>
@@ -437,6 +613,48 @@ const confirmDeletePost = async () => {
 
         <v-btn block color="primary" :loading="creatingPost" :disabled="!canInteract || !newPostContent.trim()" @click="submitPost(blog.id)">Posten</v-btn>
       </v-card-text>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="showVideoChoiceDialog" max-width="520">
+    <v-card rounded="xl">
+      <v-card-title class="d-flex align-center justify-space-between">Vidéo
+        <v-btn icon="mdi-close" variant="text" @click="cancelVideoFlow" />
+      </v-card-title>
+      <v-card-text class="d-flex flex-column ga-3">
+        <v-btn variant="outlined" prepend-icon="mdi-video-plus" @click="triggerVideoPicker">Ajouter une vidéo</v-btn>
+        <v-btn variant="outlined" prepend-icon="mdi-camera-outline" @click="openVideoRecorder">Ouvrir la caméra et enregistrer</v-btn>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="showVideoRecorderDialog" max-width="760" persistent>
+    <v-card rounded="xl">
+      <v-card-title class="d-flex align-center justify-space-between">Enregistrement vidéo
+        <v-btn icon="mdi-close" variant="text" @click="cancelVideoFlow" />
+      </v-card-title>
+      <v-card-text>
+        <video ref="recorderPreview" autoplay muted playsinline class="w-100 rounded-lg mb-3" />
+        <div class="d-flex justify-end ga-2">
+          <v-btn v-if="!recordingVideo" color="error" @click="startVideoRecording">Démarrer</v-btn>
+          <v-btn v-else color="primary" @click="stopVideoRecording">Terminer</v-btn>
+        </div>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="showVideoReviewDialog" max-width="760">
+    <v-card rounded="xl">
+      <v-card-title class="d-flex align-center justify-space-between">Mettre la vidéo en ligne ?
+        <v-btn icon="mdi-close" variant="text" @click="cancelVideoFlow" />
+      </v-card-title>
+      <v-card-text>
+        <video v-if="capturedVideo" :src="capturedVideo" controls class="w-100 rounded-lg" />
+      </v-card-text>
+      <v-card-actions class="justify-end">
+        <v-btn variant="text" @click="cancelVideoFlow">Annuler</v-btn>
+        <v-btn color="primary" @click="confirmVideoUpload">Mettre en ligne</v-btn>
+      </v-card-actions>
     </v-card>
   </v-dialog>
 
@@ -770,11 +988,35 @@ const confirmDeletePost = async () => {
 }
 
 .add-to-post-sheet {
+  border-width: 1px;
+  border-style: solid;
   border-color: rgba(var(--v-theme-on-surface), 0.2);
 }
 
 .option-btn {
   min-height: 46px;
   font-weight: 600;
+}
+
+.close-dialog-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+
+.image-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.image-preview-item {
+  position: relative;
+}
+
+.image-remove-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
 }
 </style>
