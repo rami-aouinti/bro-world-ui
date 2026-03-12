@@ -118,9 +118,16 @@ const categoryLabel = (key: string) => faqPagePayload.value.categories.find((cat
 
 const publicPagesStore = usePublicPagesStore()
 const { locale } = useI18n()
+const isLoading = ref(true)
 
 const loadPageContent = async () => {
-  faqPagePayload.value = await publicPagesStore.loadFaq(locale.value)
+  isLoading.value = true
+  try {
+    faqPagePayload.value = await publicPagesStore.loadFaq(locale.value)
+  }
+  finally {
+    isLoading.value = false
+  }
 }
 
 onMounted(loadPageContent)
@@ -129,6 +136,20 @@ watch(locale, loadPageContent)
 
 <template>
   <main class="faq-page">
+    <template v-if="isLoading">
+      <v-card class="faq-hero__surface mb-6" rounded="xl">
+        <v-skeleton-loader type="chip" class="mb-3" />
+        <v-skeleton-loader type="heading" class="mb-2" />
+        <v-skeleton-loader type="text@2" class="mb-4" />
+        <v-skeleton-loader type="button@2" />
+      </v-card>
+      <v-card class="faq-filters mb-4" rounded="xl">
+        <v-skeleton-loader type="text@2" />
+      </v-card>
+      <v-skeleton-loader type="list-item-three-line@4" />
+    </template>
+
+    <template v-else>
     <v-fade-transition appear>
       <v-card class="faq-hero__surface mb-6 transition-elevation" elevation="4" rounded="xl" hover>
         <v-chip class="faq-hero__badge" color="primary" variant="tonal">{{ faqPagePayload.hero.badge }}</v-chip>
@@ -201,6 +222,7 @@ watch(locale, loadPageContent)
         </v-card>
       </section>
     </v-expand-transition>
+    </template>
   </main>
 </template>
 <style scoped>
