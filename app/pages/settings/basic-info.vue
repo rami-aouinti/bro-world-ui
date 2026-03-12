@@ -132,7 +132,15 @@ onMounted(loadProfile)
         </v-list>
       </v-card-text>
     </v-card>
-    <v-progress-linear v-if="isLoading" color="primary" indeterminate class="mb-4" />
+    <template v-if="isLoading">
+      <v-card rounded="xl" class="mb-4 pa-4">
+        <v-skeleton-loader type="avatar, heading, text" class="mb-3" />
+        <v-skeleton-loader type="text@6" />
+      </v-card>
+      <v-card rounded="xl" class="pa-4">
+        <v-skeleton-loader type="list-item-three-line@6" />
+      </v-card>
+    </template>
     <v-form v-else @submit.prevent="onSubmit">
       <v-row>
         <v-col cols="12" md="6"><v-text-field v-model="form.firstName" label="First Name" variant="underlined" /></v-col>

@@ -116,9 +116,16 @@ const homePagePayload = ref<HomePagePayload>({
 
 const publicPagesStore = usePublicPagesStore()
 const { locale } = useI18n()
+const isLoading = ref(true)
 
 const loadPageContent = async () => {
-  homePagePayload.value = await publicPagesStore.loadHome(locale.value)
+  isLoading.value = true
+  try {
+    homePagePayload.value = await publicPagesStore.loadHome(locale.value)
+  }
+  finally {
+    isLoading.value = false
+  }
 }
 
 onMounted(loadPageContent)
@@ -127,6 +134,35 @@ watch(locale, loadPageContent)
 
 <template>
   <main class="home-page">
+    <template v-if="isLoading">
+      <v-card class="home-hero mb-6" rounded="xl">
+        <v-skeleton-loader type="chip" class="mb-4" />
+        <v-skeleton-loader type="heading" class="mb-2" />
+        <v-skeleton-loader type="text@2" class="mb-4" />
+        <v-skeleton-loader type="button@2" class="mb-4" />
+        <v-skeleton-loader type="list-item-two-line@3" />
+      </v-card>
+
+      <v-card class="home-section mb-6" rounded="xl">
+        <v-skeleton-loader type="heading" class="mb-4" />
+        <v-row>
+          <v-col v-for="index in 3" :key="`feature-skeleton-${index}`" cols="12" md="4">
+            <v-skeleton-loader type="card" />
+          </v-col>
+        </v-row>
+      </v-card>
+
+      <v-card class="home-section mb-6" rounded="xl">
+        <v-skeleton-loader type="heading" class="mb-4" />
+        <v-row>
+          <v-col v-for="index in 3" :key="`metric-skeleton-${index}`" cols="12" md="4">
+            <v-skeleton-loader type="list-item-two-line" />
+          </v-col>
+        </v-row>
+      </v-card>
+    </template>
+
+    <template v-else>
     <v-fade-transition appear>
       <UiCard class="home-hero mb-6" kind="hero">
         <v-chip class="home-hero__badge mb-4" color="primary" variant="tonal">
@@ -202,6 +238,7 @@ watch(locale, loadPageContent)
         </div>
       </UiCard>
     </v-fade-transition>
+    </template>
   </main>
 </template>
 
