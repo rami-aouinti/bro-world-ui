@@ -511,7 +511,7 @@ export const useRecruitHome = () => {
         },
       })
 
-      await apiFetch<{ id: string, status: string }>('/api/v1/recruit/applications', {
+      await apiFetch<{ id: string, status: string }>(`/api/v1/recruit/applications/${applicationSlug.value}/applications`, {
         method: 'POST',
         body: {
           applicantId: applicantResponse.id,
