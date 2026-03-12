@@ -139,14 +139,12 @@ const { data: applications, pending: applicationsPending, refresh: refreshApplic
       return [] as JobApplication[]
     }
 
-    const response = await apiFetch<JobApplication[]>('/api/v1/recruit/private/job-applications', {
+    return await apiFetch<JobApplication[]>(`/api/v1/recruit/applications/${appSlug.value}/private/job-applications`, {
       method: 'GET',
       query: {
         jobId: job.value.id,
       },
     })
-
-    return response
   },
   {
     server: false,
@@ -187,7 +185,7 @@ const updateApplicationStatus = async (applicationId: string, status: RecruitApp
   applicationActionError.value = ''
 
   try {
-    await apiFetch(`/api/v1/recruit/private/applications/${applicationId}/status`, {
+    await apiFetch(`/api/v1/recruit/applications/${appSlug.value}/private/applications/${applicationId}/status`, {
       method: 'PATCH',
       body: {
         status,
@@ -220,12 +218,12 @@ const updateApplicationStatus = async (applicationId: string, status: RecruitApp
           <div>
             <div class="d-flex align-center ga-4 mb-3">
               <v-avatar size="72" rounded="lg" color="deep-orange-lighten-4" class="text-deep-orange-darken-3 font-weight-bold">
-                {{ job.company.logo }}
+                {{ job?.company?.logo }}
               </v-avatar>
               <h1 class="text-h4 font-weight-bold">{{ job.title }}</h1>
             </div>
             <p class="text-body-1 mb-2">
-              {{ job.company.name }} · {{ job.location }} · {{ job.contractType }} · {{ job.workMode }} · {{ job.schedule }}
+              {{ job?.company?.name }} · {{ job?.location }} · {{ job?.contractType }} · {{ job?.workMode }} · {{ job?.schedule }}
             </p>
             <p class="text-body-1 mb-0">{{ t('platform.recruit.job.estimatedFullTimeSalary', { salary: formatRecruitSalary(job.salary) }) }}</p>
           </div>
@@ -240,14 +238,14 @@ const updateApplicationStatus = async (applicationId: string, status: RecruitApp
             <h2 class="text-h5 font-weight-bold mb-2">{{ t('platform.recruit.job.match.title') }}</h2>
             <p class="text-body-1 mb-4">{{ t('platform.recruit.job.match.description') }}</p>
             <v-progress-linear :model-value="job.matchScore" color="teal" height="14" rounded />
-            <p class="text-caption mt-2 mb-0">{{ t('platform.recruit.job.match.score', { score: job.matchScore }) }}</p>
+            <p class="text-caption mt-2 mb-0">{{ t('platform.recruit.job.match.score', { score: job?.matchScore }) }}</p>
           </v-card-text>
         </v-card>
 
         <div class="mb-8">
           <h2 class="text-h4 font-weight-bold mb-3">{{ t('platform.recruit.job.sections.introduction') }}</h2>
-          <h3 class="text-h5 font-weight-bold mb-3">{{ job.missionTitle }}</h3>
-          <p class="text-body-1">{{ job.missionDescription }}</p>
+          <h3 class="text-h5 font-weight-bold mb-3">{{ job?.missionTitle }}</h3>
+          <p class="text-body-1">{{ job?.missionDescription }}</p>
         </div>
 
         <v-divider class="my-6" />
@@ -296,10 +294,10 @@ const updateApplicationStatus = async (applicationId: string, status: RecruitApp
             <v-card-text class="pa-5">
               <div class="d-flex align-start justify-space-between flex-wrap ga-4">
                 <div>
-                  <p class="text-h6 mb-1">{{ application.applicant.user.firstName }} {{ application.applicant.user.lastName }}</p>
-                  <p class="text-body-2 text-medium-emphasis mb-2">{{ application.applicant.user.email }} · @{{ application.applicant.user.username }}</p>
-                  <p class="text-body-2 mb-2"><strong>{{ t('platform.recruit.job.applications.coverLetter') }}</strong> {{ application.applicant.coverLetter }}</p>
-                  <p class="text-caption mb-0">{{ t('platform.recruit.job.applications.meta', { id: application.id, resumeId: application.applicant.resume.id }) }}</p>
+                  <p class="text-h6 mb-1">{{ application?.applicant?.user?.firstName }} {{ application?.applicant?.user?.lastName }}</p>
+                  <p class="text-body-2 text-medium-emphasis mb-2">{{ application?.applicant?.user?.email }} · @{{ application?.applicant?.user?.username }}</p>
+                  <p class="text-body-2 mb-2"><strong>{{ t('platform.recruit.job.applications.coverLetter') }}</strong> {{ application?.applicant?.coverLetter }}</p>
+                  <p class="text-caption mb-0">{{ t('platform.recruit.job.applications.meta', { id: application.id, resumeId: application?.applicant?.resume?.id }) }}</p>
                 </div>
                 <div style="min-width: 220px;">
                   <v-select
@@ -312,7 +310,7 @@ const updateApplicationStatus = async (applicationId: string, status: RecruitApp
                     @update:model-value="(value) => updateApplicationStatus(application.id, value as RecruitApplicationStatus)"
                   />
                   <p class="text-caption text-medium-emphasis mb-0">
-                    {{ new Date(application.createdAt).toLocaleString(locale === 'fr' ? 'fr-FR' : 'en-US') }}
+                    {{ new Date(application?.createdAt).toLocaleString(locale === 'fr' ? 'fr-FR' : 'en-US') }}
                   </p>
                 </div>
               </div>
