@@ -161,6 +161,10 @@ watch([infiniteSentinel, hasMorePosts], async () => {
       </div>
     </template>
 
+    <template #layout-aside>
+      <v-card rounded="xl" variant="tonal" class="blog-right-placeholder" />
+    </template>
+
     <main>
       <UiSkeletonCardGrid :cards="5" :columns="12" v-if="isLoading" />
       <v-alert v-else-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
@@ -200,5 +204,11 @@ watch([infiniteSentinel, hasMorePosts], async () => {
 .insight-card {
   border-color: rgba(var(--v-theme-on-surface), 0.14);
   background: linear-gradient(180deg, rgba(var(--v-theme-surface), 0.92), rgba(var(--v-theme-surface-variant), 0.24));
+}
+
+.blog-right-placeholder {
+  min-height: calc(83vh - var(--app-split-shell-margin) * 2);
+  border: 1px dashed rgba(var(--v-theme-on-surface), 0.22);
+  background: color-mix(in srgb, rgb(var(--v-theme-surface-variant)) 46%, transparent);
 }
 </style>

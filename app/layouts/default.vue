@@ -74,6 +74,10 @@ const routeMessage = computed(() => {
           </template>
 
           <slot />
+
+          <template #aside>
+            <slot name="layout-aside" />
+          </template>
         </AppSplitShell>
 
         <slot v-else />
