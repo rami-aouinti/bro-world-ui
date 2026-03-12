@@ -270,7 +270,7 @@ export const useBlogsStore = defineStore('blogs', () => {
     })
   }
 
-  const addCommentToStore = (postId: string, payload: { content: string, parentCommentId: string | null }, commentId?: UUID) => {
+  const addCommentToStore = (postId: string, payload: { content: string, parentCommentId: string | null, filePath?: string | null }, commentId?: UUID) => {
     const now = new Date().toISOString()
     const newComment: BlogComment = {
       id: commentId ?? commentTempId(),
@@ -278,7 +278,7 @@ export const useBlogsStore = defineStore('blogs', () => {
       isAuthor: true,
       author: currentAuthor(),
       content: payload.content,
-      filePath: null,
+      filePath: payload.filePath ?? null,
       createdAt: now,
       reactions: [],
       children: [],
@@ -576,7 +576,7 @@ export const useBlogsStore = defineStore('blogs', () => {
     }
   }
 
-  const createComment = async (postId: string, payload: { content: string, parentCommentId: string | null }) => {
+  const createComment = async (postId: string, payload: { content: string, parentCommentId: string | null, filePath?: string | null }) => {
     const response = await blogsApi.createComment(postId, payload)
 
     if (response?.status === 'accepted') {
