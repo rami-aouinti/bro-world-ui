@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
-import PlatformHeroHeader from '~/components/platform/sections/PlatformHeroHeader.vue'
 import { getRecruitNav } from '~/data/platform-nav'
 import RecruitJobCard from '~/components/platform/recruit/RecruitJobCard.vue'
 import RecruitPageSection from '~/components/platform/recruit/RecruitPageSection.vue'

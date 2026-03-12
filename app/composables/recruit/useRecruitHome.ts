@@ -2,6 +2,7 @@ import type { RecruitContractType, RecruitJob } from '~/data/platform/recruit'
 
 interface RecruitJobsApiResponse {
   jobs?: RecruitJob[]
+  items?: RecruitJob[]
   pagination?: {
     page?: number
     limit?: number
@@ -40,7 +41,7 @@ export type RecruitUpdateJobPayload = {
   benefits: string
 }
 
-const DEFAULT_PAGE_SIZE = 10
+const DEFAULT_PAGE_SIZE = 3
 const PRIVATE_JOBS_TIMEOUT_MS = 6000
 const RECRUIT_HOME_CACHE_TTL_MS = 60_000
 
@@ -272,7 +273,7 @@ export const useRecruitHome = () => {
   })
 
   const normalizeJobsResponse = (response: RecruitJobsApiResponse | null) => {
-    const items = response?.jobs ?? response?.results ?? []
+    const items = response?.items ?? response?.jobs ?? response?.results ?? []
     const totalFromPagination = response?.pagination?.totalItems
     const total = typeof totalFromPagination === 'number'
       ? totalFromPagination
@@ -292,7 +293,7 @@ export const useRecruitHome = () => {
     ])
   }
 
-  const fetchRecruitJobsPrivate = async () => apiFetch<RecruitJobsApiResponse>(`/api/v1/recruit/private/${slug.value}/jobs`, {
+  const fetchRecruitJobsPrivate = async () => apiFetch<RecruitJobsApiResponse>(`/api/v1/recruit/applications/${applicationSlug.value}/private/jobs`, {
     method: 'GET',
     query: {
       page: currentPage.value,
@@ -301,11 +302,11 @@ export const useRecruitHome = () => {
     },
   })
 
-  const fetchRecruitJobsPublic = async () => apiFetch<RecruitJobsApiResponse>(`/api/v1/recruit/public/${slug.value}/jobs`, {
+  const fetchRecruitJobsPublic = async () => apiFetch<RecruitJobsApiResponse>(`/api/v1/recruit/applications/${applicationSlug.value}/public/jobs`, {
     method: 'GET',
     query: {
       page: currentPage.value,
-      pageSize: DEFAULT_PAGE_SIZE,
+      limit: DEFAULT_PAGE_SIZE,
       ...filterQuery.value,
     },
   })

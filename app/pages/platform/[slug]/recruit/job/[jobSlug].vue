@@ -7,6 +7,12 @@ import RecruitJobCard from '~/components/platform/recruit/RecruitJobCard.vue'
 
 type RecruitJobListResponse = {
   jobs?: RecruitJob[]
+  items?: RecruitJob[]
+}
+
+type RecruitJobDetailResponse = {
+  job?: RecruitJob
+  similarJobs?: RecruitJob[]
 }
 
 type RecruitApplicationStatus = 'WAITING' | 'REVIEWING' | 'INTERVIEW' | 'REJECTED' | 'ACCEPTED'
@@ -53,7 +59,7 @@ const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number) => {
 }
 
 const fetchPrivateJobs = async (limit = 100) => {
-  return await apiFetch<RecruitJobListResponse>(`/api/v1/recruit/private/${appSlug.value}/jobs`, {
+  return await apiFetch<RecruitJobListResponse>(`/api/v1/recruit/applications/${appSlug.value}/private/jobs`, {
     method: 'GET',
     query: {
       page: 1,
@@ -62,18 +68,14 @@ const fetchPrivateJobs = async (limit = 100) => {
   })
 }
 
-const fetchPublicJobs = async (limit = 100) => {
-  return await apiFetch<RecruitJobListResponse>(`/api/v1/recruit/public/${appSlug.value}/jobs`, {
+const fetchPublicJobDetail = async () => {
+  return await apiFetch<RecruitJobDetailResponse>(`/api/v1/recruit/applications/${appSlug.value}/public/jobs/${jobSlug.value}`, {
     method: 'GET',
-    query: {
-      page: 1,
-      pageSize: limit,
-    },
   })
 }
 
 const fetchJobsWithFallback = async (limit = 100) => {
-  const fetchPublic = () => withTimeout(fetchPublicJobs(limit), REQUEST_TIMEOUT_MS)
+  const fetchPublic = () => withTimeout(fetchPublicJobDetail(), REQUEST_TIMEOUT_MS)
 
   if (isAuthenticated.value) {
     try {
@@ -96,11 +98,18 @@ const ensureSessionInitialized = async () => {
 }
 
 const { data: jobsData, pending: jobsPending, error: jobsError, execute: loadJobs } = useAsyncData(
-  () => `recruit-jobs-${appSlug.value}`,
+  () => `recruit-jobs-${appSlug.value}-${jobSlug.value}`,
   async () => {
     await ensureSessionInitialized()
     const response = await fetchJobsWithFallback(100)
-    return response.jobs ?? []
+
+    if ('job' in response) {
+      const job = response.job ?? null
+      const similarJobs = response.similarJobs ?? []
+      return job ? [job, ...similarJobs] : similarJobs
+    }
+
+    return response.items ?? response.jobs ?? []
   },
   {
     server: false,
