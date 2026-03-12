@@ -166,6 +166,10 @@ onMounted(async () => {
           </v-chip>
         </div>
 
+        <v-list class="pa-0 bg-transparent mb-4">
+          <v-list-item class="px-0" to="/profile/blogs" prepend-icon="mdi-post-outline" title="My posts" rounded="lg" />
+        </v-list>
+
         <v-divider class="mb-4" />
         <v-list class="pa-0 bg-transparent">
           <v-list-item class="px-0"><strong>Email:</strong>&nbsp; {{ email }}</v-list-item>

@@ -18,6 +18,15 @@ export const useBlogsApi = () => {
         },
       })
     },
+    getMyPosts(params?: { page?: number, limit?: number }) {
+      return apiFetch<BlogWithPagination>('/api/v1/private/blog/posts/mine', {
+        method: 'GET',
+        query: {
+          page: params?.page ?? 1,
+          limit: params?.limit ?? 5,
+        },
+      })
+    },
     getApplicationBlog(applicationSlug: string) {
       return apiFetch<BlogRead>(`/api/v1/blog/${applicationSlug}/feed`, { method: 'GET' })
     },

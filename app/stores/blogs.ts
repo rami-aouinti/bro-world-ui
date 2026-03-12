@@ -48,6 +48,8 @@ export const useBlogsStore = defineStore('blogs', () => {
   const isLoadingMore = ref(false)
   const currentGeneralVisibility = ref<BlogVisibility>('private')
   const lastPrivateGeneralQuery = ref<BlogListQuery>({ page: 1, limit: DEFAULT_BLOG_PAGE_LIMIT })
+  const myPosts = ref<BlogWithPagination | null>(null)
+  const myPostsPagination = ref<BlogPagination | null>(null)
   const reactionTypes = ref<string[]>([...BLOG_REACTION_FALLBACK_TYPES])
 
   const mergeGeneralPosts = (currentBlog: BlogWithPagination | null, incomingBlog: BlogWithPagination) => {
@@ -104,7 +106,6 @@ export const useBlogsStore = defineStore('blogs', () => {
       limit,
     }
   }
-
   const applyMutationToGeneralAndCache = (mutator: (blog: BlogWithPagination) => BlogWithPagination) => {
     if (general.value) {
       general.value = mutator(general.value)
@@ -457,6 +458,70 @@ export const useBlogsStore = defineStore('blogs', () => {
     })
   }
 
+  const fetchMyPosts = async (
+    forceRefresh = false,
+    options?: { page?: number, limit?: number, append?: boolean },
+  ) => {
+    const page = options?.page ?? 1
+    const limit = options?.limit ?? DEFAULT_BLOG_PAGE_LIMIT
+    const append = options?.append ?? page > 1
+
+    const cacheKey = `mine:${page}:${limit}`
+    const now = Date.now()
+    const cacheEntry = cache.value[cacheKey]
+
+    if (!forceRefresh && cacheEntry && now - cacheEntry.cachedAt < BLOG_CACHE_TTL_MS) {
+      if (append) {
+        myPosts.value = mergeGeneralPosts(myPosts.value, cacheEntry.data)
+      }
+      else {
+        myPosts.value = cacheEntry.data
+      }
+
+      myPostsPagination.value = cacheEntry.data.pagination ?? null
+      return myPosts.value
+    }
+
+    if (append) {
+      isLoadingMore.value = true
+    }
+    else {
+      isLoading.value = true
+    }
+
+    try {
+      const response = await blogsApi.getMyPosts({ page, limit })
+      myPosts.value = append ? mergeGeneralPosts(myPosts.value, response) : response
+      myPostsPagination.value = response.pagination ?? null
+      cache.value[cacheKey] = {
+        data: response,
+        cachedAt: now,
+      }
+
+      return myPosts.value
+    }
+    finally {
+      isLoading.value = false
+      isLoadingMore.value = false
+    }
+  }
+
+  const fetchNextMyPostsPage = async (limit = DEFAULT_BLOG_PAGE_LIMIT) => {
+    if (!myPostsPagination.value) {
+      return fetchMyPosts(false, { page: 1, limit, append: false })
+    }
+
+    if (isLoadingMore.value || myPostsPagination.value.page >= myPostsPagination.value.totalPages) {
+      return myPosts.value
+    }
+
+    return fetchMyPosts(false, {
+      page: myPostsPagination.value.page + 1,
+      limit,
+      append: true,
+    })
+  }
+
   const fetchReactionTypes = async () => {
     try {
       const response = await blogsApi.getReactionTypes()
@@ -471,12 +536,13 @@ export const useBlogsStore = defineStore('blogs', () => {
 
   const invalidateGeneralCache = () => {
     Object.keys(cache.value)
-      .filter(key => key.startsWith('general:'))
+      .filter(key => key.startsWith('general:') || key.startsWith('mine:'))
       .forEach((key) => {
         delete cache.value[key]
       })
 
     generalPagination.value = null
+    myPostsPagination.value = null
   }
 
   const createPost = async (blogId: string, payload: CreatePostPayload) => {
@@ -549,11 +615,15 @@ export const useBlogsStore = defineStore('blogs', () => {
   return {
     general,
     generalPagination,
+    myPosts,
+    myPostsPagination,
     isLoading,
     isLoadingMore,
     reactionTypes,
     fetchGeneral,
     fetchNextGeneralPage,
+    fetchMyPosts,
+    fetchNextMyPostsPage,
     fetchReactionTypes,
     invalidateGeneralCache,
     createPost,
