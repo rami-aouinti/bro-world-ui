@@ -354,7 +354,6 @@ export const useRecruitHome = () => {
     fetchRecruitJobsWithFallback,
     {
       default: () => ({ jobs: [], total: 0 }),
-      dedupe: 'cancel',
       server: false,
       immediate: false,
     },

@@ -123,6 +123,7 @@ const handleApplyToJob = async () => {
         <v-skeleton-loader v-if="loading" type="article" class="mb-4" />
 
         <RecruitJobList
+            v-else
           :jobs="jobsData?.jobs ?? []"
           :slug="slug"
           @edit="openEditDialog"
