@@ -41,6 +41,7 @@ let recorderStream: MediaStream | null = null
 let mediaRecorder: MediaRecorder | null = null
 let recordedChunks: Blob[] = []
 const commentDrafts = ref<Record<string, string>>({})
+const commentAttachmentPath = ref<Record<string, string | null>>({})
 const commentPhotoInput = ref<Record<string, HTMLInputElement | null>>({})
 const postReactionPicker = ref<Record<string, boolean>>({})
 const expandedComments = ref<Record<string, boolean>>({})
@@ -131,8 +132,9 @@ const groupedPostReactions = (reactions: BlogReaction[] = []) => {
 
 const postReactionCount = (reactions: BlogReaction[] = []) => reactions.length
 
-const isImageFile = (filePath: string | null): boolean => Boolean(filePath && /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(filePath))
-const isVideoFile = (filePath: string): boolean => /\.(mp4|webm|mov|m4v|avi|mkv)(\?.*)?$/i.test(filePath)
+const isImageFile = (filePath: string | null): boolean => Boolean(filePath && (/^data:image\//i.test(filePath) || /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i.test(filePath)))
+const isVideoFile = (filePath: string): boolean => /^data:video\//i.test(filePath) || /\.(mp4|webm|mov|m4v|avi|mkv)(\?.*)?$/i.test(filePath)
+const stripAttachmentMarkers = (content: string) => content.replace(/\s*\[📎[^\]]+\]/g, '').trim()
 const normalizeMediaUrls = (post: BlogPost) => post.mediaUrls?.filter(Boolean) ?? []
 const extractUrlsFromText = (content?: string | null) => {
   if (!content) {
@@ -521,15 +523,19 @@ const createComment = async (payload: { postId: string, parentCommentId: string 
     return
   }
 
-  const content = payload.content.trim()
-  if (!content) {
+  const content = stripAttachmentMarkers(payload.content)
+  const filePath = commentAttachmentPath.value[payload.postId] ?? null
+  if (!content && !filePath) {
     return
   }
 
   await runAction(() => blogsStore.createComment(payload.postId, {
-    content,
+    content: content || ' ',
     parentCommentId: payload.parentCommentId,
+    filePath,
   }))
+
+  commentAttachmentPath.value[payload.postId] = null
 }
 
 const createRootComment = async (postId: string) => {
@@ -538,7 +544,7 @@ const createRootComment = async (postId: string) => {
   }
 
   const draft = (commentDrafts.value[postId] ?? '').trim()
-  if (!draft) {
+  if (!draft && !commentAttachmentPath.value[postId]) {
     return
   }
 
@@ -548,6 +554,7 @@ const createRootComment = async (postId: string) => {
     content: draft,
   })
   commentDrafts.value[postId] = ''
+  commentAttachmentPath.value[postId] = null
 }
 
 const insertCommentEmoji = (postId: string, emoji: string) => {
@@ -563,16 +570,25 @@ const triggerCommentPhotoPicker = (postId: string) => {
   commentPhotoInput.value[postId]?.click()
 }
 
-const handleCommentPhotoSelect = (postId: string, event: Event) => {
+const handleCommentPhotoSelect = async (postId: string, event: Event) => {
   const target = event.target as HTMLInputElement
   if (!target.files?.length) {
     return
   }
 
-  const selectedNames = Array.from(target.files).map(file => file.name)
-  const current = commentDrafts.value[postId] ?? ''
-  const attachmentNote = selectedNames.map(name => ` [📎 ${name}]`).join('')
-  commentDrafts.value[postId] = `${current}${attachmentNote}`.trim()
+  const selectedFile = Array.from(target.files)[0]
+  if (!selectedFile) {
+    return
+  }
+
+  const [attachmentPath] = await readFilesAsDataUrls([selectedFile])
+  if (!attachmentPath) {
+    return
+  }
+
+  commentAttachmentPath.value[postId] = attachmentPath
+  const current = stripAttachmentMarkers(commentDrafts.value[postId] ?? '')
+  commentDrafts.value[postId] = current ? `${current} [📎 ${selectedFile.name}]` : `[📎 ${selectedFile.name}]`
   target.value = ''
 }
 
@@ -1108,6 +1124,15 @@ const submitSharePost = async () => {
                 @keydown.enter.prevent="createRootComment(post.id)"
               />
 
+              <div v-if="commentAttachmentPath[post.id]" class="mb-2">
+                <img
+                  v-if="isImageFile(commentAttachmentPath[post.id])"
+                  :src="commentAttachmentPath[post.id] ?? undefined"
+                  alt="Aperçu de la pièce jointe"
+                  class="comment-attachment-preview"
+                >
+                <a v-else :href="commentAttachmentPath[post.id] ?? undefined" target="_blank" rel="noopener" class="text-primary text-decoration-underline">Voir la pièce jointe</a>
+              </div>
               <div class="comment-composer-actions">
                 <v-btn
                   icon="mdi-sticker-emoji"
@@ -1457,6 +1482,13 @@ const submitSharePost = async () => {
 
 .comment-composer-actions :deep(.v-btn) {
   border-radius: 50%;
+}
+
+.comment-attachment-preview {
+  display: block;
+  max-width: min(100%, 280px);
+  border-radius: 10px;
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.15);
 }
 
 </style>
