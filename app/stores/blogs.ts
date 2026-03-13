@@ -550,6 +550,7 @@ export const useBlogsStore = defineStore('blogs', () => {
 
     if (response?.status === 'accepted') {
       addRootPostToStore(payload, response.id)
+      invalidateGeneralCache()
     }
   }
 
@@ -561,11 +562,13 @@ export const useBlogsStore = defineStore('blogs', () => {
       content: payload.content ?? post.content,
       filePath: payload.filePath === undefined ? post.filePath : payload.filePath,
     }))
+    invalidateGeneralCache()
   }
 
   const deletePost = async (postId: string) => {
     await blogsApi.deletePost(postId)
     deletePostFromStore(postId)
+    invalidateGeneralCache()
   }
 
   const createPostReaction = async (postId: string, payload: { type: string }) => {
@@ -573,6 +576,7 @@ export const useBlogsStore = defineStore('blogs', () => {
 
     if (response?.status === 'accepted') {
       addPostReactionToStore(postId, payload.type, response.id)
+      invalidateGeneralCache()
     }
   }
 
@@ -581,17 +585,20 @@ export const useBlogsStore = defineStore('blogs', () => {
 
     if (response?.status === 'accepted') {
       addCommentToStore(postId, payload, response.id)
+      invalidateGeneralCache()
     }
   }
 
   const updateComment = async (commentId: string, payload: { content: string }) => {
     await blogsApi.updateComment(commentId, payload)
     updateCommentInStore(commentId, payload)
+    invalidateGeneralCache()
   }
 
   const deleteComment = async (commentId: string) => {
     await blogsApi.deleteComment(commentId)
     deleteCommentFromStore(commentId)
+    invalidateGeneralCache()
   }
 
   const createReaction = async (commentId: string, payload: { type: string }) => {
@@ -599,17 +606,20 @@ export const useBlogsStore = defineStore('blogs', () => {
 
     if (response?.status === 'accepted') {
       addCommentReactionToStore(commentId, payload.type, response.id)
+      invalidateGeneralCache()
     }
   }
 
   const deleteReaction = async (reactionId: string) => {
     await blogsApi.deleteReaction(reactionId)
     deleteReactionFromStore(reactionId)
+    invalidateGeneralCache()
   }
 
   const updateReaction = async (reactionId: string, payload: { type: string }) => {
     await blogsApi.updateReaction(reactionId, payload)
     updateReactionInStore(reactionId, payload)
+    invalidateGeneralCache()
   }
 
   return {

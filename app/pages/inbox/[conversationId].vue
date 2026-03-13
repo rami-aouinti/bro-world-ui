@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PrivateChatMessage } from '~/types/api/chat'
-import { usePrivateChatApi } from '~/composables/api/usePrivateChatApi'
+import { useInboxStore } from '~/stores/inbox'
 
 definePageMeta({
   public: false,
@@ -8,7 +8,7 @@ definePageMeta({
 })
 
 const route = useRoute()
-const privateChatApi = usePrivateChatApi()
+const inboxStore = useInboxStore()
 const isLoadingConversation = ref(false)
 const selectedConversationMessages = ref<PrivateChatMessage[]>([])
 
@@ -25,9 +25,7 @@ const loadConversationMessages = async () => {
 
   try {
     isLoadingConversation.value = true
-    const response = await privateChatApi.getConversationMessages(conversationId.value)
-    selectedConversationMessages.value = [...(response.items ?? [])]
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    selectedConversationMessages.value = await inboxStore.fetchConversationMessages(conversationId.value)
   }
   catch {
     selectedConversationMessages.value = []
