@@ -1,20 +1,6 @@
 import { defineStore } from 'pinia'
 
-export type RecruitResumePayloadEntry = {
-  title: string
-  description: string
-}
-
-export type RecruitResumeEntry = RecruitResumePayloadEntry & {
-  id: string
-}
-
-export type RecruitResume = {
-  id: string
-  documentUrl: string | null
-  experiences: RecruitResumeEntry[]
-  skills: RecruitResumeEntry[]
-}
+import type { RecruitResume, RecruitResumePayloadEntry } from '~/types/api/recruitResume'
 
 const CACHE_TTL_MS = 60_000
 const DEFAULT_CACHE_KEY = '__default__'
