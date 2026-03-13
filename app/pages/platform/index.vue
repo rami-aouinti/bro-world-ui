@@ -6,8 +6,8 @@ import UiSkeletonCardGrid from "~/components/ui/state/UiSkeletonCardGrid.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
 import PlatformSidebarNav from "~/components/platform/PlatformSidebarNav.vue";
 
-const UiActionDialog = defineAsyncComponent(() => import("~/components/ui/overlay/UiActionDialog.vue"));
-const UiActionConfirmDialog = defineAsyncComponent(() => import("~/components/ui/overlay/UiActionConfirmDialog.vue"));
+const UiActionDialog = defineAsyncComponent(() => import("~/components/ui/UiActionDialog.vue"));
+const UiActionConfirmDialog = defineAsyncComponent(() => import("~/components/ui/UiActionConfirmDialog.vue"));
 
 definePageMeta({
   public: true,
