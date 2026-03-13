@@ -229,7 +229,15 @@ const submit = async () => {
                 :class="{ 'wizard-option--selected': selectedPlatformId === platform.id }"
                 @click="selectedPlatformId = platform.id"
             >
-              <img :src="platform.photo || ''" :alt="platform.name" class="wizard-option__photo">
+              <UiOptimizedImage
+                :src="platform.photo || ''"
+                :alt="platform.name"
+                :width="52"
+                :height="52"
+                class="wizard-option__photo"
+                loading="lazy"
+                sizes="52px"
+              />
               <div class="wizard-option__body">
                 <h3>{{ platform.name }}</h3>
                 <p>{{ platform.description }}</p>
@@ -267,7 +275,15 @@ const submit = async () => {
                 :class="{ 'wizard-option--selected': selectedPluginIds.includes(plugin.id) }"
                 @click="togglePlugin(plugin.id)"
             >
-              <img :src="plugin.photo || ''" :alt="plugin.name" class="wizard-option__photo">
+              <UiOptimizedImage
+                :src="plugin.photo || ''"
+                :alt="plugin.name"
+                :width="52"
+                :height="52"
+                class="wizard-option__photo"
+                loading="lazy"
+                sizes="52px"
+              />
               <div class="wizard-option__body">
                 <h3>{{ plugin.name }}</h3>
                 <p>{{ plugin.description }}</p>
