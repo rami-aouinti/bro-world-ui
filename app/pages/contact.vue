@@ -272,20 +272,10 @@ watch(locale, loadPageContent)
           </div>
         </v-card>
 
-        <v-card class="contact-channel mt-4" rounded="xl" variant="outlined">
-          <h2 class="text-h6 mb-2">{{ contactPagePayload.cta.title }}</h2>
-          <p class="text-body-2 text-medium-emphasis mb-4">{{ contactPagePayload.cta.description }}</p>
-          <div class="d-flex flex-wrap ga-3">
-            <v-btn
-              v-for="action in contactPagePayload.cta.actions"
-              :key="action.label"
-              :color="action.variant === 'primary' ? 'primary' : undefined"
-              :variant="action.variant === 'outlined' ? 'outlined' : 'flat'"
-            >
-              {{ action.label }}
-            </v-btn>
-          </div>
-        </v-card>
+        <LazyContactSecondaryCta
+          hydrate-on-visible
+          :cta="contactPagePayload.cta"
+        />
       </v-col>
     </v-row>
     </template>
