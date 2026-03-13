@@ -221,6 +221,43 @@ const getNotificationAvatarLabel = (notification: NotificationRead) => {
   return `${notification.from.firstName} ${notification.from.lastName}`.trim()
 }
 
+const truncateText = (value: string | null | undefined, maxLength = 40) => {
+  if (!value) {
+    return ''
+  }
+
+  return value.length > maxLength ? `${value.slice(0, maxLength).trimEnd()}...` : value
+}
+
+const formatRelativeTime = (value: string | null | undefined) => {
+  if (!value) {
+    return ''
+  }
+
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) {
+    return ''
+  }
+
+  const diffMs = date.getTime() - Date.now()
+  const absDiffMs = Math.abs(diffMs)
+  const minute = 60 * 1000
+  const hour = 60 * minute
+  const day = 24 * hour
+  const rtf = new Intl.RelativeTimeFormat(locale.value, { numeric: 'auto' })
+
+  if (absDiffMs < hour) {
+    return rtf.format(Math.round(diffMs / minute), 'minute')
+  }
+
+  if (absDiffMs < day) {
+    return rtf.format(Math.round(diffMs / hour), 'hour')
+  }
+
+  return rtf.format(Math.round(diffMs / day), 'day')
+}
+
 const { mdAndUp } = useDisplay()
 const isDesktop = computed(() => mdAndUp.value)
 const profileName = computed(() => {
@@ -344,22 +381,27 @@ const signOut = async () => {
               :key="conversation.id"
               :to="conversation.route"
               rounded="lg"
-              class="mx-2 my-1"
+              class="mx-2 my-1 app-bar__message-item"
             >
               <template #prepend>
                 <ConversationAvatarGroup :participants="conversation.participants" :size="36" />
               </template>
 
-              <v-list-item-title class="font-weight-medium text-truncate">{{ conversation.name }}</v-list-item-title>
-              <v-list-item-subtitle class="text-truncate">{{ conversation.excerpt }}</v-list-item-subtitle>
+              <div class="app-bar__message-content">
+                <v-list-item-title class="font-weight-medium text-truncate">{{ truncateText(conversation.name) }}</v-list-item-title>
+                <v-list-item-subtitle class="text-truncate">{{ truncateText(conversation.excerpt) }}</v-list-item-subtitle>
+              </div>
 
               <template #append>
-                <v-badge
-                  v-if="conversation.unread"
-                  :content="conversation.unread"
-                  color="primary"
-                  inline
-                />
+                <div class="app-bar__message-meta text-caption text-medium-emphasis">
+                  <span>{{ formatRelativeTime(conversation.latestMessageAt) }}</span>
+                  <v-badge
+                    v-if="conversation.unread"
+                    :content="conversation.unread"
+                    color="primary"
+                    inline
+                  />
+                </div>
               </template>
             </v-list-item>
 
@@ -394,7 +436,7 @@ const signOut = async () => {
               :key="notification.id"
               :to="getNotificationTarget(notification) ?? `/notifications/${notification.id}`"
               rounded="lg"
-              class="mx-2 my-1"
+              class="mx-2 my-1 app-bar__message-item"
             >
               <template #prepend>
                 <v-avatar v-if="notification.from?.photo" size="34" class="me-3">
@@ -405,7 +447,14 @@ const signOut = async () => {
                 </v-avatar>
               </template>
 
-              <v-list-item-title class="font-weight-medium text-truncate">{{ notification.title }}</v-list-item-title>
+              <div class="app-bar__message-content">
+                <v-list-item-title class="font-weight-medium text-truncate">{{ truncateText(notification.title) }}</v-list-item-title>
+                <v-list-item-subtitle class="text-truncate">{{ truncateText(notification.description) }}</v-list-item-subtitle>
+              </div>
+
+              <template #append>
+                <span class="app-bar__message-time text-caption text-medium-emphasis">{{ formatRelativeTime(notification.createdAt) }}</span>
+              </template>
             </v-list-item>
 
             <v-list-item
@@ -645,6 +694,25 @@ const signOut = async () => {
   display: flex;
   align-items: center;
   min-width: 0;
+}
+
+.app-bar__message-item :deep(.v-list-item__content) {
+  min-width: 0;
+}
+
+.app-bar__message-content {
+  min-width: 0;
+}
+
+.app-bar__message-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.app-bar__message-time {
+  white-space: nowrap;
 }
 
 @media (max-width: 959px) {
