@@ -30,27 +30,21 @@ const fakeBadges = [
 </script>
 
 <template>
-  <div class="d-flex align-center ga-3 mb-4">
+  <div class="d-flex align-center ga-3 mb-2">
     <v-avatar size="56" color="primary" variant="tonal">
       <v-icon icon="mdi-account-circle-outline" size="32" />
     </v-avatar>
     <div>
       <h6 class="text-h6 font-weight-bold mb-1">{{ fullName }}</h6>
-      <p class="mb-0 text-body-2 text-medium-emphasis">@{{ username }} • Membre depuis {{ memberSince }}</p>
+      <p class="mb-0 text-body-2 text-medium-emphasis">@{{ username }} • Member since {{ memberSince }}</p>
     </div>
   </div>
 
-  <p class="text-body-1 mb-4 text-medium-emphasis">{{ profileDescription }}</p>
-
-  <div class="d-flex flex-wrap ga-2 mb-4">
-    <v-chip v-for="badge in fakeBadges" :key="badge.label" size="small" :color="badge.color" variant="tonal">
-      {{ badge.label }}
-    </v-chip>
-  </div>
-
-  <v-list class="pa-0 bg-transparent mb-4" nav>
-    <v-list-item class="px-0" to="/profile/blogs" prepend-icon="mdi-post-outline" title="My posts" rounded="lg" />
-    <v-list-item class="px-0" to="/profile/applications" prepend-icon="mdi-apps" title="My applications" rounded="lg" />
+  <v-list class="bg-transparent mb-2" nav>
+    <v-list-item class="px-2l" to="/profile" prepend-icon="mdi-account-outline" title="Profile" rounded="lg" />
+    <v-list-item class="px-2l" to="/settings/basic-info" prepend-icon="mdi-account-outline" title="Profile" rounded="lg" />
+    <v-list-item class="px-2" to="/profile/blogs" prepend-icon="mdi-post-outline" title="My posts" rounded="lg" />
+    <v-list-item class="px-2" to="/profile/applications" prepend-icon="mdi-apps" title="My applications" rounded="lg" />
   </v-list>
 
   <v-divider class="mb-4" />

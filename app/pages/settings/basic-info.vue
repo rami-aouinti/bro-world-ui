@@ -103,6 +103,8 @@ onMounted(loadProfile)
                 :loading="uploading"
                 size="sm"
                 icon="mdi-camera"
+                variant="text"
+                color="primary"
                 @click="photoInput?.click()"
             />
             <input ref="photoInput" type="file" class="d-none" accept="image/*" @change="onUploadPhoto" />
@@ -124,14 +126,6 @@ onMounted(loadProfile)
         <p class="text-body-1 text-medium-emphasis mb-4">{{ bio }}</p>
       </v-col>
     </v-row>
-    <v-card rounded="xl" variant="outlined" class="mb-4">
-      <v-card-text>
-        <p class="text-overline mb-2">Profile completion tips</p>
-        <v-list density="compact" class="py-0">
-          <v-list-item v-for="tip in profileTips" :key="tip" :title="tip" prepend-icon="mdi-check-circle-outline" />
-        </v-list>
-      </v-card-text>
-    </v-card>
     <template v-if="isLoading">
       <v-card rounded="xl" class="mb-4 pa-4">
         <v-skeleton-loader type="avatar, heading, text" class="mb-3" />
