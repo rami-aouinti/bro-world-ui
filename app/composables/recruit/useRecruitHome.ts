@@ -85,6 +85,28 @@ const createEmptyResumeForm = () => ({
   skillDescription: '',
 })
 
+export const canSubmitRecruitApplication = (params: {
+  hasSelectedJob: boolean
+  coverLetter: string
+  resumeMode: 'existing' | 'new' | 'pdf'
+  selectedResumeId: string
+  resumeTitle: string
+  resumeDescription: string
+  uploadedResumeFile: File | null
+}) => {
+  const hasExistingResume = params.resumeMode === 'existing' && Boolean(params.selectedResumeId)
+  const hasNewResumeData = params.resumeMode === 'new'
+    && params.resumeTitle.trim()
+    && params.resumeDescription.trim()
+  const hasPdfResume = params.resumeMode === 'pdf' && Boolean(params.uploadedResumeFile)
+
+  return Boolean(
+    params.hasSelectedJob
+    && params.coverLetter.trim()
+    && (hasExistingResume || hasNewResumeData || hasPdfResume),
+  )
+}
+
 type RecruitHomeJobsCacheEntry = {
   data: { jobs: RecruitJob[], total: number }
   cachedAt: number
@@ -259,17 +281,15 @@ export const useRecruitHome = () => {
   }
 
   const canSubmitApplication = computed(() => {
-    const hasExistingResume = resumeMode.value === 'existing' && Boolean(selectedResumeId.value)
-    const hasNewResumeData = resumeMode.value === 'new'
-      && resumeForm.value.title.trim()
-      && resumeForm.value.description.trim()
-    const hasPdfResume = resumeMode.value === 'pdf' && Boolean(uploadedResumeFile.value)
-
-    return Boolean(
-      selectedApplyJob.value
-      && applyForm.value.coverLetter.trim()
-      && (hasExistingResume || hasNewResumeData || hasPdfResume),
-    )
+    return canSubmitRecruitApplication({
+      hasSelectedJob: Boolean(selectedApplyJob.value),
+      coverLetter: applyForm.value.coverLetter,
+      resumeMode: resumeMode.value,
+      selectedResumeId: selectedResumeId.value,
+      resumeTitle: resumeForm.value.title,
+      resumeDescription: resumeForm.value.description,
+      uploadedResumeFile: uploadedResumeFile.value,
+    })
   })
 
   const normalizeJobsResponse = (response: RecruitJobsApiResponse | null) => {

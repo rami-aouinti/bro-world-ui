@@ -8,7 +8,9 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "validate:i18n": "node scripts/validate-i18n.mjs"
+    "validate:i18n": "node scripts/validate-i18n.mjs",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.20",
@@ -35,6 +37,10 @@
   },
   "devDependencies": {
     "sass": "^1.97.3",
-    "vite-plugin-vuetify": "^2.1.3"
+    "vite-plugin-vuetify": "^2.1.3",
+    "vitest": "^2.1.8",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/test-utils": "^2.4.6",
+    "happy-dom": "^15.11.7"
   }
 }
