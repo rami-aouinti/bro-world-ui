@@ -75,6 +75,15 @@ onMounted(async () => {
             <v-skeleton-loader type="list-item-avatar-one-line@6" class="mb-4" />
           </template>
 
+          <v-alert
+            v-else-if="errorMessage"
+            type="error"
+            variant="tonal"
+            class="mb-4"
+          >
+            {{ errorMessage }}
+          </v-alert>
+
           <v-list v-else class="bg-transparent pa-0" lines="one">
             <v-list-item
               v-for="item in notifications"
