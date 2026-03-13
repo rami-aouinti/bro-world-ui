@@ -31,7 +31,7 @@ const isActive = (to: string) => route.path === to
         </div>
       </div>
       </NuxtLink>
-      <v-list nav density="comfortable" class="py-0">
+      <v-list nav class=" mb-2">
         <v-list-item
           v-for="item in settingsNavItems"
           :key="item.to"
