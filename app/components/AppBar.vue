@@ -221,7 +221,7 @@ const getNotificationAvatarLabel = (notification: NotificationRead) => {
   return `${notification.from.firstName} ${notification.from.lastName}`.trim()
 }
 
-const truncateText = (value: string | null | undefined, maxLength = 40) => {
+const truncateText = (value: string | null | undefined, maxLength = 20) => {
   if (!value) {
     return ''
   }
@@ -384,7 +384,9 @@ const signOut = async () => {
               class="mx-2 my-1 app-bar__message-item"
             >
               <template #prepend>
-                <ConversationAvatarGroup :participants="conversation.participants" :size="36" />
+                <div class="d-flex align-center mt-6">
+                  <ConversationAvatarGroup :participants="conversation.participants" :size="72" />
+                </div>
               </template>
 
               <div class="app-bar__message-content">
@@ -394,7 +396,7 @@ const signOut = async () => {
 
               <template #append>
                 <div class="app-bar__message-meta text-caption text-medium-emphasis">
-                  <span>{{ formatRelativeTime(conversation.latestMessageAt) }}</span>
+                  <span class="mx-auto">{{ formatRelativeTime(conversation.latestMessageAt) }}</span>
                   <v-badge
                     v-if="conversation.unread"
                     :content="conversation.unread"
