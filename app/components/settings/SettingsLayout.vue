@@ -14,15 +14,6 @@ const isActive = (to: string) => route.path === to
         <v-card-text>
           <p class="text-overline mb-1">Account center</p>
           <h3 class="text-h6 font-weight-bold mb-3">Settings</h3>
-          <div class="d-flex flex-column ga-2">
-            <div v-for="item in settingsKpis" :key="item.label" class="d-flex align-center justify-space-between">
-              <div class="d-flex align-center ga-2">
-                <v-icon :icon="item.icon" size="18" />
-                <span class="text-body-2">{{ item.label }}</span>
-              </div>
-              <v-chip size="small" :color="item.color" variant="flat">{{ item.value }}</v-chip>
-            </div>
-          </div>
         </v-card-text>
       </v-card>
 
