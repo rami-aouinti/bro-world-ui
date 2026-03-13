@@ -482,7 +482,7 @@ const observeCalendarContainerResize = () => {
 const calendarOptions = computed(() => ({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
   initialView: 'dayGridMonth',
-  locale: 'fr',
+  locale: 'en-US',
   headerToolbar: {
     left: 'prev,next today',
     center: 'title',
