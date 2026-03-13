@@ -49,11 +49,11 @@ const headers = computed(() => [
 
 const formTitle = computed(() => {
   if (formMode.value === 'create') {
-    return 'Créer un plugin'
+    return 'Create a plugin'
   }
 
   if (formMode.value === 'edit') {
-    return 'Éditer un plugin'
+    return 'Edit un plugin'
   }
 
   return 'Patch plugin'
@@ -190,9 +190,9 @@ onMounted(async () => {
 
     <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
 
-    <UiDataTable :headers="headers" :items="plugins" :loading="loading" :search="search" item-key="id" :items-per-page="10" empty-text="Aucun plugin trouvé.">
+    <UiDataTable :headers="headers" :items="plugins" :loading="loading" :search="search" item-key="id" :items-per-page="10" empty-text="No plugin found.">
       <template #item.enabled="{ item }">
-        <v-chip :color="item.enabled ? 'success' : 'default'" size="small" variant="tonal">{{ item.enabled ? 'Actif' : 'Inactif' }}</v-chip>
+        <v-chip :color="item.enabled ? 'success' : 'default'" size="small" variant="tonal">{{ item.enabled ? 'Active' : 'Inactif' }}</v-chip>
       </template>
 
       <template #item.private="{ item }">
@@ -211,13 +211,13 @@ onMounted(async () => {
             variant="text"
             color="primary"
             icon="mdi-pencil"
-            :aria-label="`Éditer ${item.name}`"
+            :aria-label="`Edit ${item.name}`"
             @click="openEditDialog(item)"
           />
           <UiEntityActionButtons
             :show-label="`Voir ${item.name}`"
             :patch-label="`Patch ${item.name}`"
-            :delete-label="`Supprimer ${item.name}`"
+            :delete-label="`Delete ${item.name}`"
             :show-patch="canPermission('plugin.patch')"
             :show-delete="canPermission('plugin.delete')"
             @show="showEntity(item.id)"
@@ -231,7 +231,7 @@ onMounted(async () => {
     <UiActionConfirmDialog
       v-model="deleteDialog"
       :title="t('admin.common.delete')"
-      :message="`Supprimer le plugin ${pluginToDeleteId} ?`"
+      :message="`Delete le plugin ${pluginToDeleteId} ?`"
       :confirm-label="t('admin.common.delete')"
       :cancel-label="t('admin.common.cancel')"
       :loading="submitting"
@@ -251,7 +251,7 @@ onMounted(async () => {
       </template>
     </UiActionDialog>
 
-    <UiActionDialog v-model="showDialog" title="Détails plugin" max-width="760">
+    <UiActionDialog v-model="showDialog" title="Plugin details" max-width="760">
       <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selectedPlugin, null, 2) }}</pre>
     </UiActionDialog>
   </div>

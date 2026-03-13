@@ -61,11 +61,11 @@ const tableItems = computed(() => configurations.value.map(configuration => ({
 
 const formTitle = computed(() => {
   if (formMode.value === 'create') {
-    return 'Créer une configuration'
+    return 'Create a configuration'
   }
 
   if (formMode.value === 'edit') {
-    return 'Éditer une configuration'
+    return 'Edit a configuration'
   }
 
   return 'Patch configuration'
@@ -205,7 +205,7 @@ onMounted(async () => {
       {{ errorMessage }}
     </v-alert>
 
-    <UiDataTable :headers="headers" :items="tableItems" :loading="loading" :search="search" item-key="id" :items-per-page="10" empty-text="Aucune configuration trouvée.">
+    <UiDataTable :headers="headers" :items="tableItems" :loading="loading" :search="search" item-key="id" :items-per-page="10" empty-text="No configuration found.">
       <template #item.private="{ item }">
         <v-chip :color="item.private ? 'warning' : 'default'" size="small" variant="tonal">{{ item.private ? 'Oui' : 'Non' }}</v-chip>
       </template>
@@ -222,13 +222,13 @@ onMounted(async () => {
             variant="text"
             color="primary"
             icon="mdi-pencil"
-            :aria-label="`Éditer ${item.configurationKey}`"
+            :aria-label="`Edit ${item.configurationKey}`"
             @click="openEditDialog(item)"
           />
           <UiEntityActionButtons
             :show-label="`Voir ${item.configurationKey}`"
             :patch-label="`Patch ${item.configurationKey}`"
-            :delete-label="`Supprimer ${item.configurationKey}`"
+            :delete-label="`Delete ${item.configurationKey}`"
             :show-patch="canPermission('configuration.patch')"
             :show-delete="canPermission('configuration.delete')"
             @show="showEntity(item.id)"
@@ -242,7 +242,7 @@ onMounted(async () => {
     <UiActionConfirmDialog
       v-model="deleteDialog"
       :title="t('admin.common.delete')"
-      :message="`Supprimer la configuration ${configurationToDeleteId} ?`"
+      :message="`Delete configuration ${configurationToDeleteId} ?`"
       :confirm-label="t('admin.common.delete')"
       :cancel-label="t('admin.common.cancel')"
       :loading="submitting"
@@ -262,7 +262,7 @@ onMounted(async () => {
       </template>
     </UiActionDialog>
 
-    <UiActionDialog v-model="showDialog" title="Détails configuration" max-width="760">
+    <UiActionDialog v-model="showDialog" title="Configuration details" max-width="760">
       <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selectedConfiguration, null, 2) }}</pre>
     </UiActionDialog>
   </div>

@@ -44,12 +44,12 @@ onMounted(async () => {
 
     <section>
       <v-alert v-if="accessDenied" type="error" variant="tonal" class="mb-6">
-        Accès refusé à l’espace admin CRM. Redirection en cours…
+        Access denied to CRM admin area. Redirecting…
       </v-alert>
 
       <template v-else>
         <h1 class="text-h5 font-weight-bold mb-1">{{ titleMap[page] }}</h1>
-        <p class="text-body-2 text-medium-emphasis mb-6">Vue enrichie avec cards, animation légère et fake data.</p>
+        <p class="text-body-2 text-medium-emphasis mb-6">Enhanced view with cards, light animation, and fake data.</p>
 
         <v-row v-if="page === 'companies'">
           <v-col v-for="company in crmCompanies" :key="company.id" cols="12" md="6" lg="4">
@@ -80,7 +80,7 @@ onMounted(async () => {
             <v-card rounded="xl" variant="outlined" class="h-100">
               <v-card-text>
                 <p class="text-subtitle-2 font-weight-bold">{{ titleMap[page] }} card #{{ i }}</p>
-                <p class="text-body-2 text-medium-emphasis">Contenu de démonstration prêt pour branchement API.</p>
+                <p class="text-body-2 text-medium-emphasis">Content de demo ready for API integration.</p>
               </v-card-text>
             </v-card>
           </v-col>

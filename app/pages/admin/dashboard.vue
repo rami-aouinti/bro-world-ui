@@ -42,16 +42,16 @@ const mockDashboardStats: AdminStatisticsResponse = {
 }
 
 const recentActivities = [
-  { title: 'Nouveau plugin “SMS Campaign” publié', actor: 'Equipe Produit', time: 'Il y a 12 min', color: 'success' },
-  { title: 'Mise à jour des rôles administrateurs', actor: 'Ops Security', time: 'Il y a 35 min', color: 'info' },
-  { title: 'Pic de trafic détecté sur le portail School', actor: 'Monitoring', time: 'Il y a 1h', color: 'warning' },
-  { title: 'Sauvegarde hebdomadaire terminée', actor: 'Infra', time: 'Il y a 2h', color: 'primary' },
+  { title: 'Nouveau plugin “SMS Campaign” publié / New plugin “SMS Campaign” published', actor: 'Product Team', time: '12 min ago', color: 'success' },
+  { title: 'Mise à jour des rôles administrateurs / Administrator roles updated', actor: 'Ops Security', time: '35 min ago', color: 'info' },
+  { title: 'Pic de trafic détecté sur le portail School / Traffic spike detected on the School portal', actor: 'Monitoring', time: '1h ago', color: 'warning' },
+  { title: 'Sauvegarde hebdomadaire terminée / Weekly backup completed', actor: 'Infra', time: '2h ago', color: 'primary' },
 ]
 
 const operationalHighlights = [
-  { label: 'Disponibilité API', value: '99.95%', trend: '+0.12%' },
-  { label: 'Temps moyen de réponse', value: '182 ms', trend: '-14 ms' },
-  { label: 'Tickets critiques ouverts', value: '3', trend: '-2' },
+  { label: 'Availability API', value: '99.95%', trend: '+0.12%' },
+  { label: 'Average response time', value: '182 ms', trend: '-14 ms' },
+  { label: 'Tickets critiques ouverts / Open critical tickets', value: '3', trend: '-2' },
 ]
 
 const statistics = computed(() => {
@@ -129,7 +129,7 @@ const fetchStatistics = async () => {
   }
   catch {
     dashboardStats.value = mockDashboardStats
-    errorMessage.value = `${t('admin.dashboard.errors.load')} — Affichage des données de démonstration.`
+    errorMessage.value = `${t('admin.dashboard.errors.load')} — Displaying demo data.`
   }
   finally {
     loading.value = false
@@ -182,11 +182,11 @@ onMounted(async () => {
         <UiCard rounded="lg">
           <div class="d-flex flex-wrap align-center justify-space-between ga-3 mb-4">
             <div>
-              <div class="text-h6">Vue opérationnelle</div>
-              <p class="text-body-2 text-medium-emphasis mb-0">Indicateurs clés de l'activité admin en temps réel.</p>
+              <div class="text-h6">Vue opérationnelle / Operational view</div>
+              <p class="text-body-2 text-medium-emphasis mb-0">Indicateurs clés de l'activité admin en temps réel. / Key admin activity indicators in real time.</p>
             </div>
             <v-btn color="primary" variant="flat" prepend-icon="mdi-refresh" :loading="loading" @click="fetchStatistics">
-              Actualiser les données
+              Actualiser les données / Refresh data
             </v-btn>
           </div>
 
@@ -206,7 +206,7 @@ onMounted(async () => {
 
       <v-col cols="12" lg="4">
         <UiCard rounded="lg" class="h-100">
-          <div class="text-h6 mb-3">Activités récentes</div>
+          <div class="text-h6 mb-3">Activités récentes / Recent activity</div>
           <v-timeline density="compact" side="end" truncate-line="both">
             <v-timeline-item
               v-for="activity in recentActivities"

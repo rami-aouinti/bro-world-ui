@@ -31,7 +31,7 @@ onMounted(async () => {
     <template #sidebar><PlatformSidebarNav title="platform.school.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
       <v-alert v-if="accessDenied" type="error" variant="tonal" class="mb-4">
-        Accès refusé à l’espace admin School. Redirection en cours…
+        Access denied to School admin area. Redirecting…
       </v-alert>
       <template v-else>
         <h1 class="text-h5 font-weight-bold mb-4 text-capitalize">{{ page }}</h1>
@@ -40,7 +40,7 @@ onMounted(async () => {
             <v-card rounded="xl" variant="outlined">
               <v-card-text>
                 <p class="font-weight-bold">{{ page === 'certificates' ? `Certificat ${idx + 1}` : classe.name }}</p>
-                <p class="text-body-2 text-medium-emphasis">{{ page === 'settings' ? 'Paramètres académiques, permissions, sessions.' : 'Données de démonstration pour enrichir la plateforme school.' }}</p>
+                <p class="text-body-2 text-medium-emphasis">{{ page === 'settings' ? 'Academic settings, permissions, sessions.' : 'Demo data to enrich the school platform.' }}</p>
               </v-card-text>
             </v-card>
           </v-col>

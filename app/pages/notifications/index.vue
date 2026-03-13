@@ -33,7 +33,7 @@ const loadNotifications = async () => {
   }
   catch (error) {
     console.error(error)
-    errorMessage.value = 'Impossible de charger les événements du calendrier.'
+    errorMessage.value = 'Unable to load calendar events.'
   }
   finally {
     isLoading.value = false

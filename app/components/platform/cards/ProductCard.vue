@@ -19,7 +19,7 @@ const subtitle = computed(() => `${props.product.sku} · ${props.product.priceEu
     :category="props.product.category"
     :status="props.product.status"
     :tags="props.product.tags"
-    date-label="Publié"
+    date-label="Published"
     :date-value="props.product.publishedAt"
     :to="props.to"
   />

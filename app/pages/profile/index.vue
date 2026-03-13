@@ -27,8 +27,8 @@ const profileStats = computed(() => {
   return [
     { label: 'Amis', value: friendsCount.toString(), icon: 'mdi-account-group-outline', color: 'primary' },
     { label: 'Connexions actives', value: (profile.value?.sessions?.length || 0).toString(), icon: 'mdi-laptop', color: 'success' },
-    { label: 'Comptes liés', value: (profile.value?.socials?.length || 0).toString(), icon: 'mdi-link-variant', color: 'info' },
-    { label: 'Niveau communauté', value: friendsCount > 15 ? 'Expert' : friendsCount > 7 ? 'Confirmé' : 'Nouveau', icon: 'mdi-star-circle-outline', color: 'warning' },
+    { label: 'Linked accounts', value: (profile.value?.socials?.length || 0).toString(), icon: 'mdi-link-variant', color: 'info' },
+    { label: 'Community level', value: friendsCount > 15 ? 'Expert' : friendsCount > 7 ? 'Confirmed' : 'New', icon: 'mdi-star-circle-outline', color: 'warning' },
   ]
 })
 
@@ -36,21 +36,21 @@ const fakeHighlights = [
   {
     title: 'Bio enrichie',
     value: '92%',
-    helper: 'Complétion du profil',
+    helper: 'Profile completion',
     icon: 'mdi-account-check-outline',
     color: 'success',
   },
   {
-    title: 'Taux de réponse',
+    title: 'Response rate',
     value: '87%',
-    helper: 'Sur les 30 derniers jours',
+    helper: 'Over the last 30 days',
     icon: 'mdi-message-reply-text-outline',
     color: 'primary',
   },
   {
-    title: 'Disponibilité',
-    value: 'Élevée',
-    helper: 'Plages horaires partagées',
+    title: 'Availability',
+    value: 'High',
+    helper: 'Shared time slots',
     icon: 'mdi-clock-outline',
     color: 'info',
   },
@@ -58,23 +58,23 @@ const fakeHighlights = [
 
 const fakeActivityTimeline = [
   {
-    date: 'Aujourd’hui • 09:45',
-    title: 'Mise à jour des informations personnelles',
-    detail: 'Ajout d’une bio détaillée, localisation et numéro de téléphone.',
+    date: 'Today • 09:45',
+    title: 'Personal information updated',
+    detail: 'Added a detailed bio, location, and phone number.',
     icon: 'mdi-account-edit-outline',
     color: 'primary',
   },
   {
     date: 'Hier • 18:20',
     title: 'Connexion depuis un nouvel appareil',
-    detail: 'Session sécurisée avec validation réussie.',
+    detail: 'Secure session with successful verification.',
     icon: 'mdi-shield-check-outline',
     color: 'success',
   },
   {
     date: 'Lundi • 12:10',
-    title: '2 nouvelles relations validées',
-    detail: 'Vos demandes en attente ont été acceptées.',
+    title: '2 new connections approved',
+    detail: 'Your pending requests were accepted.',
     icon: 'mdi-account-multiple-check-outline',
     color: 'info',
   },
@@ -128,7 +128,7 @@ const runAction = async (actionKey: string, action: () => Promise<void>) => {
   }
   catch (error) {
     console.error(error)
-    actionError.value = 'Action impossible pour le moment.'
+    actionError.value = 'Action currently unavailable.'
   }
   finally {
     pendingActionKey.value = ''
@@ -262,13 +262,13 @@ onMounted(async () => {
                 </template>
               </v-list-item>
             </v-list>
-            <p v-else class="text-body-2 text-medium-emphasis mb-0">Aucun ami.</p>
+            <p v-else class="text-body-2 text-medium-emphasis mb-0">No friends.</p>
           </v-card>
         </v-col>
 
         <v-col cols="12" md="6">
           <v-card class="pa-5" elevation="2" rounded="xl">
-            <h6 class="text-h6 font-weight-bold mb-4">Demandes reçues ({{ friendsStore.incomingRequests.length }})</h6>
+            <h6 class="text-h6 font-weight-bold mb-4">Received requests ({{ friendsStore.incomingRequests.length }})</h6>
             <v-list v-if="friendsStore.incomingRequests.length" class="pa-0 bg-transparent">
               <v-list-item v-for="user in friendsStore.incomingRequests" :key="user.id" class="px-0">
                 <v-list-item-title>{{ friendDisplayName(user) }}</v-list-item-title>
@@ -282,48 +282,48 @@ onMounted(async () => {
                 </template>
               </v-list-item>
             </v-list>
-            <p v-else class="text-body-2 text-medium-emphasis mb-0">Aucune demande reçue.</p>
+            <p v-else class="text-body-2 text-medium-emphasis mb-0">No requests received.</p>
           </v-card>
         </v-col>
 
         <v-col cols="12" md="6">
           <v-card class="pa-5" elevation="2" rounded="xl">
-            <h6 class="text-h6 font-weight-bold mb-4">Demandes envoyées ({{ friendsStore.sentRequests.length }})</h6>
+            <h6 class="text-h6 font-weight-bold mb-4">Sent requests ({{ friendsStore.sentRequests.length }})</h6>
             <v-list v-if="friendsStore.sentRequests.length" class="pa-0 bg-transparent">
               <v-list-item v-for="user in friendsStore.sentRequests" :key="user.id" class="px-0">
                 <v-list-item-title>{{ friendDisplayName(user) }}</v-list-item-title>
                 <v-list-item-subtitle>@{{ user.username }}</v-list-item-subtitle>
                 <template #append>
                   <div class="d-flex ga-2">
-                    <v-btn size="small" color="warning" variant="tonal" :loading="pendingActionKey === `cancel-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`cancel-${user.id}`, () => friendsStore.cancelSentRequest(user.id))">Annuler</v-btn>
+                    <v-btn size="small" color="warning" variant="tonal" :loading="pendingActionKey === `cancel-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`cancel-${user.id}`, () => friendsStore.cancelSentRequest(user.id))">Cancel</v-btn>
                     <v-btn size="small" color="error" variant="tonal" :loading="pendingActionKey === `block-sent-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`block-sent-${user.id}`, () => friendsStore.blockUser(user.id))">Bloquer</v-btn>
                   </div>
                 </template>
               </v-list-item>
             </v-list>
-            <p v-else class="text-body-2 text-medium-emphasis mb-0">Aucune demande envoyée.</p>
+            <p v-else class="text-body-2 text-medium-emphasis mb-0">No requests sent.</p>
           </v-card>
         </v-col>
 
         <v-col cols="12" md="6">
           <v-card class="pa-5" elevation="2" rounded="xl">
-            <h6 class="text-h6 font-weight-bold mb-4">Utilisateurs bloqués ({{ friendsStore.blockedUsers.length }})</h6>
+            <h6 class="text-h6 font-weight-bold mb-4">Blocked users ({{ friendsStore.blockedUsers.length }})</h6>
             <v-list v-if="friendsStore.blockedUsers.length" class="pa-0 bg-transparent">
               <v-list-item v-for="user in friendsStore.blockedUsers" :key="user.id" class="px-0">
                 <v-list-item-title>{{ friendDisplayName(user) }}</v-list-item-title>
                 <v-list-item-subtitle>@{{ user.username }}</v-list-item-subtitle>
                 <template #append>
-                  <v-btn size="small" color="warning" variant="tonal" :loading="pendingActionKey === `unblock-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`unblock-${user.id}`, () => friendsStore.unblockUser(user.id))">Débloquer</v-btn>
+                  <v-btn size="small" color="warning" variant="tonal" :loading="pendingActionKey === `unblock-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`unblock-${user.id}`, () => friendsStore.unblockUser(user.id))">Unblock</v-btn>
                 </template>
               </v-list-item>
             </v-list>
-            <p v-else class="text-body-2 text-medium-emphasis mb-0">Aucun utilisateur bloqué.</p>
+            <p v-else class="text-body-2 text-medium-emphasis mb-0">No blocked users.</p>
           </v-card>
         </v-col>
 
         <v-col cols="12" md="6">
           <v-card class="pa-5" elevation="2" rounded="xl">
-            <h6 class="text-h6 font-weight-bold mb-4">Activité récente (données de démonstration)</h6>
+            <h6 class="text-h6 font-weight-bold mb-4">Activités récentes / Recent activity (demo data)</h6>
             <v-timeline density="compact" side="end" class="pa-0">
               <v-timeline-item
                 v-for="event in fakeActivityTimeline"

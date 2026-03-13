@@ -53,64 +53,64 @@ interface HomePagePayload {
   cta: HomeCta
 }
 
-// Mock de réponse API (GET /api/private/pages/home)
+// Mock API response (GET /api/private/pages/home)
 const homePagePayload = ref<HomePagePayload>({
-  featuresTitle: 'Fonctionnalités principales',
-  metricsTitle: 'Indicateurs de performance',
-  stepsTitle: 'Comment ça marche',
-  stepLabelPrefix: 'Étape',
+  featuresTitle: 'Fonctionnalités principales / Main features',
+  metricsTitle: 'Indicateurs de performance / Performance indicators',
+  stepsTitle: 'Comment ça marche / How it works',
+  stepLabelPrefix: 'Step',
   hero: {
-    badge: 'Accueil',
-    title: 'Pilotez votre activité depuis un espace unique',
-    subtitle: 'Cette page racine est alimentée avec un JSON fake pour clarifier le contrat backend.',
-    primaryCta: 'Créer un projet',
-    secondaryCta: 'Voir les tutoriels',
-    benefits: ['Suivi en temps réel', 'Permissions avancées', 'Reporting exportable'],
+    badge: 'Home',
+    title: 'Pilotez votre activité depuis un espace unique / Manage your business from one place',
+    subtitle: 'This root page is powered by fake JSON to clarify the backend contract.',
+    primaryCta: 'Create a project',
+    secondaryCta: 'Voir les tutoriels / View tutorials',
+    benefits: ['Real-time tracking', 'Advanced permissions', 'Exportable reporting'],
   },
   featureCards: [
     {
       icon: 'mdi-view-dashboard-outline',
-      title: 'Dashboard unifié',
-      description: 'Vue centralisée de vos KPIs, tâches et alertes prioritaires.',
+      title: 'Unified dashboard',
+      description: 'Centralized view of your KPIs, tasks, and priority alerts.',
     },
     {
       icon: 'mdi-account-group-outline',
-      title: 'Collaboration équipe',
-      description: 'Partage d’informations et historique d’actions sur chaque module.',
+      title: 'Team collaboration',
+      description: 'Partage d’informations et historique d’actions sur chaque module. / Information sharing and action history on each module.',
     },
     {
       icon: 'mdi-shield-check-outline',
-      title: 'Sécurité renforcée',
-      description: 'Gestion des rôles et journalisation des accès sensibles.',
+      title: 'Enhanced security',
+      description: 'Role management and sensitive-access logging.',
     },
   ],
   metrics: [
-    { value: '250+', label: 'Utilisateurs actifs / semaine' },
-    { value: '99.9%', label: 'Disponibilité service' },
-    { value: '4.8/5', label: 'Note moyenne client' },
+    { value: '250+', label: 'Utilisateurs actifs / semaine / Active users / week' },
+    { value: '99.9%', label: 'Availability service' },
+    { value: '4.8/5', label: 'Note moyenne client / Average customer rating' },
   ],
   steps: [
     {
       icon: 'mdi-account-plus-outline',
-      title: 'Créer votre espace',
-      description: 'Initialisez votre organisation et invitez vos collaborateurs.',
+      title: 'Créer votre espace / Create your space',
+      description: 'Initialize your organization and invite collaborators.',
     },
     {
       icon: 'mdi-tune-variant',
-      title: 'Configurer vos modules',
-      description: 'Activez les options nécessaires selon votre workflow.',
+      title: 'Configurer vos modules / Configure your modules',
+      description: 'Enable the options needed for your workflow.',
     },
     {
       icon: 'mdi-chart-areaspline',
-      title: 'Suivre et optimiser',
-      description: 'Analysez les résultats et ajustez vos actions en continu.',
+      title: 'Suivre et optimiser / Track and optimize',
+      description: 'Analyze results and continuously adjust your actions.',
     },
   ],
   cta: {
-    title: 'Prêt à aller plus loin ?',
-    description: 'Ce bloc final doit aussi être renvoyé par le backend dans la réponse.',
-    primaryAction: 'Demander une démo',
-    secondaryAction: 'Contacter un expert',
+    title: 'Prêt à aller plus loin ? / Ready to go further?',
+    description: 'This final block must also be returned by the backend in the response.',
+    primaryAction: 'Request a demo',
+    secondaryAction: 'Contacter un expert / Contact an expert',
   },
 })
 

@@ -51,45 +51,45 @@ interface FaqPagePayload {
   emptyState: FaqEmptyState
 }
 
-// Mock de réponse API (GET /api/public/pages/faq)
+// Mock API response (GET /api/public/pages/faq)
 const faqPagePayload = ref<FaqPagePayload>({
   hero: {
     badge: 'FAQ',
-    title: 'Questions fréquentes',
-    subtitle: 'Toutes les informations de cette page sont simulées via JSON local.',
-    primaryCta: 'Contacter le support',
+    title: 'Questions fréquentes / Frequently asked questions',
+    subtitle: 'All information on this page is simulated via local JSON.',
+    primaryCta: 'Contacter le support / Contact support',
     secondaryCta: 'Voir la documentation',
   },
   search: {
-    label: 'Rechercher une question',
-    placeholder: 'Ex: facturation, sécurité, délais…',
+    label: 'Rechercher une question / Search a question',
+    placeholder: 'Ex: billing, security, timelines…',
   },
   categories: [
-    { key: 'all', label: 'Toutes', color: 'primary', description: 'Toutes les catégories' },
+    { key: 'all', label: 'All', color: 'primary', description: 'All categories' },
     { key: 'billing', label: 'Facturation', color: 'indigo', description: 'Paiements, abonnements, factures' },
-    { key: 'security', label: 'Sécurité', color: 'teal', description: 'Protection des données et accès' },
-    { key: 'product', label: 'Produit', color: 'deep-orange', description: 'Fonctionnalités et roadmap' },
+    { key: 'security', label: 'Security', color: 'teal', description: 'Data and access protection' },
+    { key: 'product', label: 'Product', color: 'deep-orange', description: 'Features and roadmap' },
   ],
   items: [
     {
       category: 'billing',
-      question: 'Comment récupérer une facture ?',
+      question: 'How do I retrieve an invoice?',
       answer: 'Les factures sont disponibles depuis votre espace admin.',
-      detailsParagraphs: ['Chaque facture est exportable en PDF.', 'Un email de confirmation est envoyé à chaque paiement.'],
-      bullets: ['Format PDF', 'Historique complet', 'Téléchargement immédiat'],
+      detailsParagraphs: ['Each invoice can be exported as PDF.', 'A confirmation email is sent for each payment.'],
+      bullets: ['Format PDF', 'Complete history', 'Instant download'],
     },
     {
       category: 'security',
-      question: 'Comment fonctionne la gestion des accès ?',
-      answer: 'Vous pouvez créer des rôles avec permissions granulaires.',
-      detailsParagraphs: ['Le backend devra renvoyer rôles et permissions disponibles.'],
-      bullets: ['Rôles personnalisés', 'Audit logs', 'MFA en option'],
+      question: 'How does access management work?',
+      answer: 'You can create roles with granular permissions.',
+      detailsParagraphs: ['The backend must return available roles and permissions.'],
+      bullets: ['Custom roles', 'Audit logs', 'MFA en option'],
     },
   ],
   emptyState: {
-    title: 'Aucun résultat',
-    description: 'Aucune FAQ ne correspond à votre recherche.',
-    suggestion: 'Essayez un autre mot-clé ou changez de catégorie.',
+    title: 'Aucun résultat / No result',
+    description: 'No FAQ matches your search.',
+    suggestion: 'Try another keyword or change category.',
   },
 })
 

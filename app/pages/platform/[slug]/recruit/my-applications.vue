@@ -29,7 +29,7 @@ const getApplicationStatusLabel = (status: string) => t(applicationStatusLabelMa
 const applicationStats = computed(() => [
   { label: 'Candidatures', value: applications.value.length, icon: 'mdi-file-account-outline', color: 'primary' },
   { label: 'En review', value: applications.value.filter((app) => ['REVIEWING', 'INTERVIEW'].includes(app.status)).length, icon: 'mdi-account-search-outline', color: 'info' },
-  { label: 'Acceptées', value: applications.value.filter((app) => app.status === 'ACCEPTED').length, icon: 'mdi-check-circle-outline', color: 'success' },
+  { label: 'Accepted', value: applications.value.filter((app) => app.status === 'ACCEPTED').length, icon: 'mdi-check-circle-outline', color: 'success' },
   { label: 'En attente', value: applications.value.filter((app) => app.status === 'WAITING').length, icon: 'mdi-timer-sand', color: 'warning' },
 ])
 </script>

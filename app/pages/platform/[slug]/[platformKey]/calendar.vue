@@ -33,7 +33,7 @@ onMounted(() => {
 
     <template v-else>
       <v-alert v-if="!events?.length" type="info" variant="tonal">
-        Aucun événement trouvé pour cette application.
+        No event found for this application.
       </v-alert>
 
       <v-list v-else lines="two" density="comfortable" class="rounded-lg border">

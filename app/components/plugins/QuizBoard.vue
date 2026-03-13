@@ -29,7 +29,7 @@ const score = computed(() => questionList.value.reduce((points, question) => {
     <v-card-text>
       <h1 class="text-h5 font-weight-bold mb-2">Quiz</h1>
       <p class="text-body-2 text-medium-emphasis mb-2">{{ quiz.questions.length }} questions · Timer: {{ quiz.configuration?.timerSec ?? 'N/A' }}s</p>
-      <p class="text-body-2 mb-0">{{ answeredCount }} / {{ quiz.questions.length }} réponses sélectionnées</p>
+      <p class="text-body-2 mb-0">{{ answeredCount }} / {{ quiz.questions.length }} selected answers</p>
     </v-card-text>
   </v-card>
 

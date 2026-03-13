@@ -21,7 +21,7 @@ const modules = computed(() => [
     description: t('admin.modules.platforms.description'),
     to: '/admin/platform-management/platforms',
     icon: 'mdi-view-grid-outline',
-    detail: '12 plateformes déployées • 3 en phase bêta',
+    detail: '12 deployed platforms • 3 in beta phase',
   },
   {
     title: t('admin.modules.plugins.title'),

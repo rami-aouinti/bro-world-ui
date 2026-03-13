@@ -56,16 +56,16 @@ const eventForm = reactive({
 })
 
 const rangeOptions = [
-  { title: '7 prochains jours', value: '7days' },
-  { title: '30 prochains jours', value: '30days' },
-  { title: 'Ce trimestre', value: 'quarter' },
+  { title: '7 prochains jours / Next 7 days', value: '7days' },
+  { title: '30 prochains jours / Next 30 days', value: '30days' },
+  { title: 'Ce trimestre / This quarter', value: 'quarter' },
 ]
 
 const statusOptions = [
-  { title: 'Tous les statuts', value: 'all' },
-  { title: 'Confirmé', value: 'confirmed' },
+  { title: 'Tous les statuts / All statuses', value: 'all' },
+  { title: 'Confirmed', value: 'confirmed' },
   { title: 'Tentative', value: 'tentative' },
-  { title: 'Annulé', value: 'cancelled' },
+  { title: 'Cancelled', value: 'cancelled' },
 ]
 
 const rangeInDays = { '7days': 7, '30days': 30, 'quarter': 90 }
@@ -83,13 +83,13 @@ const createMockEvents = (): CalendarEventRead[] => {
   return [
     {
       id: 'demo-001',
-      title: 'Kickoff campagne Q2',
-      description: 'Alignement marketing + sales sur les objectifs de conversion et les messages clés.',
+      title: 'Kickoff campagne Q2 / Q2 campaign kickoff',
+      description: 'Marketing + sales alignment on conversion goals and key messaging.',
       startAt: setAt(1, 9, 0).toISOString(),
       endAt: setAt(1, 10, 30).toISOString(),
       status: 'confirmed',
       visibility: 'private',
-      location: 'Salle Atlas',
+      location: 'Atlas Room',
       isAllDay: false,
       timezone: 'Europe/Paris',
       isCancelled: false,
@@ -101,8 +101,8 @@ const createMockEvents = (): CalendarEventRead[] => {
     },
     {
       id: 'demo-002',
-      title: 'Point pipeline partenaires',
-      description: 'Revue des comptes en négociation et validation des prochaines actions.',
+      title: 'Point pipeline partenaires / Partner pipeline review',
+      description: 'Review of accounts in negotiation and validation of next actions.',
       startAt: setAt(2, 14, 0).toISOString(),
       endAt: setAt(2, 15, 0).toISOString(),
       status: 'tentative',
@@ -119,13 +119,13 @@ const createMockEvents = (): CalendarEventRead[] => {
     },
     {
       id: 'demo-003',
-      title: 'Journée support premium',
-      description: 'Slot bloqué pour traiter les tickets clients à priorité haute.',
+      title: 'Journée support premium / Premium support day',
+      description: 'Blocked slot to handle high-priority customer tickets.',
       startAt: setAt(4, 8, 30).toISOString(),
       endAt: setAt(4, 17, 30).toISOString(),
       status: 'confirmed',
       visibility: 'private',
-      location: 'Centre relation client',
+      location: 'Customer relationship center',
       isAllDay: false,
       timezone: 'Europe/Paris',
       isCancelled: false,
@@ -137,8 +137,8 @@ const createMockEvents = (): CalendarEventRead[] => {
     },
     {
       id: 'demo-004',
-      title: 'Formation onboarding équipe BDR',
-      description: 'Session interne sur l’argumentaire produit, les scripts d’appel et le CRM.',
+      title: 'Formation onboarding équipe BDR / BDR team onboarding training',
+      description: 'Internal session on product pitch, call scripts, and CRM.',
       startAt: setAt(6, 10, 0).toISOString(),
       endAt: setAt(6, 12, 0).toISOString(),
       status: 'confirmed',
@@ -155,13 +155,13 @@ const createMockEvents = (): CalendarEventRead[] => {
     },
     {
       id: 'demo-005',
-      title: 'Maintenance plateforme (fenêtre technique)',
-      description: 'Intervention OPS planifiée avec équipe produit. Service potentiellement ralenti.',
+      title: 'Maintenance plateforme (fenêtre technique) / Platform maintenance (technical window)',
+      description: 'Planned OPS intervention with product team. Service may be slower.',
       startAt: addHours(setAt(8, 23, 0), 0).toISOString(),
       endAt: addHours(setAt(9, 2, 0), 0).toISOString(),
       status: 'cancelled',
       visibility: 'private',
-      location: 'Datacenter virtuel',
+      location: 'Virtual datacenter',
       isAllDay: false,
       timezone: 'Europe/Paris',
       isCancelled: true,
@@ -205,9 +205,9 @@ const statusToChipColor = (status: EventStatus) => {
 }
 
 const statusLabel = (status: EventStatus) => {
-  if (status === 'confirmed') return 'confirmé'
+  if (status === 'confirmed') return 'confirmed'
   if (status === 'tentative') return 'tentative'
-  return 'annulé'
+  return 'cancelled'
 }
 
 const fullCalendarColorByStatus: Record<EventStatus, string> = {
@@ -233,7 +233,7 @@ const loadEvents = async () => {
     events.value = [...eventMap.values()]
   } catch (error) {
     console.error(error)
-    errorMessage.value = 'API indisponible : affichage des données de démonstration.'
+    errorMessage.value = 'API unavailable: displaying demo data.'
   } finally {
     isLoading.value = false
   }
@@ -290,13 +290,13 @@ const dashboardStats = computed(() => {
 
   return [
     {
-      label: 'Aujourd’hui',
+      label: 'Today',
       value: events.value.filter(event => isToday(event.startAt)).length,
       icon: 'mdi-calendar-today',
       color: 'primary',
     },
     {
-      label: 'Confirmés',
+      label: 'Confirmeds',
       value: confirmed,
       icon: 'mdi-check-decagram-outline',
       color: 'success',
@@ -308,7 +308,7 @@ const dashboardStats = computed(() => {
       color: 'warning',
     },
     {
-      label: 'Annulés',
+      label: 'Cancelleds',
       value: cancelled,
       icon: 'mdi-close-octagon-outline',
       color: 'error',
@@ -381,7 +381,7 @@ const submitCreate = async () => {
     await loadEvents()
   } catch (error) {
     console.error(error)
-    errorMessage.value = 'Impossible de créer cet événement.'
+    errorMessage.value = 'Impossible de créer cet événement. / Unable to create this event.'
   } finally {
     isSaving.value = false
   }
@@ -399,7 +399,7 @@ const submitEdit = async () => {
     await loadEvents()
   } catch (error) {
     console.error(error)
-    errorMessage.value = 'Impossible de modifier cet événement.'
+    errorMessage.value = 'Impossible de modifier cet événement. / Unable to edit this event.'
   } finally {
     isSaving.value = false
   }
@@ -414,7 +414,7 @@ const cancelEvent = async (event: CalendarEventRead) => {
     await loadEvents()
   } catch (error) {
     console.error(error)
-    errorMessage.value = 'Impossible d\'annuler cet événement.'
+    errorMessage.value = 'Impossible d'annuler cet événement. / Unable to cancel this event.'
   } finally {
     isSaving.value = false
   }
@@ -431,7 +431,7 @@ const deleteEvent = async (event: CalendarEventRead) => {
     await loadEvents()
   } catch (error) {
     console.error(error)
-    errorMessage.value = 'Impossible de supprimer cet événement.'
+    errorMessage.value = 'Impossible de supprimer cet événement. / Unable to delete this event.'
   } finally {
     isSaving.value = false
   }
@@ -449,7 +449,7 @@ const patchFromCalendarMove = async (eventId: string, startAt?: string, endAt?: 
     await loadEvents()
   } catch (error) {
     console.error(error)
-    errorMessage.value = 'Impossible de déplacer ou redimensionner cet événement.'
+    errorMessage.value = 'Impossible de déplacer ou redimensionner cet événement. / Unable to move or resize this event.'
   } finally {
     isSaving.value = false
   }
@@ -540,7 +540,7 @@ watch(() => props.applicationSlug, loadEvents)
           <v-select
             v-model="selectedRange"
             :items="rangeOptions"
-            label="Période"
+            label="Period"
             variant="outlined"
             hide-details
             density="compact"
@@ -565,7 +565,7 @@ watch(() => props.applicationSlug, loadEvents)
             class="mb-4"
             @click="openCreateDialog"
           >
-            Créer un événement
+            Créer un événement / Create an event
           </v-btn>
 
           <div v-if="upcomingEventsByDay.length" class="d-flex flex-column ga-4">
@@ -594,8 +594,8 @@ watch(() => props.applicationSlug, loadEvents)
 
           <UiStateEmptyState
             v-else
-            title="Aucun événement à venir"
-            description="Commencez par créer un événement pour alimenter votre planning."
+            title="Aucun événement à venir / No upcoming events"
+            description="Start by creating an event to populate your schedule."
             icon="mdi-calendar-blank-outline"
           />
         </v-card-text>
@@ -627,17 +627,17 @@ watch(() => props.applicationSlug, loadEvents)
 
     <v-dialog v-model="isCreateDialogOpen" max-width="640">
       <v-card>
-        <v-card-title>Créer un événement</v-card-title>
+        <v-card-title>Créer un événement / Create an event</v-card-title>
         <v-card-text>
           <v-text-field v-model="eventForm.title" label="Titre" class="mb-3" />
           <v-textarea v-model="eventForm.description" label="Description" rows="3" class="mb-3" />
-          <v-text-field v-model="eventForm.startAt" label="Début" type="datetime-local" class="mb-3" />
+          <v-text-field v-model="eventForm.startAt" label="Start" type="datetime-local" class="mb-3" />
           <v-text-field v-model="eventForm.endAt" label="Fin" type="datetime-local" class="mb-3" />
-          <v-text-field v-model="eventForm.location" label="Lieu" />
+          <v-text-field v-model="eventForm.location" label="Location" />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="isCreateDialogOpen = false">Annuler</v-btn>
+          <v-btn variant="text" @click="isCreateDialogOpen = false">Cancel</v-btn>
           <v-btn color="primary" :loading="isSaving" :disabled="!eventForm.title || !eventForm.startAt || !eventForm.endAt" @click="submitCreate">
             Enregistrer
           </v-btn>
@@ -647,19 +647,19 @@ watch(() => props.applicationSlug, loadEvents)
 
     <v-dialog v-model="isEditDialogOpen" max-width="640">
       <v-card>
-        <v-card-title>Modifier l'événement</v-card-title>
+        <v-card-title>Modifier l'événement / Edit event</v-card-title>
         <v-card-text>
           <v-text-field v-model="eventForm.title" label="Titre" class="mb-3" />
           <v-textarea v-model="eventForm.description" label="Description" rows="3" class="mb-3" />
-          <v-text-field v-model="eventForm.startAt" label="Début" type="datetime-local" class="mb-3" />
+          <v-text-field v-model="eventForm.startAt" label="Start" type="datetime-local" class="mb-3" />
           <v-text-field v-model="eventForm.endAt" label="Fin" type="datetime-local" class="mb-3" />
-          <v-text-field v-model="eventForm.location" label="Lieu" />
+          <v-text-field v-model="eventForm.location" label="Location" />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="isEditDialogOpen = false">Annuler</v-btn>
+          <v-btn variant="text" @click="isEditDialogOpen = false">Cancel</v-btn>
           <v-btn color="primary" :loading="isSaving" :disabled="!eventForm.title || !eventForm.startAt || !eventForm.endAt" @click="submitEdit">
-            Mettre à jour
+            Update
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -671,19 +671,19 @@ watch(() => props.applicationSlug, loadEvents)
         <v-card-text>
           <div class="text-body-2 mb-2">{{ selectedEvent.description || 'Sans description' }}</div>
           <v-chip size="small" variant="tonal" :color="statusToChipColor(selectedEvent.status)" class="mb-2">{{ statusLabel(selectedEvent.status) }}</v-chip>
-          <div class="text-caption">Début: {{ formatEventDate(selectedEvent.startAt) }}</div>
+          <div class="text-caption">Start: {{ formatEventDate(selectedEvent.startAt) }}</div>
           <div class="text-caption">Fin: {{ formatEventDate(selectedEvent.endAt) }}</div>
-          <div class="text-caption">Lieu: {{ selectedEvent.location || 'Non renseigné' }}</div>
+          <div class="text-caption">Location: {{ selectedEvent.location || 'Non renseigné / Not specified' }}</div>
           <div v-if="isDemoEvent(selectedEvent)" class="text-caption mt-2 text-info">
-            Événement de démonstration (lecture seule).
+            Événement de démonstration (lecture seule). / Demo event (read-only).
           </div>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" @click="isShowDialogOpen = false">Fermer</v-btn>
-          <v-btn v-if="canMutate && !isDemoEvent(selectedEvent)" color="primary" variant="text" @click="openEditDialog(selectedEvent)">Modifier</v-btn>
-          <v-btn v-if="canMutate && !isDemoEvent(selectedEvent)" color="warning" variant="text" @click="cancelEvent(selectedEvent)">Annuler</v-btn>
-          <v-btn v-if="canMutate && !isDemoEvent(selectedEvent)" color="error" variant="text" @click="deleteEvent(selectedEvent)">Supprimer</v-btn>
+          <v-btn v-if="canMutate && !isDemoEvent(selectedEvent)" color="primary" variant="text" @click="openEditDialog(selectedEvent)">Edit</v-btn>
+          <v-btn v-if="canMutate && !isDemoEvent(selectedEvent)" color="warning" variant="text" @click="cancelEvent(selectedEvent)">Cancel</v-btn>
+          <v-btn v-if="canMutate && !isDemoEvent(selectedEvent)" color="error" variant="text" @click="deleteEvent(selectedEvent)">Delete</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

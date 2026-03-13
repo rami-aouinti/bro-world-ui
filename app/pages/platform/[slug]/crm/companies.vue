@@ -48,9 +48,9 @@ onMounted(async () => {
       <div class="d-flex align-center justify-space-between mb-4">
         <div>
           <h1 class="text-h5 font-weight-bold mb-1">Companies</h1>
-          <p class="text-body-2 text-medium-emphasis">Liste synchronisée depuis l'API CRM.</p>
+          <p class="text-body-2 text-medium-emphasis">List synchronized from the CRM API.</p>
         </div>
-        <v-btn variant="outlined" :loading="crmStore.isLoading" @click="loadCompanies(true)">Rafraîchir</v-btn>
+        <v-btn variant="outlined" :loading="crmStore.isLoading" @click="loadCompanies(true)">Refresh</v-btn>
       </div>
 
       <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
@@ -63,9 +63,9 @@ onMounted(async () => {
             <v-card-text>
               <p class="text-subtitle-1 font-weight-bold">{{ company.name }}</p>
               <p class="text-body-2 text-medium-emphasis mb-2">{{ company.industry || 'N/A' }}</p>
-              <p class="text-body-2 mb-1">{{ company.website || 'Website non renseigné' }}</p>
-              <p class="text-body-2 mb-1">{{ company.contactEmail || 'Email non renseigné' }}</p>
-              <p class="text-body-2">{{ company.phone || 'Téléphone non renseigné' }}</p>
+              <p class="text-body-2 mb-1">{{ company.website || 'Website not specified' }}</p>
+              <p class="text-body-2 mb-1">{{ company.contactEmail || 'Email not specified' }}</p>
+              <p class="text-body-2">{{ company.phone || 'Phone not specified' }}</p>
             </v-card-text>
           </v-card>
         </v-col>

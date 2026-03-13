@@ -15,10 +15,10 @@ onMounted(() => {
 })
 
 const modules = [
-  { title: 'Home', to: '/admin/page-management/home', icon: 'mdi-home-outline', detail: 'Dernière MAJ: il y a 2 jours' },
-  { title: 'About', to: '/admin/page-management/about', icon: 'mdi-information-outline', detail: 'Dernière MAJ: hier à 18:20' },
-  { title: 'Contact', to: '/admin/page-management/contact', icon: 'mdi-card-account-phone-outline', detail: '12 formulaires reçus aujourd’hui' },
-  { title: 'FAQ', to: '/admin/page-management/faq', icon: 'mdi-frequently-asked-questions', detail: '34 questions publiées' },
+  { title: 'Home', to: '/admin/page-management/home', icon: 'mdi-home-outline', detail: 'Last update: 2 days ago' },
+  { title: 'About', to: '/admin/page-management/about', icon: 'mdi-information-outline', detail: 'Last update: yesterday at 18:20' },
+  { title: 'Contact', to: '/admin/page-management/contact', icon: 'mdi-card-account-phone-outline', detail: '12 forms received today' },
+  { title: 'FAQ', to: '/admin/page-management/faq', icon: 'mdi-frequently-asked-questions', detail: '34 published questions' },
 ]
 </script>
 
@@ -36,7 +36,7 @@ const modules = [
     </template>
 
     <template v-else>
-    <UiSectionHeader title="Page Management" subtitle="Gérer, éditer et publier les contenus institutionnels." />
+    <UiSectionHeader title="Page Management" subtitle="Manage, edit, and publish institutional content." />
     <v-row>
       <v-col v-for="module in modules" :key="module.to" cols="12" md="6">
         <UiCard rounded="lg" compact>

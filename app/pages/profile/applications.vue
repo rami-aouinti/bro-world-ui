@@ -70,7 +70,7 @@ onMounted(async () => {
             </div>
 
             <p class="text-body-2 text-medium-emphasis mb-2">{{ application.platformName }} • {{ application.slug }}</p>
-            <p class="text-body-2 mb-3">{{ application.description || 'Aucune description.' }}</p>
+            <p class="text-body-2 mb-3">{{ application.description || 'No description.' }}</p>
 
             <div class="d-flex align-center justify-space-between">
               <v-chip size="small" :color="application.private ? 'warning' : 'success'" variant="tonal">
@@ -83,7 +83,7 @@ onMounted(async () => {
       </v-row>
 
       <v-card v-else class="pa-5" rounded="xl" variant="outlined">
-        <p class="mb-0 text-body-2 text-medium-emphasis">Vous n’avez encore créé aucune application.</p>
+        <p class="mb-0 text-body-2 text-medium-emphasis">You have not created any applications yet.</p>
       </v-card>
     </section>
   </PlatformSplitLayout>

@@ -8,7 +8,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const subtitle = computed(() => `${props.classItem.students} élèves · Niveau ${props.classItem.level} · ${props.classItem.instructor}`)
+const subtitle = computed(() => `${props.classItem.students} students · Level ${props.classItem.level} · ${props.classItem.instructor}`)
 </script>
 
 <template>
@@ -18,7 +18,7 @@ const subtitle = computed(() => `${props.classItem.students} élèves · Niveau 
     :category="props.classItem.category"
     :status="props.classItem.status"
     :tags="props.classItem.tags"
-    date-label="Début"
+    date-label="Start"
     :date-value="props.classItem.startDate"
   />
 </template>

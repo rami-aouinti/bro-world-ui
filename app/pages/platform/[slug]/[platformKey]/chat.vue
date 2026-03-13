@@ -8,7 +8,7 @@ definePageMeta({ public: true, requiresAuth: false })
 const { slug, navItems, isAuthenticated } = usePlatformPluginPage()
 const privateChatApi = usePrivateChatApi()
 
-const noPluginDataMessage = 'Aucune API de chat publique liée à cette application n\'est disponible pour le moment.'
+const noPluginDataMessage = 'Aucune API de chat publique liée à cette application n'est disponible pour le moment. / No public chat API linked to this application is available at the moment.'
 
 const { data: conversations, pending, error, execute: loadChat } = useAsyncData(
   () => `application-chat-${slug.value}-${isAuthenticated.value ? 'private' : 'public'}`,
@@ -35,16 +35,16 @@ onMounted(() => {
 
 <template>
   <PlatformPluginPageShell title="Chat" :slug="slug" :nav-items="navItems">
-    <v-alert v-if="error" type="error" variant="tonal" class="mb-4">Impossible de charger le chat de cette platform.</v-alert>
+    <v-alert v-if="error" type="error" variant="tonal" class="mb-4">Impossible de charger le chat de cette plateforme. / Unable to load chat for this platform.</v-alert>
     <v-skeleton-loader v-else-if="pending" type="list-item-two-line@5" class="mb-4" />
 
     <template v-else>
       <v-alert v-if="!isAuthenticated" type="info" variant="tonal" class="mb-4">
-        {{ noPluginDataMessage }} Connectez-vous pour consulter vos conversations privées.
+        {{ noPluginDataMessage }} Sign in to view your private conversations.
       </v-alert>
 
       <v-alert v-else-if="!conversations?.length" type="info" variant="tonal" class="mb-4">
-        Aucune conversation disponible pour le moment.
+        Aucune conversation disponible pour le moment. / No conversation available at the moment.
       </v-alert>
 
       <v-list v-else lines="two" density="comfortable" class="rounded-lg border">
@@ -52,7 +52,7 @@ onMounted(() => {
           v-for="conversation in conversations"
           :key="conversation.id"
           :title="`Conversation #${conversation.id.slice(0, 8)}`"
-          :subtitle="`${conversation.unreadMessagesCount} message(s) non lu(s)`"
+          :subtitle="`${conversation.unreadMessagesCount} message(s) non lu(s) / unread message(s)`"
         >
           <template #append>
             <v-chip size="small" variant="tonal">{{ conversation.participants.length }} participant(s)</v-chip>

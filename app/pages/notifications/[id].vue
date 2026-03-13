@@ -44,7 +44,7 @@ const fromLabel = computed(() => {
     <template #sidebar>
       <UiSectionHeader
         title="Notification"
-        subtitle="Détails"
+        subtitle="Details"
       />
 
       <v-btn to="/notifications" variant="outlined" prepend-icon="mdi-arrow-left" block>
@@ -82,7 +82,7 @@ const fromLabel = computed(() => {
             type="warning"
             variant="tonal"
             title="Notification introuvable"
-            text="Impossible de charger la notification demandée."
+            text="Unable to load the requested notification."
           />
         </UiListCard>
       </v-col>
