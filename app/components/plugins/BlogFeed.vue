@@ -997,7 +997,6 @@ const submitSharePost = async () => {
                   v-for="[type] in postReactionSummary(post.reactions ?? [])"
                   :key="type"
                   class="reaction-badge reaction-badge--stacked"
-                  :style="{ backgroundColor: reactionMeta[type]?.color ?? '#5f6368' }"
                 >
                   {{ reactionMeta[type]?.icon ?? '👍' }}
                 </span>
@@ -1315,7 +1314,6 @@ const submitSharePost = async () => {
   align-items: center;
   justify-content: center;
   font-size: 12px;
-  box-shadow: 0 0 0 2px #242526;
 }
 
 

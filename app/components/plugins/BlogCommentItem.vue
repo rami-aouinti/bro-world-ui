@@ -267,7 +267,6 @@ const formatRelativeTime = (dateInput?: string | null) => {
                 v-for="[type] in reactionSummary"
                 :key="type"
                 class="reaction-badge reaction-badge--stacked"
-                :style="{ backgroundColor: reactionMeta[type]?.color ?? '#5f6368' }"
               >
                 {{ reactionMeta[type]?.icon ?? '👍' }}
               </span>
