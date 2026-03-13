@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { RecruitJob } from '~/data/platform/recruit'
 import type { RecruitResume } from '~/types/api/recruitResume'
 
@@ -19,6 +20,8 @@ const props = defineProps<{
   selectedResume: RecruitResume | null
   resumeSaving: boolean
   resumeDeleting: boolean
+  validationErrors: Partial<Record<'firstName' | 'lastName' | 'email' | 'coverLetter' | 'selectedResumeId' | 'resumeTitle' | 'resumeDescription' | 'resumePdf', string[]>>
+  validationSummary: string[]
 }>()
 
 
@@ -44,14 +47,21 @@ defineEmits<{
           <span v-if="selectedApplyJob" class="font-weight-bold">: {{ selectedApplyJob.title }}</span>
         </p>
 
+        <v-alert v-if="validationSummary.length" type="error" variant="tonal" class="mb-4" role="alert">
+          <p class="font-weight-bold mb-1">{{ t('validation.summaryTitle') }}</p>
+          <ul class="pl-4 mb-0">
+            <li v-for="message in validationSummary" :key="message">{{ message }}</li>
+          </ul>
+        </v-alert>
+
         <v-alert v-if="applyError" type="error" variant="tonal" class="mb-4">{{ applyError }}</v-alert>
 
         <v-row>
-          <v-col cols="12" md="4"><v-text-field v-model="applyForm.firstName" :label="t('platform.recruit.applyDialog.fields.firstName')" variant="outlined" density="compact" /></v-col>
-          <v-col cols="12" md="4"><v-text-field v-model="applyForm.lastName" :label="t('platform.recruit.applyDialog.fields.lastName')" variant="outlined" density="compact" /></v-col>
-          <v-col cols="12" md="4"><v-text-field v-model="applyForm.email" :label="t('platform.recruit.applyDialog.fields.email')" type="email" variant="outlined" density="compact" /></v-col>
+          <v-col cols="12" md="4"><v-text-field v-model="applyForm.firstName" :label="t('platform.recruit.applyDialog.fields.firstName')" variant="outlined" density="compact" :error="Boolean(validationErrors.firstName?.length)" :error-messages="validationErrors.firstName" /></v-col>
+          <v-col cols="12" md="4"><v-text-field v-model="applyForm.lastName" :label="t('platform.recruit.applyDialog.fields.lastName')" variant="outlined" density="compact" :error="Boolean(validationErrors.lastName?.length)" :error-messages="validationErrors.lastName" /></v-col>
+          <v-col cols="12" md="4"><v-text-field v-model="applyForm.email" :label="t('platform.recruit.applyDialog.fields.email')" type="email" variant="outlined" density="compact" :error="Boolean(validationErrors.email?.length)" :error-messages="validationErrors.email" /></v-col>
 
-          <v-col cols="12"><v-textarea v-model="applyForm.coverLetter" :label="t('platform.recruit.applyDialog.fields.coverLetter')" rows="5" auto-grow variant="outlined" density="compact" /></v-col>
+          <v-col cols="12"><v-textarea v-model="applyForm.coverLetter" :label="t('platform.recruit.applyDialog.fields.coverLetter')" rows="5" auto-grow variant="outlined" density="compact" :error="Boolean(validationErrors.coverLetter?.length)" :error-messages="validationErrors.coverLetter" /></v-col>
 
           <v-col cols="12">
             <v-radio-group v-model="resumeMode" inline>
@@ -69,6 +79,8 @@ defineEmits<{
               density="compact"
               :loading="resumesStore.isLoading"
               :items="resumesStore.items.map(item => ({ title: `${item.experiences[0]?.title ?? t('platform.recruit.applyDialog.untitledResume')} (${item.id})`, value: item.id }))"
+              :error="Boolean(validationErrors.selectedResumeId?.length)"
+              :error-messages="validationErrors.selectedResumeId"
             />
           </v-col>
 
@@ -94,15 +106,17 @@ defineEmits<{
                 variant="outlined"
                 density="compact"
                 show-size
+                :error="Boolean(validationErrors.resumePdf?.length)"
+                :error-messages="validationErrors.resumePdf"
                 @update:model-value="$emit('fileChange', $event)"
               />
             </v-col>
           </template>
 
           <template v-if="resumeMode === 'new'">
-            <v-col cols="12" md="6"><v-text-field v-model="resumeForm.title" :label="t('platform.recruit.applyDialog.fields.experienceTitle')" variant="outlined" density="compact" /></v-col>
+            <v-col cols="12" md="6"><v-text-field v-model="resumeForm.title" :label="t('platform.recruit.applyDialog.fields.experienceTitle')" variant="outlined" density="compact" :error="Boolean(validationErrors.resumeTitle?.length)" :error-messages="validationErrors.resumeTitle" /></v-col>
             <v-col cols="12" md="6"><v-text-field v-model="resumeForm.skillTitle" :label="t('platform.recruit.applyDialog.fields.skillTitleOptional')" variant="outlined" density="compact" /></v-col>
-            <v-col cols="12" md="6"><v-textarea v-model="resumeForm.description" :label="t('platform.recruit.applyDialog.fields.experienceDescription')" rows="2" auto-grow variant="outlined" density="compact" /></v-col>
+            <v-col cols="12" md="6"><v-textarea v-model="resumeForm.description" :label="t('platform.recruit.applyDialog.fields.experienceDescription')" rows="2" auto-grow variant="outlined" density="compact" :error="Boolean(validationErrors.resumeDescription?.length)" :error-messages="validationErrors.resumeDescription" /></v-col>
             <v-col cols="12" md="6"><v-textarea v-model="resumeForm.skillDescription" :label="t('platform.recruit.applyDialog.fields.skillDescriptionOptional')" rows="2" auto-grow variant="outlined" density="compact" /></v-col>
           </template>
         </v-row>

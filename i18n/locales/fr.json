@@ -1524,7 +1524,15 @@
     "submit": "Créer un compte"
   },
   "validation": {
-    "requiredField": "{field} est requis."
+    "summaryTitle": "Veuillez corriger les erreurs suivantes :",
+    "requiredField": "{field} est requis.",
+    "minLength": "{field} doit contenir au moins {count} caractères.",
+    "maxLength": "{field} ne doit pas dépasser {count} caractères.",
+    "invalidEmail": "{field} doit être une adresse email valide.",
+    "passwordUppercase": "Le mot de passe doit contenir au moins une majuscule.",
+    "passwordLowercase": "Le mot de passe doit contenir au moins une minuscule.",
+    "passwordNumber": "Le mot de passe doit contenir au moins un chiffre.",
+    "passwordsDoNotMatch": "Les mots de passe ne correspondent pas."
   },
   "calendar": {
     "range": {

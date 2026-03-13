@@ -39,6 +39,7 @@ const {
   applyError,
   applyLoading,
   canSubmitApplication,
+  applyValidation,
   resumesStore,
   selectedResume,
   selectedResumeId,
@@ -187,6 +188,8 @@ const handleApplyToJob = async () => {
     :apply-error="applyError"
     :apply-loading="applyLoading"
     :can-submit-application="canSubmitApplication"
+    :validation-errors="applyValidation.fieldErrors"
+    :validation-summary="applyValidation.summary"
     :resumes-store="resumesStore"
     :selected-resume="selectedResume"
     :resume-saving="resumeSaving"

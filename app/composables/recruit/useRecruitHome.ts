@@ -1,4 +1,5 @@
 import type { RecruitContractType, RecruitJob } from '~/data/platform/recruit'
+import { validateRecruitApplyForm } from '~/validation/schemas'
 
 interface RecruitJobsApiResponse {
   jobs?: RecruitJob[]
@@ -119,6 +120,8 @@ export const useRecruitHome = () => {
   const applicationId = computed(() => String(route.query.applicationId ?? slug.value))
 
   const { initSession, isAuthenticated } = useAuth()
+
+  const { t } = useI18n()
   const { apiFetch } = useApiClient()
   const { normalizeError } = useApiError()
   const { $errorLogger } = useNuxtApp()
@@ -282,16 +285,32 @@ export const useRecruitHome = () => {
     uploadedResumeFile.value = Array.isArray(value) ? (value[0] ?? null) : value
   }
 
+  const applyValidation = computed(() => validateRecruitApplyForm({
+    firstName: applyForm.value.firstName,
+    lastName: applyForm.value.lastName,
+    email: applyForm.value.email,
+    coverLetter: applyForm.value.coverLetter,
+    resumeMode: resumeMode.value,
+    selectedResumeId: selectedResumeId.value,
+    resumeTitle: resumeForm.value.title,
+    resumeDescription: resumeForm.value.description,
+    uploadedResumeFile: uploadedResumeFile.value,
+  }, t))
+
   const canSubmitApplication = computed(() => {
-    return canSubmitRecruitApplication({
-      hasSelectedJob: Boolean(selectedApplyJob.value),
-      coverLetter: applyForm.value.coverLetter,
-      resumeMode: resumeMode.value,
-      selectedResumeId: selectedResumeId.value,
-      resumeTitle: resumeForm.value.title,
-      resumeDescription: resumeForm.value.description,
-      uploadedResumeFile: uploadedResumeFile.value,
-    })
+    return Boolean(
+      selectedApplyJob.value
+      && applyValidation.value.isValid
+      && canSubmitRecruitApplication({
+        hasSelectedJob: Boolean(selectedApplyJob.value),
+        coverLetter: applyForm.value.coverLetter,
+        resumeMode: resumeMode.value,
+        selectedResumeId: selectedResumeId.value,
+        resumeTitle: resumeForm.value.title,
+        resumeDescription: resumeForm.value.description,
+        uploadedResumeFile: uploadedResumeFile.value,
+      }),
+    )
   })
 
   const normalizeJobsResponse = (response: RecruitJobsApiResponse | null) => {
@@ -513,6 +532,7 @@ export const useRecruitHome = () => {
 
   const submitApply = async () => {
     if (!selectedApplyJob.value || !canSubmitApplication.value) {
+      applyError.value = applyValidation.value.summary[0] ?? ''
       return false
     }
 
@@ -672,6 +692,7 @@ export const useRecruitHome = () => {
     resumeSaving,
     resumeDeleting,
     canSubmitApplication,
+    applyValidation,
     openCreateDialog,
     openEditDialog,
     openDeleteDialog,
