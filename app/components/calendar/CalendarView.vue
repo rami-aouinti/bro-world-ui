@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import dayGridPlugin from '@fullcalendar/daygrid'
-import interactionPlugin from '@fullcalendar/interaction'
-import timeGridPlugin from '@fullcalendar/timegrid'
-import FullCalendar from '@fullcalendar/vue3'
+import type { Component } from 'vue'
 import UiStatChip from '~/components/ui/UiStatChip.vue'
 import UiStateEmptyState from '~/components/ui/state/UiEmptyState.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import { useCalendarEventsStore } from '~/stores/calendarEvents'
+import { useLazyExternalLibs } from '~/composables/useLazyExternalLibs'
 import { getCalendarNav } from '~/data/platform-nav'
 import type {
   CalendarEventRead,
@@ -39,11 +37,13 @@ const selectedEventId = ref<string | null>(null)
 const isCreateDialogOpen = ref(false)
 const isEditDialogOpen = ref(false)
 const isShowDialogOpen = ref(false)
-const fullCalendarRef = ref<InstanceType<typeof FullCalendar> | null>(null)
+const fullCalendarRef = ref<{ getApi: () => { updateSize: () => void } } | null>(null)
 const calendarContainerRef = ref<HTMLElement | null>(null)
+const { loadFullCalendar, isLoading: isCalendarLibLoading } = useLazyExternalLibs()
+const fullCalendarPlugins = ref<unknown[]>([])
+const FullCalendarComponent = shallowRef<Component | null>(null)
 
 let calendarResizeObserver: ResizeObserver | null = null
-let deferredGeometryRefreshId: ReturnType<typeof setTimeout> | null = null
 
 const canMutate = computed(() => isAuthenticated.value)
 const usePrivateList = computed(() => !props.applicationSlug || isAuthenticated.value)
@@ -481,7 +481,7 @@ const observeCalendarContainerResize = () => {
 }
 
 const calendarOptions = computed(() => ({
-  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+  plugins: fullCalendarPlugins.value,
   initialView: 'dayGridMonth',
   locale: 'en-US',
   headerToolbar: {
@@ -520,9 +520,21 @@ const calendarOptions = computed(() => ({
 const items = computed(() => getCalendarNav())
 
 onMounted(async () => {
-  await loadEvents()
-  await nextTick()
+  await Promise.all([
+    loadEvents(),
+    loadFullCalendar().then(({ FullCalendar, plugins }) => {
+      FullCalendarComponent.value = FullCalendar
+      fullCalendarPlugins.value = plugins
+    }),
+  ])
 
+  await nextTick()
+  observeCalendarContainerResize()
+  scheduleCalendarRefresh()
+})
+
+onBeforeUnmount(() => {
+  calendarResizeObserver?.disconnect()
 })
 
 watch(() => props.applicationSlug, loadEvents)
@@ -620,9 +632,14 @@ watch(() => props.applicationSlug, loadEvents)
       <v-skeleton-loader type="text@2" />
     </v-card>
 
-    <div v-else class="calendar-page__slot">
-      <ClientOnly>
-        <FullCalendar :options="calendarOptions" />
+    <div v-else class="calendar-page__slot" ref="calendarContainerRef">
+      <v-skeleton-loader
+        v-if="isCalendarLibLoading || !FullCalendarComponent"
+        type="image"
+        height="360"
+      />
+      <ClientOnly v-else>
+        <component :is="FullCalendarComponent" ref="fullCalendarRef" :options="calendarOptions" />
       </ClientOnly>
     </div>
 

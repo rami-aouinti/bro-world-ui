@@ -1,22 +1,16 @@
 <script setup lang="ts">
-import type { ECharts, EChartsOption } from 'echarts'
-import { BarChart } from 'echarts/charts'
-import {
-  GridComponent,
-  LegendComponent,
-  TooltipComponent,
-} from 'echarts/components'
-import { CanvasRenderer } from 'echarts/renderers'
-import { init, use } from 'echarts/core'
 import type { AdminStatisticsResponse } from '~/types/api/statistics'
+import { useLazyExternalLibs } from '~/composables/useLazyExternalLibs'
 
-use([TooltipComponent, LegendComponent, GridComponent, BarChart, CanvasRenderer])
+type ECharts = import('echarts').ECharts
+type EChartsOption = import('echarts').EChartsOption
 
 const props = defineProps<{
   statistics: AdminStatisticsResponse | null
 }>()
 
 const { t } = useI18n()
+const { loadECharts, isLoading: isChartLibLoading } = useLazyExternalLibs()
 const chartContainer = ref<HTMLElement | null>(null)
 const chartInstance = ref<ECharts | null>(null)
 
@@ -79,11 +73,12 @@ watch(option, (newOption) => {
   chartInstance.value.setOption(newOption, true)
 })
 
-onMounted(() => {
+onMounted(async () => {
   if (!chartContainer.value)
     return
 
-  chartInstance.value = init(chartContainer.value)
+  const echarts = await loadECharts()
+  chartInstance.value = echarts.init(chartContainer.value)
   chartInstance.value.setOption(option.value)
   window.addEventListener('resize', resizeChart)
 })
@@ -97,7 +92,13 @@ onBeforeUnmount(() => {
 
 <template>
   <div>
-    <div ref="chartContainer" class="admin-statistics-chart" />
+    <v-skeleton-loader
+      v-if="isChartLibLoading && !chartInstance"
+      type="image"
+      height="360"
+      class="admin-statistics-chart__skeleton"
+    />
+    <div v-show="!isChartLibLoading || chartInstance" ref="chartContainer" class="admin-statistics-chart" />
   </div>
 </template>
 
