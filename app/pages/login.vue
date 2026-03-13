@@ -15,6 +15,7 @@ definePageMeta({
 const route = useRoute()
 const { t } = useI18n()
 const { login, fetchProfile } = useAuth()
+const tracker = useTracker()
 
 const usernameOrEmail = ref('')
 const password = ref('')
@@ -41,9 +42,17 @@ const submit = async () => {
     const profile = authResponse.profile ?? await fetchProfile()
 
     if (!authResponse.authenticated || !profile) {
+      tracker.track('auth.login.failed', {
+        method: 'password',
+        reason: 'missing-profile',
+      })
       errorMessage.value = t('errors.auth.loginFailed')
       return
     }
+
+    tracker.track('auth.login.succeeded', {
+      method: 'password',
+    })
 
     await navigateTo(resolveRedirectTarget(), { replace: true })
   }
@@ -51,6 +60,10 @@ const submit = async () => {
     if (import.meta.dev) {
       console.error('Login failed', error)
     }
+
+    tracker.trackError('auth.login.failed', error, {
+      method: 'password',
+    })
 
     errorMessage.value = t('errors.auth.loginFailed')
   }

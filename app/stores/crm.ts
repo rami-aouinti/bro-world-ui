@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { useCrmApi } from '~/composables/api/useCrmApi'
 import type {
+  CreateCrmCompanyPayload,
+  CreateCrmProjectPayload,
   CrmCompany,
   CrmDashboardResponse,
   CrmProject,
@@ -33,6 +35,7 @@ const createEmptyCache = (): CrmApplicationCache => ({
 
 export const useCrmStore = defineStore('crm', () => {
   const crmApi = useCrmApi()
+  const tracker = useTracker()
   const byApplication = ref<Record<string, CrmApplicationCache>>({})
   const isLoading = ref(false)
 
@@ -72,6 +75,7 @@ export const useCrmStore = defineStore('crm', () => {
       const response = await crmApi.getCompanies(applicationSlug)
       ensureApplicationCache(applicationSlug).companies = response.items
       markFetched(applicationSlug)
+      tracker.track('crm.companies.loaded', { applicationSlug, count: response.items.length })
       return response.items
     }
     finally {
@@ -166,6 +170,31 @@ export const useCrmStore = defineStore('crm', () => {
     }
   }
 
+
+  const createCompany = async (applicationSlug: string, payload: CreateCrmCompanyPayload) => {
+    const created = await crmApi.createCompany(applicationSlug, payload)
+    const cache = ensureApplicationCache(applicationSlug)
+    cache.companies = [created, ...cache.companies]
+    tracker.track('crm.entity.created', {
+      applicationSlug,
+      entityType: 'company',
+      entityId: created.id,
+    })
+    return created
+  }
+
+  const createProject = async (applicationSlug: string, payload: CreateCrmProjectPayload) => {
+    const created = await crmApi.createProject(applicationSlug, payload)
+    const cache = ensureApplicationCache(applicationSlug)
+    cache.projects = [created, ...cache.projects]
+    tracker.track('crm.entity.created', {
+      applicationSlug,
+      entityType: 'project',
+      entityId: created.id,
+    })
+    return created
+  }
+
   return {
     byApplication,
     isLoading,
@@ -179,5 +208,7 @@ export const useCrmStore = defineStore('crm', () => {
     fetchSprints,
     fetchTasks,
     fetchTaskRequests,
+    createCompany,
+    createProject,
   }
 })

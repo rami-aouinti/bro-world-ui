@@ -16,6 +16,7 @@ export const useApplicationsStore = defineStore('applications', () => {
   const applicationsApi = useApplicationsApi()
   const profileApi = useProfileApi()
   const { initSession, isAuthenticated } = useAuth()
+  const tracker = useTracker()
   const items = ref<ApplicationRead[]>([])
   const isLoading = ref(false)
   const pagination = ref<ApplicationListPagination>(defaultPagination())
@@ -51,6 +52,14 @@ export const useApplicationsStore = defineStore('applications', () => {
     if (photo && applicationId) {
       await profileApi.uploadApplicationPhoto(applicationId, photo)
     }
+
+
+    const createdCount = Array.isArray(createdApplications) ? createdApplications.length : (createdApplications ? 1 : 0)
+    tracker.track('recruit.application.created', {
+      createdCount,
+      platformId: payload.platformId,
+      hasPhoto: Boolean(photo),
+    })
 
     invalidateCache()
     return createdApplications
