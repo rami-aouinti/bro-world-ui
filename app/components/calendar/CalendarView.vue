@@ -219,8 +219,6 @@ const fullCalendarColorByStatus: Record<EventStatus, string> = {
 const isDemoEvent = (event: CalendarEventRead) => event.id.startsWith('demo-')
 
 const loadEvents = async () => {
-  const mockEvents = createMockEvents()
-
   try {
     isLoading.value = true
     errorMessage.value = ''
@@ -228,16 +226,13 @@ const loadEvents = async () => {
     const apiEvents = await calendarStore.fetchList(props.applicationSlug, usePrivateList.value, true)
     const eventMap = new Map<string, CalendarEventRead>()
 
-    for (const event of [...apiEvents, ...mockEvents]) {
+    for (const event of [...apiEvents]) {
       eventMap.set(event.id, event)
     }
 
     events.value = [...eventMap.values()]
-    usingFallbackData.value = apiEvents.length === 0
   } catch (error) {
     console.error(error)
-    events.value = mockEvents
-    usingFallbackData.value = true
     errorMessage.value = 'API indisponible : affichage des données de démonstration.'
   } finally {
     isLoading.value = false
@@ -494,10 +489,10 @@ const calendarOptions = computed(() => ({
     right: 'dayGridMonth,timeGridWeek,timeGridDay',
   },
   buttonText: {
-    today: 'Aujourd\'hui',
-    month: 'Mois',
-    week: 'Semaine',
-    day: 'Jour',
+    today: 'Today',
+    month: 'Month',
+    week: 'Week',
+    day: 'Day',
   },
   height: 'auto',
   editable: canMutate.value,
@@ -525,25 +520,8 @@ const items = computed(() => getCalendarNav())
 
 onMounted(async () => {
   await loadEvents()
-
   await nextTick()
-  observeCalendarContainerResize()
-  scheduleCalendarRefresh()
 
-  deferredGeometryRefreshId = setTimeout(refreshCalendarGeometry, 360)
-
-  window.addEventListener('resize', scheduleCalendarRefresh)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', scheduleCalendarRefresh)
-
-  if (deferredGeometryRefreshId) {
-    clearTimeout(deferredGeometryRefreshId)
-  }
-
-  calendarResizeObserver?.disconnect()
-  calendarResizeObserver = null
 })
 
 watch(() => props.applicationSlug, loadEvents)
