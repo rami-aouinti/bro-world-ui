@@ -1013,6 +1013,36 @@
           "strongMatch": "Strong match",
           "applied": "Applied"
         }
+      },
+      "applyDialog": {
+        "title": "Bewerben",
+        "jobLabel": "Stelle",
+        "untitledResume": "Lebenslauf ohne Titel",
+        "fields": {
+          "firstName": "Vorname",
+          "lastName": "Nachname",
+          "email": "E-Mail",
+          "coverLetter": "Anschreiben",
+          "myResumes": "Meine Lebensläufe",
+          "experienceTitle": "Erfahrungstitel",
+          "skillTitle": "Kompetenztitel",
+          "experienceDescription": "Erfahrungsbeschreibung",
+          "skillDescription": "Kompetenzbeschreibung",
+          "resumePdf": "Lebenslauf PDF",
+          "skillTitleOptional": "Kompetenztitel (optional)",
+          "skillDescriptionOptional": "Kompetenzbeschreibung (optional)"
+        },
+        "resumeModes": {
+          "existing": "Vorhandenen Lebenslauf verwenden",
+          "new": "Neuen Lebenslauf erstellen",
+          "pdf": "PDF-Lebenslauf importieren"
+        },
+        "actions": {
+          "editResume": "Diesen Lebenslauf bearbeiten",
+          "deleteResume": "Diesen Lebenslauf löschen",
+          "close": "Schließen",
+          "apply": "Bewerben"
+        }
       }
     },
     "school": {
@@ -1503,7 +1533,8 @@
   "profilePage": {
     "stats": {
       "friends": "Friends",
-      "activeConnections": "Active connections"
+      "activeConnections": "Active connections",
+      "linkedAccounts": "Verknüpfte Konten"
     },
     "highlights": {
       "enrichedBio": "Enriched bio"
@@ -1516,6 +1547,11 @@
     },
     "errors": {
       "loadSocial": "Unable to load social relationships."
+    }
+  },
+  "notificationsPage": {
+    "errors": {
+      "loadCalendarEvents": "Kalenderereignisse konnten nicht geladen werden."
     }
   }
 }

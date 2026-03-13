@@ -13,6 +13,7 @@ definePageMeta({
 })
 
 const notificationsApi = useNotificationsApi()
+const { t } = useI18n()
 const authSession = useAuthSessionStore()
 const isLoading = ref(false)
 const errorMessage = ref('')
@@ -33,7 +34,7 @@ const loadNotifications = async () => {
   }
   catch (error) {
     console.error(error)
-    errorMessage.value = 'Unable to load calendar events.'
+    errorMessage.value = t('notificationsPage.errors.loadCalendarEvents')
   }
   finally {
     isLoading.value = false

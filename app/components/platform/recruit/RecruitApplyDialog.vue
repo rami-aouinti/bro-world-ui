@@ -2,6 +2,8 @@
 import type { RecruitJob } from '~/data/platform/recruit'
 import type { RecruitResume } from '~/types/api/recruitResume'
 
+const { t } = useI18n()
+
 const modelValue = defineModel<boolean>({ required: true })
 const applyForm = defineModel<{ firstName: string, lastName: string, email: string, coverLetter: string }>('applyForm', { required: true })
 const resumeForm = defineModel<{ title: string, description: string, skillTitle: string, skillDescription: string }>('resumeForm', { required: true })
@@ -35,47 +37,50 @@ defineEmits<{
 <template>
   <v-dialog v-model="modelValue" max-width="720">
     <v-card rounded="xl">
-      <v-card-title class="text-h5 py-4 px-6">Apply</v-card-title>
+      <v-card-title class="text-h5 py-4 px-6">{{ t('platform.recruit.applyDialog.title') }}</v-card-title>
       <v-card-text class="px-6">
-        <p class="text-body-1 mb-4">Job <span v-if="selectedApplyJob" class="font-weight-bold">: {{ selectedApplyJob.title }}</span></p>
+        <p class="text-body-1 mb-4">
+          {{ t('platform.recruit.applyDialog.jobLabel') }}
+          <span v-if="selectedApplyJob" class="font-weight-bold">: {{ selectedApplyJob.title }}</span>
+        </p>
 
         <v-alert v-if="applyError" type="error" variant="tonal" class="mb-4">{{ applyError }}</v-alert>
 
         <v-row>
-          <v-col cols="12" md="4"><v-text-field v-model="applyForm.firstName" label="First Name" variant="outlined" density="compact" /></v-col>
-          <v-col cols="12" md="4"><v-text-field v-model="applyForm.lastName" label="Last Name" variant="outlined" density="compact" /></v-col>
-          <v-col cols="12" md="4"><v-text-field v-model="applyForm.email" label="Email" type="email" variant="outlined" density="compact" /></v-col>
+          <v-col cols="12" md="4"><v-text-field v-model="applyForm.firstName" :label="t('platform.recruit.applyDialog.fields.firstName')" variant="outlined" density="compact" /></v-col>
+          <v-col cols="12" md="4"><v-text-field v-model="applyForm.lastName" :label="t('platform.recruit.applyDialog.fields.lastName')" variant="outlined" density="compact" /></v-col>
+          <v-col cols="12" md="4"><v-text-field v-model="applyForm.email" :label="t('platform.recruit.applyDialog.fields.email')" type="email" variant="outlined" density="compact" /></v-col>
 
-          <v-col cols="12"><v-textarea v-model="applyForm.coverLetter" label="Cover Letter" rows="5" auto-grow variant="outlined" density="compact" /></v-col>
+          <v-col cols="12"><v-textarea v-model="applyForm.coverLetter" :label="t('platform.recruit.applyDialog.fields.coverLetter')" rows="5" auto-grow variant="outlined" density="compact" /></v-col>
 
           <v-col cols="12">
             <v-radio-group v-model="resumeMode" inline>
-              <v-radio label="Utiliser un CV existant" value="existing" />
-              <v-radio label="Create a new resume" value="new" />
-              <v-radio label="Importer un CV PDF" value="pdf" />
+              <v-radio :label="t('platform.recruit.applyDialog.resumeModes.existing')" value="existing" />
+              <v-radio :label="t('platform.recruit.applyDialog.resumeModes.new')" value="new" />
+              <v-radio :label="t('platform.recruit.applyDialog.resumeModes.pdf')" value="pdf" />
             </v-radio-group>
           </v-col>
 
           <v-col v-if="resumeMode === 'existing'" cols="12">
             <v-select
               v-model="selectedResumeId"
-              label="Mes CV"
+              :label="t('platform.recruit.applyDialog.fields.myResumes')"
               variant="outlined"
               density="compact"
               :loading="resumesStore.isLoading"
-              :items="resumesStore.items.map(item => ({ title: `${item.experiences[0]?.title ?? 'CV sans titre'} (${item.id})`, value: item.id }))"
+              :items="resumesStore.items.map(item => ({ title: `${item.experiences[0]?.title ?? t('platform.recruit.applyDialog.untitledResume')} (${item.id})`, value: item.id }))"
             />
           </v-col>
 
           <template v-if="resumeMode === 'existing' && selectedResume && selectedExperience && selectedSkill">
-            <v-col cols="12" md="6"><v-text-field v-model="selectedExperience.title" label="Experience title" variant="outlined" density="compact" /></v-col>
-            <v-col cols="12" md="6"><v-text-field v-model="selectedSkill.title" label="Skill title" variant="outlined" density="compact" /></v-col>
-            <v-col cols="12" md="6"><v-textarea v-model="selectedExperience.description" label="Experience description" rows="2" auto-grow variant="outlined" density="compact" /></v-col>
-            <v-col cols="12" md="6"><v-textarea v-model="selectedSkill.description" label="Skill description" rows="2" auto-grow variant="outlined" density="compact" /></v-col>
+            <v-col cols="12" md="6"><v-text-field v-model="selectedResume.experiences[0].title" :label="t('platform.recruit.applyDialog.fields.experienceTitle')" variant="outlined" density="compact" /></v-col>
+            <v-col cols="12" md="6"><v-text-field v-model="selectedResume.skills[0].title" :label="t('platform.recruit.applyDialog.fields.skillTitle')" variant="outlined" density="compact" /></v-col>
+            <v-col cols="12" md="6"><v-textarea v-model="selectedResume.experiences[0].description" :label="t('platform.recruit.applyDialog.fields.experienceDescription')" rows="2" auto-grow variant="outlined" density="compact" /></v-col>
+            <v-col cols="12" md="6"><v-textarea v-model="selectedResume.skills[0].description" :label="t('platform.recruit.applyDialog.fields.skillDescription')" rows="2" auto-grow variant="outlined" density="compact" /></v-col>
             <v-col cols="12">
               <div class="d-flex ga-2 justify-end">
-                <v-btn color="secondary" variant="tonal" :loading="resumeSaving" @click="$emit('saveResume')">Edit this resume</v-btn>
-                <v-btn color="error" variant="tonal" :loading="resumeDeleting" @click="$emit('deleteResume')">Delete ce CV</v-btn>
+                <v-btn color="secondary" variant="tonal" :loading="resumeSaving" @click="$emit('saveResume')">{{ t('platform.recruit.applyDialog.actions.editResume') }}</v-btn>
+                <v-btn color="error" variant="tonal" :loading="resumeDeleting" @click="$emit('deleteResume')">{{ t('platform.recruit.applyDialog.actions.deleteResume') }}</v-btn>
               </div>
             </v-col>
           </template>
@@ -83,7 +88,7 @@ defineEmits<{
           <template v-if="resumeMode === 'pdf'">
             <v-col cols="12">
               <v-file-input
-                label="CV PDF"
+                :label="t('platform.recruit.applyDialog.fields.resumePdf')"
                 accept="application/pdf"
                 prepend-icon="mdi-file-pdf-box"
                 variant="outlined"
@@ -95,17 +100,17 @@ defineEmits<{
           </template>
 
           <template v-if="resumeMode === 'new'">
-            <v-col cols="12" md="6"><v-text-field v-model="resumeForm.title" label="Experience title" variant="outlined" density="compact" /></v-col>
-            <v-col cols="12" md="6"><v-text-field v-model="resumeForm.skillTitle" label="Skill title (optionnel)" variant="outlined" density="compact" /></v-col>
-            <v-col cols="12" md="6"><v-textarea v-model="resumeForm.description" label="Experience description" rows="2" auto-grow variant="outlined" density="compact" /></v-col>
-            <v-col cols="12" md="6"><v-textarea v-model="resumeForm.skillDescription" label="Skill description (optionnel)" rows="2" auto-grow variant="outlined" density="compact" /></v-col>
+            <v-col cols="12" md="6"><v-text-field v-model="resumeForm.title" :label="t('platform.recruit.applyDialog.fields.experienceTitle')" variant="outlined" density="compact" /></v-col>
+            <v-col cols="12" md="6"><v-text-field v-model="resumeForm.skillTitle" :label="t('platform.recruit.applyDialog.fields.skillTitleOptional')" variant="outlined" density="compact" /></v-col>
+            <v-col cols="12" md="6"><v-textarea v-model="resumeForm.description" :label="t('platform.recruit.applyDialog.fields.experienceDescription')" rows="2" auto-grow variant="outlined" density="compact" /></v-col>
+            <v-col cols="12" md="6"><v-textarea v-model="resumeForm.skillDescription" :label="t('platform.recruit.applyDialog.fields.skillDescriptionOptional')" rows="2" auto-grow variant="outlined" density="compact" /></v-col>
           </template>
         </v-row>
       </v-card-text>
       <v-card-actions class="px-6 pb-6 pt-2">
         <v-spacer />
-        <v-btn variant="text" @click="$emit('close')">Fermer</v-btn>
-        <v-btn color="primary" :loading="applyLoading" :disabled="!canSubmitApplication" @click="$emit('submit')">Apply</v-btn>
+        <v-btn variant="text" @click="$emit('close')">{{ t('platform.recruit.applyDialog.actions.close') }}</v-btn>
+        <v-btn color="primary" :loading="applyLoading" :disabled="!canSubmitApplication" @click="$emit('submit')">{{ t('platform.recruit.applyDialog.actions.apply') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

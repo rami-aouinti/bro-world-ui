@@ -1013,6 +1013,36 @@
           "strongMatch": "Strong match",
           "applied": "Applied"
         }
+      },
+      "applyDialog": {
+        "title": "تقديم",
+        "jobLabel": "الوظيفة",
+        "untitledResume": "سيرة ذاتية بدون عنوان",
+        "fields": {
+          "firstName": "الاسم الأول",
+          "lastName": "اسم العائلة",
+          "email": "البريد الإلكتروني",
+          "coverLetter": "خطاب التقديم",
+          "myResumes": "سِيَري الذاتية",
+          "experienceTitle": "عنوان الخبرة",
+          "skillTitle": "عنوان المهارة",
+          "experienceDescription": "وصف الخبرة",
+          "skillDescription": "وصف المهارة",
+          "resumePdf": "سيرة ذاتية PDF",
+          "skillTitleOptional": "عنوان المهارة (اختياري)",
+          "skillDescriptionOptional": "وصف المهارة (اختياري)"
+        },
+        "resumeModes": {
+          "existing": "استخدام سيرة ذاتية موجودة",
+          "new": "إنشاء سيرة ذاتية جديدة",
+          "pdf": "استيراد سيرة ذاتية PDF"
+        },
+        "actions": {
+          "editResume": "تعديل هذه السيرة الذاتية",
+          "deleteResume": "حذف هذه السيرة الذاتية",
+          "close": "إغلاق",
+          "apply": "تقديم"
+        }
       }
     },
     "school": {
@@ -1503,7 +1533,8 @@
   "profilePage": {
     "stats": {
       "friends": "Friends",
-      "activeConnections": "Active connections"
+      "activeConnections": "Active connections",
+      "linkedAccounts": "الحسابات المرتبطة"
     },
     "highlights": {
       "enrichedBio": "Enriched bio"
@@ -1516,6 +1547,11 @@
     },
     "errors": {
       "loadSocial": "Unable to load social relationships."
+    }
+  },
+  "notificationsPage": {
+    "errors": {
+      "loadCalendarEvents": "تعذر تحميل أحداث التقويم."
     }
   }
 }

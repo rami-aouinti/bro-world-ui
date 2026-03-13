@@ -1013,6 +1013,36 @@
           "strongMatch": "Strong match",
           "applied": "Applied"
         }
+      },
+      "applyDialog": {
+        "title": "Candidatar-se",
+        "jobLabel": "Vaga",
+        "untitledResume": "Currículo sem título",
+        "fields": {
+          "firstName": "Nome",
+          "lastName": "Sobrenome",
+          "email": "Email",
+          "coverLetter": "Carta de apresentação",
+          "myResumes": "Meus currículos",
+          "experienceTitle": "Título da experiência",
+          "skillTitle": "Título da habilidade",
+          "experienceDescription": "Descrição da experiência",
+          "skillDescription": "Descrição da habilidade",
+          "resumePdf": "Currículo PDF",
+          "skillTitleOptional": "Título da habilidade (opcional)",
+          "skillDescriptionOptional": "Descrição da habilidade (opcional)"
+        },
+        "resumeModes": {
+          "existing": "Usar um currículo existente",
+          "new": "Criar um novo currículo",
+          "pdf": "Importar um currículo em PDF"
+        },
+        "actions": {
+          "editResume": "Editar este currículo",
+          "deleteResume": "Excluir este currículo",
+          "close": "Fechar",
+          "apply": "Candidatar-se"
+        }
       }
     },
     "school": {
@@ -1503,7 +1533,8 @@
   "profilePage": {
     "stats": {
       "friends": "Friends",
-      "activeConnections": "Active connections"
+      "activeConnections": "Active connections",
+      "linkedAccounts": "Contas vinculadas"
     },
     "highlights": {
       "enrichedBio": "Enriched bio"
@@ -1516,6 +1547,11 @@
     },
     "errors": {
       "loadSocial": "Unable to load social relationships."
+    }
+  },
+  "notificationsPage": {
+    "errors": {
+      "loadCalendarEvents": "Não foi possível carregar os eventos do calendário."
     }
   }
 }

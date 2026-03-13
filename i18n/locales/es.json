@@ -1013,6 +1013,36 @@
           "strongMatch": "Strong match",
           "applied": "Applied"
         }
+      },
+      "applyDialog": {
+        "title": "Postular",
+        "jobLabel": "Oferta",
+        "untitledResume": "CV sin título",
+        "fields": {
+          "firstName": "Nombre",
+          "lastName": "Apellido",
+          "email": "Correo electrónico",
+          "coverLetter": "Carta de presentación",
+          "myResumes": "Mis CV",
+          "experienceTitle": "Título de la experiencia",
+          "skillTitle": "Título de la habilidad",
+          "experienceDescription": "Descripción de la experiencia",
+          "skillDescription": "Descripción de la habilidad",
+          "resumePdf": "CV PDF",
+          "skillTitleOptional": "Título de la habilidad (opcional)",
+          "skillDescriptionOptional": "Descripción de la habilidad (opcional)"
+        },
+        "resumeModes": {
+          "existing": "Usar un CV existente",
+          "new": "Crear un nuevo CV",
+          "pdf": "Importar un CV en PDF"
+        },
+        "actions": {
+          "editResume": "Editar este CV",
+          "deleteResume": "Eliminar este CV",
+          "close": "Cerrar",
+          "apply": "Postular"
+        }
       }
     },
     "school": {
@@ -1503,7 +1533,8 @@
   "profilePage": {
     "stats": {
       "friends": "Friends",
-      "activeConnections": "Active connections"
+      "activeConnections": "Active connections",
+      "linkedAccounts": "Cuentas vinculadas"
     },
     "highlights": {
       "enrichedBio": "Enriched bio"
@@ -1516,6 +1547,11 @@
     },
     "errors": {
       "loadSocial": "Unable to load social relationships."
+    }
+  },
+  "notificationsPage": {
+    "errors": {
+      "loadCalendarEvents": "No se pudieron cargar los eventos del calendario."
     }
   }
 }
