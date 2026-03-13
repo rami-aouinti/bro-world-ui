@@ -64,6 +64,11 @@ export interface UserSocial {
 
 export interface UserSession {
   id?: UUID
+  icon?: string
+  title?: string
+  description?: string
+  badge?: string
+  city?: string
   ip?: string
   userAgent?: string
   createdAt?: string
@@ -94,6 +99,11 @@ export interface UserMeRead {
   profile?: UserMeProfileDetails
   socials: UserSocial[]
   sessions: UserSession[]
+  applications?: UserApplication[]
+  friends?: UserFriendRead[]
+  friendRequests?: UserFriendRead[]
+  blockedUsers?: UserFriendRead[]
+  incomingRequests?: UserFriendRead[]
 }
 
 export interface UserFriendRead {

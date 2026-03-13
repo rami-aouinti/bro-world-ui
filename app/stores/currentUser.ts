@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { useUsersApi } from '~/composables/api/useUsersApi'
-import type { UserApplication, UserMeRead, UserMePasswordPayload, UserMeProfilePayload } from '~/types/api/user'
+import type { UserApplication, UserFriendRead, UserMeRead, UserMePasswordPayload, UserMeProfilePayload } from '~/types/api/user'
 
 export const useCurrentUserStore = defineStore('current-user', () => {
   const api = useUsersApi()
@@ -29,11 +29,38 @@ export const useCurrentUserStore = defineStore('current-user', () => {
   }
 
 
+
+  const getMyApplicationsFromProfile = (): UserApplication[] => {
+    return me.value?.applications ?? []
+  }
+
+  const getMyLatestApplicationsFromProfile = (): UserApplication[] => {
+    const applications = getMyApplicationsFromProfile()
+    return [...applications]
+      .sort((left, right) => {
+        const leftDate = Date.parse(left.updatedAt || left.createdAt || '') || 0
+        const rightDate = Date.parse(right.updatedAt || right.createdAt || '') || 0
+        return rightDate - leftDate
+      })
+      .slice(0, 6)
+  }
+
+  const getMyFriendsFromProfile = (): UserFriendRead[] => me.value?.friends ?? []
+  const getMyIncomingRequestsFromProfile = (): UserFriendRead[] => me.value?.incomingRequests ?? []
+  const getMySentRequestsFromProfile = (): UserFriendRead[] => me.value?.friendRequests ?? []
+  const getMyBlockedUsersFromProfile = (): UserFriendRead[] => me.value?.blockedUsers ?? []
+
   const fetchMyApplications = async (): Promise<UserApplication[]> => {
+    if (!initialized.value || !me.value) await fetchMe(true)
+    const fromProfile = getMyApplicationsFromProfile()
+    if (fromProfile.length) return fromProfile
     return api.listMyApplications()
   }
 
   const fetchMyLatestApplications = async (): Promise<UserApplication[]> => {
+    if (!initialized.value || !me.value) await fetchMe(true)
+    const fromProfile = getMyLatestApplicationsFromProfile()
+    if (fromProfile.length) return fromProfile
     return api.listMyLatestApplications()
   }
 
@@ -74,6 +101,10 @@ export const useCurrentUserStore = defineStore('current-user', () => {
     fetchMe,
     fetchMyApplications,
     fetchMyLatestApplications,
+    getMyFriendsFromProfile,
+    getMyIncomingRequestsFromProfile,
+    getMySentRequestsFromProfile,
+    getMyBlockedUsersFromProfile,
     updateProfile,
     updatePassword,
     deleteAccount,
