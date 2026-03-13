@@ -124,6 +124,24 @@ body.rtl .text-right {
   --ui-platform-shadow-md: var(--platform-shadow-md);
 }
 
+:where(
+  a,
+  button,
+  [role="button"],
+  input,
+  textarea,
+  select,
+  .v-btn,
+  .v-list-item,
+  .v-field,
+  .v-selection-control,
+  .v-tab
+):focus-visible {
+  outline: 2px solid rgb(var(--v-theme-primary));
+  outline-offset: 2px;
+  box-shadow: var(--ui-focus);
+}
+
 form,
 .v-form,
 button,

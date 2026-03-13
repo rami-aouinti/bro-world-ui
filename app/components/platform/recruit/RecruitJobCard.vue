@@ -65,7 +65,14 @@ const avatarTextClass = computed(() => (props.variant === 'compact' ? 'text-h6' 
       <div class="d-flex justify-end mb-2">
         <v-menu v-if="managementActionsVisible" location="bottom end">
           <template #activator="{ props: menuProps }">
-            <v-btn icon="mdi-dots-vertical" size="small" variant="text" v-bind="menuProps" @click.prevent />
+            <v-btn
+              icon="mdi-dots-vertical"
+              size="small"
+              variant="text"
+              aria-label="More actions"
+              v-bind="menuProps"
+              @click.prevent
+            />
           </template>
           <v-list density="compact" min-width="160">
             <v-list-item v-if="showEditAction" prepend-icon="mdi-pencil" :title="editLabel" @click.prevent="emit('edit')" />

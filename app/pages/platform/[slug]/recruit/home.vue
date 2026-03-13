@@ -157,7 +157,7 @@ const handleApplyToJob = async () => {
     @submit="handleEditJob"
   />
 
-  <v-dialog v-model="deleteDialog" max-width="520">
+  <v-dialog retain-focus v-model="deleteDialog" max-width="520">
     <v-card rounded="xl">
       <v-card-title class="text-h5 py-4 px-6">{{ t('platform.recruit.home.deleteDialog.title') }}</v-card-title>
       <v-card-text class="px-6">

@@ -14,7 +14,8 @@
     "perf:bundle": "node scripts/check-bundle-budget.mjs --enforce",
     "perf:bundle:report": "node scripts/check-bundle-budget.mjs",
     "perf:bundle:diff": "node scripts/create-bundle-diff.mjs",
-    "perf:lighthouse": "npx @lhci/cli@0.13.x autorun --config=perf/lighthouserc.json"
+    "perf:lighthouse": "npx @lhci/cli@0.13.x autorun --config=perf/lighthouserc.json",
+    "test:a11y": "node scripts/check-a11y.mjs"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.20",

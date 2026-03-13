@@ -42,7 +42,12 @@ onMounted(() => currentUser.fetchMe())
                 size="small"
                 :dot-color="event.severity === 'high' ? 'error' : 'success'"
               >
-                <div class="text-body-2 font-weight-medium">{{ event.event }}</div>
+                <div class="d-flex align-center ga-2 mb-1">
+                  <div class="text-body-2 font-weight-medium">{{ event.event }}</div>
+                  <v-chip size="x-small" :color="event.severity === 'high' ? 'error' : 'success'" variant="tonal">
+                    {{ event.severity === 'high' ? 'High risk' : 'Informational' }}
+                  </v-chip>
+                </div>
                 <div class="text-caption text-medium-emphasis">{{ event.date }}</div>
               </v-timeline-item>
             </v-timeline>

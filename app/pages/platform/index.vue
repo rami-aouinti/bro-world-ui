@@ -429,7 +429,13 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
                   <template v-slot:append>
                     <v-menu v-if="card.isOwner" location="bottom end">
                       <template #activator="{ props }">
-                        <v-btn icon="mdi-dots-vertical" variant="text" density="compact" v-bind="props" />
+                        <v-btn
+                          icon="mdi-dots-vertical"
+                          variant="text"
+                          density="compact"
+                          aria-label="Open application actions"
+                          v-bind="props"
+                        />
                       </template>
                       <v-list density="compact">
                         <v-list-item :title="t('platform.actions.edit')" @click="openEditModal(card)" />
