@@ -1,7 +1,9 @@
 import { defineStore } from 'pinia'
 import { useApplicationsApi } from '~/composables/api/useApplicationsApi'
 import { useAuth } from '~/composables/useAuth'
+import { useProfileApi } from '~/composables/api/useProfileApi'
 import type { ApplicationListFilters, ApplicationListPagination, ApplicationRead, UpdateApplicationPayload } from '~/types/api/application'
+import type { CreateApplicationPayload } from '~/types/api/profile'
 
 const defaultPagination = (): ApplicationListPagination => ({
   page: 1,
@@ -12,6 +14,7 @@ const defaultPagination = (): ApplicationListPagination => ({
 
 export const useApplicationsStore = defineStore('applications', () => {
   const applicationsApi = useApplicationsApi()
+  const profileApi = useProfileApi()
   const { initSession, isAuthenticated } = useAuth()
   const items = ref<ApplicationRead[]>([])
   const isLoading = ref(false)
@@ -30,6 +33,27 @@ export const useApplicationsStore = defineStore('applications', () => {
 
   const setPage = (page: number) => {
     pagination.value.page = page
+  }
+
+  const invalidateCache = () => {
+    items.value = []
+    clearNuxtData('platform-applications')
+    clearNuxtData('platform-applications-public')
+    clearNuxtData('platform-applications-private')
+  }
+
+  const create = async (payload: CreateApplicationPayload, photo?: File | null) => {
+    const createdApplications = await profileApi.createApplication(payload)
+    const applicationId = Array.isArray(createdApplications)
+      ? createdApplications[0]?.id
+      : createdApplications?.id
+
+    if (photo && applicationId) {
+      await profileApi.uploadApplicationPhoto(applicationId, photo)
+    }
+
+    invalidateCache()
+    return createdApplications
   }
 
   const fetchPublic = async (params?: { page?: number, limit?: number, filters?: ApplicationListFilters }) => {
@@ -95,12 +119,15 @@ export const useApplicationsStore = defineStore('applications', () => {
       items.value[idx] = { ...items.value[idx], ...updated }
     }
 
+    invalidateCache()
+
     return updated
   }
 
   const disable = async (id: string) => {
     await applicationsApi.disable(id)
     items.value = items.value.filter(item => item.id !== id)
+    invalidateCache()
   }
 
   return {
@@ -112,7 +139,9 @@ export const useApplicationsStore = defineStore('applications', () => {
     setPage,
     fetchPublic,
     fetch,
+    create,
     update,
     disable,
+    invalidateCache,
   }
 })

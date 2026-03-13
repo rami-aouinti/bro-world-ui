@@ -7,7 +7,7 @@ import UiStatChip from '~/components/ui/UiStatChip.vue'
 import UiStateEmptyState from '~/components/ui/state/UiEmptyState.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
-import { useCalendarEventsApi } from '~/composables/api/useCalendarEventsApi'
+import { useCalendarEventsStore } from '~/stores/calendarEvents'
 import { getCalendarNav } from '~/data/platform-nav'
 import type {
   CalendarEventRead,
@@ -23,7 +23,7 @@ const props = withDefaults(defineProps<{
 })
 
 const { isAuthenticated } = useAuth()
-const calendarApi = useCalendarEventsApi()
+const calendarStore = useCalendarEventsStore()
 
 const isLoading = ref(false)
 const isSaving = ref(false)
@@ -225,7 +225,7 @@ const loadEvents = async () => {
     isLoading.value = true
     errorMessage.value = ''
 
-    const apiEvents = await calendarApi.list(props.applicationSlug, usePrivateList.value)
+    const apiEvents = await calendarStore.fetchList(props.applicationSlug, usePrivateList.value, true)
     const eventMap = new Map<string, CalendarEventRead>()
 
     for (const event of [...apiEvents, ...mockEvents]) {
@@ -381,7 +381,7 @@ const submitCreate = async () => {
 
   try {
     isSaving.value = true
-    await calendarApi.create(buildPayload(), props.applicationSlug)
+    await calendarStore.create(buildPayload(), props.applicationSlug)
     isCreateDialogOpen.value = false
     await loadEvents()
   } catch (error) {
@@ -398,7 +398,7 @@ const submitEdit = async () => {
   try {
     isSaving.value = true
     const payload: PatchCalendarEventPayload = buildPayload()
-    await calendarApi.patch(selectedEventId.value, payload, props.applicationSlug)
+    await calendarStore.patch(selectedEventId.value, payload, props.applicationSlug)
     isEditDialogOpen.value = false
     isShowDialogOpen.value = false
     await loadEvents()
@@ -415,7 +415,7 @@ const cancelEvent = async (event: CalendarEventRead) => {
 
   try {
     isSaving.value = true
-    await calendarApi.cancel(event.id, props.applicationSlug)
+    await calendarStore.cancel(event.id, props.applicationSlug)
     await loadEvents()
   } catch (error) {
     console.error(error)
@@ -430,7 +430,7 @@ const deleteEvent = async (event: CalendarEventRead) => {
 
   try {
     isSaving.value = true
-    await calendarApi.delete(event.id, props.applicationSlug)
+    await calendarStore.deleteEvent(event.id, props.applicationSlug)
     if (selectedEventId.value === event.id) selectedEventId.value = null
     isShowDialogOpen.value = false
     await loadEvents()
@@ -447,7 +447,7 @@ const patchFromCalendarMove = async (eventId: string, startAt?: string, endAt?: 
 
   try {
     isSaving.value = true
-    await calendarApi.patch(eventId, {
+    await calendarStore.patch(eventId, {
       startAt,
       endAt: endAt || startAt,
     }, props.applicationSlug)

@@ -3,7 +3,6 @@ import type { PluginRead } from '~/types/api/plugin'
 import type { PlatformRead } from '~/types/api/platform'
 import { usePlatformsApi } from '~/composables/api/usePlatformsApi'
 import { usePluginsApi } from '~/composables/api/usePluginsApi'
-import { useProfileApi } from '~/composables/api/useProfileApi'
 import { useApplicationsStore } from '~/stores/applications'
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
 
@@ -16,7 +15,6 @@ const { t } = useI18n({ useScope: 'global' })
 const router = useRouter()
 const platformsApi = usePlatformsApi()
 const pluginsApi = usePluginsApi()
-const profileApi = useProfileApi()
 const applicationsStore = useApplicationsStore()
 
 const step = ref(1)
@@ -129,7 +127,7 @@ const submit = async () => {
       },
     ]
 
-    const createdApplications = await profileApi.createApplication({
+    await applicationsStore.create({
       platformId: selectedPlatformId.value,
       title: form.title.trim(),
       description: form.description.trim(),
@@ -147,24 +145,7 @@ const submit = async () => {
           },
         ],
       })),
-    })
-
-    const applicationId = Array.isArray(createdApplications)
-      ? createdApplications[0]?.id
-      : createdApplications?.id
-
-    if (!applicationId) {
-      throw new Error('Application ID missing in creation response')
-    }
-
-    if (form.photo) {
-      await profileApi.uploadApplicationPhoto(applicationId, form.photo)
-    }
-
-    applicationsStore.items = []
-    clearNuxtData('platform-applications')
-    clearNuxtData('platform-applications-public')
-    clearNuxtData('platform-applications-private')
+    }, form.photo)
 
     await router.push('/platform')
   }

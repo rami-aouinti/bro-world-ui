@@ -7,6 +7,7 @@ import ConversationAvatarGroup from '~/components/inbox/ConversationAvatarGroup.
 import UiAvatar from '~/components/ui/UiAvatar.vue'
 import type { PrivateChatConversation, PrivateChatMessage, PrivateConversationsResponse } from '~/types/api/chat'
 import { usePrivateChatApi } from '~/composables/api/usePrivateChatApi'
+import { useInboxStore } from '~/stores/inbox'
 import { useMercureEventSource } from '~/composables/useMercureEventSource'
 
 const props = withDefaults(defineProps<{
@@ -22,6 +23,7 @@ const props = withDefaults(defineProps<{
 const router = useRouter()
 const authSession = useAuthSessionStore()
 const privateChatApi = usePrivateChatApi()
+const inboxStore = useInboxStore()
 const draftMessage = ref('')
 const isSendingMessage = ref(false)
 const isUpdatingMessage = ref(false)
@@ -597,7 +599,7 @@ const sendMessage = async () => {
     await nextTick()
     scrollMessagesToBottom()
 
-    const createdMessage = await privateChatApi.addMessage(conversationId, { content })
+    const createdMessage = await inboxStore.addMessage(conversationId, { content })
     const normalizedCreatedMessage = normalizeMessage({
       ...optimisticMessage,
       ...(createdMessage as Partial<PrivateChatMessage>),
@@ -651,7 +653,10 @@ const addReaction = async (messageId: string, reaction: string) => {
     return
   }
 
-  const createdReaction = await privateChatApi.addReaction(messageId, { reaction })
+  const conversationId = activeConversation.value?.id
+  if (!conversationId) return
+
+  const createdReaction = await inboxStore.addReaction(conversationId, messageId, { reaction })
   applyReactionToMessageCaches(messageId, {
     id: createdReaction.id,
     reaction: createdReaction.reaction ?? reaction,
@@ -675,7 +680,10 @@ const updateMessage = async () => {
 
   try {
     isUpdatingMessage.value = true
-    await privateChatApi.updateMessage(editingMessage.value.id, {
+    const conversationId = activeConversation.value?.id
+    if (!conversationId) return
+
+    await inboxStore.updateMessage(conversationId, editingMessage.value.id, {
       content: editContent.value.trim(),
     })
     editDialog.value = false
@@ -702,7 +710,10 @@ const deleteMessage = async () => {
 
   try {
     isDeletingMessage.value = true
-    await privateChatApi.deleteMessage(messageToDelete.value.id)
+    const conversationId = activeConversation.value?.id
+    if (!conversationId) return
+
+    await inboxStore.deleteMessage(conversationId, messageToDelete.value.id)
     deleteDialog.value = false
     await refreshConversationData()
   }
