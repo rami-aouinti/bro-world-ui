@@ -1478,7 +1478,12 @@
   "settings": {
     "title": "Platform settings",
     "description": "Configure your personal preferences and platform behavior.",
-    "notice": "More setting options will be available soon."
+    "notice": "More setting options will be available soon.",
+    "password": {
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password"
+    }
   },
   "register": {
     "title": "Register",
@@ -1488,7 +1493,15 @@
     "submit": "Create account"
   },
   "validation": {
-    "requiredField": "{field} is required."
+    "summaryTitle": "Please fix the following errors:",
+    "requiredField": "{field} is required.",
+    "minLength": "{field} must contain at least {count} characters.",
+    "maxLength": "{field} must not exceed {count} characters.",
+    "invalidEmail": "{field} must be a valid email address.",
+    "passwordUppercase": "Password must contain at least one uppercase character.",
+    "passwordLowercase": "Password must contain at least one lowercase character.",
+    "passwordNumber": "Password must contain at least one number.",
+    "passwordsDoNotMatch": "Passwords do not match."
   },
   "calendar": {
     "range": {
