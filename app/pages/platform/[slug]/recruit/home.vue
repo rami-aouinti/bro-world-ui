@@ -71,6 +71,8 @@ const { isOwner } = usePlatformPermissions(slug)
 const { t } = useI18n()
 const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
 const visibleJobsCount = computed(() => jobsData.value?.jobs?.length ?? 0)
+const shouldRenderEditDialog = computed(() => editDialog.value || editLoading.value)
+const shouldRenderApplyDialog = computed(() => applyDialog.value || applyLoading.value)
 
 onMounted(async () => {
   try {
@@ -146,6 +148,7 @@ const handleApplyToJob = async () => {
   </PlatformSplitLayout>
 
   <RecruitJobEditDialog
+    v-if="shouldRenderEditDialog"
     v-model="editDialog"
     v-model:form="editForm"
     :loading="editLoading"
@@ -174,6 +177,7 @@ const handleApplyToJob = async () => {
   </v-dialog>
 
   <RecruitApplyDialog
+    v-if="shouldRenderApplyDialog"
     v-model="applyDialog"
     v-model:apply-form="applyForm"
     v-model:resume-form="resumeForm"

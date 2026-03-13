@@ -1,9 +1,13 @@
 <script setup lang="ts">
+import { defineAsyncComponent } from "vue";
 import UserIdentity from "~/components/UserIdentity.vue";
 import UiEmptyState from "~/components/ui/state/UiEmptyState.vue";
 import UiSkeletonCardGrid from "~/components/ui/state/UiSkeletonCardGrid.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
 import PlatformSidebarNav from "~/components/platform/PlatformSidebarNav.vue";
+
+const UiActionDialog = defineAsyncComponent(() => import("~/components/ui/overlay/UiActionDialog.vue"));
+const UiActionConfirmDialog = defineAsyncComponent(() => import("~/components/ui/overlay/UiActionConfirmDialog.vue"));
 
 definePageMeta({
   public: true,
@@ -293,6 +297,9 @@ const getCardInsights = (
     tags: ["Operations", "Insights", "Monitoring"],
   };
 };
+
+const shouldRenderEditDialog = computed(() => editDialog.value || submitting.value);
+const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting.value);
 </script>
 
 <template>
@@ -477,6 +484,7 @@ const getCardInsights = (
         </div>
       </div>
       <UiActionDialog
+          v-if="shouldRenderEditDialog"
           v-model="editDialog"
           :title="t('platform.actions.editTitle')"
           max-width="560"
@@ -523,6 +531,7 @@ const getCardInsights = (
         </template>
       </UiActionDialog>
       <UiActionConfirmDialog
+          v-if="shouldRenderDeleteDialog"
           v-model="deleteDialog"
           :title="t('platform.actions.deleteTitle')"
           :message="
