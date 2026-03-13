@@ -10,7 +10,11 @@
     "postinstall": "nuxt prepare",
     "validate:i18n": "node scripts/validate-i18n.mjs",
     "test": "vitest run",
-    "test:unit": "vitest run tests/unit"
+    "test:unit": "vitest run tests/unit",
+    "perf:bundle": "node scripts/check-bundle-budget.mjs --enforce",
+    "perf:bundle:report": "node scripts/check-bundle-budget.mjs",
+    "perf:bundle:diff": "node scripts/create-bundle-diff.mjs",
+    "perf:lighthouse": "npx @lhci/cli@0.13.x autorun --config=perf/lighthouserc.json"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.20",

@@ -1,0 +1,62 @@
+name: Performance budgets
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  budgets:
+    runs-on: ubuntu-latest
+    env:
+      NUXT_SESSION_PASSWORD: ci-session-password-at-least-32-chars-long
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build app
+        run: npm run build
+
+      - name: Check JS/CSS bundle budgets
+        run: |
+          mkdir -p .perf
+          node scripts/check-bundle-budget.mjs --enforce --output .perf/head-bundle.json
+
+      - name: Check LCP/TBT budgets (Lighthouse)
+        run: npx @lhci/cli@0.13.x autorun --config=perf/lighthouserc.json
+
+      - name: Build and measure base branch (PR only)
+        if: github.event_name == 'pull_request'
+        run: |
+          git worktree add /tmp/base "${{ github.event.pull_request.base.sha }}"
+          cd /tmp/base
+          npm install
+          npm run build
+          node scripts/check-bundle-budget.mjs --output /tmp/base-bundle.json
+
+      - name: Create bundle diff report (PR only)
+        if: github.event_name == 'pull_request'
+        run: |
+          node scripts/create-bundle-diff.mjs /tmp/base-bundle.json .perf/head-bundle.json .perf/bundle-diff.md
+
+      - name: Publish bundle diff comment (PR only)
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          path: .perf/bundle-diff.md
+          header: bundle-diff

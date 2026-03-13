@@ -90,3 +90,37 @@ bun run preview
 ```
 
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+
+## Performance budgets (CI)
+
+Le pipeline CI applique des budgets de performance à chaque Pull Request et sur `main`.
+
+### Budgets définis
+
+- **JS initial**: `<= 300 KiB` (somme des bundles JS produits dans `.output/public/_nuxt`).
+- **CSS initial**: `<= 120 KiB` (somme des bundles CSS produits dans `.output/public/_nuxt`).
+- **LCP** (Largest Contentful Paint): `<= 2500 ms`.
+- **TBT** (Total Blocking Time): `<= 200 ms`.
+
+Les seuils sont centralisés dans `perf/bundle-budgets.json` (JS/CSS) et `perf/lighthouserc.json` (LCP/TBT).
+
+### Règles de revue
+
+- Les **imports dynamiques sont obligatoires pour les bibliothèques lourdes** (exemples: `echarts`, `xlsx`, `jspdf`, `@fullcalendar/*`) afin de limiter le coût du chargement initial.
+- Toute nouvelle dépendance volumineuse doit être chargée à la demande (`import('...')`) au plus proche de l'usage.
+
+### Vérifications locales
+
+```bash
+npm run build
+npm run perf:bundle
+npm run perf:lighthouse
+```
+
+### Rapport par PR
+
+Le workflow GitHub Actions publie automatiquement un commentaire "Bundle diff" sur chaque PR avec:
+
+- taille JS initiale (base vs PR),
+- taille CSS initiale (base vs PR),
+- delta par métrique.
