@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { useUsersApi } from '~/composables/api/useUsersApi'
+import { useCurrentUserStore } from '~/stores/currentUser'
 import type { UUID } from '~/types/api/common'
 import type { UserFriendRead } from '~/types/api/user'
 
@@ -11,6 +12,7 @@ export type FriendshipRelation = 'blocked' | 'friend' | 'incoming_request' | 'se
 
 export const useFriendsStore = defineStore('friends', () => {
   const usersApi = useUsersApi()
+  const currentUserStore = useCurrentUserStore()
 
   const friends = ref<UserFriendRead[]>([])
   const incomingRequests = ref<UserFriendRead[]>([])
@@ -32,28 +34,36 @@ export const useFriendsStore = defineStore('friends', () => {
 
   const fetchFriends = async (force = false) => {
     if (!force && isFresh('friends')) return friends.value
-    friends.value = await usersApi.listMyFriends()
+    if (!currentUserStore.initialized || force) await currentUserStore.fetchMe(true)
+    const fromProfile = currentUserStore.getMyFriendsFromProfile()
+    friends.value = fromProfile.length ? fromProfile : await usersApi.listMyFriends()
     cacheTimestamps.value.friends = Date.now()
     return friends.value
   }
 
   const fetchIncoming = async (force = false) => {
     if (!force && isFresh('incoming')) return incomingRequests.value
-    incomingRequests.value = await usersApi.listMyFriendRequests()
+    if (!currentUserStore.initialized || force) await currentUserStore.fetchMe(true)
+    const fromProfile = currentUserStore.getMyIncomingRequestsFromProfile()
+    incomingRequests.value = fromProfile.length ? fromProfile : await usersApi.listMyFriendRequests()
     cacheTimestamps.value.incoming = Date.now()
     return incomingRequests.value
   }
 
   const fetchSent = async (force = false) => {
     if (!force && isFresh('sent')) return sentRequests.value
-    sentRequests.value = await usersApi.listMySentFriendRequests()
+    if (!currentUserStore.initialized || force) await currentUserStore.fetchMe(true)
+    const fromProfile = currentUserStore.getMySentRequestsFromProfile()
+    sentRequests.value = fromProfile.length ? fromProfile : await usersApi.listMySentFriendRequests()
     cacheTimestamps.value.sent = Date.now()
     return sentRequests.value
   }
 
   const fetchBlocked = async (force = false) => {
     if (!force && isFresh('blocked')) return blockedUsers.value
-    blockedUsers.value = await usersApi.listMyBlockedUsers()
+    if (!currentUserStore.initialized || force) await currentUserStore.fetchMe(true)
+    const fromProfile = currentUserStore.getMyBlockedUsersFromProfile()
+    blockedUsers.value = fromProfile.length ? fromProfile : await usersApi.listMyBlockedUsers()
     cacheTimestamps.value.blocked = Date.now()
     return blockedUsers.value
   }

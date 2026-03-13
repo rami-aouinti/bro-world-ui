@@ -103,7 +103,7 @@ const loadData = async () => {
   try {
     profile.value = await currentUser.fetchMe(true)
     const [friendsResult, latestApplicationsResult] = await Promise.all([
-      friendsStore.fetchAll(true),
+      friendsStore.fetchAll(false),
       currentUser.fetchMyLatestApplications(),
     ])
 
