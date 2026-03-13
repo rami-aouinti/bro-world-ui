@@ -1,42 +1,33 @@
-# Nuxt Minimal Starter
+# Bro World UI
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Interface Nuxt 4 de la plateforme Bro World (Vue 3 + Pinia + Vuetify + i18n + auth session côté serveur).
 
 ## Setup
 
-Make sure to install dependencies:
+Installer les dépendances:
 
 ```bash
-# npm
 npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
 ```
 
-## Environment Variables
+## Environnement
 
-Session encryption for `nuxt-auth-utils` requires a password.
+Le chiffrement de session (`nuxt-auth-utils`) nécessite un secret:
 
-- Set `NUXT_SESSION_PASSWORD` to a long random secret (minimum 32 characters) in production.
-- In local development, this project falls back to an internal dev-only password if `NUXT_SESSION_PASSWORD` is not set.
+- `NUXT_SESSION_PASSWORD`: secret long aléatoire (minimum 32 caractères en production).
+- En local, un mot de passe de dev interne est utilisé si la variable n'est pas définie.
 
 ### Session security minimums
 
-At boot, the app validates session/cookie settings and refuses to start when minimum requirements are not met:
+Au démarrage, l'application valide la configuration session/cookie et échoue si les minimums ne sont pas respectés:
 
-- Outside development, `NUXT_SESSION_PASSWORD` must be present and strong (>= 32 chars).
-- `SESSION_TTL_SECONDS` defaults to `604800` (7 days) to reduce session exposure if a token leaks.
-- `SESSION_COOKIE_NAME` must only contain letters, numbers, `_` or `-`.
-- `SESSION_COOKIE_SAME_SITE` must be one of `strict`, `lax`, or `none`.
-- `SESSION_COOKIE_SECURE` must be explicitly `true`/`false`, and must be `true` outside development (also mandatory when `sameSite=none`).
+- hors dev, `NUXT_SESSION_PASSWORD` est obligatoire et fort (>= 32 chars),
+- `SESSION_TTL_SECONDS` par défaut à `604800` (7 jours),
+- `SESSION_COOKIE_NAME` doit respecter `[A-Za-z0-9_-]`,
+- `SESSION_COOKIE_SAME_SITE` doit être `strict`, `lax` ou `none`,
+- `SESSION_COOKIE_SECURE` doit être explicitement `true|false`, et obligatoire à `true` hors dev (et avec `sameSite=none`).
 
+## Scripts utiles
 
 ## Mock data vs API réelle
 
@@ -48,57 +39,87 @@ At boot, the app validates session/cookie settings and refuses to start when min
 
 ## Development Server
 
-Start the development server on `http://localhost:3000`:
+### Développement et build
 
 ```bash
-# npm
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
-```
-
-## Production
-
-Build the application for production:
-
-```bash
-# npm
 npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
+npm run preview
+npm run generate
 ```
 
-Locally preview production build:
+### Qualité, i18n, tests
 
 ```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
+npm run validate:i18n
+npm run test
+npm run test:unit
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+- `validate:i18n`: exécute `scripts/validate-i18n.mjs` et vérifie que toutes les locales ont les mêmes clés que `en.json`, que les namespaces requis existent (`about`, `contact`, `faq`, `home`) et que le fallback EN fonctionne.
+- `test`: lance toute la suite Vitest (`vitest run`).
+- `test:unit`: lance uniquement les tests unitaires dans `tests/unit`.
+
+Scripts de test Node additionnels (hors `package.json`, utiles pour des régressions ciblées):
+
+```bash
+node --test scripts/inbox-conversation-preview.test.mjs
+node --test scripts/private-cache-security.test.mjs
+```
+
+## Structure du projet
+
+- `app/pages`: pages routées Nuxt (URL = arborescence des fichiers).
+- `app/stores`: stores Pinia par domaine fonctionnel (auth, users, inbox, etc.).
+- `app/composables`: logique réutilisable (auth, accès API, règles métier, hooks de pages).
+- `app/types`: contrats TypeScript (notamment `types/api/*` pour les payloads backend).
+
+## Conventions de nommage
+
+- **Pages** (`app/pages`): noms de fichiers alignés sur les routes (`settings/index.vue`, `[slug].vue`, etc.).
+- **Stores** (`app/stores`): fichiers en `camelCase`, export `useXxxStore` avec `defineStore`.
+- **Composables** (`app/composables`): préfixe `use` (`useAuth.ts`, `useUsersApi.ts`), sous-dossiers par domaine (`api/`, `platform/`, `admin/`, `recruit/`).
+- **Types** (`app/types`): types métier regroupés par domaine API et suffixes explicites (`*Payload`, `*Response`, etc.).
+- **Clés i18n**: namespaces stables par domaine/page (`home.*`, `platform.shop.*`, `errors.auth.*`) et structure identique dans toutes les locales.
+
+## Flux auth/session
+
+1. `useAuth().initSession()` appelle `GET /api/auth/session` pour hydrater l'état client au chargement.
+2. Les endpoints `POST /api/auth/login` et `POST /api/auth/register` délèguent l'auth au backend puis construisent la session applicative.
+3. Le serveur stocke le contexte auth (profil, rôles, locale, expiration) dans un cookie de session signé/chiffré.
+4. `useAuth` applique ensuite l'état dans `useAuthSessionStore` (token placeholder côté client + profil/rôles/locale).
+5. `POST /api/auth/logout` efface le cookie de session et réinitialise l'état front.
+
+## Stratégie i18n
+
+- Module `@nuxtjs/i18n` avec:
+  - locale par défaut/fallback: `en`,
+  - stratégie `no_prefix` (URLs non préfixées),
+  - lazy loading des fichiers JSON depuis `i18n/locales`.
+- Le front résout la locale active depuis la session (ou profil), avec fallback contrôlé (`en`).
+- Toute nouvelle clé doit être ajoutée dans **toutes** les locales et validée via `npm run validate:i18n`.
+
+## How to add a new feature
+
+Exemple de flow recommandé (page + store + API composable + i18n):
+
+1. **Créer la page** dans `app/pages/...` (route Nuxt).
+2. **Créer/étendre un store Pinia** dans `app/stores/...` pour l'état partagé (loading, data, erreurs).
+3. **Créer un composable API** dans `app/composables/api/useXxxApi.ts` pour centraliser les appels HTTP.
+4. **Brancher la page au store** (la page déclenche les actions du store, le store appelle le composable API).
+5. **Ajouter les types** dans `app/types/api/...` (payloads/réponses) avant d'écrire la logique.
+6. **Ajouter les clés i18n** dans `i18n/locales/en.json` puis répliquer dans les autres locales.
+7. **Couvrir par des tests** (`tests/unit` et/ou tests de composables), puis lancer validation i18n et tests.
+
+## PR checklist
+
+Avant d'ouvrir une PR:
+
+- [ ] **Typing**: nouveaux flux et payloads typés, pas de `any` évitable.
+- [ ] **i18n**: tous les textes visibles passent par i18n, clés présentes dans toutes les locales.
+- [ ] **Error handling**: erreurs API gérées (états d'erreur UX + cas de fallback).
+- [ ] **Performance**: imports lourds en lazy/dynamic import, pas de régression bundle évidente.
+- [ ] **Validation locale**: `npm run test`, `npm run test:unit`, `npm run validate:i18n` exécutés.
 
 ## Performance budgets (CI)
 
