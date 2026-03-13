@@ -3,7 +3,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "nuxt build",
+    "build": "pnpm guard:mock-imports && nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
@@ -14,7 +14,9 @@
     "perf:bundle": "node scripts/check-bundle-budget.mjs --enforce",
     "perf:bundle:report": "node scripts/check-bundle-budget.mjs",
     "perf:bundle:diff": "node scripts/create-bundle-diff.mjs",
-    "perf:lighthouse": "npx @lhci/cli@0.13.x autorun --config=perf/lighthouserc.json"
+    "perf:lighthouse": "npx @lhci/cli@0.13.x autorun --config=perf/lighthouserc.json",
+    "guard:mock-imports": "node scripts/guard-no-mock-imports.mjs",
+    "map:mock-data-usage": "node scripts/map-mock-data-usage.mjs"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.20",
