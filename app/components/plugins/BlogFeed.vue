@@ -5,6 +5,7 @@ import BlogCommentItem from '~/components/plugins/BlogCommentItem.vue'
 import UiAvatar from '~/components/ui/UiAvatar.vue'
 import { useBlogsStore } from '~/stores/blogs'
 import { useAuthSessionStore } from '~/stores/authSession'
+import { useStoriesStore } from '~/stores/stories'
 import { BLOG_REACTION_FALLBACK_TYPES, BLOG_REACTION_META } from '~/constants/blogReactions'
 
 const props = withDefaults(defineProps<{
@@ -19,6 +20,7 @@ const props = withDefaults(defineProps<{
 })
 
 const blogsStore = useBlogsStore()
+const storiesStore = useStoriesStore()
 const authSession = useAuthSessionStore()
 const actionError = ref('')
 const creatingPost = ref(false)
@@ -56,6 +58,14 @@ const shareAuthorsDialog = ref(false)
 const sharePostTarget = ref<BlogRead['posts'][number] | null>(null)
 const shareDraftContent = ref('')
 const shareAuthors = ref<BlogAuthor[]>([])
+const storyPhotoInput = ref<HTMLInputElement | null>(null)
+
+const stories = computed(() => storiesStore.stories)
+const isLoadingStories = computed(() => storiesStore.loading)
+const ownStoryIds = computed(() => {
+  const ownerGroup = stories.value.find(storyGroup => storyGroup.owner)
+  return new Set((ownerGroup?.stories ?? []).map(story => story.id))
+})
 
 const postAuthorName = (post: BlogRead['posts'][number]) => `${post.author?.firstName ?? 'Unknown'} ${post.author?.lastName ?? 'User'}`.trim()
 const currentUserName = computed(() => {
@@ -310,6 +320,7 @@ const formatRelativeTime = (dateInput?: string | null) => {
 
 onMounted(() => {
   void blogsStore.fetchReactionTypes()
+  void storiesStore.fetchStories()
 })
 
 onUnmounted(() => {
@@ -344,6 +355,14 @@ const triggerPhotoPicker = () => {
   postPhotoInput.value?.click()
 }
 
+const triggerStoryPicker = () => {
+  if (!props.canInteract) {
+    return
+  }
+
+  storyPhotoInput.value?.click()
+}
+
 const triggerModalPhotoPicker = () => {
   if (!props.canInteract) {
     return
@@ -358,6 +377,41 @@ const readFilesAsDataUrls = async (files: File[]) => Promise.all(files.map(file 
   reader.onerror = () => reject(new Error('Unable to read file'))
   reader.readAsDataURL(file)
 })))
+
+const handleStorySelected = async (event: Event) => {
+  if (!props.canInteract) {
+    return
+  }
+
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+
+  if (!file) {
+    return
+  }
+
+  if (!file.type.startsWith('image/')) {
+    actionError.value = 'Veuillez choisir une image pour la story.'
+    input.value = ''
+    return
+  }
+
+  try {
+    const [imageUrl] = await readFilesAsDataUrls([file])
+    if (!imageUrl) {
+      return
+    }
+
+    await runAction(() => storiesStore.createStory(imageUrl))
+  }
+  finally {
+    input.value = ''
+  }
+}
+
+const removeStory = async (storyId: string) => {
+  await runAction(() => storiesStore.deleteStory(storyId))
+}
 
 const handlePhotoSelected = async (event: Event) => {
   const target = event.target as HTMLInputElement
@@ -745,6 +799,67 @@ const submitSharePost = async () => {
     </div>
     <v-alert v-if="!canInteract" type="info" variant="tonal" class="mt-3">Connectez-vous pour publier, commenter et réagir.</v-alert>
     <v-alert v-if="actionError" type="error" variant="tonal" class="mt-3">{{ actionError }}</v-alert>
+  </v-card>
+
+
+  <v-card class="mb-6 pa-4" rounded="xl" variant="outlined">
+    <input
+      ref="storyPhotoInput"
+      type="file"
+      accept="image/*"
+      class="d-none"
+      @change="handleStorySelected"
+    >
+
+    <div class="d-flex align-center justify-space-between ga-3 mb-3 flex-wrap">
+      <div class="text-subtitle-1 font-weight-bold">Stories</div>
+      <v-btn
+        color="primary"
+        prepend-icon="mdi-plus"
+        :loading="storiesStore.actionLoading"
+        :disabled="!canInteract"
+        @click="triggerStoryPicker"
+      >
+        Ajouter une story
+      </v-btn>
+    </div>
+
+    <div v-if="isLoadingStories" class="d-flex justify-center py-3">
+      <v-progress-circular indeterminate color="primary" size="22" />
+    </div>
+
+    <div v-else-if="stories.length" class="d-flex ga-3 stories-strip">
+      <v-sheet
+        v-for="group in stories"
+        :key="group.user.id"
+        class="story-group pa-2"
+        rounded="lg"
+        variant="tonal"
+      >
+        <div class="d-flex align-center ga-2 mb-2">
+          <UiAvatar :src="group.user.photo ?? undefined" :name="group.user.username" size="xs" />
+          <span class="text-caption font-weight-medium">{{ group.user.username }}</span>
+        </div>
+
+        <div class="d-flex ga-2">
+          <div v-for="story in group.stories" :key="story.id" class="story-item position-relative">
+            <v-img :src="story.imageUrl" width="90" height="120" cover class="rounded-lg" />
+            <v-btn
+              v-if="ownStoryIds.has(story.id)"
+              icon="mdi-delete"
+              size="x-small"
+              color="error"
+              class="story-delete-btn"
+              @click="removeStory(story.id)"
+            />
+          </div>
+        </div>
+      </v-sheet>
+    </div>
+
+    <v-alert v-else type="info" variant="tonal" density="comfortable">
+      Aucune story disponible pour le moment.
+    </v-alert>
   </v-card>
 
   <v-dialog v-model="createPostDialog" max-width="720">
@@ -1443,6 +1558,22 @@ const submitSharePost = async () => {
   position: absolute;
   top: 6px;
   right: 6px;
+}
+
+
+.stories-strip {
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.story-group {
+  min-width: 220px;
+}
+
+.story-delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
 }
 
 .comment-composer {
