@@ -12,6 +12,8 @@ const { isOwner } = usePlatformPermissions(slug)
 const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
 const loading = ref(true);
 const crmStore = useCrmStore()
+const { normalizeError } = useApiError()
+const { $errorLogger } = useNuxtApp()
 const errorMessage = ref('')
 
 const companies = computed(() => crmStore.getCompanies(slug.value))
@@ -26,8 +28,14 @@ const loadCompanies = async (force = false) => {
   try {
     await crmStore.fetchCompanies(slug.value, force)
   }
-  catch {
-    errorMessage.value = 'Impossible de charger les companies CRM pour cette application.'
+  catch (error) {
+    const normalized = normalizeError(error, {
+      domain: 'platform.crm.companies',
+      action: 'load',
+      fallbackKey: 'platform.crm.companies.errors.load',
+    })
+    $errorLogger(error, { area: 'platform.crm.companies', action: 'load', status: normalized.status })
+    errorMessage.value = normalized.message
   }
 }
 

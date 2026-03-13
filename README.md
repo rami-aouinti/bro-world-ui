@@ -37,6 +37,15 @@ At boot, the app validates session/cookie settings and refuses to start when min
 - `SESSION_COOKIE_SAME_SITE` must be one of `strict`, `lax`, or `none`.
 - `SESSION_COOKIE_SECURE` must be explicitly `true`/`false`, and must be `true` outside development (also mandatory when `sameSite=none`).
 
+
+## Mock data vs API réelle
+
+- Le flag `NUXT_PUBLIC_USE_MOCK_DATA` pilote explicitement le mode mock.
+- `true` (par défaut en dev) autorise les imports de données de démo.
+- `false` (par défaut en prod) active la garde `pnpm guard:mock-imports` qui bloque les imports mock dans `app/pages/**` et `app/composables/**`.
+- Documentation détaillée: `docs/mock-vs-api-workflow.md`.
+- Cartographie des usages courants: `docs/mock-data-usage.md`.
+
 ## Development Server
 
 Start the development server on `http://localhost:3000`:

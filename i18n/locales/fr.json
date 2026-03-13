@@ -67,7 +67,14 @@
       "loadFailed": "Impossible de charger le profil. Réessayez.",
       "updateFailed": "Impossible de mettre à jour le profil. Réessayez.",
       "photoUploadFailed": "Impossible d'uploader la photo de profil. Réessayez."
-    }
+    },
+    "network": "Erreur réseau. Vérifiez votre connexion puis réessayez.",
+    "unauthorized": "Votre session a expiré. Veuillez vous reconnecter.",
+    "forbidden": "Vous n'avez pas la permission d'effectuer cette action.",
+    "notFound": "La ressource demandée est introuvable.",
+    "server": "Une erreur serveur est survenue. Veuillez réessayer plus tard.",
+    "unknown": "Une erreur inattendue est survenue.",
+    "actionUnavailable": "Action actuellement indisponible."
   },
   "home": {
     "hero": {
@@ -523,6 +530,11 @@
           "subtitle": "Backlog priorisé avec owners, ETA et impacts",
           "cta": "Nouveau ticket"
         }
+      },
+      "companies": {
+        "errors": {
+          "load": "Impossible de charger les entreprises CRM pour cette application."
+        }
       }
     },
     "shop": {
@@ -925,6 +937,14 @@
         "deleteDialog": {
           "title": "Supprimer l'offre",
           "confirmPrefix": "Confirmez la suppression de l'offre"
+        },
+        "errors": {
+          "createJob": "La création de l'offre a échoué.",
+          "updateJob": "La mise à jour de l'offre a échoué.",
+          "deleteJob": "La suppression de l'offre a échoué.",
+          "submitApplication": "La candidature a échoué. Vérifiez les informations et réessayez.",
+          "updateResume": "La mise à jour du CV a échoué.",
+          "deleteResume": "La suppression du CV a échoué."
         }
       },
       "admin": {
@@ -1479,10 +1499,21 @@
     "title": "Paramètres de la plateforme",
     "description": "Configurez vos préférences personnelles et le comportement de la plateforme.",
     "notice": "D'autres options de paramétrage seront bientôt disponibles.",
-    "password": {
-      "currentPassword": "Mot de passe actuel",
-      "newPassword": "Nouveau mot de passe",
-      "confirmPassword": "Confirmer le nouveau mot de passe"
+    "notifications": {
+      "errors": {
+        "load": "Impossible de charger les préférences de notification.",
+        "update": "Impossible de mettre à jour les préférences de notification."
+      }
+    },
+    "changePassword": {
+      "errors": {
+        "update": "Impossible de mettre à jour le mot de passe."
+      }
+    },
+    "deleteAccount": {
+      "errors": {
+        "delete": "Impossible de supprimer le compte."
+      }
     }
   },
   "register": {

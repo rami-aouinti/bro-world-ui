@@ -75,7 +75,10 @@ const onUploadPhoto = async (event: Event) => {
   }
 }
 
-const onOpenInfoDialog = () => {
+const infoDialogTrigger = ref<HTMLElement | null>(null)
+
+const onOpenInfoDialog = (event?: MouseEvent) => {
+  infoDialogTrigger.value = event?.currentTarget instanceof HTMLElement ? event.currentTarget : null
   infoForm.title = form.title
   infoForm.information = form.information
   infoDialog.value = true
@@ -86,7 +89,14 @@ const onSaveInfoDialog = async () => {
   form.information = infoForm.information
   await onSubmit()
   infoDialog.value = false
+  nextTick(() => infoDialogTrigger.value?.focus())
 }
+
+watch(infoDialog, (isOpen, wasOpen) => {
+  if (!isOpen && wasOpen) {
+    nextTick(() => infoDialogTrigger.value?.focus())
+  }
+})
 
 onMounted(loadProfile)
 </script>
@@ -105,6 +115,7 @@ onMounted(loadProfile)
                 icon="mdi-camera"
                 variant="text"
                 color="primary"
+                aria-label="Upload profile photo"
                 @click="photoInput?.click()"
             />
             <input ref="photoInput" type="file" class="d-none" accept="image/*" @change="onUploadPhoto" />
@@ -118,7 +129,7 @@ onMounted(loadProfile)
       <v-col cols="6">
         <div class="d-flex align-center mb-1">
           <h3 class="text-h6 font-weight-bold mb-0">Profile information</h3>
-          <v-btn icon variant="text" size="small" class="mx-2" @click="onOpenInfoDialog">
+          <v-btn icon variant="text" size="small" class="mx-2" aria-label="Edit profile information" @click="onOpenInfoDialog($event)">
             <v-icon>mdi-pencil</v-icon>
           </v-btn>
         </div>
@@ -150,7 +161,7 @@ onMounted(loadProfile)
       </div>
     </v-form>
 
-    <v-dialog v-model="infoDialog" max-width="560">
+    <v-dialog v-model="infoDialog" max-width="560" retain-focus>
       <v-card>
         <v-card-title>Edit profile information</v-card-title>
         <v-card-text>

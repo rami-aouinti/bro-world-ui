@@ -38,7 +38,7 @@ defineEmits<{
 </script>
 
 <template>
-  <v-dialog v-model="modelValue" max-width="720">
+  <v-dialog retain-focus v-model="modelValue" max-width="720">
     <v-card rounded="xl">
       <v-card-title class="text-h5 py-4 px-6">{{ t('platform.recruit.applyDialog.title') }}</v-card-title>
       <v-card-text class="px-6">
