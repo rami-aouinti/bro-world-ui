@@ -51,22 +51,25 @@ interface FaqPagePayload {
   emptyState: FaqEmptyState
 }
 
+const publicPagesStore = usePublicPagesStore()
+const { locale, t } = useI18n()
+
 // Mock API response (GET /api/public/pages/faq)
 const faqPagePayload = ref<FaqPagePayload>({
   hero: {
     badge: 'FAQ',
-    title: 'Questions fréquentes / Frequently asked questions',
-    subtitle: 'All information on this page is simulated via local JSON.',
-    primaryCta: 'Contacter le support / Contact support',
-    secondaryCta: 'Voir la documentation',
+    title: t('faq.hero.title'),
+    subtitle: t('faq.hero.subtitle'),
+    primaryCta: t('faq.hero.primaryCta'),
+    secondaryCta: t('faq.hero.secondaryCta'),
   },
   search: {
-    label: 'Rechercher une question / Search a question',
-    placeholder: 'Ex: billing, security, timelines…',
+    label: t('faq.search.label'),
+    placeholder: t('faq.search.placeholder'),
   },
   categories: [
     { key: 'all', label: 'All', color: 'primary', description: 'All categories' },
-    { key: 'billing', label: 'Facturation', color: 'indigo', description: 'Paiements, abonnements, factures' },
+    { key: 'billing', label: t('faq.categories.1.label'), color: 'indigo', description: t('faq.categories.1.description') },
     { key: 'security', label: 'Security', color: 'teal', description: 'Data and access protection' },
     { key: 'product', label: 'Product', color: 'deep-orange', description: 'Features and roadmap' },
   ],
@@ -74,7 +77,7 @@ const faqPagePayload = ref<FaqPagePayload>({
     {
       category: 'billing',
       question: 'How do I retrieve an invoice?',
-      answer: 'Les factures sont disponibles depuis votre espace admin.',
+      answer: t('faq.items.0.answer'),
       detailsParagraphs: ['Each invoice can be exported as PDF.', 'A confirmation email is sent for each payment.'],
       bullets: ['Format PDF', 'Complete history', 'Instant download'],
     },
@@ -83,13 +86,13 @@ const faqPagePayload = ref<FaqPagePayload>({
       question: 'How does access management work?',
       answer: 'You can create roles with granular permissions.',
       detailsParagraphs: ['The backend must return available roles and permissions.'],
-      bullets: ['Custom roles', 'Audit logs', 'MFA en option'],
+      bullets: [t('faq.items.2.bullets.0'), t('faq.items.2.bullets.1'), t('faq.items.2.bullets.2')],
     },
   ],
   emptyState: {
-    title: 'Aucun résultat / No result',
-    description: 'No FAQ matches your search.',
-    suggestion: 'Try another keyword or change category.',
+    title: t('faq.emptyState.title'),
+    description: t('faq.emptyState.description'),
+    suggestion: t('faq.emptyState.suggestion'),
   },
 })
 
@@ -116,8 +119,6 @@ const filteredFaqItems = computed(() => faqPagePayload.value.items.filter((item)
 
 const categoryLabel = (key: string) => faqPagePayload.value.categories.find((category) => category.key === key)?.label ?? key
 
-const publicPagesStore = usePublicPagesStore()
-const { locale } = useI18n()
 const isLoading = ref(true)
 
 const loadPageContent = async () => {

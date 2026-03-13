@@ -53,69 +53,70 @@ interface HomePagePayload {
   cta: HomeCta
 }
 
+const publicPagesStore = usePublicPagesStore()
+const { locale, t } = useI18n()
+
 // Mock API response (GET /api/private/pages/home)
 const homePagePayload = ref<HomePagePayload>({
-  featuresTitle: 'Fonctionnalités principales / Main features',
-  metricsTitle: 'Indicateurs de performance / Performance indicators',
-  stepsTitle: 'Comment ça marche / How it works',
-  stepLabelPrefix: 'Step',
+  featuresTitle: t('home.featuresTitle'),
+  metricsTitle: t('home.metricsTitle'),
+  stepsTitle: t('home.stepsTitle'),
+  stepLabelPrefix: t('home.stepLabel', { index: '{index}' }).replace('{index}', '').trim() || 'Step',
   hero: {
-    badge: 'Home',
-    title: 'Pilotez votre activité depuis un espace unique / Manage your business from one place',
-    subtitle: 'This root page is powered by fake JSON to clarify the backend contract.',
-    primaryCta: 'Create a project',
-    secondaryCta: 'Voir les tutoriels / View tutorials',
-    benefits: ['Real-time tracking', 'Advanced permissions', 'Exportable reporting'],
+    badge: t('home.hero.badge'),
+    title: t('home.hero.title'),
+    subtitle: t('home.hero.subtitle'),
+    primaryCta: t('home.hero.primaryCta'),
+    secondaryCta: t('home.hero.secondaryCta'),
+    benefits: [t('home.hero.bullets.0'), t('home.hero.bullets.1'), t('home.hero.bullets.2')],
   },
   featureCards: [
     {
       icon: 'mdi-view-dashboard-outline',
-      title: 'Unified dashboard',
-      description: 'Centralized view of your KPIs, tasks, and priority alerts.',
+      title: t('home.features.0.title'),
+      description: t('home.features.0.description'),
     },
     {
       icon: 'mdi-account-group-outline',
-      title: 'Team collaboration',
-      description: 'Partage d’informations et historique d’actions sur chaque module. / Information sharing and action history on each module.',
+      title: t('home.features.1.title'),
+      description: t('home.features.1.description'),
     },
     {
       icon: 'mdi-shield-check-outline',
-      title: 'Enhanced security',
-      description: 'Role management and sensitive-access logging.',
+      title: t('home.features.2.title'),
+      description: t('home.features.2.description'),
     },
   ],
   metrics: [
-    { value: '250+', label: 'Utilisateurs actifs / semaine / Active users / week' },
-    { value: '99.9%', label: 'Availability service' },
-    { value: '4.8/5', label: 'Note moyenne client / Average customer rating' },
+    { value: t('home.metrics.0.value'), label: t('home.metrics.0.label') },
+    { value: t('home.metrics.1.value'), label: t('home.metrics.1.label') },
+    { value: t('home.metrics.2.value'), label: t('home.metrics.2.label') },
   ],
   steps: [
     {
       icon: 'mdi-account-plus-outline',
-      title: 'Créer votre espace / Create your space',
-      description: 'Initialize your organization and invite collaborators.',
+      title: t('home.steps.0.title'),
+      description: t('home.steps.0.description'),
     },
     {
       icon: 'mdi-tune-variant',
-      title: 'Configurer vos modules / Configure your modules',
-      description: 'Enable the options needed for your workflow.',
+      title: t('home.steps.1.title'),
+      description: t('home.steps.1.description'),
     },
     {
       icon: 'mdi-chart-areaspline',
-      title: 'Suivre et optimiser / Track and optimize',
-      description: 'Analyze results and continuously adjust your actions.',
+      title: t('home.steps.2.title'),
+      description: t('home.steps.2.description'),
     },
   ],
   cta: {
-    title: 'Prêt à aller plus loin ? / Ready to go further?',
-    description: 'This final block must also be returned by the backend in the response.',
-    primaryAction: 'Request a demo',
-    secondaryAction: 'Contacter un expert / Contact an expert',
+    title: t('home.cta.title'),
+    description: t('home.cta.description'),
+    primaryAction: t('home.cta.primaryAction'),
+    secondaryAction: t('home.cta.secondaryAction'),
   },
 })
 
-const publicPagesStore = usePublicPagesStore()
-const { locale } = useI18n()
 const isLoading = ref(true)
 
 const loadPageContent = async () => {

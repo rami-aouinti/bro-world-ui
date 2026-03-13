@@ -41,17 +41,18 @@ const mockDashboardStats: AdminStatisticsResponse = {
   posts: { total: 418, last7Days: 34, thisMonth: 97, thisYear: 351 },
 }
 
-const recentActivities = [
-  { title: 'Nouveau plugin “SMS Campaign” publié / New plugin “SMS Campaign” published', actor: 'Product Team', time: '12 min ago', color: 'success' },
-  { title: 'Mise à jour des rôles administrateurs / Administrator roles updated', actor: 'Ops Security', time: '35 min ago', color: 'info' },
-  { title: 'Pic de trafic détecté sur le portail School / Traffic spike detected on the School portal', actor: 'Monitoring', time: '1h ago', color: 'warning' },
-  { title: 'Sauvegarde hebdomadaire terminée / Weekly backup completed', actor: 'Infra', time: '2h ago', color: 'primary' },
-]
+const recentActivities = computed(() => ([
+  { title: t('admin.dashboard.recent.newPlugin'), actor: 'Product Team', time: '12 min ago', color: 'success' },
+  { title: t('admin.dashboard.recent.rolesUpdated'), actor: 'Ops Security', time: '35 min ago', color: 'info' },
+  { title: t('admin.dashboard.recent.trafficSpike'), actor: 'Monitoring', time: '1h ago', color: 'warning' },
+  { title: t('admin.dashboard.recent.backupDone'), actor: 'Infra', time: '2h ago', color: 'primary' },
+]))
+
 
 const operationalHighlights = [
   { label: 'Availability API', value: '99.95%', trend: '+0.12%' },
   { label: 'Average response time', value: '182 ms', trend: '-14 ms' },
-  { label: 'Tickets critiques ouverts / Open critical tickets', value: '3', trend: '-2' },
+  { label: t('admin.dashboard.highlights.openCriticalTickets'), value: '3', trend: '-2' },
 ]
 
 const statistics = computed(() => {
@@ -182,11 +183,11 @@ onMounted(async () => {
         <UiCard rounded="lg">
           <div class="d-flex flex-wrap align-center justify-space-between ga-3 mb-4">
             <div>
-              <div class="text-h6">Vue opérationnelle / Operational view</div>
-              <p class="text-body-2 text-medium-emphasis mb-0">Indicateurs clés de l'activité admin en temps réel. / Key admin activity indicators in real time.</p>
+              <div class="text-h6">{{ t('admin.dashboard.operational.title') }}</div>
+              <p class="text-body-2 text-medium-emphasis mb-0">{{ t('admin.dashboard.operational.subtitle') }}</p>
             </div>
             <v-btn color="primary" variant="flat" prepend-icon="mdi-refresh" :loading="loading" @click="fetchStatistics">
-              Actualiser les données / Refresh data
+              {{ t('admin.dashboard.refresh') }}
             </v-btn>
           </div>
 
@@ -206,7 +207,7 @@ onMounted(async () => {
 
       <v-col cols="12" lg="4">
         <UiCard rounded="lg" class="h-100">
-          <div class="text-h6 mb-3">Activités récentes / Recent activity</div>
+          <div class="text-h6 mb-3">{{ t('admin.dashboard.recent.title') }}</div>
           <v-timeline density="compact" side="end" truncate-line="both">
             <v-timeline-item
               v-for="activity in recentActivities"

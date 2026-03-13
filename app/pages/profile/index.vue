@@ -11,6 +11,7 @@ definePageMeta({
 })
 
 const currentUser = useCurrentUserStore()
+const { t } = useI18n()
 const friendsStore = useFriendsStore()
 
 const profile = ref<any>(null)
@@ -25,8 +26,8 @@ const profileStats = computed(() => {
   const friendsCount = friendsStore.friends.length
 
   return [
-    { label: 'Amis', value: friendsCount.toString(), icon: 'mdi-account-group-outline', color: 'primary' },
-    { label: 'Connexions actives', value: (profile.value?.sessions?.length || 0).toString(), icon: 'mdi-laptop', color: 'success' },
+    { label: t('profilePage.stats.friends'), value: friendsCount.toString(), icon: 'mdi-account-group-outline', color: 'primary' },
+    { label: t('profilePage.stats.activeConnections'), value: (profile.value?.sessions?.length || 0).toString(), icon: 'mdi-laptop', color: 'success' },
     { label: 'Linked accounts', value: (profile.value?.socials?.length || 0).toString(), icon: 'mdi-link-variant', color: 'info' },
     { label: 'Community level', value: friendsCount > 15 ? 'Expert' : friendsCount > 7 ? 'Confirmed' : 'New', icon: 'mdi-star-circle-outline', color: 'warning' },
   ]
@@ -34,7 +35,7 @@ const profileStats = computed(() => {
 
 const fakeHighlights = [
   {
-    title: 'Bio enrichie',
+    title: t('profilePage.highlights.enrichedBio'),
     value: '92%',
     helper: 'Profile completion',
     icon: 'mdi-account-check-outline',
@@ -65,14 +66,14 @@ const fakeActivityTimeline = [
     color: 'primary',
   },
   {
-    date: 'Hier • 18:20',
-    title: 'Connexion depuis un nouvel appareil',
+    date: t('profilePage.timeline.yesterday'),
+    title: t('profilePage.timeline.newDevice'),
     detail: 'Secure session with successful verification.',
     icon: 'mdi-shield-check-outline',
     color: 'success',
   },
   {
-    date: 'Lundi • 12:10',
+    date: t('profilePage.timeline.monday'),
     title: '2 new connections approved',
     detail: 'Your pending requests were accepted.',
     icon: 'mdi-account-multiple-check-outline',
@@ -112,7 +113,7 @@ const loadData = async () => {
   }
   catch (error) {
     console.error(error)
-    loadError.value = 'Impossible de charger les relations sociales.'
+    loadError.value = t('profilePage.errors.loadSocial')
   }
   finally {
     isLoading.value = false
@@ -323,7 +324,7 @@ onMounted(async () => {
 
         <v-col cols="12" md="6">
           <v-card class="pa-5" elevation="2" rounded="xl">
-            <h6 class="text-h6 font-weight-bold mb-4">Activités récentes / Recent activity (demo data)</h6>
+            <h6 class="text-h6 font-weight-bold mb-4">{{ t('profilePage.timeline.recentActivity') }}</h6>
             <v-timeline density="compact" side="end" class="pa-0">
               <v-timeline-item
                 v-for="event in fakeActivityTimeline"
