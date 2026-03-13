@@ -3,7 +3,7 @@ import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import ProfileSidebarCard from '~/components/profile/ProfileSidebarCard.vue'
 import { useCurrentUserStore } from '~/stores/currentUser'
 import { useFriendsStore } from '~/stores/friends'
-import type { UserApplication, UserFriendRead } from '~/types/api/user'
+import type { UserApplication, UserFriendRead, UserMeRead } from '~/types/api/user'
 
 definePageMeta({
   public: false,
@@ -14,7 +14,7 @@ const currentUser = useCurrentUserStore()
 const { t } = useI18n()
 const friendsStore = useFriendsStore()
 
-const profile = ref<any>(null)
+const profile = ref<UserMeRead | null>(null)
 const latestApplications = ref<UserApplication[]>([])
 const loadError = ref('')
 const actionError = ref('')
