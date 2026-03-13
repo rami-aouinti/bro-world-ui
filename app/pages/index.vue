@@ -3,6 +3,7 @@ import UiCard from '~/components/ui/UiCard.vue'
 import HomeSecondarySections from '~/components/marketing/home/HomeSecondarySections.server.vue'
 import type { HomePagePayload } from '~/types/api/page'
 import { usePublicPagesStore } from '~/stores/publicPages'
+import {ref} from "vue";
 
 definePageMeta({
   public: true,
@@ -12,12 +13,22 @@ definePageMeta({
 
 const publicPagesStore = usePublicPagesStore()
 const { locale } = useI18n()
+const homePagePayload = ref<HomePagePayload>({})
 
-const { data: homePagePayload, pending: isLoading } = await useAsyncData<HomePagePayload>(
-  () => `public-home-${locale.value}`,
-  () => publicPagesStore.loadHome(locale.value),
-  { watch: [locale] },
-)
+const isLoading = ref(true)
+
+const loadPageHome = async () => {
+  isLoading.value = true
+  try {
+    homePagePayload.value = await publicPagesStore.loadHome(locale.value)
+  }
+  finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(loadPageHome)
+watch(locale, loadPageHome)
 </script>
 
 <template>
@@ -45,15 +56,15 @@ const { data: homePagePayload, pending: isLoading } = await useAsyncData<HomePag
       <v-fade-transition appear>
         <UiCard class="home-hero mb-6" kind="hero">
           <v-chip class="home-hero__badge mb-4" color="primary" variant="tonal">
-            {{ homePagePayload.hero.badge }}
+            {{ homePagePayload?.hero?.badge }}
           </v-chip>
 
-          <h1 class="text-h4 text-md-h3 font-weight-bold mb-2">{{ homePagePayload.hero.title }}</h1>
-          <p class="text-body-1 text-medium-emphasis mb-5">{{ homePagePayload.hero.subtitle }}</p>
+          <h1 class="text-h4 text-md-h3 font-weight-bold mb-2">{{ homePagePayload?.hero?.title }}</h1>
+          <p class="text-body-1 text-medium-emphasis mb-5">{{ homePagePayload?.hero?.subtitle }}</p>
 
           <div class="home-hero__actions mb-5">
-            <v-btn class="home-hero__btn" color="primary" size="large">{{ homePagePayload.hero.primaryCta }}</v-btn>
-            <v-btn class="home-hero__btn" variant="outlined" size="large">{{ homePagePayload.hero.secondaryCta }}</v-btn>
+            <v-btn class="home-hero__btn" color="primary" size="large">{{ homePagePayload?.hero?.primaryCta }}</v-btn>
+            <v-btn class="home-hero__btn" variant="outlined" size="large">{{ homePagePayload?.hero?.secondaryCta }}</v-btn>
           </div>
 
           <ul class="home-hero__benefits text-body-2 ps-5 mb-0">
