@@ -1162,6 +1162,11 @@
       "signInHint": "Sign in to view your private conversations.",
       "noConversation": "No conversation available at the moment.",
       "unreadMessages": "unread message(s)"
+    },
+    "errors": {
+      "calendarLoad": "تعذر تحميل تقويم هذه المنصة.",
+      "blogLoad": "تعذر تحميل مدونة هذه المنصة.",
+      "quizLoad": "تعذر تحميل اختبار هذه المنصة."
     }
   },
   "about": {
@@ -1551,7 +1556,12 @@
   },
   "notificationsPage": {
     "errors": {
-      "loadCalendarEvents": "تعذر تحميل أحداث التقويم."
+      "loadCalendarEvents": "تعذر تحميل الإشعارات."
+    }
+  },
+  "notifications": {
+    "errors": {
+      "load": "تعذر تحميل الإشعارات."
     }
   }
 }

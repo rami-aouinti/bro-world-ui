@@ -6,6 +6,7 @@ import type { CalendarEventRead } from '~/types/api/calendar'
 definePageMeta({ public: true, requiresAuth: false })
 
 const { slug, navItems, isAuthenticated } = usePlatformPluginPage()
+const { t } = useI18n()
 const calendarApi = useCalendarEventsApi()
 
 const { data: events, pending, error, execute: loadCalendar } = useAsyncData(
@@ -28,7 +29,7 @@ onMounted(() => {
 
 <template>
   <PlatformPluginPageShell title="Calendar" :slug="slug" :nav-items="navItems">
-    <v-alert v-if="error" type="error" variant="tonal" class="mb-4">Impossible de charger le calendrier de cette platform.</v-alert>
+    <v-alert v-if="error" type="error" variant="tonal" class="mb-4">{{ t('platform.errors.calendarLoad') }}</v-alert>
     <v-skeleton-loader v-else-if="pending" type="list-item-two-line@5" class="mb-4" />
 
     <template v-else>

@@ -6,6 +6,7 @@ import { usePlatformPluginPage } from '~/composables/platform/usePlatformPluginP
 definePageMeta({ public: true, requiresAuth: false })
 
 const { slug, navItems, isAuthenticated } = usePlatformPluginPage()
+const { t } = useI18n()
 const blogsApi = useBlogsApi()
 
 const { data: blog, pending, error, execute: loadBlog } = useAsyncData(
@@ -25,7 +26,7 @@ onMounted(() => {
 
 <template>
   <PlatformPluginPageShell title="Blog" :slug="slug" :nav-items="navItems">
-    <v-alert v-if="error" type="error" variant="tonal" class="mb-4">Impossible de charger le blog de cette platform.</v-alert>
+    <v-alert v-if="error" type="error" variant="tonal" class="mb-4">{{ t('platform.errors.blogLoad') }}</v-alert>
     <v-skeleton-loader v-else-if="pending" type="image, article@2" class="mb-4" />
     <BlogFeed v-else-if="blog" :blog="blog" :can-interact="isAuthenticated" />
   </PlatformPluginPageShell>

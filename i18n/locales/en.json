@@ -1162,6 +1162,11 @@
       "signInHint": "Sign in to view your private conversations.",
       "noConversation": "No conversation available at the moment.",
       "unreadMessages": "unread message(s)"
+    },
+    "errors": {
+      "calendarLoad": "Unable to load this platform calendar.",
+      "blogLoad": "Unable to load this platform blog.",
+      "quizLoad": "Unable to load this platform quiz."
     }
   },
   "about": {
@@ -1551,7 +1556,12 @@
   },
   "notificationsPage": {
     "errors": {
-      "loadCalendarEvents": "Unable to load calendar events."
+      "loadCalendarEvents": "Unable to load notifications."
+    }
+  },
+  "notifications": {
+    "errors": {
+      "load": "Unable to load notifications."
     }
   }
 }

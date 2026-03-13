@@ -1162,6 +1162,11 @@
       "signInHint": "Sign in to view your private conversations.",
       "noConversation": "No conversation available at the moment.",
       "unreadMessages": "unread message(s)"
+    },
+    "errors": {
+      "calendarLoad": "Não foi possível carregar o calendário desta plataforma.",
+      "blogLoad": "Não foi possível carregar o blog desta plataforma.",
+      "quizLoad": "Não foi possível carregar o quiz desta plataforma."
     }
   },
   "about": {
@@ -1551,7 +1556,12 @@
   },
   "notificationsPage": {
     "errors": {
-      "loadCalendarEvents": "Não foi possível carregar os eventos do calendário."
+      "loadCalendarEvents": "Não foi possível carregar as notificações."
+    }
+  },
+  "notifications": {
+    "errors": {
+      "load": "Não foi possível carregar as notificações."
     }
   }
 }

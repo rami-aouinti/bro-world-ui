@@ -1162,6 +1162,11 @@
       "signInHint": "Connectez-vous pour consulter vos conversations privées.",
       "noConversation": "Aucune conversation disponible pour le moment.",
       "unreadMessages": "message(s) non lu(s)"
+    },
+    "errors": {
+      "calendarLoad": "Impossible de charger le calendrier de cette plateforme.",
+      "blogLoad": "Impossible de charger le blog de cette plateforme.",
+      "quizLoad": "Impossible de charger le quiz de cette plateforme."
     }
   },
   "about": {
@@ -1551,7 +1556,12 @@
   },
   "notificationsPage": {
     "errors": {
-      "loadCalendarEvents": "Impossible de charger les événements du calendrier."
+      "loadCalendarEvents": "Impossible de charger les notifications."
+    }
+  },
+  "notifications": {
+    "errors": {
+      "load": "Impossible de charger les notifications."
     }
   }
 }

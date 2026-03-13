@@ -7,6 +7,7 @@ import type { CreateQuizQuestionPayload } from '~/types/api/quiz'
 definePageMeta({ public: true, requiresAuth: false })
 
 const { slug, navItems, isOwner } = usePlatformPluginPage()
+const { t } = useI18n()
 const quizApi = useQuizApi()
 
 const { data: quiz, pending, error, execute: loadQuiz } = useAsyncData(
@@ -116,7 +117,7 @@ onMounted(() => {
 
 <template>
   <PlatformPluginPageShell title="Quiz" :slug="slug" :nav-items="navItems">
-    <v-alert v-if="error" type="error" variant="tonal" class="mb-4">Impossible de charger le quiz de cette platform.</v-alert>
+    <v-alert v-if="error" type="error" variant="tonal" class="mb-4">{{ t('platform.errors.quizLoad') }}</v-alert>
     <template v-else>
       <v-card rounded="xl" variant="tonal" class="mb-4">
         <v-card-text class="d-flex flex-wrap align-center ga-3 justify-space-between">

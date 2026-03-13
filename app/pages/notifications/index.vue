@@ -34,7 +34,7 @@ const loadNotifications = async () => {
   }
   catch (error) {
     console.error(error)
-    errorMessage.value = t('notificationsPage.errors.loadCalendarEvents')
+    errorMessage.value = t('notifications.errors.load')
   }
   finally {
     isLoading.value = false
