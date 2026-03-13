@@ -15,10 +15,20 @@ export default defineNitroPlugin((nitroApp) => {
     const routePath = event?.path || 'unknown'
     const userAgent = event?.node?.req?.headers['user-agent']
     const userIdHash = userAgent ? `ua_${stableHash(String(userAgent))}` : null
+    const statusCode = typeof (error as { statusCode?: unknown })?.statusCode === 'number'
+      ? (error as { statusCode: number }).statusCode
+      : null
+    const isUnauthorized = statusCode === 401 || error?.message === 'Unauthorized'
+    const isBackendApiRoute = routePath.startsWith('/api/backend/')
+
+    if (isUnauthorized && isBackendApiRoute) {
+      return
+    }
 
     console.error('[tracker] error.server.global', {
       routePath,
       userIdHash,
+      statusCode,
       message: error?.message,
       stack: error?.stack,
     })
