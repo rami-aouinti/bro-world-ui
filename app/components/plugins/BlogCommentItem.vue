@@ -244,12 +244,16 @@ const formatRelativeTime = (dateInput?: string | null) => {
           </div>
           <div class="text-body-2 mt-1">{{ comment.content }}</div>
           <div v-if="comment.filePath" class="mt-2">
-            <img
+            <UiOptimizedImage
               v-if="isImageAttachment(comment.filePath)"
               :src="comment.filePath"
               alt="Comment attachment"
+              :width="280"
+              :height="180"
               class="comment-attachment-image"
-            >
+              loading="lazy"
+              sizes="(max-width: 600px) 100vw, 280px"
+            />
             <video
               v-else-if="isVideoAttachment(comment.filePath)"
               :src="comment.filePath"
@@ -497,6 +501,17 @@ const formatRelativeTime = (dateInput?: string | null) => {
   backdrop-filter: blur(8px);
   background: rgba(22, 22, 24, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.comment-attachment-image {
+  display: block;
+  width: 100%;
+  max-width: min(100%, 280px);
+  height: auto;
+  aspect-ratio: 14 / 9;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.15);
 }
 
 .comment-reply-composer {

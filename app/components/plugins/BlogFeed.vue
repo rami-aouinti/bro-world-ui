@@ -1239,12 +1239,16 @@ const submitSharePost = async () => {
               />
 
               <div v-if="commentAttachmentPath[post.id]" class="mb-2">
-                <img
+                <UiOptimizedImage
                   v-if="isImageFile(commentAttachmentPath[post.id])"
-                  :src="commentAttachmentPath[post.id] ?? undefined"
+                  :src="commentAttachmentPath[post.id] ?? ''"
                   alt="Attachment preview"
+                  :width="280"
+                  :height="180"
                   class="comment-attachment-preview"
-                >
+                  loading="lazy"
+                  sizes="(max-width: 600px) 100vw, 280px"
+                />
                 <a v-else :href="commentAttachmentPath[post.id] ?? undefined" target="_blank" rel="noopener" class="text-primary text-decoration-underline">View attachment</a>
               </div>
               <div class="comment-composer-actions">
@@ -1615,7 +1619,11 @@ const submitSharePost = async () => {
 
 .comment-attachment-preview {
   display: block;
+  width: 100%;
   max-width: min(100%, 280px);
+  height: auto;
+  aspect-ratio: 14 / 9;
+  object-fit: cover;
   border-radius: 10px;
   border: 1px solid rgba(var(--v-theme-on-surface), 0.15);
 }
