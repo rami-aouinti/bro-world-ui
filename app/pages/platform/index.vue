@@ -79,15 +79,15 @@ const fakeInsightsByPlatform: Record<
     growth: "+18%",
     users: "124 clients",
     activity: "42 deals en cours",
-    spotlight: "Pipeline B2B boosté par l'automatisation des relances.",
+    spotlight: "B2B pipeline boosted by follow-up automation.",
     tags: ["Sales", "Pipeline", "Automation"],
   },
   recruit: {
     health: "95%",
     growth: "+26%",
     users: "89 candidats actifs",
-    activity: "17 entretiens planifiés",
-    spotlight: "Matching IA optimisé sur les profils techniques senior.",
+    activity: "17 planned interviews",
+    spotlight: "AI matching optimized for senior technical profiles.",
     tags: ["Hiring", "Talent", "Interviews"],
   },
   school: {
@@ -95,7 +95,7 @@ const fakeInsightsByPlatform: Record<
     growth: "+11%",
     users: "312 apprenants",
     activity: "28 classes live cette semaine",
-    spotlight: "Nouveaux parcours hybrides avec suivi pédagogique continu.",
+    spotlight: "New hybrid pathways with continuous pedagogical tracking.",
     tags: ["Learning", "Classes", "Mentoring"],
   },
   shop: {
@@ -103,7 +103,7 @@ const fakeInsightsByPlatform: Record<
     growth: "+22%",
     users: "1 240 clients",
     activity: "68 commandes aujourd'hui",
-    spotlight: "Panier moyen en hausse grâce aux bundles saisonniers.",
+    spotlight: "Average cart value up thanks to seasonal bundles.",
     tags: ["E-commerce", "Orders", "Conversion"],
   },
 };
@@ -116,7 +116,7 @@ const summaryHighlights = computed(() => {
   return [
     { label: "Applications visibles", value: String(totalApps), icon: "mdi-view-grid-outline" },
     { label: "Applications actives", value: String(activeApps), icon: "mdi-rocket-launch-outline" },
-    { label: "Applications privées", value: String(privateApps), icon: "mdi-lock-outline" },
+    { label: "Private applications", value: String(privateApps), icon: "mdi-lock-outline" },
   ];
 });
 
@@ -288,8 +288,8 @@ const getCardInsights = (
     health: "94%",
     growth: "+12%",
     users: "60 utilisateurs",
-    activity: "24 actions récentes",
-    spotlight: "Performance stable avec des opportunités de montée en charge.",
+    activity: "24 recent actions",
+    spotlight: "Stable performance with scaling opportunities.",
     tags: ["Operations", "Insights", "Monitoring"],
   };
 };

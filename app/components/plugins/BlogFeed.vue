@@ -334,7 +334,7 @@ const runAction = async (action: () => Promise<unknown>) => {
   }
   catch (error) {
     console.error(error)
-    actionError.value = 'Une action a échoué. Vérifie les données envoyées.'
+    actionError.value = 'An action failed. Check the submitted data.'
   }
 }
 
@@ -797,7 +797,7 @@ const submitSharePost = async () => {
         </v-list>
       </v-menu>
     </div>
-    <v-alert v-if="!canInteract" type="info" variant="tonal" class="mt-3">Connectez-vous pour publier, commenter et réagir.</v-alert>
+    <v-alert v-if="!canInteract" type="info" variant="tonal" class="mt-3">Sign in to publish, comment, and react.</v-alert>
     <v-alert v-if="actionError" type="error" variant="tonal" class="mt-3">{{ actionError }}</v-alert>
   </v-card>
 
@@ -858,7 +858,7 @@ const submitSharePost = async () => {
     </div>
 
     <v-alert v-else type="info" variant="tonal" density="comfortable">
-      Aucune story disponible pour le moment.
+      No story available at the moment.
     </v-alert>
   </v-card>
 
@@ -954,25 +954,25 @@ const submitSharePost = async () => {
 
   <v-dialog v-model="showVideoChoiceDialog" max-width="520">
     <v-card rounded="xl">
-      <v-card-title class="d-flex align-center justify-space-between">Vidéo
+      <v-card-title class="d-flex align-center justify-space-between">Video
         <v-btn icon="mdi-close" variant="text" @click="cancelVideoFlow" />
       </v-card-title>
       <v-card-text class="d-flex flex-column ga-3">
-        <v-btn variant="outlined" prepend-icon="mdi-video-plus" @click="triggerVideoPicker">Ajouter une vidéo</v-btn>
-        <v-btn variant="outlined" prepend-icon="mdi-camera-outline" @click="openVideoRecorder">Ouvrir la caméra et enregistrer</v-btn>
+        <v-btn variant="outlined" prepend-icon="mdi-video-plus" @click="triggerVideoPicker">Add a video</v-btn>
+        <v-btn variant="outlined" prepend-icon="mdi-camera-outline" @click="openVideoRecorder">Open camera and record</v-btn>
       </v-card-text>
     </v-card>
   </v-dialog>
 
   <v-dialog v-model="showVideoRecorderDialog" max-width="760" persistent>
     <v-card rounded="xl">
-      <v-card-title class="d-flex align-center justify-space-between">Enregistrement vidéo
+      <v-card-title class="d-flex align-center justify-space-between">Video recording
         <v-btn icon="mdi-close" variant="text" @click="cancelVideoFlow" />
       </v-card-title>
       <v-card-text>
         <video ref="recorderPreview" autoplay muted playsinline class="w-100 rounded-lg mb-3" />
         <div class="d-flex justify-end ga-2">
-          <v-btn v-if="!recordingVideo" color="error" @click="startVideoRecording">Démarrer</v-btn>
+          <v-btn v-if="!recordingVideo" color="error" @click="startVideoRecording">Start</v-btn>
           <v-btn v-else color="primary" @click="stopVideoRecording">Terminer</v-btn>
         </div>
       </v-card-text>
@@ -981,15 +981,15 @@ const submitSharePost = async () => {
 
   <v-dialog v-model="showVideoReviewDialog" max-width="760">
     <v-card rounded="xl">
-      <v-card-title class="d-flex align-center justify-space-between">Mettre la vidéo en ligne ?
+      <v-card-title class="d-flex align-center justify-space-between">Upload video now?
         <v-btn icon="mdi-close" variant="text" @click="cancelVideoFlow" />
       </v-card-title>
       <v-card-text>
         <video v-if="capturedVideo" :src="capturedVideo" controls class="w-100 rounded-lg" />
       </v-card-text>
       <v-card-actions class="justify-end">
-        <v-btn variant="text" @click="cancelVideoFlow">Annuler</v-btn>
-        <v-btn color="primary" @click="confirmVideoUpload">Mettre en ligne</v-btn>
+        <v-btn variant="text" @click="cancelVideoFlow">Cancel</v-btn>
+        <v-btn color="primary" @click="confirmVideoUpload">Upload</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -1046,8 +1046,8 @@ const submitSharePost = async () => {
               <v-btn icon="mdi-dots-vertical" size="small" variant="text" v-bind="menuProps" />
             </template>
             <v-list density="compact" nav>
-              <v-list-item prepend-icon="mdi-pencil" title="Modifier" @click="openEditPostDialog(post)" />
-              <v-list-item prepend-icon="mdi-delete" title="Supprimer" base-color="error" @click="openDeletePostDialog(post)" />
+              <v-list-item prepend-icon="mdi-pencil" title="Edit" @click="openEditPostDialog(post)" />
+              <v-list-item prepend-icon="mdi-delete" title="Delete" base-color="error" @click="openDeletePostDialog(post)" />
             </v-list>
           </v-menu>
         </v-card-title>
@@ -1075,7 +1075,7 @@ const submitSharePost = async () => {
 
             <v-card v-else variant="outlined" rounded="lg" class="pa-3 d-inline-flex align-center ga-2">
               <v-icon icon="mdi-paperclip" />
-              <a :href="post.filePath" target="_blank" rel="noopener" class="text-primary text-decoration-underline">Voir la pièce jointe</a>
+              <a :href="post.filePath" target="_blank" rel="noopener" class="text-primary text-decoration-underline">View attachment</a>
             </v-card>
           </div>
 
@@ -1242,10 +1242,10 @@ const submitSharePost = async () => {
                 <img
                   v-if="isImageFile(commentAttachmentPath[post.id])"
                   :src="commentAttachmentPath[post.id] ?? undefined"
-                  alt="Aperçu de la pièce jointe"
+                  alt="Attachment preview"
                   class="comment-attachment-preview"
                 >
-                <a v-else :href="commentAttachmentPath[post.id] ?? undefined" target="_blank" rel="noopener" class="text-primary text-decoration-underline">Voir la pièce jointe</a>
+                <a v-else :href="commentAttachmentPath[post.id] ?? undefined" target="_blank" rel="noopener" class="text-primary text-decoration-underline">View attachment</a>
               </div>
               <div class="comment-composer-actions">
                 <v-btn
@@ -1335,13 +1335,13 @@ const submitSharePost = async () => {
 
   <v-dialog v-model="editPostDialog" max-width="680">
     <v-card rounded="xl">
-      <v-card-title>Modifier le post</v-card-title>
+      <v-card-title>Edit post</v-card-title>
       <v-card-text>
         <v-textarea v-model="editPostContent" rows="4" variant="solo-filled" class="mb-3" />
         <v-text-field v-model="editPostFilePath" variant="solo-filled" placeholder="URL image/fichier (optionnel)" />
       </v-card-text>
       <v-card-actions class="justify-end">
-        <v-btn variant="text" @click="editPostDialog = false">Annuler</v-btn>
+        <v-btn variant="text" @click="editPostDialog = false">Cancel</v-btn>
         <v-btn color="primary" @click="confirmEditPost">Enregistrer</v-btn>
       </v-card-actions>
     </v-card>
@@ -1349,11 +1349,11 @@ const submitSharePost = async () => {
 
   <v-dialog v-model="deletePostDialog" max-width="420">
     <v-card rounded="xl">
-      <v-card-title>Supprimer le post</v-card-title>
-      <v-card-text>Cette action est irréversible.</v-card-text>
+      <v-card-title>Delete le post</v-card-title>
+      <v-card-text>This action is irreversible.</v-card-text>
       <v-card-actions class="justify-end">
-        <v-btn variant="text" @click="deletePostDialog = false">Annuler</v-btn>
-        <v-btn color="error" @click="confirmDeletePost">Supprimer</v-btn>
+        <v-btn variant="text" @click="deletePostDialog = false">Cancel</v-btn>
+        <v-btn color="error" @click="confirmDeletePost">Delete</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -1375,7 +1375,7 @@ const submitSharePost = async () => {
         />
       </v-card-text>
       <v-card-actions class="justify-end">
-        <v-btn variant="text" @click="sharePostDialog = false">Annuler</v-btn>
+        <v-btn variant="text" @click="sharePostDialog = false">Cancel</v-btn>
         <v-btn color="primary" :disabled="!canInteract" @click="submitSharePost">Partager</v-btn>
       </v-card-actions>
     </v-card>
@@ -1383,7 +1383,7 @@ const submitSharePost = async () => {
 
   <v-dialog v-model="shareAuthorsDialog" max-width="560">
     <v-card rounded="xl">
-      <v-card-title>Utilisateurs ayant partagé</v-card-title>
+      <v-card-title>Users who shared</v-card-title>
       <v-card-text>
         <v-list>
           <v-list-item v-for="author in shareAuthors" :key="`${author.id ?? author.username ?? author.firstName}-${author.lastName}`" class="px-0">

@@ -22,7 +22,7 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
   search: '',
   itemKey: 'id',
-  emptyText: 'Aucune donnée disponible.',
+  emptyText: 'No data disponible.',
   itemsPerPage: 10,
   itemsPerPageOptions: () => [5, 10, 20, 50],
   skeletonRows: 5,

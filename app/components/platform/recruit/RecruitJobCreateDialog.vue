@@ -25,7 +25,7 @@ defineEmits<{
       <v-col cols="12" md="4"><v-select v-model="form.contractType" :items="['CDI', 'CDD', 'Freelance', 'Internship']" label="Contrat" variant="outlined" density="compact" /></v-col>
       <v-col cols="12" md="4"><v-select v-model="form.workMode" :items="['Onsite', 'Hybrid', 'Remote']" label="Mode" variant="outlined" density="compact" /></v-col>
       <v-col cols="12" md="4"><v-text-field v-model="form.schedule" label="Horaires" variant="outlined" density="compact" /></v-col>
-      <v-col cols="12"><v-textarea v-model="form.summary" label="Résumé" rows="3" auto-grow variant="outlined" density="compact" /></v-col>
+      <v-col cols="12"><v-textarea v-model="form.summary" label="Summary" rows="3" auto-grow variant="outlined" density="compact" /></v-col>
       <v-col cols="12" md="12"><v-text-field v-model="form.missionTitle" label="Mission title" variant="outlined" density="compact" /></v-col>
       <v-col cols="12" md="12"><v-textarea v-model="form.missionDescription" label="Mission description" rows="3" auto-grow variant="outlined" density="compact" /></v-col>
       <v-col cols="12"><v-textarea v-model="form.responsibilities" label="Responsibilities (1 ligne par item)" rows="4" auto-grow variant="outlined" density="compact" /></v-col>
@@ -35,7 +35,7 @@ defineEmits<{
   </v-card-text>
   <v-card-actions class="px-6 pb-6 pt-2">
     <v-spacer />
-    <v-btn variant="text" @click="$emit('close')">Annuler</v-btn>
+    <v-btn variant="text" @click="$emit('close')">Cancel</v-btn>
     <v-btn color="primary" :loading="loading" @click="$emit('submit')">Create</v-btn>
   </v-card-actions>
 </template>

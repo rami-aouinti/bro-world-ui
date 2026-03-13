@@ -28,7 +28,7 @@ const relationActions = computed(() => {
   if (!isAuthenticated.value || isMe.value || !username.value || !targetUserId.value) return [] as Array<{ key: string, label: string, color: string, variant?: 'flat' | 'tonal', run: () => Promise<void> }>
 
   if (relation.value === 'blocked') {
-    return [{ key: 'unblock', label: 'Débloquer', color: 'warning', variant: 'tonal', run: () => friendsStore.unblockUser(targetUserId.value!) }]
+    return [{ key: 'unblock', label: 'Unblock', color: 'warning', variant: 'tonal', run: () => friendsStore.unblockUser(targetUserId.value!) }]
   }
 
   if (relation.value === 'friend') {
@@ -40,7 +40,7 @@ const relationActions = computed(() => {
 
   if (relation.value === 'sent_request') {
     return [
-      { key: 'cancel-request', label: 'Annuler la demande', color: 'warning', variant: 'tonal', run: () => friendsStore.cancelSentRequest(targetUserId.value!) },
+      { key: 'cancel-request', label: 'Cancel request', color: 'warning', variant: 'tonal', run: () => friendsStore.cancelSentRequest(targetUserId.value!) },
       { key: 'block', label: 'Bloquer', color: 'error', variant: 'tonal', run: () => friendsStore.blockUser(targetUserId.value!) },
     ]
   }
@@ -68,7 +68,7 @@ const runAction = async (actionKey: string, action: () => Promise<void>) => {
   }
   catch (error) {
     console.error(error)
-    actionError.value = 'Action impossible pour le moment.'
+    actionError.value = 'Action currently unavailable.'
   }
   finally {
     pendingActionKey.value = ''

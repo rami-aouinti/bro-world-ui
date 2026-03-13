@@ -53,69 +53,70 @@ interface HomePagePayload {
   cta: HomeCta
 }
 
-// Mock de réponse API (GET /api/private/pages/home)
+const publicPagesStore = usePublicPagesStore()
+const { locale, t } = useI18n()
+
+// Mock API response (GET /api/private/pages/home)
 const homePagePayload = ref<HomePagePayload>({
-  featuresTitle: 'Fonctionnalités principales',
-  metricsTitle: 'Indicateurs de performance',
-  stepsTitle: 'Comment ça marche',
-  stepLabelPrefix: 'Étape',
+  featuresTitle: t('home.featuresTitle'),
+  metricsTitle: t('home.metricsTitle'),
+  stepsTitle: t('home.stepsTitle'),
+  stepLabelPrefix: t('home.stepLabel', { index: '{index}' }).replace('{index}', '').trim() || 'Step',
   hero: {
-    badge: 'Accueil',
-    title: 'Pilotez votre activité depuis un espace unique',
-    subtitle: 'Cette page racine est alimentée avec un JSON fake pour clarifier le contrat backend.',
-    primaryCta: 'Créer un projet',
-    secondaryCta: 'Voir les tutoriels',
-    benefits: ['Suivi en temps réel', 'Permissions avancées', 'Reporting exportable'],
+    badge: t('home.hero.badge'),
+    title: t('home.hero.title'),
+    subtitle: t('home.hero.subtitle'),
+    primaryCta: t('home.hero.primaryCta'),
+    secondaryCta: t('home.hero.secondaryCta'),
+    benefits: [t('home.hero.bullets.0'), t('home.hero.bullets.1'), t('home.hero.bullets.2')],
   },
   featureCards: [
     {
       icon: 'mdi-view-dashboard-outline',
-      title: 'Dashboard unifié',
-      description: 'Vue centralisée de vos KPIs, tâches et alertes prioritaires.',
+      title: t('home.features.0.title'),
+      description: t('home.features.0.description'),
     },
     {
       icon: 'mdi-account-group-outline',
-      title: 'Collaboration équipe',
-      description: 'Partage d’informations et historique d’actions sur chaque module.',
+      title: t('home.features.1.title'),
+      description: t('home.features.1.description'),
     },
     {
       icon: 'mdi-shield-check-outline',
-      title: 'Sécurité renforcée',
-      description: 'Gestion des rôles et journalisation des accès sensibles.',
+      title: t('home.features.2.title'),
+      description: t('home.features.2.description'),
     },
   ],
   metrics: [
-    { value: '250+', label: 'Utilisateurs actifs / semaine' },
-    { value: '99.9%', label: 'Disponibilité service' },
-    { value: '4.8/5', label: 'Note moyenne client' },
+    { value: t('home.metrics.0.value'), label: t('home.metrics.0.label') },
+    { value: t('home.metrics.1.value'), label: t('home.metrics.1.label') },
+    { value: t('home.metrics.2.value'), label: t('home.metrics.2.label') },
   ],
   steps: [
     {
       icon: 'mdi-account-plus-outline',
-      title: 'Créer votre espace',
-      description: 'Initialisez votre organisation et invitez vos collaborateurs.',
+      title: t('home.steps.0.title'),
+      description: t('home.steps.0.description'),
     },
     {
       icon: 'mdi-tune-variant',
-      title: 'Configurer vos modules',
-      description: 'Activez les options nécessaires selon votre workflow.',
+      title: t('home.steps.1.title'),
+      description: t('home.steps.1.description'),
     },
     {
       icon: 'mdi-chart-areaspline',
-      title: 'Suivre et optimiser',
-      description: 'Analysez les résultats et ajustez vos actions en continu.',
+      title: t('home.steps.2.title'),
+      description: t('home.steps.2.description'),
     },
   ],
   cta: {
-    title: 'Prêt à aller plus loin ?',
-    description: 'Ce bloc final doit aussi être renvoyé par le backend dans la réponse.',
-    primaryAction: 'Demander une démo',
-    secondaryAction: 'Contacter un expert',
+    title: t('home.cta.title'),
+    description: t('home.cta.description'),
+    primaryAction: t('home.cta.primaryAction'),
+    secondaryAction: t('home.cta.secondaryAction'),
   },
 })
 
-const publicPagesStore = usePublicPagesStore()
-const { locale } = useI18n()
 const isLoading = ref(true)
 
 const loadPageContent = async () => {

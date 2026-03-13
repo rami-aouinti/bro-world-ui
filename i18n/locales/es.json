@@ -376,6 +376,20 @@
       "refresh": "Refresh",
       "errors": {
         "load": "Unable to load dashboard statistics."
+      },
+      "recent": {
+        "title": "Recent activity",
+        "newPlugin": "New plugin “SMS Campaign” published",
+        "rolesUpdated": "Administrator roles updated",
+        "trafficSpike": "Traffic spike detected on the School portal",
+        "backupDone": "Weekly backup completed"
+      },
+      "highlights": {
+        "openCriticalTickets": "Open critical tickets"
+      },
+      "operational": {
+        "title": "Operational view",
+        "subtitle": "Key admin activity indicators in real time."
       }
     },
     "settings": {
@@ -1111,6 +1125,13 @@
         "configuration": "Configuration JSON",
         "cacheSeconds": "Cache duration (seconds)"
       }
+    },
+    "chat": {
+      "noPublicApi": "No public chat API linked to this application is available at the moment.",
+      "loadError": "Unable to load chat for this platform.",
+      "signInHint": "Sign in to view your private conversations.",
+      "noConversation": "No conversation available at the moment.",
+      "unreadMessages": "unread message(s)"
     }
   },
   "about": {
@@ -1433,5 +1454,68 @@
   },
   "validation": {
     "requiredField": "{field} es obligatorio."
+  },
+  "calendar": {
+    "range": {
+      "next7": "Next 7 days",
+      "next30": "Next 30 days",
+      "quarter": "This quarter"
+    },
+    "status": {
+      "all": "All statuses",
+      "confirmed": "Confirmed",
+      "tentative": "Tentative",
+      "cancelled": "Cancelled"
+    },
+    "errors": {
+      "create": "Unable to create this event.",
+      "edit": "Unable to edit this event.",
+      "cancel": "Unable to cancel this event.",
+      "delete": "Unable to delete this event.",
+      "moveResize": "Unable to move or resize this event."
+    },
+    "actions": {
+      "createEvent": "Create an event",
+      "editEvent": "Edit event",
+      "cancel": "Cancel",
+      "update": "Update",
+      "save": "Save",
+      "close": "Close",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "empty": {
+      "title": "No upcoming events",
+      "description": "Start by creating an event to populate your schedule."
+    },
+    "common": {
+      "title": "Title",
+      "description": "Description",
+      "start": "Start",
+      "end": "End",
+      "location": "Location",
+      "period": "Period",
+      "noDescription": "No description",
+      "notSpecified": "Not specified",
+      "demoReadonly": "Demo event (read-only)."
+    }
+  },
+  "profilePage": {
+    "stats": {
+      "friends": "Friends",
+      "activeConnections": "Active connections"
+    },
+    "highlights": {
+      "enrichedBio": "Enriched bio"
+    },
+    "timeline": {
+      "yesterday": "Yesterday • 18:20",
+      "newDevice": "Sign-in from a new device",
+      "monday": "Monday • 12:10",
+      "recentActivity": "Recent activity (demo data)"
+    },
+    "errors": {
+      "loadSocial": "Unable to load social relationships."
+    }
   }
 }

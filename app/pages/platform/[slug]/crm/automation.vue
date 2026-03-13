@@ -11,8 +11,8 @@ const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const { isOwner } = usePlatformPermissions(slug)
 const automations = [
-  { name: 'Welcome sequence', trigger: 'Nouveau lead', status: 'Actif', impact: '+18% activation' },
-  { name: 'Deal follow-up', trigger: 'Devis ouvert > 3 jours', status: 'Actif', impact: '+11% conversion' },
+  { name: 'Welcome sequence', trigger: 'New lead', status: 'Active', impact: '+18% activation' },
+  { name: 'Deal follow-up', trigger: 'Quote open > 3 days', status: 'Active', impact: '+11% conversion' },
   { name: 'Renewal alert', trigger: 'J-45 fin contrat', status: 'Pilot', impact: '-7% churn' },
 ]
 

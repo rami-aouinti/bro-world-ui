@@ -20,10 +20,10 @@ const interviewSlots = [
 ]
 const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
 const interviewStats = computed(() => [
-  { label: 'Entretiens planifiés', value: interviewSlots.length, icon: 'mdi-calendar-clock', color: 'primary' },
+  { label: 'Planned interviews', value: interviewSlots.length, icon: 'mdi-calendar-clock', color: 'primary' },
   { label: 'Panels techniques', value: interviewSlots.filter((slot) => slot.type === t('platform.recruit.interviews.slotTypes.techInterview')).length, icon: 'mdi-laptop', color: 'info' },
   { label: 'Cette semaine', value: interviewSlots.length, icon: 'mdi-calendar-week', color: 'success' },
-  { label: 'Tickets liés', value: platformProposals.recruit.length, icon: 'mdi-ticket-confirmation-outline', color: 'warning' },
+  { label: 'Linked tickets', value: platformProposals.recruit.length, icon: 'mdi-ticket-confirmation-outline', color: 'warning' },
 ])
 </script>
 

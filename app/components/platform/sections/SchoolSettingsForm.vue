@@ -21,14 +21,14 @@ const props = withDefaults(defineProps<Props>(), {
 <template>
   <div>
     <h1 class="text-h5 font-weight-bold mb-1">{{ props.title }}</h1>
-    <p class="text-body-2 text-medium-emphasis mb-4">Paramètres académiques, permissions et templates de certificats.</p>
+    <p class="text-body-2 text-medium-emphasis mb-4">Academic settings, permissions, and certificate templates.</p>
 
-    <UiLoadingState v-if="props.loading" variant="form" message="Chargement des paramètres école..." />
+    <UiLoadingState v-if="props.loading" variant="form" message="Loading school settings..." />
     <UiStateAlert v-else-if="props.error" type="error" :message="props.error" />
     <UiEmptyState
       v-else-if="!props.sectionsMeta.length"
-      title="Aucune section configurée"
-      description="Ajoutez des sections métier pour la gouvernance académique."
+      title="No configured section"
+      description="Add business sections for academic governance."
       icon="mdi-school-outline"
     />
 
@@ -44,8 +44,8 @@ const props = withDefaults(defineProps<Props>(), {
 
             <UiEmptyState
               v-if="!(props.sectionData[section.id]?.length)"
-              title="Aucune configuration"
-              description="Ajoutez une configuration pour cette section."
+              title="No configuration"
+              description="Add a configuration for this section."
               icon="mdi-form-select"
             />
 

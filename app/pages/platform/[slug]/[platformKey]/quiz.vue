@@ -102,7 +102,7 @@ const submitQuestion = async () => {
     await Promise.all([loadQuiz(), loadStats()])
   }
   catch (submitErr: unknown) {
-    submitError.value = submitErr instanceof Error ? submitErr.message : 'Impossible de créer la question.'
+    submitError.value = submitErr instanceof Error ? submitErr.message : 'Unable to create the question.'
   }
   finally {
     submitting.value = false
@@ -124,7 +124,7 @@ onMounted(() => {
             <p class="text-body-2 text-medium-emphasis mb-1">Statistiques du quiz</p>
             <p class="text-body-2 mb-0" v-if="pendingStats">Chargement des statistiques…</p>
             <p class="text-body-2 mb-0" v-else>
-              {{ stats?.questionCount ?? 0 }} questions · {{ stats?.answerCount ?? 0 }} réponses · {{ stats?.totalPoints ?? 0 }} points
+              {{ stats?.questionCount ?? 0 }} questions · {{ stats?.answerCount ?? 0 }} answers · {{ stats?.totalPoints ?? 0 }} points
             </p>
           </div>
 
@@ -140,7 +140,7 @@ onMounted(() => {
 
     <v-dialog v-model="addQuestionDialog" max-width="720">
       <v-card>
-        <v-card-title class="text-h6">Ajouter une question</v-card-title>
+        <v-card-title class="text-h6">Add a question</v-card-title>
         <v-card-text>
           <v-alert v-if="submitError" type="error" variant="tonal" class="mb-4">{{ submitError }}</v-alert>
 
@@ -154,12 +154,12 @@ onMounted(() => {
           <v-textarea v-model="form.explanation" label="Explication (optionnel)" class="mb-3" rows="2" />
           <v-text-field v-model.number="form.points" type="number" min="1" label="Points" class="mb-4" />
 
-          <p class="text-body-2 font-weight-medium mb-2">Réponses</p>
+          <p class="text-body-2 font-weight-medium mb-2">Answers</p>
           <div v-for="(answer, index) in form.answers" :key="index" class="d-flex align-center ga-2 mb-2">
             <v-radio :model-value="answer.correct" @click="setCorrectAnswer(index)" />
             <v-text-field
               v-model="answer.label"
-              :label="`Réponse ${index + 1}`"
+              :label="`Answer ${index + 1}`"
               hide-details
               density="comfortable"
             />
@@ -173,13 +173,13 @@ onMounted(() => {
           </div>
 
           <v-btn variant="text" prepend-icon="mdi-plus" @click="form.answers.push({ label: '', correct: false })">
-            Ajouter une réponse
+            Add an answer
           </v-btn>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="addQuestionDialog = false">Annuler</v-btn>
-          <v-btn color="primary" :loading="submitting" :disabled="!canSubmit" @click="submitQuestion">Créer la question</v-btn>
+          <v-btn variant="text" @click="addQuestionDialog = false">Cancel</v-btn>
+          <v-btn color="primary" :loading="submitting" :disabled="!canSubmit" @click="submitQuestion">Create the question</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

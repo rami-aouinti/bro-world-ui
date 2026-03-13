@@ -21,7 +21,7 @@ const modules = computed(() => [
     description: t('admin.modules.configurations.description'),
     to: '/admin/configuration-management/configurations',
     icon: 'mdi-cog-sync-outline',
-    detail: '149 paramètres • 12 variables sensibles surveillées',
+    detail: '149 settings • 12 sensitive variables monitored',
   },
 ])
 </script>

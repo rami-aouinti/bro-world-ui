@@ -18,7 +18,7 @@ const navItems = computed(() => getSchoolNav(slug.value, isOwner.value))
     <template #sidebar><PlatformSidebarNav title="platform.school.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" /></template>
     <section>
       <v-alert v-if="showAccessDenied" type="error" variant="tonal" class="mb-4">
-        Accès admin refusé : permissions insuffisantes pour cette application.
+        Admin access denied: insufficient permissions for this application.
       </v-alert>
       <PlatformHeroHeader title="platform.school.hero.home.title" subtitle="platform.school.hero.home.subtitle" cta="platform.school.hero.home.cta" />
       <v-row>
@@ -27,7 +27,7 @@ const navItems = computed(() => getSchoolNav(slug.value, isOwner.value))
             <v-card-text>
               <p class="font-weight-bold">{{ classe.name }}</p>
               <p class="text-body-2 text-medium-emphasis">{{ classe.level }} · {{ classe.room }}</p>
-              <p class="text-body-2 mt-2">👩‍🏫 {{ classe.teacher }} · 👨‍🎓 {{ classe.students }} élèves</p>
+              <p class="text-body-2 mt-2">👩‍🏫 {{ classe.teacher }} · 👨‍🎓 {{ classe.students }} students</p>
             </v-card-text>
           </v-card>
         </v-col>

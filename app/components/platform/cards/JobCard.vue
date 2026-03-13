@@ -19,7 +19,7 @@ const subtitle = computed(() => `${props.job.location} · ${props.job.contractTy
     :category="props.job.category"
     :status="props.job.status"
     :tags="props.job.tags"
-    date-label="Publié"
+    date-label="Published"
     :date-value="props.job.publishedAt"
     :to="props.to"
   />

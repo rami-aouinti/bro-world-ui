@@ -28,21 +28,21 @@ const modules = computed(() => [
     description: t('admin.modules.roles.description'),
     to: '/admin/user-management/roles',
     icon: 'mdi-shield-account-outline',
-    detail: '18 rôles actifs • 4 rôles critiques',
+    detail: '18 active roles • 4 critical roles',
   },
   {
     title: t('admin.modules.groups.title'),
     description: t('admin.modules.groups.description'),
     to: '/admin/user-management/user-groups',
     icon: 'mdi-account-group-outline',
-    detail: '36 groupes • 11 groupes métier',
+    detail: '36 groups • 11 business groups',
   },
   {
     title: t('admin.modules.apiKeys.title'),
     description: t('admin.modules.apiKeys.description'),
     to: '/admin/user-management/api-keys',
     icon: 'mdi-key-outline',
-    detail: '52 clés API • 5 expirations à 7 jours',
+    detail: '52 API keys • 5 expiring in 7 days',
   },
 ])
 </script>

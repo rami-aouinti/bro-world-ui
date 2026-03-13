@@ -148,11 +148,11 @@ onMounted(refresh)
     <UiDataTable :headers="headers" :items="items" :loading="loading" :search="search" item-key="id" :items-per-page="10" empty-text="No records found.">
       <template #item.actions="{ item }">
         <div class="d-flex justify-end ga-1">
-          <v-btn size="x-small" variant="text" color="primary" icon="mdi-pencil" :aria-label="`Éditer ${item.id}`" @click="openEdit(item)" />
+          <v-btn size="x-small" variant="text" color="primary" icon="mdi-pencil" :aria-label="`Edit ${item.id}`" @click="openEdit(item)" />
           <UiEntityActionButtons
             :show-label="`Voir ${item.id}`"
             :patch-label="`Patch ${item.id}`"
-            :delete-label="`Supprimer ${item.id}`"
+            :delete-label="`Delete ${item.id}`"
             @show="showEntity(item.id)"
             @patch="openEdit(item, true)"
             @delete="openDelete(item.id)"
@@ -170,14 +170,14 @@ onMounted(refresh)
       </template>
     </UiActionDialog>
 
-    <UiActionDialog v-model="showDialog" :title="`Détails ${itemName}`" max-width="760">
+    <UiActionDialog v-model="showDialog" :title="`Details ${itemName}`" max-width="760">
       <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selected, null, 2) }}</pre>
     </UiActionDialog>
 
     <UiActionConfirmDialog
       v-model="deleteDialog"
       title="Delete"
-      :message="`Supprimer ${itemName} ${deleteId} ?`"
+      :message="`Delete ${itemName} ${deleteId} ?`"
       confirm-label="Delete"
       cancel-label="Cancel"
       :loading="submitting"

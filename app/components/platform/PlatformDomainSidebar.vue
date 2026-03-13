@@ -79,7 +79,7 @@ const isRouteInSection = (pathPrefix: string) => route.path.startsWith(pathPrefi
         :prepend-icon="isCollapsed ? 'mdi-chevron-down' : 'mdi-chevron-up'"
         @click="isCollapsed = !isCollapsed"
       >
-        {{ isCollapsed ? 'Afficher' : 'Réduire' }}
+        {{ isCollapsed ? 'Show' : 'Collapse' }}
       </v-btn>
     </div>
 
@@ -115,7 +115,7 @@ const isRouteInSection = (pathPrefix: string) => route.path.startsWith(pathPrefi
 
               <v-list-item
                 :to="`/platform/${slug}/shop/${category.slug}/products`"
-                title="Produits"
+                title="Products"
                 :active="isRouteActive(`/platform/${slug}/shop/${category.slug}/products`)"
               />
               <v-list-item
@@ -163,7 +163,7 @@ const isRouteInSection = (pathPrefix: string) => route.path.startsWith(pathPrefi
             <v-select
               v-model="recruitFilters.seniority"
               :items="seniorityOptions"
-              label="Séniorité"
+              label="Seniority"
               class="mt-2"
               density="compact"
               hide-details

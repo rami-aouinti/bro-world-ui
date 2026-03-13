@@ -376,6 +376,20 @@
       "refresh": "Actualiser",
       "errors": {
         "load": "Impossible de charger les statistiques du dashboard."
+      },
+      "recent": {
+        "title": "Activités récentes",
+        "newPlugin": "Nouveau plugin “SMS Campaign” publié",
+        "rolesUpdated": "Mise à jour des rôles administrateurs",
+        "trafficSpike": "Pic de trafic détecté sur le portail School",
+        "backupDone": "Sauvegarde hebdomadaire terminée"
+      },
+      "highlights": {
+        "openCriticalTickets": "Tickets critiques ouverts"
+      },
+      "operational": {
+        "title": "Vue opérationnelle",
+        "subtitle": "Indicateurs clés de l'activité admin en temps réel."
       }
     },
     "settings": {
@@ -1111,6 +1125,13 @@
         "configuration": "Configuration JSON",
         "cacheSeconds": "Cache duration (seconds)"
       }
+    },
+    "chat": {
+      "noPublicApi": "Aucune API de chat publique liée à cette application n'est disponible pour le moment.",
+      "loadError": "Impossible de charger le chat de cette plateforme.",
+      "signInHint": "Connectez-vous pour consulter vos conversations privées.",
+      "noConversation": "Aucune conversation disponible pour le moment.",
+      "unreadMessages": "message(s) non lu(s)"
     }
   },
   "about": {
@@ -1433,5 +1454,68 @@
   },
   "validation": {
     "requiredField": "{field} est requis."
+  },
+  "calendar": {
+    "range": {
+      "next7": "7 prochains jours",
+      "next30": "30 prochains jours",
+      "quarter": "Ce trimestre"
+    },
+    "status": {
+      "all": "Tous les statuts",
+      "confirmed": "Confirmé",
+      "tentative": "Tentative",
+      "cancelled": "Annulé"
+    },
+    "errors": {
+      "create": "Impossible de créer cet événement.",
+      "edit": "Impossible de modifier cet événement.",
+      "cancel": "Impossible d'annuler cet événement.",
+      "delete": "Impossible de supprimer cet événement.",
+      "moveResize": "Impossible de déplacer ou redimensionner cet événement."
+    },
+    "actions": {
+      "createEvent": "Créer un événement",
+      "editEvent": "Modifier l'événement",
+      "cancel": "Annuler",
+      "update": "Mettre à jour",
+      "save": "Enregistrer",
+      "close": "Fermer",
+      "edit": "Modifier",
+      "delete": "Supprimer"
+    },
+    "empty": {
+      "title": "Aucun événement à venir",
+      "description": "Commencez par créer un événement pour alimenter votre planning."
+    },
+    "common": {
+      "title": "Titre",
+      "description": "Description",
+      "start": "Début",
+      "end": "Fin",
+      "location": "Lieu",
+      "period": "Période",
+      "noDescription": "Sans description",
+      "notSpecified": "Non renseigné",
+      "demoReadonly": "Événement de démonstration (lecture seule)."
+    }
+  },
+  "profilePage": {
+    "stats": {
+      "friends": "Amis",
+      "activeConnections": "Connexions actives"
+    },
+    "highlights": {
+      "enrichedBio": "Bio enrichie"
+    },
+    "timeline": {
+      "yesterday": "Hier • 18:20",
+      "newDevice": "Connexion depuis un nouvel appareil",
+      "monday": "Lundi • 12:10",
+      "recentActivity": "Activité récente (données de démonstration)"
+    },
+    "errors": {
+      "loadSocial": "Impossible de charger les relations sociales."
+    }
   }
 }

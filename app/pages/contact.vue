@@ -77,53 +77,53 @@ interface ContactPagePayload {
   cta: ContactCta
 }
 
-// Mock de réponse API (GET /api/public/pages/contact)
+// Mock API response (GET /api/public/pages/contact)
 const contactPagePayload = ref<ContactPagePayload>({
   title: 'Contact',
   hero: {
     badge: 'Contact',
     title: 'Parlons de votre besoin',
-    subtitle: 'Page connectée à un JSON fake pour définir le contrat de données backend.',
+    subtitle: 'Page connected to fake JSON to define the backend data contract.',
     primaryCta: 'Planifier un appel',
     secondaryCta: 'Ouvrir un ticket',
   },
   channels: [
-    { label: 'Email', value: 'support@bro-world.io', details: 'Réponse sous 24h', icon: 'mdi-email-outline' },
-    { label: 'Téléphone', value: '+33 1 23 45 67 89', details: 'Lundi au vendredi', icon: 'mdi-phone-outline' },
+    { label: 'Email', value: 'support@bro-world.io', details: 'Answer sous 24h', icon: 'mdi-email-outline' },
+    { label: 'Phone', value: '+33 1 23 45 67 89', details: 'Lundi au vendredi', icon: 'mdi-phone-outline' },
   ],
   availability: {
-    title: 'Disponibilité',
-    description: 'Créneaux de réponse gérés par l’équipe support.',
+    title: 'Availability',
+    description: 'Response slots managed by the support team.',
     windows: [
       { label: 'Support standard', value: '09:00 - 18:00 CET' },
       { label: 'Urgences', value: '24/7 pour incidents critiques' },
     ],
     escalationTitle: 'Escalade',
-    escalationBullets: ['Niveau 1: support', 'Niveau 2: équipe produit', 'Niveau 3: engineering lead'],
+    escalationBullets: ['Level 1: support', 'Level 2: product team', 'Level 3: engineering lead'],
   },
   form: {
     title: 'Formulaire de contact',
-    description: 'Les champs suivants représentent la structure attendue depuis l’API.',
+    description: 'The following fields represent the structure expected from the API.',
     fields: {
-      firstName: 'Prénom',
+      firstName: 'First name',
       lastName: 'Nom',
       email: 'Email professionnel',
       topic: 'Sujet',
       message: 'Message',
-      messagePlaceholder: 'Décrivez votre demande…',
+      messagePlaceholder: 'Describe your request…',
     },
     topics: [
       { value: 'sales', label: 'Demande commerciale' },
       { value: 'support', label: 'Support technique' },
       { value: 'partnership', label: 'Partenariat' },
     ],
-    privacyNote: 'En soumettant ce formulaire, vous acceptez le traitement de vos données.',
+    privacyNote: 'By submitting this form, you accept the processing of your data.',
     submit: 'Envoyer',
-    reset: 'Réinitialiser',
+    reset: 'Reset',
   },
   cta: {
     title: 'Autres canaux',
-    description: 'Ces actions peuvent aussi être gérées dynamiquement côté backend.',
+    description: 'These actions can also be managed dynamically on the backend.',
     actions: [
       { label: 'Chat en direct', variant: 'primary' },
       { label: 'Centre d’aide', variant: 'outlined' },

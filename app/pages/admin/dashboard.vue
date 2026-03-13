@@ -41,17 +41,18 @@ const mockDashboardStats: AdminStatisticsResponse = {
   posts: { total: 418, last7Days: 34, thisMonth: 97, thisYear: 351 },
 }
 
-const recentActivities = [
-  { title: 'Nouveau plugin “SMS Campaign” publié', actor: 'Equipe Produit', time: 'Il y a 12 min', color: 'success' },
-  { title: 'Mise à jour des rôles administrateurs', actor: 'Ops Security', time: 'Il y a 35 min', color: 'info' },
-  { title: 'Pic de trafic détecté sur le portail School', actor: 'Monitoring', time: 'Il y a 1h', color: 'warning' },
-  { title: 'Sauvegarde hebdomadaire terminée', actor: 'Infra', time: 'Il y a 2h', color: 'primary' },
-]
+const recentActivities = computed(() => ([
+  { title: t('admin.dashboard.recent.newPlugin'), actor: 'Product Team', time: '12 min ago', color: 'success' },
+  { title: t('admin.dashboard.recent.rolesUpdated'), actor: 'Ops Security', time: '35 min ago', color: 'info' },
+  { title: t('admin.dashboard.recent.trafficSpike'), actor: 'Monitoring', time: '1h ago', color: 'warning' },
+  { title: t('admin.dashboard.recent.backupDone'), actor: 'Infra', time: '2h ago', color: 'primary' },
+]))
+
 
 const operationalHighlights = [
-  { label: 'Disponibilité API', value: '99.95%', trend: '+0.12%' },
-  { label: 'Temps moyen de réponse', value: '182 ms', trend: '-14 ms' },
-  { label: 'Tickets critiques ouverts', value: '3', trend: '-2' },
+  { label: 'Availability API', value: '99.95%', trend: '+0.12%' },
+  { label: 'Average response time', value: '182 ms', trend: '-14 ms' },
+  { label: t('admin.dashboard.highlights.openCriticalTickets'), value: '3', trend: '-2' },
 ]
 
 const statistics = computed(() => {
@@ -129,7 +130,7 @@ const fetchStatistics = async () => {
   }
   catch {
     dashboardStats.value = mockDashboardStats
-    errorMessage.value = `${t('admin.dashboard.errors.load')} — Affichage des données de démonstration.`
+    errorMessage.value = `${t('admin.dashboard.errors.load')} — Displaying demo data.`
   }
   finally {
     loading.value = false
@@ -182,11 +183,11 @@ onMounted(async () => {
         <UiCard rounded="lg">
           <div class="d-flex flex-wrap align-center justify-space-between ga-3 mb-4">
             <div>
-              <div class="text-h6">Vue opérationnelle</div>
-              <p class="text-body-2 text-medium-emphasis mb-0">Indicateurs clés de l'activité admin en temps réel.</p>
+              <div class="text-h6">{{ t('admin.dashboard.operational.title') }}</div>
+              <p class="text-body-2 text-medium-emphasis mb-0">{{ t('admin.dashboard.operational.subtitle') }}</p>
             </div>
             <v-btn color="primary" variant="flat" prepend-icon="mdi-refresh" :loading="loading" @click="fetchStatistics">
-              Actualiser les données
+              {{ t('admin.dashboard.refresh') }}
             </v-btn>
           </div>
 
@@ -206,7 +207,7 @@ onMounted(async () => {
 
       <v-col cols="12" lg="4">
         <UiCard rounded="lg" class="h-100">
-          <div class="text-h6 mb-3">Activités récentes</div>
+          <div class="text-h6 mb-3">{{ t('admin.dashboard.recent.title') }}</div>
           <v-timeline density="compact" side="end" truncate-line="both">
             <v-timeline-item
               v-for="activity in recentActivities"

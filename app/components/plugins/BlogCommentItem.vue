@@ -236,8 +236,8 @@ const formatRelativeTime = (dateInput?: string | null) => {
                   <v-btn icon="mdi-dots-vertical" size="x-small" variant="text" v-bind="menuProps" />
                 </template>
                 <v-list density="compact" nav>
-                  <v-list-item prepend-icon="mdi-pencil" title="Modifier" @click="openEditDialog" />
-                  <v-list-item prepend-icon="mdi-delete" title="Supprimer" base-color="error" @click="deleteDialog = true" />
+                  <v-list-item prepend-icon="mdi-pencil" title="Edit" @click="openEditDialog" />
+                  <v-list-item prepend-icon="mdi-delete" title="Delete" base-color="error" @click="deleteDialog = true" />
                 </v-list>
               </v-menu>
             </div>
@@ -247,7 +247,7 @@ const formatRelativeTime = (dateInput?: string | null) => {
             <img
               v-if="isImageAttachment(comment.filePath)"
               :src="comment.filePath"
-              alt="Pièce jointe du commentaire"
+              alt="Comment attachment"
               class="comment-attachment-image"
             >
             <video
@@ -256,7 +256,7 @@ const formatRelativeTime = (dateInput?: string | null) => {
               controls
               class="comment-attachment-image"
             />
-            <a v-else :href="comment.filePath" target="_blank" rel="noopener" class="text-primary text-decoration-underline">Voir la pièce jointe</a>
+            <a v-else :href="comment.filePath" target="_blank" rel="noopener" class="text-primary text-decoration-underline">View attachment</a>
           </div>
         </div>
 
@@ -284,7 +284,7 @@ const formatRelativeTime = (dateInput?: string | null) => {
                   variant="text"
                   type="button"
                   :disabled="!canInteract"
-                  :title="ownReaction ? 'Supprimer ma réaction' : 'Réagir'"
+                  :title="ownReaction ? 'Delete my reaction' : 'React'"
                   v-bind="menuProps"
                   @click.stop.prevent="onReactionActionClick"
                 >
@@ -344,7 +344,7 @@ const formatRelativeTime = (dateInput?: string | null) => {
             size="small"
             variant="text"
             :disabled="!canInteract"
-            title="Répondre"
+            title="Reply"
             @click="canInteract ? isReplying = !isReplying : undefined"
           />
         </div>
@@ -358,7 +358,7 @@ const formatRelativeTime = (dateInput?: string | null) => {
               hide-details
               single-line
               class="comment-reply-composer-input"
-              placeholder="Écrire une réponse..."
+              placeholder="Write a reply..."
               :disabled="!canInteract"
               @keydown.enter.prevent="submitReply"
             />
@@ -398,12 +398,12 @@ const formatRelativeTime = (dateInput?: string | null) => {
 
     <v-dialog v-model="editDialog" max-width="560">
       <v-card rounded="xl">
-        <v-card-title>Modifier le commentaire</v-card-title>
+        <v-card-title>Edit comment</v-card-title>
         <v-card-text>
           <v-textarea v-model="editContent" rows="3" variant="solo-filled" />
         </v-card-text>
         <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="editDialog = false">Annuler</v-btn>
+          <v-btn variant="text" @click="editDialog = false">Cancel</v-btn>
           <v-btn color="primary" @click="confirmEdit">Enregistrer</v-btn>
         </v-card-actions>
       </v-card>
@@ -411,11 +411,11 @@ const formatRelativeTime = (dateInput?: string | null) => {
 
     <v-dialog v-model="deleteDialog" max-width="420">
       <v-card rounded="xl">
-        <v-card-title>Supprimer le commentaire</v-card-title>
-        <v-card-text>Cette action est irréversible.</v-card-text>
+        <v-card-title>Delete le commentaire</v-card-title>
+        <v-card-text>This action is irreversible.</v-card-text>
         <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="deleteDialog = false">Annuler</v-btn>
-          <v-btn color="error" @click="emit('deleteComment', comment.id); deleteDialog = false">Supprimer</v-btn>
+          <v-btn variant="text" @click="deleteDialog = false">Cancel</v-btn>
+          <v-btn color="error" @click="emit('deleteComment', comment.id); deleteDialog = false">Delete</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

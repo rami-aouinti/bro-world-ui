@@ -21,7 +21,7 @@ const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
     <template #sidebar><PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" /></template>
     <section>
       <v-alert v-if="showAccessDenied" type="error" variant="tonal" class="mb-4">
-        Accès admin refusé : permissions insuffisantes pour cette application.
+        Admin access denied: insufficient permissions for this application.
       </v-alert>
       <PlatformHeroHeader title="platform.crm.hero.home.title" subtitle="platform.crm.hero.home.subtitle" cta="platform.crm.hero.home.cta" />
       <v-row class="mb-2">
@@ -43,7 +43,7 @@ const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
                 <p class="text-subtitle-1 font-weight-bold">{{ company.name }}</p>
                 <v-chip size="small" :color="company.status === 'Active' ? 'success' : company.status === 'Prospect' ? 'info' : 'warning'" variant="tonal">{{ company.status }}</v-chip>
               </div>
-              <p class="text-body-2 text-medium-emphasis">{{ company.sector }} · {{ company.size }} employés</p>
+              <p class="text-body-2 text-medium-emphasis">{{ company.sector }} · {{ company.size }} employees</p>
             </v-card-text>
           </v-card>
         </v-col>

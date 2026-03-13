@@ -21,13 +21,13 @@ const props = withDefaults(defineProps<Props>(), {
 <template>
   <div>
     <h1 class="text-h5 font-weight-bold mb-1">{{ props.title }}</h1>
-    <p class="text-body-2 text-medium-emphasis mb-4">Sections métier CRM configurables par équipe RevOps.</p>
+    <p class="text-body-2 text-medium-emphasis mb-4">Configurable CRM business sections by RevOps team.</p>
 
-    <UiLoadingState v-if="props.loading" variant="form" message="Chargement des paramètres CRM..." />
+    <UiLoadingState v-if="props.loading" variant="form" message="Loading CRM settings..." />
     <UiStateAlert v-else-if="props.error" type="error" :message="props.error" />
     <UiEmptyState
       v-else-if="!props.sectionsMeta.length"
-      title="Aucune section CRM"
+      title="No CRM section"
       description="Ajoutez des sections pour piloter le routage, l'automatisation et la gouvernance."
       icon="mdi-view-dashboard-outline"
     />
@@ -47,7 +47,7 @@ const props = withDefaults(defineProps<Props>(), {
           <UiEmptyState
             v-if="!(props.sectionData[section.id]?.length)"
             title="Section vide"
-            description="Aucun module configuré pour cette section."
+            description="No module configured for this section."
             icon="mdi-package-variant-closed"
           />
           <v-row v-else>

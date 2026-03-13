@@ -21,14 +21,14 @@ const props = withDefaults(defineProps<Props>(), {
 <template>
   <div>
     <h1 class="text-h5 font-weight-bold mb-1">{{ props.title }}</h1>
-    <p class="text-body-2 text-medium-emphasis mb-4">Analyse conversion checkout, providers et prévention fraude.</p>
+    <p class="text-body-2 text-medium-emphasis mb-4">Checkout conversion, providers, and fraud prevention analysis.</p>
 
     <UiLoadingState v-if="props.loading" variant="dashboard" message="Chargement des insights paiement..." />
     <UiStateAlert v-else-if="props.error" type="error" :message="props.error" />
     <UiEmptyState
       v-else-if="!props.sectionsMeta.length"
-      title="Aucun funnel disponible"
-      description="Configurez vos sections paiement pour afficher les métriques de conversion."
+      title="No funnel available"
+      description="Configure your payment sections to display conversion metrics."
       icon="mdi-chart-funnel"
     />
 
@@ -44,7 +44,7 @@ const props = withDefaults(defineProps<Props>(), {
 
             <UiEmptyState
               v-if="!(props.sectionData[section.id]?.length)"
-              title="Aucune donnée"
+              title="No data"
               description="Les KPIs de cette section seront visibles ici."
               icon="mdi-database-off-outline"
             />

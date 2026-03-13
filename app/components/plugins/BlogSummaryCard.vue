@@ -22,6 +22,6 @@ const publicationHealthTone = computed(() => {
   </div>
 
   <p class="text-body-2 text-medium-emphasis mb-0">
-    Vue d’ensemble du contenu publié, de l’activité communautaire et du rythme éditorial.
+    Overview of published content, community activity, and editorial cadence.
   </p>
 </template>

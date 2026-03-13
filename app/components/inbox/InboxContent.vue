@@ -136,7 +136,7 @@ const mapConversation = (conversation: PrivateChatConversation) => {
     id: conversation.id,
     participants,
     title: participants[0]?.label ?? 'Conversation',
-    excerpt: lastMessage?.content ?? 'Aucun message',
+    excerpt: lastMessage?.content ?? 'No message',
     unread: conversation.unreadMessagesCount,
     lastMessageAt: lastMessage?.createdAt ?? conversation.createdAt,
     messages: [...conversation.messages].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
@@ -175,10 +175,10 @@ const demoConversations = computed<InboxConversation[]>(() => {
     {
       id: 'demo-customer-success',
       title: 'Support Premium · Claire Martin',
-      excerpt: 'Le client confirme la réception du devis et souhaite un appel demain.',
+      excerpt: 'The client confirms receiving the quote and wants a call tomorrow.',
       unread: 3,
       channel: 'Support',
-      sla: 'Réponse attendue sous 45 min',
+      sla: 'Response expected within 45 min',
       participants: [
         { id: 'demo-c1', label: 'Claire Martin', photo: null },
         { id: 'demo-c2', label: 'Adrien Lopez', photo: null },
@@ -187,7 +187,7 @@ const demoConversations = computed<InboxConversation[]>(() => {
       messages: [
         {
           id: 'demo-msg-1',
-          content: 'Bonjour, je viens de transmettre la proposition commerciale au client.',
+          content: 'Hello, I have just sent the sales proposal to the client.',
           sender: { id: 'demo-c2', firstName: 'Adrien', lastName: 'Lopez', photo: null, owner: false },
           attachments: [],
           read: true,
@@ -210,10 +210,10 @@ const demoConversations = computed<InboxConversation[]>(() => {
     {
       id: 'demo-sales-onboarding',
       title: 'Equipe Sales · Onboarding',
-      excerpt: 'Checklist d’intégration mise à jour, reste la validation juridique.',
+      excerpt: 'Onboarding checklist updated, legal validation remains.',
       unread: 1,
       channel: 'Interne',
-      sla: 'Suivi prévu aujourd’hui',
+      sla: 'Follow-up scheduled for today',
       participants: [
         { id: 'demo-c3', label: 'Nina Park', photo: null },
         { id: 'demo-c4', label: 'Julien Perez', photo: null },
@@ -222,7 +222,7 @@ const demoConversations = computed<InboxConversation[]>(() => {
       messages: [
         {
           id: 'demo-msg-3',
-          content: 'La documentation d’onboarding est publiée dans Notion.',
+          content: 'Onboarding documentation is published in Notion.',
           sender: { id: 'demo-c3', firstName: 'Nina', lastName: 'Park', photo: null, owner: false },
           attachments: [],
           read: true,
@@ -238,7 +238,7 @@ const demoConversations = computed<InboxConversation[]>(() => {
       excerpt: 'Correction TVA en attente du retour finance (ticket #FIN-342).',
       unread: 0,
       channel: 'Finance',
-      sla: 'Résolu à 80%',
+      sla: '80% resolved',
       participants: [
         { id: 'demo-c5', label: 'Maël Roche', photo: null },
         { id: 'demo-c6', label: 'Lucia Vento', photo: null },
@@ -247,7 +247,7 @@ const demoConversations = computed<InboxConversation[]>(() => {
       messages: [
         {
           id: 'demo-msg-4',
-          content: 'Le batch de correction TVA est lancé, monitoring en cours.',
+          content: 'VAT correction batch started, monitoring in progress.',
           sender: { id: 'demo-c6', firstName: 'Lucia', lastName: 'Vento', photo: null, owner: false },
           attachments: [],
           read: true,
@@ -739,7 +739,7 @@ const deleteMessage = async () => {
         icon="mdi-flask-outline"
         class="mb-3"
       >
-        Données de démonstration enrichies actives (en attendant le backend).
+        Enhanced demo data active (while waiting for backend).
       </v-alert>
 
       <div class="inbox-page__insights mb-4">
@@ -855,8 +855,8 @@ const deleteMessage = async () => {
                   </template>
 
                   <v-list density="compact">
-                    <v-list-item prepend-icon="mdi-pencil" title="Modifier" @click="openEditDialog(message)" />
-                    <v-list-item prepend-icon="mdi-delete" title="Supprimer" base-color="error" @click="openDeleteDialog(message)" />
+                    <v-list-item prepend-icon="mdi-pencil" title="Edit" @click="openEditDialog(message)" />
+                    <v-list-item prepend-icon="mdi-delete" title="Delete" base-color="error" @click="openDeleteDialog(message)" />
                   </v-list>
                 </v-menu>
               </div>
@@ -875,7 +875,7 @@ const deleteMessage = async () => {
           <v-textarea
             v-model="draftMessage"
             label="Votre message"
-            placeholder="Écrire un message..."
+            placeholder="Write a message..."
             rows="2"
             auto-grow
             max-rows="5"
@@ -900,19 +900,19 @@ const deleteMessage = async () => {
 
     <UiStateEmptyState
       v-else
-      title="Aucune conversation sélectionnée"
-      description="Choisissez une conversation à gauche pour afficher les messages."
+      title="No conversation selected"
+      description="Choose a conversation on the left to display messages."
       icon="mdi-email-open-outline"
     />
 
     <v-dialog v-model="editDialog" max-width="560">
       <v-card>
-        <v-card-title>Modifier le message</v-card-title>
+        <v-card-title>Edit message</v-card-title>
         <v-card-text>
           <v-textarea v-model="editContent" rows="3" variant="solo-filled" />
         </v-card-text>
         <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="editDialog = false">Annuler</v-btn>
+          <v-btn variant="text" @click="editDialog = false">Cancel</v-btn>
           <v-btn color="primary" :loading="isUpdatingMessage" @click="updateMessage">Enregistrer</v-btn>
         </v-card-actions>
       </v-card>
@@ -920,10 +920,10 @@ const deleteMessage = async () => {
 
     <v-dialog v-model="deleteDialog" max-width="420">
       <v-card>
-        <v-card-title>Supprimer ce message ?</v-card-title>
+        <v-card-title>Delete ce message ?</v-card-title>
         <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="deleteDialog = false">Annuler</v-btn>
-          <v-btn color="error" :loading="isDeletingMessage" @click="deleteMessage">Supprimer</v-btn>
+          <v-btn variant="text" @click="deleteDialog = false">Cancel</v-btn>
+          <v-btn color="error" :loading="isDeletingMessage" @click="deleteMessage">Delete</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

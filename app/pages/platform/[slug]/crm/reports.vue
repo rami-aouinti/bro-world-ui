@@ -30,7 +30,7 @@ const navItems = computed(() => getCrmNav(slug.value, isOwner.value))
           </v-card>
         </v-col>
       </v-row>
-      <PlatformTicketBoard title="Actions recommandées" :tickets="crmTickets" />
+      <PlatformTicketBoard title="Recommended actions" :tickets="crmTickets" />
     </section>
   </PlatformSplitLayout>
 </template>

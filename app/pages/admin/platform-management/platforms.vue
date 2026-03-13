@@ -51,14 +51,14 @@ const headers = computed(() => [
 
 const formTitle = computed(() => {
   if (formMode.value === 'create') {
-    return 'Créer une plateforme'
+    return 'Create a platform'
   }
 
   if (formMode.value === 'edit') {
-    return 'Éditer une plateforme'
+    return 'Edit a platform'
   }
 
-  return 'Patch plateforme'
+  return 'Patch platform'
 })
 
 const fetchPlatforms = async () => {
@@ -197,9 +197,9 @@ onMounted(async () => {
 
     <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
 
-    <UiDataTable :headers="headers" :items="platforms" :loading="loading" :search="search" item-key="id" :items-per-page="10" empty-text="Aucune plateforme trouvée.">
+    <UiDataTable :headers="headers" :items="platforms" :loading="loading" :search="search" item-key="id" :items-per-page="10" empty-text="No platform found.">
       <template #item.enabled="{ item }">
-        <v-chip :color="item.enabled ? 'success' : 'default'" size="small" variant="tonal">{{ item.enabled ? 'Actif' : 'Inactif' }}</v-chip>
+        <v-chip :color="item.enabled ? 'success' : 'default'" size="small" variant="tonal">{{ item.enabled ? 'Active' : 'Inactif' }}</v-chip>
       </template>
 
       <template #item.private="{ item }">
@@ -218,13 +218,13 @@ onMounted(async () => {
             variant="text"
             color="primary"
             icon="mdi-pencil"
-            :aria-label="`Éditer ${item.name}`"
+            :aria-label="`Edit ${item.name}`"
             @click="openEditDialog(item)"
           />
           <UiEntityActionButtons
             :show-label="`Voir ${item.name}`"
             :patch-label="`Patch ${item.name}`"
-            :delete-label="`Supprimer ${item.name}`"
+            :delete-label="`Delete ${item.name}`"
             :show-patch="canPermission('platform.patch')"
             :show-delete="canPermission('platform.delete')"
             @show="showEntity(item.id)"
@@ -238,7 +238,7 @@ onMounted(async () => {
     <UiActionConfirmDialog
       v-model="deleteDialog"
       :title="t('admin.common.delete')"
-      :message="`Supprimer la plateforme ${platformToDeleteId} ?`"
+      :message="`Delete platform ${platformToDeleteId} ?`"
       :confirm-label="t('admin.common.delete')"
       :cancel-label="t('admin.common.cancel')"
       :loading="submitting"
@@ -259,7 +259,7 @@ onMounted(async () => {
       </template>
     </UiActionDialog>
 
-    <UiActionDialog v-model="showDialog" title="Détails plateforme" max-width="760">
+    <UiActionDialog v-model="showDialog" title="Platform details" max-width="760">
       <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selectedPlatform, null, 2) }}</pre>
     </UiActionDialog>
   </div>

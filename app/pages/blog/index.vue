@@ -27,21 +27,21 @@ type MockAnnouncement = {
 const editorialInsights: MockEditorialInsight[] = [
   {
     title: 'Recrutement 2026: ce que les talents attendent vraiment des entreprises',
-    excerpt: 'Flexibilité, impact et progression rapide: trois signaux forts qui transforment la stratégie RH.',
+    excerpt: 'Flexibility, impact, and rapid growth: three strong signals reshaping HR strategy.',
     category: 'Talent & RH',
     readTime: '6 min',
     trend: '+18% engagement',
   },
   {
-    title: 'Design produit: 5 rituels d’équipe pour réduire le churn dès le premier mois',
-    excerpt: 'Des ateliers courts orientés onboarding permettent de corriger les frictions avant qu’elles ne coûtent cher.',
+    title: 'Product design: 5 team rituals to reduce churn from month one',
+    excerpt: 'Short onboarding-focused workshops help fix friction before it becomes costly.',
     category: 'Product Design',
     readTime: '8 min',
     trend: '-12% churn',
   },
   {
     title: 'Comment industrialiser le contenu de marque sans perdre votre voix',
-    excerpt: 'Une architecture éditoriale claire aide à accélérer la production sans sacrifier la qualité.',
+    excerpt: 'A clear editorial architecture helps speed up production without sacrificing quality.',
     category: 'Brand & Content',
     readTime: '5 min',
     trend: '+2.4x production',
@@ -49,9 +49,9 @@ const editorialInsights: MockEditorialInsight[] = [
 ]
 
 const roadmapAnnouncements: MockAnnouncement[] = [
-  { title: 'Ouverture du module “Guest Authors”', date: 'Semaine 14', tag: 'Roadmap' },
-  { title: 'Nouveau format “Case Study vidéo”', date: 'Semaine 16', tag: 'Contenu' },
-  { title: 'Connexion analytics avancée (beta)', date: 'Semaine 19', tag: 'Data' },
+  { title: 'Launch of the “Guest Authors” module', date: 'Week 14', tag: 'Roadmap' },
+  { title: 'New “Case Study video” format', date: 'Week 16', tag: 'Content' },
+  { title: 'Advanced analytics connection (beta)', date: 'Week 19', tag: 'Data' },
 ]
 
 const isLoading = ref(false)

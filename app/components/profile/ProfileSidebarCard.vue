@@ -24,7 +24,7 @@ const memberSince = computed(() => {
 const fakeBadges = [
   { label: 'Ambassadeur', color: 'deep-purple' },
   { label: 'Mentor actif', color: 'teal' },
-  { label: 'Profil vérifié', color: 'indigo' },
+  { label: 'Verified profile', color: 'indigo' },
 ]
 </script>
 
@@ -47,7 +47,7 @@ const fakeBadges = [
   <v-divider class="mb-4" />
   <v-list class="pa-0 bg-transparent">
     <v-list-item class="px-0"><strong>Email:</strong>&nbsp; {{ email }}</v-list-item>
-    <v-list-item class="px-0"><strong>Téléphone:</strong>&nbsp; {{ phone }}</v-list-item>
+    <v-list-item class="px-0"><strong>Phone:</strong>&nbsp; {{ phone }}</v-list-item>
     <v-list-item class="px-0"><strong>Localisation:</strong>&nbsp; {{ locationLabel }}</v-list-item>
   </v-list>
 </template>

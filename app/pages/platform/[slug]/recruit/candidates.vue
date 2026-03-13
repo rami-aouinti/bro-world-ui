@@ -14,7 +14,7 @@ const { isOwner } = usePlatformPermissions(slug)
 const { isAuthenticated } = useAuth()
 const navItems = computed(() => getRecruitNav(slug.value, isOwner.value, isAuthenticated.value))
 const candidateStats = computed(() => [
-  { label: 'Candidats shortlistés', value: recruitCandidates.length, icon: 'mdi-account-check-outline', color: 'primary' },
+  { label: 'Shortlisted candidates', value: recruitCandidates.length, icon: 'mdi-account-check-outline', color: 'primary' },
   { label: 'Score moyen', value: '88', icon: 'mdi-chart-line', color: 'success' },
   { label: 'Profils remote', value: recruitCandidates.filter((candidate) => candidate.subtitle.includes('Remote')).length, icon: 'mdi-home-city-outline', color: 'info' },
   { label: 'Stacks actives', value: '9+', icon: 'mdi-code-tags', color: 'warning' },
@@ -28,7 +28,7 @@ const candidateStats = computed(() => [
       <PlatformHeroHeader title="platform.recruit.hero.candidates.title" subtitle="platform.recruit.hero.candidates.subtitle" cta="platform.recruit.hero.candidates.cta" />
       <RecruitPageSection
         title="Vivier candidats"
-        subtitle="Sélection et suivi des profils qualifiés"
+        subtitle="Selection and tracking of qualified profiles"
         :stats="candidateStats"
       >
         <v-row>

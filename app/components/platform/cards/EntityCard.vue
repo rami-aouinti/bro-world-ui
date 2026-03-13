@@ -13,7 +13,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   subtitle: undefined,
   tags: () => [],
-  dateLabel: 'Mis à jour',
+  dateLabel: 'Updated',
   dateValue: undefined,
   to: undefined,
 })

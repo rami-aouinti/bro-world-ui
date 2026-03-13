@@ -57,68 +57,68 @@ interface AboutPagePayload {
   cta: AboutCta
 }
 
-// Mock de réponse API (GET /api/public/pages/about)
+// Mock API response (GET /api/public/pages/about)
 const aboutPagePayload = ref<AboutPagePayload>({
   hero: {
-    badge: 'À propos',
-    title: 'Nous aidons les équipes à lancer plus vite',
-    subtitle: 'Page pilotée par un JSON mocké pour préparer le contrat backend.',
+    badge: 'About',
+    title: 'We help teams launch faster',
+    subtitle: 'Page driven by mocked JSON to prepare the backend contract.',
     paragraphs: [
-      'Cette section représente le bloc hero que le backend devra retourner.',
-      'Chaque champ visible ici est un exemple de donnée dynamique venant d’un endpoint.',
+      'This section represents the hero block the backend must return.',
+      'Each visible field here is an example of dynamic data from an endpoint.',
     ],
     bullets: [
       'Positionnement produit',
       'Proposition de valeur',
       'Actions principales',
     ],
-    primaryCta: 'Demander une démo',
+    primaryCta: 'Request a demo',
     secondaryCta: 'Voir la roadmap',
   },
-  metricsTitle: 'Chiffres clés',
+  metricsTitle: 'Key figures',
   missionCards: [
     {
       title: 'Mission',
-      description: 'Ce que nous voulons accomplir à long terme.',
-      paragraphs: ['Rendre la collaboration produit plus simple.', 'Réduire le temps de mise en production.'],
-      bullets: ['Qualité', 'Vitesse', 'Transparence'],
+      description: 'What we want to achieve in the long term.',
+      paragraphs: ['Rendre la collaboration produit plus simple.', 'Collapse le temps de mise en production.'],
+      bullets: ['Quality', 'Vitesse', 'Transparence'],
       icon: 'mdi-rocket-launch-outline',
     },
     {
       title: 'Valeurs',
-      description: 'Principes de fonctionnement pour l’équipe et les clients.',
-      paragraphs: ['Décisions basées sur la donnée.', 'Feedback continu des utilisateurs.'],
-      bullets: ['Ownership', 'Empathie', 'Amélioration continue'],
+      description: 'Operating principles for the team and clients.',
+      paragraphs: ['Data-driven decisions.', 'Continuous user feedback.'],
+      bullets: ['Ownership', 'Empathy', 'Continuous improvement'],
       icon: 'mdi-hand-heart-outline',
     },
   ],
   metrics: [
-    { value: '120+', label: 'Projets livrés', context: 'sur 24 derniers mois', icon: 'mdi-briefcase-outline' },
+    { value: '120+', label: 'Delivered projects', context: 'over the last 24 months', icon: 'mdi-briefcase-outline' },
     { value: '98%', label: 'Satisfaction client', context: 'NPS trimestriel', icon: 'mdi-thumb-up-outline' },
-    { value: '35%', label: 'Gain de productivité', context: 'moyenne observée', icon: 'mdi-chart-line' },
+    { value: '35%', label: 'Productivity gain', context: 'average observed', icon: 'mdi-chart-line' },
   ],
   timelineTitle: 'Timeline',
   timeline: [
     {
-      title: 'Lancement de la plateforme',
+      title: 'Platform launch',
       period: '2022',
-      description: 'Première version publique avec les fonctionnalités core.',
-      highlights: ['Gestion des utilisateurs', 'Tableau de bord', 'Auth sécurisée'],
+      description: 'First public version with core features.',
+      highlights: ['User management', 'Dashboard', 'Secure auth'],
       icon: 'mdi-flag-outline',
     },
     {
       title: 'Ouverture API',
       period: '2024',
-      description: 'Mise à disposition d’API publiques pour les intégrations.',
-      highlights: ['Endpoints documentés', 'Clés API', 'Webhooks'],
+      description: 'Public APIs made available for integrations.',
+      highlights: ['Documented endpoints', 'API keys', 'Webhooks'],
       icon: 'mdi-api',
     },
   ],
   cta: {
     title: 'Construisons la suite ensemble',
-    description: 'Ce bloc prépare les informations de fin de page récupérées côté backend.',
-    primaryAction: 'Parler à un expert',
-    secondaryAction: 'Télécharger la brochure',
+    description: 'This block prepares footer information fetched from the backend.',
+    primaryAction: 'Talk to an expert',
+    secondaryAction: 'Download brochure',
   },
 })
 

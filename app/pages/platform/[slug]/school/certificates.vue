@@ -22,7 +22,7 @@ const navItems = computed(() => getSchoolNav(slug.value, isOwner.value))
           <v-card rounded="xl" variant="outlined">
             <v-card-text>
               <p class="font-weight-bold">{{ page === 'certificates' ? `Certificat ${idx + 1}` : classe.name }}</p>
-              <p class="text-body-2 text-medium-emphasis">{{ page === 'settings' ? 'Paramètres académiques, permissions, sessions.' : 'Données de démonstration pour enrichir la plateforme school.' }}</p>
+              <p class="text-body-2 text-medium-emphasis">{{ page === 'settings' ? 'Academic settings, permissions, sessions.' : 'Demo data to enrich the school platform.' }}</p>
             </v-card-text>
           </v-card>
         </v-col>

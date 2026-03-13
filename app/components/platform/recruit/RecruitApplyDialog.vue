@@ -46,7 +46,7 @@ defineEmits<{
           <v-col cols="12">
             <v-radio-group v-model="resumeMode" inline>
               <v-radio label="Utiliser un CV existant" value="existing" />
-              <v-radio label="Créer un nouveau CV" value="new" />
+              <v-radio label="Create a new resume" value="new" />
               <v-radio label="Importer un CV PDF" value="pdf" />
             </v-radio-group>
           </v-col>
@@ -69,8 +69,8 @@ defineEmits<{
             <v-col cols="12" md="6"><v-textarea v-model="selectedResume.skills[0].description" label="Skill description" rows="2" auto-grow variant="outlined" density="compact" /></v-col>
             <v-col cols="12">
               <div class="d-flex ga-2 justify-end">
-                <v-btn color="secondary" variant="tonal" :loading="resumeSaving" @click="$emit('saveResume')">Modifier ce CV</v-btn>
-                <v-btn color="error" variant="tonal" :loading="resumeDeleting" @click="$emit('deleteResume')">Supprimer ce CV</v-btn>
+                <v-btn color="secondary" variant="tonal" :loading="resumeSaving" @click="$emit('saveResume')">Edit this resume</v-btn>
+                <v-btn color="error" variant="tonal" :loading="resumeDeleting" @click="$emit('deleteResume')">Delete ce CV</v-btn>
               </div>
             </v-col>
           </template>

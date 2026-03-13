@@ -7,8 +7,9 @@ definePageMeta({ public: true, requiresAuth: false })
 
 const { slug, navItems, isAuthenticated } = usePlatformPluginPage()
 const privateChatApi = usePrivateChatApi()
+const { t } = useI18n()
 
-const noPluginDataMessage = 'Aucune API de chat publique liée à cette application n\'est disponible pour le moment.'
+const noPluginDataMessage = computed(() => t('platform.chat.noPublicApi'))
 
 const { data: conversations, pending, error, execute: loadChat } = useAsyncData(
   () => `application-chat-${slug.value}-${isAuthenticated.value ? 'private' : 'public'}`,
@@ -35,16 +36,16 @@ onMounted(() => {
 
 <template>
   <PlatformPluginPageShell title="Chat" :slug="slug" :nav-items="navItems">
-    <v-alert v-if="error" type="error" variant="tonal" class="mb-4">Impossible de charger le chat de cette platform.</v-alert>
+    <v-alert v-if="error" type="error" variant="tonal" class="mb-4">{{ t('platform.chat.loadError') }}</v-alert>
     <v-skeleton-loader v-else-if="pending" type="list-item-two-line@5" class="mb-4" />
 
     <template v-else>
       <v-alert v-if="!isAuthenticated" type="info" variant="tonal" class="mb-4">
-        {{ noPluginDataMessage }} Connectez-vous pour consulter vos conversations privées.
+        {{ noPluginDataMessage }} {{ t('platform.chat.signInHint') }}
       </v-alert>
 
       <v-alert v-else-if="!conversations?.length" type="info" variant="tonal" class="mb-4">
-        Aucune conversation disponible pour le moment.
+        {{ t('platform.chat.noConversation') }}
       </v-alert>
 
       <v-list v-else lines="two" density="comfortable" class="rounded-lg border">
@@ -52,7 +53,7 @@ onMounted(() => {
           v-for="conversation in conversations"
           :key="conversation.id"
           :title="`Conversation #${conversation.id.slice(0, 8)}`"
-          :subtitle="`${conversation.unreadMessagesCount} message(s) non lu(s)`"
+          :subtitle="`${conversation.unreadMessagesCount} ${t('platform.chat.unreadMessages')}`"
         >
           <template #append>
             <v-chip size="small" variant="tonal">{{ conversation.participants.length }} participant(s)</v-chip>

@@ -46,9 +46,9 @@ const { data: jobsStats } = useAsyncData(
 const jobs = computed(() => data.value?.createdJobs ?? [])
 const jobStats = computed(() => [
   { label: 'Total', value: jobsStats.value?.total ?? jobs.value.length, icon: 'mdi-briefcase-outline', color: 'primary' },
-  { label: 'Publiées', value: jobsStats.value?.published ?? 0, icon: 'mdi-check-decagram-outline', color: 'success' },
+  { label: 'Publishedes', value: jobsStats.value?.published ?? 0, icon: 'mdi-check-decagram-outline', color: 'success' },
   { label: 'Brouillons', value: jobsStats.value?.draft ?? 0, icon: 'mdi-file-document-edit-outline', color: 'warning' },
-  { label: 'Créées', value: jobs.value.length, icon: 'mdi-account-tie-outline', color: 'info' },
+  { label: 'Created', value: jobs.value.length, icon: 'mdi-account-tie-outline', color: 'info' },
 ])
 </script>
 

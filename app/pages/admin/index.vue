@@ -41,28 +41,28 @@ const adminModules = computed(() => [
     description: t('admin.navigation.userManagement.description'),
     to: '/admin/user-management',
     icon: 'mdi-account-cog-outline',
-    badge: 'Sécurité',
+    badge: 'Security',
   },
   {
     title: t('admin.navigation.platformManagement.title'),
     description: t('admin.navigation.platformManagement.description'),
     to: '/admin/platform-management',
     icon: 'mdi-layers-outline',
-    badge: 'Produit',
+    badge: 'Product',
   },
   {
     title: t('admin.navigation.configurationManagement.title'),
     description: t('admin.navigation.configurationManagement.description'),
     to: '/admin/configuration-management',
     icon: 'mdi-tune-variant',
-    badge: 'Système',
+    badge: 'System',
   },
   {
     title: t('admin.navigation.pageManagement.title'),
     description: t('admin.navigation.pageManagement.description'),
     to: '/admin/page-management',
     icon: 'mdi-file-document-edit-outline',
-    badge: 'Contenu',
+    badge: 'Content',
   },
 ])
 </script>

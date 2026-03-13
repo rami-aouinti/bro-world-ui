@@ -40,7 +40,7 @@ onMounted(async () => {
 
     <section>
       <h1 class="text-h5 font-weight-bold mb-1">Sprint Board</h1>
-      <p class="text-body-2 text-medium-emphasis mb-6">Sprints actifs récupérés depuis l'API CRM.</p>
+      <p class="text-body-2 text-medium-emphasis mb-6">Active sprints fetched from the CRM API.</p>
 
       <v-row>
         <v-col v-for="sprint in sprints" :key="sprint.id" cols="12" md="6">
