@@ -2,11 +2,12 @@
 import BlogFeed from '~/components/plugins/BlogFeed.vue'
 import { useBlogsStore } from '~/stores/blogs'
 import UiSkeletonCardGrid from '~/components/ui/state/UiSkeletonCardGrid.vue'
+import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
+import ProfileSidebarCard from '~/components/profile/ProfileSidebarCard.vue'
 
 definePageMeta({
   public: false,
   requiresAuth: true,
-  layout: false,
 })
 
 const blogsStore = useBlogsStore()
@@ -99,7 +100,11 @@ watch([infiniteSentinel, hasMorePosts], async () => {
 </script>
 
 <template>
-  <NuxtLayout name="default">
+  <PlatformSplitLayout>
+    <template #sidebar>
+      <ProfileSidebarCard />
+    </template>
+
     <main>
       <h1 class="text-h5 font-weight-bold mb-4">My posts</h1>
 
@@ -111,7 +116,7 @@ watch([infiniteSentinel, hasMorePosts], async () => {
         <v-progress-circular v-if="isLoadingMore" indeterminate color="primary" size="22" />
       </div>
     </main>
-  </NuxtLayout>
+  </PlatformSplitLayout>
 </template>
 
 <style scoped>

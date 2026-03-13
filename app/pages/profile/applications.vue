@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
+import ProfileSidebarCard from '~/components/profile/ProfileSidebarCard.vue'
 import { useCurrentUserStore } from '~/stores/currentUser'
 import type { UserApplication } from '~/types/api/user'
 
@@ -51,12 +52,7 @@ onMounted(async () => {
 <template>
   <PlatformSplitLayout>
     <template #sidebar>
-      <v-card class="pa-5" elevation="2" rounded="xl">
-        <h6 class="text-h6 font-weight-bold mb-2">My applications</h6>
-        <p class="text-body-2 text-medium-emphasis mb-0">
-          Retrouvez toutes les applications que vous avez créées.
-        </p>
-      </v-card>
+      <ProfileSidebarCard />
     </template>
 
     <section>
