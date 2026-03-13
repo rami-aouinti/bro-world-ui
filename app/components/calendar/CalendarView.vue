@@ -635,55 +635,17 @@ watch(() => props.applicationSlug, loadEvents)
       {{ errorMessage }}
     </v-alert>
 
-    <v-sheet rounded="xl" color="surface" class="pa-4 pa-md-6 mb-4 calendar-page__hero">
-      <div class="d-flex flex-wrap justify-space-between align-center ga-4 mb-4">
-        <div>
-          <h2 class="text-h6 font-weight-bold mb-1">Pilotage du calendrier</h2>
-          <p class="text-body-2 text-medium-emphasis mb-0">
-            Vue consolidée des rendez-vous, deadlines et opérations internes.
-          </p>
-        </div>
-        <v-chip v-if="usingFallbackData" color="info" variant="tonal" prepend-icon="mdi-flask-outline">
-          Données de démo actives
-        </v-chip>
-      </div>
-
-      <v-row>
-        <v-col v-for="stat in dashboardStats" :key="stat.label" cols="12" sm="6" lg="3">
-          <v-card rounded="lg" variant="tonal" class="h-100">
-            <v-card-text class="d-flex align-center ga-3">
-              <v-avatar :color="stat.color" variant="tonal" size="38">
-                <v-icon :icon="stat.icon" />
-              </v-avatar>
-              <div>
-                <p class="text-caption text-medium-emphasis mb-1">{{ stat.label }}</p>
-                <p class="text-h6 font-weight-bold mb-0">{{ stat.value }}</p>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-sheet>
-
     <v-card v-if="isLoading" rounded="xl" class="mb-4 pa-4">
       <v-skeleton-loader type="heading" class="mb-2" />
       <v-skeleton-loader type="image" height="360" class="mb-3" />
       <v-skeleton-loader type="text@2" />
     </v-card>
 
-    <v-card rounded="xl" class="calendar-page__board">
-      <v-card-title class="d-flex align-center justify-space-between flex-wrap ga-2">
-        <span class="text-subtitle-1 font-weight-bold">Vue calendrier</span>
-        <UiStatChip :value="`${calendarEvents.length} événements`" color="info" />
-      </v-card-title>
-      <v-card-text>
-        <div ref="calendarContainerRef" class="calendar-page__slot">
-          <ClientOnly>
-            <FullCalendar ref="fullCalendarRef" :options="calendarOptions" />
-          </ClientOnly>
-        </div>
-      </v-card-text>
-    </v-card>
+    <div v-else class="calendar-page__slot">
+      <ClientOnly>
+        <FullCalendar :options="calendarOptions" />
+      </ClientOnly>
+    </div>
 
     <v-dialog v-model="isCreateDialogOpen" max-width="640">
       <v-card>
