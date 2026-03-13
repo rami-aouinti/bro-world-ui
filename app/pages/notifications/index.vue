@@ -4,7 +4,7 @@ import UiListCard from '~/components/ui/UiListCard.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import { useNotificationsApi } from '~/composables/api/useNotificationsApi'
 import { useNotificationTarget } from '~/composables/useNotificationTarget'
-import type { NotificationRead } from '~/types/api/notification'
+import type { NotificationListResponse, NotificationRead } from '~/types/api/notification'
 import { useMercureEventSource } from '~/composables/useMercureEventSource'
 
 definePageMeta({
@@ -16,7 +16,7 @@ const notificationsApi = useNotificationsApi()
 const authSession = useAuthSessionStore()
 const isLoading = ref(false)
 const errorMessage = ref('')
-const notificationsResponse = ref<any>(null)
+const notificationsResponse = ref<NotificationListResponse | null>(null)
 const notifications = ref<NotificationRead[]>([])
 const { getNotificationTarget } = useNotificationTarget()
 
@@ -29,7 +29,7 @@ const loadNotifications = async () => {
     isLoading.value = true
     errorMessage.value = ''
     notificationsResponse.value = await notificationsApi.getNotifications(100, 0)
-    notifications.value = notificationsResponse?.value?.items ?? []
+    notifications.value = notificationsResponse.value?.items ?? []
   }
   catch (error) {
     console.error(error)

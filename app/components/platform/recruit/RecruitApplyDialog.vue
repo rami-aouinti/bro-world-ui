@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { RecruitJob } from '~/data/platform/recruit'
+import type { RecruitResume } from '~/types/api/recruitResume'
 
 const modelValue = defineModel<boolean>({ required: true })
 const applyForm = defineModel<{ firstName: string, lastName: string, email: string, coverLetter: string }>('applyForm', { required: true })
@@ -7,16 +8,20 @@ const resumeForm = defineModel<{ title: string, description: string, skillTitle:
 const resumeMode = defineModel<'existing' | 'new' | 'pdf'>('resumeMode', { required: true })
 const selectedResumeId = defineModel<string>('selectedResumeId', { required: true })
 
-defineProps<{
+const props = defineProps<{
   selectedApplyJob: RecruitJob | null
   applyError: string
   applyLoading: boolean
   canSubmitApplication: boolean
   resumesStore: ReturnType<typeof useRecruitResumesStore>
-  selectedResume: any
+  selectedResume: RecruitResume | null
   resumeSaving: boolean
   resumeDeleting: boolean
 }>()
+
+
+const selectedExperience = computed(() => props.selectedResume?.experiences[0] ?? null)
+const selectedSkill = computed(() => props.selectedResume?.skills[0] ?? null)
 
 defineEmits<{
   close: []
@@ -62,11 +67,11 @@ defineEmits<{
             />
           </v-col>
 
-          <template v-if="resumeMode === 'existing' && selectedResume">
-            <v-col cols="12" md="6"><v-text-field v-model="selectedResume.experiences[0].title" label="Experience title" variant="outlined" density="compact" /></v-col>
-            <v-col cols="12" md="6"><v-text-field v-model="selectedResume.skills[0].title" label="Skill title" variant="outlined" density="compact" /></v-col>
-            <v-col cols="12" md="6"><v-textarea v-model="selectedResume.experiences[0].description" label="Experience description" rows="2" auto-grow variant="outlined" density="compact" /></v-col>
-            <v-col cols="12" md="6"><v-textarea v-model="selectedResume.skills[0].description" label="Skill description" rows="2" auto-grow variant="outlined" density="compact" /></v-col>
+          <template v-if="resumeMode === 'existing' && selectedResume && selectedExperience && selectedSkill">
+            <v-col cols="12" md="6"><v-text-field v-model="selectedExperience.title" label="Experience title" variant="outlined" density="compact" /></v-col>
+            <v-col cols="12" md="6"><v-text-field v-model="selectedSkill.title" label="Skill title" variant="outlined" density="compact" /></v-col>
+            <v-col cols="12" md="6"><v-textarea v-model="selectedExperience.description" label="Experience description" rows="2" auto-grow variant="outlined" density="compact" /></v-col>
+            <v-col cols="12" md="6"><v-textarea v-model="selectedSkill.description" label="Skill description" rows="2" auto-grow variant="outlined" density="compact" /></v-col>
             <v-col cols="12">
               <div class="d-flex ga-2 justify-end">
                 <v-btn color="secondary" variant="tonal" :loading="resumeSaving" @click="$emit('saveResume')">Edit this resume</v-btn>

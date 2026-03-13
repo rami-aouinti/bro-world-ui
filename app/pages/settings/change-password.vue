@@ -33,8 +33,18 @@ const onSubmit = async () => {
     form.newPassword = ''
     form.confirmPassword = ''
   }
-  catch (error: any) {
-    errorMessage.value = error?.data?.message || 'Unable to update password.'
+  catch (error: unknown) {
+    const apiMessage = typeof error === 'object'
+      && error !== null
+      && 'data' in error
+      && typeof error.data === 'object'
+      && error.data !== null
+      && 'message' in error.data
+      && typeof error.data.message === 'string'
+      ? error.data.message
+      : null
+
+    errorMessage.value = apiMessage || 'Unable to update password.'
   }
   finally {
     loading.value = false
