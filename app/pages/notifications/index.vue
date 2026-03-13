@@ -13,7 +13,8 @@ definePageMeta({
 })
 
 const notificationsApi = useNotificationsApi()
-const { t } = useI18n()
+const { normalizeError } = useApiError()
+const { $errorLogger } = useNuxtApp()
 const authSession = useAuthSessionStore()
 const isLoading = ref(false)
 const errorMessage = ref('')
@@ -33,8 +34,17 @@ const loadNotifications = async () => {
     notifications.value = notificationsResponse.value?.items ?? []
   }
   catch (error) {
-    console.error(error)
-    errorMessage.value = t('notifications.errors.load')
+    const normalized = normalizeError(error, {
+      domain: 'notifications',
+      action: 'load',
+      fallbackKey: 'notifications.errors.load',
+    })
+    $errorLogger(error, {
+      area: 'notifications',
+      action: 'load',
+      status: normalized.status,
+    })
+    errorMessage.value = normalized.message
   }
   finally {
     isLoading.value = false

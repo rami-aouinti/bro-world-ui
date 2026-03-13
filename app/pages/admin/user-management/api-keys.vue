@@ -7,6 +7,7 @@ import UiEntityActionButtons from '~/components/ui/UiEntityActionButtons.vue'
 import UiTableToolbar from '~/components/ui/UiTableToolbar.vue'
 import { useApiKeysStore } from '~/stores/apiKeys'
 import type { ApiKey } from '~/types/api/apiKey'
+import { validateAdminApiKeyForm } from '~/validation/schemas'
 
 definePageMeta({
   layout: 'admin',
@@ -36,6 +37,8 @@ const formMode = ref<'create' | 'edit' | 'patch'>('create')
 const selectedItem = ref<ApiKey | null>(null)
 const apiKeyToDeleteId = ref('')
 const form = reactive({ token: '', description: '' })
+const formValidationErrors = ref<Partial<Record<'description' | 'token', string[]>>>({})
+const formValidationSummary = ref<string[]>([])
 
 const headers = computed(() => [
   { title: t('admin.apiKeys.headers.description'), key: 'description', sortable: true },
@@ -80,6 +83,8 @@ const showEntity = async (id: string) => {
 
 const openCreateDialog = () => {
   formMode.value = 'create'
+  formValidationErrors.value = {}
+  formValidationSummary.value = []
   Object.assign(form, { token: '', description: '' })
   formDialog.value = true
 }
@@ -87,11 +92,21 @@ const openCreateDialog = () => {
 const openEditDialog = (item: ApiKey, patch = false) => {
   selectedItem.value = item
   formMode.value = patch ? 'patch' : 'edit'
+  formValidationErrors.value = {}
+  formValidationSummary.value = []
   Object.assign(form, { token: item.token, description: item.description })
   formDialog.value = true
 }
 
 const submitForm = async () => {
+  const validation = validateAdminApiKeyForm(form, formMode.value, t)
+  formValidationErrors.value = validation.fieldErrors
+  formValidationSummary.value = validation.summary
+
+  if (!validation.isValid) {
+    return
+  }
+
   submitting.value = true
   try {
     if (formMode.value === 'create') {
@@ -215,9 +230,15 @@ onMounted(async () => {
       :title="formTitle"
       max-width="560"
       persistent
-    >
-      <v-text-field v-model="form.description" :label="t('admin.apiKeys.form.description')" class="mb-2" />
-      <v-text-field v-model="form.token" :label="t('admin.apiKeys.form.token')" :disabled="formMode === 'patch'" />
+>
+      <v-alert v-if="formValidationSummary.length" type="error" variant="tonal" class="mb-3" role="alert">
+        <p class="font-weight-bold mb-1">{{ t('validation.summaryTitle') }}</p>
+        <ul class="pl-4 mb-0">
+          <li v-for="message in formValidationSummary" :key="message">{{ message }}</li>
+        </ul>
+      </v-alert>
+      <v-text-field v-model="form.description" :label="t('admin.apiKeys.form.description')" class="mb-2" :error="Boolean(formValidationErrors.description?.length)" :error-messages="formValidationErrors.description" />
+      <v-text-field v-model="form.token" :label="t('admin.apiKeys.form.token')" :disabled="formMode === 'patch'" :error="Boolean(formValidationErrors.token?.length)" :error-messages="formValidationErrors.token" />
 
       <template #actions>
         <v-btn variant="text" @click="formDialog = false">{{ t('admin.common.cancel') }}</v-btn>

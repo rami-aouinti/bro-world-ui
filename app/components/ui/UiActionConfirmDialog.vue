@@ -1,6 +1,8 @@
 <script setup lang="ts">
 const model = defineModel<boolean>({ default: false })
 
+const lastFocusedElement = ref<HTMLElement | null>(null)
+
 interface Props {
   title: string
   message: string
@@ -21,6 +23,20 @@ const emit = defineEmits<{
   confirm: []
 }>()
 
+
+watch(model, (isOpen, wasOpen) => {
+  if (isOpen && !wasOpen) {
+    lastFocusedElement.value = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    return
+  }
+
+  if (!isOpen && wasOpen) {
+    nextTick(() => {
+      lastFocusedElement.value?.focus()
+    })
+  }
+})
+
 const closeDialog = () => {
   model.value = false
 }
@@ -31,7 +47,7 @@ const confirmAction = () => {
 </script>
 
 <template>
-  <v-dialog v-model="model" :max-width="maxWidth">
+  <v-dialog v-model="model" :max-width="maxWidth" retain-focus>
     <v-card rounded="xl">
       <v-card-title>{{ title }}</v-card-title>
       <v-card-text>{{ message }}</v-card-text>

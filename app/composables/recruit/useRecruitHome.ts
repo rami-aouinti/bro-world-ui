@@ -1,4 +1,5 @@
 import type { RecruitContractType, RecruitJob } from '~/data/platform/recruit'
+import { validateRecruitApplyForm } from '~/validation/schemas'
 
 interface RecruitJobsApiResponse {
   jobs?: RecruitJob[]
@@ -119,7 +120,11 @@ export const useRecruitHome = () => {
   const applicationId = computed(() => String(route.query.applicationId ?? slug.value))
 
   const { initSession, isAuthenticated } = useAuth()
+
+  const { t } = useI18n()
   const { apiFetch } = useApiClient()
+  const { normalizeError } = useApiError()
+  const { $errorLogger } = useNuxtApp()
   const authSession = useAuthSessionStore()
   const resumesStore = useRecruitResumesStore()
 
@@ -280,16 +285,32 @@ export const useRecruitHome = () => {
     uploadedResumeFile.value = Array.isArray(value) ? (value[0] ?? null) : value
   }
 
+  const applyValidation = computed(() => validateRecruitApplyForm({
+    firstName: applyForm.value.firstName,
+    lastName: applyForm.value.lastName,
+    email: applyForm.value.email,
+    coverLetter: applyForm.value.coverLetter,
+    resumeMode: resumeMode.value,
+    selectedResumeId: selectedResumeId.value,
+    resumeTitle: resumeForm.value.title,
+    resumeDescription: resumeForm.value.description,
+    uploadedResumeFile: uploadedResumeFile.value,
+  }, t))
+
   const canSubmitApplication = computed(() => {
-    return canSubmitRecruitApplication({
-      hasSelectedJob: Boolean(selectedApplyJob.value),
-      coverLetter: applyForm.value.coverLetter,
-      resumeMode: resumeMode.value,
-      selectedResumeId: selectedResumeId.value,
-      resumeTitle: resumeForm.value.title,
-      resumeDescription: resumeForm.value.description,
-      uploadedResumeFile: uploadedResumeFile.value,
-    })
+    return Boolean(
+      selectedApplyJob.value
+      && applyValidation.value.isValid
+      && canSubmitRecruitApplication({
+        hasSelectedJob: Boolean(selectedApplyJob.value),
+        coverLetter: applyForm.value.coverLetter,
+        resumeMode: resumeMode.value,
+        selectedResumeId: selectedResumeId.value,
+        resumeTitle: resumeForm.value.title,
+        resumeDescription: resumeForm.value.description,
+        uploadedResumeFile: uploadedResumeFile.value,
+      }),
+    )
   })
 
   const normalizeJobsResponse = (response: RecruitJobsApiResponse | null) => {
@@ -422,8 +443,14 @@ export const useRecruitHome = () => {
       await refresh()
       closeOwnerDialogs()
       return true
-    } catch {
-      ownerActionError.value = "La création de l'offre a échoué."
+    } catch (error) {
+      const normalized = normalizeError(error, {
+        domain: 'platform.recruit.home',
+        action: 'createJob',
+        fallbackKey: 'platform.recruit.home.errors.createJob',
+      })
+      $errorLogger(error, { area: 'platform.recruit.home', action: 'createJob', status: normalized.status })
+      ownerActionError.value = normalized.message
       return false
     } finally {
       createLoading.value = false
@@ -459,8 +486,14 @@ export const useRecruitHome = () => {
       await refresh()
       closeOwnerDialogs()
       return true
-    } catch {
-      ownerActionError.value = "La mise à jour de l'offre a échoué."
+    } catch (error) {
+      const normalized = normalizeError(error, {
+        domain: 'platform.recruit.home',
+        action: 'updateJob',
+        fallbackKey: 'platform.recruit.home.errors.updateJob',
+      })
+      $errorLogger(error, { area: 'platform.recruit.home', action: 'updateJob', status: normalized.status })
+      ownerActionError.value = normalized.message
       return false
     } finally {
       editLoading.value = false
@@ -483,8 +516,14 @@ export const useRecruitHome = () => {
       await refresh()
       closeOwnerDialogs()
       return true
-    } catch {
-      ownerActionError.value = "La suppression de l'offre a échoué."
+    } catch (error) {
+      const normalized = normalizeError(error, {
+        domain: 'platform.recruit.home',
+        action: 'deleteJob',
+        fallbackKey: 'platform.recruit.home.errors.deleteJob',
+      })
+      $errorLogger(error, { area: 'platform.recruit.home', action: 'deleteJob', status: normalized.status })
+      ownerActionError.value = normalized.message
       return false
     } finally {
       deleteLoading.value = false
@@ -493,6 +532,7 @@ export const useRecruitHome = () => {
 
   const submitApply = async () => {
     if (!selectedApplyJob.value || !canSubmitApplication.value) {
+      applyError.value = applyValidation.value.summary[0] ?? ''
       return false
     }
 
@@ -543,8 +583,14 @@ export const useRecruitHome = () => {
       await refresh()
       closeApplyDialog()
       return true
-    } catch {
-      applyError.value = 'La candidature a échoué. Vérifiez les informations et réessayez.'
+    } catch (error) {
+      const normalized = normalizeError(error, {
+        domain: 'platform.recruit.home',
+        action: 'submitApplication',
+        fallbackKey: 'platform.recruit.home.errors.submitApplication',
+      })
+      $errorLogger(error, { area: 'platform.recruit.home', action: 'submitApplication', status: normalized.status })
+      applyError.value = normalized.message
       return false
     } finally {
       applyLoading.value = false
@@ -570,8 +616,14 @@ export const useRecruitHome = () => {
           description: item.description.trim(),
         })),
       }, applicationSlug.value)
-    } catch {
-      applyError.value = 'La mise à jour du CV a échoué.'
+    } catch (error) {
+      const normalized = normalizeError(error, {
+        domain: 'platform.recruit.home',
+        action: 'updateResume',
+        fallbackKey: 'platform.recruit.home.errors.updateResume',
+      })
+      $errorLogger(error, { area: 'platform.recruit.home', action: 'updateResume', status: normalized.status })
+      applyError.value = normalized.message
     } finally {
       resumeSaving.value = false
     }
@@ -591,8 +643,14 @@ export const useRecruitHome = () => {
       if (!selectedResumeId.value) {
         resumeMode.value = 'new'
       }
-    } catch {
-      applyError.value = 'La suppression du CV a échoué.'
+    } catch (error) {
+      const normalized = normalizeError(error, {
+        domain: 'platform.recruit.home',
+        action: 'deleteResume',
+        fallbackKey: 'platform.recruit.home.errors.deleteResume',
+      })
+      $errorLogger(error, { area: 'platform.recruit.home', action: 'deleteResume', status: normalized.status })
+      applyError.value = normalized.message
     } finally {
       resumeDeleting.value = false
     }
@@ -634,6 +692,7 @@ export const useRecruitHome = () => {
     resumeSaving,
     resumeDeleting,
     canSubmitApplication,
+    applyValidation,
     openCreateDialog,
     openEditDialog,
     openDeleteDialog,

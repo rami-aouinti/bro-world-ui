@@ -44,6 +44,8 @@ const {
   showDialog,
   showEntity,
   submitForm,
+  formValidationErrors,
+  formValidationSummary,
   submitting,
   tableItems,
   userToDeleteId,
@@ -120,16 +122,22 @@ const {
       :title="formTitle"
       max-width="760"
       persistent
-    >
+>
+      <v-alert v-if="formValidationSummary.length" type="error" variant="tonal" class="mb-3" role="alert">
+        <p class="font-weight-bold mb-1">{{ t('validation.summaryTitle') }}</p>
+        <ul class="pl-4 mb-0">
+          <li v-for="message in formValidationSummary" :key="message">{{ message }}</li>
+        </ul>
+      </v-alert>
       <v-row>
-        <v-col cols="12" md="6"><v-text-field v-model="form.username" :label="t('admin.users.form.username')" :disabled="formMode === 'patch'" /></v-col>
-        <v-col cols="12" md="6"><v-text-field v-model="form.email" :label="t('admin.users.form.email')" /></v-col>
-        <v-col cols="12" md="6"><v-text-field v-model="form.firstName" :label="t('admin.users.form.firstName')" /></v-col>
-        <v-col cols="12" md="6"><v-text-field v-model="form.lastName" :label="t('admin.users.form.lastName')" /></v-col>
-        <v-col cols="12" md="6"><v-text-field v-model="form.password" type="password" :label="t('admin.users.form.password')" :hint="t('admin.users.form.passwordHint')" persistent-hint /></v-col>
-        <v-col cols="12" md="6"><v-text-field v-model="form.timezone" :label="t('admin.users.form.timezone')" /></v-col>
-        <v-col cols="12" md="6"><v-text-field v-model="form.language" :label="t('admin.users.form.language')" /></v-col>
-        <v-col cols="12" md="6"><v-text-field v-model="form.locale" :label="t('admin.users.form.locale')" /></v-col>
+        <v-col cols="12" md="6"><v-text-field v-model="form.username" :label="t('admin.users.form.username')" :disabled="formMode === 'patch'" :error="Boolean(formValidationErrors.username?.length)" :error-messages="formValidationErrors.username" /></v-col>
+        <v-col cols="12" md="6"><v-text-field v-model="form.email" :label="t('admin.users.form.email')" :error="Boolean(formValidationErrors.email?.length)" :error-messages="formValidationErrors.email" /></v-col>
+        <v-col cols="12" md="6"><v-text-field v-model="form.firstName" :label="t('admin.users.form.firstName')" :error="Boolean(formValidationErrors.firstName?.length)" :error-messages="formValidationErrors.firstName" /></v-col>
+        <v-col cols="12" md="6"><v-text-field v-model="form.lastName" :label="t('admin.users.form.lastName')" :error="Boolean(formValidationErrors.lastName?.length)" :error-messages="formValidationErrors.lastName" /></v-col>
+        <v-col cols="12" md="6"><v-text-field v-model="form.password" type="password" :label="t('admin.users.form.password')" :hint="t('admin.users.form.passwordHint')" persistent-hint :error="Boolean(formValidationErrors.password?.length)" :error-messages="formValidationErrors.password" /></v-col>
+        <v-col cols="12" md="6"><v-text-field v-model="form.timezone" :label="t('admin.users.form.timezone')" :error="Boolean(formValidationErrors.timezone?.length)" :error-messages="formValidationErrors.timezone" /></v-col>
+        <v-col cols="12" md="6"><v-text-field v-model="form.language" :label="t('admin.users.form.language')" :error="Boolean(formValidationErrors.language?.length)" :error-messages="formValidationErrors.language" /></v-col>
+        <v-col cols="12" md="6"><v-text-field v-model="form.locale" :label="t('admin.users.form.locale')" :error="Boolean(formValidationErrors.locale?.length)" :error-messages="formValidationErrors.locale" /></v-col>
         <v-col cols="12"><v-text-field v-model="form.photo" :label="t('admin.users.form.photoUrl')" /></v-col>
       </v-row>
 
@@ -148,7 +156,7 @@ const {
       <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selectedUser, null, 2) }}</pre>
     </UiActionDialog>
 
-    <v-dialog v-model="rolesDialog" max-width="560">
+    <v-dialog retain-focus v-model="rolesDialog" max-width="560">
       <v-card rounded="xl">
         <v-card-title>{{ t('admin.users.dialogs.userRoles') }}</v-card-title>
         <v-card-text>
@@ -157,7 +165,7 @@ const {
       </v-card>
     </v-dialog>
 
-    <v-dialog v-model="groupsDialog" max-width="700">
+    <v-dialog retain-focus v-model="groupsDialog" max-width="700">
       <v-card rounded="xl">
         <v-card-title>{{ t('admin.users.dialogs.userGroups') }}</v-card-title>
         <v-card-text>

@@ -33,6 +33,8 @@ describe('RecruitApplyDialog', () => {
         selectedResume: null,
         resumeSaving: false,
         resumeDeleting: false,
+        validationErrors: {},
+        validationSummary: [],
       },
       global: {
         stubs: {

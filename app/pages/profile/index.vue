@@ -12,6 +12,8 @@ definePageMeta({
 
 const currentUser = useCurrentUserStore()
 const { t } = useI18n()
+const { normalizeError } = useApiError()
+const { $errorLogger } = useNuxtApp()
 const friendsStore = useFriendsStore()
 
 const profile = ref<UserMeRead | null>(null)
@@ -112,8 +114,17 @@ const loadData = async () => {
     await friendsResult
   }
   catch (error) {
-    console.error(error)
-    loadError.value = t('profilePage.errors.loadSocial')
+    const normalized = normalizeError(error, {
+      domain: 'profilePage',
+      action: 'loadSocial',
+      fallbackKey: 'profilePage.errors.loadSocial',
+    })
+    $errorLogger(error, {
+      area: 'profilePage',
+      action: 'loadData',
+      status: normalized.status,
+    })
+    loadError.value = normalized.message
   }
   finally {
     isLoading.value = false
@@ -128,8 +139,15 @@ const runAction = async (actionKey: string, action: () => Promise<void>) => {
     await action()
   }
   catch (error) {
-    console.error(error)
-    actionError.value = 'Action currently unavailable.'
+    const normalized = normalizeError(error, {
+      fallbackKey: 'errors.actionUnavailable',
+    })
+    $errorLogger(error, {
+      area: 'profilePage',
+      action: actionKey,
+      status: normalized.status,
+    })
+    actionError.value = normalized.message
   }
   finally {
     pendingActionKey.value = ''

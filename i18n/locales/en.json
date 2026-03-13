@@ -67,7 +67,14 @@
       "loadFailed": "Unable to load profile. Please try again.",
       "updateFailed": "Unable to update profile. Please try again.",
       "photoUploadFailed": "Unable to upload profile photo. Please try again."
-    }
+    },
+    "network": "Network error. Please check your connection and try again.",
+    "unauthorized": "Your session has expired. Please sign in again.",
+    "forbidden": "You do not have permission to perform this action.",
+    "notFound": "The requested resource could not be found.",
+    "server": "A server error occurred. Please try again later.",
+    "unknown": "An unexpected error occurred.",
+    "actionUnavailable": "Action currently unavailable."
   },
   "home": {
     "hero": {
@@ -523,6 +530,11 @@
           "subtitle": "Prioritized backlog with owners, ETA and impact",
           "cta": "New ticket"
         }
+      },
+      "companies": {
+        "errors": {
+          "load": "Unable to load CRM companies for this application."
+        }
       }
     },
     "shop": {
@@ -925,6 +937,14 @@
         "deleteDialog": {
           "title": "Delete job offer",
           "confirmPrefix": "Confirm deletion of job offer"
+        },
+        "errors": {
+          "createJob": "Unable to create the job offer.",
+          "updateJob": "Unable to update the job offer.",
+          "deleteJob": "Unable to delete the job offer.",
+          "submitApplication": "Unable to submit your application.",
+          "updateResume": "Unable to update the resume.",
+          "deleteResume": "Unable to delete the resume."
         }
       },
       "admin": {
@@ -1478,7 +1498,23 @@
   "settings": {
     "title": "Platform settings",
     "description": "Configure your personal preferences and platform behavior.",
-    "notice": "More setting options will be available soon."
+    "notice": "More setting options will be available soon.",
+    "notifications": {
+      "errors": {
+        "load": "Unable to load notification preferences.",
+        "update": "Unable to update notification preferences."
+      }
+    },
+    "changePassword": {
+      "errors": {
+        "update": "Unable to update password."
+      }
+    },
+    "deleteAccount": {
+      "errors": {
+        "delete": "Unable to delete account."
+      }
+    }
   },
   "register": {
     "title": "Register",
@@ -1488,7 +1524,15 @@
     "submit": "Create account"
   },
   "validation": {
-    "requiredField": "{field} is required."
+    "summaryTitle": "Please fix the following errors:",
+    "requiredField": "{field} is required.",
+    "minLength": "{field} must contain at least {count} characters.",
+    "maxLength": "{field} must not exceed {count} characters.",
+    "invalidEmail": "{field} must be a valid email address.",
+    "passwordUppercase": "Password must contain at least one uppercase character.",
+    "passwordLowercase": "Password must contain at least one lowercase character.",
+    "passwordNumber": "Password must contain at least one number.",
+    "passwordsDoNotMatch": "Passwords do not match."
   },
   "calendar": {
     "range": {

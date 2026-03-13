@@ -7,6 +7,7 @@ import type { UserGroup } from '~/types/api/userGroup'
 import UiSectionHeader from "~/components/ui/UiSectionHeader.vue"
 import UiEntityActionButtons from '~/components/ui/UiEntityActionButtons.vue'
 import UiTableToolbar from "~/components/ui/UiTableToolbar.vue"
+import { validateAdminUserGroupForm } from '~/validation/schemas'
 
 definePageMeta({
   layout: 'admin',
@@ -30,6 +31,8 @@ const formMode = ref<'create' | 'edit' | 'patch'>('create')
 const selectedGroup = ref<UserGroup | null>(null)
 const groupToDeleteId = ref('')
 const form = reactive({ name: '', role: '' })
+const formValidationErrors = ref<Partial<Record<'name' | 'role', string[]>>>({})
+const formValidationSummary = ref<string[]>([])
 
 const headers = computed(() => [
   { title: t('admin.userGroups.headers.name'), key: 'name', sortable: true },
@@ -56,6 +59,8 @@ const showEntity = async (id: string) => {
 
 const openCreateDialog = () => {
   formMode.value = 'create'
+  formValidationErrors.value = {}
+  formValidationSummary.value = []
   selectedGroup.value = null
   Object.assign(form, { name: '', role: '' })
   formDialog.value = true
@@ -64,11 +69,21 @@ const openCreateDialog = () => {
 const openEditDialog = (group: UserGroup, patch = false) => {
   selectedGroup.value = group
   formMode.value = patch ? 'patch' : 'edit'
+  formValidationErrors.value = {}
+  formValidationSummary.value = []
   Object.assign(form, { name: group.name, role: group.role?.id ?? '' })
   formDialog.value = true
 }
 
 const submitForm = async () => {
+  const validation = validateAdminUserGroupForm(form, t)
+  formValidationErrors.value = validation.fieldErrors
+  formValidationSummary.value = validation.summary
+
+  if (!validation.isValid) {
+    return
+  }
+
   submitting.value = true
   try {
     if (formMode.value === 'create') {
@@ -173,9 +188,15 @@ onMounted(async () => {
       :title="formTitle"
       max-width="560"
       persistent
-    >
-      <v-text-field v-model="form.name" :label="t('admin.userGroups.form.groupName')" class="mb-2" />
-      <v-text-field v-model="form.role" :label="t('admin.userGroups.form.roleId')" />
+>
+      <v-alert v-if="formValidationSummary.length" type="error" variant="tonal" class="mb-3" role="alert">
+        <p class="font-weight-bold mb-1">{{ t('validation.summaryTitle') }}</p>
+        <ul class="pl-4 mb-0">
+          <li v-for="message in formValidationSummary" :key="message">{{ message }}</li>
+        </ul>
+      </v-alert>
+      <v-text-field v-model="form.name" :label="t('admin.userGroups.form.groupName')" class="mb-2" :error="Boolean(formValidationErrors.name?.length)" :error-messages="formValidationErrors.name" />
+      <v-text-field v-model="form.role" :label="t('admin.userGroups.form.roleId')" :error="Boolean(formValidationErrors.role?.length)" :error-messages="formValidationErrors.role" />
 
       <template #actions>
         <v-btn variant="text" @click="formDialog = false">{{ t('admin.common.cancel') }}</v-btn>

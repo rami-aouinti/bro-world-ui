@@ -16,7 +16,7 @@ defineEmits<{
 </script>
 
 <template>
-  <v-dialog v-model="modelValue" max-width="760">
+  <v-dialog retain-focus v-model="modelValue" max-width="760">
     <v-card rounded="xl">
       <v-card-title class="text-h5 py-4 px-6">Edit job posting</v-card-title>
       <v-card-text class="px-6 pb-0">

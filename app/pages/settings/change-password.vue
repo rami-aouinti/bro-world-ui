@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { passwordPolicyChecks } from '~/data/settings-demo'
+import { validateChangePasswordForm } from '~/validation/schemas'
+
+const { t } = useI18n()
 
 definePageMeta({ public: false, requiresAuth: true })
 
 const currentUser = useCurrentUserStore()
+const { normalizeError } = useApiError()
+const { $errorLogger } = useNuxtApp()
 const loading = ref(false)
 const form = reactive({
   currentPassword: '',
@@ -12,13 +17,19 @@ const form = reactive({
 })
 const errorMessage = ref('')
 const successMessage = ref('')
+const validation = ref(validateChangePasswordForm(form, (key) => key))
+
+const runValidation = () => {
+  validation.value = validateChangePasswordForm(form, t)
+  return validation.value.isValid
+}
 
 const onSubmit = async () => {
   errorMessage.value = ''
   successMessage.value = ''
 
-  if (form.newPassword !== form.confirmPassword) {
-    errorMessage.value = 'Passwords do not match.'
+  if (!runValidation()) {
+    errorMessage.value = validation.value.summary[0] ?? ''
     return
   }
 
@@ -34,17 +45,13 @@ const onSubmit = async () => {
     form.confirmPassword = ''
   }
   catch (error: unknown) {
-    const apiMessage = typeof error === 'object'
-      && error !== null
-      && 'data' in error
-      && typeof error.data === 'object'
-      && error.data !== null
-      && 'message' in error.data
-      && typeof error.data.message === 'string'
-      ? error.data.message
-      : null
-
-    errorMessage.value = apiMessage || 'Unable to update password.'
+    const normalized = normalizeError(error, {
+      domain: 'settings.changePassword',
+      action: 'update',
+      fallbackKey: 'settings.changePassword.errors.update',
+    })
+    $errorLogger(error, { area: 'settings.changePassword', action: 'update', status: normalized.status })
+    errorMessage.value = normalized.message
   }
   finally {
     loading.value = false
@@ -62,9 +69,15 @@ const onSubmit = async () => {
         <v-row>
           <v-col cols="12" md="7">
             <v-form @submit.prevent="onSubmit">
-              <v-text-field v-model="form.currentPassword" label="Current password" type="password" variant="outlined" class="mb-3" />
-              <v-text-field v-model="form.newPassword" label="New password" type="password" variant="outlined" class="mb-3" />
-              <v-text-field v-model="form.confirmPassword" label="Confirm new password" type="password" variant="outlined" class="mb-3" />
+              <v-text-field v-model="form.currentPassword" label="Current password" type="password" variant="outlined" class="mb-3" :error="Boolean(validation.fieldErrors.currentPassword?.length)" :error-messages="validation.fieldErrors.currentPassword" />
+              <v-text-field v-model="form.newPassword" label="New password" type="password" variant="outlined" class="mb-3" :error="Boolean(validation.fieldErrors.newPassword?.length)" :error-messages="validation.fieldErrors.newPassword" />
+              <v-text-field v-model="form.confirmPassword" label="Confirm new password" type="password" variant="outlined" class="mb-3" :error="Boolean(validation.fieldErrors.confirmPassword?.length)" :error-messages="validation.fieldErrors.confirmPassword" />
+              <v-alert v-if="validation.summary.length" type="error" variant="tonal" class="mb-3" role="alert">
+                <p class="font-weight-bold mb-1">Validation errors</p>
+                <ul class="pl-4 mb-0">
+                  <li v-for="message in validation.summary" :key="message">{{ message }}</li>
+                </ul>
+              </v-alert>
               <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-3">{{ errorMessage }}</v-alert>
               <v-alert v-if="successMessage" type="success" variant="tonal" class="mb-3">{{ successMessage }}</v-alert>
               <div class="d-flex justify-end">

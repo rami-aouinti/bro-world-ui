@@ -2,6 +2,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useUsersStore } from '~/stores/users'
 import type { UserGroup } from '~/types/api/userGroup'
 import type { UserRead, UserWrite } from '~/types/api/user'
+import { validateAdminUserForm } from '~/validation/schemas'
 
 type FormMode = 'create' | 'edit' | 'patch'
 type TranslateFn = (key: string, params?: Record<string, unknown>) => string
@@ -40,6 +41,8 @@ export const useUserManagementPage = (t: TranslateFn) => {
   const userRelations = ref<Record<string, { roles: string[]; groups: UserGroup[] }>>({})
 
   const form = reactive<UserWrite>(defaultFormState())
+  const formValidationErrors = ref<Partial<Record<'username' | 'email' | 'firstName' | 'lastName' | 'password' | 'timezone' | 'language' | 'locale', string[]>>>({})
+  const formValidationSummary = ref<string[]>([])
 
   const headers = computed(() => [
     { title: '', key: 'photo', sortable: false },
@@ -86,6 +89,8 @@ export const useUserManagementPage = (t: TranslateFn) => {
 
   const resetForm = () => {
     Object.assign(form, defaultFormState())
+    formValidationErrors.value = {}
+    formValidationSummary.value = []
   }
 
   const openCreateDialog = () => {
@@ -96,6 +101,8 @@ export const useUserManagementPage = (t: TranslateFn) => {
 
   const openEditDialog = (user: UserRead, patch = false) => {
     formMode.value = patch ? 'patch' : 'edit'
+    formValidationErrors.value = {}
+    formValidationSummary.value = []
     Object.assign(form, {
       username: user.username,
       firstName: user.firstName,
@@ -154,6 +161,14 @@ export const useUserManagementPage = (t: TranslateFn) => {
 
   const submitForm = async () => {
     if ((formMode.value === 'edit' || formMode.value === 'patch') && !selectedUser.value) {
+      return
+    }
+
+    const validation = validateAdminUserForm(form, formMode.value, t)
+    formValidationErrors.value = validation.fieldErrors
+    formValidationSummary.value = validation.summary
+
+    if (!validation.isValid) {
       return
     }
 
@@ -234,6 +249,8 @@ export const useUserManagementPage = (t: TranslateFn) => {
     showDialog,
     showEntity,
     submitForm,
+    formValidationErrors,
+    formValidationSummary,
     submitting,
     tableItems,
     userToDeleteId,
