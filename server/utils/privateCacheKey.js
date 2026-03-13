@@ -36,6 +36,14 @@ export const buildFunctionalQuerySegment = (query = {}) => {
 }
 
 export const getPrivateResourceIdentifier = (path) => {
+  if (path.startsWith('/api/v1/users/me/applications/latest')) {
+    return 'applications:latest'
+  }
+
+  if (path.startsWith('/api/v1/users/me/applications')) {
+    return 'applications:list'
+  }
+
   if (path.startsWith('/api/v1/users/me/friends/requests/sent')) {
     return 'friends:requests:sent'
   }
