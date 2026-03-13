@@ -92,3 +92,47 @@ const jobStats = computed(() => [
     </section>
   </PlatformSplitLayout>
 </template>
+
+
+<style scoped>
+.recruit-card--interactive {
+  transition:
+    transform var(--recruit-motion-duration-fast, 150ms) var(--recruit-motion-easing, cubic-bezier(0.2, 0, 0, 1)),
+    box-shadow var(--recruit-motion-duration-base, 220ms) var(--recruit-motion-easing, cubic-bezier(0.2, 0, 0, 1));
+  will-change: transform, box-shadow;
+}
+
+.recruit-card--interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+}
+
+.recruit-list-enter-active,
+.recruit-list-leave-active,
+.recruit-list-move {
+  transition:
+    opacity var(--recruit-motion-duration-fast, 150ms) var(--recruit-motion-easing, cubic-bezier(0.2, 0, 0, 1)),
+    transform var(--recruit-motion-duration-base, 220ms) var(--recruit-motion-easing, cubic-bezier(0.2, 0, 0, 1));
+}
+
+.recruit-list-enter-from,
+.recruit-list-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recruit-card--interactive,
+  .recruit-list-enter-active,
+  .recruit-list-leave-active,
+  .recruit-list-move {
+    transition-duration: 1ms !important;
+  }
+
+  .recruit-card--interactive:hover,
+  .recruit-list-enter-from,
+  .recruit-list-leave-to {
+    transform: none !important;
+  }
+}
+</style>
