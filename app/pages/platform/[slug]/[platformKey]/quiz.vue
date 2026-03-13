@@ -31,6 +31,7 @@ const { data: stats, pending: pendingStats, execute: loadStats } = useAsyncData(
 )
 
 const addQuestionDialog = ref(false)
+const addQuestionTrigger = ref<HTMLElement | null>(null)
 const submitting = ref(false)
 const submitError = ref('')
 
@@ -74,6 +75,17 @@ const canSubmit = computed(() => {
   const hasCorrectAnswer = form.value.answers.some(answer => answer.correct)
 
   return hasTitle && hasEnoughAnswers && hasValidAnswers && hasCorrectAnswer
+})
+
+const onOpenAddQuestionDialog = (event: MouseEvent) => {
+  addQuestionTrigger.value = event.currentTarget instanceof HTMLElement ? event.currentTarget : null
+  addQuestionDialog.value = true
+}
+
+watch(addQuestionDialog, (isOpen, wasOpen) => {
+  if (!isOpen && wasOpen) {
+    nextTick(() => addQuestionTrigger.value?.focus())
+  }
 })
 
 const submitQuestion = async () => {
@@ -129,7 +141,7 @@ onMounted(() => {
             </p>
           </div>
 
-          <v-btn v-if="isOwner" color="primary" prepend-icon="mdi-plus" @click="addQuestionDialog = true">
+          <v-btn v-if="isOwner" color="primary" prepend-icon="mdi-plus" @click="onOpenAddQuestionDialog">
             Add question
           </v-btn>
         </v-card-text>
@@ -139,7 +151,7 @@ onMounted(() => {
       <QuizBoard v-else-if="quiz" :quiz="quiz" />
     </template>
 
-    <v-dialog v-model="addQuestionDialog" max-width="720">
+    <v-dialog v-model="addQuestionDialog" max-width="720" retain-focus>
       <v-card>
         <v-card-title class="text-h6">Add a question</v-card-title>
         <v-card-text>
@@ -169,6 +181,7 @@ onMounted(() => {
               variant="text"
               color="error"
               :disabled="form.answers.length <= 2"
+              :aria-label="`Delete answer ${index + 1}`"
               @click="form.answers.splice(index, 1)"
             />
           </div>

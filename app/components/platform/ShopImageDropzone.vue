@@ -54,7 +54,13 @@ const removeFile = (index: number) => {
     <v-list v-if="files.length" class="mt-3" density="compact" variant="text">
       <v-list-item v-for="(file, index) in files" :key="`${file.name}-${index}`" :title="file.name" :subtitle="`${Math.round(file.size / 1024)} KB`">
         <template #append>
-          <v-btn icon="mdi-close" size="x-small" variant="text" @click.stop="removeFile(index)" />
+          <v-btn
+            icon="mdi-close"
+            size="x-small"
+            variant="text"
+            :aria-label="`${$t('common.remove')} ${file.name}`"
+            @click.stop="removeFile(index)"
+          />
         </template>
       </v-list-item>
     </v-list>

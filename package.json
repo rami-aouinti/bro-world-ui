@@ -15,6 +15,7 @@
     "perf:bundle:report": "node scripts/check-bundle-budget.mjs",
     "perf:bundle:diff": "node scripts/create-bundle-diff.mjs",
     "perf:lighthouse": "npx @lhci/cli@0.13.x autorun --config=perf/lighthouserc.json",
+    "test:a11y": "node scripts/check-a11y.mjs",
     "guard:mock-imports": "node scripts/guard-no-mock-imports.mjs",
     "map:mock-data-usage": "node scripts/map-mock-data-usage.mjs"
   },
