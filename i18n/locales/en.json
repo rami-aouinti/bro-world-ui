@@ -1013,6 +1013,36 @@
           "strongMatch": "Strong match",
           "applied": "Applied"
         }
+      },
+      "applyDialog": {
+        "title": "Apply",
+        "jobLabel": "Job",
+        "untitledResume": "Untitled resume",
+        "fields": {
+          "firstName": "First Name",
+          "lastName": "Last Name",
+          "email": "Email",
+          "coverLetter": "Cover Letter",
+          "myResumes": "My resumes",
+          "experienceTitle": "Experience title",
+          "skillTitle": "Skill title",
+          "experienceDescription": "Experience description",
+          "skillDescription": "Skill description",
+          "resumePdf": "Resume PDF",
+          "skillTitleOptional": "Skill title (optional)",
+          "skillDescriptionOptional": "Skill description (optional)"
+        },
+        "resumeModes": {
+          "existing": "Use an existing resume",
+          "new": "Create a new resume",
+          "pdf": "Import a PDF resume"
+        },
+        "actions": {
+          "editResume": "Edit this resume",
+          "deleteResume": "Delete this resume",
+          "close": "Close",
+          "apply": "Apply"
+        }
       }
     },
     "school": {
@@ -1503,7 +1533,8 @@
   "profilePage": {
     "stats": {
       "friends": "Friends",
-      "activeConnections": "Active connections"
+      "activeConnections": "Active connections",
+      "linkedAccounts": "Linked accounts"
     },
     "highlights": {
       "enrichedBio": "Enriched bio"
@@ -1516,6 +1547,11 @@
     },
     "errors": {
       "loadSocial": "Unable to load social relationships."
+    }
+  },
+  "notificationsPage": {
+    "errors": {
+      "loadCalendarEvents": "Unable to load calendar events."
     }
   }
 }

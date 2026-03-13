@@ -28,7 +28,7 @@ const profileStats = computed(() => {
   return [
     { label: t('profilePage.stats.friends'), value: friendsCount.toString(), icon: 'mdi-account-group-outline', color: 'primary' },
     { label: t('profilePage.stats.activeConnections'), value: (profile.value?.sessions?.length || 0).toString(), icon: 'mdi-laptop', color: 'success' },
-    { label: 'Linked accounts', value: (profile.value?.socials?.length || 0).toString(), icon: 'mdi-link-variant', color: 'info' },
+    { label: t('profilePage.stats.linkedAccounts'), value: (profile.value?.socials?.length || 0).toString(), icon: 'mdi-link-variant', color: 'info' },
     { label: 'Community level', value: friendsCount > 15 ? 'Expert' : friendsCount > 7 ? 'Confirmed' : 'New', icon: 'mdi-star-circle-outline', color: 'warning' },
   ]
 })
