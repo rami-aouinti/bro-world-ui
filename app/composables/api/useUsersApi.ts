@@ -25,6 +25,23 @@ export const useUsersApi = () => {
   const { apiFetch } = useApiClient()
   const basePath = '/api/v1/user'
 
+  const normalizeFriendListResponse = (response: unknown): UserFriendRead[] => {
+    if (Array.isArray(response)) return response as UserFriendRead[]
+    if (!response || typeof response !== 'object') return []
+
+    const payload = response as Record<string, unknown>
+    const candidates = [
+      payload.data,
+      payload.items,
+      payload.results,
+      payload.users,
+      payload['hydra:member'],
+    ]
+
+    const list = candidates.find(Array.isArray)
+    return (list ?? []) as UserFriendRead[]
+  }
+
   return {
 
     getMe() {
@@ -45,17 +62,21 @@ export const useUsersApi = () => {
       return users.find(user => user.username.toLowerCase() === username.trim().toLowerCase()) ?? null
     },
 
-    listMyFriends() {
-      return apiFetch<UserFriendRead[]>('/api/v1/users/me/friends', { method: 'GET' })
+    async listMyFriends() {
+      const response = await apiFetch<unknown>('/api/v1/users/me/friends', { method: 'GET' })
+      return normalizeFriendListResponse(response)
     },
-    listMyFriendRequests() {
-      return apiFetch<UserFriendRead[]>('/api/v1/users/me/friends/requests', { method: 'GET' })
+    async listMyFriendRequests() {
+      const response = await apiFetch<unknown>('/api/v1/users/me/friends/requests', { method: 'GET' })
+      return normalizeFriendListResponse(response)
     },
-    listMySentFriendRequests() {
-      return apiFetch<UserFriendRead[]>('/api/v1/users/me/friends/requests/sent', { method: 'GET' })
+    async listMySentFriendRequests() {
+      const response = await apiFetch<unknown>('/api/v1/users/me/friends/requests/sent', { method: 'GET' })
+      return normalizeFriendListResponse(response)
     },
-    listMyBlockedUsers() {
-      return apiFetch<UserFriendRead[]>('/api/v1/users/me/friends/blocked', { method: 'GET' })
+    async listMyBlockedUsers() {
+      const response = await apiFetch<unknown>('/api/v1/users/me/friends/blocked', { method: 'GET' })
+      return normalizeFriendListResponse(response)
     },
     sendFriendRequest(userId: UUID) {
       return apiFetch<void>(`/api/v1/users/${encodeURIComponent(userId)}/friends/request`, { method: 'POST' })
