@@ -234,7 +234,6 @@ onMounted(async () => {
             <v-list v-if="latestApplicationsCount" class="pa-0 bg-transparent">
               <v-list-item v-for="application in latestApplications" :key="application.id" class="px-0">
                 <v-list-item-title>{{ application.title }}</v-list-item-title>
-                <v-list-item-subtitle>{{ application.platformName }} • {{ application.slug }}</v-list-item-subtitle>
                 <template #append>
                   <v-chip size="small" :color="applicationStatusColor(application.status)" variant="tonal">{{ application.status }}</v-chip>
                 </template>

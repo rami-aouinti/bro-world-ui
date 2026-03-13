@@ -42,7 +42,7 @@ const fakeBadges = [
 
   <v-list class="bg-transparent mb-2" nav>
     <v-list-item class="px-2l" to="/profile" prepend-icon="mdi-account-outline" title="Profile" rounded="lg" />
-    <v-list-item class="px-2l" to="/settings/basic-info" prepend-icon="mdi-account-outline" title="Profile" rounded="lg" />
+    <v-list-item class="px-2l" to="/settings/basic-info" prepend-icon="mdi-cog-outline" title="Settings" rounded="lg" />
     <v-list-item class="px-2" to="/profile/blogs" prepend-icon="mdi-post-outline" title="My posts" rounded="lg" />
     <v-list-item class="px-2" to="/profile/applications" prepend-icon="mdi-apps" title="My applications" rounded="lg" />
   </v-list>
