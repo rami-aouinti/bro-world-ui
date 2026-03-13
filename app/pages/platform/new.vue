@@ -16,6 +16,8 @@ const router = useRouter()
 const platformsApi = usePlatformsApi()
 const pluginsApi = usePluginsApi()
 const applicationsStore = useApplicationsStore()
+const { normalizeError } = useApiError()
+const { $errorLogger } = useNuxtApp()
 
 const step = ref(1)
 const loading = ref(true)
@@ -55,8 +57,14 @@ const loadWizardData = async () => {
     availablePlatforms.value = platforms
     availablePlugins.value = plugins
   }
-  catch {
-    errorMessage.value = t('platform.wizard.errors.load')
+  catch (error) {
+    const normalized = normalizeError(error, {
+      domain: 'platform.wizard',
+      action: 'load',
+      fallbackKey: 'platform.wizard.errors.load',
+    })
+    $errorLogger(error, { area: 'platform.new', action: 'loadWizardData', status: normalized.status })
+    errorMessage.value = normalized.message
   }
   finally {
     loading.value = false
@@ -149,8 +157,14 @@ const submit = async () => {
 
     await router.push('/platform')
   }
-  catch {
-    errorMessage.value = t('platform.wizard.errors.create')
+  catch (error) {
+    const normalized = normalizeError(error, {
+      domain: 'platform.wizard',
+      action: 'create',
+      fallbackKey: 'platform.wizard.errors.create',
+    })
+    $errorLogger(error, { area: 'platform.new', action: 'create', status: normalized.status })
+    errorMessage.value = normalized.message
   }
   finally {
     creating.value = false

@@ -4,6 +4,8 @@ import { passwordPolicyChecks } from '~/data/settings-demo'
 definePageMeta({ public: false, requiresAuth: true })
 
 const currentUser = useCurrentUserStore()
+const { normalizeError } = useApiError()
+const { $errorLogger } = useNuxtApp()
 const loading = ref(false)
 const form = reactive({
   currentPassword: '',
@@ -34,17 +36,13 @@ const onSubmit = async () => {
     form.confirmPassword = ''
   }
   catch (error: unknown) {
-    const apiMessage = typeof error === 'object'
-      && error !== null
-      && 'data' in error
-      && typeof error.data === 'object'
-      && error.data !== null
-      && 'message' in error.data
-      && typeof error.data.message === 'string'
-      ? error.data.message
-      : null
-
-    errorMessage.value = apiMessage || 'Unable to update password.'
+    const normalized = normalizeError(error, {
+      domain: 'settings.changePassword',
+      action: 'update',
+      fallbackKey: 'settings.changePassword.errors.update',
+    })
+    $errorLogger(error, { area: 'settings.changePassword', action: 'update', status: normalized.status })
+    errorMessage.value = normalized.message
   }
   finally {
     loading.value = false
