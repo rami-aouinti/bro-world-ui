@@ -506,8 +506,8 @@ const formatRelativeTime = (dateInput?: string | null) => {
 
 .comment-reply-composer-panel {
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(var(--v-theme-on-surface), 0.06);
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.1);
   padding: 6px 12px 8px;
 }
 
@@ -519,7 +519,7 @@ const formatRelativeTime = (dateInput?: string | null) => {
 .comment-reply-composer-input :deep(.v-field__input) {
   min-height: 32px;
   padding-top: 2px;
-  color: rgba(255, 255, 255, 0.92);
+  color: rgba(var(--v-theme-on-surface), 0.92);
 }
 
 .comment-reply-composer-actions {
