@@ -53,6 +53,7 @@ const ENTITY_CACHE_PREFIXES = [
   '/api/v1/recruit/public',
   '/api/v1/recruit/private',
   '/api/v1/private/blogs',
+  '/api/v1/private/stories',
   '/api/v1/blog/',
   '/api/v1/profile',
   '/api/v1/events',
@@ -93,6 +94,10 @@ const ENTITY_CACHE_INVALIDATION_RULES: Array<{ routePrefix: string, cachePrefixe
   {
     routePrefix: '/api/v1/private/blog/',
     cachePrefixes: ['/api/v1/private/blogs'],
+  },
+  {
+    routePrefix: '/api/v1/private/stories',
+    cachePrefixes: ['/api/v1/private/stories'],
   },
   {
     routePrefix: '/api/v1/users/me',
@@ -193,12 +198,12 @@ const CACHE_RESOURCE_POLICIES: CacheResourcePolicy[] = [
   {
     name: 'blog',
     ttlSeconds: TEN_MINUTES_IN_SECONDS,
-    isMatch: path => path.startsWith('/api/v1/private/blogs') || path.startsWith('/api/v1/public/blogs') || path.startsWith('/api/v1/blogs') || path.startsWith('/api/v1/blog/'),
+    isMatch: path => path.startsWith('/api/v1/private/blogs') || path.startsWith('/api/v1/public/blogs') || path.startsWith('/api/v1/blogs') || path.startsWith('/api/v1/blog/') || path.startsWith('/api/v1/private/stories'),
     invalidationRules: [
       {
         event: 'blog.publish_or_update_or_delete',
-        when: (path, method) => MUTATION_METHODS.has(method) && (path.startsWith('/api/v1/private/blogs') || path.startsWith('/api/v1/private/blog/') || path.startsWith('/api/v1/blogs')),
-        cachePrefixes: ['/api/v1/private/blogs', '/api/v1/blogs'],
+        when: (path, method) => MUTATION_METHODS.has(method) && (path.startsWith('/api/v1/private/blogs') || path.startsWith('/api/v1/private/blog/') || path.startsWith('/api/v1/blogs') || path.startsWith('/api/v1/private/stories')),
+        cachePrefixes: ['/api/v1/private/blogs', '/api/v1/blogs', '/api/v1/private/stories'],
         publicTags: ['blog:*'],
       },
     ],
