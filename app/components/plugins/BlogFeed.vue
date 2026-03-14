@@ -59,13 +59,20 @@ const sharePostTarget = ref<BlogRead['posts'][number] | null>(null)
 const shareDraftContent = ref('')
 const shareAuthors = ref<BlogAuthor[]>([])
 const storyPhotoInput = ref<HTMLInputElement | null>(null)
+const storyViewerOpen = ref(false)
+const activeStoryGroupIndex = ref(0)
+const activeStoryIndex = ref(0)
 
 const stories = computed(() => storiesStore.stories)
 const isLoadingStories = computed(() => storiesStore.loading)
-const ownStoryIds = computed(() => {
-  const ownerGroup = stories.value.find(storyGroup => storyGroup.owner)
-  return new Set((ownerGroup?.stories ?? []).map(story => story.id))
-})
+const ownerStoryGroup = computed(() => stories.value.find(storyGroup => storyGroup.owner) ?? null)
+const visibleStoryGroups = computed(() => stories.value.filter(storyGroup => !storyGroup.owner))
+const storyViewerGroup = computed(() => visibleStoryGroups.value[activeStoryGroupIndex.value] ?? null)
+const storyViewerItems = computed(() => storyViewerGroup.value?.stories ?? [])
+const activeStoryItem = computed(() => storyViewerItems.value[activeStoryIndex.value] ?? null)
+const currentStoryOwnerName = computed(() => storyViewerGroup.value?.user.username ?? '')
+const currentStoryOwnerPhoto = computed(() => storyViewerGroup.value?.user.photo ?? null)
+const currentUserStoryCover = computed(() => ownerStoryGroup.value?.stories[0]?.imageUrl ?? authSession.profile?.photo ?? null)
 
 const postAuthorName = (post: BlogRead['posts'][number]) => `${post.author?.firstName ?? 'Unknown'} ${post.author?.lastName ?? 'User'}`.trim()
 const currentUserName = computed(() => {
@@ -363,6 +370,55 @@ const triggerStoryPicker = () => {
   storyPhotoInput.value?.click()
 }
 
+const openStoryViewer = (groupIndex: number) => {
+  if (!visibleStoryGroups.value[groupIndex]?.stories.length) {
+    return
+  }
+
+  activeStoryGroupIndex.value = groupIndex
+  activeStoryIndex.value = 0
+  storyViewerOpen.value = true
+}
+
+const closeStoryViewer = () => {
+  storyViewerOpen.value = false
+}
+
+const goToPreviousStory = () => {
+  if (!storyViewerItems.value.length) {
+    return
+  }
+
+  if (activeStoryIndex.value > 0) {
+    activeStoryIndex.value -= 1
+    return
+  }
+
+  if (activeStoryGroupIndex.value > 0) {
+    activeStoryGroupIndex.value -= 1
+    activeStoryIndex.value = Math.max((visibleStoryGroups.value[activeStoryGroupIndex.value]?.stories.length ?? 1) - 1, 0)
+  }
+}
+
+const goToNextStory = () => {
+  if (!storyViewerItems.value.length) {
+    return
+  }
+
+  if (activeStoryIndex.value < storyViewerItems.value.length - 1) {
+    activeStoryIndex.value += 1
+    return
+  }
+
+  if (activeStoryGroupIndex.value < visibleStoryGroups.value.length - 1) {
+    activeStoryGroupIndex.value += 1
+    activeStoryIndex.value = 0
+    return
+  }
+
+  closeStoryViewer()
+}
+
 const triggerModalPhotoPicker = () => {
   if (!props.canInteract) {
     return
@@ -407,10 +463,6 @@ const handleStorySelected = async (event: Event) => {
   finally {
     input.value = ''
   }
-}
-
-const removeStory = async (storyId: string) => {
-  await runAction(() => storiesStore.deleteStory(storyId))
 }
 
 const handlePhotoSelected = async (event: Event) => {
@@ -828,39 +880,80 @@ const submitSharePost = async () => {
       <v-progress-circular indeterminate color="primary" size="22" />
     </div>
 
-    <div v-else-if="stories.length" class="d-flex ga-3 stories-strip">
-      <v-sheet
-        v-for="group in stories"
-        :key="group.user.id"
-        class="story-group pa-2"
-        rounded="lg"
-        variant="tonal"
+    <div v-else-if="stories.length" class="stories-strip">
+      <button
+        type="button"
+        class="story-card story-card--create"
+        :disabled="!canInteract"
+        @click="triggerStoryPicker"
       >
-        <div class="d-flex align-center ga-2 mb-2">
-          <UiAvatar :src="group.user.photo ?? undefined" :name="group.user.username" size="xs" />
-          <span class="text-caption font-weight-medium">{{ group.user.username }}</span>
+        <v-img :src="currentUserStoryCover ?? undefined" cover class="story-card-image" />
+        <div class="story-card-create-action">
+          <v-icon icon="mdi-plus" size="28" />
         </div>
+        <div class="story-card-footer">Créer une story</div>
+      </button>
 
-        <div class="d-flex ga-2">
-          <div v-for="story in group.stories" :key="story.id" class="story-item position-relative">
-            <v-img :src="story.imageUrl" width="90" height="120" cover class="rounded-lg" />
-            <v-btn
-              v-if="ownStoryIds.has(story.id)"
-              icon="mdi-delete"
-              size="x-small"
-              color="error"
-              class="story-delete-btn"
-              @click="removeStory(story.id)"
-            />
-          </div>
+      <button
+        v-for="(group, groupIndex) in visibleStoryGroups"
+        :key="group.user.id"
+        type="button"
+        class="story-card"
+        @click="openStoryViewer(groupIndex)"
+      >
+        <v-img :src="group.stories[0]?.imageUrl" cover class="story-card-image" />
+        <div class="story-card-overlay" />
+        <div class="story-card-avatar-ring">
+          <UiAvatar :src="group.user.photo ?? undefined" :name="group.user.username" size="sm" />
         </div>
-      </v-sheet>
+        <div class="story-card-footer">{{ group.user.username }}</div>
+      </button>
     </div>
 
     <v-alert v-else type="info" variant="tonal" density="comfortable">
       No story available at the moment.
     </v-alert>
   </v-card>
+
+  <v-dialog v-model="storyViewerOpen" fullscreen transition="dialog-bottom-transition">
+    <div class="story-viewer-backdrop">
+      <div class="story-viewer-frame">
+        <template v-if="activeStoryItem">
+          <div class="story-viewer-progress">
+            <div
+              v-for="(story, index) in storyViewerItems"
+              :key="story.id"
+              class="story-viewer-progress-item"
+              :class="{ 'story-viewer-progress-item--active': index <= activeStoryIndex }"
+            />
+          </div>
+
+          <div class="story-viewer-header">
+            <UiAvatar :src="currentStoryOwnerPhoto ?? undefined" :name="currentStoryOwnerName" size="sm" />
+            <div>
+              <div class="story-viewer-owner">{{ currentStoryOwnerName }}</div>
+              <div class="text-caption text-medium-emphasis">{{ formatRelativeDate(activeStoryItem.createdAt) }}</div>
+            </div>
+            <v-spacer />
+            <v-btn icon="mdi-close" variant="text" color="white" @click="closeStoryViewer" />
+          </div>
+
+          <v-img :src="activeStoryItem.imageUrl" class="story-viewer-image" cover />
+
+          <v-btn
+            icon="mdi-chevron-left"
+            class="story-viewer-nav story-viewer-nav--left"
+            @click="goToPreviousStory"
+          />
+          <v-btn
+            icon="mdi-chevron-right"
+            class="story-viewer-nav story-viewer-nav--right"
+            @click="goToNextStory"
+          />
+        </template>
+      </div>
+    </div>
+  </v-dialog>
 
   <v-dialog v-model="createPostDialog" max-width="720">
     <v-card rounded="xl" class="pa-2">
@@ -1566,18 +1659,156 @@ const submitSharePost = async () => {
 
 
 .stories-strip {
+  display: flex;
+  gap: 12px;
   overflow-x: auto;
   padding-bottom: 4px;
 }
 
-.story-group {
-  min-width: 220px;
+.story-card {
+  position: relative;
+  flex: 0 0 126px;
+  height: 210px;
+  border: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(var(--v-theme-on-surface), 0.08);
+  text-align: left;
+  cursor: pointer;
 }
 
-.story-delete-btn {
+.story-card:disabled {
+  opacity: 0.65;
+}
+
+.story-card-image {
+  width: 100%;
+  height: 100%;
+}
+
+.story-card-overlay {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.08) 30%, rgba(0, 0, 0, 0.8) 100%);
+}
+
+.story-card-avatar-ring {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  border-radius: 999px;
+  padding: 2px;
+  background: rgb(var(--v-theme-primary));
+}
+
+.story-card-footer {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  line-height: 1.2;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.65);
+}
+
+.story-card--create .story-card-footer {
+  text-align: center;
+}
+
+.story-card-create-action {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 48px;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(var(--v-theme-primary));
+  color: #fff;
+  border: 4px solid rgba(var(--v-theme-surface), 1);
+}
+
+.story-viewer-backdrop {
+  min-height: 100vh;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.story-viewer-frame {
+  position: relative;
+  width: min(460px, 100%);
+  height: min(92vh, 820px);
+  border-radius: 18px;
+  overflow: hidden;
+  background: #111;
+}
+
+.story-viewer-image {
+  width: 100%;
+  height: 100%;
+}
+
+.story-viewer-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 14px 10px;
+  color: #fff;
+}
+
+.story-viewer-owner {
+  font-weight: 700;
+}
+
+.story-viewer-progress {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  right: 12px;
+  z-index: 3;
+  display: flex;
+  gap: 5px;
+}
+
+.story-viewer-progress-item {
+  height: 4px;
+  border-radius: 999px;
+  flex: 1;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.story-viewer-progress-item--active {
+  background: #fff;
+}
+
+.story-viewer-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+}
+
+.story-viewer-nav--left {
+  left: 12px;
+}
+
+.story-viewer-nav--right {
+  right: 12px;
 }
 
 .comment-composer {
