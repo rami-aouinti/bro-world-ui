@@ -132,8 +132,8 @@ onMounted(async () => {
             <v-text-field v-model="form.goal" label="Goal" />
             <v-select v-model="form.projectId" label="Project" :items="projects" item-title="name" item-value="id" />
             <v-text-field v-model="form.status" label="Status" />
-            <v-text-field v-model="form.startDate" label="Start date" type="date" />
-            <v-text-field v-model="form.endDate" label="End date" type="date" />
+            <v-text-field v-model="form.startDate" label="Start date" type="datetime-local" />
+            <v-text-field v-model="form.endDate" label="End date" type="datetime-local" />
           </v-card-text>
           <v-card-actions>
             <v-spacer />
