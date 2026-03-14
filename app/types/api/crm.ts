@@ -4,6 +4,22 @@ export interface CrmAssignee {
   id?: UUID
   name?: string
   email?: string
+  firstName?: string
+  lastName?: string
+  photo?: string
+}
+
+export interface CrmPublicUser {
+  id: UUID
+  email: string
+  firstName: string
+  lastName: string
+  photo: string | null
+}
+
+export interface CrmPublicUsersResponse {
+  users: CrmPublicUser[]
+  filters: unknown[]
 }
 
 export interface CrmCompany {
@@ -17,18 +33,26 @@ export interface CrmCompany {
 
 export interface CrmProject {
   id: UUID
+  code?: string | null
+  description?: string | null
   name: string
   companyId: UUID
   status: string | boolean
+  startedAt?: string | null
+  dueAt?: string | null
+  assignees?: CrmAssignee[]
 }
 
 export interface CrmSprint {
   id: UUID
+  project?: Pick<CrmProject, 'id' | 'name' | 'code' | 'description' | 'status'>
+  goal?: string | null
   name: string
   projectId: UUID
   status: string | boolean
   startDate: string | null
   endDate: string | null
+  assignees?: CrmAssignee[]
 }
 
 export interface CrmTaskChild {
@@ -131,6 +155,52 @@ export interface CreateCrmTaskPayload {
   assigneeIds?: UUID[]
 }
 
+
+
+export interface CrmTasksBySprintResponse {
+  items: Array<{
+    sprintId: UUID
+    sprintName: string
+    tasks: CrmTask[]
+  }>
+}
+
+export interface UpdateCrmProjectPayload {
+  name?: string
+  code?: string
+  description?: string
+  companyId?: UUID
+  status?: string
+  startedAt?: string
+  dueAt?: string
+}
+
+export interface UpdateCrmSprintPayload {
+  name?: string
+  goal?: string
+  projectId?: UUID
+  status?: string
+  startDate?: string
+  endDate?: string
+}
+
+export interface UpdateCrmTaskPayload {
+  title?: string
+  description?: string
+  projectId?: UUID
+  sprintId?: UUID
+  status?: string
+  priority?: string
+  dueAt?: string
+  estimatedHours?: number
+}
+
+export interface UpdateCrmTaskRequestPayload {
+  title?: string
+  taskId?: UUID
+  status?: string
+}
+
 export interface CreateCrmTaskRequestPayload {
   title: string
   taskId: UUID
@@ -140,4 +210,3 @@ export interface CreateCrmTaskRequestPayload {
 export interface UpdateCrmTaskRequestStatusPayload {
   status: string
 }
-

@@ -18,6 +18,8 @@ const projects = computed(() => crmStore.getProjects(slug.value))
 const projectsById = computed(() => new Map(projects.value.map(project => [project.id, project.name])))
 const showCreateDialog = ref(false)
 const isMutating = ref(false)
+const goToSprint = (id: string) => navigateTo(`/platform/${slug.value}/crm/sprint/${id}`)
+
 const form = reactive<CreateCrmSprintPayload>({
   name: '',
   goal: '',
@@ -110,11 +112,11 @@ onMounted(async () => {
 
       <v-row>
         <v-col v-for="sprint in sprints" :key="sprint.id" cols="12" md="6">
-          <v-card rounded="xl" class="h-100">
+          <v-card rounded="xl" class="h-100 cursor-pointer" @click="goToSprint(sprint.id)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
                 <p class="text-subtitle-1 font-weight-bold">{{ sprint.name }}</p>
-                <v-btn size="x-small" color="error" variant="tonal" @click="removeSprint(sprint.id)">Delete</v-btn>
+                <v-btn size="x-small" color="error" variant="tonal" @click.stop="removeSprint(sprint.id)">Delete</v-btn>
               </div>
               <p class="text-body-2 mb-1">Project: {{ projectsById.get(sprint.projectId) || sprint.projectId }}</p>
               <p class="text-body-2 mb-2">{{ sprint.startDate }} → {{ sprint.endDate }}</p>
