@@ -92,16 +92,12 @@ export const getCrmNav = (slug: string, isOwner = false): PlatformNavItem[] => {
   const base = `/platform/${slug}/crm`
   return resolveNav('crm', [
     { title: 'platform.crm.nav.home', icon: 'mdi-view-dashboard-outline', to: `${base}/home`, section: 'overview', featureFlag: 'dashboard' },
-    { title: 'platform.crm.nav.companies', icon: 'mdi-office-building-outline', to: `${base}/companies`, section: 'sales', featureFlag: 'companies' },
     { title: 'platform.crm.nav.projects', icon: 'mdi-briefcase-outline', to: `${base}/projects`, section: 'operations', featureFlag: 'projects' },
     { title: 'platform.crm.nav.tasks', icon: 'mdi-view-kanban-outline', to: `${base}/tasks`, section: 'operations', featureFlag: 'tasks' },
-    { title: 'platform.crm.nav.contacts', icon: 'mdi-account-group-outline', to: `${base}/contacts`, section: 'sales', featureFlag: 'contacts' },
-    { title: 'platform.crm.nav.reports', icon: 'mdi-chart-line', to: `${base}/reports`, section: 'overview', featureFlag: 'reports', badge: 'NEW' },
     { title: 'platform.crm.nav.automation', icon: 'mdi-robot-outline', to: `${base}/automation`, section: 'operations', featureFlag: 'automation' },
     { title: 'platform.crm.nav.sprint', icon: 'mdi-run-fast', to: `${base}/sprint`, section: 'operations', featureFlag: 'sprint' },
     { title: 'platform.crm.nav.calendar', icon: 'mdi-calendar-month-outline', to: `${base}/calendar`, section: 'operations', featureFlag: 'calendar' },
     { title: 'platform.crm.nav.settings', icon: 'mdi-cog-outline', to: `${base}/settings`, section: 'operations', featureFlag: 'settings' },
-    { title: 'platform.crm.nav.billing', icon: 'mdi-credit-card-outline', to: `${base}/billing`, section: 'operations', featureFlag: 'billing' },
     { title: 'platform.crm.nav.tickets', icon: 'mdi-ticket-confirmation-outline', to: `${base}/tickets`, section: 'support', featureFlag: 'tickets' },
     { title: 'platform.common.nav.admin', icon: 'mdi-shield-crown-outline', to: `${base}/admin`, section: 'admin', rights: 'owner', featureFlag: 'admin' },
   ], isOwner)
