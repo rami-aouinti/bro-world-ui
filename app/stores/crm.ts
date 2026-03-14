@@ -3,6 +3,8 @@ import { useCrmApi } from '~/composables/api/useCrmApi'
 import type {
   CreateCrmCompanyPayload,
   CreateCrmProjectPayload,
+  CreateCrmSprintPayload,
+  CreateCrmTaskPayload,
   CrmCompany,
   CrmDashboardResponse,
   CrmProject,
@@ -10,6 +12,7 @@ import type {
   CrmTask,
   CrmTaskRequest,
 } from '~/types/api/crm'
+import type { UUID } from '~/types/api/common'
 
 const CACHE_TTL_MS = 60_000
 
@@ -20,6 +23,7 @@ interface CrmApplicationCache {
   projects: CrmProject[]
   sprints: CrmSprint[]
   tasks: CrmTask[]
+  myTasks: CrmTask[]
   taskRequests: CrmTaskRequest[]
 }
 
@@ -30,6 +34,7 @@ const createEmptyCache = (): CrmApplicationCache => ({
   projects: [],
   sprints: [],
   tasks: [],
+  myTasks: [],
   taskRequests: [],
 })
 
@@ -64,6 +69,8 @@ export const useCrmStore = defineStore('crm', () => {
   const getDashboard = (applicationSlug: string) => ensureApplicationCache(applicationSlug).dashboard
   const getProjects = (applicationSlug: string) => ensureApplicationCache(applicationSlug).projects
   const getSprints = (applicationSlug: string) => ensureApplicationCache(applicationSlug).sprints
+  const getTasks = (applicationSlug: string) => ensureApplicationCache(applicationSlug).tasks
+  const getMyTasks = (applicationSlug: string) => ensureApplicationCache(applicationSlug).myTasks
 
   const fetchCompanies = async (applicationSlug: string, force = false) => {
     if (!shouldFetch(applicationSlug, force) && getCompanies(applicationSlug).length > 0) {
@@ -152,6 +159,24 @@ export const useCrmStore = defineStore('crm', () => {
     }
   }
 
+  const fetchMyTasks = async (applicationSlug: string, force = false) => {
+    const cache = ensureApplicationCache(applicationSlug)
+    if (!shouldFetch(applicationSlug, force) && cache.myTasks.length > 0) {
+      return cache.myTasks
+    }
+
+    isLoading.value = true
+    try {
+      const response = await crmApi.getMyTasks(applicationSlug)
+      cache.myTasks = response.items
+      markFetched(applicationSlug)
+      return response.items
+    }
+    finally {
+      isLoading.value = false
+    }
+  }
+
   const fetchTaskRequests = async (applicationSlug: string, force = false) => {
     const cache = ensureApplicationCache(applicationSlug)
     if (!shouldFetch(applicationSlug, force) && cache.taskRequests.length > 0) {
@@ -170,7 +195,6 @@ export const useCrmStore = defineStore('crm', () => {
     }
   }
 
-
   const createCompany = async (applicationSlug: string, payload: CreateCrmCompanyPayload) => {
     const created = await crmApi.createCompany(applicationSlug, payload)
     const cache = ensureApplicationCache(applicationSlug)
@@ -181,6 +205,12 @@ export const useCrmStore = defineStore('crm', () => {
       entityId: created.id,
     })
     return created
+  }
+
+  const deleteCompany = async (applicationSlug: string, id: UUID) => {
+    await crmApi.deleteCompany(applicationSlug, id)
+    const cache = ensureApplicationCache(applicationSlug)
+    cache.companies = cache.companies.filter(company => company.id !== id)
   }
 
   const createProject = async (applicationSlug: string, payload: CreateCrmProjectPayload) => {
@@ -195,6 +225,39 @@ export const useCrmStore = defineStore('crm', () => {
     return created
   }
 
+  const deleteProject = async (applicationSlug: string, id: UUID) => {
+    await crmApi.deleteProject(applicationSlug, id)
+    const cache = ensureApplicationCache(applicationSlug)
+    cache.projects = cache.projects.filter(project => project.id !== id)
+  }
+
+  const createSprint = async (applicationSlug: string, payload: CreateCrmSprintPayload) => {
+    const created = await crmApi.createSprint(applicationSlug, payload)
+    const cache = ensureApplicationCache(applicationSlug)
+    cache.sprints = [created, ...cache.sprints]
+    return created
+  }
+
+  const deleteSprint = async (applicationSlug: string, id: UUID) => {
+    await crmApi.deleteSprint(applicationSlug, id)
+    const cache = ensureApplicationCache(applicationSlug)
+    cache.sprints = cache.sprints.filter(sprint => sprint.id !== id)
+  }
+
+  const createTask = async (applicationSlug: string, payload: CreateCrmTaskPayload) => {
+    const created = await crmApi.createTask(applicationSlug, payload)
+    const cache = ensureApplicationCache(applicationSlug)
+    cache.tasks = [created, ...cache.tasks]
+    return created
+  }
+
+  const deleteTask = async (applicationSlug: string, id: UUID) => {
+    await crmApi.deleteTask(applicationSlug, id)
+    const cache = ensureApplicationCache(applicationSlug)
+    cache.tasks = cache.tasks.filter(task => task.id !== id)
+    cache.myTasks = cache.myTasks.filter(task => task.id !== id)
+  }
+
   return {
     byApplication,
     isLoading,
@@ -202,13 +265,22 @@ export const useCrmStore = defineStore('crm', () => {
     getDashboard,
     getProjects,
     getSprints,
+    getTasks,
+    getMyTasks,
     fetchCompanies,
     fetchDashboard,
     fetchProjects,
     fetchSprints,
     fetchTasks,
+    fetchMyTasks,
     fetchTaskRequests,
     createCompany,
+    deleteCompany,
     createProject,
+    deleteProject,
+    createSprint,
+    deleteSprint,
+    createTask,
+    deleteTask,
   }
 })
