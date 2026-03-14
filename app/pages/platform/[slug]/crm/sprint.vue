@@ -38,6 +38,26 @@ const loadData = async () => {
   ])
 }
 
+const toAtomDateTime = (value?: string) => {
+  if (!value) {
+    return undefined
+  }
+
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) {
+    return value
+  }
+
+  const year = parsed.getUTCFullYear()
+  const month = String(parsed.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(parsed.getUTCDate()).padStart(2, '0')
+  const hours = String(parsed.getUTCHours()).padStart(2, '0')
+  const minutes = String(parsed.getUTCMinutes()).padStart(2, '0')
+  const seconds = String(parsed.getUTCSeconds()).padStart(2, '0')
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}+00:00`
+}
+
 const createSprint = async () => {
   if (!slug.value || !form.name.trim() || !form.projectId) {
     return
@@ -45,7 +65,12 @@ const createSprint = async () => {
 
   isMutating.value = true
   try {
-    await crmStore.createSprint(slug.value, { ...form, name: form.name.trim() })
+    await crmStore.createSprint(slug.value, {
+      ...form,
+      name: form.name.trim(),
+      startDate: toAtomDateTime(form.startDate),
+      endDate: toAtomDateTime(form.endDate),
+    })
     showCreateDialog.value = false
     Object.assign(form, { name: '', goal: '', projectId: '', status: 'planned', startDate: '', endDate: '' })
   }

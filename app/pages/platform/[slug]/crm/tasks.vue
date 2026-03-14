@@ -65,6 +65,26 @@ const loadData = async () => {
   }
 }
 
+const toAtomDateTime = (value?: string) => {
+  if (!value) {
+    return undefined
+  }
+
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) {
+    return value
+  }
+
+  const year = parsed.getUTCFullYear()
+  const month = String(parsed.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(parsed.getUTCDate()).padStart(2, '0')
+  const hours = String(parsed.getUTCHours()).padStart(2, '0')
+  const minutes = String(parsed.getUTCMinutes()).padStart(2, '0')
+  const seconds = String(parsed.getUTCSeconds()).padStart(2, '0')
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}+00:00`
+}
+
 const createTask = async () => {
   if (!slug.value || !form.title.trim() || !form.projectId || !form.sprintId) {
     return
@@ -72,7 +92,11 @@ const createTask = async () => {
 
   isMutating.value = true
   try {
-    await crmStore.createTask(slug.value, { ...form, title: form.title.trim() })
+    await crmStore.createTask(slug.value, {
+      ...form,
+      title: form.title.trim(),
+      dueAt: toAtomDateTime(form.dueAt),
+    })
     showCreateDialog.value = false
     Object.assign(form, {
       title: '',
