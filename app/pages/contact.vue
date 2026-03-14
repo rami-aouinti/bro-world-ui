@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { usePublicPagesStore } from '~/stores/publicPages'
+import ContactSecondaryCta from '~/components/marketing/contact/ContactSecondaryCta.vue'
 
 definePageMeta({
   public: true,
@@ -161,7 +162,7 @@ watch(locale, loadPageContent)
         <v-skeleton-loader type="button@2" />
       </v-card>
 
-      <v-row dense>
+      <v-row density="comfortable">
         <v-col cols="12" md="5">
           <v-card rounded="xl" class="mb-4 pa-4">
             <v-skeleton-loader type="heading" class="mb-3" />
@@ -200,7 +201,7 @@ watch(locale, loadPageContent)
       </v-card>
     </v-fade-transition>
 
-    <v-row class="contact-layout" dense>
+    <v-row class="contact-layout" density="comfortable">
       <v-col cols="12" md="5">
         <v-card class="contact-panel contact-panel--secondary mb-4 transition-elevation" rounded="xl" hover>
           <h2 class="text-h6 mb-4">{{ contactPagePayload.title }}</h2>
@@ -237,7 +238,7 @@ watch(locale, loadPageContent)
         <v-card class="contact-form-wrapper" rounded="xl">
           <h2 class="text-h6 mb-2">{{ contactPagePayload.form.title }}</h2>
           <p class="text-body-2 text-medium-emphasis mb-4">{{ contactPagePayload.form.description }}</p>
-          <v-row dense>
+          <v-row density="comfortable">
             <v-col cols="12" sm="6">
               <v-text-field :label="contactPagePayload.form.fields.firstName" variant="outlined" hide-details="auto" />
             </v-col>
@@ -272,7 +273,7 @@ watch(locale, loadPageContent)
           </div>
         </v-card>
 
-        <LazyContactSecondaryCta
+        <ContactSecondaryCta
           hydrate-on-visible
           :cta="contactPagePayload.cta"
         />
