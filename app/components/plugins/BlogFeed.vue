@@ -854,7 +854,7 @@ const submitSharePost = async () => {
   </v-card>
 
 
-  <v-card class="mb-6 pa-4" rounded="xl" variant="outlined">
+  <v-card class="mb-4 pa-2" rounded="xl">
     <input
       ref="storyPhotoInput"
       type="file"
@@ -862,20 +862,6 @@ const submitSharePost = async () => {
       class="d-none"
       @change="handleStorySelected"
     >
-
-    <div class="d-flex align-center justify-space-between ga-3 mb-3 flex-wrap">
-      <div class="text-subtitle-1 font-weight-bold">Stories</div>
-      <v-btn
-        color="primary"
-        prepend-icon="mdi-plus"
-        :loading="storiesStore.actionLoading"
-        :disabled="!canInteract"
-        @click="triggerStoryPicker"
-      >
-        Ajouter une story
-      </v-btn>
-    </div>
-
     <div v-if="isLoadingStories" class="d-flex justify-center py-3">
       <v-progress-circular indeterminate color="primary" size="22" />
     </div>
