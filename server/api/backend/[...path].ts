@@ -130,6 +130,7 @@ const TWO_MINUTES_IN_SECONDS = 60 * 2
 const THIRTY_SECONDS_IN_SECONDS = 30
 const ONE_DAY_IN_SECONDS = 60 * 60 * 24
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
+const LONG_LIVED_PUBLIC_PAGE_SLUGS = new Set(['home', 'about', 'contact', 'faq'])
 
 type CacheResource = 'profile' | 'conversation' | 'notifications' | 'events' | 'blog'
 type CacheMetricType = 'hit' | 'miss' | 'invalidate'
@@ -236,7 +237,9 @@ const getPublicRouteCacheSpec = (path: string, query: Record<string, any>): Publ
         resource: 'pages',
         identifier: `${slug}:${locale}`,
       }),
-      ttl: SIX_HOURS_IN_SECONDS,
+      ttl: LONG_LIVED_PUBLIC_PAGE_SLUGS.has(slug)
+        ? ONE_YEAR_IN_SECONDS
+        : SIX_HOURS_IN_SECONDS,
     }
   }
 
