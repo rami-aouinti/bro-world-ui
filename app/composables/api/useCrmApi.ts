@@ -14,6 +14,7 @@ import type {
   CrmTask,
   CrmTaskListResponse,
   CrmTaskRequest,
+  UpdateCrmTaskRequestStatusPayload,
 } from '~/types/api/crm'
 
 export const useCrmApi = () => {
@@ -55,6 +56,9 @@ export const useCrmApi = () => {
     getTasks(applicationSlug: string) {
       return apiFetch<CrmTaskListResponse>(`${basePath(applicationSlug)}/tasks`, { method: 'GET' })
     },
+    getMyTasks(applicationSlug: string) {
+      return apiFetch<CrmTaskListResponse>(`${basePath(applicationSlug)}/me/tasks`, { method: 'GET' })
+    },
     createTask(applicationSlug: string, payload: CreateCrmTaskPayload) {
       return apiFetch<CrmTask>(`${basePath(applicationSlug)}/tasks`, { method: 'POST', body: payload })
     },
@@ -69,6 +73,9 @@ export const useCrmApi = () => {
     },
     deleteTaskRequest(applicationSlug: string, id: UUID) {
       return apiFetch<void>(`${basePath(applicationSlug)}/task-requests/${id}`, { method: 'DELETE' })
+    },
+    updateTaskRequestStatus(applicationSlug: string, id: UUID, payload: UpdateCrmTaskRequestStatusPayload) {
+      return apiFetch<void>(`${basePath(applicationSlug)}/task-requests/${id}/status`, { method: 'PATCH', body: payload })
     },
   }
 }

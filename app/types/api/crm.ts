@@ -1,5 +1,11 @@
 import type { UUID } from './common'
 
+export interface CrmAssignee {
+  id?: UUID
+  name?: string
+  email?: string
+}
+
 export interface CrmCompany {
   id: UUID
   name: string
@@ -13,21 +19,32 @@ export interface CrmProject {
   id: UUID
   name: string
   companyId: UUID
-  status: string
+  status: string | boolean
 }
 
 export interface CrmSprint {
   id: UUID
   name: string
   projectId: UUID
-  status: string
+  status: string | boolean
   startDate: string | null
   endDate: string | null
+}
+
+export interface CrmTaskChild {
+  id: UUID
+  taskId: UUID
+  title: string
+  status: string
+  requestedAt: string | null
+  resolvedAt: string | null
+  assignees: CrmAssignee[]
 }
 
 export interface CrmTask {
   id: UUID
   title: string
+  description?: string | null
   projectId: UUID
   projectName: string
   sprintId: UUID
@@ -37,6 +54,8 @@ export interface CrmTask {
   dueAt: string | null
   estimatedHours: number | null
   updatedAt: string | null
+  assignees: CrmAssignee[]
+  children: CrmTaskChild[]
 }
 
 export interface CrmTaskRequest {
@@ -83,12 +102,17 @@ export interface CreateCrmCompanyPayload {
 
 export interface CreateCrmProjectPayload {
   name: string
+  code?: string
+  description?: string
   companyId: UUID
   status?: string
+  startedAt?: string
+  dueAt?: string
 }
 
 export interface CreateCrmSprintPayload {
   name: string
+  goal?: string
   projectId: UUID
   status?: string
   startDate?: string
@@ -97,12 +121,14 @@ export interface CreateCrmSprintPayload {
 
 export interface CreateCrmTaskPayload {
   title: string
+  description?: string
   projectId: UUID
   sprintId: UUID
   status?: string
   priority?: string
   dueAt?: string
   estimatedHours?: number
+  assigneeIds?: UUID[]
 }
 
 export interface CreateCrmTaskRequestPayload {
@@ -110,3 +136,8 @@ export interface CreateCrmTaskRequestPayload {
   taskId: UUID
   status?: string
 }
+
+export interface UpdateCrmTaskRequestStatusPayload {
+  status: string
+}
+
