@@ -180,7 +180,7 @@ onMounted(async () => {
             <v-select v-model="form.sprintId" label="Sprint" :items="sprints" item-title="name" item-value="id" />
             <v-text-field v-model="form.status" label="Status" />
             <v-text-field v-model="form.priority" label="Priority" />
-            <v-text-field v-model="form.dueAt" label="Due at (ISO)" />
+            <v-text-field v-model="form.dueAt" label="Due at" type="datetime-local" />
             <v-text-field v-model.number="form.estimatedHours" type="number" label="Estimated hours" />
           </v-card-text>
           <v-card-actions>

@@ -108,8 +108,8 @@ onMounted(async () => {
             <v-textarea v-model="form.description" label="Description" rows="2" />
             <v-select v-model="form.companyId" label="Company" :items="companies" item-title="name" item-value="id" />
             <v-text-field v-model="form.status" label="Status" />
-            <v-text-field v-model="form.startedAt" label="Started at (ISO)" />
-            <v-text-field v-model="form.dueAt" label="Due at (ISO)" />
+            <v-text-field v-model="form.startedAt" label="Started at" type="datetime-local" />
+            <v-text-field v-model="form.dueAt" label="Due at" type="datetime-local" />
           </v-card-text>
           <v-card-actions>
             <v-spacer />
