@@ -31,6 +31,8 @@ const draggingChildId = ref<string | null>(null)
 const hoveredColumn = ref<KanbanStatus | null>(null)
 const errorMessage = ref('')
 
+const goToTask = (id: string) => navigateTo(`/platform/${slug.value}/crm/task/${id}`)
+
 const KANBAN_COLUMNS: Array<{ key: KanbanStatus, title: string, subtitle: string }> = [
   { key: 'pending', title: 'Backlog', subtitle: 'Pending requests' },
   { key: 'progress', title: 'In Progress', subtitle: 'Currently in progress' },
@@ -193,6 +195,7 @@ onMounted(async () => {
               draggable="true"
               @dragstart="onDragStart(child.id)"
               @dragend="onDragEnd"
+              @dblclick="goToTask(child.taskId)"
             >
               <v-card-text>
                 <div class="d-flex align-center justify-space-between mb-3">

@@ -27,6 +27,8 @@ const form = reactive<CreateCrmCompanyPayload>({
 
 const companies = computed(() => crmStore.getCompanies(slug.value))
 
+const goToCompany = (id: string) => navigateTo(`/platform/${slug.value}/crm/company/${id}`)
+
 const loadCompanies = async (force = false) => {
   if (!slug.value) {
     return
@@ -101,11 +103,11 @@ onMounted(async () => {
 
       <v-row>
         <v-col v-for="company in companies" :key="company.id" cols="12" md="6" lg="4">
-          <v-card rounded="xl" hover class="h-100">
+          <v-card rounded="xl" hover class="h-100 cursor-pointer" @click="goToCompany(company.id)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
                 <p class="text-subtitle-1 font-weight-bold">{{ company.name }}</p>
-                <v-btn size="x-small" color="error" variant="tonal" @click="removeCompany(company.id)">Delete</v-btn>
+                <v-btn size="x-small" color="error" variant="tonal" @click.stop="removeCompany(company.id)">Delete</v-btn>
               </div>
               <p class="text-body-2 text-medium-emphasis mb-2">{{ company.industry || 'N/A' }}</p>
               <p class="text-body-2 mb-1">{{ company.website || 'Website not specified' }}</p>

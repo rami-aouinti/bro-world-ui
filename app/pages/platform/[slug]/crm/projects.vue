@@ -18,6 +18,8 @@ const companies = computed(() => crmStore.getCompanies(slug.value))
 const companiesById = computed(() => new Map(companies.value.map(company => [company.id, company.name])))
 const showCreateDialog = ref(false)
 const isMutating = ref(false)
+const goToProject = (id: string) => navigateTo(`/platform/${slug.value}/crm/project/${id}`)
+
 const form = reactive<CreateCrmProjectPayload>({
   name: '',
   code: '',
@@ -111,11 +113,11 @@ onMounted(async () => {
 
       <v-row>
         <v-col v-for="project in projects" :key="project.id" cols="12" md="6">
-          <v-card rounded="xl" class="h-100">
+          <v-card rounded="xl" class="h-100 cursor-pointer" @click="goToProject(project.id)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
                 <p class="text-subtitle-1 font-weight-bold">{{ project.name }}</p>
-                <v-btn size="x-small" color="error" variant="tonal" @click="removeProject(project.id)">Delete</v-btn>
+                <v-btn size="x-small" color="error" variant="tonal" @click.stop="removeProject(project.id)">Delete</v-btn>
               </div>
               <p class="text-body-2 mb-2">Company: {{ companiesById.get(project.companyId) || project.companyId }}</p>
               <v-chip size="small" variant="tonal">{{ project.status }}</v-chip>
