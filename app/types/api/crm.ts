@@ -136,3 +136,8 @@ export interface CreateCrmTaskRequestPayload {
   taskId: UUID
   status?: string
 }
+
+export interface UpdateCrmTaskRequestStatusPayload {
+  status: string
+}
+

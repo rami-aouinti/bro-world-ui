@@ -14,6 +14,7 @@ import type {
   CrmTask,
   CrmTaskListResponse,
   CrmTaskRequest,
+  UpdateCrmTaskRequestStatusPayload,
 } from '~/types/api/crm'
 
 export const useCrmApi = () => {
@@ -72,6 +73,9 @@ export const useCrmApi = () => {
     },
     deleteTaskRequest(applicationSlug: string, id: UUID) {
       return apiFetch<void>(`${basePath(applicationSlug)}/task-requests/${id}`, { method: 'DELETE' })
+    },
+    updateTaskRequestStatus(applicationSlug: string, id: UUID, payload: UpdateCrmTaskRequestStatusPayload) {
+      return apiFetch<void>(`${basePath(applicationSlug)}/task-requests/${id}/status`, { method: 'PATCH', body: payload })
     },
   }
 }

@@ -11,6 +11,7 @@ import type {
   CrmSprint,
   CrmTask,
   CrmTaskRequest,
+  UpdateCrmTaskRequestStatusPayload,
 } from '~/types/api/crm'
 import type { UUID } from '~/types/api/common'
 
@@ -258,6 +259,20 @@ export const useCrmStore = defineStore('crm', () => {
     cache.myTasks = cache.myTasks.filter(task => task.id !== id)
   }
 
+  const updateTaskRequestStatus = async (applicationSlug: string, id: UUID, payload: UpdateCrmTaskRequestStatusPayload) => {
+    await crmApi.updateTaskRequestStatus(applicationSlug, id, payload)
+    const cache = ensureApplicationCache(applicationSlug)
+
+    const updateChildren = (tasks: CrmTask[]) => tasks.map((task) => ({
+      ...task,
+      children: task.children.map(child => child.id === id ? { ...child, status: payload.status } : child),
+    }))
+
+    cache.tasks = updateChildren(cache.tasks)
+    cache.myTasks = updateChildren(cache.myTasks)
+    cache.taskRequests = cache.taskRequests.map(request => request.id === id ? { ...request, status: payload.status } : request)
+  }
+
   return {
     byApplication,
     isLoading,
@@ -282,5 +297,6 @@ export const useCrmStore = defineStore('crm', () => {
     deleteSprint,
     createTask,
     deleteTask,
+    updateTaskRequestStatus,
   }
 })
