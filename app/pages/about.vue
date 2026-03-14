@@ -264,6 +264,12 @@ watch(locale, loadPageContent)
   </main>
 </template>
 <style scoped>
+.about-timeline-card,
+.about-section,
+.about-mission-card,
+.about-hero {
+  padding: 1rem;
+}
 .about-page {
   padding: 3.5rem;
 }

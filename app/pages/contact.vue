@@ -283,6 +283,11 @@ watch(locale, loadPageContent)
   </main>
 </template>
 <style scoped>
+.contact-form-wrapper,
+.contact-availability,
+.contact-panel {
+  padding: 1rem;
+}
 .contact-page {
   padding: 3.5rem;
 }

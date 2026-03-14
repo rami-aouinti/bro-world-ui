@@ -227,6 +227,9 @@ watch(locale, loadPageContent)
   </main>
 </template>
 <style scoped>
+.faq-hero__surface {
+  padding: 1rem;
+}
 .faq-page {
   padding: 3.5rem;
 }

@@ -22,3 +22,8 @@ defineProps<{
     </div>
   </v-card>
 </template>
+<style scoped>
+.contact-channel {
+  padding: 1rem;
+}
+</style>
