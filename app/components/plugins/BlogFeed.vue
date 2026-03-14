@@ -66,8 +66,8 @@ const activeStoryIndex = ref(0)
 const stories = computed(() => storiesStore.stories)
 const isLoadingStories = computed(() => storiesStore.loading)
 const ownerStoryGroup = computed(() => stories.value.find(storyGroup => storyGroup.owner) ?? null)
-const visibleStoryGroups = computed(() => stories.value.filter(storyGroup => !storyGroup.owner))
-const storyViewerGroup = computed(() => visibleStoryGroups.value[activeStoryGroupIndex.value] ?? null)
+const storyGroupsForDisplay = computed(() => stories.value)
+const storyViewerGroup = computed(() => storyGroupsForDisplay.value[activeStoryGroupIndex.value] ?? null)
 const storyViewerItems = computed(() => storyViewerGroup.value?.stories ?? [])
 const activeStoryItem = computed(() => storyViewerItems.value[activeStoryIndex.value] ?? null)
 const currentStoryOwnerName = computed(() => storyViewerGroup.value?.user.username ?? '')
@@ -371,7 +371,7 @@ const triggerStoryPicker = () => {
 }
 
 const openStoryViewer = (groupIndex: number) => {
-  if (!visibleStoryGroups.value[groupIndex]?.stories.length) {
+  if (!storyGroupsForDisplay.value[groupIndex]?.stories.length) {
     return
   }
 
@@ -396,7 +396,7 @@ const goToPreviousStory = () => {
 
   if (activeStoryGroupIndex.value > 0) {
     activeStoryGroupIndex.value -= 1
-    activeStoryIndex.value = Math.max((visibleStoryGroups.value[activeStoryGroupIndex.value]?.stories.length ?? 1) - 1, 0)
+    activeStoryIndex.value = Math.max((storyGroupsForDisplay.value[activeStoryGroupIndex.value]?.stories.length ?? 1) - 1, 0)
   }
 }
 
@@ -410,7 +410,7 @@ const goToNextStory = () => {
     return
   }
 
-  if (activeStoryGroupIndex.value < visibleStoryGroups.value.length - 1) {
+  if (activeStoryGroupIndex.value < storyGroupsForDisplay.value.length - 1) {
     activeStoryGroupIndex.value += 1
     activeStoryIndex.value = 0
     return
@@ -895,7 +895,7 @@ const submitSharePost = async () => {
       </button>
 
       <button
-        v-for="(group, groupIndex) in visibleStoryGroups"
+        v-for="(group, groupIndex) in storyGroupsForDisplay"
         :key="group.user.id"
         type="button"
         class="story-card"
