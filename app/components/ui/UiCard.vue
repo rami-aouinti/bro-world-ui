@@ -7,6 +7,7 @@ interface Props {
   loading?: boolean
   variant?: 'elevated' | 'flat' | 'tonal' | 'outlined' | 'text' | 'plain'
   rounded?: string | number | boolean
+  radius?: string | number | boolean
   elevation?: string | number
   compact?: boolean
   kind?: 'default' | 'glass' | 'interactive' | 'metric' | 'hero'
@@ -22,6 +23,7 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
   variant: undefined,
   rounded: undefined,
+  radius: undefined,
   elevation: undefined,
   compact: false,
   kind: 'default',
@@ -40,7 +42,7 @@ const kindPresets: Record<NonNullable<Props['kind']>, { variant: NonNullable<Pro
 }
 
 const resolvedVariant = computed(() => props.variant ?? kindPresets[props.kind].variant)
-const resolvedRounded = computed(() => props.rounded ?? kindPresets[props.kind].rounded)
+const resolvedRounded = computed(() => props.rounded ?? props.radius ?? kindPresets[props.kind].rounded)
 const resolvedElevation = computed(() => props.elevation ?? kindPresets[props.kind].elevation)
 
 const stateClasses = computed(() => ({
