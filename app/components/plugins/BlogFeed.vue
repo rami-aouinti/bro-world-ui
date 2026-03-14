@@ -918,7 +918,7 @@ const submitSharePost = async () => {
             <UiAvatar :src="currentStoryOwnerPhoto ?? undefined" :name="currentStoryOwnerName" size="sm" />
             <div>
               <div class="story-viewer-owner">{{ currentStoryOwnerName }}</div>
-              <div class="text-caption text-medium-emphasis">{{ formatRelativeDate(activeStoryItem.createdAt) }}</div>
+              <div class="text-caption text-medium-emphasis">{{ formatRelativeTime(activeStoryItem.createdAt) }}</div>
             </div>
             <v-spacer />
             <v-btn icon="mdi-close" variant="text" color="white" @click="closeStoryViewer" />
