@@ -17,6 +17,7 @@ const { $errorLogger } = useNuxtApp()
 const errorMessage = ref('')
 const showCreateDialog = ref(false)
 const isMutating = ref(false)
+const isPageLoading = ref(true)
 const form = reactive<CreateCrmCompanyPayload>({
   name: '',
   industry: '',
@@ -75,7 +76,12 @@ const removeCompany = async (id: string) => {
 }
 
 onMounted(async () => {
-  await loadCompanies()
+  try {
+    await loadCompanies()
+  }
+  finally {
+    isPageLoading.value = false
+  }
 })
 </script>
 
@@ -101,7 +107,13 @@ onMounted(async () => {
         {{ errorMessage }}
       </v-alert>
 
-      <v-row>
+      <v-row v-if="isPageLoading">
+        <v-col v-for="i in 6" :key="`company-skeleton-${i}`" cols="12" md="6" lg="4">
+          <v-skeleton-loader type="card, article" class="h-100" />
+        </v-col>
+      </v-row>
+
+      <v-row v-else>
         <v-col v-for="company in companies" :key="company.id" cols="12" md="6" lg="4">
           <v-card rounded="xl" hover class="h-100 cursor-pointer" @click="goToCompany(company.id)">
             <v-card-text>

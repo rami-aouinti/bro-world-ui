@@ -133,6 +133,11 @@ onMounted(loadTask)
 
       <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
 
+      <template v-if="isLoading && !task">
+        <v-skeleton-loader type="article, article, article" class="mb-4" />
+        <v-skeleton-loader type="heading, article, article" />
+      </template>
+
       <v-card v-if="task" rounded="xl" class="mb-4">
         <v-card-text>
           <p><strong>Title:</strong> {{ task.title }}</p>

@@ -18,6 +18,7 @@ const projects = computed(() => crmStore.getProjects(slug.value))
 const projectsById = computed(() => new Map(projects.value.map(project => [project.id, project.name])))
 const showCreateDialog = ref(false)
 const isMutating = ref(false)
+const isPageLoading = ref(true)
 const goToSprint = (id: string) => navigateTo(`/platform/${slug.value}/crm/sprint/${id}`)
 
 const form = reactive<CreateCrmSprintPayload>({
@@ -90,8 +91,13 @@ const removeSprint = async (id: string) => {
 }
 
 onMounted(async () => {
-  await loadData()
-  await nextTick()
+  try {
+    await loadData()
+    await nextTick()
+  }
+  finally {
+    isPageLoading.value = false
+  }
 })
 </script>
 
@@ -110,7 +116,13 @@ onMounted(async () => {
         <v-btn color="primary" @click="showCreateDialog = true">Add sprint</v-btn>
       </div>
 
-      <v-row>
+      <v-row v-if="isPageLoading">
+        <v-col v-for="i in 4" :key="`sprint-skeleton-${i}`" cols="12" md="6">
+          <v-skeleton-loader type="card, article" class="h-100" />
+        </v-col>
+      </v-row>
+
+      <v-row v-else>
         <v-col v-for="sprint in sprints" :key="sprint.id" cols="12" md="6">
           <v-card rounded="xl" class="h-100 cursor-pointer" @click="goToSprint(sprint.id)">
             <v-card-text>

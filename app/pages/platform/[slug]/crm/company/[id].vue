@@ -57,6 +57,8 @@ onMounted(loadCompany)
 
       <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
 
+      <v-skeleton-loader v-if="isLoading && !company" type="article, article, article" class="mb-4" />
+
       <v-card v-if="company" rounded="xl">
         <v-card-text class="d-grid ga-2">
           <p><strong>Name:</strong> {{ company.name }}</p>
