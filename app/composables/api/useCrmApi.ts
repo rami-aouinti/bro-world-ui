@@ -55,6 +55,9 @@ export const useCrmApi = () => {
     getTasks(applicationSlug: string) {
       return apiFetch<CrmTaskListResponse>(`${basePath(applicationSlug)}/tasks`, { method: 'GET' })
     },
+    getMyTasks(applicationSlug: string) {
+      return apiFetch<CrmTaskListResponse>(`${basePath(applicationSlug)}/me/tasks`, { method: 'GET' })
+    },
     createTask(applicationSlug: string, payload: CreateCrmTaskPayload) {
       return apiFetch<CrmTask>(`${basePath(applicationSlug)}/tasks`, { method: 'POST', body: payload })
     },

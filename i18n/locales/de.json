@@ -502,7 +502,8 @@
         "calendar": "Calendar",
         "settings": "Settings",
         "billing": "Billing",
-        "tickets": "Tickets"
+        "tickets": "Tickets",
+        "tasks": "Aufgaben"
       },
       "hero": {
         "home": {
