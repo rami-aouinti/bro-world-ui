@@ -8,6 +8,7 @@ import type {
   CreateCrmTaskPayload,
   CrmCompany,
   CrmContact,
+  CrmEmployee,
   CrmDashboardResponse,
   CrmProject,
   CrmPublicUser,
@@ -55,6 +56,7 @@ export const useCrmStore = defineStore('crm', () => {
   const byApplication = ref<Record<string, CrmApplicationCache>>({})
   const isLoading = ref(false)
   const publicUsers = ref<CrmPublicUser[]>([])
+  const employeesByApplication = ref<Record<string, CrmEmployee[]>>({})
 
   const ensureApplicationCache = (applicationSlug: string) => {
     if (!byApplication.value[applicationSlug]) {
@@ -85,6 +87,7 @@ export const useCrmStore = defineStore('crm', () => {
   const getTasks = (applicationSlug: string) => ensureApplicationCache(applicationSlug).tasks
   const getMyTasks = (applicationSlug: string) => ensureApplicationCache(applicationSlug).myTasks
   const getPublicUsers = () => publicUsers.value
+  const getEmployees = (applicationSlug: string) => employeesByApplication.value[applicationSlug] ?? []
 
   const fetchCompanies = async (applicationSlug: string, force = false) => {
     if (!shouldFetch(applicationSlug, force) && getCompanies(applicationSlug).length > 0) {
@@ -226,6 +229,22 @@ export const useCrmStore = defineStore('crm', () => {
     }
   }
 
+
+  const fetchEmployees = async (applicationSlug: string, force = false) => {
+    if (!force && (employeesByApplication.value[applicationSlug]?.length ?? 0) > 0) {
+      return employeesByApplication.value[applicationSlug]
+    }
+
+    isLoading.value = true
+    try {
+      const response = await crmApi.getEmployees(applicationSlug)
+      employeesByApplication.value[applicationSlug] = response.items
+      return response.items
+    }
+    finally {
+      isLoading.value = false
+    }
+  }
 
   const fetchPublicUsers = async (force = false) => {
     if (!force && publicUsers.value.length > 0) {
@@ -486,6 +505,7 @@ export const useCrmStore = defineStore('crm', () => {
     byApplication,
     isLoading,
     publicUsers,
+    employeesByApplication,
     getCompanies,
     getDashboard,
     getContacts,
@@ -494,6 +514,7 @@ export const useCrmStore = defineStore('crm', () => {
     getTasks,
     getMyTasks,
     getPublicUsers,
+    getEmployees,
     fetchCompanies,
     fetchDashboard,
     fetchContacts,
@@ -502,6 +523,7 @@ export const useCrmStore = defineStore('crm', () => {
     fetchTasks,
     fetchMyTasks,
     fetchTaskRequests,
+    fetchEmployees,
     fetchPublicUsers,
     fetchCompanyById,
     fetchContactById,

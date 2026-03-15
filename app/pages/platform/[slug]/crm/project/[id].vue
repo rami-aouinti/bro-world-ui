@@ -34,8 +34,13 @@ const taskForm = reactive<CreateCrmTaskPayload>({
   priority: 'medium',
 })
 
-const users = computed(() => crmStore.getPublicUsers())
-const userOptions = computed(() => users.value.map(user => ({ title: `${user.firstName} ${user.lastName}`, value: user.id, photo: user.photo, email: user.email })))
+const employees = computed(() => crmStore.getEmployees(slug.value))
+const userOptions = computed(() => employees.value.map(employee => ({
+  title: `${employee.firstName} ${employee.lastName}`,
+  value: employee.userId,
+  photo: employee.photo,
+  email: employee.email,
+})))
 const projectStatusColor = computed(() => {
   const status = String(project.value?.status ?? '').toLowerCase()
   if (status.includes('done') || status.includes('completed')) {
@@ -84,7 +89,7 @@ const loadProject = async () => {
 
   try {
     await Promise.all([
-      crmStore.fetchPublicUsers(),
+      crmStore.fetchEmployees(slug.value),
       crmStore.fetchProjects(slug.value),
       crmStore.fetchSprints(slug.value),
     ])
@@ -289,7 +294,7 @@ onMounted(loadProject)
               </div>
 
               <TransitionGroup name="chips" tag="div" class="d-flex flex-wrap ga-2">
-                <v-chip v-for="assignee in project.assignees || []" :key="assignee.id || assignee.email" closable @click:close="removeProjectUser(assignee.id)">
+                <v-chip v-for="assignee in project.assignees || []" :key="assignee.id || assignee.email" closable @click:close="removeProjectUser(assignee.userId || assignee.id)">
                   <v-avatar start size="20" :image="assignee.photo || undefined" />
                   {{ [assignee.firstName, assignee.lastName].filter(Boolean).join(' ') || assignee.email || assignee.id }}
                 </v-chip>
