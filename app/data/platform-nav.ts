@@ -35,6 +35,7 @@ const platformFeatureFlags: Record<PlatformName, Record<string, boolean>> = {
     companies: true,
     projects: true,
     tasks: true,
+    kanaban: true,
     contacts: true,
     reports: true,
     automation: true,
@@ -42,7 +43,6 @@ const platformFeatureFlags: Record<PlatformName, Record<string, boolean>> = {
     sprint: true,
     calendar: true,
     settings: true,
-    billing: true,
     admin: true,
   },
   shop: {
@@ -93,12 +93,12 @@ export const getCrmNav = (slug: string, isOwner = false): PlatformNavItem[] => {
   return resolveNav('crm', [
     { title: 'platform.crm.nav.home', icon: 'mdi-view-dashboard-outline', to: `${base}/home`, section: 'overview', featureFlag: 'dashboard' },
     { title: 'platform.crm.nav.projects', icon: 'mdi-briefcase-outline', to: `${base}/projects`, section: 'operations', featureFlag: 'projects' },
-    { title: 'platform.crm.nav.tasks', icon: 'mdi-view-kanban-outline', to: `${base}/tasks`, section: 'operations', featureFlag: 'tasks' },
+    { title: 'Kanaban', icon: 'mdi-view-kanban-outline', to: `${base}/kanaban`, section: 'operations', featureFlag: 'kanaban' },
+    { title: 'platform.crm.nav.tasks', icon: 'mdi-format-list-bulleted-square', to: `${base}/tasks`, section: 'operations', featureFlag: 'tasks' },
     { title: 'platform.crm.nav.automation', icon: 'mdi-robot-outline', to: `${base}/automation`, section: 'operations', featureFlag: 'automation' },
     { title: 'platform.crm.nav.sprint', icon: 'mdi-run-fast', to: `${base}/sprint`, section: 'operations', featureFlag: 'sprint' },
     { title: 'platform.crm.nav.calendar', icon: 'mdi-calendar-month-outline', to: `${base}/calendar`, section: 'operations', featureFlag: 'calendar' },
     { title: 'platform.crm.nav.settings', icon: 'mdi-cog-outline', to: `${base}/settings`, section: 'operations', featureFlag: 'settings' },
-    { title: 'platform.crm.nav.billing', icon: 'mdi-cash-multiple', to: `${base}/billing`, section: 'operations', featureFlag: 'billing' },
     { title: 'platform.crm.nav.tickets', icon: 'mdi-ticket-confirmation-outline', to: `${base}/tickets`, section: 'support', featureFlag: 'tickets' },
     { title: 'platform.common.nav.admin', icon: 'mdi-shield-crown-outline', to: `${base}/admin`, section: 'admin', rights: 'owner', featureFlag: 'admin' },
   ], isOwner)
