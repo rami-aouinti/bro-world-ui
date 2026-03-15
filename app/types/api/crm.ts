@@ -102,6 +102,36 @@ export interface CrmDashboardResponse {
   }
 }
 
+export interface CrmReportsResponse {
+  kpis: {
+    pipeline: number
+    dealsWon: number
+    cycleDays: number
+    npsClients: number
+  }
+  counts: {
+    companies: number
+    contacts: number
+    employees: number
+    billings: number
+    tasks: number
+  }
+  contacts: Array<{
+    id: UUID
+    name: string
+    email: string
+    jobTitle: string
+    city: string
+    score: number
+  }>
+  recommendedActions: Array<{
+    priority: string
+    title: string
+    owner: string
+    etaDays: number
+  }>
+}
+
 export interface CrmCollectionResponse<T> {
   items: T[]
 }

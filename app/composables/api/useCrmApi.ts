@@ -11,6 +11,7 @@ import type {
   CrmDashboardResponse,
   CrmProject,
   CrmPublicUsersResponse,
+  CrmReportsResponse,
   CrmSprint,
   CrmTask,
   CrmTaskListResponse,
@@ -48,6 +49,10 @@ export const useCrmApi = () => {
 
     getDashboard(applicationSlug: string) {
       return apiFetch<CrmDashboardResponse>(`${basePath(applicationSlug)}/dashboard`, { method: 'GET' })
+    },
+
+    getReports(applicationSlug: string) {
+      return apiFetch<CrmReportsResponse>(`${basePath(applicationSlug)}/reports`, { method: 'GET' })
     },
 
     getProjects(applicationSlug: string) {
