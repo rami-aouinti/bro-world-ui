@@ -63,6 +63,20 @@ export interface CrmProject {
   status: string | boolean
   startedAt?: string | null
   dueAt?: string | null
+  attachments?: Array<{
+    url: string
+    size: number
+    mimeType: string
+    extension: string
+    uploadedAt: string
+    originalName: string
+  }>
+  wikiPages?: Array<{
+    id: string
+    title: string
+    content: string
+    createdAt: string
+  }>
   assignees?: CrmAssignee[]
 }
 
