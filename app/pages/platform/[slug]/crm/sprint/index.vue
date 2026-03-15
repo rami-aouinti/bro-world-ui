@@ -91,6 +91,23 @@ const removeSprint = async (id: string) => {
   await crmStore.deleteSprint(slug.value, id)
 }
 
+const formatDateYmd = (value?: string) => {
+  if (!value) {
+    return 'N/A'
+  }
+
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) {
+    return value
+  }
+
+  const year = parsed.getUTCFullYear()
+  const month = String(parsed.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(parsed.getUTCDate()).padStart(2, '0')
+
+  return `${year}.${month}.${day}`
+}
+
 onMounted(async () => {
   try {
     await loadData()
@@ -118,13 +135,13 @@ onMounted(async () => {
       </div>
 
       <v-row v-if="isPageLoading">
-        <v-col v-for="i in 4" :key="`sprint-skeleton-${i}`" cols="12" md="6">
+        <v-col v-for="i in 4" :key="`sprint-skeleton-${i}`" cols="12" md="6" lg="4">
           <v-skeleton-loader type="card, article" class="h-100" />
         </v-col>
       </v-row>
 
       <v-row v-else>
-        <v-col v-for="sprint in sprints" :key="sprint.id" cols="12" md="6">
+        <v-col v-for="sprint in sprints" :key="sprint.id" cols="12" md="6" lg="4">
           <v-card rounded="xl" class="h-100 cursor-pointer" @click="goToSprint(sprint.id)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
@@ -146,8 +163,7 @@ onMounted(async () => {
                 </v-menu>
               </div>
               <p class="text-body-2 mb-1">Project: {{ projectsById.get(sprint.projectId) || sprint.projectId }}</p>
-              <p class="text-body-2 mb-2">{{ sprint.startDate }} → {{ sprint.endDate }}</p>
-              <v-chip size="small" variant="tonal">{{ sprint.status }}</v-chip>
+              <p class="text-body-2 mb-2">{{ formatDateYmd(sprint.startDate) }} → {{ formatDateYmd(sprint.endDate) }}</p>
             </v-card-text>
           </v-card>
         </v-col>

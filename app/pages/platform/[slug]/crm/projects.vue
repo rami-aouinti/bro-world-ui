@@ -119,13 +119,13 @@ onMounted(async () => {
       </div>
 
       <v-row v-if="isPageLoading">
-        <v-col v-for="i in 4" :key="`project-skeleton-${i}`" cols="12" md="6">
+        <v-col v-for="i in 4" :key="`project-skeleton-${i}`" cols="12" md="6" lg="4">
           <v-skeleton-loader type="card, article" class="h-100" />
         </v-col>
       </v-row>
 
       <v-row v-else>
-        <v-col v-for="project in projects" :key="project.id" cols="12" md="6">
+        <v-col v-for="project in projects" :key="project.id" cols="12" md="6" lg="4">
           <v-card rounded="xl" class="h-100 cursor-pointer" @click="goToProject(project.id)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
@@ -147,7 +147,6 @@ onMounted(async () => {
                 </v-menu>
               </div>
               <p class="text-body-2 mb-2">Company: {{ companiesById.get(project.companyId) || project.companyId }}</p>
-              <v-chip size="small" variant="tonal">{{ project.status }}</v-chip>
             </v-card-text>
           </v-card>
         </v-col>
