@@ -146,6 +146,25 @@ const deleteTaskRequest = async (requestId?: string) => {
   await loadTask()
 }
 
+const openTaskRequestDetail = (requestId?: string) => {
+  if (!requestId) {
+    return
+  }
+
+  navigateTo(`/platform/${slug.value}/crm/taskRequest/${requestId}`)
+}
+
+const editTaskRequest = (requestId?: string) => openTaskRequestDetail(requestId)
+
+const deleteTaskRequest = async (requestId?: string) => {
+  if (!slug.value || !requestId) {
+    return
+  }
+
+  await crmStore.deleteTaskRequest(slug.value, requestId)
+  await loadTask()
+}
+
 const loadEmployee = async () => {
   if (!slug.value || !taskId.value) {
     return
