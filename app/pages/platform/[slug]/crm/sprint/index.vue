@@ -20,6 +20,7 @@ const showCreateDialog = ref(false)
 const isMutating = ref(false)
 const isPageLoading = ref(true)
 const goToSprint = (id: string) => navigateTo(`/platform/${slug.value}/crm/sprint/${id}`)
+const editSprint = (id: string) => navigateTo(`/platform/${slug.value}/crm/sprint/${id}`)
 
 const form = reactive<CreateCrmSprintPayload>({
   name: '',
@@ -128,7 +129,21 @@ onMounted(async () => {
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
                 <p class="text-subtitle-1 font-weight-bold">{{ sprint.name }}</p>
-                <v-btn size="x-small" color="error" variant="tonal" @click.stop="removeSprint(sprint.id)">Delete</v-btn>
+                <v-menu location="bottom end">
+                  <template #activator="{ props }">
+                    <v-btn
+                      v-bind="props"
+                      size="x-small"
+                      icon="mdi-cog"
+                      variant="text"
+                      @click.stop
+                    />
+                  </template>
+                  <v-list density="compact">
+                    <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="editSprint(sprint.id)" />
+                    <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="removeSprint(sprint.id)" />
+                  </v-list>
+                </v-menu>
               </div>
               <p class="text-body-2 mb-1">Project: {{ projectsById.get(sprint.projectId) || sprint.projectId }}</p>
               <p class="text-body-2 mb-2">{{ sprint.startDate }} → {{ sprint.endDate }}</p>

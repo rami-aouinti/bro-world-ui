@@ -29,6 +29,7 @@ const form = reactive<CreateCrmCompanyPayload>({
 const companies = computed(() => crmStore.getCompanies(slug.value))
 
 const goToCompany = (id: string) => navigateTo(`/platform/${slug.value}/crm/company/${id}`)
+const editCompany = (id: string) => navigateTo(`/platform/${slug.value}/crm/company/${id}`)
 
 const loadCompanies = async (force = false) => {
   if (!slug.value) {
@@ -119,7 +120,21 @@ onMounted(async () => {
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
                 <p class="text-subtitle-1 font-weight-bold">{{ company.name }}</p>
-                <v-btn size="x-small" color="error" variant="tonal" @click.stop="removeCompany(company.id)">Delete</v-btn>
+                <v-menu location="bottom end">
+                  <template #activator="{ props }">
+                    <v-btn
+                      v-bind="props"
+                      size="x-small"
+                      icon="mdi-cog"
+                      variant="text"
+                      @click.stop
+                    />
+                  </template>
+                  <v-list density="compact">
+                    <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="editCompany(company.id)" />
+                    <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="removeCompany(company.id)" />
+                  </v-list>
+                </v-menu>
               </div>
               <p class="text-body-2 text-medium-emphasis mb-2">{{ company.industry || 'N/A' }}</p>
               <p class="text-body-2 mb-1">{{ company.website || 'Website not specified' }}</p>
