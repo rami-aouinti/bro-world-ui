@@ -1,12 +1,14 @@
 import { useApiClient } from '../useApiClient'
 import type { UUID } from '~/types/api/common'
 import type {
+  CreateCrmBillingPayload,
   CreateCrmCompanyPayload,
   CreateCrmContactPayload,
   CreateCrmProjectPayload,
   CreateCrmSprintPayload,
   CreateCrmTaskPayload,
   CreateCrmTaskRequestPayload,
+  CrmBilling,
   CrmCollectionResponse,
   CrmCompany,
   CrmContact,
@@ -19,6 +21,7 @@ import type {
   CrmTaskListResponse,
   CrmTaskRequest,
   CrmTasksBySprintResponse,
+  UpdateCrmBillingPayload,
   UpdateCrmContactPayload,
   UpdateCrmProjectPayload,
   UpdateCrmSprintPayload,
@@ -71,6 +74,20 @@ export const useCrmApi = () => {
       return apiFetch<CrmDashboardResponse>(`${basePath(applicationSlug)}/dashboard`, { method: 'GET' })
     },
 
+    getBillings(applicationSlug: string) {
+      return apiFetch<CrmCollectionResponse<CrmBilling>>(`${basePath(applicationSlug)}/billings`, { method: 'GET' })
+    },
+    getBillingById(applicationSlug: string, id: UUID) {
+      return apiFetch<CrmBilling>(`${basePath(applicationSlug)}/billings/${id}`, { method: 'GET' })
+    },
+    createBilling(applicationSlug: string, payload: CreateCrmBillingPayload) {
+      return apiFetch<CrmBilling>(`${basePath(applicationSlug)}/billings`, { method: 'POST', body: payload })
+    },
+    updateBilling(applicationSlug: string, id: UUID, payload: UpdateCrmBillingPayload) {
+      return apiFetch<CrmBilling>(`${basePath(applicationSlug)}/billings/${id}`, { method: 'PATCH', body: payload })
+    },
+    deleteBilling(applicationSlug: string, id: UUID) {
+      return apiFetch<void>(`${basePath(applicationSlug)}/billings/${id}`, { method: 'DELETE' })
     getReports(applicationSlug: string) {
       return apiFetch<CrmReportsResponse>(`${basePath(applicationSlug)}/reports`, { method: 'GET' })
     },
