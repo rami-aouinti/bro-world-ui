@@ -21,12 +21,12 @@ const isLoading = ref(false)
 const isAssigning = ref(false)
 const errorMessage = ref('')
 
-const users = computed(() => crmStore.getPublicUsers())
-const userOptions = computed(() => users.value.map(user => ({
-  title: `${user.firstName} ${user.lastName}`,
-  value: user.id,
-  photo: user.photo,
-  email: user.email,
+const employees = computed(() => crmStore.getEmployees(slug.value))
+const userOptions = computed(() => employees.value.map(employee => ({
+  title: `${employee.firstName} ${employee.lastName}`,
+  value: employee.userId,
+  photo: employee.photo,
+  email: employee.email,
 })))
 
 const loadTask = async () => {
@@ -38,7 +38,7 @@ const loadTask = async () => {
   errorMessage.value = ''
 
   try {
-    await crmStore.fetchPublicUsers()
+    await crmStore.fetchEmployees(slug.value)
     task.value = await crmStore.fetchTaskById(slug.value, taskId.value)
   }
   catch {
@@ -159,7 +159,7 @@ onMounted(loadTask)
           </div>
 
           <div class="d-flex flex-wrap ga-2">
-            <v-chip v-for="assignee in task.assignees" :key="assignee.id || assignee.email" closable @click:close="removeTaskUser(assignee.id)">
+            <v-chip v-for="assignee in task.assignees" :key="assignee.id || assignee.email" closable @click:close="removeTaskUser(assignee.userId || assignee.id)">
               <v-avatar start size="20" :image="assignee.photo || undefined" />
               {{ [assignee.firstName, assignee.lastName].filter(Boolean).join(' ') || assignee.email || assignee.id }}
             </v-chip>
@@ -185,7 +185,7 @@ onMounted(loadTask)
           </div>
 
           <div class="d-flex flex-wrap ga-2">
-            <v-chip v-for="assignee in child.assignees" :key="assignee.id || assignee.email" closable @click:close="removeTaskRequestUser(child.id, assignee.id)">
+            <v-chip v-for="assignee in child.assignees" :key="assignee.id || assignee.email" closable @click:close="removeTaskRequestUser(child.id, assignee.userId || assignee.id)">
               <v-avatar start size="20" :image="assignee.photo || undefined" />
               {{ [assignee.firstName, assignee.lastName].filter(Boolean).join(' ') || assignee.email || assignee.id }}
             </v-chip>

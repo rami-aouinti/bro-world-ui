@@ -2,6 +2,7 @@ import type { UUID } from './common'
 
 export interface CrmAssignee {
   id?: UUID
+  userId?: UUID
   name?: string
   email?: string
   firstName?: string
@@ -45,9 +46,11 @@ export interface CrmContact {
 
 export interface CrmEmployee {
   id: UUID
+  userId: UUID
   firstName: string
   lastName: string
   email: string | null
+  photo?: string | null
   positionName: string | null
   roleName: string | null
   createdAt: string | null

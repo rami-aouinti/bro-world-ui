@@ -30,8 +30,13 @@ const taskForm = reactive<CreateCrmTaskPayload>({
   priority: 'medium',
 })
 
-const users = computed(() => crmStore.getPublicUsers())
-const userOptions = computed(() => users.value.map(user => ({ title: `${user.firstName} ${user.lastName}`, value: user.id, photo: user.photo, email: user.email })))
+const employees = computed(() => crmStore.getEmployees(slug.value))
+const userOptions = computed(() => employees.value.map(employee => ({
+  title: `${employee.firstName} ${employee.lastName}`,
+  value: employee.userId,
+  photo: employee.photo,
+  email: employee.email,
+})))
 
 const loadSprint = async () => {
   if (!slug.value || !sprintId.value) {
@@ -42,7 +47,7 @@ const loadSprint = async () => {
   errorMessage.value = ''
 
   try {
-    await crmStore.fetchPublicUsers()
+    await crmStore.fetchEmployees(slug.value)
     sprint.value = await crmStore.fetchSprintById(slug.value, sprintId.value)
     taskForm.projectId = String(sprint.value?.project?.id || sprint.value?.projectId || '') as CreateCrmTaskPayload['projectId']
     taskForm.sprintId = sprintId.value as CreateCrmTaskPayload['sprintId']
@@ -182,7 +187,7 @@ onMounted(loadSprint)
           </div>
 
           <div class="d-flex flex-wrap ga-2">
-            <v-chip v-for="assignee in sprint.assignees || []" :key="assignee.id || assignee.email" closable @click:close="removeSprintUser(assignee.id)">
+            <v-chip v-for="assignee in sprint.assignees || []" :key="assignee.id || assignee.email" closable @click:close="removeSprintUser(assignee.userId || assignee.id)">
               <v-avatar start size="20" :image="assignee.photo || undefined" />
               {{ [assignee.firstName, assignee.lastName].filter(Boolean).join(' ') || assignee.email || assignee.id }}
             </v-chip>
