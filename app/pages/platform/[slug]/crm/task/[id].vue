@@ -180,7 +180,7 @@ const loadEmployee = async () => {
 }
 onMounted(loadEmployee)
 
-onMounted(loadProject)
+onMounted(loadTask)
 </script>
 
 <template>
@@ -240,8 +240,8 @@ onMounted(loadProject)
           <div class="d-flex ga-2 align-center flex-wrap mt-4 mb-3">
             <v-select v-model="selectedUserId" label="Ajouter un user" :items="userOptions" item-title="title" item-value="value" class="assignee-select" hide-details>
               <template #item="{ item, props }">
-                <v-list-item v-bind="props" :subtitle="item.raw.email">
-                  <template #prepend><v-avatar size="28" :image="item.raw.photo || undefined" /></template>
+                <v-list-item v-bind="props" :subtitle="item?.raw?.email">
+                  <template #prepend><v-avatar size="28" :image="item?.raw?.photo || undefined" /></template>
                 </v-list-item>
               </template>
             </v-select>
