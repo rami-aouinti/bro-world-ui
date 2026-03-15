@@ -77,6 +77,16 @@ const formatFileSize = (size: number) => {
   return `${value.toFixed(value >= 10 ? 0 : 1)} ${units[exponent]}`
 }
 
+const getTaskTitle = (task: { title?: string; TITLE?: string }) => task.title || task.TITLE || 'Untitled task'
+
+const openTaskDetail = (id?: string) => {
+  if (!id) {
+    return
+  }
+
+  navigateTo(`/platform/${slug.value}/crm/task/${id}`)
+}
+
 const loadProject = async () => {
   if (!slug.value || !projectId.value) {
     return
@@ -337,6 +347,30 @@ onMounted(loadProject)
           </v-card>
         </v-expand-transition>
 
+
+        <v-expand-transition>
+          <v-card rounded="xl" class="detail-card">
+            <v-card-title>Tasks</v-card-title>
+            <v-card-text>
+              <v-row v-if="(project.tasks || []).length" dense>
+                <v-col v-for="item in project.tasks || []" :key="item.id" cols="12" md="6">
+                  <v-card variant="tonal" class="task-card" @click="openTaskDetail(item.id)">
+                    <v-card-text>
+                      <p class="text-subtitle-2 font-weight-bold mb-1">{{ getTaskTitle(item) }}</p>
+                      <p class="text-body-2 text-medium-emphasis mb-2">{{ item.description || 'No description' }}</p>
+                      <div class="d-flex align-center justify-space-between ga-2 flex-wrap">
+                        <v-chip size="small" variant="tonal">{{ item.status }}</v-chip>
+                        <span class="text-caption text-medium-emphasis">{{ formatDate(item.dueAt) }}</span>
+                      </div>
+                    </v-card-text>
+                  </v-card>
+                </v-col>
+              </v-row>
+              <p v-else class="text-body-2 text-medium-emphasis">No tasks available.</p>
+            </v-card-text>
+          </v-card>
+        </v-expand-transition>
+
         <v-expand-transition>
           <v-card rounded="xl" class="detail-card">
             <v-card-title>Assignees</v-card-title>
@@ -402,6 +436,10 @@ onMounted(loadProject)
 
 .wiki-content {
   white-space: pre-line;
+}
+
+.task-card {
+  cursor: pointer;
 }
 
 .chips-enter-active,

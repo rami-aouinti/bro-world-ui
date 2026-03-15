@@ -19,6 +19,15 @@ const isLoading = ref(false)
 const errorMessage = ref('')
 const showCreateProjectDialog = ref(false)
 const isCreatingProject = ref(false)
+
+const openProjectDetail = (id?: string) => {
+  if (!id) {
+    return
+  }
+
+  navigateTo(`/platform/${slug.value}/crm/project/${id}`)
+}
+
 const projectForm = reactive<CreateCrmProjectPayload>({
   name: '',
   code: '',
@@ -124,6 +133,24 @@ onMounted(loadCompany)
         </v-card-text>
       </v-card>
     
+
+      <v-card v-if="company" rounded="xl" class="mt-4">
+        <v-card-title>Projects</v-card-title>
+        <v-card-text>
+          <v-row v-if="(company.projects || []).length" dense>
+            <v-col v-for="project in company.projects || []" :key="project.id" cols="12" md="6">
+              <v-card variant="tonal" class="project-card" @click="openProjectDetail(project.id)">
+                <v-card-text>
+                  <p class="text-subtitle-2 font-weight-bold mb-1">{{ project.name }}</p>
+                  <p class="text-caption text-medium-emphasis mb-0">{{ project.id }}</p>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+          <p v-else class="text-body-2 text-medium-emphasis">No projects available.</p>
+        </v-card-text>
+      </v-card>
+
       <v-dialog v-model="showCreateProjectDialog" max-width="560">
         <v-card>
           <v-card-title>Ajouter un projet à la company</v-card-title>
@@ -143,3 +170,9 @@ onMounted(loadCompany)
     </section>
   </PlatformSplitLayout>
 </template>
+
+<style scoped>
+.project-card {
+  cursor: pointer;
+}
+</style>
