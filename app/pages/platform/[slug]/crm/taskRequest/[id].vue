@@ -255,7 +255,7 @@ onMounted(loadTaskRequest)
       <v-card v-if="taskRequest?.blog" rounded="xl">
         <v-card-title>Blog</v-card-title>
         <v-card-text>
-          <BlogFeed :blog="taskRequest.blog" :show-summary="false" :can-interact="true" />
+          <BlogFeed :blog="taskRequest.blog" :show-summary="false" :show-create-post="false" :show-stories="false" :can-interact="false" />
         </v-card-text>
       </v-card>
 

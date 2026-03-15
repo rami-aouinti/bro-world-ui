@@ -91,18 +91,7 @@ const uploadTaskFiles = async () => {
     return
   }
 
-  isUploadingTaskFiles.value = true
-  uploadErrorMessage.value = ''
-  try {
-    task.value = await crmStore.uploadTaskFiles(slug.value, task.value.id, taskFilesToUpload.value)
-    taskFilesToUpload.value = []
-  }
-  catch {
-    uploadErrorMessage.value = 'Unable to upload task files.'
-  }
-  finally {
-    isUploadingTaskFiles.value = false
-  }
+  navigateTo(`/platform/${slug.value}/crm/taskRequest/${requestId}`)
 }
 
 const createTaskRequestForTask = async () => {
@@ -125,25 +114,6 @@ const createTaskRequestForTask = async () => {
   finally {
     isCreatingTaskRequest.value = false
   }
-}
-
-const openTaskRequestDetail = (requestId?: string) => {
-  if (!requestId) {
-    return
-  }
-
-  navigateTo(`/platform/${slug.value}/crm/taskRequest/${requestId}`)
-}
-
-const editTaskRequest = (requestId?: string) => openTaskRequestDetail(requestId)
-
-const deleteTaskRequest = async (requestId?: string) => {
-  if (!slug.value || !requestId) {
-    return
-  }
-
-  await crmStore.deleteTaskRequest(slug.value, requestId)
-  await loadTask()
 }
 
 const openTaskRequestDetail = (requestId?: string) => {
@@ -304,7 +274,7 @@ onMounted(loadTask)
       <v-card v-if="task?.blog" rounded="xl" class="mt-4">
         <v-card-title>Blog</v-card-title>
         <v-card-text>
-          <BlogFeed :blog="task.blog" :show-summary="false" :can-interact="true" />
+          <BlogFeed :blog="task.blog" :show-summary="false" :show-create-post="false" :show-stories="false" :can-interact="false" />
         </v-card-text>
       </v-card>
 

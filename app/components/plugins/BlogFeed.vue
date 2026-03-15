@@ -12,10 +12,12 @@ const props = withDefaults(defineProps<{
   blog: BlogRead
   showSummary?: boolean
   showCreatePost?: boolean
+  showStories?: boolean
   canInteract?: boolean
 }>(), {
   showSummary: true,
   showCreatePost: true,
+  showStories: true,
   canInteract: true,
 })
 
@@ -327,7 +329,9 @@ const formatRelativeTime = (dateInput?: string | null) => {
 
 onMounted(() => {
   void blogsStore.fetchReactionTypes()
-  void storiesStore.fetchStories()
+  if (props.showStories) {
+    void storiesStore.fetchStories()
+  }
 })
 
 onUnmounted(() => {
@@ -854,6 +858,7 @@ const submitSharePost = async () => {
   </v-card>
 
 
+  <template v-if="showStories">
   <v-card class="mb-4 pa-2" rounded="xl">
     <input
       ref="storyPhotoInput"
@@ -940,6 +945,8 @@ const submitSharePost = async () => {
       </div>
     </div>
   </v-dialog>
+
+  </template>
 
   <v-dialog v-model="createPostDialog" max-width="720">
     <v-card rounded="xl" class="pa-2">
