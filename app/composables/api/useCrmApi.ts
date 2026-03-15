@@ -3,6 +3,7 @@ import type { UUID } from '~/types/api/common'
 import type {
   CreateCrmBillingPayload,
   CreateCrmCompanyPayload,
+  CreateCrmContactPayload,
   CreateCrmProjectPayload,
   CreateCrmSprintPayload,
   CreateCrmTaskPayload,
@@ -10,15 +11,18 @@ import type {
   CrmBilling,
   CrmCollectionResponse,
   CrmCompany,
+  CrmContact,
   CrmDashboardResponse,
   CrmProject,
   CrmPublicUsersResponse,
+  CrmReportsResponse,
   CrmSprint,
   CrmTask,
   CrmTaskListResponse,
   CrmTaskRequest,
   CrmTasksBySprintResponse,
   UpdateCrmBillingPayload,
+  UpdateCrmContactPayload,
   UpdateCrmProjectPayload,
   UpdateCrmSprintPayload,
   UpdateCrmTaskPayload,
@@ -49,6 +53,23 @@ export const useCrmApi = () => {
       return apiFetch<void>(`${basePath(applicationSlug)}/companies/${id}`, { method: 'DELETE' })
     },
 
+
+    getContacts(applicationSlug: string) {
+      return apiFetch<CrmCollectionResponse<CrmContact>>(`${basePath(applicationSlug)}/contacts`, { method: 'GET' })
+    },
+    getContactById(applicationSlug: string, id: UUID) {
+      return apiFetch<CrmContact>(`${basePath(applicationSlug)}/contacts/${id}`, { method: 'GET' })
+    },
+    createContact(applicationSlug: string, payload: CreateCrmContactPayload) {
+      return apiFetch<CrmContact>(`${basePath(applicationSlug)}/contacts`, { method: 'POST', body: payload })
+    },
+    updateContact(applicationSlug: string, id: UUID, payload: UpdateCrmContactPayload) {
+      return apiFetch<CrmContact>(`${basePath(applicationSlug)}/contacts/${id}`, { method: 'PATCH', body: payload })
+    },
+    deleteContact(applicationSlug: string, id: UUID) {
+      return apiFetch<void>(`${basePath(applicationSlug)}/contacts/${id}`, { method: 'DELETE' })
+    },
+
     getDashboard(applicationSlug: string) {
       return apiFetch<CrmDashboardResponse>(`${basePath(applicationSlug)}/dashboard`, { method: 'GET' })
     },
@@ -67,6 +88,8 @@ export const useCrmApi = () => {
     },
     deleteBilling(applicationSlug: string, id: UUID) {
       return apiFetch<void>(`${basePath(applicationSlug)}/billings/${id}`, { method: 'DELETE' })
+    getReports(applicationSlug: string) {
+      return apiFetch<CrmReportsResponse>(`${basePath(applicationSlug)}/reports`, { method: 'GET' })
     },
 
     getProjects(applicationSlug: string) {

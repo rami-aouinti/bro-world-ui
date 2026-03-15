@@ -2,10 +2,12 @@ import { defineStore } from 'pinia'
 import { useCrmApi } from '~/composables/api/useCrmApi'
 import type {
   CreateCrmCompanyPayload,
+  CreateCrmContactPayload,
   CreateCrmProjectPayload,
   CreateCrmSprintPayload,
   CreateCrmTaskPayload,
   CrmCompany,
+  CrmContact,
   CrmDashboardResponse,
   CrmProject,
   CrmPublicUser,
@@ -17,6 +19,7 @@ import type {
   UpdateCrmTaskPayload,
   UpdateCrmTaskRequestPayload,
   UpdateCrmTaskRequestStatusPayload,
+  UpdateCrmContactPayload,
 } from '~/types/api/crm'
 import type { UUID } from '~/types/api/common'
 
@@ -25,6 +28,7 @@ const CACHE_TTL_MS = 60_000
 interface CrmApplicationCache {
   fetchedAt: number
   companies: CrmCompany[]
+  contacts: CrmContact[]
   dashboard: CrmDashboardResponse | null
   projects: CrmProject[]
   sprints: CrmSprint[]
@@ -36,6 +40,7 @@ interface CrmApplicationCache {
 const createEmptyCache = (): CrmApplicationCache => ({
   fetchedAt: 0,
   companies: [],
+  contacts: [],
   dashboard: null,
   projects: [],
   sprints: [],
@@ -74,6 +79,7 @@ export const useCrmStore = defineStore('crm', () => {
 
   const getCompanies = (applicationSlug: string) => ensureApplicationCache(applicationSlug).companies
   const getDashboard = (applicationSlug: string) => ensureApplicationCache(applicationSlug).dashboard
+  const getContacts = (applicationSlug: string) => ensureApplicationCache(applicationSlug).contacts
   const getProjects = (applicationSlug: string) => ensureApplicationCache(applicationSlug).projects
   const getSprints = (applicationSlug: string) => ensureApplicationCache(applicationSlug).sprints
   const getTasks = (applicationSlug: string) => ensureApplicationCache(applicationSlug).tasks
@@ -109,6 +115,23 @@ export const useCrmStore = defineStore('crm', () => {
       ensureApplicationCache(applicationSlug).dashboard = response
       markFetched(applicationSlug)
       return response
+    }
+    finally {
+      isLoading.value = false
+    }
+  }
+
+  const fetchContacts = async (applicationSlug: string, force = false) => {
+    if (!shouldFetch(applicationSlug, force) && getContacts(applicationSlug).length > 0) {
+      return getContacts(applicationSlug)
+    }
+
+    isLoading.value = true
+    try {
+      const response = await crmApi.getContacts(applicationSlug)
+      ensureApplicationCache(applicationSlug).contacts = response.items
+      markFetched(applicationSlug)
+      return response.items
     }
     finally {
       isLoading.value = false
@@ -221,6 +244,7 @@ export const useCrmStore = defineStore('crm', () => {
   }
 
   const fetchCompanyById = (applicationSlug: string, id: UUID) => crmApi.getCompanyById(applicationSlug, id)
+  const fetchContactById = (applicationSlug: string, id: UUID) => crmApi.getContactById(applicationSlug, id)
   const fetchProjectById = (applicationSlug: string, id: UUID) => crmApi.getProjectById(applicationSlug, id)
   const fetchSprintById = (applicationSlug: string, id: UUID) => crmApi.getSprintById(applicationSlug, id)
   const fetchTaskById = (applicationSlug: string, id: UUID) => crmApi.getTaskById(applicationSlug, id)
@@ -327,6 +351,31 @@ export const useCrmStore = defineStore('crm', () => {
     await crmApi.deleteCompany(applicationSlug, id)
     const cache = ensureApplicationCache(applicationSlug)
     cache.companies = cache.companies.filter(company => company.id !== id)
+  }
+
+  const createContact = async (applicationSlug: string, payload: CreateCrmContactPayload) => {
+    const created = await crmApi.createContact(applicationSlug, payload)
+    const cache = ensureApplicationCache(applicationSlug)
+    cache.contacts = [created, ...cache.contacts]
+    tracker.track('crm.entity.created', {
+      applicationSlug,
+      entityType: 'contact',
+      entityId: created.id,
+    })
+    return created
+  }
+
+  const updateContact = async (applicationSlug: string, id: UUID, payload: UpdateCrmContactPayload) => {
+    const updated = await crmApi.updateContact(applicationSlug, id, payload)
+    const cache = ensureApplicationCache(applicationSlug)
+    cache.contacts = cache.contacts.map(contact => contact.id === id ? updated : contact)
+    return updated
+  }
+
+  const deleteContact = async (applicationSlug: string, id: UUID) => {
+    await crmApi.deleteContact(applicationSlug, id)
+    const cache = ensureApplicationCache(applicationSlug)
+    cache.contacts = cache.contacts.filter(contact => contact.id !== id)
   }
 
   const createProject = async (applicationSlug: string, payload: CreateCrmProjectPayload) => {
@@ -439,6 +488,7 @@ export const useCrmStore = defineStore('crm', () => {
     publicUsers,
     getCompanies,
     getDashboard,
+    getContacts,
     getProjects,
     getSprints,
     getTasks,
@@ -446,6 +496,7 @@ export const useCrmStore = defineStore('crm', () => {
     getPublicUsers,
     fetchCompanies,
     fetchDashboard,
+    fetchContacts,
     fetchProjects,
     fetchSprints,
     fetchTasks,
@@ -453,6 +504,7 @@ export const useCrmStore = defineStore('crm', () => {
     fetchTaskRequests,
     fetchPublicUsers,
     fetchCompanyById,
+    fetchContactById,
     fetchProjectById,
     fetchSprintById,
     fetchTaskById,
@@ -461,6 +513,9 @@ export const useCrmStore = defineStore('crm', () => {
     fetchTasksBySprint,
     createCompany,
     deleteCompany,
+    createContact,
+    updateContact,
+    deleteContact,
     createProject,
     updateProject,
     assignProjectAssignee,
