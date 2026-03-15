@@ -94,6 +94,11 @@ onMounted(loadProject)
 
       <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
 
+      <template v-if="isLoading && !project">
+        <v-skeleton-loader type="article, article, article" class="mb-4" />
+        <v-skeleton-loader type="heading, list-item-three-line, list-item-three-line" />
+      </template>
+
       <v-card v-if="project" rounded="xl" class="mb-4">
         <v-card-text class="d-grid ga-2">
           <p><strong>Name:</strong> {{ project.name }}</p>

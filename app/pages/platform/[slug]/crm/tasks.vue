@@ -30,6 +30,7 @@ const boardChildren = ref<CrmBoardChild[]>([])
 const draggingChildId = ref<string | null>(null)
 const hoveredColumn = ref<KanbanStatus | null>(null)
 const errorMessage = ref('')
+const isPageLoading = ref(true)
 
 const goToTask = (id: string) => navigateTo(`/platform/${slug.value}/crm/task/${id}`)
 
@@ -146,8 +147,13 @@ const onDropColumn = async (status: KanbanStatus) => {
 }
 
 onMounted(async () => {
-  await loadData()
-  await nextTick()
+  try {
+    await loadData()
+    await nextTick()
+  }
+  finally {
+    isPageLoading.value = false
+  }
 })
 </script>
 
@@ -170,7 +176,13 @@ onMounted(async () => {
         {{ errorMessage }}
       </v-alert>
 
-      <div class="kanban-board">
+      <div v-if="isPageLoading" class="kanban-board">
+        <div v-for="column in KANBAN_COLUMNS" :key="`loading-${column.key}`" class="kanban-column">
+          <v-skeleton-loader type="heading, article, article" class="h-100" />
+        </div>
+      </div>
+
+      <div v-else class="kanban-board">
         <div
           v-for="column in KANBAN_COLUMNS"
           :key="column.key"

@@ -18,6 +18,7 @@ const companies = computed(() => crmStore.getCompanies(slug.value))
 const companiesById = computed(() => new Map(companies.value.map(company => [company.id, company.name])))
 const showCreateDialog = ref(false)
 const isMutating = ref(false)
+const isPageLoading = ref(true)
 const goToProject = (id: string) => navigateTo(`/platform/${slug.value}/crm/project/${id}`)
 
 const form = reactive<CreateCrmProjectPayload>({
@@ -91,8 +92,13 @@ const removeProject = async (id: string) => {
 }
 
 onMounted(async () => {
-  await loadData()
-  await nextTick()
+  try {
+    await loadData()
+    await nextTick()
+  }
+  finally {
+    isPageLoading.value = false
+  }
 })
 </script>
 
@@ -111,7 +117,13 @@ onMounted(async () => {
         <v-btn color="primary" @click="showCreateDialog = true">Add project</v-btn>
       </div>
 
-      <v-row>
+      <v-row v-if="isPageLoading">
+        <v-col v-for="i in 4" :key="`project-skeleton-${i}`" cols="12" md="6">
+          <v-skeleton-loader type="card, article" class="h-100" />
+        </v-col>
+      </v-row>
+
+      <v-row v-else>
         <v-col v-for="project in projects" :key="project.id" cols="12" md="6">
           <v-card rounded="xl" class="h-100 cursor-pointer" @click="goToProject(project.id)">
             <v-card-text>
