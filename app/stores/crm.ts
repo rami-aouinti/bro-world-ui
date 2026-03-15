@@ -430,6 +430,17 @@ export const useCrmStore = defineStore('crm', () => {
     cache.projects = cache.projects.filter(project => project.id !== id)
   }
 
+
+  const uploadProjectFiles = async (applicationSlug: string, id: UUID, files: File[]) => {
+    const response = await crmApi.uploadProjectFiles(applicationSlug, id, files)
+    const cache = ensureApplicationCache(applicationSlug)
+    cache.projects = cache.projects.map(project => project.id === id
+      ? { ...project, attachments: [...(project.attachments ?? []), ...response.files] }
+      : project)
+
+    return response.files
+  }
+
   const createSprint = async (applicationSlug: string, payload: CreateCrmSprintPayload) => {
     const created = await crmApi.createSprint(applicationSlug, payload)
     const cache = ensureApplicationCache(applicationSlug)
@@ -480,10 +491,36 @@ export const useCrmStore = defineStore('crm', () => {
     cache.myTasks = cache.myTasks.filter(task => task.id !== id)
   }
 
+
+  const uploadTaskFiles = async (applicationSlug: string, id: UUID, files: File[]) => {
+    const updated = await crmApi.uploadTaskFiles(applicationSlug, id, files)
+    const cache = ensureApplicationCache(applicationSlug)
+    cache.tasks = cache.tasks.map(task => task.id === id ? updated : task)
+    cache.myTasks = cache.myTasks.map(task => task.id === id ? updated : task)
+    return updated
+  }
+
   const updateTaskRequest = async (applicationSlug: string, id: UUID, payload: UpdateCrmTaskRequestPayload) => {
     const updated = await crmApi.updateTaskRequest(applicationSlug, id, payload)
     const cache = ensureApplicationCache(applicationSlug)
     cache.taskRequests = cache.taskRequests.map(request => request.id === id ? updated : request)
+    return updated
+  }
+
+
+  const uploadTaskRequestFiles = async (applicationSlug: string, id: UUID, files: File[]) => {
+    const updated = await crmApi.uploadTaskRequestFiles(applicationSlug, id, files)
+    const cache = ensureApplicationCache(applicationSlug)
+
+    const updateChildren = (tasks: CrmTask[]) => tasks.map(task => ({
+      ...task,
+      children: task.children.map(child => child.id === id ? { ...child, attachments: updated.attachments } : child),
+    }))
+
+    cache.tasks = updateChildren(cache.tasks)
+    cache.myTasks = updateChildren(cache.myTasks)
+    cache.taskRequests = cache.taskRequests.map(request => request.id === id ? updated : request)
+
     return updated
   }
 
@@ -543,6 +580,7 @@ export const useCrmStore = defineStore('crm', () => {
     assignProjectAssignee,
     removeProjectAssignee,
     deleteProject,
+    uploadProjectFiles,
     createSprint,
     updateSprint,
     assignSprintAssignee,
@@ -551,11 +589,13 @@ export const useCrmStore = defineStore('crm', () => {
     createTask,
     updateTask,
     deleteTask,
+    uploadTaskFiles,
     assignTaskAssignee,
     removeTaskAssignee,
     assignTaskRequestAssignee,
     removeTaskRequestAssignee,
     updateTaskRequest,
+    uploadTaskRequestFiles,
     updateTaskRequestStatus,
   }
 })
