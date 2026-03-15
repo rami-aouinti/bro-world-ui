@@ -1,3 +1,4 @@
+import type { BlogRead } from './blog'
 import type { UUID } from './common'
 
 export interface CrmAssignee {
@@ -30,6 +31,19 @@ export interface CrmCompany {
   website: string | null
   contactEmail: string | null
   phone: string | null
+  projects?: Array<{
+    id: UUID
+    name: string
+  }>
+}
+
+export interface CrmTaskListItem {
+  id: UUID
+  title?: string
+  TITLE?: string
+  description?: string | null
+  status: string
+  dueAt?: string | null
 }
 
 export interface CrmContact {
@@ -74,6 +88,7 @@ export interface CrmProject {
     createdAt: string
   }>
   assignees?: CrmAssignee[]
+  tasks?: CrmTaskListItem[]
 }
 
 export interface CrmSprint {
@@ -86,17 +101,20 @@ export interface CrmSprint {
   startDate: string | null
   endDate: string | null
   assignees?: CrmAssignee[]
+  tasks?: CrmTaskListItem[]
 }
 
 export interface CrmTaskChild {
   id: UUID
-  taskId: UUID
+  taskId?: UUID
   title: string
+  description?: string | null
   status: string
-  requestedAt: string | null
-  resolvedAt: string | null
-  assignees: CrmAssignee[]
+  requestedAt?: string | null
+  resolvedAt?: string | null
+  assignees?: CrmAssignee[]
   attachments?: CrmAttachment[]
+  blog?: BlogRead | null
 }
 
 export interface CrmTask {
@@ -120,11 +138,14 @@ export interface CrmTask {
 export interface CrmTaskRequest {
   id: UUID
   title: string
+  description?: string | null
   status: string
   requestedAt: string
   resolvedAt: string | null
   taskId: UUID
+  assignees?: CrmAssignee[]
   attachments?: CrmAttachment[]
+  blog?: BlogRead | null
 }
 
 export interface CrmAttachment {
