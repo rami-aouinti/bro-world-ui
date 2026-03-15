@@ -91,6 +91,19 @@ export interface CrmTaskRequest {
   taskId: UUID
 }
 
+export type CrmBillingStatus = 'pending' | 'paid' | 'overdue'
+
+export interface CrmBilling {
+  id: UUID
+  companyId: UUID
+  label: string
+  amount: number
+  currency: string
+  status: CrmBillingStatus
+  dueAt: string | null
+  paidAt: string | null
+}
+
 export interface CrmDashboardResponse {
   companies: number
   projects: number
@@ -155,6 +168,16 @@ export interface CreateCrmTaskPayload {
   assigneeIds?: UUID[]
 }
 
+export interface CreateCrmBillingPayload {
+  companyId: UUID
+  label: string
+  amount: number
+  currency: string
+  status: CrmBillingStatus
+  dueAt?: string | null
+  paidAt?: string | null
+}
+
 
 
 export interface CrmTasksBySprintResponse {
@@ -193,6 +216,16 @@ export interface UpdateCrmTaskPayload {
   priority?: string
   dueAt?: string
   estimatedHours?: number
+}
+
+export interface UpdateCrmBillingPayload {
+  companyId?: UUID
+  label?: string
+  amount?: number
+  currency?: string
+  status?: CrmBillingStatus
+  dueAt?: string | null
+  paidAt?: string | null
 }
 
 export interface UpdateCrmTaskRequestPayload {

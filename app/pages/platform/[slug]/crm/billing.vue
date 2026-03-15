@@ -1,30 +1,196 @@
 <script setup lang="ts">
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
-import { crmCompanies, crmProjects } from '~/data/platform-demo'
+import { useCrmApi } from '~/composables/api/useCrmApi'
 import { getCrmNav } from '~/data/platform-nav'
+import type { CreateCrmBillingPayload, CrmBillingStatus, UpdateCrmBillingPayload } from '~/types/api/crm'
 
 definePageMeta({ public: true, requiresAuth: false })
+
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
-const page = computed(() => route.path.split('/').pop() || 'home')
 const { isOwner } = usePlatformPermissions(slug)
+const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
+const crmApi = useCrmApi()
+const { normalizeError } = useApiError()
+const { $errorLogger } = useNuxtApp()
+
 const isPageLoading = ref(true)
-const titleMap: Record<string, string> = {
-  companies: 'Companies',
-  projects: 'Projects',
-  sprint: 'Sprint Board',
-  calendar: 'Calendar',
-  settings: 'Settings',
-  billing: 'Billing',
-  admin: 'Admin CRM',
+const isMutating = ref(false)
+const errorMessage = ref('')
+const showCreateDialog = ref(false)
+const showEditDialog = ref(false)
+const billings = ref<Awaited<ReturnType<typeof crmApi.getBillings>>['items']>([])
+const selectedBillingId = ref('')
+
+const statusOptions: Array<{ title: string, value: CrmBillingStatus }> = [
+  { title: 'Pending', value: 'pending' },
+  { title: 'Paid', value: 'paid' },
+  { title: 'Overdue', value: 'overdue' },
+]
+
+const createForm = reactive<CreateCrmBillingPayload>({
+  companyId: '',
+  label: '',
+  amount: 0,
+  currency: 'EUR',
+  status: 'pending',
+  dueAt: '',
+  paidAt: '',
+})
+
+const editForm = reactive<UpdateCrmBillingPayload>({
+  companyId: '',
+  label: '',
+  amount: 0,
+  currency: 'EUR',
+  status: 'pending',
+  dueAt: '',
+  paidAt: '',
+})
+
+const formatAmount = (amount: number, currency: string) => new Intl.NumberFormat('fr-FR', {
+  style: 'currency',
+  currency,
+  maximumFractionDigits: 2,
+}).format(amount)
+
+const formatDate = (date: string | null) => {
+  if (!date) {
+    return '—'
+  }
+
+  return new Intl.DateTimeFormat('fr-FR', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(date))
 }
 
-const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
+const loadBillings = async () => {
+  if (!slug.value) {
+    return
+  }
+
+  errorMessage.value = ''
+
+  try {
+    const response = await crmApi.getBillings(slug.value)
+    billings.value = response.items
+  }
+  catch (error) {
+    const normalized = normalizeError(error, {
+      domain: 'platform.crm.billing',
+      action: 'load',
+      fallbackKey: 'platform.crm.companies.errors.load',
+    })
+    $errorLogger(error, { area: 'platform.crm.billing', action: 'load', status: normalized.status })
+    errorMessage.value = normalized.message
+  }
+}
+
+const resetCreateForm = () => {
+  Object.assign(createForm, {
+    companyId: '',
+    label: '',
+    amount: 0,
+    currency: 'EUR',
+    status: 'pending',
+    dueAt: '',
+    paidAt: '',
+  })
+}
+
+const createBilling = async () => {
+  if (!slug.value || !createForm.label?.trim() || !createForm.companyId?.trim()) {
+    return
+  }
+
+  isMutating.value = true
+
+  try {
+    const created = await crmApi.createBilling(slug.value, {
+      ...createForm,
+      label: createForm.label.trim(),
+      companyId: createForm.companyId.trim(),
+      dueAt: createForm.dueAt || null,
+      paidAt: createForm.paidAt || null,
+    })
+    billings.value = [created, ...billings.value]
+    showCreateDialog.value = false
+    resetCreateForm()
+  }
+  finally {
+    isMutating.value = false
+  }
+}
+
+const openEditDialog = (billingId: string) => {
+  const billing = billings.value.find(item => item.id === billingId)
+  if (!billing) {
+    return
+  }
+
+  selectedBillingId.value = billingId
+  Object.assign(editForm, {
+    companyId: billing.companyId,
+    label: billing.label,
+    amount: billing.amount,
+    currency: billing.currency,
+    status: billing.status,
+    dueAt: billing.dueAt,
+    paidAt: billing.paidAt,
+  })
+  showEditDialog.value = true
+}
+
+const updateBilling = async () => {
+  if (!slug.value || !selectedBillingId.value || !editForm.label?.trim()) {
+    return
+  }
+
+  isMutating.value = true
+
+  try {
+    const updated = await crmApi.updateBilling(slug.value, selectedBillingId.value, {
+      ...editForm,
+      label: editForm.label.trim(),
+      companyId: editForm.companyId?.trim(),
+      dueAt: editForm.dueAt || null,
+      paidAt: editForm.paidAt || null,
+    })
+
+    billings.value = billings.value.map(item => item.id === selectedBillingId.value ? updated : item)
+    showEditDialog.value = false
+  }
+  finally {
+    isMutating.value = false
+  }
+}
+
+const removeBilling = async (billingId: string) => {
+  if (!slug.value) {
+    return
+  }
+
+  isMutating.value = true
+  try {
+    await crmApi.deleteBilling(slug.value, billingId)
+    billings.value = billings.value.filter(item => item.id !== billingId)
+  }
+  finally {
+    isMutating.value = false
+  }
+}
+
+const goToDetail = (billingId: string) => navigateTo(`/platform/${slug.value}/crm/billing/${billingId}`)
 
 onMounted(async () => {
-  await new Promise(resolve => setTimeout(resolve, 450))
-  isPageLoading.value = false
+  try {
+    await loadBillings()
+  }
+  finally {
+    isPageLoading.value = false
+  }
 })
 </script>
 
@@ -35,51 +201,86 @@ onMounted(async () => {
     </template>
 
     <section>
-      <h1 class="text-h5 font-weight-bold mb-1">{{ titleMap[page] }}</h1>
-      <p class="text-body-2 text-medium-emphasis mb-6">Enhanced view with cards, light animation, and fake data.</p>
+      <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
+        <div>
+          <h1 class="text-h5 font-weight-bold mb-1">Billing</h1>
+          <p class="text-body-2 text-medium-emphasis">Factures CRM synchronisées avec l'API.</p>
+        </div>
+        <div class="d-flex ga-2">
+          <v-btn color="primary" @click="showCreateDialog = true">Create billing</v-btn>
+          <v-btn variant="outlined" :loading="isPageLoading" @click="loadBillings">Refresh</v-btn>
+        </div>
+      </div>
+
+      <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
+        {{ errorMessage }}
+      </v-alert>
 
       <v-row v-if="isPageLoading">
-        <v-col cols="12" md="6" lg="4" v-for="i in 6" :key="`billing-skeleton-${i}`">
+        <v-col v-for="i in 6" :key="`billing-skeleton-${i}`" cols="12" md="6" lg="4">
           <v-skeleton-loader type="card, article" class="h-100" />
         </v-col>
       </v-row>
 
-      <template v-else>
-        <v-row v-if="page === 'companies'">
-          <v-col v-for="company in crmCompanies" :key="company.id" cols="12" md="6" lg="4">
-            <v-card rounded="xl" hover class="h-100">
-              <v-card-text>
-                <p class="text-subtitle-1 font-weight-bold">{{ company.name }}</p>
-                <p class="text-body-2 text-medium-emphasis mb-2">{{ company.sector }}</p>
-                <v-chip size="small" variant="tonal">{{ company.size }}</v-chip>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
+      <v-row v-else>
+        <v-col v-for="billing in billings" :key="billing.id" cols="12" md="6" lg="4">
+          <v-card rounded="xl" hover class="h-100 cursor-pointer" @click="goToDetail(billing.id)">
+            <v-card-text>
+              <div class="d-flex justify-space-between align-start ga-2 mb-2">
+                <p class="text-subtitle-1 font-weight-bold">{{ billing.label }}</p>
+                <v-chip size="small" color="primary" variant="tonal">{{ billing.status }}</v-chip>
+              </div>
+              <p class="text-body-2 mb-1">{{ formatAmount(billing.amount, billing.currency) }}</p>
+              <p class="text-body-2 text-medium-emphasis mb-1">Due: {{ formatDate(billing.dueAt) }}</p>
+              <p class="text-body-2 text-medium-emphasis mb-3">Paid: {{ formatDate(billing.paidAt) }}</p>
+              <div class="d-flex ga-2">
+                <v-btn size="small" variant="tonal" @click.stop="openEditDialog(billing.id)">Edit</v-btn>
+                <v-btn size="small" color="error" variant="tonal" :loading="isMutating" @click.stop="removeBilling(billing.id)">Delete</v-btn>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
 
-        <v-row v-else-if="page === 'projects' || page === 'sprint'">
-          <v-col v-for="project in crmProjects" :key="project.id" cols="12" md="6">
-            <v-card rounded="xl" class="h-100">
-              <v-card-text>
-                <p class="text-subtitle-1 font-weight-bold">{{ project.title }}</p>
-                <p class="text-body-2 mb-2">Owner: {{ project.owner }}</p>
-                <v-progress-linear :model-value="project.progress" color="primary" rounded="pill" height="8" />
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
+      <v-dialog v-model="showCreateDialog" max-width="580">
+        <v-card>
+          <v-card-title>Create billing</v-card-title>
+          <v-card-text>
+            <v-text-field v-model="createForm.label" label="Label" required />
+            <v-text-field v-model="createForm.companyId" label="Company ID" required />
+            <v-text-field v-model.number="createForm.amount" label="Amount" type="number" />
+            <v-text-field v-model="createForm.currency" label="Currency" placeholder="EUR / USD / GBP" />
+            <v-select v-model="createForm.status" label="Status" :items="statusOptions" item-title="title" item-value="value" />
+            <v-text-field v-model="createForm.dueAt" label="Due at" type="datetime-local" />
+            <v-text-field v-model="createForm.paidAt" label="Paid at" type="datetime-local" />
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn variant="text" @click="showCreateDialog = false">Cancel</v-btn>
+            <v-btn color="primary" :loading="isMutating" @click="createBilling">Create</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
 
-        <v-row v-else>
-          <v-col cols="12" md="6" lg="4" v-for="i in 6" :key="i">
-            <v-card rounded="xl" variant="outlined" class="h-100">
-              <v-card-text>
-                <p class="text-subtitle-2 font-weight-bold">{{ titleMap[page] }} card #{{ i }}</p>
-                <p class="text-body-2 text-medium-emphasis">Content de demo ready for API integration.</p>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
-      </template>
+      <v-dialog v-model="showEditDialog" max-width="580">
+        <v-card>
+          <v-card-title>Edit billing</v-card-title>
+          <v-card-text>
+            <v-text-field v-model="editForm.label" label="Label" required />
+            <v-text-field v-model="editForm.companyId" label="Company ID" required />
+            <v-text-field v-model.number="editForm.amount" label="Amount" type="number" />
+            <v-text-field v-model="editForm.currency" label="Currency" placeholder="EUR / USD / GBP" />
+            <v-select v-model="editForm.status" label="Status" :items="statusOptions" item-title="title" item-value="value" />
+            <v-text-field v-model="editForm.dueAt" label="Due at" type="datetime-local" />
+            <v-text-field v-model="editForm.paidAt" label="Paid at" type="datetime-local" />
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn variant="text" @click="showEditDialog = false">Cancel</v-btn>
+            <v-btn color="primary" :loading="isMutating" @click="updateBilling">Save</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </section>
   </PlatformSplitLayout>
 </template>

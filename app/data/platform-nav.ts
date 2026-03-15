@@ -98,6 +98,7 @@ export const getCrmNav = (slug: string, isOwner = false): PlatformNavItem[] => {
     { title: 'platform.crm.nav.sprint', icon: 'mdi-run-fast', to: `${base}/sprint`, section: 'operations', featureFlag: 'sprint' },
     { title: 'platform.crm.nav.calendar', icon: 'mdi-calendar-month-outline', to: `${base}/calendar`, section: 'operations', featureFlag: 'calendar' },
     { title: 'platform.crm.nav.settings', icon: 'mdi-cog-outline', to: `${base}/settings`, section: 'operations', featureFlag: 'settings' },
+    { title: 'platform.crm.nav.billing', icon: 'mdi-cash-multiple', to: `${base}/billing`, section: 'operations', featureFlag: 'billing' },
     { title: 'platform.crm.nav.tickets', icon: 'mdi-ticket-confirmation-outline', to: `${base}/tickets`, section: 'support', featureFlag: 'tickets' },
     { title: 'platform.common.nav.admin', icon: 'mdi-shield-crown-outline', to: `${base}/admin`, section: 'admin', rights: 'owner', featureFlag: 'admin' },
   ], isOwner)
