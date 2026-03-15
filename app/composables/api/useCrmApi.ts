@@ -2,12 +2,14 @@ import { useApiClient } from '../useApiClient'
 import type { UUID } from '~/types/api/common'
 import type {
   CreateCrmCompanyPayload,
+  CreateCrmContactPayload,
   CreateCrmProjectPayload,
   CreateCrmSprintPayload,
   CreateCrmTaskPayload,
   CreateCrmTaskRequestPayload,
   CrmCollectionResponse,
   CrmCompany,
+  CrmContact,
   CrmDashboardResponse,
   CrmProject,
   CrmPublicUsersResponse,
@@ -16,6 +18,7 @@ import type {
   CrmTaskListResponse,
   CrmTaskRequest,
   CrmTasksBySprintResponse,
+  UpdateCrmContactPayload,
   UpdateCrmProjectPayload,
   UpdateCrmSprintPayload,
   UpdateCrmTaskPayload,
@@ -44,6 +47,23 @@ export const useCrmApi = () => {
     },
     deleteCompany(applicationSlug: string, id: UUID) {
       return apiFetch<void>(`${basePath(applicationSlug)}/companies/${id}`, { method: 'DELETE' })
+    },
+
+
+    getContacts(applicationSlug: string) {
+      return apiFetch<CrmCollectionResponse<CrmContact>>(`${basePath(applicationSlug)}/contacts`, { method: 'GET' })
+    },
+    getContactById(applicationSlug: string, id: UUID) {
+      return apiFetch<CrmContact>(`${basePath(applicationSlug)}/contacts/${id}`, { method: 'GET' })
+    },
+    createContact(applicationSlug: string, payload: CreateCrmContactPayload) {
+      return apiFetch<CrmContact>(`${basePath(applicationSlug)}/contacts`, { method: 'POST', body: payload })
+    },
+    updateContact(applicationSlug: string, id: UUID, payload: UpdateCrmContactPayload) {
+      return apiFetch<CrmContact>(`${basePath(applicationSlug)}/contacts/${id}`, { method: 'PATCH', body: payload })
+    },
+    deleteContact(applicationSlug: string, id: UUID) {
+      return apiFetch<void>(`${basePath(applicationSlug)}/contacts/${id}`, { method: 'DELETE' })
     },
 
     getDashboard(applicationSlug: string) {

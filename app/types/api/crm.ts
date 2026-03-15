@@ -31,6 +31,18 @@ export interface CrmCompany {
   phone: string | null
 }
 
+export interface CrmContact {
+  id: UUID
+  companyId?: UUID
+  firstName: string
+  lastName: string
+  email: string | null
+  phone: string | null
+  jobTitle: string | null
+  city: string | null
+  score: number | null
+}
+
 export interface CrmProject {
   id: UUID
   code?: string | null
@@ -134,6 +146,17 @@ export interface CreateCrmProjectPayload {
   dueAt?: string
 }
 
+export interface CreateCrmContactPayload {
+  companyId?: UUID
+  firstName: string
+  lastName: string
+  email?: string
+  phone?: string
+  jobTitle?: string
+  city?: string
+  score?: number
+}
+
 export interface CreateCrmSprintPayload {
   name: string
   goal?: string
@@ -173,6 +196,17 @@ export interface UpdateCrmProjectPayload {
   status?: string
   startedAt?: string
   dueAt?: string
+}
+
+export interface UpdateCrmContactPayload {
+  companyId?: UUID
+  firstName?: string
+  lastName?: string
+  email?: string
+  phone?: string
+  jobTitle?: string
+  city?: string
+  score?: number
 }
 
 export interface UpdateCrmSprintPayload {
