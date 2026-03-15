@@ -88,6 +88,7 @@ export const useCrmApi = () => {
     },
     deleteBilling(applicationSlug: string, id: UUID) {
       return apiFetch<void>(`${basePath(applicationSlug)}/billings/${id}`, { method: 'DELETE' })
+    },
     getReports(applicationSlug: string) {
       return apiFetch<CrmReportsResponse>(`${basePath(applicationSlug)}/reports`, { method: 'GET' })
     },
