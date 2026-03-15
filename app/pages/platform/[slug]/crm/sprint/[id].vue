@@ -30,13 +30,8 @@ const taskForm = reactive<CreateCrmTaskPayload>({
   priority: 'medium',
 })
 
-const employees = computed(() => crmStore.getEmployees(slug.value))
-const userOptions = computed(() => employees.value.map(employee => ({
-  title: `${employee.firstName} ${employee.lastName}`,
-  value: employee.userId,
-  photo: employee.photo,
-  email: employee.email,
-})))
+const employees = ref<Any>(null)
+const userOptions = ref<Any>(null)
 
 const loadSprint = async () => {
   if (!slug.value || !sprintId.value) {
@@ -59,6 +54,32 @@ const loadSprint = async () => {
     isLoading.value = false
   }
 }
+const loadEmployee = async () => {
+  if (!slug.value || !sprintId.value) {
+    return
+  }
+
+  isLoading.value = true
+  errorMessage.value = ''
+
+  try {
+    employees.value = await crmStore.fetchEmployees(slug.value)
+    userOptions.value = await employees.value.map(employee => ({
+      title: `${employee.firstName} ${employee.lastName}`,
+      value: employee.userId,
+      photo: employee.photo,
+      email: employee.email,
+    }))
+  }
+  catch {
+    errorMessage.value = 'Unable to load sprint details.'
+  }
+  finally {
+    isLoading.value = false
+  }
+}
+
+
 
 const assignSprintUser = async () => {
   if (!slug.value || !sprint.value || !selectedUserId.value) {
@@ -123,6 +144,7 @@ const createTaskForSprint = async () => {
   }
 }
 
+onMounted(loadEmployee)
 onMounted(loadSprint)
 </script>
 
@@ -136,10 +158,9 @@ onMounted(loadSprint)
       <div class="d-flex align-center justify-space-between mb-4 ga-2 flex-wrap">
         <div>
           <h1 class="text-h5 font-weight-bold mb-1">Sprint detail</h1>
-          <p class="text-body-2 text-medium-emphasis mb-0">{{ sprintId }}</p>
         </div>
         <div class="d-flex ga-2 flex-wrap">
-          <v-btn color="primary" @click="showCreateTaskDialog = true">Ajouter un task</v-btn>
+          <v-btn color="primary" variant="text" @click="showCreateTaskDialog = true" icon="mdi-plus"></v-btn>
           <v-menu location="bottom end">
             <template #activator="{ props }">
               <v-btn v-bind="props" icon="mdi-cog" variant="text" />
@@ -149,7 +170,7 @@ onMounted(loadSprint)
               <v-list-item prepend-icon="mdi-delete" title="Delete" @click="deleteSprint" />
             </v-list>
           </v-menu>
-          <v-btn variant="outlined" :loading="isLoading" @click="loadSprint">Refresh</v-btn>
+          <v-btn variant="text" icon="mdi-refresh" :loading="isLoading" @click="loadSprint"></v-btn>
         </div>
       </div>
 
@@ -165,7 +186,6 @@ onMounted(loadSprint)
           <p><strong>Name:</strong> {{ sprint.name }}</p>
           <p><strong>Goal:</strong> {{ sprint.goal || 'N/A' }}</p>
           <p><strong>Status:</strong> {{ sprint.status }}</p>
-          <p><strong>Project ID:</strong> {{ sprint.project?.id || sprint.projectId }}</p>
           <p><strong>Project name:</strong> {{ sprint.project?.name || 'N/A' }}</p>
           <p><strong>Start date:</strong> {{ sprint.startDate || 'N/A' }}</p>
           <p><strong>End date:</strong> {{ sprint.endDate || 'N/A' }}</p>
@@ -178,8 +198,8 @@ onMounted(loadSprint)
           <div class="d-flex ga-2 align-center flex-wrap mb-4">
             <v-select v-model="selectedUserId" label="Ajouter un user" :items="userOptions" item-title="title" item-value="value" class="assignee-select" hide-details>
               <template #item="{ item, props }">
-                <v-list-item v-bind="props" :subtitle="item.raw.email">
-                  <template #prepend><v-avatar size="28" :image="item.raw.photo || undefined" /></template>
+                <v-list-item v-bind="props" :subtitle="item?.raw?.email">
+                  <template #prepend><v-avatar size="28" :image="item?.raw?.photo || undefined" /></template>
                 </v-list-item>
               </template>
             </v-select>
@@ -198,7 +218,7 @@ onMounted(loadSprint)
     
       <v-dialog v-model="showCreateTaskDialog" max-width="560">
         <v-card>
-          <v-card-title>Ajouter un task au sprint</v-card-title>
+          <v-card-title>Adsd task to this sprint</v-card-title>
           <v-card-text>
             <v-text-field v-model="taskForm.title" label="Titre" required />
             <v-textarea v-model="taskForm.description" label="Description" rows="2" />

@@ -19,6 +19,7 @@ const companiesById = computed(() => new Map(companies.value.map(company => [com
 const showCreateDialog = ref(false)
 const isMutating = ref(false)
 const isPageLoading = ref(true)
+const isLoading = computed(() => crmStore.isLoading)
 const goToProject = (id: string) => navigateTo(`/platform/${slug.value}/crm/project/${id}`)
 const editProject = (id: string) => navigateTo(`/platform/${slug.value}/crm/project/${id}`)
 
@@ -31,16 +32,31 @@ const form = reactive<CreateCrmProjectPayload>({
   startedAt: '',
   dueAt: '',
 })
-
+const { normalizeError } = useApiError()
+const { $errorLogger } = useNuxtApp()
+const errorMessage = ref('')
 const loadData = async () => {
   if (!slug.value) {
     return
   }
 
-  await Promise.all([
-    crmStore.fetchCompanies(slug.value),
-    crmStore.fetchProjects(slug.value),
-  ])
+  errorMessage.value = ''
+
+  try {
+    await Promise.all([
+      crmStore.fetchCompanies(slug.value),
+      crmStore.fetchProjects(slug.value),
+    ])
+  } catch (error) {
+    const normalized = normalizeError(error, {
+      domain: 'platform.crm.tasks',
+      action: 'load',
+      fallbackKey: 'platform.crm.tasks.errors.load',
+    })
+    $errorLogger(error, { area: 'platform.crm.tasks', action: 'load', status: normalized.status })
+    errorMessage.value = normalized.message
+  }
+
 }
 
 const toAtomDateTime = (value?: string) => {
@@ -113,9 +129,11 @@ onMounted(async () => {
       <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
         <div>
           <h1 class="text-h5 font-weight-bold mb-1">Projects</h1>
-          <p class="text-body-2 text-medium-emphasis">Liste des projets CRM depuis l'API.</p>
         </div>
-        <v-btn color="primary" @click="showCreateDialog = true">Add project</v-btn>
+        <div class="d-flex ga-2 flex-wrap">
+          <v-btn color="primary" @click="showCreateDialog = true" icon="mdi-plus"></v-btn>
+          <v-btn color="primary" variant="outlined" :loading="isLoading" @click="loadData" icon="mdi-refresh"></v-btn>
+        </div>
       </div>
 
       <v-row v-if="isPageLoading">
@@ -126,7 +144,7 @@ onMounted(async () => {
 
       <v-row v-else>
         <v-col v-for="project in projects" :key="project.id" cols="12" md="6" lg="4">
-          <v-card rounded="xl" class="h-100 cursor-pointer" @click="goToProject(project.id)">
+          <v-card rounded="xl" class="h-100 cursor-pointer projects-card" @click="goToProject(project.id)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
                 <p class="text-subtitle-1 font-weight-bold">{{ project.name }}</p>
@@ -146,7 +164,6 @@ onMounted(async () => {
                   </v-list>
                 </v-menu>
               </div>
-              <p class="text-body-2 mb-2">Company: {{ companiesById.get(project.companyId) || project.companyId }}</p>
             </v-card-text>
           </v-card>
         </v-col>
@@ -174,3 +191,10 @@ onMounted(async () => {
     </section>
   </PlatformSplitLayout>
 </template>
+<style scoped>
+.projects-card:hover {
+  box-shadow: 0 10px 24px rgba(var(--v-theme-primary));
+  transition: transform 140ms ease, box-shadow 140ms ease;
+  cursor: grab;
+}
+</style>

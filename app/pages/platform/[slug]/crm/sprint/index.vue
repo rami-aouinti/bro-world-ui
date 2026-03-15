@@ -30,16 +30,31 @@ const form = reactive<CreateCrmSprintPayload>({
   startDate: '',
   endDate: '',
 })
+const isLoading = computed(() => crmStore.isLoading)
+const errorMessage = ref('')
+const { normalizeError } = useApiError()
+const { $errorLogger } = useNuxtApp()
 
 const loadData = async () => {
   if (!slug.value) {
     return
   }
-
-  await Promise.all([
-    crmStore.fetchProjects(slug.value),
-    crmStore.fetchSprints(slug.value),
-  ])
+  errorMessage.value = ''
+  try {
+    await Promise.all([
+      crmStore.fetchProjects(slug.value),
+      crmStore.fetchSprints(slug.value),
+    ])
+  }
+  catch (error) {
+    const normalized = normalizeError(error, {
+      domain: 'platform.crm.tasks',
+      action: 'load',
+      fallbackKey: 'platform.crm.tasks.errors.load',
+    })
+    $errorLogger(error, { area: 'platform.crm.tasks', action: 'load', status: normalized.status })
+    errorMessage.value = normalized.message
+  }
 }
 
 const toAtomDateTime = (value?: string) => {
@@ -129,9 +144,11 @@ onMounted(async () => {
       <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
         <div>
           <h1 class="text-h5 font-weight-bold mb-1">Sprint Board</h1>
-          <p class="text-body-2 text-medium-emphasis">Active sprints fetched from the CRM API.</p>
         </div>
-        <v-btn color="primary" @click="showCreateDialog = true">Add sprint</v-btn>
+        <div class="d-flex ga-2 flex-wrap">
+          <v-btn color="primary" @click="showCreateDialog = true" icon="mdi-plus"></v-btn>
+          <v-btn color="primary" variant="outlined" :loading="isLoading" @click="loadData" icon="mdi-refresh"></v-btn>
+        </div>
       </div>
 
       <v-row v-if="isPageLoading">
@@ -142,7 +159,7 @@ onMounted(async () => {
 
       <v-row v-else>
         <v-col v-for="sprint in sprints" :key="sprint.id" cols="12" md="6" lg="4">
-          <v-card rounded="xl" class="h-100 cursor-pointer" @click="goToSprint(sprint.id)">
+          <v-card rounded="xl" class="h-100 cursor-pointer sprints-card" @click="goToSprint(sprint.id)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
                 <p class="text-subtitle-1 font-weight-bold">{{ sprint.name }}</p>
@@ -162,7 +179,6 @@ onMounted(async () => {
                   </v-list>
                 </v-menu>
               </div>
-              <p class="text-body-2 mb-1">Project: {{ projectsById.get(sprint.projectId) || sprint.projectId }}</p>
               <p class="text-body-2 mb-2">{{ formatDateYmd(sprint.startDate) }} → {{ formatDateYmd(sprint.endDate) }}</p>
             </v-card-text>
           </v-card>
@@ -190,3 +206,10 @@ onMounted(async () => {
     </section>
   </PlatformSplitLayout>
 </template>
+<style scoped>
+.sprints-card:hover {
+  box-shadow: 0 10px 24px rgba(var(--v-theme-primary));
+  transition: transform 140ms ease, box-shadow 140ms ease;
+  cursor: grab;
+}
+</style>

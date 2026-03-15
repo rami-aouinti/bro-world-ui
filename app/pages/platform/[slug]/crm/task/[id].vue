@@ -26,13 +26,8 @@ const isUploadingTaskFiles = ref(false)
 const uploadingTaskRequestId = ref<string | null>(null)
 const uploadErrorMessage = ref('')
 
-const employees = computed(() => crmStore.getEmployees(slug.value))
-const userOptions = computed(() => employees.value.map(employee => ({
-  title: `${employee.firstName} ${employee.lastName}`,
-  value: employee.userId,
-  photo: employee.photo,
-  email: employee.email,
-})))
+const employees = ref<Any>(null)
+const userOptions = ref<Any>(null)
 
 const loadTask = async () => {
   if (!slug.value || !taskId.value) {
@@ -159,7 +154,33 @@ const uploadTaskRequestFiles = async (requestId: string) => {
   }
 }
 
-onMounted(loadTask)
+const loadEmployee = async () => {
+  if (!slug.value || !taskId.value) {
+    return
+  }
+
+  isLoading.value = true
+  errorMessage.value = ''
+
+  try {
+    employees.value = await crmStore.fetchEmployees(slug.value)
+    userOptions.value = await employees.value.map(employee => ({
+      title: `${employee.firstName} ${employee.lastName}`,
+      value: employee.userId,
+      photo: employee.photo,
+      email: employee.email,
+    }))
+  }
+  catch {
+    errorMessage.value = 'Unable to load sprint details.'
+  }
+  finally {
+    isLoading.value = false
+  }
+}
+onMounted(loadEmployee)
+
+onMounted(loadProject)
 </script>
 
 <template>
@@ -172,7 +193,6 @@ onMounted(loadTask)
       <div class="d-flex align-center justify-space-between mb-4 ga-2 flex-wrap">
         <div>
           <h1 class="text-h5 font-weight-bold mb-1">Task detail</h1>
-          <p class="text-body-2 text-medium-emphasis mb-0">{{ taskId }}</p>
         </div>
         <v-btn variant="outlined" :loading="isLoading" @click="loadTask">Refresh</v-btn>
       </div>
@@ -272,8 +292,8 @@ onMounted(loadTask)
           <div class="d-flex ga-2 align-center flex-wrap mb-3">
             <v-select v-model="selectedRequestUsers[child.id]" label="Ajouter un user" :items="userOptions" item-title="title" item-value="value" class="assignee-select" hide-details>
               <template #item="{ item, props }">
-                <v-list-item v-bind="props" :subtitle="item.raw.email">
-                  <template #prepend><v-avatar size="28" :image="item.raw.photo || undefined" /></template>
+                <v-list-item v-bind="props" :subtitle="item?.raw?.email">
+                  <template #prepend><v-avatar size="28" :image="item?.raw?.photo || undefined" /></template>
                 </v-list-item>
               </template>
             </v-select>

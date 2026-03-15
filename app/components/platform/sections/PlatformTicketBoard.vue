@@ -29,31 +29,11 @@ const priorityColor = (p: TicketItem['priority']) => p === 'P0' ? 'error' : p ==
 
 <style scoped>
 .ticket-board {
-  border-color: var(--platform-color-border);
-  background: var(--platform-color-surface);
   box-shadow: var(--platform-shadow-sm);
 }
 
-.ticket-board__title,
-.ticket-board__item-title {
-  color: var(--platform-color-text-primary);
-}
-
-.ticket-board__divider {
-  border-color: var(--platform-color-border);
-  opacity: 1;
-}
-
-.ticket-board__item {
-  border-bottom: 1px solid var(--platform-color-border);
-}
 
 .ticket-board__item:last-child {
   border-bottom: none;
-}
-
-.ticket-board__item-subtitle,
-.ticket-board__meta {
-  color: var(--platform-color-text-secondary);
 }
 </style>

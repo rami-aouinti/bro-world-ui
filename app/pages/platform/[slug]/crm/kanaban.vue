@@ -242,7 +242,6 @@ onMounted(async () => {
 
 <style scoped>
 .crm-kanban-page {
-  background: linear-gradient(180deg, #f0f3f9 0%, #e7ebf3 100%);
   border-radius: 24px;
   padding: 20px;
 }
@@ -254,7 +253,6 @@ onMounted(async () => {
 }
 
 .kanban-column {
-  background: #dfe4ee;
   border-radius: 18px;
   min-height: 520px;
   padding: 14px;
@@ -264,7 +262,7 @@ onMounted(async () => {
 
 .kanban-column.is-hovered {
   border-color: #3f72d8;
-  box-shadow: 0 0 0 4px rgba(63, 114, 216, 0.12);
+  box-shadow: 0 0 0 4px rgba(var(--v-theme-primary));
 }
 
 .kanban-column__header {
@@ -278,8 +276,7 @@ onMounted(async () => {
 }
 
 .kanban-card {
-  background: #fff;
-  box-shadow: 0 10px 24px rgba(24, 39, 75, 0.08);
+  box-shadow: 0 10px 24px rgba(var(--v-theme-primary));
   transition: transform 140ms ease, box-shadow 140ms ease;
   cursor: grab;
 }
@@ -290,12 +287,11 @@ onMounted(async () => {
 }
 
 .kanban-empty {
-  border: 2px dashed rgba(35, 55, 95, 0.25);
+  border: 2px dashed rgba(var(--v-theme-primary));
   border-radius: 16px;
   min-height: 80px;
   display: grid;
   place-items: center;
-  color: rgba(35, 55, 95, 0.65);
   font-size: 0.95rem;
 }
 

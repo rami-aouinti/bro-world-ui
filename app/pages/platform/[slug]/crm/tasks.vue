@@ -158,11 +158,10 @@ onMounted(async () => {
       <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
         <div>
           <h1 class="text-h5 font-weight-bold mb-1">Tasks list</h1>
-          <p class="text-body-2 text-medium-emphasis mb-0">All CRM tasks in a simple list.</p>
         </div>
         <div class="d-flex ga-2 flex-wrap">
-          <v-btn color="primary" @click="showCreateDialog = true">Créer un task</v-btn>
-          <v-btn color="primary" variant="outlined" :loading="isLoading" @click="loadData">Refresh tasks</v-btn>
+          <v-btn color="primary" @click="showCreateDialog = true" icon="mdi-plus"></v-btn>
+          <v-btn color="primary" variant="outlined" :loading="isLoading" @click="loadData" icon="mdi-refresh"></v-btn>
         </div>
       </div>
 
