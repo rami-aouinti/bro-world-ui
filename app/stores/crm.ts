@@ -6,6 +6,7 @@ import type {
   CreateCrmProjectPayload,
   CreateCrmSprintPayload,
   CreateCrmTaskPayload,
+  CreateCrmTaskRequestPayload,
   CrmCompany,
   CrmContact,
   CrmEmployee,
@@ -500,6 +501,27 @@ export const useCrmStore = defineStore('crm', () => {
     return updated
   }
 
+  const createTaskRequest = async (applicationSlug: string, payload: CreateCrmTaskRequestPayload) => {
+    const created = await crmApi.createTaskRequest(applicationSlug, payload)
+    const cache = ensureApplicationCache(applicationSlug)
+    cache.taskRequests = [created, ...cache.taskRequests]
+    return created
+  }
+
+  const deleteTaskRequest = async (applicationSlug: string, id: UUID) => {
+    await crmApi.deleteTaskRequest(applicationSlug, id)
+    const cache = ensureApplicationCache(applicationSlug)
+    cache.taskRequests = cache.taskRequests.filter(request => request.id !== id)
+
+    const removeChildren = (tasks: CrmTask[]) => tasks.map(task => ({
+      ...task,
+      children: task.children.filter(child => child.id !== id),
+    }))
+
+    cache.tasks = removeChildren(cache.tasks)
+    cache.myTasks = removeChildren(cache.myTasks)
+  }
+
   const updateTaskRequest = async (applicationSlug: string, id: UUID, payload: UpdateCrmTaskRequestPayload) => {
     const updated = await crmApi.updateTaskRequest(applicationSlug, id, payload)
     const cache = ensureApplicationCache(applicationSlug)
@@ -594,7 +616,9 @@ export const useCrmStore = defineStore('crm', () => {
     removeTaskAssignee,
     assignTaskRequestAssignee,
     removeTaskRequestAssignee,
+    createTaskRequest,
     updateTaskRequest,
+    deleteTaskRequest,
     uploadTaskRequestFiles,
     updateTaskRequestStatus,
   }
