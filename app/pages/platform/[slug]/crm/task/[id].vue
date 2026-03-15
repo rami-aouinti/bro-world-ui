@@ -3,7 +3,7 @@ import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
 import { useCrmStore } from '~/stores/crm'
-import type { CrmTask } from '~/types/api/crm'
+import type { CreateCrmTaskRequestPayload, CrmTask } from '~/types/api/crm'
 
 definePageMeta({ public: true, requiresAuth: false })
 
@@ -16,15 +16,19 @@ const crmStore = useCrmStore()
 
 const task = ref<CrmTask | null>(null)
 const selectedUserId = ref('')
-const selectedRequestUsers = ref<Record<string, string>>({})
 const isLoading = ref(false)
 const isAssigning = ref(false)
 const errorMessage = ref('')
 const taskFilesToUpload = ref<File[]>([])
-const requestFilesToUpload = ref<Record<string, File[]>>({})
 const isUploadingTaskFiles = ref(false)
-const uploadingTaskRequestId = ref<string | null>(null)
 const uploadErrorMessage = ref('')
+const showCreateTaskRequestDialog = ref(false)
+const isCreatingTaskRequest = ref(false)
+const taskRequestForm = reactive<CreateCrmTaskRequestPayload>({
+  title: '',
+  taskId: '' as CreateCrmTaskRequestPayload['taskId'],
+  status: 'pending',
+})
 
 const employees = ref<Any>(null)
 const userOptions = ref<Any>(null)
@@ -40,6 +44,7 @@ const loadTask = async () => {
   try {
     await crmStore.fetchEmployees(slug.value)
     task.value = await crmStore.fetchTaskById(slug.value, taskId.value)
+    taskRequestForm.taskId = task.value.id
   }
   catch {
     errorMessage.value = 'Unable to load task details.'
@@ -80,40 +85,6 @@ const removeTaskUser = async (userId?: string) => {
   }
 }
 
-const assignTaskRequestUser = async (requestId: string) => {
-  const userId = selectedRequestUsers.value[requestId]
-
-  if (!slug.value || !requestId || !userId) {
-    return
-  }
-
-  isAssigning.value = true
-  try {
-    await crmStore.assignTaskRequestAssignee(slug.value, requestId, userId)
-    await loadTask()
-    selectedRequestUsers.value[requestId] = ''
-  }
-  finally {
-    isAssigning.value = false
-  }
-}
-
-const removeTaskRequestUser = async (requestId: string, userId?: string) => {
-  if (!slug.value || !requestId || !userId) {
-    return
-  }
-
-  isAssigning.value = true
-  try {
-    await crmStore.removeTaskRequestAssignee(slug.value, requestId, userId)
-    await loadTask()
-  }
-  finally {
-    isAssigning.value = false
-  }
-}
-
-
 const uploadTaskFiles = async () => {
   if (!slug.value || !task.value || taskFilesToUpload.value.length === 0) {
     return
@@ -133,25 +104,45 @@ const uploadTaskFiles = async () => {
   }
 }
 
-const uploadTaskRequestFiles = async (requestId: string) => {
-  const files = requestFilesToUpload.value[requestId] ?? []
-  if (!slug.value || !requestId || files.length === 0) {
+const createTaskRequestForTask = async () => {
+  if (!slug.value || !task.value || !taskRequestForm.title.trim()) {
     return
   }
 
-  uploadingTaskRequestId.value = requestId
-  uploadErrorMessage.value = ''
+  isCreatingTaskRequest.value = true
   try {
-    await crmStore.uploadTaskRequestFiles(slug.value, requestId, files)
+    await crmStore.createTaskRequest(slug.value, {
+      title: taskRequestForm.title.trim(),
+      taskId: task.value.id,
+      status: taskRequestForm.status,
+    })
+    showCreateTaskRequestDialog.value = false
+    taskRequestForm.title = ''
+    taskRequestForm.status = 'pending'
     await loadTask()
-    requestFilesToUpload.value[requestId] = []
-  }
-  catch {
-    uploadErrorMessage.value = 'Unable to upload task request files.'
   }
   finally {
-    uploadingTaskRequestId.value = null
+    isCreatingTaskRequest.value = false
   }
+}
+
+const openTaskRequestDetail = (requestId?: string) => {
+  if (!requestId) {
+    return
+  }
+
+  navigateTo(`/platform/${slug.value}/crm/taskRequest/${requestId}`)
+}
+
+const editTaskRequest = (requestId?: string) => openTaskRequestDetail(requestId)
+
+const deleteTaskRequest = async (requestId?: string) => {
+  if (!slug.value || !requestId) {
+    return
+  }
+
+  await crmStore.deleteTaskRequest(slug.value, requestId)
+  await loadTask()
 }
 
 const loadEmployee = async () => {
@@ -178,8 +169,8 @@ const loadEmployee = async () => {
     isLoading.value = false
   }
 }
-onMounted(loadEmployee)
 
+onMounted(loadEmployee)
 onMounted(loadTask)
 </script>
 
@@ -194,7 +185,10 @@ onMounted(loadTask)
         <div>
           <h1 class="text-h5 font-weight-bold mb-1">Task detail</h1>
         </div>
-        <v-btn variant="outlined" :loading="isLoading" @click="loadTask">Refresh</v-btn>
+        <div class="d-flex ga-2 flex-wrap">
+          <v-btn color="primary" @click="showCreateTaskRequestDialog = true">Create task request</v-btn>
+          <v-btn variant="outlined" :loading="isLoading" @click="loadTask">Refresh</v-btn>
+        </div>
       </div>
 
       <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
@@ -258,57 +252,49 @@ onMounted(loadTask)
         </v-card-text>
       </v-card>
 
-      <v-card v-for="child in task?.children || []" :key="child.id" rounded="xl" class="mb-3">
+      <v-card v-if="task" rounded="xl">
+        <v-card-title>Task requests</v-card-title>
         <v-card-text>
-          <p class="text-subtitle-1 font-weight-bold mb-1">{{ child.title }}</p>
-          <p class="text-body-2 mb-4">Status: {{ child.status }}</p>
-
-          <div class="d-flex ga-2 align-center flex-wrap mb-3">
-            <v-file-input
-              v-model="requestFilesToUpload[child.id]"
-              label="Ajouter des fichiers request"
-              multiple
-              show-size
-              chips
-              density="comfortable"
-              prepend-icon="mdi-paperclip"
-              class="assignee-select"
-              hide-details
-            />
-            <v-btn
-              color="primary"
-              :loading="uploadingTaskRequestId === child.id"
-              :disabled="!(requestFilesToUpload[child.id] || []).length"
-              @click="uploadTaskRequestFiles(child.id)"
-            >
-              Upload files
-            </v-btn>
-          </div>
-
-          <v-list v-if="(child.attachments || []).length" lines="two" class="mb-3">
-            <v-list-item v-for="file in child.attachments || []" :key="`${file.url}-${file.uploadedAt}`" :title="file.originalName" :subtitle="file.mimeType" :href="file.url" target="_blank" />
-          </v-list>
-
-          <div class="d-flex ga-2 align-center flex-wrap mb-3">
-            <v-select v-model="selectedRequestUsers[child.id]" label="Ajouter un user" :items="userOptions" item-title="title" item-value="value" class="assignee-select" hide-details>
-              <template #item="{ item, props }">
-                <v-list-item v-bind="props" :subtitle="item?.raw?.email">
-                  <template #prepend><v-avatar size="28" :image="item?.raw?.photo || undefined" /></template>
-                </v-list-item>
-              </template>
-            </v-select>
-            <v-btn color="secondary" :loading="isAssigning" @click="assignTaskRequestUser(child.id)">Assign to request</v-btn>
-          </div>
-
-          <div class="d-flex flex-wrap ga-2">
-            <v-chip v-for="assignee in child.assignees" :key="assignee.id || assignee.email" closable @click:close="removeTaskRequestUser(child.id, assignee.userId || assignee.id)">
-              <v-avatar start size="20" :image="assignee.photo || undefined" />
-              {{ [assignee.firstName, assignee.lastName].filter(Boolean).join(' ') || assignee.email || assignee.id }}
-            </v-chip>
-            <p v-if="!child.assignees.length" class="text-body-2 text-medium-emphasis">No assignees yet.</p>
-          </div>
+          <v-row v-if="task.children.length" dense>
+            <v-col v-for="child in task.children" :key="child.id" cols="12" md="6">
+              <v-card variant="tonal" class="task-request-card" @click="openTaskRequestDetail(child.id)">
+                <v-card-text>
+                  <div class="d-flex justify-space-between align-start ga-2">
+                    <p class="text-subtitle-2 font-weight-bold mb-1">{{ child.title }}</p>
+                    <v-menu location="bottom end">
+                      <template #activator="{ props }">
+                        <v-btn v-bind="props" icon="mdi-cog" size="x-small" variant="text" @click.stop />
+                      </template>
+                      <v-list density="compact">
+                        <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="editTaskRequest(child.id)" />
+                        <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="deleteTaskRequest(child.id)" />
+                      </v-list>
+                    </v-menu>
+                  </div>
+                  <p class="text-body-2 text-medium-emphasis mb-2">{{ child.description || 'No description' }}</p>
+                  <v-chip size="small" variant="tonal">{{ child.status }}</v-chip>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+          <p v-else class="text-body-2 text-medium-emphasis">No task requests found.</p>
         </v-card-text>
       </v-card>
+
+      <v-dialog v-model="showCreateTaskRequestDialog" max-width="560">
+        <v-card>
+          <v-card-title>Create task request</v-card-title>
+          <v-card-text>
+            <v-text-field v-model="taskRequestForm.title" label="Title" required />
+            <v-text-field v-model="taskRequestForm.status" label="Status" />
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn variant="text" @click="showCreateTaskRequestDialog = false">Cancel</v-btn>
+            <v-btn color="primary" :loading="isCreatingTaskRequest" @click="createTaskRequestForTask">Create</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </section>
   </PlatformSplitLayout>
 </template>
@@ -316,5 +302,9 @@ onMounted(loadTask)
 <style scoped>
 .assignee-select {
   min-width: 320px;
+}
+
+.task-request-card {
+  cursor: pointer;
 }
 </style>
