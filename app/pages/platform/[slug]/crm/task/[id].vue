@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
+import BlogFeed from '~/components/plugins/BlogFeed.vue'
 import { getCrmNav } from '~/data/platform-nav'
 import { useCrmStore } from '~/stores/crm'
 import type { CreateCrmTaskRequestPayload, CrmTask } from '~/types/api/crm'
@@ -124,6 +125,25 @@ const createTaskRequestForTask = async () => {
   finally {
     isCreatingTaskRequest.value = false
   }
+}
+
+const openTaskRequestDetail = (requestId?: string) => {
+  if (!requestId) {
+    return
+  }
+
+  navigateTo(`/platform/${slug.value}/crm/taskRequest/${requestId}`)
+}
+
+const editTaskRequest = (requestId?: string) => openTaskRequestDetail(requestId)
+
+const deleteTaskRequest = async (requestId?: string) => {
+  if (!slug.value || !requestId) {
+    return
+  }
+
+  await crmStore.deleteTaskRequest(slug.value, requestId)
+  await loadTask()
 }
 
 const openTaskRequestDetail = (requestId?: string) => {
@@ -280,6 +300,14 @@ onMounted(loadTask)
           <p v-else class="text-body-2 text-medium-emphasis">No task requests found.</p>
         </v-card-text>
       </v-card>
+
+      <v-card v-if="task?.blog" rounded="xl" class="mt-4">
+        <v-card-title>Blog</v-card-title>
+        <v-card-text>
+          <BlogFeed :blog="task.blog" :show-summary="false" :can-interact="true" />
+        </v-card-text>
+      </v-card>
+
 
       <v-dialog v-model="showCreateTaskRequestDialog" max-width="560">
         <v-card>

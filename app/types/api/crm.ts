@@ -1,3 +1,4 @@
+import type { BlogRead } from './blog'
 import type { UUID } from './common'
 
 export interface CrmAssignee {
@@ -113,6 +114,7 @@ export interface CrmTaskChild {
   resolvedAt?: string | null
   assignees?: CrmAssignee[]
   attachments?: CrmAttachment[]
+  blog?: BlogRead | null
 }
 
 export interface CrmTask {
@@ -143,6 +145,7 @@ export interface CrmTaskRequest {
   taskId: UUID
   assignees?: CrmAssignee[]
   attachments?: CrmAttachment[]
+  blog?: BlogRead | null
 }
 
 export interface CrmAttachment {
