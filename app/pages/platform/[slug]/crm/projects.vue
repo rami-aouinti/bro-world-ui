@@ -20,6 +20,7 @@ const showCreateDialog = ref(false)
 const isMutating = ref(false)
 const isPageLoading = ref(true)
 const goToProject = (id: string) => navigateTo(`/platform/${slug.value}/crm/project/${id}`)
+const editProject = (id: string) => navigateTo(`/platform/${slug.value}/crm/project/${id}`)
 
 const form = reactive<CreateCrmProjectPayload>({
   name: '',
@@ -129,7 +130,21 @@ onMounted(async () => {
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
                 <p class="text-subtitle-1 font-weight-bold">{{ project.name }}</p>
-                <v-btn size="x-small" color="error" variant="tonal" @click.stop="removeProject(project.id)">Delete</v-btn>
+                <v-menu location="bottom end">
+                  <template #activator="{ props }">
+                    <v-btn
+                      v-bind="props"
+                      size="x-small"
+                      icon="mdi-cog"
+                      variant="text"
+                      @click.stop
+                    />
+                  </template>
+                  <v-list density="compact">
+                    <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="editProject(project.id)" />
+                    <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="removeProject(project.id)" />
+                  </v-list>
+                </v-menu>
               </div>
               <p class="text-body-2 mb-2">Company: {{ companiesById.get(project.companyId) || project.companyId }}</p>
               <v-chip size="small" variant="tonal">{{ project.status }}</v-chip>

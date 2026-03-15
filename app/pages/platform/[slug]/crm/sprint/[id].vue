@@ -3,7 +3,7 @@ import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
 import { useCrmStore } from '~/stores/crm'
-import type { CrmSprint } from '~/types/api/crm'
+import type { CreateCrmTaskPayload, CrmSprint } from '~/types/api/crm'
 
 definePageMeta({ public: true, requiresAuth: false })
 
@@ -19,6 +19,16 @@ const selectedUserId = ref('')
 const isLoading = ref(false)
 const isAssigning = ref(false)
 const errorMessage = ref('')
+const showCreateTaskDialog = ref(false)
+const isCreatingTask = ref(false)
+const taskForm = reactive<CreateCrmTaskPayload>({
+  title: '',
+  description: '',
+  projectId: '' as CreateCrmTaskPayload['projectId'],
+  sprintId: '' as CreateCrmTaskPayload['sprintId'],
+  status: 'todo',
+  priority: 'medium',
+})
 
 const users = computed(() => crmStore.getPublicUsers())
 const userOptions = computed(() => users.value.map(user => ({ title: `${user.firstName} ${user.lastName}`, value: user.id, photo: user.photo, email: user.email })))
@@ -34,6 +44,8 @@ const loadSprint = async () => {
   try {
     await crmStore.fetchPublicUsers()
     sprint.value = await crmStore.fetchSprintById(slug.value, sprintId.value)
+    taskForm.projectId = String(sprint.value?.project?.id || sprint.value?.projectId || '') as CreateCrmTaskPayload['projectId']
+    taskForm.sprintId = sprintId.value as CreateCrmTaskPayload['sprintId']
   }
   catch {
     errorMessage.value = 'Unable to load sprint details.'
@@ -74,6 +86,38 @@ const removeSprintUser = async (userId?: string) => {
   }
 }
 
+
+const editSprint = () => navigateTo(`/platform/${slug.value}/crm/sprint/${sprintId.value}`)
+
+const deleteSprint = async () => {
+  if (!slug.value || !sprint.value) {
+    return
+  }
+
+  await crmStore.deleteSprint(slug.value, sprint.value.id)
+  await navigateTo(`/platform/${slug.value}/crm/sprint`)
+}
+
+const createTaskForSprint = async () => {
+  if (!slug.value || !taskForm.title.trim() || !taskForm.projectId || !taskForm.sprintId) {
+    return
+  }
+
+  isCreatingTask.value = true
+  try {
+    await crmStore.createTask(slug.value, {
+      ...taskForm,
+      title: taskForm.title.trim(),
+      description: taskForm.description?.trim(),
+    })
+    showCreateTaskDialog.value = false
+    Object.assign(taskForm, { title: '', description: '', projectId: taskForm.projectId, sprintId: sprintId.value, status: 'todo', priority: 'medium' })
+  }
+  finally {
+    isCreatingTask.value = false
+  }
+}
+
 onMounted(loadSprint)
 </script>
 
@@ -89,7 +133,19 @@ onMounted(loadSprint)
           <h1 class="text-h5 font-weight-bold mb-1">Sprint detail</h1>
           <p class="text-body-2 text-medium-emphasis mb-0">{{ sprintId }}</p>
         </div>
-        <v-btn variant="outlined" :loading="isLoading" @click="loadSprint">Refresh</v-btn>
+        <div class="d-flex ga-2 flex-wrap">
+          <v-btn color="primary" @click="showCreateTaskDialog = true">Ajouter un task</v-btn>
+          <v-menu location="bottom end">
+            <template #activator="{ props }">
+              <v-btn v-bind="props" icon="mdi-cog" variant="text" />
+            </template>
+            <v-list density="compact">
+              <v-list-item prepend-icon="mdi-pencil" title="Edit" @click="editSprint" />
+              <v-list-item prepend-icon="mdi-delete" title="Delete" @click="deleteSprint" />
+            </v-list>
+          </v-menu>
+          <v-btn variant="outlined" :loading="isLoading" @click="loadSprint">Refresh</v-btn>
+        </div>
       </div>
 
       <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
@@ -134,6 +190,23 @@ onMounted(loadSprint)
           </div>
         </v-card-text>
       </v-card>
+    
+      <v-dialog v-model="showCreateTaskDialog" max-width="560">
+        <v-card>
+          <v-card-title>Ajouter un task au sprint</v-card-title>
+          <v-card-text>
+            <v-text-field v-model="taskForm.title" label="Titre" required />
+            <v-textarea v-model="taskForm.description" label="Description" rows="2" />
+            <v-text-field v-model="taskForm.status" label="Status" />
+            <v-text-field v-model="taskForm.priority" label="Priority" />
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn variant="text" @click="showCreateTaskDialog = false">Annuler</v-btn>
+            <v-btn color="primary" :loading="isCreatingTask" @click="createTaskForSprint">Créer</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </section>
   </PlatformSplitLayout>
 </template>

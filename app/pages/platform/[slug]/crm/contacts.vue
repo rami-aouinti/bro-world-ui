@@ -21,6 +21,7 @@ const isMutating = ref(false)
 const showCreateDialog = ref(false)
 const showEditDialog = ref(false)
 const selectedContact = ref<CrmContact | null>(null)
+const showViewDialog = ref(false)
 
 const createForm = reactive<CreateCrmContactPayload>({
   firstName: '',
@@ -109,6 +110,11 @@ const createContact = async () => {
   }
 }
 
+const openViewDialog = (contact: CrmContact) => {
+  selectedContact.value = contact
+  showViewDialog.value = true
+}
+
 const openEditDialog = (contact: CrmContact) => {
   selectedContact.value = contact
   Object.assign(editForm, {
@@ -189,6 +195,7 @@ onMounted(async () => {
         v-else
         :headers="tableHeaders"
         :items="contacts"
+        :items-per-page="5"
         item-value="id"
         class="elevation-1 rounded-xl"
       >
@@ -218,6 +225,7 @@ onMounted(async () => {
 
         <template #item.actions="{ item }">
           <div class="d-flex ga-2 justify-end">
+            <v-btn size="small" variant="text" icon="mdi-eye" @click="openViewDialog(item)" />
             <v-btn size="small" variant="tonal" @click="openEditDialog(item)">Edit</v-btn>
             <v-btn size="small" color="error" variant="tonal" @click="removeContact(item.id)">Delete</v-btn>
           </div>
@@ -264,6 +272,24 @@ onMounted(async () => {
             <v-spacer />
             <v-btn variant="text" @click="showEditDialog = false">Annuler</v-btn>
             <v-btn color="primary" :loading="isMutating" @click="updateContact">Enregistrer</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
+      <v-dialog v-model="showViewDialog" max-width="520">
+        <v-card>
+          <v-card-title>View contact</v-card-title>
+          <v-card-text>
+            <p><strong>Nom:</strong> {{ selectedContact ? fullName(selectedContact) : 'N/A' }}</p>
+            <p><strong>Email:</strong> {{ selectedContact?.email || 'N/A' }}</p>
+            <p><strong>Téléphone:</strong> {{ selectedContact?.phone || 'N/A' }}</p>
+            <p><strong>Poste:</strong> {{ selectedContact?.jobTitle || 'N/A' }}</p>
+            <p><strong>Ville:</strong> {{ selectedContact?.city || 'N/A' }}</p>
+            <p><strong>Score:</strong> {{ selectedContact?.score ?? 'N/A' }}</p>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn variant="text" @click="showViewDialog = false">Fermer</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
