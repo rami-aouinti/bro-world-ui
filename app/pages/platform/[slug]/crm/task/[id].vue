@@ -91,18 +91,7 @@ const uploadTaskFiles = async () => {
     return
   }
 
-  isUploadingTaskFiles.value = true
-  uploadErrorMessage.value = ''
-  try {
-    task.value = await crmStore.uploadTaskFiles(slug.value, task.value.id, taskFilesToUpload.value)
-    taskFilesToUpload.value = []
-  }
-  catch {
-    uploadErrorMessage.value = 'Unable to upload task files.'
-  }
-  finally {
-    isUploadingTaskFiles.value = false
-  }
+  navigateTo(`/platform/${slug.value}/crm/taskRequest/${requestId}`)
 }
 
 const createTaskRequestForTask = async () => {
