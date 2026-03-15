@@ -11,6 +11,7 @@ import type {
   CrmCompany,
   CrmContact,
   CrmDashboardResponse,
+  CrmEmployee,
   CrmProject,
   CrmPublicUsersResponse,
   CrmReportsResponse,
@@ -53,6 +54,10 @@ export const useCrmApi = () => {
 
     getContacts(applicationSlug: string) {
       return apiFetch<CrmCollectionResponse<CrmContact>>(`${basePath(applicationSlug)}/contacts`, { method: 'GET' })
+    },
+
+    getEmployees(applicationSlug: string) {
+      return apiFetch<CrmCollectionResponse<CrmEmployee>>(`${basePath(applicationSlug)}/employees`, { method: 'GET' })
     },
     getContactById(applicationSlug: string, id: UUID) {
       return apiFetch<CrmContact>(`${basePath(applicationSlug)}/contacts/${id}`, { method: 'GET' })

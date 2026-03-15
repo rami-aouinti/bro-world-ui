@@ -20,6 +20,7 @@ const adminCards = computed(() => {
     { title: 'Companies', description: 'Manage company accounts and details.', icon: 'mdi-office-building-outline', to: `${base}/companies` },
     { title: 'Billing', description: 'Track subscriptions and invoices.', icon: 'mdi-credit-card-outline', to: `${base}/billing` },
     { title: 'Contacts', description: 'View and organize contact records.', icon: 'mdi-account-group-outline', to: `${base}/contacts` },
+    { title: 'Employee', description: 'Browse the CRM team members and roles.', icon: 'mdi-badge-account-outline', to: `${base}/employee` },
     { title: 'Reports', description: 'Analyze performance and trends.', icon: 'mdi-chart-line', to: `${base}/reports` },
   ]
 })

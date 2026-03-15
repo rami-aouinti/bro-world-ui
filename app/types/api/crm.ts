@@ -43,6 +43,17 @@ export interface CrmContact {
   score: number | null
 }
 
+export interface CrmEmployee {
+  id: UUID
+  firstName: string
+  lastName: string
+  email: string | null
+  positionName: string | null
+  roleName: string | null
+  createdAt: string | null
+  updatedAt: string | null
+}
+
 export interface CrmProject {
   id: UUID
   code?: string | null
@@ -146,6 +157,12 @@ export interface CrmReportsResponse {
 
 export interface CrmCollectionResponse<T> {
   items: T[]
+  pagination?: {
+    page: number
+    limit: number
+    totalItems: number
+    totalPages: number
+  }
 }
 
 export interface CrmTaskListResponse extends CrmCollectionResponse<CrmTask> {
