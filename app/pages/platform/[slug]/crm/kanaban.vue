@@ -299,6 +299,35 @@ onMounted(async () => {
   font-size: 0.95rem;
 }
 
+:global(.v-theme--dark) .crm-kanban-page {
+  background: linear-gradient(180deg, #121a2a 0%, #0f1624 100%);
+}
+
+:global(.v-theme--dark) .kanban-column {
+  background: #1a2437;
+  border-color: rgba(158, 175, 214, 0.12);
+}
+
+:global(.v-theme--dark) .kanban-column.is-hovered {
+  border-color: #6e9dff;
+  box-shadow: 0 0 0 4px rgba(110, 157, 255, 0.18);
+}
+
+:global(.v-theme--dark) .kanban-card {
+  background: #111b2f;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+}
+
+:global(.v-theme--dark) .kanban-card:hover {
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.36);
+}
+
+:global(.v-theme--dark) .kanban-empty {
+  border-color: rgba(145, 166, 210, 0.45);
+  color: rgba(225, 233, 255, 0.78);
+  background: rgba(17, 27, 47, 0.35);
+}
+
 @media (max-width: 1280px) {
   .kanban-board {
     grid-template-columns: repeat(2, minmax(260px, 1fr));
