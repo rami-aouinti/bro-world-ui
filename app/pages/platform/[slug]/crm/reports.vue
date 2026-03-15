@@ -14,10 +14,10 @@ const slug = computed(() => String(route.params.slug ?? ''))
 const { isOwner } = usePlatformPermissions(slug)
 const navItems = computed(() => getCrmNav(slug.value, isOwner.value))
 
-const { data: reports, pending, error } = await useAsyncData(
+const { data: reports, pending, error, refresh } = useAsyncData(
   () => `crm-reports-${slug.value}`,
-  () => crmApi.getReports(slug.value),
-  { watch: [slug] },
+  () => slug.value ? crmApi.getReports(slug.value) : Promise.resolve(null),
+  { watch: [slug], default: () => null },
 )
 
 const formatCurrency = (value: number) => new Intl.NumberFormat('fr-FR', {
@@ -64,6 +64,10 @@ const contacts = computed(() => reports.value?.contacts ?? [])
     </template>
     <section>
       <PlatformHeroHeader title="platform.crm.hero.reports.title" subtitle="platform.crm.hero.reports.subtitle" cta="platform.crm.hero.reports.cta" />
+
+      <div class="d-flex justify-end mb-4">
+        <v-btn variant="outlined" :loading="pending" @click="refresh()">Refresh reports</v-btn>
+      </div>
 
       <v-alert v-if="error" type="error" variant="tonal" class="mb-4">
         Unable to load CRM reports.

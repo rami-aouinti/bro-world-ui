@@ -16,7 +16,6 @@ const adminCards = computed(() => {
   const base = `/platform/${slug.value}/crm`
 
   return [
-    { title: 'Dashboard', description: 'Overview of KPIs and activity.', icon: 'mdi-view-dashboard-outline', to: `${base}/dashboard` },
     { title: 'Companies', description: 'Manage company accounts and details.', icon: 'mdi-office-building-outline', to: `${base}/companies` },
     { title: 'Billing', description: 'Track subscriptions and invoices.', icon: 'mdi-credit-card-outline', to: `${base}/billing` },
     { title: 'Contacts', description: 'View and organize contact records.', icon: 'mdi-account-group-outline', to: `${base}/contacts` },
