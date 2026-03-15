@@ -28,6 +28,17 @@ const openProjectDetail = (id?: string) => {
   navigateTo(`/platform/${slug.value}/crm/project/${id}`)
 }
 
+const editCompanyProject = (id?: string) => openProjectDetail(id)
+
+const deleteCompanyProject = async (id?: string) => {
+  if (!slug.value || !id) {
+    return
+  }
+
+  await crmStore.deleteProject(slug.value, id)
+  await loadCompany()
+}
+
 const projectForm = reactive<CreateCrmProjectPayload>({
   name: '',
   code: '',
@@ -141,7 +152,18 @@ onMounted(loadCompany)
             <v-col v-for="project in company.projects || []" :key="project.id" cols="12" md="6">
               <v-card variant="tonal" class="project-card" @click="openProjectDetail(project.id)">
                 <v-card-text>
-                  <p class="text-subtitle-2 font-weight-bold mb-1">{{ project.name }}</p>
+                  <div class="d-flex justify-space-between align-start ga-2">
+                    <p class="text-subtitle-2 font-weight-bold mb-1">{{ project.name }}</p>
+                    <v-menu location="bottom end">
+                      <template #activator="{ props }">
+                        <v-btn v-bind="props" icon="mdi-cog" size="x-small" variant="text" @click.stop />
+                      </template>
+                      <v-list density="compact">
+                        <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="editCompanyProject(project.id)" />
+                        <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="deleteCompanyProject(project.id)" />
+                      </v-list>
+                    </v-menu>
+                  </div>
                   <p class="text-caption text-medium-emphasis mb-0">{{ project.id }}</p>
                 </v-card-text>
               </v-card>

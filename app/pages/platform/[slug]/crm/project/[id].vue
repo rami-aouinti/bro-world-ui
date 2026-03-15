@@ -87,6 +87,17 @@ const openTaskDetail = (id?: string) => {
   navigateTo(`/platform/${slug.value}/crm/task/${id}`)
 }
 
+const editProjectTask = (id?: string) => openTaskDetail(id)
+
+const deleteProjectTask = async (id?: string) => {
+  if (!slug.value || !id) {
+    return
+  }
+
+  await crmStore.deleteTask(slug.value, id)
+  await loadProject()
+}
+
 const loadProject = async () => {
   if (!slug.value || !projectId.value) {
     return
@@ -356,7 +367,18 @@ onMounted(loadProject)
                 <v-col v-for="item in project.tasks || []" :key="item.id" cols="12" md="6">
                   <v-card variant="tonal" class="task-card" @click="openTaskDetail(item.id)">
                     <v-card-text>
-                      <p class="text-subtitle-2 font-weight-bold mb-1">{{ getTaskTitle(item) }}</p>
+                      <div class="d-flex justify-space-between align-start ga-2">
+                        <p class="text-subtitle-2 font-weight-bold mb-1">{{ getTaskTitle(item) }}</p>
+                        <v-menu location="bottom end">
+                          <template #activator="{ props }">
+                            <v-btn v-bind="props" icon="mdi-cog" size="x-small" variant="text" @click.stop />
+                          </template>
+                          <v-list density="compact">
+                            <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="editProjectTask(item.id)" />
+                            <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="deleteProjectTask(item.id)" />
+                          </v-list>
+                        </v-menu>
+                      </div>
                       <p class="text-body-2 text-medium-emphasis mb-2">{{ item.description || 'No description' }}</p>
                       <div class="d-flex align-center justify-space-between ga-2 flex-wrap">
                         <v-chip size="small" variant="tonal">{{ item.status }}</v-chip>
