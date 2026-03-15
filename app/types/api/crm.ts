@@ -63,14 +63,7 @@ export interface CrmProject {
   status: string | boolean
   startedAt?: string | null
   dueAt?: string | null
-  attachments?: Array<{
-    url: string
-    size: number
-    mimeType: string
-    extension: string
-    uploadedAt: string
-    originalName: string
-  }>
+  attachments?: CrmAttachment[]
   wikiPages?: Array<{
     id: string
     title: string
@@ -100,6 +93,7 @@ export interface CrmTaskChild {
   requestedAt: string | null
   resolvedAt: string | null
   assignees: CrmAssignee[]
+  attachments?: CrmAttachment[]
 }
 
 export interface CrmTask {
@@ -117,6 +111,7 @@ export interface CrmTask {
   updatedAt: string | null
   assignees: CrmAssignee[]
   children: CrmTaskChild[]
+  attachments?: CrmAttachment[]
 }
 
 export interface CrmTaskRequest {
@@ -126,6 +121,16 @@ export interface CrmTaskRequest {
   requestedAt: string
   resolvedAt: string | null
   taskId: UUID
+  attachments?: CrmAttachment[]
+}
+
+export interface CrmAttachment {
+  url: string
+  size: number
+  mimeType: string
+  extension: string
+  uploadedAt: string
+  originalName: string
 }
 
 export type CrmBillingStatus = 'pending' | 'paid' | 'overdue'

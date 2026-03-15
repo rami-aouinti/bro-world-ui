@@ -20,6 +20,11 @@ const selectedRequestUsers = ref<Record<string, string>>({})
 const isLoading = ref(false)
 const isAssigning = ref(false)
 const errorMessage = ref('')
+const taskFilesToUpload = ref<File[]>([])
+const requestFilesToUpload = ref<Record<string, File[]>>({})
+const isUploadingTaskFiles = ref(false)
+const uploadingTaskRequestId = ref<string | null>(null)
+const uploadErrorMessage = ref('')
 
 const users = computed(() => crmStore.getPublicUsers())
 const userOptions = computed(() => users.value.map(user => ({
@@ -113,6 +118,47 @@ const removeTaskRequestUser = async (requestId: string, userId?: string) => {
   }
 }
 
+
+const uploadTaskFiles = async () => {
+  if (!slug.value || !task.value || taskFilesToUpload.value.length === 0) {
+    return
+  }
+
+  isUploadingTaskFiles.value = true
+  uploadErrorMessage.value = ''
+  try {
+    task.value = await crmStore.uploadTaskFiles(slug.value, task.value.id, taskFilesToUpload.value)
+    taskFilesToUpload.value = []
+  }
+  catch {
+    uploadErrorMessage.value = 'Unable to upload task files.'
+  }
+  finally {
+    isUploadingTaskFiles.value = false
+  }
+}
+
+const uploadTaskRequestFiles = async (requestId: string) => {
+  const files = requestFilesToUpload.value[requestId] ?? []
+  if (!slug.value || !requestId || files.length === 0) {
+    return
+  }
+
+  uploadingTaskRequestId.value = requestId
+  uploadErrorMessage.value = ''
+  try {
+    await crmStore.uploadTaskRequestFiles(slug.value, requestId, files)
+    await loadTask()
+    requestFilesToUpload.value[requestId] = []
+  }
+  catch {
+    uploadErrorMessage.value = 'Unable to upload task request files.'
+  }
+  finally {
+    uploadingTaskRequestId.value = null
+  }
+}
+
 onMounted(loadTask)
 </script>
 
@@ -132,6 +178,7 @@ onMounted(loadTask)
       </div>
 
       <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
+      <v-alert v-if="uploadErrorMessage" type="error" variant="tonal" class="mb-4">{{ uploadErrorMessage }}</v-alert>
 
       <template v-if="isLoading && !task">
         <v-skeleton-loader type="article, article, article" class="mb-4" />
@@ -146,6 +193,29 @@ onMounted(loadTask)
           <p><strong>Project:</strong> {{ task.projectName }}</p>
           <p><strong>Sprint:</strong> {{ task.sprintName }}</p>
           <p><strong>Due at:</strong> {{ task.dueAt || 'N/A' }}</p>
+
+          <div class="d-flex ga-2 align-center flex-wrap mt-4">
+            <v-file-input
+              v-model="taskFilesToUpload"
+              label="Ajouter des fichiers task"
+              multiple
+              show-size
+              chips
+              density="comfortable"
+              prepend-icon="mdi-paperclip"
+              class="assignee-select"
+              hide-details
+            />
+            <v-btn color="primary" :loading="isUploadingTaskFiles" :disabled="!taskFilesToUpload.length" @click="uploadTaskFiles">Upload files</v-btn>
+          </div>
+
+          <v-list v-if="(task.attachments || []).length" lines="two" class="mb-4">
+            <v-list-item v-for="file in task.attachments || []" :key="`${file.url}-${file.uploadedAt}`" :title="file.originalName" :subtitle="file.mimeType" :href="file.url" target="_blank">
+              <template #append>
+                <span class="text-caption text-medium-emphasis">{{ file.uploadedAt }}</span>
+              </template>
+            </v-list-item>
+          </v-list>
 
           <div class="d-flex ga-2 align-center flex-wrap mt-4 mb-3">
             <v-select v-model="selectedUserId" label="Ajouter un user" :items="userOptions" item-title="title" item-value="value" class="assignee-select" hide-details>
@@ -172,6 +242,32 @@ onMounted(loadTask)
         <v-card-text>
           <p class="text-subtitle-1 font-weight-bold mb-1">{{ child.title }}</p>
           <p class="text-body-2 mb-4">Status: {{ child.status }}</p>
+
+          <div class="d-flex ga-2 align-center flex-wrap mb-3">
+            <v-file-input
+              v-model="requestFilesToUpload[child.id]"
+              label="Ajouter des fichiers request"
+              multiple
+              show-size
+              chips
+              density="comfortable"
+              prepend-icon="mdi-paperclip"
+              class="assignee-select"
+              hide-details
+            />
+            <v-btn
+              color="primary"
+              :loading="uploadingTaskRequestId === child.id"
+              :disabled="!(requestFilesToUpload[child.id] || []).length"
+              @click="uploadTaskRequestFiles(child.id)"
+            >
+              Upload files
+            </v-btn>
+          </div>
+
+          <v-list v-if="(child.attachments || []).length" lines="two" class="mb-3">
+            <v-list-item v-for="file in child.attachments || []" :key="`${file.url}-${file.uploadedAt}`" :title="file.originalName" :subtitle="file.mimeType" :href="file.url" target="_blank" />
+          </v-list>
 
           <div class="d-flex ga-2 align-center flex-wrap mb-3">
             <v-select v-model="selectedRequestUsers[child.id]" label="Ajouter un user" :items="userOptions" item-title="title" item-value="value" class="assignee-select" hide-details>

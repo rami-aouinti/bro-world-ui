@@ -8,6 +8,7 @@ import type {
   CreateCrmSprintPayload,
   CreateCrmTaskPayload,
   CreateCrmTaskRequestPayload,
+  CrmAttachment,
   CrmBilling,
   CrmCollectionResponse,
   CrmCompany,
@@ -120,6 +121,16 @@ export const useCrmApi = () => {
       return apiFetch<void>(`${basePath(applicationSlug)}/projects/${id}/assignees/${userId}`, { method: 'DELETE' })
     },
 
+
+    uploadProjectFiles(applicationSlug: string, id: UUID, files: File[]) {
+      const formData = new FormData()
+      files.forEach((file) => {
+        formData.append('files[]', file)
+      })
+
+      return apiFetch<{ files: CrmAttachment[] }>(`${basePath(applicationSlug)}/projects/${id}/files`, { method: 'POST', body: formData })
+    },
+
     getSprints(applicationSlug: string) {
       return apiFetch<CrmCollectionResponse<CrmSprint>>(`${basePath(applicationSlug)}/sprints`, { method: 'GET' })
     },
@@ -173,6 +184,16 @@ export const useCrmApi = () => {
       return apiFetch<void>(`${basePath(applicationSlug)}/tasks/${id}/assignees/${userId}`, { method: 'DELETE' })
     },
 
+
+    uploadTaskFiles(applicationSlug: string, id: UUID, files: File[]) {
+      const formData = new FormData()
+      files.forEach((file) => {
+        formData.append('files[]', file)
+      })
+
+      return apiFetch<CrmTask>(`${basePath(applicationSlug)}/tasks/${id}/files`, { method: 'POST', body: formData })
+    },
+
     getTaskRequests(applicationSlug: string) {
       return apiFetch<CrmCollectionResponse<CrmTaskRequest>>(`${basePath(applicationSlug)}/task-requests`, { method: 'GET' })
     },
@@ -193,6 +214,16 @@ export const useCrmApi = () => {
     },
     removeTaskRequestAssignee(applicationSlug: string, id: UUID, userId: UUID) {
       return apiFetch<void>(`${basePath(applicationSlug)}/task-requests/${id}/assignees/${userId}`, { method: 'DELETE' })
+    },
+
+
+    uploadTaskRequestFiles(applicationSlug: string, id: UUID, files: File[]) {
+      const formData = new FormData()
+      files.forEach((file) => {
+        formData.append('files[]', file)
+      })
+
+      return apiFetch<CrmTaskRequest>(`${basePath(applicationSlug)}/task-requests/${id}/files`, { method: 'POST', body: formData })
     },
     updateTaskRequestStatus(applicationSlug: string, id: UUID, payload: UpdateCrmTaskRequestStatusPayload) {
       return apiFetch<void>(`${basePath(applicationSlug)}/task-requests/${id}/status`, { method: 'PATCH', body: payload })

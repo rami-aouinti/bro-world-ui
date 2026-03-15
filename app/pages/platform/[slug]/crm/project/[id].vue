@@ -21,6 +21,9 @@ const isAssigning = ref(false)
 const errorMessage = ref('')
 const showCreateTaskDialog = ref(false)
 const isCreatingTask = ref(false)
+const filesToUpload = ref<File[]>([])
+const isUploadingFiles = ref(false)
+const uploadErrorMessage = ref('')
 const projects = computed(() => crmStore.getProjects(slug.value))
 const sprints = computed(() => crmStore.getSprints(slug.value))
 const projectOptions = computed(() => projects.value.map(item => ({ title: item.name, value: item.id })))
@@ -168,6 +171,27 @@ const createTaskForProject = async () => {
   }
 }
 
+
+const uploadProjectAttachments = async () => {
+  if (!slug.value || !project.value || filesToUpload.value.length === 0) {
+    return
+  }
+
+  isUploadingFiles.value = true
+  uploadErrorMessage.value = ''
+  try {
+    await crmStore.uploadProjectFiles(slug.value, project.value.id, filesToUpload.value)
+    project.value = await crmStore.fetchProjectById(slug.value, project.value.id)
+    filesToUpload.value = []
+  }
+  catch {
+    uploadErrorMessage.value = 'Unable to upload files.'
+  }
+  finally {
+    isUploadingFiles.value = false
+  }
+}
+
 onMounted(loadProject)
 </script>
 
@@ -239,6 +263,21 @@ onMounted(loadProject)
           <v-card rounded="xl" class="detail-card">
             <v-card-title>Attachments</v-card-title>
             <v-card-text>
+              <div class="d-flex ga-2 align-center flex-wrap mb-4">
+                <v-file-input
+                  v-model="filesToUpload"
+                  label="Ajouter des fichiers"
+                  multiple
+                  show-size
+                  chips
+                  density="comfortable"
+                  prepend-icon="mdi-paperclip"
+                  class="attachment-input"
+                  hide-details
+                />
+                <v-btn color="primary" :loading="isUploadingFiles" :disabled="!filesToUpload.length" @click="uploadProjectAttachments">Upload</v-btn>
+              </div>
+              <v-alert v-if="uploadErrorMessage" type="error" variant="tonal" class="mb-4">{{ uploadErrorMessage }}</v-alert>
               <v-list v-if="(project.attachments || []).length" lines="two">
                 <v-list-item v-for="file in project.attachments || []" :key="`${file.url}-${file.uploadedAt}`" :title="file.originalName" :subtitle="`${file.mimeType} • ${formatFileSize(file.size)}`" :href="file.url" target="_blank">
                   <template #append>
@@ -334,6 +373,7 @@ onMounted(loadProject)
 }
 
 .assignee-select { min-width: 320px; }
+.attachment-input { min-width: 320px; }
 
 .wiki-content {
   white-space: pre-line;
