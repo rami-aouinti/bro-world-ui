@@ -37,7 +37,7 @@ const { data: quiz, pending, error, execute: loadQuiz } = useAsyncData(
   {
     watch: [isAuthenticated, selectedLevel, selectedCategory],
     server: false,
-    immediate: false,
+    immediate: true,
   },
 )
 
@@ -269,6 +269,7 @@ const initializeQuestionTimers = () => {
 }
 
 const startQuiz = async () => {
+  isInitialLoading.value = true
   await loadQuiz()
 
   if (!quiz.value) {
@@ -281,6 +282,7 @@ const startQuiz = async () => {
   hasStarted.value = true
   submitResult.value = null
   submitError.value = ''
+  isInitialLoading.value = false
   initializeQuestionTimers()
   startTimer()
 }
@@ -324,12 +326,10 @@ watch(() => quiz.value?.id, () => {
 })
 
 onMounted(() => {
+  isInitialLoading.value = true
   void (async () => {
     try {
-      await Promise.all([
-        loadQuiz(),
-        quizCatalogStore.preload(),
-      ])
+      await quizCatalogStore.preload()
     }
     finally {
       isInitialLoading.value = false
@@ -485,7 +485,7 @@ onBeforeUnmount(() => {
             </div>
           </v-card>
 
-          <div class="d-flex justify-center align-center quiz-start-wrap">
+          <div class="d-flex justify-center align-center">
             <v-btn color="primary" size="x-large" prepend-icon="mdi-play" class="start-cta-btn" @click="startQuiz">{{ t('quizPage.startQuiz') }}</v-btn>
           </div>
         </template>
