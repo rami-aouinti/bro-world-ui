@@ -420,7 +420,6 @@ onBeforeUnmount(() => {
       </template>
 
       <template v-else>
-        <p class="text-subtitle-1 font-weight-bold mb-3">Score</p>
         <p class="text-body-2 mb-1">Score: <strong>{{ submitResult?.score ?? scorePercent }}%</strong></p>
         <p class="text-body-2 mb-1">Points: <strong>{{ submitResult?.earnedPoints ?? score }} / {{ submitResult?.totalPoints ?? maxScore }}</strong></p>
         <p class="text-body-2 mb-1">Bonnes réponses: <strong>{{ submitResult?.correctAnswers ?? 0 }} / {{ submitResult?.totalQuestions ?? questionsCount }}</strong></p>
@@ -493,12 +492,6 @@ onBeforeUnmount(() => {
         </template>
 
         <v-card-text v-else>
-          <div class="d-flex justify-space-between align-center mb-3">
-            <p class="text-body-2 mb-0">Progression: {{ answeredCount }}/{{ questionsCount }}</p>
-            <p class="text-body-2 text-medium-emphasis mb-0">{{ progressValue }}%</p>
-          </div>
-          <v-progress-linear :model-value="progressValue" color="primary" rounded height="10" class="mb-3" />
-
           <template v-if="!isFinished && currentQuestion">
             <p class="text-overline mb-2">Question {{ currentQuestionIndex + 1 }} / {{ questionsCount }}</p>
             <h2 class="text-h5 font-weight-bold mb-2">{{ currentQuestion.title }}</h2>
@@ -559,17 +552,12 @@ onBeforeUnmount(() => {
 
           <div v-else>
             <div class="text-center py-2 mb-6">
-              <v-avatar size="64" color="primary" variant="tonal" class="mb-2">
-                <v-icon icon="mdi-trophy-outline" size="36" />
+              <v-avatar size="72" color="success" variant="tonal" class="mb-2 mx-2">
+                <v-btn @click="startQuiz" size="72">Start</v-btn>
               </v-avatar>
-              <h3 class="text-h4 font-weight-bold mb-2">{{ submitResult?.score ?? scorePercent }}%</h3>
-              <p class="text-body-1 mb-1">Points: {{ submitResult?.earnedPoints ?? score }} / {{ submitResult?.totalPoints ?? maxScore }}</p>
-              <p class="text-body-1 mb-2" :class="(submitResult?.passed ?? hasPassed) ? 'text-success' : 'text-warning'">
-                {{ (submitResult?.passed ?? hasPassed) ? 'Bravo, vous avez validé le quiz 🎉' : 'Vous pouvez recommencer pour améliorer votre score.' }}
-              </p>
-            </div>
-            <div class="text-center mb-2">
-              <v-btn color="primary" variant="text" prepend-icon="mdi-refresh" @click="startQuiz">Replay</v-btn>
+              <v-avatar size="72" color="primary" variant="tonal" class="mb-2 mx-2">
+                <v-btn @click="startQuiz" size="72">Replay</v-btn>
+              </v-avatar>
             </div>
             <v-skeleton-loader v-if="isSubmitting" v-for="item in [1, 2, 3]" type="card" class="mb-4" />
             <v-alert v-else-if="submitError" type="warning" variant="tonal" class="mb-4">
