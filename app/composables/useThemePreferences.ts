@@ -4,6 +4,7 @@ import {
   buildThemeName,
   defaultThemePreference,
   parseThemeName,
+  readThemePreferenceFromSession,
   THEME_SESSION_STORAGE_KEY,
   themePrimaryOptions,
   type ThemeMode,
@@ -13,6 +14,18 @@ import {
 
 export const useThemePreferences = () => {
   const theme = useTheme()
+
+  const ensureValidTheme = () => {
+    const parsed = parseThemeName(theme.global.name.value)
+    if (parsed) {
+      return parsed
+    }
+
+    theme.global.name.value = buildThemeName(defaultThemePreference)
+    return defaultThemePreference
+  }
+
+  ensureValidTheme()
 
   const preference = computed<ThemePreference>(() => parseThemeName(theme.global.name.value) ?? defaultThemePreference)
 
@@ -49,7 +62,17 @@ export const useThemePreferences = () => {
     window.sessionStorage.setItem(THEME_SESSION_STORAGE_KEY, JSON.stringify(next))
   }
 
-  onMounted(() => persistThemePreference(preference.value))
+  onMounted(() => {
+    const sessionPreference = readThemePreferenceFromSession()
+    if (sessionPreference) {
+      applyThemePreference(sessionPreference)
+    }
+    else {
+      ensureValidTheme()
+    }
+
+    persistThemePreference(preference.value)
+  })
   watch(preference, persistThemePreference, { deep: true })
 
   return {
