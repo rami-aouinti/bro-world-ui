@@ -282,7 +282,9 @@ const initializeQuestionTimers = () => {
   questionTimers.value = Object.fromEntries(questionList.value.map(question => [question.id, timerPerQuestion.value]))
 }
 
-const startQuiz = () => {
+const startQuiz = async () => {
+  await loadQuiz()
+
   if (!quiz.value) {
     return
   }
@@ -357,11 +359,22 @@ onBeforeUnmount(() => {
 
         <v-divider class="my-5" />
 
-        <div class="d-flex flex-wrap align-center ga-4">
+        <div class="d-flex flex-wrap align-center ga-4 mb-3">
           <v-chip variant="tonal" prepend-icon="mdi-help-circle-outline">{{ questionsCount }} questions</v-chip>
           <v-chip variant="tonal" prepend-icon="mdi-timer-outline">{{ timerPerQuestion }}s / question</v-chip>
           <v-chip variant="tonal" prepend-icon="mdi-flag-checkered">Pass score: {{ quiz.passScore }}%</v-chip>
         </div>
+
+        <template v-if="selectedLevelLabel || selectedCategoryLabel">
+          <div class="d-flex flex-wrap ga-2">
+            <v-chip v-if="selectedLevelLabel" color="primary" size="small" variant="tonal" prepend-icon="mdi-speedometer">
+              Level: {{ selectedLevelLabel }}
+            </v-chip>
+            <v-chip v-if="selectedCategoryLabel" color="secondary" size="small" variant="tonal" prepend-icon="mdi-shape-outline">
+              Category: {{ selectedCategoryLabel }}
+            </v-chip>
+          </div>
+        </template>
       </div>
     </template>
 
