@@ -430,18 +430,6 @@ onBeforeUnmount(() => {
       </template>
 
       <v-divider class="my-3" />
-      <template v-if="selectedLevelLabel || selectedCategoryLabel">
-        <p class="text-subtitle-2 font-weight-bold mb-3">Filtres actifs</p>
-        <div class="d-flex flex-wrap ga-2 mb-3">
-          <v-chip v-if="selectedLevelLabel" color="primary" size="small" variant="tonal" prepend-icon="mdi-speedometer">
-            Level: {{ selectedLevelLabel }}
-          </v-chip>
-          <v-chip v-if="selectedCategoryLabel" color="secondary" size="small" variant="tonal" prepend-icon="mdi-shape-outline">
-            Category: {{ selectedCategoryLabel }}
-          </v-chip>
-        </div>
-        <v-divider class="my-3" />
-      </template>
 
       <p class="text-subtitle-2 font-weight-bold mb-3">Top 3 leaderboard</p>
       <div class="d-flex flex-column ga-2">
@@ -465,14 +453,14 @@ onBeforeUnmount(() => {
           </div>
         </v-sheet>
         <p v-if="topLeaderboard.length === 0" class="text-caption text-medium-emphasis mb-0">
-          Aucun score disponible pour le moment.
+          No scores available at the moment.
         </p>
       </div>
     </template>
 
     <section>
       <v-alert v-if="error" type="error" variant="tonal" class="mb-6">
-        Impossible de charger le quiz général.
+        Cannot load the Quiz.
       </v-alert>
 
       <v-skeleton-loader v-else-if="pending" type="heading, article, list-item-three-line@2, actions" />
@@ -564,7 +552,7 @@ onBeforeUnmount(() => {
                 Précédent
               </v-btn>
               <v-btn color="primary" append-icon="mdi-arrow-right" @click="goToNextQuestion">
-                {{ currentQuestionIndex >= questionsCount - 1 ? 'Terminer' : 'Suivant' }}
+                {{ currentQuestionIndex >= questionsCount - 1 ? 'Submit' : 'Next' }}
               </v-btn>
             </div>
           </template>
@@ -581,9 +569,9 @@ onBeforeUnmount(() => {
               </p>
             </div>
             <div class="text-center mb-2">
-              <v-btn color="primary" variant="text" prepend-icon="mdi-refresh" @click="startQuiz">Rejouer</v-btn>
+              <v-btn color="primary" variant="text" prepend-icon="mdi-refresh" @click="startQuiz">Replay</v-btn>
             </div>
-            <v-progress-circular v-if="isSubmitting" indeterminate color="primary" class="mb-4" />
+            <v-skeleton-loader v-if="isSubmitting" v-for="item in [1, 2, 3]" type="card" class="mb-4" />
             <v-alert v-else-if="submitError" type="warning" variant="tonal" class="mb-4">
               {{ submitError }}
             </v-alert>
