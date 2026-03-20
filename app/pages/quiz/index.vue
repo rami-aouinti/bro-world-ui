@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { QuizQuestion } from '~/types/api/quiz'
 import { useQuizApi } from '~/composables/api/useQuizApi'
-import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
 
 definePageMeta({
   public: true,
   requiresAuth: false,
+  layout: false,
   skeleton: "card-grid",
 });
 
@@ -208,8 +208,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <PlatformSplitLayout>
-    <template #sidebar>
+  <NuxtLayout name="default">
+    <template #layout-sidebar>
       <div v-if="quiz">
         <div class="d-flex flex-wrap justify-space-between align-start ga-4">
           <div>
@@ -236,7 +236,53 @@ onBeforeUnmount(() => {
         <div class="mt-6" v-if="!hasStarted">
           <v-btn color="primary" size="large" prepend-icon="mdi-play" @click="startQuiz">Start Quiz</v-btn>
         </div>
+
+        <v-card variant="tonal" rounded="lg" class="mt-8 pa-4">
+          <p class="text-overline mb-2">Fake content</p>
+          <h3 class="text-subtitle-1 font-weight-bold mb-2">Weekly challenge teaser</h3>
+          <p class="text-body-2 text-medium-emphasis mb-3">
+            Explore 5 bonus questions about cinema, coding, and geography to unlock a mystery badge.
+          </p>
+          <v-list density="compact" bg-color="transparent" class="pa-0">
+            <v-list-item prepend-icon="mdi-lightning-bolt-outline" title="Bonus reward: 300 XP" />
+            <v-list-item prepend-icon="mdi-calendar-clock" title="Opens every Friday at 18:00" />
+            <v-list-item prepend-icon="mdi-account-group-outline" title="Play solo or with friends" />
+          </v-list>
+        </v-card>
       </div>
+    </template>
+
+    <template #layout-aside>
+      <v-card variant="tonal" rounded="lg" class="pa-4 mb-4">
+        <p class="text-overline mb-2">Fake content</p>
+        <h3 class="text-subtitle-1 font-weight-bold mb-2">Community spotlight</h3>
+        <p class="text-body-2 text-medium-emphasis mb-3">
+          Team Aurora scored 98% this week. Can you beat their streak before Sunday night?
+        </p>
+        <v-chip-group column>
+          <v-chip variant="outlined" prepend-icon="mdi-trophy">Top score: 980</v-chip>
+          <v-chip variant="outlined" prepend-icon="mdi-fire">Streak: 12 days</v-chip>
+          <v-chip variant="outlined" prepend-icon="mdi-timer-sand">Avg. time: 07:42</v-chip>
+        </v-chip-group>
+      </v-card>
+
+      <v-card variant="tonal" rounded="lg" class="pa-4">
+        <h3 class="text-subtitle-1 font-weight-bold mb-2">Upcoming fake events</h3>
+        <v-timeline side="end" density="compact" truncate-line="both" class="mt-2">
+          <v-timeline-item dot-color="primary" size="small">
+            <div class="text-body-2 font-weight-medium">Lightning Quiz Night</div>
+            <div class="text-caption text-medium-emphasis">March 28 · 20:00 UTC</div>
+          </v-timeline-item>
+          <v-timeline-item dot-color="secondary" size="small">
+            <div class="text-body-2 font-weight-medium">Trivia Royale Tournament</div>
+            <div class="text-caption text-medium-emphasis">April 02 · 19:30 UTC</div>
+          </v-timeline-item>
+          <v-timeline-item dot-color="success" size="small">
+            <div class="text-body-2 font-weight-medium">Creators vs Players Showdown</div>
+            <div class="text-caption text-medium-emphasis">April 06 · 21:00 UTC</div>
+          </v-timeline-item>
+        </v-timeline>
+      </v-card>
     </template>
     <section>
       <v-alert v-if="error" type="error" variant="tonal" class="mb-6">
@@ -322,7 +368,7 @@ onBeforeUnmount(() => {
         </v-card-text>
       </div>
     </section>
-  </PlatformSplitLayout>
+  </NuxtLayout>
 </template>
 
 <style scoped>
