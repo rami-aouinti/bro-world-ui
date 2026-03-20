@@ -22,6 +22,7 @@ const submitError = ref('')
 const submitResult = ref<SubmitQuizResult | null>(null)
 const selectedLevel = ref<string | null>(null)
 const selectedCategory = ref<string | null>(null)
+const isInitialLoading = ref(true)
 let timerInterval: ReturnType<typeof setInterval> | null = null
 
 const { data: quiz, pending, error, execute: loadQuiz } = useAsyncData(
@@ -308,6 +309,7 @@ const toggleCategory = (categorySlug: string) => {
 }
 
 const resetState = () => {
+  stopTimer()
   hasStarted.value = false
   isFinished.value = false
   currentQuestionIndex.value = 0
@@ -315,6 +317,13 @@ const resetState = () => {
   questionTimers.value = {}
   submitResult.value = null
   submitError.value = ''
+}
+
+const resetToInitialState = async () => {
+  resetState()
+  selectedLevel.value = null
+  selectedCategory.value = null
+  await loadQuiz()
 }
 
 watch(() => currentQuestionIndex.value, () => {
@@ -330,12 +339,19 @@ watch(() => quiz.value?.id, () => {
 })
 
 onMounted(() => {
-  void Promise.all([
-    loadQuiz(),
-    refreshNuxtData('general-quiz-categories'),
-    refreshNuxtData('general-quiz-levels'),
-    refreshNuxtData('general-quiz-leaderboard'),
-  ])
+  void (async () => {
+    try {
+      await Promise.all([
+        loadQuiz(),
+        refreshNuxtData('general-quiz-categories'),
+        refreshNuxtData('general-quiz-levels'),
+        refreshNuxtData('general-quiz-leaderboard'),
+      ])
+    }
+    finally {
+      isInitialLoading.value = false
+    }
+  })()
 })
 
 onBeforeUnmount(() => {
@@ -462,7 +478,7 @@ onBeforeUnmount(() => {
         Cannot load the Quiz.
       </v-alert>
 
-      <v-skeleton-loader v-else-if="pending" type="heading, article, list-item-three-line@2, actions" />
+      <v-skeleton-loader v-else-if="pending && isInitialLoading" type="heading, article, list-item-three-line@2, actions" />
 
       <div v-else-if="quiz">
         <template v-if="!hasStarted">
@@ -553,7 +569,7 @@ onBeforeUnmount(() => {
           <div v-else>
             <div class="text-center py-2 mb-6">
               <v-avatar size="72" color="success" variant="tonal" class="mb-2 mx-2">
-                <v-btn @click="startQuiz" size="72">Start</v-btn>
+                <v-btn @click="resetToInitialState" size="72">Start</v-btn>
               </v-avatar>
               <v-avatar size="72" color="primary" variant="tonal" class="mb-2 mx-2">
                 <v-btn @click="startQuiz" size="72">Replay</v-btn>
