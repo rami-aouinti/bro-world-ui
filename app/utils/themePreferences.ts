@@ -99,8 +99,24 @@ export const buildVuetifyThemes = () => {
     return acc
   }, {})
 
-  themes.light = themes[buildThemeName({ mode: 'light', primary: defaultThemePreference.primary })]
-  themes.dark = themes[buildThemeName({ mode: 'dark', primary: defaultThemePreference.primary })]
+  const fallbackPrimary = themePrimaryOptions.find(option => option.value === defaultThemePreference.primary)?.color
+    ?? themePrimaryOptions[0]?.color
+    ?? '#e91e63'
+
+  themes.light = themes[buildThemeName({ mode: 'light', primary: defaultThemePreference.primary })] ?? {
+    dark: false,
+    colors: {
+      ...LIGHT_BASE_COLORS,
+      primary: fallbackPrimary,
+    },
+  }
+  themes.dark = themes[buildThemeName({ mode: 'dark', primary: defaultThemePreference.primary })] ?? {
+    dark: true,
+    colors: {
+      ...DARK_BASE_COLORS,
+      primary: fallbackPrimary,
+    },
+  }
 
   return themes
 }
