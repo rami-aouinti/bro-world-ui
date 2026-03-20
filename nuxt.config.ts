@@ -1,3 +1,4 @@
+import { buildThemeName, buildVuetifyThemes, defaultThemePreference } from './app/utils/themePreferences'
 const SEVEN_DAYS_IN_SECONDS = 60 * 60 * 24 * 7
 const DEV_SESSION_PASSWORD = 'dev-session-password-change-me-please-32chars'
 const STRONG_PASSWORD_MIN_LENGTH = 32
@@ -111,7 +112,15 @@ export default defineNuxtConfig({
       ],
     },
   },
-  modules: ['@nuxtjs/i18n', '@pinia/nuxt', 'nuxt-auth-utils'],
+  modules: ['vuetify-nuxt-module', '@nuxtjs/i18n', '@pinia/nuxt', 'nuxt-auth-utils'],
+  vuetify: {
+    vuetifyOptions: {
+      theme: {
+        defaultTheme: buildThemeName(defaultThemePreference),
+        themes: buildVuetifyThemes(),
+      },
+    },
+  },
   css: [
     'vuetify/styles',
     '~/assets/styles/material-dashboard.scss',
