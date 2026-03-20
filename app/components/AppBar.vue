@@ -2,7 +2,7 @@
 import UiAvatar from '~/components/ui/UiAvatar.vue'
 import ConversationAvatarGroup from '~/components/inbox/ConversationAvatarGroup.vue'
 import { computed, ref, watch } from 'vue'
-import { useDisplay, useTheme } from 'vuetify'
+import { useDisplay } from 'vuetify'
 import type { NotificationListResponse, NotificationRead } from '~/types/api/notification'
 import type { PrivateConversationsResponse } from '~/types/api/chat'
 import { useNotificationsApi } from '~/composables/api/useNotificationsApi'
@@ -37,7 +37,6 @@ const { t, te, locale, locales, setLocale } = useI18n({ useScope: 'global' })
 const authSession = useAuthSessionStore()
 const { can, canPermission } = useAccessControl()
 const { logout } = useAuth()
-const theme = useTheme()
 
 const isProfileMenuOpen = ref(false)
 const isNotificationsMenuOpen = ref(false)
@@ -258,6 +257,14 @@ const formatRelativeTime = (value: string | null | undefined) => {
   return rtf.format(Math.round(diffMs / day), 'day')
 }
 
+const {
+  isDark,
+  preference: themePreference,
+  primaryOptions,
+  toggleThemeMode,
+  setPrimaryTheme,
+} = useThemePreferences()
+
 const { mdAndUp } = useDisplay()
 const isDesktop = computed(() => mdAndUp.value)
 const profileName = computed(() => {
@@ -268,8 +275,6 @@ const profileName = computed(() => {
 
   return `${profile.firstName} ${profile.lastName}`.trim() || profile.username
 })
-
-const isDark = computed(() => theme.global.name.value === 'dark')
 
 const availableLocales = computed(() => locales.value
   .map((item) => {
@@ -298,10 +303,6 @@ const localeFlags: Record<string, string> = {
 }
 
 const getFlag = (code: string) => localeFlags[code] ?? '🌐'
-
-const toggleTheme = () => {
-  theme.global.name.value = isDark.value ? 'light' : 'dark'
-}
 
 const signOut = async () => {
   if (!canPermission('profile.logout')) {
@@ -527,10 +528,51 @@ const signOut = async () => {
           </v-list>
         </v-menu>
 
-        <v-icon
-            class="mx-4"
-            :aria-label="t('app.navigation.toggleTheme')"
-            @click="toggleTheme" :icon="isDark ? 'mdi-weather-night' : 'mdi-white-balance-sunny'" />
+        <v-menu location="bottom end">
+          <template #activator="{ props }">
+            <v-btn
+              class="mx-1"
+              variant="text"
+              icon
+              v-bind="props"
+              :aria-label="t('app.navigation.toggleTheme')"
+            >
+              <v-icon :icon="isDark ? 'mdi-weather-night' : 'mdi-white-balance-sunny'" />
+            </v-btn>
+          </template>
+
+          <v-list class="py-1 app-bar__menu" min-width="220">
+            <v-list-item
+              :title="t('app.navigation.toggleTheme')"
+              prepend-icon="mdi-theme-light-dark"
+              rounded="lg"
+              class="mx-2 my-1"
+              @click="toggleThemeMode"
+            >
+              <template #append>
+                <v-chip size="x-small" variant="tonal">{{ themePreference.mode }}</v-chip>
+              </template>
+            </v-list-item>
+            <v-divider class="my-1" />
+            <v-list-subheader>Primary</v-list-subheader>
+            <v-list-item
+              v-for="option in primaryOptions"
+              :key="`primary-${option.value}`"
+              rounded="lg"
+              class="mx-2 my-1"
+              :active="themePreference.primary === option.value"
+              @click="setPrimaryTheme(option.value)"
+            >
+              <template #prepend>
+                <v-avatar size="18" :style="{ backgroundColor: option.color }" />
+              </template>
+              <v-list-item-title>{{ option.label }}</v-list-item-title>
+              <template #append>
+                <v-icon v-if="themePreference.primary === option.value" icon="mdi-check" size="16" />
+              </template>
+            </v-list-item>
+          </v-list>
+        </v-menu>
       </div>
     </template>
 
@@ -591,7 +633,16 @@ const signOut = async () => {
           :title="`${getFlag(item.code)} ${item.name}`"
           @click="setLocale(item.code)"
         />
-        <v-list-item :title="t('app.navigation.toggleTheme')" prepend-icon="mdi-theme-light-dark" rounded="lg" class="mx-2 my-1" @click="toggleTheme" />
+        <v-list-item :title="t('app.navigation.toggleTheme')" prepend-icon="mdi-theme-light-dark" rounded="lg" class="mx-2 my-1" @click="toggleThemeMode" />
+        <v-list-item
+          v-for="option in primaryOptions"
+          :key="`mobile-primary-${option.value}`"
+          rounded="lg"
+          class="mx-2 my-1"
+          :title="`Primary: ${option.label}`"
+          :prepend-icon="themePreference.primary === option.value ? 'mdi-check-circle' : 'mdi-circle-outline'"
+          @click="setPrimaryTheme(option.value)"
+        />
         <v-list-item
           v-if="canPermission('profile.logout')"
           :title="t('profile.logout')"
