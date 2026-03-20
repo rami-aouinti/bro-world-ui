@@ -351,7 +351,7 @@ onBeforeUnmount(() => {
             <v-chip color="primary" variant="flat" class="mb-4" prepend-icon="mdi-star-four-points-outline">
               {{ t('quizPage.title') }}
             </v-chip>
-            <h1 class="text-h4 font-weight-bold mb-2">{{ quiz.title }}</h1>
+            <h3 class="text-h5 font-weight-bold mb-2">{{ quiz.title }}</h3>
             <p class="text-body-1 text-medium-emphasis mb-0">{{ quiz.description }}</p>
           </div>
         </div>
