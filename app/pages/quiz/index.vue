@@ -351,83 +351,80 @@ onBeforeUnmount(() => {
     </template>
 
     <template #layout-aside>
-      <v-card rounded="xl" class="timer-panel pa-4">
-        <template v-if="!hasStarted">
-          <p class="text-subtitle-1 font-weight-medium mb-3">Levels</p>
-          <div class="d-flex flex-column ga-2 mb-4">
-            <v-chip
-              v-for="level in levels"
-              :key="level.value"
-              variant="flat"
-              class="justify-center text-uppercase font-weight-medium"
-              :style="{ backgroundColor: level.color, color: '#fff' }"
-            >
+      <template v-if="!hasStarted">
+        <div class="d-flex flex-column ga-2 mb-4">
+          <p class="text-subtitle-2 font-weight-bold mb-3">Level</p>
+          <v-btn v-for="level in levels"
+                 rounded="xl"
+                  :key="level.value"
+                  class="justify-center text-uppercase font-weight-medium"
+                  :style="{ backgroundColor: level.color, color: '#fff' }">
               {{ level.value }}
-            </v-chip>
-          </div>
-        </template>
+          </v-btn>
+        </div>
+      </template>
 
-        <template v-else-if="!isFinished">
-          <div class="d-flex justify-space-between align-center mb-4">
-            <p class="text-subtitle-1 font-weight-bold mb-0">Timer</p>
-            <v-chip size="small" color="primary" variant="tonal">Q{{ currentQuestionIndex + 1 }}/{{ questionsCount }}</v-chip>
-          </div>
+      <template v-else-if="!isFinished">
+        <div class="d-flex justify-space-between align-center mb-4">
+          <p class="text-subtitle-1 font-weight-bold mb-0">Timer</p>
+          <v-chip size="small" color="primary" variant="tonal">Q{{ currentQuestionIndex + 1 }}/{{ questionsCount }}</v-chip>
+        </div>
 
-          <div class="d-flex justify-center mb-4">
-            <v-progress-circular
+        <div class="d-flex justify-center mb-4">
+          <v-progress-circular
               :model-value="currentTimerProgress"
               :size="128"
               :width="12"
               :color="isCurrentQuestionLocked ? 'error' : 'primary'"
-            >
-              <div class="text-center">
-                <div class="text-h4 font-weight-bold">{{ currentQuestionTimer }}s</div>
-                <div class="text-caption text-medium-emphasis">restantes</div>
-              </div>
-            </v-progress-circular>
-          </div>
+          >
+            <div class="text-center">
+              <div class="text-h4 font-weight-bold">{{ currentQuestionTimer }}s</div>
+              <div class="text-caption text-medium-emphasis">restantes</div>
+            </div>
+          </v-progress-circular>
+        </div>
 
-          <v-alert v-if="isCurrentQuestionLocked" type="warning" variant="tonal" density="comfortable" class="mb-4">
-            Temps écoulé pour cette question. Réponse bloquée.
-          </v-alert>
-        </template>
+        <v-alert v-if="isCurrentQuestionLocked" type="warning" variant="tonal" density="comfortable" class="mb-4">
+          Temps écoulé pour cette question. Réponse bloquée.
+        </v-alert>
+      </template>
 
-        <template v-else>
-          <p class="text-subtitle-1 font-weight-bold mb-3">Résultat</p>
-          <p class="text-body-2 mb-1">Score: <strong>{{ submitResult?.score ?? scorePercent }}%</strong></p>
-          <p class="text-body-2 mb-1">Points: <strong>{{ submitResult?.earnedPoints ?? score }} / {{ submitResult?.totalPoints ?? maxScore }}</strong></p>
-          <p class="text-body-2 mb-1">Bonnes réponses: <strong>{{ submitResult?.correctAnswers ?? 0 }} / {{ submitResult?.totalQuestions ?? questionsCount }}</strong></p>
-          <p class="text-body-2 mb-4" :class="(submitResult?.passed ?? hasPassed) ? 'text-success' : 'text-warning'">
-            {{ (submitResult?.passed ?? hasPassed) ? 'Quiz validé' : 'Quiz non validé' }}
-          </p>
-        </template>
+      <template v-else>
+        <p class="text-subtitle-1 font-weight-bold mb-3">Score</p>
+        <p class="text-body-2 mb-1">Score: <strong>{{ submitResult?.score ?? scorePercent }}%</strong></p>
+        <p class="text-body-2 mb-1">Points: <strong>{{ submitResult?.earnedPoints ?? score }} / {{ submitResult?.totalPoints ?? maxScore }}</strong></p>
+        <p class="text-body-2 mb-1">Bonnes réponses: <strong>{{ submitResult?.correctAnswers ?? 0 }} / {{ submitResult?.totalQuestions ?? questionsCount }}</strong></p>
+        <p class="text-body-2 mb-4" :class="(submitResult?.passed ?? hasPassed) ? 'text-success' : 'text-warning'">
+          {{ (submitResult?.passed ?? hasPassed) ? 'Quiz is validated' : 'Quiz is not validated' }}
+        </p>
+      </template>
 
-        <v-divider class="my-3" />
-        <p class="text-subtitle-2 font-weight-bold mb-3">Top 3 leaderboard</p>
-        <div class="d-flex flex-column ga-2">
-          <v-sheet
+      <v-divider class="my-3" />
+      <p class="text-subtitle-2 font-weight-bold mb-3">Top 3 leaderboard</p>
+      <div class="d-flex flex-column ga-2">
+        <v-sheet
             v-for="(entry, index) in topLeaderboard"
             :key="entry.userId"
             rounded="lg"
             class="leaderboard-item pa-2"
-          >
-            <div class="d-flex align-center ga-2">
-              <v-avatar :image="entry.photo || undefined" size="36" />
-              <div class="flex-grow-1 min-w-0">
-                <p class="text-body-2 font-weight-medium mb-0 text-truncate">{{ entry.firstName }} {{ entry.lastName }}</p>
-                <p class="text-caption text-medium-emphasis mb-0">{{ entry.averageWeightedScore.toFixed(2) }} pts</p>
-              </div>
-              <v-chip size="small" variant="flat" :color="resolveRankColor(index + 1)">
-                <v-icon start :icon="resolveRankIcon(index + 1)" />
-                #{{ index + 1 }}
-              </v-chip>
-            </div>
-          </v-sheet>
-          <p v-if="topLeaderboard.length === 0" class="text-caption text-medium-emphasis mb-0">
-            Aucun score disponible pour le moment.
-          </p>
-        </div>
-      </v-card>
+            variant="text"
+        >
+          <div class="d-flex align-center ga-2">
+            <v-chip size="small" variant="flat" :color="resolveRankColor(index + 1)">
+              <v-icon start :icon="resolveRankIcon(index + 1)" />
+              #{{ index + 1 }}
+            </v-chip>
+            <v-avatar :image="entry.photo || undefined" size="24" />
+            <p class="text-body-2 font-weight-medium text-truncate">{{ entry.firstName }} {{ entry.lastName }}</p>
+
+            <p class="text-caption text-medium-emphasis text-end">{{ entry.averageWeightedScore.toFixed(2) }} pts</p>
+
+          </div>
+        </v-sheet>
+        <p v-if="topLeaderboard.length === 0" class="text-caption text-medium-emphasis mb-0">
+          Aucun score disponible pour le moment.
+        </p>
+      </div>
     </template>
 
     <section>
@@ -442,15 +439,18 @@ onBeforeUnmount(() => {
           <v-card variant="text" class="mb-8">
             <p class="text-subtitle-1 font-weight-medium mb-3">Categories</p>
             <div class="d-flex flex-wrap ga-2">
-              <v-chip
+              <v-card
                 v-for="category in categories"
                 :key="category.slug"
-                variant="flat"
+                variant="text"
                 class="font-weight-medium"
+                min-width="165px"
                 :style="{ backgroundColor: category.color, color: '#fff' }"
               >
-                {{ category.name }}
-              </v-chip>
+                <v-card-text class="text-center">
+                  {{ category.name }}
+                </v-card-text>
+              </v-card>
             </div>
           </v-card>
 
@@ -535,7 +535,9 @@ onBeforeUnmount(() => {
                 {{ (submitResult?.passed ?? hasPassed) ? 'Bravo, vous avez validé le quiz 🎉' : 'Vous pouvez recommencer pour améliorer votre score.' }}
               </p>
             </div>
-
+            <div class="text-center mb-2">
+              <v-btn color="primary" variant="text" prepend-icon="mdi-refresh" @click="startQuiz">Rejouer</v-btn>
+            </div>
             <v-progress-circular v-if="isSubmitting" indeterminate color="primary" class="mb-4" />
             <v-alert v-else-if="submitError" type="warning" variant="tonal" class="mb-4">
               {{ submitError }}
@@ -567,9 +569,6 @@ onBeforeUnmount(() => {
               </v-card>
             </div>
 
-            <div class="text-center mt-6">
-              <v-btn color="primary" variant="text" prepend-icon="mdi-refresh" @click="startQuiz">Rejouer</v-btn>
-            </div>
           </div>
         </v-card-text>
       </div>
