@@ -55,6 +55,13 @@ export const defaultThemePreference: ThemePreference = {
 export const buildThemeName = (preference: ThemePreference) => `${preference.mode}-${preference.primary}`
 
 export const parseThemeName = (themeName: string): ThemePreference | null => {
+  if (themeName === 'light' || themeName === 'dark') {
+    return {
+      mode: themeName,
+      primary: defaultThemePreference.primary,
+    }
+  }
+
   const [mode, primary] = themeName.split('-') as [ThemeMode | undefined, ThemePrimary | undefined]
 
   if (!mode || !primary) {
@@ -72,7 +79,7 @@ export const parseThemeName = (themeName: string): ThemePreference | null => {
 }
 
 export const buildVuetifyThemes = () => {
-  return themePrimaryOptions.reduce<Record<string, { dark: boolean, colors: Record<string, string> }>>((acc, option) => {
+  const themes = themePrimaryOptions.reduce<Record<string, { dark: boolean, colors: Record<string, string> }>>((acc, option) => {
     acc[`light-${option.value}`] = {
       dark: false,
       colors: {
@@ -91,6 +98,11 @@ export const buildVuetifyThemes = () => {
 
     return acc
   }, {})
+
+  themes.light = themes[buildThemeName({ mode: 'light', primary: defaultThemePreference.primary })]
+  themes.dark = themes[buildThemeName({ mode: 'dark', primary: defaultThemePreference.primary })]
+
+  return themes
 }
 
 export const isThemePreference = (value: unknown): value is ThemePreference => {
