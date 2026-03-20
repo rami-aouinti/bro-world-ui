@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { QuizQuestion, SubmitQuizResult } from '~/types/api/quiz'
 import { useQuizApi } from '~/composables/api/useQuizApi'
+import { useQuizCatalogStore } from '~/stores/quizCatalog'
 
 definePageMeta({
   public: true,
@@ -11,6 +12,7 @@ definePageMeta({
 
 const { isAuthenticated } = useAuth()
 const quizApi = useQuizApi()
+const quizCatalogStore = useQuizCatalogStore()
 
 const selectedAnswers = ref<Record<string, string>>({})
 const questionTimers = ref<Record<string, number>>({})
@@ -38,26 +40,14 @@ const { data: quiz, pending, error, execute: loadQuiz } = useAsyncData(
   },
 )
 
-const { data: categoriesResponse } = useAsyncData(
-  'general-quiz-categories',
-  () => quizApi.getGeneralQuizCategories(),
-  { server: false, immediate: false },
-)
-
-const { data: levelsResponse } = useAsyncData(
-  'general-quiz-levels',
-  () => quizApi.getGeneralQuizLevels(),
-  { server: false, immediate: false },
-)
-
 const { data: leaderboardResponse } = useAsyncData(
   'general-quiz-leaderboard',
   () => quizApi.getGeneralQuizLeaderboard(),
   { server: false, immediate: false },
 )
 
-const categories = computed(() => categoriesResponse.value?.items ?? [])
-const levels = computed(() => levelsResponse.value?.items ?? [])
+const categories = computed(() => quizCatalogStore.categories)
+const levels = computed(() => quizCatalogStore.levels)
 const topLeaderboard = computed(() => (leaderboardResponse.value?.items ?? []).slice(0, 3))
 const selectedLevelLabel = computed(() => selectedLevel.value ?? null)
 const selectedCategoryLabel = computed(() => categories.value.find(category => category.slug === selectedCategory.value)?.name ?? null)
@@ -150,7 +140,7 @@ const hasPassed = computed(() => scorePercent.value >= (quiz.value?.passScore ??
 
 const resolveAnswerLabel = (questionId: string, answerId: string | null) => {
   if (!answerId) {
-    return 'Aucune réponse'
+    return 'No answer'
   }
 
   const question = questionById.value[questionId]
@@ -241,7 +231,7 @@ const submitQuiz = async () => {
     })
   }
   catch {
-    submitError.value = 'Impossible de soumettre le quiz pour le moment.'
+    submitError.value = 'Unable to submit the quiz at the moment.'
   }
   finally {
     isSubmitting.value = false
@@ -343,8 +333,7 @@ onMounted(() => {
     try {
       await Promise.all([
         loadQuiz(),
-        refreshNuxtData('general-quiz-categories'),
-        refreshNuxtData('general-quiz-levels'),
+        quizCatalogStore.preload(),
         refreshNuxtData('general-quiz-leaderboard'),
       ])
     }
@@ -423,22 +412,22 @@ onBeforeUnmount(() => {
               :width="12"
               :color="isCurrentQuestionLocked ? 'error' : 'primary'"
           >
-            <div class="text-center">
+              <div class="text-center">
               <div class="text-h4 font-weight-bold">{{ currentQuestionTimer }}s</div>
-              <div class="text-caption text-medium-emphasis">restantes</div>
+              <div class="text-caption text-medium-emphasis">remaining</div>
             </div>
           </v-progress-circular>
         </div>
 
         <v-alert v-if="isCurrentQuestionLocked" type="warning" variant="tonal" density="comfortable" class="mb-4">
-          Temps écoulé pour cette question. Réponse bloquée.
+          Time is up for this question. Answer is locked.
         </v-alert>
       </template>
 
       <template v-else>
         <p class="text-body-2 mb-1">Score: <strong>{{ submitResult?.score ?? scorePercent }}%</strong></p>
         <p class="text-body-2 mb-1">Points: <strong>{{ submitResult?.earnedPoints ?? score }} / {{ submitResult?.totalPoints ?? maxScore }}</strong></p>
-        <p class="text-body-2 mb-1">Bonnes réponses: <strong>{{ submitResult?.correctAnswers ?? 0 }} / {{ submitResult?.totalQuestions ?? questionsCount }}</strong></p>
+        <p class="text-body-2 mb-1">Correct answers: <strong>{{ submitResult?.correctAnswers ?? 0 }} / {{ submitResult?.totalQuestions ?? questionsCount }}</strong></p>
         <p class="text-body-2 mb-4" :class="(submitResult?.passed ?? hasPassed) ? 'text-success' : 'text-warning'">
           {{ (submitResult?.passed ?? hasPassed) ? 'Quiz is validated' : 'Quiz is not validated' }}
         </p>
@@ -516,7 +505,7 @@ onBeforeUnmount(() => {
             </p>
 
             <v-alert v-if="isCurrentQuestionLocked" type="warning" variant="tonal" class="mb-4">
-              Temps écoulé pour cette question. Vous pouvez naviguer, mais vous ne pouvez plus répondre ici.
+              Time is up for this question. You can navigate, but you can no longer answer here.
             </v-alert>
 
             <v-radio-group
@@ -558,7 +547,7 @@ onBeforeUnmount(() => {
                 prepend-icon="mdi-arrow-left"
                 @click="goToPreviousQuestion"
               >
-                Précédent
+                Previous
               </v-btn>
               <v-btn color="primary" append-icon="mdi-arrow-right" @click="goToNextQuestion">
                 {{ currentQuestionIndex >= questionsCount - 1 ? 'Submit' : 'Next' }}
@@ -592,15 +581,15 @@ onBeforeUnmount(() => {
                 <p class="text-overline mb-1">Question {{ index + 1 }}</p>
                 <p class="text-body-1 font-weight-medium mb-2">{{ questionById[item.questionId]?.title ?? item.questionId }}</p>
                 <p class="text-body-2 mb-1">
-                  Votre réponse: <strong>{{ resolveAnswerLabel(item.questionId, item.selectedAnswerId) }}</strong>
+                  Your answer: <strong>{{ resolveAnswerLabel(item.questionId, item.selectedAnswerId) }}</strong>
                 </p>
                 <p class="text-body-2 mb-1">
-                  Bonne réponse: <strong>{{ item.correctAnswerIds.map(answerId => resolveAnswerLabel(item.questionId, answerId)).join(', ') }}</strong>
+                  Correct answer: <strong>{{ item.correctAnswerIds.map(answerId => resolveAnswerLabel(item.questionId, answerId)).join(', ') }}</strong>
                 </p>
                 <p class="text-body-2 mb-0">
                   Points: <strong>{{ item.earnedPoints }} / {{ item.points }}</strong>
                   <v-chip size="x-small" class="ml-2" :color="item.isCorrect ? 'success' : 'error'" variant="flat">
-                    {{ item.isCorrect ? 'Exacte' : 'Erronée' }}
+                    {{ item.isCorrect ? 'Correct' : 'Incorrect' }}
                   </v-chip>
                 </p>
               </v-card>
