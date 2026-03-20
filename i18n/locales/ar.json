@@ -24,7 +24,8 @@
       "settings": "Settings",
       "inbox": "Messages",
       "register": "Register",
-      "blog": "المدونة"
+      "blog": "المدونة",
+      "quiz": "اختبار"
     },
     "common": {
       "showAll": "عرض الكل"

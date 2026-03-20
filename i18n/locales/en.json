@@ -24,7 +24,8 @@
       "adminApiKeys": "API keys",
       "settings": "Settings",
       "register": "Register",
-      "blog": "Blog"
+      "blog": "Blog",
+      "quiz": "Quiz"
     },
     "common": {
       "showAll": "View all"

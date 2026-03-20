@@ -17,5 +17,15 @@ export const useQuizApi = () => {
         body: payload,
       })
     },
+    getGeneralQuiz(isPrivate: boolean) {
+      const scope = isPrivate ? 'private' : 'public'
+      return apiFetch<QuizRead>(`/api/v1/${scope}/quiz/general`, { method: 'GET' })
+    },
+    publishGeneralQuiz() {
+      return apiFetch<{ status: string }>(`/api/v1/quiz/general/publish`, { method: 'PATCH' })
+    },
+    unpublishGeneralQuiz() {
+      return apiFetch<{ status: string }>(`/api/v1/quiz/general/unpublish`, { method: 'PATCH' })
+    },
   }
 }

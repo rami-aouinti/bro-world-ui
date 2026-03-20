@@ -24,7 +24,8 @@
       "settings": "Settings",
       "inbox": "Messages",
       "register": "Register",
-      "blog": "Blog"
+      "blog": "Blog",
+      "quiz": "Quiz"
     },
     "common": {
       "showAll": "Ver todo"
