@@ -529,6 +529,10 @@ onBeforeUnmount(() => {
     linear-gradient(180deg, rgba(var(--v-theme-surface), 1), rgba(var(--v-theme-surface), 0.96));
 }
 
+.quiz-start-wrap {
+  min-height: 45vh;
+}
+
 .answer-card {
   cursor: pointer;
   transition: all 0.2s ease;
