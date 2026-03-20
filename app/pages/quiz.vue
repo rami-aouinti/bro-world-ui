@@ -211,31 +211,33 @@ onBeforeUnmount(() => {
   <PlatformSplitLayout>
     <template #sidebar>
       <div v-if="quiz">
-        <div class="d-flex flex-wrap justify-space-between align-start ga-4">
-          <div>
-            <v-chip color="primary" variant="flat" class="mb-4" prepend-icon="mdi-star-four-points-outline">
-              Quiz
-            </v-chip>
-            <h1 class="text-h4 font-weight-bold mb-2">{{ quiz.title }}</h1>
-            <p class="text-body-1 text-medium-emphasis mb-0">{{ quiz.description }}</p>
+        <v-card rounded="xl" variant="tonal" class="quiz-sidebar-card pa-5">
+          <div class="d-flex flex-wrap justify-space-between align-start ga-4">
+            <div>
+              <v-chip color="primary" variant="flat" class="mb-4" prepend-icon="mdi-star-four-points-outline">
+                Quiz
+              </v-chip>
+              <h1 class="text-h4 font-weight-bold mb-2">{{ quiz.title }}</h1>
+              <p class="text-body-1 text-medium-emphasis mb-0">{{ quiz.description }}</p>
+            </div>
+            <v-sheet rounded="pill" class="px-4 py-2 timer-pill" v-if="hasStarted && !isFinished">
+              <span class="text-caption text-medium-emphasis d-block">Temps restant</span>
+              <strong class="text-h5">{{ currentTimer }}s</strong>
+            </v-sheet>
           </div>
-          <v-sheet rounded="pill" class="px-4 py-2 timer-pill" v-if="hasStarted && !isFinished">
-            <span class="text-caption text-medium-emphasis d-block">Temps restant</span>
-            <strong class="text-h5">{{ currentTimer }}s</strong>
-          </v-sheet>
-        </div>
 
-        <v-divider class="my-5" />
+          <v-divider class="my-5" />
 
-        <div class="d-flex flex-wrap align-center ga-4">
-          <v-chip variant="tonal" prepend-icon="mdi-help-circle-outline">{{ questionsCount }} questions</v-chip>
-          <v-chip variant="tonal" prepend-icon="mdi-timer-outline">{{ timerPerQuestion }}s / question</v-chip>
-          <v-chip variant="tonal" prepend-icon="mdi-flag-checkered">Pass score: {{ quiz.passScore }}%</v-chip>
-        </div>
+          <div class="d-flex flex-wrap align-center ga-4">
+            <v-chip variant="tonal" prepend-icon="mdi-help-circle-outline">{{ questionsCount }} questions</v-chip>
+            <v-chip variant="tonal" prepend-icon="mdi-timer-outline">{{ timerPerQuestion }}s / question</v-chip>
+            <v-chip variant="tonal" prepend-icon="mdi-flag-checkered">Pass score: {{ quiz.passScore }}%</v-chip>
+          </div>
 
-        <div class="mt-6" v-if="!hasStarted">
-          <v-btn color="primary" size="large" prepend-icon="mdi-play" @click="startQuiz">Start Quiz</v-btn>
-        </div>
+          <div class="mt-6" v-if="!hasStarted">
+            <v-btn color="primary" size="large" prepend-icon="mdi-play" @click="startQuiz">Start Quiz</v-btn>
+          </div>
+        </v-card>
       </div>
     </template>
     <section>
