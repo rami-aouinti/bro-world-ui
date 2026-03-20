@@ -102,3 +102,22 @@ export const isThemePreference = (value: unknown): value is ThemePreference => {
   return (candidate.mode === 'light' || candidate.mode === 'dark')
     && themePrimaryOptions.some(option => option.value === candidate.primary)
 }
+
+export const readThemePreferenceFromSession = (): ThemePreference | null => {
+  if (!import.meta.client) {
+    return null
+  }
+
+  const rawValue = window.sessionStorage.getItem(THEME_SESSION_STORAGE_KEY)
+  if (!rawValue) {
+    return null
+  }
+
+  try {
+    const parsed = JSON.parse(rawValue)
+    return isThemePreference(parsed) ? parsed : null
+  }
+  catch {
+    return null
+  }
+}

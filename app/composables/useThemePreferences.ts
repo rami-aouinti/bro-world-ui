@@ -3,7 +3,6 @@ import { useTheme } from 'vuetify'
 import {
   buildThemeName,
   defaultThemePreference,
-  isThemePreference,
   parseThemeName,
   THEME_SESSION_STORAGE_KEY,
   themePrimaryOptions,
@@ -50,32 +49,7 @@ export const useThemePreferences = () => {
     window.sessionStorage.setItem(THEME_SESSION_STORAGE_KEY, JSON.stringify(next))
   }
 
-  const hydrateThemePreference = () => {
-    if (!import.meta.client) {
-      return
-    }
-
-    const rawValue = window.sessionStorage.getItem(THEME_SESSION_STORAGE_KEY)
-    if (!rawValue) {
-      persistThemePreference(preference.value)
-      return
-    }
-
-    try {
-      const parsed = JSON.parse(rawValue)
-      if (!isThemePreference(parsed)) {
-        persistThemePreference(preference.value)
-        return
-      }
-
-      applyThemePreference(parsed)
-    }
-    catch {
-      persistThemePreference(preference.value)
-    }
-  }
-
-  onMounted(hydrateThemePreference)
+  onMounted(() => persistThemePreference(preference.value))
   watch(preference, persistThemePreference, { deep: true })
 
   return {

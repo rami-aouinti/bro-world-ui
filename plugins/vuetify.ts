@@ -1,14 +1,21 @@
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
-import { buildThemeName, buildVuetifyThemes, defaultThemePreference } from '~/utils/themePreferences'
+import {
+  buildThemeName,
+  buildVuetifyThemes,
+  defaultThemePreference,
+  readThemePreferenceFromSession,
+} from '~/utils/themePreferences'
 
 export default defineNuxtPlugin((nuxtApp) => {
+  const initialPreference = readThemePreferenceFromSession() ?? defaultThemePreference
+
   const vuetify = createVuetify({
     components,
     directives,
     theme: {
-      defaultTheme: buildThemeName(defaultThemePreference),
+      defaultTheme: buildThemeName(initialPreference),
       themes: buildVuetifyThemes(),
     },
     defaults: {
