@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { QuizQuestion } from '~/types/api/quiz'
 import { useQuizApi } from '~/composables/api/useQuizApi'
-import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
+import AppSplitShell from '~/components/layout/AppSplitShell.vue'
 
 definePageMeta({
   public: true,
@@ -208,8 +208,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <PlatformSplitLayout>
-    <template #sidebar>
+  <AppSplitShell>
+    <template #left>
       <div v-if="quiz">
         <v-card rounded="xl" variant="tonal" class="quiz-sidebar-card pa-5">
           <div class="d-flex flex-wrap justify-space-between align-start ga-4">
@@ -326,7 +326,7 @@ onBeforeUnmount(() => {
         </v-card>
       </template>
     </section>
-  </PlatformSplitLayout>
+  </AppSplitShell>
 </template>
 
 <style scoped>
