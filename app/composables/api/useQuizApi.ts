@@ -1,5 +1,14 @@
 import { useApiClient } from '../useApiClient'
-import type { CreateQuizQuestionPayload, QuizRead, QuizStatsRead } from '~/types/api/quiz'
+import type {
+  CreateQuizQuestionPayload,
+  QuizCategoryRead,
+  QuizLeaderboardEntry,
+  QuizLevelRead,
+  QuizRead,
+  QuizStatsRead,
+  SubmitQuizPayload,
+  SubmitQuizResult,
+} from '~/types/api/quiz'
 
 export const useQuizApi = () => {
   const { apiFetch } = useApiClient()
@@ -21,11 +30,20 @@ export const useQuizApi = () => {
       const scope = isPrivate ? 'private' : 'public'
       return apiFetch<QuizRead>(`/api/v1/${scope}/quiz/general`, { method: 'GET' })
     },
-    publishGeneralQuiz() {
-      return apiFetch<{ status: string }>(`/api/v1/quiz/general/publish`, { method: 'PATCH' })
+    getGeneralQuizCategories() {
+      return apiFetch<{ items: QuizCategoryRead[] }>(`/api/v1/public/quiz/general/categories`, { method: 'GET' })
     },
-    unpublishGeneralQuiz() {
-      return apiFetch<{ status: string }>(`/api/v1/quiz/general/unpublish`, { method: 'PATCH' })
+    getGeneralQuizLevels() {
+      return apiFetch<{ items: QuizLevelRead[] }>(`/api/v1/public/quiz/general/levels`, { method: 'GET' })
+    },
+    getGeneralQuizLeaderboard() {
+      return apiFetch<{ items: QuizLeaderboardEntry[] }>(`/api/v1/public/quiz/general/leaderboard`, { method: 'GET' })
+    },
+    submitGeneralQuiz(payload: SubmitQuizPayload) {
+      return apiFetch<SubmitQuizResult>(`/api/v1/quiz/general/submit`, {
+        method: 'POST',
+        body: payload,
+      })
     },
   }
 }

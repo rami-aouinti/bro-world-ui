@@ -40,6 +40,59 @@ export interface QuizStatsRead {
   totalPoints: number
 }
 
+export interface QuizCategoryRead {
+  slug: string
+  name: string
+  position: number
+  color: string
+}
+
+export interface QuizLevelRead {
+  value: string
+  color: string
+}
+
+export interface QuizLeaderboardEntry {
+  userId: UUID
+  username: string
+  firstName: string
+  lastName: string
+  photo: string | null
+  attemptCount: number
+  averageWeightedScore: number
+}
+
+export interface SubmitQuizPayload {
+  answers: Array<{
+    questionId: UUID
+    answerId: UUID
+  }>
+}
+
+export interface SubmitQuizResultItem {
+  questionId: UUID
+  selectedAnswerId: UUID | null
+  isCorrect: boolean
+  correctAnswerIds: UUID[]
+  points: number
+  earnedPoints: number
+}
+
+export interface SubmitQuizResult {
+  attemptId: UUID
+  quizId: UUID
+  applicationSlug: string
+  passScore: number
+  score: number
+  passed: boolean
+  totalQuestions: number
+  answeredQuestions: number
+  correctAnswers: number
+  totalPoints: number
+  earnedPoints: number
+  results: SubmitQuizResultItem[]
+}
+
 export interface CreateQuizQuestionPayload {
   title: string
   level?: string
