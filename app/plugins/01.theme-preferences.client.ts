@@ -6,7 +6,7 @@ import {
   isThemePreference,
   parseThemeName,
   THEME_SESSION_STORAGE_KEY,
-} from '~/app/utils/themePreferences'
+} from '~/utils/themePreferences'
 
 export default defineNuxtPlugin(() => {
   const theme = useTheme()

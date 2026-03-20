@@ -8,7 +8,7 @@ import {
   type ThemeMode,
   type ThemePreference,
   type ThemePrimary,
-} from '~/app/utils/themePreferences'
+} from '~/utils/themePreferences'
 
 export const useThemePreferences = () => {
   const theme = useTheme()
