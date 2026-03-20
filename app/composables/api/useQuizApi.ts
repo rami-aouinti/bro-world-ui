@@ -13,6 +13,22 @@ import type {
 export const useQuizApi = () => {
   const { apiFetch } = useApiClient()
 
+  const buildGeneralQuizUrl = (isPrivate: boolean, filters?: { level?: string | null, category?: string | null }) => {
+    const scope = isPrivate ? 'private' : 'public'
+    const params = new URLSearchParams()
+
+    if (filters?.level) {
+      params.set('level', filters.level)
+    }
+
+    if (filters?.category) {
+      params.set('category', filters.category)
+    }
+
+    const query = params.toString()
+    return query ? `/api/v1/${scope}/quiz/general?${query}` : `/api/v1/${scope}/quiz/general`
+  }
+
   return {
     getApplicationQuiz(applicationSlug: string) {
       return apiFetch<QuizRead>(`/api/v1/quiz/applications/${applicationSlug}`, { method: 'GET' })
@@ -26,9 +42,8 @@ export const useQuizApi = () => {
         body: payload,
       })
     },
-    getGeneralQuiz(isPrivate: boolean) {
-      const scope = isPrivate ? 'private' : 'public'
-      return apiFetch<QuizRead>(`/api/v1/${scope}/quiz/general`, { method: 'GET' })
+    getGeneralQuiz(isPrivate: boolean, filters?: { level?: string | null, category?: string | null }) {
+      return apiFetch<QuizRead>(buildGeneralQuizUrl(isPrivate, filters), { method: 'GET' })
     },
     getGeneralQuizCategories() {
       return apiFetch<{ items: QuizCategoryRead[] }>(`/api/v1/public/quiz/general/categories`, { method: 'GET' })

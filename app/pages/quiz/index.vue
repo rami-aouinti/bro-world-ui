@@ -20,13 +20,18 @@ const hasStarted = ref(false)
 const isSubmitting = ref(false)
 const submitError = ref('')
 const submitResult = ref<SubmitQuizResult | null>(null)
+const selectedLevel = ref<string | null>(null)
+const selectedCategory = ref<string | null>(null)
 let timerInterval: ReturnType<typeof setInterval> | null = null
 
 const { data: quiz, pending, error, execute: loadQuiz } = useAsyncData(
   'general-quiz',
-  () => quizApi.getGeneralQuiz(isAuthenticated.value),
+  () => quizApi.getGeneralQuiz(isAuthenticated.value, {
+    level: selectedLevel.value,
+    category: selectedCategory.value,
+  }),
   {
-    watch: [isAuthenticated],
+    watch: [isAuthenticated, selectedLevel, selectedCategory],
     server: false,
     immediate: false,
   },
@@ -53,6 +58,8 @@ const { data: leaderboardResponse } = useAsyncData(
 const categories = computed(() => categoriesResponse.value?.items ?? [])
 const levels = computed(() => levelsResponse.value?.items ?? [])
 const topLeaderboard = computed(() => (leaderboardResponse.value?.items ?? []).slice(0, 3))
+const selectedLevelLabel = computed(() => selectedLevel.value ?? null)
+const selectedCategoryLabel = computed(() => categories.value.find(category => category.slug === selectedCategory.value)?.name ?? null)
 
 const questionList = computed(() => {
   if (!quiz.value) {
@@ -290,6 +297,14 @@ const startQuiz = () => {
   startTimer()
 }
 
+const toggleLevel = (levelValue: string) => {
+  selectedLevel.value = selectedLevel.value === levelValue ? null : levelValue
+}
+
+const toggleCategory = (categorySlug: string) => {
+  selectedCategory.value = selectedCategory.value === categorySlug ? null : categorySlug
+}
+
 const resetState = () => {
   hasStarted.value = false
   isFinished.value = false
@@ -358,7 +373,9 @@ onBeforeUnmount(() => {
                  rounded="xl"
                   :key="level.value"
                   class="justify-center text-uppercase font-weight-medium"
-                  :style="{ backgroundColor: level.color, color: '#fff' }">
+                  :variant="selectedLevel === level.value ? 'flat' : 'outlined'"
+                  :style="{ backgroundColor: selectedLevel === level.value ? level.color : 'transparent', color: selectedLevel === level.value ? '#fff' : level.color, borderColor: level.color }"
+                  @click="toggleLevel(level.value)">
               {{ level.value }}
           </v-btn>
         </div>
@@ -400,6 +417,19 @@ onBeforeUnmount(() => {
       </template>
 
       <v-divider class="my-3" />
+      <template v-if="selectedLevelLabel || selectedCategoryLabel">
+        <p class="text-subtitle-2 font-weight-bold mb-3">Filtres actifs</p>
+        <div class="d-flex flex-wrap ga-2 mb-3">
+          <v-chip v-if="selectedLevelLabel" color="primary" size="small" variant="tonal" prepend-icon="mdi-speedometer">
+            Level: {{ selectedLevelLabel }}
+          </v-chip>
+          <v-chip v-if="selectedCategoryLabel" color="secondary" size="small" variant="tonal" prepend-icon="mdi-shape-outline">
+            Category: {{ selectedCategoryLabel }}
+          </v-chip>
+        </div>
+        <v-divider class="my-3" />
+      </template>
+
       <p class="text-subtitle-2 font-weight-bold mb-3">Top 3 leaderboard</p>
       <div class="d-flex flex-column ga-2">
         <v-sheet
@@ -443,9 +473,11 @@ onBeforeUnmount(() => {
                 v-for="category in categories"
                 :key="category.slug"
                 variant="text"
-                class="font-weight-medium"
+                class="font-weight-medium category-card"
+                :class="{ 'category-card--selected': selectedCategory === category.slug }"
                 min-width="165px"
                 :style="{ backgroundColor: category.color, color: '#fff' }"
+                @click="toggleCategory(category.slug)"
               >
                 <v-card-text class="text-center">
                   {{ category.name }}
@@ -621,5 +653,18 @@ onBeforeUnmount(() => {
 .result-card--wrong {
   border-color: rgba(var(--v-theme-error), 0.5);
   background: rgba(var(--v-theme-error), 0.05);
+}
+
+.category-card {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.category-card:hover {
+  transform: translateY(-1px);
+}
+
+.category-card--selected {
+  box-shadow: 0 0 0 3px rgba(var(--v-theme-primary), 0.55) inset;
 }
 </style>
