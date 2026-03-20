@@ -9,5 +9,9 @@ import AppSplitShell from '~/components/layout/AppSplitShell.vue'
     </template>
 
     <slot />
+
+    <template #aside>
+      <slot name="aside" />
+    </template>
   </AppSplitShell>
 </template>
