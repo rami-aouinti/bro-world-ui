@@ -236,53 +236,17 @@ onBeforeUnmount(() => {
         <div class="mt-6" v-if="!hasStarted">
           <v-btn color="primary" size="large" prepend-icon="mdi-play" @click="startQuiz">Start Quiz</v-btn>
         </div>
-
-        <v-card variant="tonal" rounded="lg" class="mt-8 pa-4">
-          <p class="text-overline mb-2">Fake content</p>
-          <h3 class="text-subtitle-1 font-weight-bold mb-2">Weekly challenge teaser</h3>
-          <p class="text-body-2 text-medium-emphasis mb-3">
-            Explore 5 bonus questions about cinema, coding, and geography to unlock a mystery badge.
-          </p>
-          <v-list density="compact" bg-color="transparent" class="pa-0">
-            <v-list-item prepend-icon="mdi-lightning-bolt-outline" title="Bonus reward: 300 XP" />
-            <v-list-item prepend-icon="mdi-calendar-clock" title="Opens every Friday at 18:00" />
-            <v-list-item prepend-icon="mdi-account-group-outline" title="Play solo or with friends" />
-          </v-list>
-        </v-card>
       </div>
     </template>
 
     <template #layout-aside>
-      <v-card variant="tonal" rounded="lg" class="pa-4 mb-4">
-        <p class="text-overline mb-2">Fake content</p>
-        <h3 class="text-subtitle-1 font-weight-bold mb-2">Community spotlight</h3>
-        <p class="text-body-2 text-medium-emphasis mb-3">
-          Team Aurora scored 98% this week. Can you beat their streak before Sunday night?
-        </p>
-        <v-chip-group column>
-          <v-chip variant="outlined" prepend-icon="mdi-trophy">Top score: 980</v-chip>
-          <v-chip variant="outlined" prepend-icon="mdi-fire">Streak: 12 days</v-chip>
-          <v-chip variant="outlined" prepend-icon="mdi-timer-sand">Avg. time: 07:42</v-chip>
-        </v-chip-group>
-      </v-card>
 
-      <v-card variant="tonal" rounded="lg" class="pa-4">
-        <h3 class="text-subtitle-1 font-weight-bold mb-2">Upcoming fake events</h3>
-        <v-timeline side="end" density="compact" truncate-line="both" class="mt-2">
-          <v-timeline-item dot-color="primary" size="small">
-            <div class="text-body-2 font-weight-medium">Lightning Quiz Night</div>
-            <div class="text-caption text-medium-emphasis">March 28 · 20:00 UTC</div>
-          </v-timeline-item>
-          <v-timeline-item dot-color="secondary" size="small">
-            <div class="text-body-2 font-weight-medium">Trivia Royale Tournament</div>
-            <div class="text-caption text-medium-emphasis">April 02 · 19:30 UTC</div>
-          </v-timeline-item>
-          <v-timeline-item dot-color="success" size="small">
-            <div class="text-body-2 font-weight-medium">Creators vs Players Showdown</div>
-            <div class="text-caption text-medium-emphasis">April 06 · 21:00 UTC</div>
-          </v-timeline-item>
-        </v-timeline>
-      </v-card>
+      <v-row class="mb-6 d-flex justify-center align-center">
+        <v-col cols="12" >
+          <v-btn>Level</v-btn>
+        </v-col>
+      </v-row>
+
     </template>
     <section>
       <v-alert v-if="error" type="error" variant="tonal" class="mb-6">
@@ -292,12 +256,17 @@ onBeforeUnmount(() => {
       <v-skeleton-loader v-else-if="pending" type="heading, article, list-item-three-line@2, actions" />
 
       <div v-else-if="quiz">
-        <v-card-text v-if="hasStarted">
+        <v-row class="mb-6 d-flex justify-center align-center" v-if="!hasStarted">
+          <v-col cols="4" >
+            <v-btn>Category</v-btn>
+          </v-col>
+        </v-row>
+        <v-card-text v-else>
           <div class="d-flex justify-space-between align-center mb-3">
             <p class="text-body-2 mb-0">Progression: {{ answeredCount }}/{{ questionsCount }}</p>
             <p class="text-body-2 text-medium-emphasis mb-0">{{ progressValue }}%</p>
           </div>
-          <v-progress-linear :model-value="progressValue" color="primary" rounded height="10" class="mb-6" />
+          <v-progress-linear :model-value="progressValue" color="primary" rounded height="10" class="mb-3" />
 
           <template v-if="!isFinished && currentQuestion">
             <p class="text-overline mb-2">Question {{ currentQuestionIndex + 1 }} / {{ questionsCount }}</p>
@@ -306,21 +275,32 @@ onBeforeUnmount(() => {
               Level: {{ currentQuestion.level }} · Category: {{ currentQuestion.category }}
             </p>
 
-            <v-radio-group v-model="selectedAnswers[currentQuestion.id]" hide-details class="quiz-answers">
-              <v-card
-                  v-for="answer in currentQuestion.answers"
-                  :key="answer.id"
-                  rounded="lg"
-                  variant="outlined"
-                  class="mb-3 answer-card"
-                  :class="{ 'answer-card--selected': selectedAnswers[currentQuestion.id] === answer.id }"
-                  @click="selectedAnswers[currentQuestion.id] = answer.id"
-              >
-                <v-card-text class="d-flex align-center ga-3 py-4">
-                  <v-radio :value="answer.id" color="primary" class="flex-grow-0" />
-                  <span class="text-body-1">{{ answer.label }}</span>
-                </v-card-text>
-              </v-card>
+            <v-radio-group
+                v-model="selectedAnswers[currentQuestion.id]"
+                hide-details
+                class="quiz-answers"
+            >
+              <v-row>
+                <v-col
+                    v-for="answer in currentQuestion.answers"
+                    :key="answer.id"
+                    cols="12"
+                    md="6"
+                >
+                  <v-card
+                      rounded="lg"
+                      variant="outlined"
+                      class="answer-card"
+                      :class="{ 'answer-card--selected': selectedAnswers[currentQuestion.id] === answer.id }"
+                      @click="selectedAnswers[currentQuestion.id] = answer.id"
+                  >
+                    <v-card-text class="d-flex align-center ga-3 py-4">
+                      <v-radio :value="answer.id" color="primary" class="flex-grow-0" />
+                      <span class="text-body-1">{{ answer.label }}</span>
+                    </v-card-text>
+                  </v-card>
+                </v-col>
+              </v-row>
             </v-radio-group>
 
             <div class="d-flex justify-space-between mt-6">
@@ -339,8 +319,8 @@ onBeforeUnmount(() => {
           </template>
 
           <div v-else>
-            <div class="text-center py-4">
-              <v-avatar size="64" color="primary" variant="tonal" class="mb-4">
+            <div class="text-center py-2">
+              <v-avatar size="64" color="primary" variant="tonal" class="mb-2">
                 <v-icon icon="mdi-trophy-outline" size="36" />
               </v-avatar>
               <h3 class="text-h4 font-weight-bold mb-2">{{ scorePercent }}%</h3>
