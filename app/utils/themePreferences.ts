@@ -1,9 +1,13 @@
 export type ThemeMode = 'light' | 'dark'
 export type ThemePrimary = 'pink' | 'blue' | 'green' | 'purple'
+export type ThemeRadius = 'compact' | 'comfortable' | 'rounded'
+export type ThemeShadow = 'soft' | 'medium' | 'strong'
 
 export interface ThemePreference {
   mode: ThemeMode
   primary: ThemePrimary
+  radius: ThemeRadius
+  shadow: ThemeShadow
 }
 
 export const THEME_SESSION_STORAGE_KEY = 'bro-world-theme'
@@ -13,6 +17,18 @@ export const themePrimaryOptions: Array<{ value: ThemePrimary, label: string, co
   { value: 'blue', label: 'Blue', color: '#1a73e8' },
   { value: 'green', label: 'Green', color: '#43a047' },
   { value: 'purple', label: 'Purple', color: '#7e57c2' },
+]
+
+export const themeRadiusOptions: Array<{ value: ThemeRadius, label: string, radius: string }> = [
+  { value: 'compact', label: 'Compact', radius: '8px' },
+  { value: 'comfortable', label: 'Comfort', radius: '14px' },
+  { value: 'rounded', label: 'Rounded', radius: '22px' },
+]
+
+export const themeShadowOptions: Array<{ value: ThemeShadow, label: string, shadow: string }> = [
+  { value: 'soft', label: 'Soft', shadow: '0 4px 14px rgba(15, 23, 42, 0.08)' },
+  { value: 'medium', label: 'Medium', shadow: '0 8px 22px rgba(15, 23, 42, 0.14)' },
+  { value: 'strong', label: 'Strong', shadow: '0 14px 30px rgba(15, 23, 42, 0.2)' },
 ]
 
 const LIGHT_BASE_COLORS = {
@@ -50,6 +66,8 @@ const DARK_BASE_COLORS = {
 export const defaultThemePreference: ThemePreference = {
   mode: 'light',
   primary: 'pink',
+  radius: 'comfortable',
+  shadow: 'medium',
 }
 
 export const buildThemeName = (preference: ThemePreference) => `${preference.mode}-${preference.primary}`
@@ -59,6 +77,8 @@ export const parseThemeName = (themeName: string): ThemePreference | null => {
     return {
       mode: themeName,
       primary: defaultThemePreference.primary,
+      radius: defaultThemePreference.radius,
+      shadow: defaultThemePreference.shadow,
     }
   }
 
@@ -75,6 +95,8 @@ export const parseThemeName = (themeName: string): ThemePreference | null => {
   return {
     mode,
     primary,
+    radius: defaultThemePreference.radius,
+    shadow: defaultThemePreference.shadow,
   }
 }
 
@@ -129,6 +151,27 @@ export const isThemePreference = (value: unknown): value is ThemePreference => {
   const candidate = value as Partial<ThemePreference>
   return (candidate.mode === 'light' || candidate.mode === 'dark')
     && themePrimaryOptions.some(option => option.value === candidate.primary)
+    && themeRadiusOptions.some(option => option.value === candidate.radius)
+    && themeShadowOptions.some(option => option.value === candidate.shadow)
+}
+
+const normalizeThemePreference = (value: unknown): ThemePreference | null => {
+  if (!value || typeof value !== 'object') {
+    return null
+  }
+
+  const candidate = value as Partial<ThemePreference>
+  if ((candidate.mode !== 'light' && candidate.mode !== 'dark')
+    || !themePrimaryOptions.some(option => option.value === candidate.primary)) {
+    return null
+  }
+
+  return {
+    mode: candidate.mode,
+    primary: candidate.primary,
+    radius: themeRadiusOptions.some(option => option.value === candidate.radius) ? candidate.radius : defaultThemePreference.radius,
+    shadow: themeShadowOptions.some(option => option.value === candidate.shadow) ? candidate.shadow : defaultThemePreference.shadow,
+  }
 }
 
 export const readThemePreferenceFromSession = (): ThemePreference | null => {
@@ -143,7 +186,7 @@ export const readThemePreferenceFromSession = (): ThemePreference | null => {
 
   try {
     const parsed = JSON.parse(rawValue)
-    return isThemePreference(parsed) ? parsed : null
+    return normalizeThemePreference(parsed)
   }
   catch {
     return null
