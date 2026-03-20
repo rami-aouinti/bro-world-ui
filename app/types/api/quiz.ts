@@ -3,7 +3,8 @@ import type { UUID } from './common'
 export interface QuizAnswer {
   id: UUID
   label: string
-  correct: boolean
+  correct?: boolean
+  position?: number
 }
 
 export interface QuizQuestion {
@@ -11,6 +12,9 @@ export interface QuizQuestion {
   title: string
   level: string
   category: string
+  points?: number
+  explanation?: string | null
+  position?: number
   answers: QuizAnswer[]
 }
 
@@ -24,6 +28,7 @@ export interface QuizRead {
   configuration: {
     shuffleQuestions: boolean
     timerSec: number
+    showInstantCorrection?: boolean
   } | null
   questions: QuizQuestion[]
 }

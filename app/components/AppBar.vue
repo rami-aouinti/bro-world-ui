@@ -83,6 +83,7 @@ watch(isInboxMenuOpen, async (isOpen) => {
 const mainHeaderItems = computed<NavItem[]>(() => [
   { key: 'app.navigation.platform', to: '/platform', icon: 'mdi-view-grid-outline' },
   { key: 'app.navigation.blog', to: '/blog', icon: 'mdi-post-outline' },
+  { key: 'app.navigation.quiz', to: '/quiz', icon: 'mdi-help-circle-outline' },
   { key: 'app.navigation.about', to: '/about', icon: 'mdi-information-outline' },
   { key: 'app.navigation.contact', to: '/contact', icon: 'mdi-email-outline' },
   { key: 'app.navigation.faq', to: '/faq', icon: 'mdi-frequently-asked-questions' },
