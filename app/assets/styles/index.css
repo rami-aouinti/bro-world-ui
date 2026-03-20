@@ -90,6 +90,7 @@ body.rtl .text-right {
 
   /* Focus */
   --ui-focus: 0 0 0 3px rgba(var(--v-theme-primary), 0.35);
+  --ui-theme-shadow: 0 8px 22px rgba(15, 23, 42, 0.14);
 
   /* Scrollbars */
   --ui-scrollbar-size: 8px;
@@ -222,7 +223,13 @@ html.dark {
 }
 
 .v-card--variant-elevated:not(.v-card--flat) {
-  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.14);
+  box-shadow: var(--ui-theme-shadow);
+}
+
+.v-btn:not(.v-btn--flat):not(.v-btn--variant-text):not(.v-btn--variant-plain):not(.v-btn--variant-tonal),
+.v-list,
+.v-badge__badge {
+  box-shadow: var(--ui-theme-shadow);
 }
 
 .v-theme--light.v-icon--clickable,

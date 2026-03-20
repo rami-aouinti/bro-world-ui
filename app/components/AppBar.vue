@@ -262,8 +262,12 @@ const {
   isDark,
   preference: themePreference,
   primaryOptions,
+  radiusOptions,
+  shadowOptions,
   toggleThemeMode,
   setPrimaryTheme,
+  setThemeRadius,
+  setThemeShadow,
 } = useThemePreferences()
 
 const { mdAndUp } = useDisplay()
@@ -572,6 +576,36 @@ const signOut = async () => {
                 <v-icon v-if="themePreference.primary === option.value" icon="mdi-check" size="16" />
               </template>
             </v-list-item>
+            <v-divider class="my-1" />
+            <v-list-subheader>Radius</v-list-subheader>
+            <v-list-item
+              v-for="option in radiusOptions"
+              :key="`radius-${option.value}`"
+              rounded="lg"
+              class="mx-2 my-1"
+              :active="themePreference.radius === option.value"
+              @click="setThemeRadius(option.value)"
+            >
+              <v-list-item-title>{{ option.label }}</v-list-item-title>
+              <template #append>
+                <v-icon v-if="themePreference.radius === option.value" icon="mdi-check" size="16" />
+              </template>
+            </v-list-item>
+            <v-divider class="my-1" />
+            <v-list-subheader>Shadow</v-list-subheader>
+            <v-list-item
+              v-for="option in shadowOptions"
+              :key="`shadow-${option.value}`"
+              rounded="lg"
+              class="mx-2 my-1"
+              :active="themePreference.shadow === option.value"
+              @click="setThemeShadow(option.value)"
+            >
+              <v-list-item-title>{{ option.label }}</v-list-item-title>
+              <template #append>
+                <v-icon v-if="themePreference.shadow === option.value" icon="mdi-check" size="16" />
+              </template>
+            </v-list-item>
           </v-list>
         </v-menu>
       </div>
@@ -643,6 +677,24 @@ const signOut = async () => {
           :title="`Primary: ${option.label}`"
           :prepend-icon="themePreference.primary === option.value ? 'mdi-check-circle' : 'mdi-circle-outline'"
           @click="setPrimaryTheme(option.value)"
+        />
+        <v-list-item
+          v-for="option in radiusOptions"
+          :key="`mobile-radius-${option.value}`"
+          rounded="lg"
+          class="mx-2 my-1"
+          :title="`Radius: ${option.label}`"
+          :prepend-icon="themePreference.radius === option.value ? 'mdi-check-circle' : 'mdi-circle-outline'"
+          @click="setThemeRadius(option.value)"
+        />
+        <v-list-item
+          v-for="option in shadowOptions"
+          :key="`mobile-shadow-${option.value}`"
+          rounded="lg"
+          class="mx-2 my-1"
+          :title="`Shadow: ${option.label}`"
+          :prepend-icon="themePreference.shadow === option.value ? 'mdi-check-circle' : 'mdi-circle-outline'"
+          @click="setThemeShadow(option.value)"
         />
         <v-list-item
           v-if="canPermission('profile.logout')"
