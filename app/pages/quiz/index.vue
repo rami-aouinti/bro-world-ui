@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { QuizQuestion } from '~/types/api/quiz'
 import { useQuizApi } from '~/composables/api/useQuizApi'
-import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
 
 definePageMeta({
   public: true,
   requiresAuth: false,
+  layout: false,
   skeleton: "card-grid",
 });
 
@@ -208,8 +208,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <PlatformSplitLayout>
-    <template #sidebar>
+  <NuxtLayout name="default">
+    <template #layout-sidebar>
       <div v-if="quiz">
         <div class="d-flex flex-wrap justify-space-between align-start ga-4">
           <div>
@@ -252,7 +252,7 @@ onBeforeUnmount(() => {
       </div>
     </template>
 
-    <template #aside>
+    <template #layout-aside>
       <v-card variant="tonal" rounded="lg" class="pa-4 mb-4">
         <p class="text-overline mb-2">Fake content</p>
         <h3 class="text-subtitle-1 font-weight-bold mb-2">Community spotlight</h3>
@@ -368,7 +368,7 @@ onBeforeUnmount(() => {
         </v-card-text>
       </div>
     </section>
-  </PlatformSplitLayout>
+  </NuxtLayout>
 </template>
 
 <style scoped>
