@@ -1609,5 +1609,41 @@
     "errors": {
       "load": "Unable to load notifications."
     }
+  },
+  "quizPage": {
+    "title": "Quiz",
+    "questionsCount": "{count} questions",
+    "timerPerQuestion": "{seconds}s / question",
+    "passScore": "Pass score: {score}%",
+    "levelLabel": "Level: {value}",
+    "categoryLabel": "Category: {value}",
+    "level": "Level",
+    "timer": "Timer",
+    "remaining": "remaining",
+    "timeUpLocked": "Time is up for this question. Answer is locked.",
+    "score": "Score",
+    "points": "Points",
+    "correctAnswers": "Correct answers",
+    "validated": "Quiz is validated",
+    "notValidated": "Quiz is not validated",
+    "topLeaderboard": "Top 3 leaderboard",
+    "noScores": "No scores available at the moment.",
+    "loadError": "Cannot load the Quiz.",
+    "categories": "Categories",
+    "startQuiz": "Start Quiz",
+    "questionProgress": "Question {current} / {total}",
+    "timeUpNavigationOnly": "Time is up for this question. You can navigate, but you can no longer answer here.",
+    "previous": "Previous",
+    "submit": "Submit",
+    "next": "Next",
+    "start": "Start",
+    "replay": "Replay",
+    "yourAnswer": "Your answer",
+    "correctAnswer": "Correct answer",
+    "correct": "Correct",
+    "incorrect": "Incorrect",
+    "noAnswer": "No answer",
+    "submitError": "Unable to submit the quiz at the moment.",
+    "questionShort": "Question {index}"
   }
 }

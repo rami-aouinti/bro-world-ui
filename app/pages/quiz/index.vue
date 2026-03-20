@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { QuizQuestion, SubmitQuizResult } from '~/types/api/quiz'
 import { useQuizApi } from '~/composables/api/useQuizApi'
+import { useQuizCatalogStore } from '~/stores/quizCatalog'
 
 definePageMeta({
   public: true,
@@ -10,7 +11,9 @@ definePageMeta({
 })
 
 const { isAuthenticated } = useAuth()
+const { t } = useI18n()
 const quizApi = useQuizApi()
+const quizCatalogStore = useQuizCatalogStore()
 
 const selectedAnswers = ref<Record<string, string>>({})
 const questionTimers = ref<Record<string, number>>({})
@@ -38,27 +41,9 @@ const { data: quiz, pending, error, execute: loadQuiz } = useAsyncData(
   },
 )
 
-const { data: categoriesResponse } = useAsyncData(
-  'general-quiz-categories',
-  () => quizApi.getGeneralQuizCategories(),
-  { server: false, immediate: false },
-)
-
-const { data: levelsResponse } = useAsyncData(
-  'general-quiz-levels',
-  () => quizApi.getGeneralQuizLevels(),
-  { server: false, immediate: false },
-)
-
-const { data: leaderboardResponse } = useAsyncData(
-  'general-quiz-leaderboard',
-  () => quizApi.getGeneralQuizLeaderboard(),
-  { server: false, immediate: false },
-)
-
-const categories = computed(() => categoriesResponse.value?.items ?? [])
-const levels = computed(() => levelsResponse.value?.items ?? [])
-const topLeaderboard = computed(() => (leaderboardResponse.value?.items ?? []).slice(0, 3))
+const categories = computed(() => quizCatalogStore.categories)
+const levels = computed(() => quizCatalogStore.levels)
+const topLeaderboard = computed(() => quizCatalogStore.topLeaderboard)
 const selectedLevelLabel = computed(() => selectedLevel.value ?? null)
 const selectedCategoryLabel = computed(() => categories.value.find(category => category.slug === selectedCategory.value)?.name ?? null)
 
@@ -150,7 +135,7 @@ const hasPassed = computed(() => scorePercent.value >= (quiz.value?.passScore ??
 
 const resolveAnswerLabel = (questionId: string, answerId: string | null) => {
   if (!answerId) {
-    return 'Aucune réponse'
+    return t('quizPage.noAnswer')
   }
 
   const question = questionById.value[questionId]
@@ -241,7 +226,7 @@ const submitQuiz = async () => {
     })
   }
   catch {
-    submitError.value = 'Impossible de soumettre le quiz pour le moment.'
+    submitError.value = t('quizPage.submitError')
   }
   finally {
     isSubmitting.value = false
@@ -343,9 +328,7 @@ onMounted(() => {
     try {
       await Promise.all([
         loadQuiz(),
-        refreshNuxtData('general-quiz-categories'),
-        refreshNuxtData('general-quiz-levels'),
-        refreshNuxtData('general-quiz-leaderboard'),
+        quizCatalogStore.preload(),
       ])
     }
     finally {
@@ -366,7 +349,7 @@ onBeforeUnmount(() => {
         <div class="d-flex flex-wrap justify-space-between align-start ga-4">
           <div>
             <v-chip color="primary" variant="flat" class="mb-4" prepend-icon="mdi-star-four-points-outline">
-              Quiz
+              {{ t('quizPage.title') }}
             </v-chip>
             <h1 class="text-h4 font-weight-bold mb-2">{{ quiz.title }}</h1>
             <p class="text-body-1 text-medium-emphasis mb-0">{{ quiz.description }}</p>
@@ -376,18 +359,18 @@ onBeforeUnmount(() => {
         <v-divider class="my-5" />
 
         <div class="d-flex flex-wrap align-center ga-4 mb-3">
-          <v-chip variant="tonal" prepend-icon="mdi-help-circle-outline">{{ questionsCount }} questions</v-chip>
-          <v-chip variant="tonal" prepend-icon="mdi-timer-outline">{{ timerPerQuestion }}s / question</v-chip>
-          <v-chip variant="tonal" prepend-icon="mdi-flag-checkered">Pass score: {{ quiz.passScore }}%</v-chip>
+          <v-chip variant="tonal" prepend-icon="mdi-help-circle-outline">{{ t('quizPage.questionsCount', { count: questionsCount }) }}</v-chip>
+          <v-chip variant="tonal" prepend-icon="mdi-timer-outline">{{ t('quizPage.timerPerQuestion', { seconds: timerPerQuestion }) }}</v-chip>
+          <v-chip variant="tonal" prepend-icon="mdi-flag-checkered">{{ t('quizPage.passScore', { score: quiz.passScore }) }}</v-chip>
         </div>
 
         <template v-if="selectedLevelLabel || selectedCategoryLabel">
           <div class="d-flex flex-wrap ga-2">
             <v-chip v-if="selectedLevelLabel" color="primary" size="small" variant="tonal" prepend-icon="mdi-speedometer">
-              Level: {{ selectedLevelLabel }}
+              {{ t('quizPage.levelLabel', { value: selectedLevelLabel }) }}
             </v-chip>
             <v-chip v-if="selectedCategoryLabel" color="secondary" size="small" variant="tonal" prepend-icon="mdi-shape-outline">
-              Category: {{ selectedCategoryLabel }}
+              {{ t('quizPage.categoryLabel', { value: selectedCategoryLabel }) }}
             </v-chip>
           </div>
         </template>
@@ -397,7 +380,7 @@ onBeforeUnmount(() => {
     <template #layout-aside>
       <template v-if="!hasStarted">
         <div class="d-flex flex-column ga-2 mb-4">
-          <p class="text-subtitle-2 font-weight-bold mb-3">Level</p>
+          <p class="text-subtitle-2 font-weight-bold mb-3">{{ t('quizPage.level') }}</p>
           <v-btn v-for="level in levels"
                  rounded="xl"
                   :key="level.value"
@@ -412,7 +395,7 @@ onBeforeUnmount(() => {
 
       <template v-else-if="!isFinished">
         <div class="d-flex justify-space-between align-center mb-4">
-          <p class="text-subtitle-1 font-weight-bold mb-0">Timer</p>
+          <p class="text-subtitle-1 font-weight-bold mb-0">{{ t('quizPage.timer') }}</p>
           <v-chip size="small" color="primary" variant="tonal">Q{{ currentQuestionIndex + 1 }}/{{ questionsCount }}</v-chip>
         </div>
 
@@ -423,31 +406,31 @@ onBeforeUnmount(() => {
               :width="12"
               :color="isCurrentQuestionLocked ? 'error' : 'primary'"
           >
-            <div class="text-center">
+              <div class="text-center">
               <div class="text-h4 font-weight-bold">{{ currentQuestionTimer }}s</div>
-              <div class="text-caption text-medium-emphasis">restantes</div>
+              <div class="text-caption text-medium-emphasis">{{ t('quizPage.remaining') }}</div>
             </div>
           </v-progress-circular>
         </div>
 
         <v-alert v-if="isCurrentQuestionLocked" type="warning" variant="tonal" density="comfortable" class="mb-4">
-          Temps écoulé pour cette question. Réponse bloquée.
+          {{ t('quizPage.timeUpLocked') }}
         </v-alert>
       </template>
 
       <template v-else>
-        <p class="text-body-2 mb-1">Score: <strong>{{ submitResult?.score ?? scorePercent }}%</strong></p>
-        <p class="text-body-2 mb-1">Points: <strong>{{ submitResult?.earnedPoints ?? score }} / {{ submitResult?.totalPoints ?? maxScore }}</strong></p>
-        <p class="text-body-2 mb-1">Bonnes réponses: <strong>{{ submitResult?.correctAnswers ?? 0 }} / {{ submitResult?.totalQuestions ?? questionsCount }}</strong></p>
+        <p class="text-body-2 mb-1">{{ t('quizPage.score') }}: <strong>{{ submitResult?.score ?? scorePercent }}%</strong></p>
+        <p class="text-body-2 mb-1">{{ t('quizPage.points') }}: <strong>{{ submitResult?.earnedPoints ?? score }} / {{ submitResult?.totalPoints ?? maxScore }}</strong></p>
+        <p class="text-body-2 mb-1">{{ t('quizPage.correctAnswers') }}: <strong>{{ submitResult?.correctAnswers ?? 0 }} / {{ submitResult?.totalQuestions ?? questionsCount }}</strong></p>
         <p class="text-body-2 mb-4" :class="(submitResult?.passed ?? hasPassed) ? 'text-success' : 'text-warning'">
-          {{ (submitResult?.passed ?? hasPassed) ? 'Quiz is validated' : 'Quiz is not validated' }}
+          {{ (submitResult?.passed ?? hasPassed) ? t('quizPage.validated') : t('quizPage.notValidated') }}
         </p>
       </template>
 
       <v-divider class="my-3" />
 
-      <p class="text-subtitle-2 font-weight-bold mb-3">Top 3 leaderboard</p>
-      <div class="d-flex flex-column ga-2">
+      <p class="text-subtitle-2 font-weight-bold mb-3">{{ t('quizPage.topLeaderboard') }}</p>
+      <TransitionGroup name="leaderboard-fade" tag="div" class="d-flex flex-column ga-2">
         <v-sheet
             v-for="(entry, index) in topLeaderboard"
             :key="entry.userId"
@@ -468,14 +451,14 @@ onBeforeUnmount(() => {
           </div>
         </v-sheet>
         <p v-if="topLeaderboard.length === 0" class="text-caption text-medium-emphasis mb-0">
-          No scores available at the moment.
+          {{ t('quizPage.noScores') }}
         </p>
-      </div>
+      </TransitionGroup>
     </template>
 
     <section>
       <v-alert v-if="error" type="error" variant="tonal" class="mb-6">
-        Cannot load the Quiz.
+        {{ t('quizPage.loadError') }}
       </v-alert>
 
       <v-skeleton-loader v-else-if="pending && isInitialLoading" type="heading, article, list-item-three-line@2, actions" />
@@ -483,7 +466,7 @@ onBeforeUnmount(() => {
       <div v-else-if="quiz">
         <template v-if="!hasStarted">
           <v-card variant="text" class="mb-8">
-            <p class="text-subtitle-1 font-weight-medium mb-3">Categories</p>
+            <p class="text-subtitle-1 font-weight-medium mb-3">{{ t('quizPage.categories') }}</p>
             <div class="d-flex flex-wrap ga-2">
               <v-card
                 v-for="category in categories"
@@ -503,20 +486,20 @@ onBeforeUnmount(() => {
           </v-card>
 
           <div class="d-flex justify-center align-center quiz-start-wrap">
-            <v-btn color="primary" size="x-large" prepend-icon="mdi-play" @click="startQuiz">Start Quiz</v-btn>
+            <v-btn color="primary" size="x-large" prepend-icon="mdi-play" class="start-cta-btn" @click="startQuiz">{{ t('quizPage.startQuiz') }}</v-btn>
           </div>
         </template>
 
         <v-card-text v-else>
           <template v-if="!isFinished && currentQuestion">
-            <p class="text-overline mb-2">Question {{ currentQuestionIndex + 1 }} / {{ questionsCount }}</p>
+            <p class="text-overline mb-2">{{ t('quizPage.questionProgress', { current: currentQuestionIndex + 1, total: questionsCount }) }}</p>
             <h2 class="text-h5 font-weight-bold mb-2">{{ currentQuestion.title }}</h2>
             <p class="text-body-2 text-medium-emphasis mb-5">
-              Level: {{ currentQuestion.level }} · Category: {{ currentQuestion.category }}
+              {{ t('quizPage.levelLabel', { value: currentQuestion.level }) }} · {{ t('quizPage.categoryLabel', { value: currentQuestion.category }) }}
             </p>
 
             <v-alert v-if="isCurrentQuestionLocked" type="warning" variant="tonal" class="mb-4">
-              Temps écoulé pour cette question. Vous pouvez naviguer, mais vous ne pouvez plus répondre ici.
+              {{ t('quizPage.timeUpNavigationOnly') }}
             </v-alert>
 
             <v-radio-group
@@ -558,10 +541,10 @@ onBeforeUnmount(() => {
                 prepend-icon="mdi-arrow-left"
                 @click="goToPreviousQuestion"
               >
-                Précédent
+                {{ t('quizPage.previous') }}
               </v-btn>
               <v-btn color="primary" append-icon="mdi-arrow-right" @click="goToNextQuestion">
-                {{ currentQuestionIndex >= questionsCount - 1 ? 'Submit' : 'Next' }}
+                {{ currentQuestionIndex >= questionsCount - 1 ? t('quizPage.submit') : t('quizPage.next') }}
               </v-btn>
             </div>
           </template>
@@ -569,10 +552,10 @@ onBeforeUnmount(() => {
           <div v-else>
             <div class="text-center py-2 mb-6">
               <v-avatar size="72" color="success" variant="tonal" class="mb-2 mx-2">
-                <v-btn @click="resetToInitialState" size="72">Start</v-btn>
+                <v-btn @click="resetToInitialState" size="72">{{ t('quizPage.start') }}</v-btn>
               </v-avatar>
               <v-avatar size="72" color="primary" variant="tonal" class="mb-2 mx-2">
-                <v-btn @click="startQuiz" size="72">Replay</v-btn>
+                <v-btn @click="startQuiz" size="72">{{ t('quizPage.replay') }}</v-btn>
               </v-avatar>
             </div>
             <v-skeleton-loader v-if="isSubmitting" v-for="item in [1, 2, 3]" type="card" class="mb-4" />
@@ -589,18 +572,18 @@ onBeforeUnmount(() => {
                 class="pa-3"
                 :class="item.isCorrect ? 'result-card--correct' : 'result-card--wrong'"
               >
-                <p class="text-overline mb-1">Question {{ index + 1 }}</p>
+                <p class="text-overline mb-1">{{ t('quizPage.questionShort', { index: index + 1 }) }}</p>
                 <p class="text-body-1 font-weight-medium mb-2">{{ questionById[item.questionId]?.title ?? item.questionId }}</p>
                 <p class="text-body-2 mb-1">
-                  Votre réponse: <strong>{{ resolveAnswerLabel(item.questionId, item.selectedAnswerId) }}</strong>
+                  {{ t('quizPage.yourAnswer') }}: <strong>{{ resolveAnswerLabel(item.questionId, item.selectedAnswerId) }}</strong>
                 </p>
                 <p class="text-body-2 mb-1">
-                  Bonne réponse: <strong>{{ item.correctAnswerIds.map(answerId => resolveAnswerLabel(item.questionId, answerId)).join(', ') }}</strong>
+                  {{ t('quizPage.correctAnswer') }}: <strong>{{ item.correctAnswerIds.map(answerId => resolveAnswerLabel(item.questionId, answerId)).join(', ') }}</strong>
                 </p>
                 <p class="text-body-2 mb-0">
-                  Points: <strong>{{ item.earnedPoints }} / {{ item.points }}</strong>
+                  {{ t('quizPage.points') }}: <strong>{{ item.earnedPoints }} / {{ item.points }}</strong>
                   <v-chip size="x-small" class="ml-2" :color="item.isCorrect ? 'success' : 'error'" variant="flat">
-                    {{ item.isCorrect ? 'Exacte' : 'Erronée' }}
+                    {{ item.isCorrect ? t('quizPage.correct') : t('quizPage.incorrect') }}
                   </v-chip>
                 </p>
               </v-card>
@@ -616,6 +599,8 @@ onBeforeUnmount(() => {
 <style scoped>
 .quiz-start-wrap {
   min-height: 45vh;
+  background: linear-gradient(180deg, rgba(var(--v-theme-primary), 0.05), transparent 60%);
+  border-radius: 18px;
 }
 
 .timer-panel {
@@ -628,16 +613,24 @@ onBeforeUnmount(() => {
 .leaderboard-item {
   border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
   background: rgba(var(--v-theme-surface), 0.7);
+  backdrop-filter: blur(4px);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.leaderboard-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
 .answer-card {
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
 }
 
 .answer-card:hover {
   border-color: rgba(var(--v-theme-primary), 0.4);
-  transform: translateY(-1px);
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 8px 18px rgba(var(--v-theme-primary), 0.16);
 }
 
 .answer-card--selected {
@@ -671,5 +664,32 @@ onBeforeUnmount(() => {
 
 .category-card--selected {
   box-shadow: 0 0 0 3px rgba(var(--v-theme-primary), 0.55) inset;
+}
+
+.start-cta-btn {
+  animation: pulse-soft 1.8s ease-in-out infinite;
+}
+
+.leaderboard-fade-enter-active,
+.leaderboard-fade-leave-active {
+  transition: all 0.35s ease;
+}
+
+.leaderboard-fade-enter-from,
+.leaderboard-fade-leave-to {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(var(--v-theme-primary), 0.35);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 0 0 12px rgba(var(--v-theme-primary), 0);
+  }
 }
 </style>
