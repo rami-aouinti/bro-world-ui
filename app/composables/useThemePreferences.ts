@@ -15,6 +15,18 @@ import {
 export const useThemePreferences = () => {
   const theme = useTheme()
 
+  const ensureValidTheme = () => {
+    const parsed = parseThemeName(theme.global.name.value)
+    if (parsed) {
+      return parsed
+    }
+
+    theme.global.name.value = buildThemeName(defaultThemePreference)
+    return defaultThemePreference
+  }
+
+  ensureValidTheme()
+
   const preference = computed<ThemePreference>(() => parseThemeName(theme.global.name.value) ?? defaultThemePreference)
 
   const applyThemePreference = (next: ThemePreference) => {
@@ -54,6 +66,9 @@ export const useThemePreferences = () => {
     const sessionPreference = readThemePreferenceFromSession()
     if (sessionPreference) {
       applyThemePreference(sessionPreference)
+    }
+    else {
+      ensureValidTheme()
     }
 
     persistThemePreference(preference.value)
