@@ -111,7 +111,7 @@ export default defineNuxtConfig({
       ],
     },
   },
-  modules: ['vuetify-nuxt-module', '@nuxtjs/i18n', '@pinia/nuxt', 'nuxt-auth-utils'],
+  modules: ['@nuxtjs/i18n', '@pinia/nuxt', 'nuxt-auth-utils'],
   css: [
     'vuetify/styles',
     '~/assets/styles/material-dashboard.scss',
