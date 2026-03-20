@@ -59,6 +59,15 @@ export interface SubmitQuizPayload {
   }>
 }
 
+export interface SubmitQuizResultItem {
+  questionId: UUID
+  selectedAnswerId: UUID | null
+  isCorrect: boolean
+  correctAnswerIds: UUID[]
+  points: number
+  earnedPoints: number
+}
+
 export interface SubmitQuizResult {
   attemptId: UUID
   quizId: UUID
@@ -71,6 +80,7 @@ export interface SubmitQuizResult {
   correctAnswers: number
   totalPoints: number
   earnedPoints: number
+  results: SubmitQuizResultItem[]
 }
 
 export interface CreateQuizQuestionPayload {
