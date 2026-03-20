@@ -4,6 +4,7 @@ import {
   buildThemeName,
   defaultThemePreference,
   parseThemeName,
+  readThemePreferenceFromSession,
   THEME_SESSION_STORAGE_KEY,
   themePrimaryOptions,
   type ThemeMode,
@@ -49,7 +50,14 @@ export const useThemePreferences = () => {
     window.sessionStorage.setItem(THEME_SESSION_STORAGE_KEY, JSON.stringify(next))
   }
 
-  onMounted(() => persistThemePreference(preference.value))
+  onMounted(() => {
+    const sessionPreference = readThemePreferenceFromSession()
+    if (sessionPreference) {
+      applyThemePreference(sessionPreference)
+    }
+
+    persistThemePreference(preference.value)
+  })
   watch(preference, persistThemePreference, { deep: true })
 
   return {
