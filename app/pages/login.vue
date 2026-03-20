@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import UiPageShell from '~/components/ui/page/UiPageShell.vue'
 import UiStateAlert from '~/components/ui/state/UiStateAlert.vue'
 import { ref } from 'vue'
 
@@ -74,19 +73,12 @@ const submit = async () => {
 </script>
 
 <template>
-  <UiPageShell
-    :title="''"
-    :subtitle="''"
-    max-width="520"
-    :loading="loading"
-    skeleton="form"
-    :empty="false"
-  >
-    <v-card class="login-card" elevation="10" rounded="xl">
+  <div class="login-block">
+    <v-card :loading="loading" class="login-card" max-width="520" min-width="400" elevation="10" rounded="xl">
       <div class="login-card__header">
-        <h1 class="text-h4 font-weight-bold mb-6 text-center">{{ t('login.title') }}</h1>
+        <h1 class="text-h4 font-weight-bold mb-3 text-center">{{ t('app.name') }}</h1>
 
-        <div class="d-flex justify-center ga-6 mb-5">
+        <div class="d-flex justify-center ga-6 mb-3">
           <v-btn icon variant="text" color="white" aria-label="Login with Facebook" class="login-social-btn">
             <v-icon icon="mdi-facebook" size="28" />
           </v-btn>
@@ -107,47 +99,54 @@ const submit = async () => {
         </div>
 
         <UiStateAlert
-          v-if="errorMessage"
-          type="error"
-          variant="tonal"
-          density="compact"
-          class="mb-4"
-          :message="errorMessage"
+            v-if="errorMessage"
+            type="error"
+            variant="tonal"
+            density="compact"
+            class="mb-4"
+            :message="errorMessage"
         />
 
         <v-form @submit.prevent="submit">
           <v-text-field
-            v-model="usernameOrEmail"
-            :label="t('login.usernameOrEmail')"
-            :placeholder="t('login.usernameOrEmailPlaceholder')"
-            required
-            class="mb-3"
+              v-model="usernameOrEmail"
+              :label="t('login.usernameOrEmail')"
+              :placeholder="t('login.usernameOrEmailPlaceholder')"
+              required
+              class="mb-3"
           />
 
           <v-text-field
-            v-model="password"
-            :label="t('login.password')"
-            type="password"
-            required
-            class="mb-6"
+              v-model="password"
+              :label="t('login.password')"
+              type="password"
+              required
+              class="mb-6"
           />
 
           <v-btn
-            type="submit"
-            color="primary"
-            class="login-submit"
-            block
-            :loading="loading"
+              type="submit"
+              color="primary"
+              class="login-submit"
+              block
+              :loading="loading"
           >
             {{ t('login.submit') }}
           </v-btn>
         </v-form>
       </v-card-text>
     </v-card>
-  </UiPageShell>
+  </div>
 </template>
 
 <style scoped>
+.login-block {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 500px;
+  min-height: 100vh;
+}
 .login-card {
   position: relative;
   overflow: hidden;
@@ -157,8 +156,7 @@ const submit = async () => {
 }
 
 .login-card__header {
-  background: linear-gradient(135deg, #43a047, #66bb6a);
-  color: white;
+  background: linear-gradient(135deg, rgba(var(--v-theme-on-surface), 0.98), rgba(var(--v-theme-on-surface), 0.08));
   padding: 2rem 1.5rem 1.25rem;
 }
 
