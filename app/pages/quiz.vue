@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import type { QuizQuestion } from '~/types/api/quiz'
 import { useQuizApi } from '~/composables/api/useQuizApi'
+import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
 
-definePageMeta({ public: true, requiresAuth: false })
+definePageMeta({
+  public: true,
+  requiresAuth: false,
+  skeleton: "card-grid",
+});
 
 const { isAuthenticated } = useAuth()
 const quizApi = useQuizApi()
@@ -203,128 +208,126 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <v-container class="py-8 general-quiz-page" max-width="900">
-    <v-alert v-if="error" type="error" variant="tonal" class="mb-6">
-      Impossible de charger le quiz général.
-    </v-alert>
+  <PlatformSplitLayout>
+    <template #sidebar>
+      <div v-if="quiz">
+        <div class="d-flex flex-wrap justify-space-between align-start ga-4">
+          <div>
+            <v-chip color="primary" variant="flat" class="mb-4" prepend-icon="mdi-star-four-points-outline">
+              Quiz
+            </v-chip>
+            <h1 class="text-h4 font-weight-bold mb-2">{{ quiz.title }}</h1>
+            <p class="text-body-1 text-medium-emphasis mb-0">{{ quiz.description }}</p>
+          </div>
+          <v-sheet rounded="pill" class="px-4 py-2 timer-pill" v-if="hasStarted && !isFinished">
+            <span class="text-caption text-medium-emphasis d-block">Temps restant</span>
+            <strong class="text-h5">{{ currentTimer }}s</strong>
+          </v-sheet>
+        </div>
 
-    <v-skeleton-loader v-else-if="pending" type="heading, article, list-item-three-line@2, actions" />
+        <v-divider class="my-5" />
 
-    <template v-else-if="quiz">
-      <v-card rounded="xl" class="mb-6 quiz-header" elevation="0">
-        <v-card-text class="pa-6 pa-md-8">
-          <div class="d-flex flex-wrap justify-space-between align-start ga-4">
-            <div>
-              <v-chip color="primary" variant="flat" class="mb-4" prepend-icon="mdi-star-four-points-outline">
-                Quiz général
-              </v-chip>
-              <h1 class="text-h4 font-weight-bold mb-2">{{ quiz.title }}</h1>
-              <p class="text-body-1 text-medium-emphasis mb-0">{{ quiz.description }}</p>
+        <div class="d-flex flex-wrap align-center ga-4">
+          <v-chip variant="tonal" prepend-icon="mdi-help-circle-outline">{{ questionsCount }} questions</v-chip>
+          <v-chip variant="tonal" prepend-icon="mdi-timer-outline">{{ timerPerQuestion }}s / question</v-chip>
+          <v-chip variant="tonal" prepend-icon="mdi-flag-checkered">Pass score: {{ quiz.passScore }}%</v-chip>
+        </div>
+
+        <div class="mt-6" v-if="!hasStarted">
+          <v-btn color="primary" size="large" prepend-icon="mdi-play" @click="startQuiz">Start Quiz</v-btn>
+        </div>
+      </div>
+    </template>
+    <section>
+      <v-alert v-if="error" type="error" variant="tonal" class="mb-6">
+        Impossible de charger le quiz général.
+      </v-alert>
+
+      <v-skeleton-loader v-else-if="pending" type="heading, article, list-item-three-line@2, actions" />
+
+      <template v-else-if="quiz">
+        <v-card v-if="hasStarted" rounded="xl" class="pa-2 pa-md-4" elevation="0">
+          <v-card-text>
+            <div class="d-flex justify-space-between align-center mb-3">
+              <p class="text-body-2 mb-0">Progression: {{ answeredCount }}/{{ questionsCount }}</p>
+              <p class="text-body-2 text-medium-emphasis mb-0">{{ progressValue }}%</p>
             </div>
-            <v-sheet rounded="pill" class="px-4 py-2 timer-pill" v-if="hasStarted && !isFinished">
-              <span class="text-caption text-medium-emphasis d-block">Temps restant</span>
-              <strong class="text-h5">{{ currentTimer }}s</strong>
-            </v-sheet>
-          </div>
+            <v-progress-linear :model-value="progressValue" color="primary" rounded height="10" class="mb-6" />
 
-          <v-divider class="my-5" />
-
-          <div class="d-flex flex-wrap align-center ga-4">
-            <v-chip variant="tonal" prepend-icon="mdi-help-circle-outline">{{ questionsCount }} questions</v-chip>
-            <v-chip variant="tonal" prepend-icon="mdi-timer-outline">{{ timerPerQuestion }}s / question</v-chip>
-            <v-chip variant="tonal" prepend-icon="mdi-flag-checkered">Pass score: {{ quiz.passScore }}%</v-chip>
-          </div>
-
-          <div class="mt-6" v-if="!hasStarted">
-            <v-btn color="primary" size="large" prepend-icon="mdi-play" @click="startQuiz">Commencer le quiz</v-btn>
-          </div>
-        </v-card-text>
-      </v-card>
-
-      <v-card v-if="hasStarted" rounded="xl" class="pa-2 pa-md-4" elevation="0">
-        <v-card-text>
-          <div class="d-flex justify-space-between align-center mb-3">
-            <p class="text-body-2 mb-0">Progression: {{ answeredCount }}/{{ questionsCount }}</p>
-            <p class="text-body-2 text-medium-emphasis mb-0">{{ progressValue }}%</p>
-          </div>
-          <v-progress-linear :model-value="progressValue" color="primary" rounded height="10" class="mb-6" />
-
-          <template v-if="!isFinished && currentQuestion">
-            <p class="text-overline mb-2">Question {{ currentQuestionIndex + 1 }} / {{ questionsCount }}</p>
-            <h2 class="text-h5 font-weight-bold mb-2">{{ currentQuestion.title }}</h2>
-            <p class="text-body-2 text-medium-emphasis mb-5">
-              Niveau: {{ currentQuestion.level }} · Catégorie: {{ currentQuestion.category }}
-            </p>
-
-            <v-radio-group v-model="selectedAnswers[currentQuestion.id]" hide-details class="quiz-answers">
-              <v-card
-                v-for="answer in currentQuestion.answers"
-                :key="answer.id"
-                rounded="lg"
-                variant="outlined"
-                class="mb-3 answer-card"
-                :class="{ 'answer-card--selected': selectedAnswers[currentQuestion.id] === answer.id }"
-                @click="selectedAnswers[currentQuestion.id] = answer.id"
-              >
-                <v-card-text class="d-flex align-center ga-3 py-4">
-                  <v-radio :value="answer.id" color="primary" class="flex-grow-0" />
-                  <span class="text-body-1">{{ answer.label }}</span>
-                </v-card-text>
-              </v-card>
-            </v-radio-group>
-
-            <div class="d-flex justify-space-between mt-6">
-              <v-btn
-                variant="outlined"
-                :disabled="currentQuestionIndex === 0"
-                prepend-icon="mdi-arrow-left"
-                @click="currentQuestionIndex -= 1"
-              >
-                Précédent
-              </v-btn>
-              <v-btn color="primary" append-icon="mdi-arrow-right" @click="goToNextQuestion">
-                {{ currentQuestionIndex >= questionsCount - 1 ? 'Terminer' : 'Suivant' }}
-              </v-btn>
-            </div>
-          </template>
-
-          <template v-else>
-            <div class="text-center py-4">
-              <v-avatar size="64" color="primary" variant="tonal" class="mb-4">
-                <v-icon icon="mdi-trophy-outline" size="36" />
-              </v-avatar>
-              <h3 class="text-h4 font-weight-bold mb-2">{{ scorePercent }}%</h3>
-              <p class="text-body-1 mb-1">Score: {{ score }} / {{ maxScore }}</p>
-              <p class="text-body-1 mb-6" :class="hasPassed ? 'text-success' : 'text-warning'">
-                {{ hasPassed ? 'Bravo, vous avez validé le quiz 🎉' : 'Vous pouvez recommencer pour améliorer votre score.' }}
+            <template v-if="!isFinished && currentQuestion">
+              <p class="text-overline mb-2">Question {{ currentQuestionIndex + 1 }} / {{ questionsCount }}</p>
+              <h2 class="text-h5 font-weight-bold mb-2">{{ currentQuestion.title }}</h2>
+              <p class="text-body-2 text-medium-emphasis mb-5">
+                Niveau: {{ currentQuestion.level }} · Catégorie: {{ currentQuestion.category }}
               </p>
 
-              <v-card variant="tonal" rounded="lg" class="mx-auto pa-4 mb-6" max-width="520">
-                <p class="text-body-1 font-weight-medium mb-3">Souhaitez-vous sauvegarder ce score ?</p>
-                <div class="d-flex flex-wrap justify-center ga-3">
-                  <v-btn color="primary" :loading="isPersisting" prepend-icon="mdi-content-save-outline" @click="persistScore(true)">
-                    Sauvegarder
-                  </v-btn>
-                  <v-btn variant="outlined" :loading="isPersisting" prepend-icon="mdi-close-circle-outline" @click="persistScore(false)">
-                    Ne pas sauvegarder
-                  </v-btn>
-                </div>
-                <p v-if="persistMessage" class="text-body-2 mt-4 mb-0">{{ persistMessage }}</p>
-              </v-card>
+              <v-radio-group v-model="selectedAnswers[currentQuestion.id]" hide-details class="quiz-answers">
+                <v-card
+                    v-for="answer in currentQuestion.answers"
+                    :key="answer.id"
+                    rounded="lg"
+                    variant="outlined"
+                    class="mb-3 answer-card"
+                    :class="{ 'answer-card--selected': selectedAnswers[currentQuestion.id] === answer.id }"
+                    @click="selectedAnswers[currentQuestion.id] = answer.id"
+                >
+                  <v-card-text class="d-flex align-center ga-3 py-4">
+                    <v-radio :value="answer.id" color="primary" class="flex-grow-0" />
+                    <span class="text-body-1">{{ answer.label }}</span>
+                  </v-card-text>
+                </v-card>
+              </v-radio-group>
 
-              <v-btn color="primary" variant="text" prepend-icon="mdi-refresh" @click="startQuiz">Rejouer</v-btn>
-            </div>
-          </template>
-        </v-card-text>
-      </v-card>
-    </template>
-  </v-container>
+              <div class="d-flex justify-space-between mt-6">
+                <v-btn
+                    variant="outlined"
+                    :disabled="currentQuestionIndex === 0"
+                    prepend-icon="mdi-arrow-left"
+                    @click="currentQuestionIndex -= 1"
+                >
+                  Précédent
+                </v-btn>
+                <v-btn color="primary" append-icon="mdi-arrow-right" @click="goToNextQuestion">
+                  {{ currentQuestionIndex >= questionsCount - 1 ? 'Terminer' : 'Suivant' }}
+                </v-btn>
+              </div>
+            </template>
+
+            <template v-else>
+              <div class="text-center py-4">
+                <v-avatar size="64" color="primary" variant="tonal" class="mb-4">
+                  <v-icon icon="mdi-trophy-outline" size="36" />
+                </v-avatar>
+                <h3 class="text-h4 font-weight-bold mb-2">{{ scorePercent }}%</h3>
+                <p class="text-body-1 mb-1">Score: {{ score }} / {{ maxScore }}</p>
+                <p class="text-body-1 mb-6" :class="hasPassed ? 'text-success' : 'text-warning'">
+                  {{ hasPassed ? 'Bravo, vous avez validé le quiz 🎉' : 'Vous pouvez recommencer pour améliorer votre score.' }}
+                </p>
+
+                <v-card variant="tonal" rounded="lg" class="mx-auto pa-4 mb-6" max-width="520">
+                  <p class="text-body-1 font-weight-medium mb-3">Souhaitez-vous sauvegarder ce score ?</p>
+                  <div class="d-flex flex-wrap justify-center ga-3">
+                    <v-btn color="primary" :loading="isPersisting" prepend-icon="mdi-content-save-outline" @click="persistScore(true)">
+                      Sauvegarder
+                    </v-btn>
+                    <v-btn variant="outlined" :loading="isPersisting" prepend-icon="mdi-close-circle-outline" @click="persistScore(false)">
+                      Ne pas sauvegarder
+                    </v-btn>
+                  </div>
+                  <p v-if="persistMessage" class="text-body-2 mt-4 mb-0">{{ persistMessage }}</p>
+                </v-card>
+
+                <v-btn color="primary" variant="text" prepend-icon="mdi-refresh" @click="startQuiz">Rejouer</v-btn>
+              </div>
+            </template>
+          </v-card-text>
+        </v-card>
+      </template>
+    </section>
+  </PlatformSplitLayout>
 </template>
 
 <style scoped>
-.general-quiz-page {
-  max-width: 920px;
-}
 
 .quiz-header {
   border: 1px solid rgba(var(--v-theme-primary), 0.18);
