@@ -52,6 +52,16 @@ export interface QuizLevelRead {
   color: string
 }
 
+export interface QuizLeaderboardEntry {
+  userId: UUID
+  username: string
+  firstName: string
+  lastName: string
+  photo: string | null
+  attemptCount: number
+  averageWeightedScore: number
+}
+
 export interface SubmitQuizPayload {
   answers: Array<{
     questionId: UUID

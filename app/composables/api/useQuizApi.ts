@@ -2,6 +2,7 @@ import { useApiClient } from '../useApiClient'
 import type {
   CreateQuizQuestionPayload,
   QuizCategoryRead,
+  QuizLeaderboardEntry,
   QuizLevelRead,
   QuizRead,
   QuizStatsRead,
@@ -34,6 +35,9 @@ export const useQuizApi = () => {
     },
     getGeneralQuizLevels() {
       return apiFetch<{ items: QuizLevelRead[] }>(`/api/v1/public/quiz/general/levels`, { method: 'GET' })
+    },
+    getGeneralQuizLeaderboard() {
+      return apiFetch<{ items: QuizLeaderboardEntry[] }>(`/api/v1/public/quiz/general/leaderboard`, { method: 'GET' })
     },
     submitGeneralQuiz(payload: SubmitQuizPayload) {
       return apiFetch<SubmitQuizResult>(`/api/v1/quiz/general/submit`, {

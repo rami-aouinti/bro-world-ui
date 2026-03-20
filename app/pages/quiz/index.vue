@@ -44,8 +44,15 @@ const { data: levelsResponse } = useAsyncData(
   { server: false, immediate: false },
 )
 
+const { data: leaderboardResponse } = useAsyncData(
+  'general-quiz-leaderboard',
+  () => quizApi.getGeneralQuizLeaderboard(),
+  { server: false, immediate: false },
+)
+
 const categories = computed(() => categoriesResponse.value?.items ?? [])
 const levels = computed(() => levelsResponse.value?.items ?? [])
+const topLeaderboard = computed(() => (leaderboardResponse.value?.items ?? []).slice(0, 3))
 
 const questionList = computed(() => {
   if (!quiz.value) {
@@ -140,6 +147,30 @@ const resolveAnswerLabel = (questionId: string, answerId: string | null) => {
 
   const question = questionById.value[questionId]
   return question?.answers.find(answer => answer.id === answerId)?.label ?? answerId
+}
+
+const resolveRankIcon = (rank: number) => {
+  if (rank === 1) {
+    return 'mdi-trophy'
+  }
+
+  if (rank === 2) {
+    return 'mdi-trophy-outline'
+  }
+
+  return 'mdi-medal-outline'
+}
+
+const resolveRankColor = (rank: number) => {
+  if (rank === 1) {
+    return 'warning'
+  }
+
+  if (rank === 2) {
+    return 'grey'
+  }
+
+  return 'deep-orange'
 }
 
 const stopTimer = () => {
@@ -286,6 +317,7 @@ onMounted(() => {
     loadQuiz(),
     refreshNuxtData('general-quiz-categories'),
     refreshNuxtData('general-quiz-levels'),
+    refreshNuxtData('general-quiz-leaderboard'),
   ])
 })
 
@@ -319,54 +351,82 @@ onBeforeUnmount(() => {
     </template>
 
     <template #layout-aside>
-      <v-card v-if="!hasStarted" variant="text" class="pa-2">
-        <p class="text-subtitle-1 font-weight-medium mb-3">Levels</p>
+      <v-card rounded="xl" class="timer-panel pa-4">
+        <template v-if="!hasStarted">
+          <p class="text-subtitle-1 font-weight-medium mb-3">Levels</p>
+          <div class="d-flex flex-column ga-2 mb-4">
+            <v-chip
+              v-for="level in levels"
+              :key="level.value"
+              variant="flat"
+              class="justify-center text-uppercase font-weight-medium"
+              :style="{ backgroundColor: level.color, color: '#fff' }"
+            >
+              {{ level.value }}
+            </v-chip>
+          </div>
+        </template>
+
+        <template v-else-if="!isFinished">
+          <div class="d-flex justify-space-between align-center mb-4">
+            <p class="text-subtitle-1 font-weight-bold mb-0">Timer</p>
+            <v-chip size="small" color="primary" variant="tonal">Q{{ currentQuestionIndex + 1 }}/{{ questionsCount }}</v-chip>
+          </div>
+
+          <div class="d-flex justify-center mb-4">
+            <v-progress-circular
+              :model-value="currentTimerProgress"
+              :size="128"
+              :width="12"
+              :color="isCurrentQuestionLocked ? 'error' : 'primary'"
+            >
+              <div class="text-center">
+                <div class="text-h4 font-weight-bold">{{ currentQuestionTimer }}s</div>
+                <div class="text-caption text-medium-emphasis">restantes</div>
+              </div>
+            </v-progress-circular>
+          </div>
+
+          <v-alert v-if="isCurrentQuestionLocked" type="warning" variant="tonal" density="comfortable" class="mb-4">
+            Temps écoulé pour cette question. Réponse bloquée.
+          </v-alert>
+        </template>
+
+        <template v-else>
+          <p class="text-subtitle-1 font-weight-bold mb-3">Résultat</p>
+          <p class="text-body-2 mb-1">Score: <strong>{{ submitResult?.score ?? scorePercent }}%</strong></p>
+          <p class="text-body-2 mb-1">Points: <strong>{{ submitResult?.earnedPoints ?? score }} / {{ submitResult?.totalPoints ?? maxScore }}</strong></p>
+          <p class="text-body-2 mb-1">Bonnes réponses: <strong>{{ submitResult?.correctAnswers ?? 0 }} / {{ submitResult?.totalQuestions ?? questionsCount }}</strong></p>
+          <p class="text-body-2 mb-4" :class="(submitResult?.passed ?? hasPassed) ? 'text-success' : 'text-warning'">
+            {{ (submitResult?.passed ?? hasPassed) ? 'Quiz validé' : 'Quiz non validé' }}
+          </p>
+        </template>
+
+        <v-divider class="my-3" />
+        <p class="text-subtitle-2 font-weight-bold mb-3">Top 3 leaderboard</p>
         <div class="d-flex flex-column ga-2">
-          <v-chip
-            v-for="level in levels"
-            :key="level.value"
-            variant="flat"
-            class="justify-center text-uppercase font-weight-medium"
-            :style="{ backgroundColor: level.color, color: '#fff' }"
+          <v-sheet
+            v-for="(entry, index) in topLeaderboard"
+            :key="entry.userId"
+            rounded="lg"
+            class="leaderboard-item pa-2"
           >
-            {{ level.value }}
-          </v-chip>
-        </div>
-      </v-card>
-
-      <v-card v-else-if="!isFinished" rounded="xl" class="timer-panel pa-5">
-        <div class="d-flex justify-space-between align-center mb-4">
-          <p class="text-subtitle-1 font-weight-bold mb-0">Timer</p>
-          <v-chip size="small" color="primary" variant="tonal">Q{{ currentQuestionIndex + 1 }}/{{ questionsCount }}</v-chip>
-        </div>
-
-        <div class="d-flex justify-center mb-4">
-          <v-progress-circular
-            :model-value="currentTimerProgress"
-            :size="128"
-            :width="12"
-            :color="isCurrentQuestionLocked ? 'error' : 'primary'"
-          >
-            <div class="text-center">
-              <div class="text-h4 font-weight-bold">{{ currentQuestionTimer }}s</div>
-              <div class="text-caption text-medium-emphasis">restantes</div>
+            <div class="d-flex align-center ga-2">
+              <v-avatar :image="entry.photo || undefined" size="36" />
+              <div class="flex-grow-1 min-w-0">
+                <p class="text-body-2 font-weight-medium mb-0 text-truncate">{{ entry.firstName }} {{ entry.lastName }}</p>
+                <p class="text-caption text-medium-emphasis mb-0">{{ entry.averageWeightedScore.toFixed(2) }} pts</p>
+              </div>
+              <v-chip size="small" variant="flat" :color="resolveRankColor(index + 1)">
+                <v-icon start :icon="resolveRankIcon(index + 1)" />
+                #{{ index + 1 }}
+              </v-chip>
             </div>
-          </v-progress-circular>
+          </v-sheet>
+          <p v-if="topLeaderboard.length === 0" class="text-caption text-medium-emphasis mb-0">
+            Aucun score disponible pour le moment.
+          </p>
         </div>
-
-        <v-alert v-if="isCurrentQuestionLocked" type="warning" variant="tonal" density="comfortable">
-          Temps écoulé pour cette question. Réponse bloquée.
-        </v-alert>
-      </v-card>
-
-      <v-card v-else variant="tonal" rounded="xl" class="pa-4">
-        <p class="text-subtitle-1 font-weight-bold mb-3">Résultat</p>
-        <p class="text-body-2 mb-1">Score: <strong>{{ submitResult?.score ?? scorePercent }}%</strong></p>
-        <p class="text-body-2 mb-1">Points: <strong>{{ submitResult?.earnedPoints ?? score }} / {{ submitResult?.totalPoints ?? maxScore }}</strong></p>
-        <p class="text-body-2 mb-1">Bonnes réponses: <strong>{{ submitResult?.correctAnswers ?? 0 }} / {{ submitResult?.totalQuestions ?? questionsCount }}</strong></p>
-        <p class="text-body-2 mb-0" :class="(submitResult?.passed ?? hasPassed) ? 'text-success' : 'text-warning'">
-          {{ (submitResult?.passed ?? hasPassed) ? 'Quiz validé' : 'Quiz non validé' }}
-        </p>
       </v-card>
     </template>
 
@@ -529,8 +589,9 @@ onBeforeUnmount(() => {
     linear-gradient(180deg, rgba(var(--v-theme-surface), 1), rgba(var(--v-theme-surface), 0.96));
 }
 
-.quiz-start-wrap {
-  min-height: 45vh;
+.leaderboard-item {
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  background: rgba(var(--v-theme-surface), 0.7);
 }
 
 .answer-card {
