@@ -1601,5 +1601,41 @@
     "errors": {
       "load": "Benachrichtigungen konnten nicht geladen werden."
     }
+  },
+  "quizPage": {
+    "title": "Quiz",
+    "questionsCount": "{count} Fragen",
+    "timerPerQuestion": "{seconds}s / Frage",
+    "passScore": "Bestehensgrenze: {score}%",
+    "levelLabel": "Level: {value}",
+    "categoryLabel": "Kategorie: {value}",
+    "level": "Level",
+    "timer": "Timer",
+    "remaining": "verbleibend",
+    "timeUpLocked": "Die Zeit für diese Frage ist abgelaufen. Antwort gesperrt.",
+    "score": "Punktzahl",
+    "points": "Punkte",
+    "correctAnswers": "Richtige Antworten",
+    "validated": "Quiz bestanden",
+    "notValidated": "Quiz nicht bestanden",
+    "topLeaderboard": "Top-3-Rangliste",
+    "noScores": "Aktuell sind keine Ergebnisse verfügbar.",
+    "loadError": "Quiz kann nicht geladen werden.",
+    "categories": "Kategorien",
+    "startQuiz": "Quiz starten",
+    "questionProgress": "Frage {current} / {total}",
+    "timeUpNavigationOnly": "Die Zeit für diese Frage ist abgelaufen. Du kannst weiter navigieren, aber nicht mehr antworten.",
+    "previous": "Zurück",
+    "submit": "Absenden",
+    "next": "Weiter",
+    "start": "Start",
+    "replay": "Erneut spielen",
+    "yourAnswer": "Deine Antwort",
+    "correctAnswer": "Richtige Antwort",
+    "correct": "Richtig",
+    "incorrect": "Falsch",
+    "noAnswer": "Keine Antwort",
+    "submitError": "Das Quiz kann momentan nicht abgeschickt werden.",
+    "questionShort": "Frage {index}"
   }
 }

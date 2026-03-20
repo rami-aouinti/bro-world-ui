@@ -1601,5 +1601,41 @@
     "errors": {
       "load": "Não foi possível carregar as notificações."
     }
+  },
+  "quizPage": {
+    "title": "Quiz",
+    "questionsCount": "{count} perguntas",
+    "timerPerQuestion": "{seconds}s / pergunta",
+    "passScore": "Pontuação mínima: {score}%",
+    "levelLabel": "Nível: {value}",
+    "categoryLabel": "Categoria: {value}",
+    "level": "Nível",
+    "timer": "Cronômetro",
+    "remaining": "restantes",
+    "timeUpLocked": "Tempo esgotado para esta pergunta. Resposta bloqueada.",
+    "score": "Pontuação",
+    "points": "Pontos",
+    "correctAnswers": "Respostas corretas",
+    "validated": "Quiz aprovado",
+    "notValidated": "Quiz não aprovado",
+    "topLeaderboard": "Top 3 do ranking",
+    "noScores": "Nenhuma pontuação disponível no momento.",
+    "loadError": "Não foi possível carregar o quiz.",
+    "categories": "Categorias",
+    "startQuiz": "Iniciar quiz",
+    "questionProgress": "Pergunta {current} / {total}",
+    "timeUpNavigationOnly": "Tempo esgotado para esta pergunta. Você pode navegar, mas não pode mais responder aqui.",
+    "previous": "Anterior",
+    "submit": "Enviar",
+    "next": "Próxima",
+    "start": "Iniciar",
+    "replay": "Repetir",
+    "yourAnswer": "Sua resposta",
+    "correctAnswer": "Resposta correta",
+    "correct": "Correta",
+    "incorrect": "Incorreta",
+    "noAnswer": "Sem resposta",
+    "submitError": "Não foi possível enviar o quiz neste momento.",
+    "questionShort": "Pergunta {index}"
   }
 }

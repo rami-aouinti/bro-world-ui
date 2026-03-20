@@ -1,13 +1,15 @@
 import { defineStore } from 'pinia'
 import { useQuizApi } from '~/composables/api/useQuizApi'
-import type { QuizCategoryRead, QuizLevelRead } from '~/types/api/quiz'
+import type { QuizCategoryRead, QuizLeaderboardEntry, QuizLevelRead } from '~/types/api/quiz'
 
 export const useQuizCatalogStore = defineStore('quiz-catalog', () => {
   const quizApi = useQuizApi()
   const categories = ref<QuizCategoryRead[]>([])
   const levels = ref<QuizLevelRead[]>([])
+  const topLeaderboard = ref<QuizLeaderboardEntry[]>([])
   const isLoadingCategories = ref(false)
   const isLoadingLevels = ref(false)
+  const isLoadingLeaderboard = ref(false)
 
   const fetchCategories = async (force = false) => {
     if (categories.value.length > 0 && !force) {
@@ -47,16 +49,37 @@ export const useQuizCatalogStore = defineStore('quiz-catalog', () => {
     await Promise.all([
       fetchCategories(force),
       fetchLevels(force),
+      fetchLeaderboardTop(3, force),
     ])
+  }
+
+  const fetchLeaderboardTop = async (limit = 3, force = false) => {
+    if (topLeaderboard.value.length >= limit && !force) {
+      return topLeaderboard.value.slice(0, limit)
+    }
+
+    isLoadingLeaderboard.value = true
+
+    try {
+      const response = await quizApi.getGeneralQuizLeaderboard()
+      topLeaderboard.value = (response.items ?? []).slice(0, limit)
+      return topLeaderboard.value
+    }
+    finally {
+      isLoadingLeaderboard.value = false
+    }
   }
 
   return {
     categories,
     levels,
+    topLeaderboard,
     isLoadingCategories,
     isLoadingLevels,
+    isLoadingLeaderboard,
     fetchCategories,
     fetchLevels,
+    fetchLeaderboardTop,
     preload,
   }
 })

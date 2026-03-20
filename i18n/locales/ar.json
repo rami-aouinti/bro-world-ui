@@ -1601,5 +1601,41 @@
     "errors": {
       "load": "تعذر تحميل الإشعارات."
     }
+  },
+  "quizPage": {
+    "title": "اختبار",
+    "questionsCount": "{count} سؤال",
+    "timerPerQuestion": "{seconds}ث / سؤال",
+    "passScore": "درجة النجاح: {score}%",
+    "levelLabel": "المستوى: {value}",
+    "categoryLabel": "الفئة: {value}",
+    "level": "المستوى",
+    "timer": "المؤقت",
+    "remaining": "متبقي",
+    "timeUpLocked": "انتهى الوقت لهذا السؤال. تم قفل الإجابة.",
+    "score": "النتيجة",
+    "points": "النقاط",
+    "correctAnswers": "الإجابات الصحيحة",
+    "validated": "تم اجتياز الاختبار",
+    "notValidated": "لم يتم اجتياز الاختبار",
+    "topLeaderboard": "أفضل 3 في لوحة الصدارة",
+    "noScores": "لا توجد نتائج متاحة حالياً.",
+    "loadError": "تعذر تحميل الاختبار.",
+    "categories": "الفئات",
+    "startQuiz": "ابدأ الاختبار",
+    "questionProgress": "السؤال {current} / {total}",
+    "timeUpNavigationOnly": "انتهى الوقت لهذا السؤال. يمكنك التنقل لكن لا يمكنك الإجابة هنا بعد الآن.",
+    "previous": "السابق",
+    "submit": "إرسال",
+    "next": "التالي",
+    "start": "ابدأ",
+    "replay": "إعادة",
+    "yourAnswer": "إجابتك",
+    "correctAnswer": "الإجابة الصحيحة",
+    "correct": "صحيح",
+    "incorrect": "خاطئ",
+    "noAnswer": "بدون إجابة",
+    "submitError": "تعذر إرسال الاختبار حالياً.",
+    "questionShort": "السؤال {index}"
   }
 }

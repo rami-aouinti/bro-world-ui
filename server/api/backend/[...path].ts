@@ -318,6 +318,17 @@ const getPublicRouteCacheSpec = (path: string, query: Record<string, any>): Publ
     }
   }
 
+  if (path === '/api/v1/public/quiz/general/leaderboard') {
+    return {
+      cacheKey: buildCacheKey({
+        scope: 'public',
+        resource: 'quiz',
+        identifier: `general:leaderboard:${buildQueryHash(query)}`,
+      }),
+      ttl: TWO_MINUTES_IN_SECONDS,
+    }
+  }
+
   return null
 }
 
