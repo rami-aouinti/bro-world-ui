@@ -17,7 +17,40 @@ const tasks = computed(() => crmStore.getTasks(slug.value))
 const isLoading = computed(() => crmStore.isLoading)
 const projects = computed(() => crmStore.getProjects(slug.value))
 const sprints = computed(() => crmStore.getSprints(slug.value))
-const paginatedTasks = computed(() => tasks.value.slice((page.value - 1) * itemsPerPage, page.value * itemsPerPage))
+const selectedStatusFilter = ref('all')
+const filteredTasks = computed(() => {
+  if (selectedStatusFilter.value === 'all') {
+    return tasks.value
+  }
+  return tasks.value.filter(task => (task.status || 'unknown').toLowerCase() === selectedStatusFilter.value)
+})
+const paginatedTasks = computed(() => filteredTasks.value.slice((page.value - 1) * itemsPerPage, page.value * itemsPerPage))
+const statusFilters = computed(() => {
+  const counts = new Map<string, number>()
+
+  for (const task of tasks.value) {
+    const status = (task.status || 'unknown').toLowerCase()
+    counts.set(status, (counts.get(status) ?? 0) + 1)
+  }
+
+  const total = tasks.value.length || 1
+  const dynamicFilters = Array.from(counts.entries()).map(([value, count]) => ({
+    value,
+    label: value.charAt(0).toUpperCase() + value.slice(1),
+    count,
+    ratio: Math.round((count / total) * 100),
+  }))
+
+  return [
+    {
+      value: 'all',
+      label: 'All',
+      count: tasks.value.length,
+      ratio: 100,
+    },
+    ...dynamicFilters,
+  ]
+})
 const isPageLoading = ref(true)
 const errorMessage = ref('')
 const showCreateDialog = ref(false)
@@ -137,6 +170,10 @@ const deleteTask = async (id: string) => {
   await crmStore.deleteTask(slug.value, id)
 }
 
+watch(selectedStatusFilter, () => {
+  page.value = 1
+})
+
 onMounted(async () => {
   try {
     await loadData()
@@ -153,6 +190,27 @@ onMounted(async () => {
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
+    <template #aside>
+      <div class="d-flex flex-column ga-4">
+        <v-btn color="primary" block @click="showCreateDialog = true" prepend-icon="mdi-plus">New Task</v-btn>
+        <v-card rounded="xl" variant="outlined">
+          <v-card-title class="text-subtitle-2">Filters</v-card-title>
+          <v-card-text class="d-flex flex-column ga-2">
+            <v-btn
+              v-for="filter in statusFilters"
+              :key="`task-filter-${filter.value}`"
+              :variant="selectedStatusFilter === filter.value ? 'flat' : 'tonal'"
+              :color="selectedStatusFilter === filter.value ? 'primary' : undefined"
+              class="justify-space-between"
+              @click="selectedStatusFilter = filter.value"
+            >
+              <span>{{ filter.label }} ({{ filter.count }})</span>
+              <span class="text-caption">{{ filter.ratio }}%</span>
+            </v-btn>
+          </v-card-text>
+        </v-card>
+      </div>
+    </template>
 
     <section>
       <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
@@ -160,7 +218,6 @@ onMounted(async () => {
           <h1 class="text-h5 font-weight-bold mb-1">Tasks list</h1>
         </div>
         <div class="d-flex ga-2 flex-wrap">
-          <v-btn color="primary" @click="showCreateDialog = true" icon="mdi-plus"></v-btn>
           <v-btn color="primary" variant="outlined" :loading="isLoading" @click="loadData" icon="mdi-refresh"></v-btn>
         </div>
       </div>
@@ -169,44 +226,41 @@ onMounted(async () => {
         {{ errorMessage }}
       </v-alert>
 
-      <v-skeleton-loader v-if="isPageLoading" type="table-heading, table-row-divider@6" />
+      <v-row v-if="isPageLoading">
+        <v-col v-for="i in 6" :key="`task-skeleton-${i}`" cols="12" md="6" lg="6">
+          <v-skeleton-loader type="card, article" class="h-100" />
+        </v-col>
+      </v-row>
 
-      <v-card v-else rounded="xl">
-        <v-table>
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Project</th>
-              <th>Sprint</th>
-              <th>Status</th>
-              <th>Priority</th>
-              <th class="text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="task in paginatedTasks" :key="task.id">
-              <td class="font-weight-medium">{{ task.title }}</td>
-              <td>{{ task.projectName }}</td>
-              <td>{{ task.sprintName }}</td>
-              <td><v-chip size="small" variant="tonal">{{ task.status }}</v-chip></td>
-              <td>{{ task.priority }}</td>
-              <td class="text-right">
-                <div class="d-flex justify-end ga-1">
+      <v-row v-else>
+        <v-col v-for="task in paginatedTasks" :key="task.id" cols="12" md="6" lg="6">
+          <v-card rounded="xl" variant="outlined" class="h-100 tasks-card">
+            <v-card-text>
+              <div class="d-flex justify-space-between align-start mb-2 ga-2">
+                <p class="text-subtitle-1 font-weight-bold mb-0">{{ task.title }}</p>
+                <div class="d-flex ga-1">
                   <v-btn icon="mdi-eye" size="small" variant="text" @click="goToTask(task.id)" />
                   <v-btn icon="mdi-pencil" size="small" variant="text" @click="openPatchDialog(task)" />
                   <v-btn icon="mdi-delete" size="small" variant="text" color="error" @click="deleteTask(task.id)" />
                 </div>
-              </td>
-            </tr>
-            <tr v-if="tasks.length === 0">
-              <td colspan="6" class="text-center text-medium-emphasis py-6">No tasks found.</td>
-            </tr>
-          </tbody>
-        </v-table>
-      </v-card>
+              </div>
+              <p class="text-body-2 mb-2">{{ task.description || 'No description' }}</p>
+              <div class="d-flex flex-wrap ga-2">
+                <v-chip size="small" variant="tonal">{{ task.projectName }}</v-chip>
+                <v-chip size="small" variant="tonal">{{ task.sprintName }}</v-chip>
+                <v-chip size="small" color="primary" variant="tonal">{{ task.status || 'unknown' }}</v-chip>
+                <v-chip size="small" color="secondary" variant="tonal">{{ task.priority || 'N/A' }}</v-chip>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col v-if="paginatedTasks.length === 0" cols="12">
+          <v-alert type="info" variant="tonal">No tasks found for this filter.</v-alert>
+        </v-col>
+      </v-row>
 
-      <div v-if="tasks.length > itemsPerPage" class="d-flex justify-center mt-4">
-        <v-pagination v-model="page" :length="Math.ceil(tasks.length / itemsPerPage)" total-visible="5" />
+      <div v-if="filteredTasks.length > itemsPerPage" class="d-flex justify-center mt-4">
+        <v-pagination v-model="page" :length="Math.ceil(filteredTasks.length / itemsPerPage)" total-visible="5" />
       </div>
 
       <v-dialog v-model="showCreateDialog" max-width="560">
@@ -247,3 +301,9 @@ onMounted(async () => {
     </section>
   </PlatformSplitLayout>
 </template>
+<style scoped>
+.tasks-card:hover {
+  box-shadow: 0 10px 24px rgba(var(--v-theme-primary));
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+</style>
