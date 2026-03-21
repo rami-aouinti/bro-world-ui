@@ -173,7 +173,7 @@ onMounted(async () => {
     </template>
     <template #aside>
       <div class="d-flex flex-column ga-4">
-        <v-btn color="primary" block @click="showCreateDialog = true" prepend-icon="mdi-plus">New Sprint</v-btn>
+        <v-btn variant="outlined" rounded="xl" block @click="showCreateDialog = true" prepend-icon="mdi-plus">New Sprint</v-btn>
         <v-card rounded="xl" variant="outlined">
           <v-card-title class="text-subtitle-2">Filters</v-card-title>
           <v-card-text class="d-flex flex-column ga-2">

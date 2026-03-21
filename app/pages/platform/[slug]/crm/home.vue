@@ -19,13 +19,9 @@ const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
 <template>
   <PlatformSplitLayout>
     <template #sidebar><PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" /></template>
-    <section>
-      <v-alert v-if="showAccessDenied" type="error" variant="tonal" class="mb-4">
-        Admin access denied: insufficient permissions for this application.
-      </v-alert>
-      <PlatformHeroHeader title="platform.crm.hero.home.title" subtitle="platform.crm.hero.home.subtitle" cta="platform.crm.hero.home.cta" />
+    <template #aside>
       <v-row class="mb-2">
-        <v-col v-for="stat in crmStats" :key="stat.label" cols="12" sm="6" lg="3">
+        <v-col v-for="stat in crmStats" :key="stat.label" cols="12" sm="6">
           <v-card rounded="xl" variant="tonal" :color="stat.color || 'primary'" class="h-100">
             <v-card-text>
               <p class="text-caption text-uppercase mb-1">{{ stat.label }}</p>
@@ -35,9 +31,15 @@ const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
           </v-card>
         </v-col>
       </v-row>
+    </template>
+    <section>
+      <v-alert v-if="showAccessDenied" type="error" variant="tonal" class="mb-4">
+        Admin access denied: insufficient permissions for this application.
+      </v-alert>
+      <PlatformHeroHeader title="platform.crm.hero.home.title" subtitle="" cta="platform.crm.hero.home.cta" />
       <v-row>
         <v-col v-for="company in crmCompanies" :key="company.id" cols="12" md="6" xl="4">
-          <v-card rounded="xl" class="crm-company-card h-100" hover>
+          <v-card rounded="xl" variant="outlined" class="crm-company-card h-100" hover>
             <v-card-text>
               <div class="d-flex align-center justify-space-between mb-2">
                 <p class="text-subtitle-1 font-weight-bold">{{ company.name }}</p>

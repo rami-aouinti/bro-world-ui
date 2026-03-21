@@ -39,11 +39,10 @@ const kpis = computed(() => {
     </template>
 
     <section>
-      <h1 class="text-h5 font-weight-bold mb-1">Dashboard CRM</h1>
-      <p class="text-body-2 text-medium-emphasis mb-6">Consolidated indicators from the dashboard endpoint.</p>
+      <h3 class="text-h5 font-weight-bold mb-1">Dashboard CRM</h3>
 
       <v-row class="mb-4">
-        <v-col v-for="item in kpis" :key="item.label" cols="12" md="6" lg="3">
+        <v-col v-for="item in kpis" :key="item.label" cols="12" md="6">
           <v-card rounded="xl">
             <v-card-text>
               <p class="text-overline mb-1">{{ item.label }}</p>
