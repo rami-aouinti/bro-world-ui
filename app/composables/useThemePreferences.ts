@@ -30,7 +30,7 @@ export const useThemePreferences = () => {
       return parsed
     }
 
-    theme.global.name.value = buildThemeName(defaultThemePreference)
+    theme.change(buildThemeName(defaultThemePreference))
     return defaultThemePreference
   }
 
@@ -40,7 +40,7 @@ export const useThemePreferences = () => {
 
   const applyThemePreference = (next: ThemePreference) => {
     preference.value = next
-    theme.global.name.value = buildThemeName(next)
+    theme.change(buildThemeName(next))
     if (!import.meta.client) {
       return
     }
