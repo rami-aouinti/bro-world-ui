@@ -1,4 +1,4 @@
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useTheme } from 'vuetify'
 import {
   buildThemeName,
@@ -36,9 +36,10 @@ export const useThemePreferences = () => {
 
   ensureValidTheme()
 
-  const preference = computed<ThemePreference>(() => parseThemeName(theme.global.name.value) ?? defaultThemePreference)
+  const preference = ref<ThemePreference>(parseThemeName(theme.global.name.value) ?? defaultThemePreference)
 
   const applyThemePreference = (next: ThemePreference) => {
+    preference.value = next
     theme.global.name.value = buildThemeName(next)
     if (!import.meta.client) {
       return
@@ -58,21 +59,21 @@ export const useThemePreferences = () => {
 
   const toggleThemeMode = () => {
     applyThemePreference({
+      ...preference.value,
       mode: preference.value.mode === 'dark' ? 'light' : 'dark',
-      primary: preference.value.primary,
     })
   }
 
   const setThemeMode = (mode: ThemeMode) => {
     applyThemePreference({
+      ...preference.value,
       mode,
-      primary: preference.value.primary,
     })
   }
 
   const setPrimaryTheme = (primary: ThemePrimary) => {
     applyThemePreference({
-      mode: preference.value.mode,
+      ...preference.value,
       primary,
     })
   }
@@ -133,7 +134,7 @@ export const useThemePreferences = () => {
           applyThemePreference(loadedPreference ?? defaultThemePreference)
         }
         catch {
-          ensureValidTheme()
+          applyThemePreference(ensureValidTheme())
         }
       }
 
