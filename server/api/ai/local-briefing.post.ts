@@ -5,19 +5,24 @@ type LocalBriefingBody = {
   locale?: string
 }
 
-type LocalContext = {
-  city: string
-  region: string
-  country: string
+type Coordinates = {
   latitude: number
   longitude: number
 }
 
+type LocalContext = {
+  city: string
+  region: string
+  country: string
+  latitude: number | null
+  longitude: number | null
+}
+
 type WeatherContext = {
-  temperatureC: number
-  apparentTemperatureC: number
-  windSpeedKmh: number
-  weatherCode: number
+  temperatureC: number | null
+  apparentTemperatureC: number | null
+  windSpeedKmh: number | null
+  weatherCode: number | null
   weatherLabel: string
 }
 
@@ -59,15 +64,25 @@ const WEATHER_CODE_MAP: Record<number, string> = {
   99: 'Orage avec grêle forte',
 }
 
-const fallbackByWeather = (weatherLabel: string) => {
+const DEFAULT_WEATHER: WeatherContext = {
+  temperatureC: null,
+  apparentTemperatureC: null,
+  windSpeedKmh: null,
+  weatherCode: null,
+  weatherLabel: 'Météo indisponible',
+}
+
+const fallbackByWeather = (weatherLabel: string, hasWeather: boolean) => {
   const isRainy = /pluie|averse|orage|bruine/i.test(weatherLabel)
   const isCold = /neige|givre/i.test(weatherLabel)
 
   return {
-    headline: `Point local: ${weatherLabel.toLowerCase()}`,
-    summary: isRainy
-      ? 'La météo peut impacter les déplacements et la fréquentation des lieux extérieurs.'
-      : 'Conditions globalement favorables, idéale pour des activités extérieures si besoin.',
+    headline: hasWeather ? `Point local: ${weatherLabel.toLowerCase()}` : 'Point local: informations partielles',
+    summary: hasWeather
+      ? (isRainy
+          ? 'La météo peut impacter les déplacements et la fréquentation des lieux extérieurs.'
+          : 'Conditions globalement favorables, idéale pour des activités extérieures si besoin.')
+      : 'La position précise n’a pas pu être détectée, le briefing reste utile mais moins précis.',
     events: [
       {
         title: 'Flux mobilité à surveiller',
@@ -124,78 +139,146 @@ const parseBody = (rawBody: unknown): LocalBriefingBody => {
   }
 }
 
-const extractCoordinates = (event: Parameters<typeof defineEventHandler>[0], body: LocalBriefingBody) => {
+const readHeader = (event: Parameters<typeof defineEventHandler>[0], name: string) => (getHeader(event, name) || '').trim()
+
+const extractHeaderLocation = (event: Parameters<typeof defineEventHandler>[0]) => ({
+  city: readHeader(event, 'x-vercel-ip-city') || 'Votre zone',
+  region: readHeader(event, 'x-vercel-ip-country-region') || '',
+  country: readHeader(event, 'x-vercel-ip-country') || '',
+})
+
+const resolveCoordinatesFromCity = async (city: string, country: string, locale: string): Promise<Coordinates | null> => {
+  if (!city) {
+    return null
+  }
+
+  try {
+    const query = [city, country].filter(Boolean).join(', ')
+    const geocoding = await $fetch<{
+      results?: Array<{ latitude?: number, longitude?: number }>
+    }>('https://geocoding-api.open-meteo.com/v1/search', {
+      query: {
+        name: query,
+        count: 1,
+        language: locale.startsWith('fr') ? 'fr' : 'en',
+      },
+    })
+
+    const result = geocoding.results?.[0]
+
+    if (typeof result?.latitude === 'number' && typeof result?.longitude === 'number') {
+      return { latitude: result.latitude, longitude: result.longitude }
+    }
+  }
+  catch (error) {
+    console.warn('[local-briefing] could not resolve coordinates from city', error)
+  }
+
+  return null
+}
+
+const resolveCoordinates = async (
+  event: Parameters<typeof defineEventHandler>[0],
+  body: LocalBriefingBody,
+  headerLocation: { city: string, country: string },
+  locale: string,
+): Promise<Coordinates | null> => {
   const latitude = body.latitude ?? parseMaybeNumber(getHeader(event, 'x-vercel-ip-latitude') || undefined)
   const longitude = body.longitude ?? parseMaybeNumber(getHeader(event, 'x-vercel-ip-longitude') || undefined)
 
-  if (latitude === null || longitude === null || latitude === undefined || longitude === undefined) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Unable to detect user coordinates.',
+  if (latitude !== null && longitude !== null && latitude !== undefined && longitude !== undefined) {
+    return { latitude, longitude }
+  }
+
+  return resolveCoordinatesFromCity(headerLocation.city, headerLocation.country, locale)
+}
+
+const fetchLocationFromCoordinates = async (
+  coordinates: Coordinates,
+  locale: string,
+  headerLocation: { city: string, region: string, country: string },
+): Promise<LocalContext> => {
+  try {
+    const reverse = await $fetch<{
+      address?: {
+        city?: string
+        town?: string
+        village?: string
+        state?: string
+        country?: string
+      }
+    }>('https://nominatim.openstreetmap.org/reverse', {
+      query: {
+        format: 'jsonv2',
+        lat: coordinates.latitude,
+        lon: coordinates.longitude,
+        'accept-language': locale.startsWith('fr') ? 'fr' : 'en',
+      },
+      headers: {
+        'User-Agent': 'bro-world-ui/1.0 (local-briefing)',
+      },
     })
-  }
 
-  return { latitude, longitude }
-}
+    const address = reverse.address
 
-const fetchLocationContext = async (latitude: number, longitude: number, locale: string): Promise<LocalContext> => {
-  const reverse = await $fetch<{
-    results?: Array<{
-      name?: string
-      admin1?: string
-      country?: string
-    }>
-  }>('https://geocoding-api.open-meteo.com/v1/reverse', {
-    query: {
-      latitude,
-      longitude,
-      language: locale.startsWith('fr') ? 'fr' : 'en',
-      count: 1,
-    },
-  })
-
-  const place = reverse.results?.[0]
-
-  return {
-    city: place?.name || 'Votre zone',
-    region: place?.admin1 || '',
-    country: place?.country || '',
-    latitude,
-    longitude,
-  }
-}
-
-const fetchWeatherContext = async (latitude: number, longitude: number, timezone?: string): Promise<WeatherContext> => {
-  const weather = await $fetch<{
-    current?: {
-      temperature_2m?: number
-      apparent_temperature?: number
-      wind_speed_10m?: number
-      weather_code?: number
+    return {
+      city: address?.city || address?.town || address?.village || headerLocation.city || 'Votre zone',
+      region: address?.state || headerLocation.region || '',
+      country: address?.country || headerLocation.country || '',
+      latitude: coordinates.latitude,
+      longitude: coordinates.longitude,
     }
-  }>('https://api.open-meteo.com/v1/forecast', {
-    query: {
-      latitude,
-      longitude,
-      current: ['temperature_2m', 'apparent_temperature', 'weather_code', 'wind_speed_10m'],
-      timezone: timezone || 'auto',
-    },
-  })
-
-  const current = weather.current
-
-  if (!current || typeof current.temperature_2m !== 'number' || typeof current.weather_code !== 'number') {
-    throw createError({ statusCode: 502, statusMessage: 'Weather service unavailable.' })
   }
+  catch (error) {
+    console.warn('[local-briefing] reverse geocoding failed', error)
 
-  const weatherLabel = WEATHER_CODE_MAP[current.weather_code] || 'Conditions variables'
+    return {
+      city: headerLocation.city || 'Votre zone',
+      region: headerLocation.region,
+      country: headerLocation.country,
+      latitude: coordinates.latitude,
+      longitude: coordinates.longitude,
+    }
+  }
+}
 
-  return {
-    temperatureC: current.temperature_2m,
-    apparentTemperatureC: current.apparent_temperature ?? current.temperature_2m,
-    weatherCode: current.weather_code,
-    windSpeedKmh: current.wind_speed_10m ?? 0,
-    weatherLabel,
+const fetchWeatherContext = async (coordinates: Coordinates, timezone?: string): Promise<WeatherContext> => {
+  try {
+    const weather = await $fetch<{
+      current?: {
+        temperature_2m?: number
+        apparent_temperature?: number
+        wind_speed_10m?: number
+        weather_code?: number
+      }
+    }>('https://api.open-meteo.com/v1/forecast', {
+      query: {
+        latitude: coordinates.latitude,
+        longitude: coordinates.longitude,
+        current: ['temperature_2m', 'apparent_temperature', 'weather_code', 'wind_speed_10m'],
+        timezone: timezone || 'auto',
+      },
+    })
+
+    const current = weather.current
+
+    if (!current || typeof current.temperature_2m !== 'number' || typeof current.weather_code !== 'number') {
+      return DEFAULT_WEATHER
+    }
+
+    const weatherLabel = WEATHER_CODE_MAP[current.weather_code] || 'Conditions variables'
+
+    return {
+      temperatureC: current.temperature_2m,
+      apparentTemperatureC: current.apparent_temperature ?? current.temperature_2m,
+      weatherCode: current.weather_code,
+      windSpeedKmh: current.wind_speed_10m ?? 0,
+      weatherLabel,
+    }
+  }
+  catch (error) {
+    console.warn('[local-briefing] weather service failed', error)
+    return DEFAULT_WEATHER
   }
 }
 
@@ -225,6 +308,10 @@ const fetchAiBriefing = async (location: LocalContext, weather: WeatherContext, 
     dateStyle: 'full',
   })
 
+  const weatherDetails = weather.temperatureC === null
+    ? 'Météo locale indisponible.'
+    : `${weather.weatherLabel}, ${Math.round(weather.temperatureC)}°C, vent ${Math.round(weather.windSpeedKmh || 0)} km/h.`
+
   const response = await $fetch<{
     choices?: Array<{ message?: { content?: string } }>
   }>('https://ai-gateway.vercel.sh/v1/chat/completions', {
@@ -244,7 +331,7 @@ const fetchAiBriefing = async (location: LocalContext, weather: WeatherContext, 
         },
         {
           role: 'user',
-          content: `Contexte local: ${location.city}, ${location.region}, ${location.country}. Date locale: ${today}. Météo: ${weather.weatherLabel}, ${Math.round(weather.temperatureC)}°C, vent ${Math.round(weather.windSpeedKmh)} km/h. Propose un briefing utile pour un utilisateur de plateforme web.`,
+          content: `Contexte local: ${location.city}, ${location.region}, ${location.country}. Date locale: ${today}. ${weatherDetails} Propose un briefing utile pour un utilisateur de plateforme web.`,
         },
       ],
     },
@@ -272,16 +359,25 @@ const fetchAiBriefing = async (location: LocalContext, weather: WeatherContext, 
 
 export default defineEventHandler(async (event) => {
   const body = parseBody(await readBody(event))
-  const { latitude, longitude } = extractCoordinates(event, body)
   const locale = body.locale || 'fr-FR'
+  const headerLocation = extractHeaderLocation(event)
+  const coordinates = await resolveCoordinates(event, body, headerLocation, locale)
 
-  const [location, weather] = await Promise.all([
-    fetchLocationContext(latitude, longitude, locale),
-    fetchWeatherContext(latitude, longitude, body.timezone),
-  ])
+  const location = coordinates
+    ? await fetchLocationFromCoordinates(coordinates, locale, headerLocation)
+    : {
+        city: headerLocation.city || 'Votre zone',
+        region: headerLocation.region,
+        country: headerLocation.country,
+        latitude: null,
+        longitude: null,
+      }
+
+  const weather = coordinates ? await fetchWeatherContext(coordinates, body.timezone) : DEFAULT_WEATHER
 
   let source: 'ai' | 'fallback' = 'fallback'
-  let generated = fallbackByWeather(weather.weatherLabel)
+  const hasWeather = weather.temperatureC !== null
+  let generated = fallbackByWeather(weather.weatherLabel, hasWeather)
 
   try {
     const aiResult = await fetchAiBriefing(location, weather, locale)

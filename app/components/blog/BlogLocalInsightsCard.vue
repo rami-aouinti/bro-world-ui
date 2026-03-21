@@ -16,14 +16,14 @@ type LocalBriefingResponse = {
     city: string
     region: string
     country: string
-    latitude: number
-    longitude: number
+    latitude: number | null
+    longitude: number | null
   }
   weather: {
-    temperatureC: number
-    apparentTemperatureC: number
-    windSpeedKmh: number
-    weatherCode: number
+    temperatureC: number | null
+    apparentTemperatureC: number | null
+    windSpeedKmh: number | null
+    weatherCode: number | null
     weatherLabel: string
   }
   headline: string
@@ -39,6 +39,10 @@ const briefing = ref<LocalBriefingResponse | null>(null)
 const temperatureLabel = computed(() => {
   if (!briefing.value) {
     return ''
+  }
+
+  if (briefing.value.weather.temperatureC === null || briefing.value.weather.apparentTemperatureC === null) {
+    return 'Température indisponible'
   }
 
   const rounded = Math.round(briefing.value.weather.temperatureC)
