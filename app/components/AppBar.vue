@@ -557,12 +557,11 @@ const signOut = async () => {
             <v-divider class="my-1" />
             <div class="app-bar__setting-block">
               <v-list-subheader class="app-bar__setting-title">Primary</v-list-subheader>
-              <p class="app-bar__setting-caption mb-2">Choisissez une couleur principale pour les boutons et accents.</p>
               <div class="app-bar__option-row app-bar__option-row--primary">
                 <v-btn
                   v-for="option in primaryOptions"
                   :key="`primary-${option.value}`"
-                  size="small"
+                  size="sm"
                   variant="text"
                   class="app-bar__swatch-btn"
                   :class="{ 'app-bar__swatch-btn--active': themePreference.primary === option.value }"
@@ -570,7 +569,6 @@ const signOut = async () => {
                   @click="setPrimaryTheme(option.value)"
                 >
                   <v-avatar size="20" :style="{ backgroundColor: option.color }" />
-                  <span class="app-bar__swatch-label">{{ option.label }}</span>
                   <v-icon v-if="themePreference.primary === option.value" size="14" icon="mdi-check" class="app-bar__swatch-check" />
                 </v-btn>
               </div>
@@ -828,7 +826,7 @@ const signOut = async () => {
 
 .app-bar__option-row--primary {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.5rem;
 }
 
