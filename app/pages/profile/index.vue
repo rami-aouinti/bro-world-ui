@@ -170,7 +170,7 @@ onMounted(async () => {
     </template>
     <template #aside>
       <v-card elevation="8" rounded="xl" v-if="friendsStore.friends.length">
-          <h6 class="text-h6 font-weight-bold mb-2">Amis ({{ friendsStore.friends.length }})</h6>
+          <h6 class="text-h6 font-weight-bold mb-2">Friends ({{ friendsStore.friends.length }})</h6>
           <v-list v-if="friendsStore.friends.length" class="pa-0 bg-transparent">
             <v-list-item v-for="friend in friendsStore.friends" :key="friend.id" class="px-0">
               <template #prepend>
@@ -265,35 +265,6 @@ onMounted(async () => {
       </v-row>
 
       <v-row>
-        <v-col cols="12" md="6">
-          <v-card class="h-100 pa-5" elevation="2" rounded="xl">
-            <h6 class="mb-4 text-h6 font-weight-bold">Social Accounts</h6>
-            <v-list class="pa-0 bg-transparent">
-              <v-list-item v-for="social in profile?.socials || []" :key="`${social?.provider}-${social?.providerId}`" class="px-0">
-                <v-list-item-title class="text-capitalize">{{ social?.provider }}</v-list-item-title>
-                <template #append>
-                  <span class="text-body-2 text-medium-emphasis">{{ social?.providerId }}</span>
-                </template>
-              </v-list-item>
-            </v-list>
-          </v-card>
-        </v-col>
-
-        <v-col cols="12" md="6">
-          <v-card class="h-100 pa-5" elevation="2" rounded="xl">
-            <h6 class="mb-4 text-h6 font-weight-bold">Sessions</h6>
-            <v-list class="pa-0 bg-transparent">
-              <v-list-item v-for="(session, index) in profile?.sessions || []" :key="session?.id || index" class="px-0 mb-2">
-                <v-list-item-title>{{ session?.userAgent || 'Unknown device' }}</v-list-item-title>
-                <v-list-item-subtitle>{{ session?.ip || 'Unknown IP' }}</v-list-item-subtitle>
-                <template #append>
-                  <v-chip v-if="session?.current" size="small" color="success" variant="tonal">Current</v-chip>
-                </template>
-              </v-list-item>
-            </v-list>
-          </v-card>
-        </v-col>
-
         <v-col cols="12">
           <v-card class="h-100 pa-3" variant="outlined" elevation="2" rounded="xl">
             <div class="d-flex align-center justify-space-between mb-2">

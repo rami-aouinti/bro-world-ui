@@ -471,11 +471,11 @@ onBeforeUnmount(() => {
               <v-card
                 v-for="category in categories"
                 :key="category.slug"
-                variant="text"
+                variant="outlined"
                 class="font-weight-medium category-card"
                 :class="{ 'category-card--selected': selectedCategory === category.slug }"
                 min-width="165px"
-                :style="{ backgroundColor: category.color, color: '#fff' }"
+                :style="{ color: category.color }"
                 @click="toggleCategory(category.slug)"
               >
                 <v-card-text class="text-center">

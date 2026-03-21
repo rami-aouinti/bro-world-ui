@@ -71,110 +71,6 @@ const statusOptions = [
 
 const rangeInDays = { '7days': 7, '30days': 30, 'quarter': 90 }
 
-const createMockEvents = (): CalendarEventRead[] => {
-  const now = new Date()
-  const addHours = (base: Date, hours: number) => new Date(base.getTime() + hours * 3_600_000)
-  const setAt = (dayOffset: number, hour: number, minute = 0) => {
-    const date = new Date(now)
-    date.setDate(date.getDate() + dayOffset)
-    date.setHours(hour, minute, 0, 0)
-    return date
-  }
-
-  return [
-    {
-      id: 'demo-001',
-      title: 'Kickoff campagne Q2 / Q2 campaign kickoff',
-      description: 'Marketing + sales alignment on conversion goals and key messaging.',
-      startAt: setAt(1, 9, 0).toISOString(),
-      endAt: setAt(1, 10, 30).toISOString(),
-      status: 'confirmed',
-      visibility: 'private',
-      location: 'Atlas Room',
-      isAllDay: false,
-      timezone: 'Europe/Paris',
-      isCancelled: false,
-      attendees: [{ name: 'Sarah D.', email: 'sarah@demo.local' }, { name: 'Moussa K.', email: 'moussa@demo.local' }],
-      reminders: [{ method: 'email', minutesBefore: 30 }],
-      calendarId: null,
-      applicationSlug: props.applicationSlug || null,
-      userId: '00000000-0000-0000-0000-000000000001',
-    },
-    {
-      id: 'demo-002',
-      title: 'Point pipeline partenaires / Partner pipeline review',
-      description: 'Review of accounts in negotiation and validation of next actions.',
-      startAt: setAt(2, 14, 0).toISOString(),
-      endAt: setAt(2, 15, 0).toISOString(),
-      status: 'tentative',
-      visibility: 'private',
-      location: 'Visio Meet',
-      isAllDay: false,
-      timezone: 'Europe/Paris',
-      isCancelled: false,
-      attendees: [{ name: 'Alex T.', email: 'alex@demo.local' }],
-      reminders: [{ method: 'popup', minutesBefore: 15 }],
-      calendarId: null,
-      applicationSlug: props.applicationSlug || null,
-      userId: '00000000-0000-0000-0000-000000000001',
-    },
-    {
-      id: 'demo-003',
-      title: 'Premium support day',
-      description: 'Blocked slot to handle high-priority customer tickets.',
-      startAt: setAt(4, 8, 30).toISOString(),
-      endAt: setAt(4, 17, 30).toISOString(),
-      status: 'confirmed',
-      visibility: 'private',
-      location: 'Customer relationship center',
-      isAllDay: false,
-      timezone: 'Europe/Paris',
-      isCancelled: false,
-      attendees: null,
-      reminders: [{ method: 'email', minutesBefore: 60 }],
-      calendarId: null,
-      applicationSlug: props.applicationSlug || null,
-      userId: '00000000-0000-0000-0000-000000000001',
-    },
-    {
-      id: 'demo-004',
-      title: 'BDR team onboarding training',
-      description: 'Internal session on product pitch, call scripts, and CRM.',
-      startAt: setAt(6, 10, 0).toISOString(),
-      endAt: setAt(6, 12, 0).toISOString(),
-      status: 'confirmed',
-      visibility: 'private',
-      location: 'Room Nova',
-      isAllDay: false,
-      timezone: 'Europe/Paris',
-      isCancelled: false,
-      attendees: [{ name: 'Team BDR', email: 'bdr@demo.local' }],
-      reminders: [{ method: 'popup', minutesBefore: 20 }],
-      calendarId: null,
-      applicationSlug: props.applicationSlug || null,
-      userId: '00000000-0000-0000-0000-000000000001',
-    },
-    {
-      id: 'demo-005',
-      title: 'Platform maintenance (technical window)',
-      description: 'Planned OPS intervention with product team. Service may be slower.',
-      startAt: addHours(setAt(8, 23, 0), 0).toISOString(),
-      endAt: addHours(setAt(9, 2, 0), 0).toISOString(),
-      status: 'cancelled',
-      visibility: 'private',
-      location: 'Virtual datacenter',
-      isAllDay: false,
-      timezone: 'Europe/Paris',
-      isCancelled: true,
-      attendees: [{ name: 'Ops Squad', email: 'ops@demo.local' }],
-      reminders: [{ method: 'email', minutesBefore: 120 }],
-      calendarId: null,
-      applicationSlug: props.applicationSlug || null,
-      userId: '00000000-0000-0000-0000-000000000001',
-    },
-  ]
-}
-
 const toDateTimeLocalValue = (isoDate: string) => {
   const date = new Date(isoDate)
   const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60_000))
@@ -485,7 +381,7 @@ const calendarOptions = computed(() => ({
   initialView: 'dayGridMonth',
   locale: 'en-US',
   headerToolbar: {
-    left: 'prev,next today',
+    left: 'prev,next',
     center: 'title',
     right: 'dayGridMonth,timeGridWeek,timeGridDay',
   },
@@ -495,7 +391,7 @@ const calendarOptions = computed(() => ({
     week: 'Week',
     day: 'Day',
   },
-  height: 'auto',
+  height: '485px',
   editable: canMutate.value,
   selectable: canMutate.value,
   events: calendarEvents.value,
@@ -545,8 +441,8 @@ watch(() => props.applicationSlug, loadEvents)
     <template #sidebar>
       <PlatformSidebarNav :items="items" title="Calendar">
         <v-card-title class="d-flex align-center justify-space-between">
-          <span class="text-subtitle-2">Agenda intelligent</span>
-          <UiStatChip :value="filteredEvents.length" icon="mdi-calendar-clock-outline" color="info" />
+          <span class="text-subtitle-2">Calendar</span>
+          <UiStatChip :value="filteredEvents.length" icon="mdi-calendar-clock-outline" class="calendar-icon" />
         </v-card-title>
 
         <v-card-text>
@@ -557,7 +453,7 @@ watch(() => props.applicationSlug, loadEvents)
             variant="outlined"
             hide-details
             density="compact"
-            class="mb-3"
+            class="mt-3"
           />
 
           <v-select
@@ -567,52 +463,52 @@ watch(() => props.applicationSlug, loadEvents)
             variant="outlined"
             hide-details
             density="compact"
-            class="mb-4"
+            class="mt-4"
           />
 
           <v-btn
             v-if="canMutate"
-            color="primary"
             prepend-icon="mdi-plus"
             block
-            class="mb-4"
+            class="mt-4 create-event"
             @click="openCreateDialog"
           >
             {{ t('calendar.actions.createEvent') }}
           </v-btn>
-
-          <div v-if="upcomingEventsByDay.length" class="d-flex flex-column ga-4">
-            <div v-for="group in upcomingEventsByDay" :key="group.day">
-              <p class="text-overline mb-1 text-medium-emphasis">{{ group.day }}</p>
-              <v-list class="bg-transparent pa-0" lines="two">
-                <v-list-item
-                  v-for="event in group.events"
-                  :key="event.id"
-                  class="calendar-page__item px-0 rounded-lg"
-                  :active="selectedEventId === event.id"
-                  @click="openShowDialog(event)"
-                >
-                  <template #prepend>
-                    <v-avatar size="34" :color="statusToChipColor(event.status)" variant="tonal">
-                      <v-icon icon="mdi-calendar-clock" size="18" />
-                    </v-avatar>
-                  </template>
-
-                  <v-list-item-title class="font-weight-medium">{{ event.title }}</v-list-item-title>
-                  <v-list-item-subtitle>{{ formatEventDate(event.startAt) }}</v-list-item-subtitle>
-                </v-list-item>
-              </v-list>
-            </div>
-          </div>
-
-          <UiStateEmptyState
-            v-else
-            :title="t('calendar.empty.title')"
-            :description="t('calendar.empty.description')"
-            icon="mdi-calendar-blank-outline"
-          />
         </v-card-text>
       </PlatformSidebarNav>
+    </template>
+    <template #aside>
+      <div v-if="upcomingEventsByDay.length" class="d-flex flex-column ga-4">
+        <div v-for="group in upcomingEventsByDay" :key="group.day">
+          <p class="text-overline mb-1 text-medium-emphasis">{{ group.day }}</p>
+          <v-list class="bg-transparent pa-0" lines="two">
+            <v-list-item
+                v-for="event in group.events"
+                :key="event.id"
+                class="calendar-page__item px-0 rounded-lg"
+                :active="selectedEventId === event.id"
+                @click="openShowDialog(event)"
+            >
+              <template #prepend>
+                <v-avatar size="34" :color="statusToChipColor(event.status)" variant="tonal">
+                  <v-icon icon="mdi-calendar-clock" size="18" />
+                </v-avatar>
+              </template>
+
+              <v-list-item-title class="font-weight-medium">{{ event.title }}</v-list-item-title>
+              <v-list-item-subtitle>{{ formatEventDate(event.startAt) }}</v-list-item-subtitle>
+            </v-list-item>
+          </v-list>
+        </div>
+      </div>
+
+      <UiStateEmptyState
+          v-else
+          :title="t('calendar.empty.title')"
+          :description="t('calendar.empty.description')"
+          icon="mdi-calendar-blank-outline"
+      />
     </template>
 
     <v-alert
@@ -628,7 +524,7 @@ watch(() => props.applicationSlug, loadEvents)
 
     <v-card v-if="isLoading" rounded="xl" class="mb-4 pa-4">
       <v-skeleton-loader type="heading" class="mb-2" />
-      <v-skeleton-loader type="image" height="360" class="mb-3" />
+      <v-skeleton-loader type="image" height="320" class="mb-3" />
       <v-skeleton-loader type="text@2" />
     </v-card>
 
@@ -709,6 +605,14 @@ watch(() => props.applicationSlug, loadEvents)
 </template>
 
 <style scoped>
+.calendar-icon {
+  background-color: rgba(var(--v-theme-primary), 0.26);
+}
+
+.create-event {
+  background-color: rgba(var(--v-theme-primary), 0.26);
+}
+
 .calendar-page__hero {
   border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
 }

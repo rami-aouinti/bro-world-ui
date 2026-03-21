@@ -203,8 +203,7 @@ onMounted(async () => {
     <section>
       <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
         <div>
-          <h1 class="text-h5 font-weight-bold mb-1">Billing</h1>
-          <p class="text-body-2 text-medium-emphasis">Factures CRM synchronisées avec l'API.</p>
+          <h2 class="text-h5 font-weight-bold mb-1">Billing</h2>
         </div>
         <div class="d-flex ga-2">
           <v-btn color="primary" @click="showCreateDialog = true">Create billing</v-btn>
@@ -217,13 +216,13 @@ onMounted(async () => {
       </v-alert>
 
       <v-row v-if="isPageLoading">
-        <v-col v-for="i in 6" :key="`billing-skeleton-${i}`" cols="12" md="6" lg="4">
+        <v-col v-for="i in 6" :key="`billing-skeleton-${i}`" cols="12" md="6" lg="6">
           <v-skeleton-loader type="card, article" class="h-100" />
         </v-col>
       </v-row>
 
       <v-row v-else>
-        <v-col v-for="billing in billings" :key="billing.id" cols="12" md="6" lg="4">
+        <v-col v-for="billing in billings" :key="billing.id" cols="12" md="6" lg="6">
           <v-card rounded="xl" hover class="h-100 cursor-pointer" @click="goToDetail(billing.id)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start ga-2 mb-2">

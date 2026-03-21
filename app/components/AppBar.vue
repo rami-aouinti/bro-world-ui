@@ -83,10 +83,7 @@ watch(isInboxMenuOpen, async (isOpen) => {
 const mainHeaderItems = computed<NavItem[]>(() => [
   { key: 'app.navigation.platform', to: '/platform', icon: 'mdi-view-grid-outline' },
   { key: 'app.navigation.blog', to: '/blog', icon: 'mdi-post-outline' },
-  { key: 'app.navigation.quiz', to: '/quiz', icon: 'mdi-help-circle-outline' },
-  { key: 'app.navigation.about', to: '/about', icon: 'mdi-information-outline' },
-  { key: 'app.navigation.contact', to: '/contact', icon: 'mdi-email-outline' },
-  { key: 'app.navigation.faq', to: '/faq', icon: 'mdi-frequently-asked-questions' },
+  { key: 'app.navigation.quiz', to: '/quiz', icon: 'mdi-help-circle-outline' }
 ])
 
 const adminHeaderItems = computed<NavItem[]>(() => [])
@@ -338,11 +335,12 @@ const signOut = async () => {
     <v-spacer v-if="!isDesktop" />
 
     <template v-if="isDesktop">
-      <div class="d-flex align-center ga-1 ga-sm-2 app-bar__center-links">
+      <div class="d-flex align-center ga-1 ga-sm-2 mx-auto app-bar__center-links">
         <v-btn
           v-for="item in headerItems"
           :key="item.key"
           :to="item.to"
+          size="large"
           variant="text"
           class="text-none app-bar__link-btn"
           :prepend-icon="item.icon"
@@ -485,6 +483,9 @@ const signOut = async () => {
             <template v-if="isAuthenticated">
               <v-list-item to="/profile" :title="t('app.navigation.profile')" prepend-icon="mdi-account-outline" rounded="lg" class="mx-2 my-1" />
               <v-list-item to="/settings" :title="t('app.navigation.settings')" prepend-icon="mdi-cog-outline" rounded="lg" class="mx-2 my-1" />
+              <v-list-item to="/about" :title="t('app.navigation.about')" prepend-icon="mdi-information-outline" rounded="lg" class="mx-2 my-1" />
+              <v-list-item to="/contact" :title="t('app.navigation.contact')" prepend-icon="mdi-email-outline" rounded="lg" class="mx-2 my-1" />
+              <v-list-item to="/faq" :title="t('app.navigation.faq')" prepend-icon="mdi-frequently-asked-questions" rounded="lg" class="mx-2 my-1" />
               <v-list-item
                 v-if="canPermission('admin.access')"
                 to="/admin"
@@ -505,6 +506,9 @@ const signOut = async () => {
             <template v-else>
               <v-list-item to="/login" :title="t('app.navigation.login')" prepend-icon="mdi-login" rounded="lg" class="mx-2 my-1" />
               <v-list-item to="/register" :title="t('app.navigation.register')" prepend-icon="mdi-account-plus-outline" rounded="lg" class="mx-2 my-1" />
+              <v-list-item to="/about" :title="t('app.navigation.about')" prepend-icon="mdi-information-outline" rounded="lg" class="mx-2 my-1" />
+              <v-list-item to="/contact" :title="t('app.navigation.contact')" prepend-icon="mdi-email-outline" rounded="lg" class="mx-2 my-1" />
+              <v-list-item to="/faq" :title="t('app.navigation.faq')" prepend-icon="mdi-frequently-asked-questions" rounded="lg" class="mx-2 my-1" />
             </template>
           </v-list>
         </v-menu>

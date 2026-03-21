@@ -95,8 +95,7 @@ onMounted(async () => {
     <section>
       <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
         <div>
-          <h1 class="text-h5 font-weight-bold mb-1">Companies</h1>
-          <p class="text-body-2 text-medium-emphasis">List synchronized from the CRM API.</p>
+          <h2 class="text-h5 font-weight-bold mb-1">Companies</h2>
         </div>
         <div class="d-flex ga-2">
           <v-btn color="primary" @click="showCreateDialog = true">Add company</v-btn>
@@ -109,13 +108,13 @@ onMounted(async () => {
       </v-alert>
 
       <v-row v-if="isPageLoading">
-        <v-col v-for="i in 6" :key="`company-skeleton-${i}`" cols="12" md="6" lg="4">
+        <v-col v-for="i in 6" :key="`company-skeleton-${i}`" cols="12" md="6" lg="6">
           <v-skeleton-loader type="card, article" class="h-100" />
         </v-col>
       </v-row>
 
       <v-row v-else>
-        <v-col v-for="company in companies" :key="company.id" cols="12" md="6" lg="4">
+        <v-col v-for="company in companies" :key="company.id" cols="12" md="6" lg="6">
           <v-card rounded="xl" hover class="h-100 cursor-pointer" @click="goToCompany(company.id)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
