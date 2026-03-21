@@ -555,21 +555,25 @@ const signOut = async () => {
               </template>
             </v-list-item>
             <v-divider class="my-1" />
-            <v-list-subheader>Primary</v-list-subheader>
-            <div class="app-bar__option-row app-bar__option-row--primary">
-              <v-btn
-                v-for="option in primaryOptions"
-                :key="`primary-${option.value}`"
-                size="small"
-                variant="text"
-                class="app-bar__swatch-btn"
-                :class="{ 'app-bar__swatch-btn--active': themePreference.primary === option.value }"
-                :title="`Primary: ${option.label}`"
-                @click="setPrimaryTheme(option.value)"
-              >
-                <v-avatar size="20" :style="{ backgroundColor: option.color }" />
-                <v-icon v-if="themePreference.primary === option.value" size="14" icon="mdi-check" class="app-bar__swatch-check" />
-              </v-btn>
+            <div class="app-bar__setting-block">
+              <v-list-subheader class="app-bar__setting-title">Primary</v-list-subheader>
+              <p class="app-bar__setting-caption mb-2">Choisissez une couleur principale pour les boutons et accents.</p>
+              <div class="app-bar__option-row app-bar__option-row--primary">
+                <v-btn
+                  v-for="option in primaryOptions"
+                  :key="`primary-${option.value}`"
+                  size="small"
+                  variant="text"
+                  class="app-bar__swatch-btn"
+                  :class="{ 'app-bar__swatch-btn--active': themePreference.primary === option.value }"
+                  :title="`Primary: ${option.label}`"
+                  @click="setPrimaryTheme(option.value)"
+                >
+                  <v-avatar size="20" :style="{ backgroundColor: option.color }" />
+                  <span class="app-bar__swatch-label">{{ option.label }}</span>
+                  <v-icon v-if="themePreference.primary === option.value" size="14" icon="mdi-check" class="app-bar__swatch-check" />
+                </v-btn>
+              </div>
             </div>
             <v-divider class="my-1" />
             <v-list-subheader>Radius</v-list-subheader>
@@ -672,7 +676,11 @@ const signOut = async () => {
           :title="`Primary: ${option.label}`"
           :prepend-icon="themePreference.primary === option.value ? 'mdi-check-circle' : 'mdi-circle-outline'"
           @click="setPrimaryTheme(option.value)"
-        />
+        >
+          <template #append>
+            <v-avatar size="16" :style="{ backgroundColor: option.color }" />
+          </template>
+        </v-list-item>
         <v-list-item
           v-for="option in radiusOptions"
           :key="`mobile-radius-${option.value}`"
@@ -804,27 +812,57 @@ const signOut = async () => {
   padding: 0.25rem 0.75rem 0.5rem;
 }
 
+.app-bar__setting-block {
+  padding: 0 0.25rem;
+}
+
+.app-bar__setting-title {
+  padding-inline: 0.5rem;
+}
+
+.app-bar__setting-caption {
+  padding-inline: 0.75rem;
+  color: rgba(var(--v-theme-on-surface), 0.68);
+  font-size: 0.78rem;
+}
+
 .app-bar__option-row--primary {
-  gap: 0.75rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
 }
 
 .app-bar__swatch-btn {
-  min-width: auto;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  border-radius: 999px;
+  min-width: 0;
+  width: 100%;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  height: 38px;
+  padding: 0.25rem 0.5rem;
+  border-radius: 10px;
   position: relative;
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+}
+
+.app-bar__swatch-label {
+  font-size: 0.74rem;
+  color: rgba(var(--v-theme-on-surface), 0.78);
+  text-transform: none;
 }
 
 .app-bar__swatch-btn--active {
-  outline: 2px solid rgba(var(--v-theme-primary), 0.45);
+  border-color: rgba(var(--v-theme-primary), 0.45);
+  background: rgba(var(--v-theme-primary), 0.08);
+}
+
+.app-bar__swatch-btn--active .app-bar__swatch-label {
+  color: rgb(var(--v-theme-primary));
 }
 
 .app-bar__swatch-check {
   position: absolute;
-  right: -4px;
-  bottom: -4px;
+  right: 6px;
+  bottom: 6px;
   background: rgb(var(--v-theme-surface));
   border-radius: 999px;
 }
