@@ -1,5 +1,5 @@
 export type ThemeMode = 'light' | 'dark'
-export type ThemePrimary = 'pink' | 'blue' | 'green' | 'purple'
+export type ThemePrimary = 'pink' | 'blue' | 'green' | 'purple' | 'orange' | 'yellow' | 'teal' | 'gray-dark'
 export type ThemeRadius = 'standard' | 'compact' | 'comfortable' | 'rounded'
 export type ThemeShadow = 'standard' | 'soft' | 'medium' | 'strong'
 
@@ -16,7 +16,11 @@ export const themePrimaryOptions: Array<{ value: ThemePrimary, label: string, co
   { value: 'pink', label: 'Pink', color: '#e91e63' },
   { value: 'blue', label: 'Blue', color: '#1a73e8' },
   { value: 'green', label: 'Green', color: '#43a047' },
-  { value: 'purple', label: 'Purple', color: '#7e57c2' }
+  { value: 'purple', label: 'Purple', color: '#7e57c2' },
+  { value: 'orange', label: 'Orange', color: '#f57c00' },
+  { value: 'yellow', label: 'Yellow', color: '#f9a825' },
+  { value: 'teal', label: 'Teal', color: '#00897b' },
+  { value: 'gray-dark', label: 'Gray Dark', color: '#455a64' },
 ]
 
 export const themeRadiusOptions: Array<{ value: ThemeRadius, label: string, radius: string }> = [
@@ -84,7 +88,13 @@ export const parseThemeName = (themeName: string): ThemePreference | null => {
     }
   }
 
-  const [mode, primary] = themeName.split('-') as [ThemeMode | undefined, ThemePrimary | undefined]
+  const separatorIndex = themeName.indexOf('-')
+  if (separatorIndex === -1) {
+    return null
+  }
+
+  const mode = themeName.slice(0, separatorIndex) as ThemeMode | ''
+  const primary = themeName.slice(separatorIndex + 1) as ThemePrimary | ''
 
   if (!mode || !primary) {
     return null
@@ -157,12 +167,7 @@ export const isThemePreference = (value: unknown): value is ThemePreference => {
     && themeShadowOptions.some(option => option.value === candidate.shadow)
 }
 
-const normalizeThemePreference = (value: unknown): {
-    mode: "light" | "dark";
-    primary: "pink" | "blue" | "green" | "purple" | "teal" | "gray-dark" | "orange" | undefined;
-    radius: "standard" | "compact" | "comfortable" | "rounded" | undefined;
-    shadow: "standard" | "soft" | "medium" | "strong" | undefined
-} => {
+const normalizeThemePreference = (value: unknown): ThemePreference | null => {
   if (!value || typeof value !== 'object') {
     return null
   }
@@ -181,12 +186,7 @@ const normalizeThemePreference = (value: unknown): {
   }
 }
 
-export const readThemePreferenceFromSession = (): {
-    mode: "light" | "dark";
-    primary: "pink" | "blue" | "green" | "purple" | "teal" | "gray-dark" | "orange" | undefined;
-    radius: "standard" | "compact" | "comfortable" | "rounded" | undefined;
-    shadow: "standard" | "soft" | "medium" | "strong" | undefined
-} => {
+export const readThemePreferenceFromSession = (): ThemePreference | null => {
   if (!import.meta.client) {
     return null
   }
