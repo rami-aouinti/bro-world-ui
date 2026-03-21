@@ -15,7 +15,6 @@ const crmStore = useCrmStore()
 const { normalizeError } = useApiError()
 const { $errorLogger } = useNuxtApp()
 const errorMessage = ref('')
-const showCreateDialog = ref(false)
 const isMutating = ref(false)
 const isPageLoading = ref(true)
 const form = reactive<CreateCrmCompanyPayload>({

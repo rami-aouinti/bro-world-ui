@@ -124,15 +124,15 @@ onMounted(async () => {
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
-
+    <template #aside>
+      <div class="text-center">
+        <v-btn color="primary" @click="showCreateDialog = true" prepend-icon="mdi-plus">New Project</v-btn>
+      </div>
+    </template>
     <section>
-      <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
-        <div>
-          <h1 class="text-h5 font-weight-bold mb-1">Projects</h1>
-        </div>
+      <div class="d-flex align-center justify-end mb-4 flex-wrap ga-2">
         <div class="d-flex ga-2 flex-wrap">
-          <v-btn color="primary" @click="showCreateDialog = true" icon="mdi-plus"></v-btn>
-          <v-btn color="primary" variant="outlined" :loading="isLoading" @click="loadData" icon="mdi-refresh"></v-btn>
+          <v-btn size="sm" variant="text" :loading="isLoading" @click="loadData" icon="mdi-refresh"></v-btn>
         </div>
       </div>
 
@@ -143,8 +143,8 @@ onMounted(async () => {
       </v-row>
 
       <v-row v-else>
-        <v-col v-for="project in projects" :key="project.id" cols="12" md="6" lg="4">
-          <v-card rounded="xl" class="h-100 cursor-pointer projects-card" @click="goToProject(project.id)">
+        <v-col v-for="project in projects" :key="project.id" cols="12" md="6" lg="6">
+          <v-card rounded="xl" variant="outlined" class="h-100 cursor-pointer projects-card" @click="goToProject(project.id)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
                 <p class="text-subtitle-1 font-weight-bold">{{ project.name }}</p>

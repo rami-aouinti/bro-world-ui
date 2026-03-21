@@ -231,7 +231,7 @@ const loadEmployee = async () => {
     }))
   }
   catch {
-    errorMessage.value = 'Unable to load sprint details.'
+    errorMessage.value = 'Unable to load employees.'
   }
   finally {
     isLoading.value = false
@@ -247,158 +247,41 @@ onMounted(loadProject)
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
-
-    <section>
-      <div class="d-flex align-center justify-space-between mb-4 ga-2 flex-wrap">
-        <div>
-          <h1 class="text-h5 font-weight-bold mb-1">Project detail</h1>
-        </div>
-        <div class="d-flex ga-2 flex-wrap">
-          <v-btn color="primary" @click="showCreateTaskDialog = true">Ajouter un task</v-btn>
-          <v-menu location="bottom end">
-            <template #activator="{ props }">
-              <v-btn v-bind="props" icon="mdi-cog" variant="text" />
-            </template>
-            <v-list density="compact">
-              <v-list-item prepend-icon="mdi-pencil" title="Edit" @click="editProject" />
-              <v-list-item prepend-icon="mdi-delete" title="Delete" @click="deleteProject" />
-            </v-list>
-          </v-menu>
-          <v-btn variant="outlined" :loading="isLoading" @click="loadProject">Refresh</v-btn>
-        </div>
-      </div>
-
-      <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
-
-      <template v-if="isLoading && !project">
-        <v-skeleton-loader type="article, article, article" class="mb-4" />
-        <v-skeleton-loader type="heading, list-item-three-line, list-item-three-line" />
-      </template>
-
-      <div v-if="project" class="project-detail-grid">
+    <template #aside>
+      <div class="text-center">
+        <v-btn color="primary" @click="showCreateTaskDialog = true">New Task</v-btn>
         <v-expand-transition>
-          <v-card rounded="xl" class="detail-card">
+          <v-card rounded="xl" class="detail-card mt-4">
+            <v-card-title>Tasks</v-card-title>
             <v-card-text>
-              <div class="d-flex justify-space-between align-start ga-2 mb-4 flex-wrap">
-                <div>
-                  <p class="text-caption text-medium-emphasis mb-1">Name</p>
-                  <p class="text-h6 font-weight-bold mb-1">{{ project.name }}</p>
-                  <p class="text-body-2 text-medium-emphasis mb-0">Code: {{ project.code || 'N/A' }}</p>
-                </div>
-                <v-chip :color="projectStatusColor" variant="tonal">{{ project.status }}</v-chip>
-              </div>
-
-              <p class="text-caption text-medium-emphasis mb-1">Description</p>
-              <p class="text-body-2 mb-4">{{ project.description || 'N/A' }}</p>
-
-              <v-timeline density="compact" side="end" line-inset="8">
-                <v-timeline-item dot-color="primary" size="small">
-                  <div class="text-caption text-medium-emphasis">Started at</div>
-                  <div class="text-body-2">{{ formatDate(project.startedAt) }}</div>
-                </v-timeline-item>
-                <v-timeline-item dot-color="warning" size="small">
-                  <div class="text-caption text-medium-emphasis">Due at</div>
-                  <div class="text-body-2">{{ formatDate(project.dueAt) }}</div>
-                </v-timeline-item>
-              </v-timeline>
-            </v-card-text>
-          </v-card>
-        </v-expand-transition>
-
-        <v-expand-transition>
-          <v-card rounded="xl" class="detail-card">
-            <v-card-title>Attachments</v-card-title>
-            <v-card-text>
-              <div class="d-flex ga-2 align-center flex-wrap mb-4">
+              <div class="d-flex ga-2 align-center align-items-center flex-wrap mb-4">
                 <v-file-input
-                  v-model="filesToUpload"
-                  label="Ajouter des fichiers"
-                  multiple
-                  show-size
-                  chips
-                  density="comfortable"
-                  prepend-icon="mdi-paperclip"
-                  class="attachment-input"
-                  hide-details
+                    v-model="filesToUpload"
+                    multiple
+                    show-size
+                    chips
+                    density="compact"
+                    icon="mdi-paperclip"
+                    class="attachment-input"
+                    hide-details
                 />
                 <v-btn color="primary" :loading="isUploadingFiles" :disabled="!filesToUpload.length" @click="uploadProjectAttachments">Upload</v-btn>
               </div>
               <v-alert v-if="uploadErrorMessage" type="error" variant="tonal" class="mb-4">{{ uploadErrorMessage }}</v-alert>
-              <v-list v-if="(project.attachments || []).length" lines="two">
-                <v-list-item v-for="file in project.attachments || []" :key="`${file.url}-${file.uploadedAt}`" :title="file.originalName" :subtitle="`${file.mimeType} • ${formatFileSize(file.size)}`" :href="file.url" target="_blank">
-                  <template #append>
-                    <span class="text-caption text-medium-emphasis">{{ formatDate(file.uploadedAt) }}</span>
-                  </template>
+              <v-list v-if="(project.attachments || []).length" lines="one">
+                <v-list-item class="justify-content-start" v-for="file in project.attachments || []" :key="`${file.url}-${file.uploadedAt}`" :title="file.originalName" :subtitle="(`${formatFileSize(file.size)}`)" :href="file.url" target="_blank">
                 </v-list-item>
               </v-list>
               <p v-else class="text-body-2 text-medium-emphasis">No attachments available.</p>
             </v-card-text>
           </v-card>
         </v-expand-transition>
-
         <v-expand-transition>
           <v-card rounded="xl" class="detail-card">
-            <v-card-title>Wiki pages</v-card-title>
+            <v-card-title>Members</v-card-title>
             <v-card-text>
-              <v-expansion-panels v-if="(project.wikiPages || []).length" variant="accordion">
-                <v-expansion-panel v-for="wiki in project.wikiPages || []" :key="wiki.id">
-                  <v-expansion-panel-title>
-                    <div>
-                      <p class="text-subtitle-2 font-weight-bold mb-1">{{ wiki.title }}</p>
-                      <p class="text-caption text-medium-emphasis mb-0">Created {{ formatDate(wiki.createdAt) }}</p>
-                    </div>
-                  </v-expansion-panel-title>
-                  <v-expansion-panel-text>
-                    <p class="text-body-2 wiki-content">{{ wiki.content }}</p>
-                  </v-expansion-panel-text>
-                </v-expansion-panel>
-              </v-expansion-panels>
-              <p v-else class="text-body-2 text-medium-emphasis">No wiki pages available.</p>
-            </v-card-text>
-          </v-card>
-        </v-expand-transition>
-
-
-        <v-expand-transition>
-          <v-card rounded="xl" class="detail-card">
-            <v-card-title>Tasks</v-card-title>
-            <v-card-text>
-              <v-row v-if="(project.tasks || []).length" dense>
-                <v-col v-for="item in project.tasks || []" :key="item.id" cols="12" md="6">
-                  <v-card variant="tonal" class="task-card" @click="openTaskDetail(item.id)">
-                    <v-card-text>
-                      <div class="d-flex justify-space-between align-start ga-2">
-                        <p class="text-subtitle-2 font-weight-bold mb-1">{{ getTaskTitle(item) }}</p>
-                        <v-menu location="bottom end">
-                          <template #activator="{ props }">
-                            <v-btn v-bind="props" icon="mdi-cog" size="x-small" variant="text" @click.stop />
-                          </template>
-                          <v-list density="compact">
-                            <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="editProjectTask(item.id)" />
-                            <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="deleteProjectTask(item.id)" />
-                          </v-list>
-                        </v-menu>
-                      </div>
-                      <p class="text-body-2 text-medium-emphasis mb-2">{{ item.description || 'No description' }}</p>
-                      <div class="d-flex align-center justify-space-between ga-2 flex-wrap">
-                        <v-chip size="small" variant="tonal">{{ item.status }}</v-chip>
-                        <span class="text-caption text-medium-emphasis">{{ formatDate(item.dueAt) }}</span>
-                      </div>
-                    </v-card-text>
-                  </v-card>
-                </v-col>
-              </v-row>
-              <p v-else class="text-body-2 text-medium-emphasis">No tasks available.</p>
-            </v-card-text>
-          </v-card>
-        </v-expand-transition>
-
-        <v-expand-transition>
-          <v-card rounded="xl" class="detail-card">
-            <v-card-title>Assignees</v-card-title>
-            <v-card-text>
-              <div class="d-flex ga-2 align-center flex-wrap mb-4">
-                <v-select v-model="selectedUserId" label="Ajouter un user" :items="userOptions" item-title="title" item-value="value" class="assignee-select" hide-details>
+              <div class="d-flex ga-2 align-center flex-wrap mb-2">
+                <v-select density="compact" v-model="selectedUserId" label="Add user" :items="userOptions" item-title="title" item-value="value" class="assignee-select" hide-details>
                   <template #item="{ item, props }">
                     <v-list-item v-bind="props" :subtitle="item?.raw?.email">
                       <template #prepend><v-avatar size="28" :image="item?.raw?.photo || undefined" /></template>
@@ -419,8 +302,106 @@ onMounted(loadProject)
           </v-card>
         </v-expand-transition>
       </div>
-    
+    </template>
+    <section>
+      <div class="d-flex align-center justify-end mb-4 ga-2 flex-wrap">
+        <div class="d-flex ga-2 flex-wrap">
+          <v-menu location="bottom end">
+            <template #activator="{ props }">
+              <v-btn v-bind="props" icon="mdi-cog" variant="text" size="sm"  />
+            </template>
+            <v-list density="compact">
+              <v-list-item prepend-icon="mdi-pencil" title="Edit" @click="editProject" />
+              <v-list-item prepend-icon="mdi-delete" title="Delete" @click="deleteProject" />
+            </v-list>
+          </v-menu>
+          <v-btn variant="text" size="sm" icon="mdi-refresh" :loading="isLoading" @click="loadProject"></v-btn>
+        </div>
+      </div>
 
+      <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
+
+      <template v-if="isLoading && !project">
+        <v-skeleton-loader type="article, article, article" class="mb-4" />
+        <v-skeleton-loader type="heading, list-item-three-line, list-item-three-line" />
+      </template>
+
+      <div v-if="project" class="project-detail-grid">
+        <v-expand-transition>
+          <v-card rounded="xl" class="detail-card">
+            <v-card-text>
+              <div class="d-flex justify-space-between align-start ga-2 mb-4 flex-wrap">
+                <div>
+                  <p class="text-caption text-medium-emphasis mb-1">Name</p>
+                  <p class="text-h6 font-weight-bold mb-1">{{ project?.name }}</p>
+                  <p class="text-body-2 text-medium-emphasis mb-0">Code: {{ project?.code || 'N/A' }}</p>
+                </div>
+                <v-chip :color="projectStatusColor" variant="tonal">{{ project?.status }}</v-chip>
+              </div>
+
+              <p class="text-caption text-medium-emphasis mb-1">Description</p>
+              <p class="text-body-2 mb-4">{{ project?.description || 'N/A' }}</p>
+
+              <v-timeline density="compact" side="end" line-inset="8">
+                <v-timeline-item dot-color="primary" size="small">
+                  <div class="text-caption text-medium-emphasis">Started at</div>
+                  <div class="text-body-2">{{ formatDate(project?.startedAt) }}</div>
+                </v-timeline-item>
+                <v-timeline-item dot-color="warning" size="small">
+                  <div class="text-caption text-medium-emphasis">Due at</div>
+                  <div class="text-body-2">{{ formatDate(project?.dueAt) }}</div>
+                </v-timeline-item>
+              </v-timeline>
+            </v-card-text>
+          </v-card>
+        </v-expand-transition>
+        <v-expand-transition>
+          <v-card rounded="xl" class="detail-card">
+            <v-card-title>Wiki pages</v-card-title>
+            <v-card-text>
+              <v-expansion-panels v-if="(project.wikiPages || []).length" variant="accordion">
+                <v-expansion-panel v-for="wiki in project.wikiPages || []" :key="wiki.id">
+                  <v-expansion-panel-title>
+                    <div>
+                      <p class="text-subtitle-2 font-weight-bold mb-1">{{ wiki?.title }}</p>
+                      <p class="text-caption text-medium-emphasis mb-0">Created {{ formatDate(wiki?.createdAt) }}</p>
+                    </div>
+                  </v-expansion-panel-title>
+                  <v-expansion-panel-text>
+                    <p class="text-body-2 wiki-content">{{ wiki?.content }}</p>
+                  </v-expansion-panel-text>
+                </v-expansion-panel>
+              </v-expansion-panels>
+              <p v-else class="text-body-2 text-medium-emphasis">No wiki pages available.</p>
+            </v-card-text>
+          </v-card>
+        </v-expand-transition>
+        <v-row v-if="(project.tasks || []).length" dense>
+          <v-col v-for="item in project.tasks || []" :key="item.id" cols="12" md="6">
+            <v-card variant="outlined" class="task-card" @click="openTaskDetail(item.id)">
+              <v-card-text>
+                <div class="d-flex justify-space-between align-start ga-2">
+                  <p class="text-subtitle-2 font-weight-bold mb-1">{{ getTaskTitle(item) }}</p>
+                  <v-menu location="bottom end">
+                    <template #activator="{ props }">
+                      <v-btn v-bind="props" icon="mdi-cog" size="x-small" variant="text" @click.stop />
+                    </template>
+                    <v-list density="compact">
+                      <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="editProjectTask(item.id)" />
+                      <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="deleteProjectTask(item.id)" />
+                    </v-list>
+                  </v-menu>
+                </div>
+                <div class="d-flex align-center justify-space-between ga-2 flex-wrap">
+                  <v-chip size="small" variant="tonal">{{ item.status }}</v-chip>
+                  <span class="text-caption text-medium-emphasis">{{ formatDate(item.dueAt) }}</span>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+        <p v-else class="text-body-2 text-medium-emphasis">No tasks available.</p>
+      </div>
       <v-dialog v-model="showCreateTaskDialog" max-width="560">
         <v-card>
           <v-card-title>Ajouter un task au projet</v-card-title>
@@ -452,9 +433,6 @@ onMounted(loadProject)
 .detail-card {
   animation: card-enter 0.45s ease;
 }
-
-.assignee-select { min-width: 320px; }
-.attachment-input { min-width: 320px; }
 
 .wiki-content {
   white-space: pre-line;

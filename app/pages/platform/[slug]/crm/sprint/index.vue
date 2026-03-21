@@ -158,11 +158,11 @@ onMounted(async () => {
       </v-row>
 
       <v-row v-else>
-        <v-col v-for="sprint in sprints" :key="sprint.id" cols="12" md="6" lg="4">
-          <v-card rounded="xl" class="h-100 cursor-pointer sprints-card" @click="goToSprint(sprint.id)">
+        <v-col v-for="sprint in sprints" :key="sprint.id" cols="12" md="6" lg="6">
+          <v-card rounded="xl" variant="outlined" class="h-100 cursor-pointer sprints-card" @click="goToSprint(sprint.id)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
-                <p class="text-subtitle-1 font-weight-bold">{{ sprint.name }}</p>
+                <p class="text-subtitle-1 font-weight-bold">{{ sprint?.name }}</p>
                 <v-menu location="bottom end">
                   <template #activator="{ props }">
                     <v-btn

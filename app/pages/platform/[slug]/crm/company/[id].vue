@@ -108,25 +108,47 @@ onMounted(loadCompany)
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
-
+    <template #aside>
+      <div class="text-center">
+        <v-btn color="primary" @click="showCreateProjectDialog = true">Add Project</v-btn>
+        <v-row v-if="(company?.projects || []).length" class="mt-4" dense>
+          <v-col v-for="project in company.projects || []" :key="project.id" cols="12">
+            <v-card variant="outlined" class="project-card mt-3" @click="openProjectDetail(project?.id)">
+              <v-card-text>
+                <div class="d-flex justify-space-between align-start ga-2">
+                  <p class="text-subtitle-2 font-weight-bold mb-1">{{ project?.name }}</p>
+                  <v-menu location="bottom end">
+                    <template #activator="{ props }">
+                      <v-btn v-bind="props" icon="mdi-cog" size="x-small" variant="text" @click.stop />
+                    </template>
+                    <v-list density="compact">
+                      <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="editCompanyProject(project.id)" />
+                      <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="deleteCompanyProject(project.id)" />
+                    </v-list>
+                  </v-menu>
+                </div>
+                <p class="text-caption text-medium-emphasis mb-0">{{ project.id }}</p>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+        <p v-else class="text-body-2 text-medium-emphasis">No projects available.</p>
+      </div>
+    </template>
     <section>
-      <div class="d-flex align-center justify-space-between mb-4 ga-2 flex-wrap">
-        <div>
-          <h1 class="text-h5 font-weight-bold mb-1">Company detail</h1>
-          <p class="text-body-2 text-medium-emphasis mb-0">{{ companyId }}</p>
-        </div>
+      <div class="d-flex align-center justify-end mb-4 ga-2 flex-wrap">
         <div class="d-flex ga-2 flex-wrap">
-          <v-btn color="primary" @click="showCreateProjectDialog = true">Ajouter un projet</v-btn>
+
           <v-menu location="bottom end">
             <template #activator="{ props }">
-              <v-btn v-bind="props" icon="mdi-cog" variant="text" />
+              <v-btn v-bind="props" icon="mdi-cog" size="sm" variant="text" />
             </template>
             <v-list density="compact">
               <v-list-item prepend-icon="mdi-pencil" title="Edit" @click="editCompany" />
               <v-list-item prepend-icon="mdi-delete" title="Delete" @click="deleteCompany" />
             </v-list>
           </v-menu>
-          <v-btn variant="outlined" :loading="isLoading" @click="loadCompany">Refresh</v-btn>
+          <v-btn variant="text" icon="mdi-refresh" size="sm" :loading="isLoading" @click="loadCompany"></v-btn>
         </div>
       </div>
 
@@ -136,40 +158,11 @@ onMounted(loadCompany)
 
       <v-card v-if="company" rounded="xl">
         <v-card-text class="d-grid ga-2">
-          <p><strong>Name:</strong> {{ company.name }}</p>
-          <p><strong>Industry:</strong> {{ company.industry || 'N/A' }}</p>
-          <p><strong>Website:</strong> {{ company.website || 'N/A' }}</p>
-          <p><strong>Contact email:</strong> {{ company.contactEmail || 'N/A' }}</p>
-          <p><strong>Phone:</strong> {{ company.phone || 'N/A' }}</p>
-        </v-card-text>
-      </v-card>
-    
-
-      <v-card v-if="company" rounded="xl" class="mt-4">
-        <v-card-title>Projects</v-card-title>
-        <v-card-text>
-          <v-row v-if="(company.projects || []).length" dense>
-            <v-col v-for="project in company.projects || []" :key="project.id" cols="12" md="6">
-              <v-card variant="tonal" class="project-card" @click="openProjectDetail(project.id)">
-                <v-card-text>
-                  <div class="d-flex justify-space-between align-start ga-2">
-                    <p class="text-subtitle-2 font-weight-bold mb-1">{{ project.name }}</p>
-                    <v-menu location="bottom end">
-                      <template #activator="{ props }">
-                        <v-btn v-bind="props" icon="mdi-cog" size="x-small" variant="text" @click.stop />
-                      </template>
-                      <v-list density="compact">
-                        <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="editCompanyProject(project.id)" />
-                        <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="deleteCompanyProject(project.id)" />
-                      </v-list>
-                    </v-menu>
-                  </div>
-                  <p class="text-caption text-medium-emphasis mb-0">{{ project.id }}</p>
-                </v-card-text>
-              </v-card>
-            </v-col>
-          </v-row>
-          <p v-else class="text-body-2 text-medium-emphasis">No projects available.</p>
+          <p><strong>Name:</strong> {{ company?.name }}</p>
+          <p><strong>Industry:</strong> {{ company?.industry || 'N/A' }}</p>
+          <p><strong>Website:</strong> {{ company?.website || 'N/A' }}</p>
+          <p><strong>Contact email:</strong> {{ company?.contactEmail || 'N/A' }}</p>
+          <p><strong>Phone:</strong> {{ company?.phone || 'N/A' }}</p>
         </v-card-text>
       </v-card>
 
