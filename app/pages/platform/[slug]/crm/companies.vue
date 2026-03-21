@@ -60,7 +60,6 @@ const createCompany = async () => {
   isMutating.value = true
   try {
     await crmStore.createCompany(slug.value, { ...form, name: form.name.trim() })
-    showCreateDialog.value = false
     Object.assign(form, { name: '', industry: '', website: '', contactEmail: '', phone: '' })
   }
   finally {
@@ -91,15 +90,22 @@ onMounted(async () => {
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
-
+    <template #aside>
+      <div class="text-center">
+        <h3>New Company</h3>
+        <v-text-field v-model="form.name" rounded="xl" variant="outlined" label="Name" required />
+        <v-text-field v-model="form.industry" rounded="xl" variant="outlined"  label="Industry" />
+        <v-text-field v-model="form.website" rounded="xl" variant="outlined"  label="Website" />
+        <v-text-field v-model="form.contactEmail" rounded="xl" variant="outlined"  label="Contact email" type="email" />
+        <v-text-field v-model="form.phone" rounded="xl" variant="outlined" label="Phone" />
+        <v-spacer></v-spacer>
+        <v-btn color="primary" :loading="isMutating" @click="createCompany">Save company</v-btn>
+      </div>
+    </template>
     <section>
-      <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
-        <div>
-          <h2 class="text-h5 font-weight-bold mb-1">Companies</h2>
-        </div>
+      <div class="d-flex align-center justify-end mb-4 flex-wrap ga-2">
         <div class="d-flex ga-2">
-          <v-btn color="primary" @click="showCreateDialog = true">Add company</v-btn>
-          <v-btn variant="outlined" :loading="crmStore.isLoading" @click="loadCompanies(true)">Refresh</v-btn>
+          <v-btn variant="text" icon="mdi-refresh" size="sm" :loading="crmStore.isLoading" @click="loadCompanies(true)"></v-btn>
         </div>
       </div>
 
@@ -115,10 +121,12 @@ onMounted(async () => {
 
       <v-row v-else>
         <v-col v-for="company in companies" :key="company.id" cols="12" md="6" lg="6">
-          <v-card rounded="xl" hover class="h-100 cursor-pointer" @click="goToCompany(company.id)">
+          <v-card rounded="xl" variant="outlined" hover class="h-100 cursor-pointer" @click="goToCompany(company?.id)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
-                <p class="text-subtitle-1 font-weight-bold">{{ company.name }}</p>
+                <NuxtLink :to="company?.website" class="text-decoration-none">
+                  <p class="text-subtitle-1 font-weight-bold">{{ company?.name }}</p>
+                </NuxtLink>
                 <v-menu location="bottom end">
                   <template #activator="{ props }">
                     <v-btn
@@ -135,32 +143,13 @@ onMounted(async () => {
                   </v-list>
                 </v-menu>
               </div>
-              <p class="text-body-2 text-medium-emphasis mb-2">{{ company.industry || 'N/A' }}</p>
-              <p class="text-body-2 mb-1">{{ company.website || 'Website not specified' }}</p>
-              <p class="text-body-2 mb-1">{{ company.contactEmail || 'Email not specified' }}</p>
-              <p class="text-body-2">{{ company.phone || 'Phone not specified' }}</p>
+              <p class="text-body-2 text-medium-emphasis mb-2">{{ company?.industry || 'N/A' }}</p>
+              <p class="text-body-2 mb-1">Email : {{ company?.contactEmail || 'Email not specified' }}</p>
+              <p class="text-body-2">Phone : {{ company?.phone || 'Phone not specified' }}</p>
             </v-card-text>
           </v-card>
         </v-col>
       </v-row>
-
-      <v-dialog v-model="showCreateDialog" max-width="520">
-        <v-card>
-          <v-card-title>Add company</v-card-title>
-          <v-card-text>
-            <v-text-field v-model="form.name" label="Name" required />
-            <v-text-field v-model="form.industry" label="Industry" />
-            <v-text-field v-model="form.website" label="Website" />
-            <v-text-field v-model="form.contactEmail" label="Contact email" type="email" />
-            <v-text-field v-model="form.phone" label="Phone" />
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer />
-            <v-btn variant="text" @click="showCreateDialog = false">Cancel</v-btn>
-            <v-btn color="primary" :loading="isMutating" @click="createCompany">Create</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
     </section>
   </PlatformSplitLayout>
 </template>
