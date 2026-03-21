@@ -535,15 +535,7 @@ const signOut = async () => {
 
         <v-menu location="bottom end" :close-on-content-click="false">
           <template #activator="{ props }">
-            <v-btn
-              class="mx-1"
-              variant="text"
-              icon
-              v-bind="props"
-              :aria-label="t('app.navigation.toggleTheme')"
-            >
-              <v-icon :icon="isDark ? 'mdi-weather-night' : 'mdi-white-balance-sunny'" />
-            </v-btn>
+            <v-icon class="mx-2" v-bind="props" :icon="isDark ? 'mdi-weather-night' : 'mdi-white-balance-sunny'" />
           </template>
 
           <v-list class="py-2 px-2 app-bar__menu" min-width="280">
