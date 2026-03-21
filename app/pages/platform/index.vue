@@ -307,56 +307,41 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
   <PlatformSplitLayout>
 
     <template #sidebar>
-      <PlatformSidebarNav title="Platform" subtitle="platform.common.sidebar.application" :items="[]">
-        <div class="ga-3 d-flex flex-column">
-          <h3> Platform </h3>
-          <v-text-field
-              v-model="search"
-              :label="t('platform.filters.search')"
-              append-icon="mdi-magnify"
-              variant="outlined"
-              density="compact"
-              hide-details
-              @keyup.enter="applyFilters"
-          />
-
-          <p class="platform-page__platform-key-label mb-2">
-            {{ t("platform.filters.platformKey") }}
-          </p>
-          <div class="platform-page__platform-key-buttons mb-4">
-            <v-btn
-                v-for="platformKey in platformKeyOptions"
-                :key="platformKey"
-                :color="
+      <div class="ga-3 d-flex flex-column">
+        <h3> Platform </h3>
+        <div class="platform-page__platform-key-buttons mb-4">
+          <v-btn
+              v-for="platformKey in platformKeyOptions"
+              :key="platformKey"
+              :color="
                     selectedPlatformKey === platformKey ? 'primary' : undefined
                   "
-                :variant="
+              :variant="
                     selectedPlatformKey === platformKey ? 'flat' : 'outlined'
                   "
-                size="small"
-                rounded="xl"
-                variant="text"
-                class="text-lowercase mx-auto"
-                @click="togglePlatformKey(platformKey)"
-            >
-              {{ platformKey }}
-            </v-btn>
-          </div>
-
-          <div class="platform-page__filters-actions">
-            <v-btn color="primary" block @click="applyFilters">{{
-                t("platform.filters.apply")
-              }}</v-btn>
-            <v-btn
-                variant="text"
-                block
-                class="mt-2"
-                @click="clearFilters"
-            >{{ t("platform.filters.clear") }}</v-btn
-            >
-          </div>
+              size="small"
+              rounded="xl"
+              variant="text"
+              class="text-lowercase mx-auto"
+              @click="togglePlatformKey(platformKey)"
+          >
+            {{ platformKey }}
+          </v-btn>
         </div>
-      </PlatformSidebarNav>
+
+        <div class="platform-page__filters-actions">
+          <v-btn color="primary" block @click="applyFilters">{{
+              t("platform.filters.apply")
+            }}</v-btn>
+          <v-btn
+              variant="text"
+              block
+              class="mt-2"
+              @click="clearFilters"
+          >{{ t("platform.filters.clear") }}</v-btn
+          >
+        </div>
+      </div>
     </template>
 
     <template #aside>
@@ -415,6 +400,15 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
           </template>
         </UiEmptyState>
         <div v-else class="platform-page__content">
+          <v-text-field
+              v-model="search"
+              :label="t('platform.filters.search')"
+              variant="outlined"
+              density="compact"
+              rounded="xl"
+              hide-details
+              @keyup.enter="applyFilters"
+          />
           <v-row class="mt-2">
             <v-col cols="12" md="6" lg="6" v-for="card in applicationsStore.items" :key="card.id">
               <UiCard

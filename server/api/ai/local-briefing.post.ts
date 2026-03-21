@@ -69,7 +69,7 @@ const DEFAULT_WEATHER: WeatherContext = {
   apparentTemperatureC: null,
   windSpeedKmh: null,
   weatherCode: null,
-  weatherLabel: 'Météo indisponible',
+  weatherLabel: 'Weather not available',
 }
 
 const fallbackByWeather = (weatherLabel: string, hasWeather: boolean) => {
@@ -142,7 +142,7 @@ const parseBody = (rawBody: unknown): LocalBriefingBody => {
 const readHeader = (event: Parameters<typeof defineEventHandler>[0], name: string) => (getHeader(event, name) || '').trim()
 
 const extractHeaderLocation = (event: Parameters<typeof defineEventHandler>[0]) => ({
-  city: readHeader(event, 'x-vercel-ip-city') || 'Votre zone',
+  city: readHeader(event, 'x-vercel-ip-city') || 'Your zone',
   region: readHeader(event, 'x-vercel-ip-country-region') || '',
   country: readHeader(event, 'x-vercel-ip-country') || '',
 })
@@ -222,7 +222,7 @@ const fetchLocationFromCoordinates = async (
     const address = reverse.address
 
     return {
-      city: address?.city || address?.town || address?.village || headerLocation.city || 'Votre zone',
+      city: address?.city || address?.town || address?.village || headerLocation.city || 'Your zone',
       region: address?.state || headerLocation.region || '',
       country: address?.country || headerLocation.country || '',
       latitude: coordinates.latitude,
@@ -233,7 +233,7 @@ const fetchLocationFromCoordinates = async (
     console.warn('[local-briefing] reverse geocoding failed', error)
 
     return {
-      city: headerLocation.city || 'Votre zone',
+      city: headerLocation.city || 'Your zone',
       region: headerLocation.region,
       country: headerLocation.country,
       latitude: coordinates.latitude,
@@ -309,7 +309,7 @@ const fetchAiBriefing = async (location: LocalContext, weather: WeatherContext, 
   })
 
   const weatherDetails = weather.temperatureC === null
-    ? 'Météo locale indisponible.'
+    ? 'Weather not available.'
     : `${weather.weatherLabel}, ${Math.round(weather.temperatureC)}°C, vent ${Math.round(weather.windSpeedKmh || 0)} km/h.`
 
   const response = await $fetch<{
@@ -331,7 +331,7 @@ const fetchAiBriefing = async (location: LocalContext, weather: WeatherContext, 
         },
         {
           role: 'user',
-          content: `Contexte local: ${location.city}, ${location.region}, ${location.country}. Date locale: ${today}. ${weatherDetails} Propose un briefing utile pour un utilisateur de plateforme web.`,
+          content: `Context local: ${location.city}, ${location.region}, ${location.country}. Date locale: ${today}. ${weatherDetails} Propose briefing for connected user.`,
         },
       ],
     },
