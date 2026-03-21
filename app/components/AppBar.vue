@@ -509,7 +509,7 @@ const signOut = async () => {
           </v-list>
         </v-menu>
 
-        <v-menu location="bottom end">
+        <v-menu location="bottom end" :close-on-content-click="false">
           <template #activator="{ props }">
             <span class="px-2" v-bind="props">{{ getFlag(locale) }}</span>
           </template>
@@ -533,7 +533,7 @@ const signOut = async () => {
           </v-list>
         </v-menu>
 
-        <v-menu location="bottom end">
+        <v-menu location="bottom end" :close-on-content-click="false">
           <template #activator="{ props }">
             <v-btn
               class="mx-1"
@@ -546,7 +546,7 @@ const signOut = async () => {
             </v-btn>
           </template>
 
-          <v-list class="py-1 app-bar__menu" min-width="220">
+          <v-list class="py-2 px-2 app-bar__menu" min-width="280">
             <v-list-item
               :title="t('app.navigation.toggleTheme')"
               prepend-icon="mdi-theme-light-dark"
@@ -560,58 +560,57 @@ const signOut = async () => {
             </v-list-item>
             <v-divider class="my-1" />
             <v-list-subheader>Primary</v-list-subheader>
-            <v-list-item
-              v-for="option in primaryOptions"
-              :key="`primary-${option.value}`"
-              rounded="lg"
-              class="mx-2 my-1"
-              :active="themePreference.primary === option.value"
-              @click="setPrimaryTheme(option.value)"
-            >
-              <template #prepend>
-                <v-avatar size="18" :style="{ backgroundColor: option.color }" />
-              </template>
-              <v-list-item-title>{{ option.label }}</v-list-item-title>
-              <template #append>
-                <v-icon v-if="themePreference.primary === option.value" icon="mdi-check" size="16" />
-              </template>
-            </v-list-item>
+            <div class="app-bar__option-row app-bar__option-row--primary">
+              <v-btn
+                v-for="option in primaryOptions"
+                :key="`primary-${option.value}`"
+                size="small"
+                variant="text"
+                class="app-bar__swatch-btn"
+                :class="{ 'app-bar__swatch-btn--active': themePreference.primary === option.value }"
+                :title="`Primary: ${option.label}`"
+                @click="setPrimaryTheme(option.value)"
+              >
+                <v-avatar size="20" :style="{ backgroundColor: option.color }" />
+                <v-icon v-if="themePreference.primary === option.value" size="14" icon="mdi-check" class="app-bar__swatch-check" />
+              </v-btn>
+            </div>
             <v-divider class="my-1" />
             <v-list-subheader>Radius</v-list-subheader>
-            <v-list-item
-              v-for="option in radiusOptions"
-              :key="`radius-${option.value}`"
-              rounded="lg"
-              class="mx-2 my-1"
-              :active="themePreference.radius === option.value"
-              @click="setThemeRadius(option.value)"
-            >
-              <v-list-item-title>{{ option.label }}</v-list-item-title>
-              <template #append>
-                <v-icon v-if="themePreference.radius === option.value" icon="mdi-check" size="16" />
-              </template>
-            </v-list-item>
+            <div class="app-bar__option-row">
+              <v-btn
+                v-for="option in radiusOptions"
+                :key="`radius-${option.value}`"
+                size="small"
+                variant="tonal"
+                class="app-bar__option-pill"
+                :class="{ 'app-bar__option-pill--active': themePreference.radius === option.value }"
+                @click="setThemeRadius(option.value)"
+              >
+                {{ option.label }}
+              </v-btn>
+            </div>
             <v-divider class="my-1" />
             <v-list-subheader>Shadow</v-list-subheader>
-            <v-list-item
-              v-for="option in shadowOptions"
-              :key="`shadow-${option.value}`"
-              rounded="lg"
-              class="mx-2 my-1"
-              :active="themePreference.shadow === option.value"
-              @click="setThemeShadow(option.value)"
-            >
-              <v-list-item-title>{{ option.label }}</v-list-item-title>
-              <template #append>
-                <v-icon v-if="themePreference.shadow === option.value" icon="mdi-check" size="16" />
-              </template>
-            </v-list-item>
+            <div class="app-bar__option-row">
+              <v-btn
+                v-for="option in shadowOptions"
+                :key="`shadow-${option.value}`"
+                size="small"
+                variant="tonal"
+                class="app-bar__option-pill"
+                :class="{ 'app-bar__option-pill--active': themePreference.shadow === option.value }"
+                @click="setThemeShadow(option.value)"
+              >
+                {{ option.label }}
+              </v-btn>
+            </div>
           </v-list>
         </v-menu>
       </div>
     </template>
 
-    <v-menu v-else location="bottom end">
+    <v-menu v-else location="bottom end" :close-on-content-click="false">
       <template #activator="{ props }">
         <v-btn icon="mdi-menu" variant="text" v-bind="props" :aria-label="t('app.navigation.openMenu')" />
       </template>
@@ -800,6 +799,46 @@ const signOut = async () => {
   display: flex;
   align-items: center;
   min-width: 0;
+}
+
+.app-bar__option-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem 0.5rem;
+}
+
+.app-bar__option-row--primary {
+  gap: 0.75rem;
+}
+
+.app-bar__swatch-btn {
+  min-width: auto;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 999px;
+  position: relative;
+}
+
+.app-bar__swatch-btn--active {
+  outline: 2px solid rgba(var(--v-theme-primary), 0.45);
+}
+
+.app-bar__swatch-check {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  background: rgb(var(--v-theme-surface));
+  border-radius: 999px;
+}
+
+.app-bar__option-pill {
+  text-transform: none;
+}
+
+.app-bar__option-pill--active {
+  background: rgba(var(--v-theme-primary), 0.2);
 }
 
 .app-bar__message-item :deep(.v-list-item__content) {
