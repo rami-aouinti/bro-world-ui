@@ -147,6 +147,8 @@ export default defineNuxtConfig({
     cacheEnv: process.env.CACHE_ENV || process.env.NODE_ENV || 'dev',
     cacheApp: process.env.CACHE_APP || 'bro-ui',
     cacheVersion: process.env.CACHE_VERSION || 'v1',
+    aiGatewayApiKey: process.env.AI_GATEWAY_API_KEY || '',
+    aiGatewayModel: process.env.AI_GATEWAY_MODEL || 'openai/gpt-4o-mini',
     session: {
       name: 'nuxt-session',
       password: sessionPassword,
