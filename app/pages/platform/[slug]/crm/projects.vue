@@ -15,13 +15,45 @@ const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
 const crmStore = useCrmStore()
 const projects = computed(() => crmStore.getProjects(slug.value))
 const companies = computed(() => crmStore.getCompanies(slug.value))
-const companiesById = computed(() => new Map(companies.value.map(company => [company.id, company.name])))
 const showCreateDialog = ref(false)
 const isMutating = ref(false)
 const isPageLoading = ref(true)
 const isLoading = computed(() => crmStore.isLoading)
+const selectedStatusFilter = ref('all')
 const goToProject = (id: string) => navigateTo(`/platform/${slug.value}/crm/project/${id}`)
 const editProject = (id: string) => navigateTo(`/platform/${slug.value}/crm/project/${id}`)
+const statusFilters = computed(() => {
+  const counts = new Map<string, number>()
+
+  for (const project of projects.value) {
+    const status = (project.status || 'unknown').toLowerCase()
+    counts.set(status, (counts.get(status) ?? 0) + 1)
+  }
+
+  const total = projects.value.length || 1
+  const dynamicFilters = Array.from(counts.entries()).map(([value, count]) => ({
+    value,
+    label: value.charAt(0).toUpperCase() + value.slice(1),
+    count,
+    ratio: Math.round((count / total) * 100),
+  }))
+
+  return [
+    {
+      value: 'all',
+      label: 'All',
+      count: projects.value.length,
+      ratio: 100,
+    },
+    ...dynamicFilters,
+  ]
+})
+const filteredProjects = computed(() => {
+  if (selectedStatusFilter.value === 'all') {
+    return projects.value
+  }
+  return projects.value.filter(project => (project.status || 'unknown').toLowerCase() === selectedStatusFilter.value)
+})
 
 const form = reactive<CreateCrmProjectPayload>({
   name: '',
@@ -125,8 +157,24 @@ onMounted(async () => {
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
     <template #aside>
-      <div class="text-center">
-        <v-btn color="primary" @click="showCreateDialog = true" prepend-icon="mdi-plus">New Project</v-btn>
+      <div class="d-flex flex-column ga-4">
+        <v-btn color="primary" block @click="showCreateDialog = true" prepend-icon="mdi-plus">New Project</v-btn>
+        <v-card rounded="xl" variant="outlined">
+          <v-card-title class="text-subtitle-2">Filters</v-card-title>
+          <v-card-text class="d-flex flex-column ga-2">
+            <v-btn
+              v-for="filter in statusFilters"
+              :key="`project-filter-${filter.value}`"
+              :variant="selectedStatusFilter === filter.value ? 'flat' : 'tonal'"
+              :color="selectedStatusFilter === filter.value ? 'primary' : undefined"
+              class="justify-space-between"
+              @click="selectedStatusFilter = filter.value"
+            >
+              <span>{{ filter.label }} ({{ filter.count }})</span>
+              <span class="text-caption">{{ filter.ratio }}%</span>
+            </v-btn>
+          </v-card-text>
+        </v-card>
       </div>
     </template>
     <section>
@@ -143,7 +191,7 @@ onMounted(async () => {
       </v-row>
 
       <v-row v-else>
-        <v-col v-for="project in projects" :key="project.id" cols="12" md="6" lg="6">
+        <v-col v-for="project in filteredProjects" :key="project.id" cols="12" md="6" lg="6">
           <v-card rounded="xl" variant="outlined" class="h-100 cursor-pointer projects-card" @click="goToProject(project.id)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
@@ -164,8 +212,14 @@ onMounted(async () => {
                   </v-list>
                 </v-menu>
               </div>
+              <div class="d-flex align-center ga-2">
+                <v-chip size="small" variant="tonal">{{ project.status || 'unknown' }}</v-chip>
+              </div>
             </v-card-text>
           </v-card>
+        </v-col>
+        <v-col v-if="filteredProjects.length === 0" cols="12">
+          <v-alert type="info" variant="tonal">No projects found for this filter.</v-alert>
         </v-col>
       </v-row>
 

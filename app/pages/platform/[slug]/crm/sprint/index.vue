@@ -15,12 +15,44 @@ const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
 const crmStore = useCrmStore()
 const sprints = computed(() => crmStore.getSprints(slug.value))
 const projects = computed(() => crmStore.getProjects(slug.value))
-const projectsById = computed(() => new Map(projects.value.map(project => [project.id, project.name])))
 const showCreateDialog = ref(false)
 const isMutating = ref(false)
 const isPageLoading = ref(true)
 const goToSprint = (id: string) => navigateTo(`/platform/${slug.value}/crm/sprint/${id}`)
 const editSprint = (id: string) => navigateTo(`/platform/${slug.value}/crm/sprint/${id}`)
+const selectedStatusFilter = ref('all')
+const statusFilters = computed(() => {
+  const counts = new Map<string, number>()
+
+  for (const sprint of sprints.value) {
+    const status = (sprint.status || 'unknown').toLowerCase()
+    counts.set(status, (counts.get(status) ?? 0) + 1)
+  }
+
+  const total = sprints.value.length || 1
+  const dynamicFilters = Array.from(counts.entries()).map(([value, count]) => ({
+    value,
+    label: value.charAt(0).toUpperCase() + value.slice(1),
+    count,
+    ratio: Math.round((count / total) * 100),
+  }))
+
+  return [
+    {
+      value: 'all',
+      label: 'All',
+      count: sprints.value.length,
+      ratio: 100,
+    },
+    ...dynamicFilters,
+  ]
+})
+const filteredSprints = computed(() => {
+  if (selectedStatusFilter.value === 'all') {
+    return sprints.value
+  }
+  return sprints.value.filter(sprint => (sprint.status || 'unknown').toLowerCase() === selectedStatusFilter.value)
+})
 
 const form = reactive<CreateCrmSprintPayload>({
   name: '',
@@ -139,6 +171,27 @@ onMounted(async () => {
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
+    <template #aside>
+      <div class="d-flex flex-column ga-4">
+        <v-btn color="primary" block @click="showCreateDialog = true" prepend-icon="mdi-plus">New Sprint</v-btn>
+        <v-card rounded="xl" variant="outlined">
+          <v-card-title class="text-subtitle-2">Filters</v-card-title>
+          <v-card-text class="d-flex flex-column ga-2">
+            <v-btn
+              v-for="filter in statusFilters"
+              :key="`sprint-filter-${filter.value}`"
+              :variant="selectedStatusFilter === filter.value ? 'flat' : 'tonal'"
+              :color="selectedStatusFilter === filter.value ? 'primary' : undefined"
+              class="justify-space-between"
+              @click="selectedStatusFilter = filter.value"
+            >
+              <span>{{ filter.label }} ({{ filter.count }})</span>
+              <span class="text-caption">{{ filter.ratio }}%</span>
+            </v-btn>
+          </v-card-text>
+        </v-card>
+      </div>
+    </template>
 
     <section>
       <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
@@ -146,7 +199,6 @@ onMounted(async () => {
           <h1 class="text-h5 font-weight-bold mb-1">Sprint Board</h1>
         </div>
         <div class="d-flex ga-2 flex-wrap">
-          <v-btn color="primary" @click="showCreateDialog = true" icon="mdi-plus"></v-btn>
           <v-btn color="primary" variant="outlined" :loading="isLoading" @click="loadData" icon="mdi-refresh"></v-btn>
         </div>
       </div>
@@ -158,7 +210,7 @@ onMounted(async () => {
       </v-row>
 
       <v-row v-else>
-        <v-col v-for="sprint in sprints" :key="sprint.id" cols="12" md="6" lg="6">
+        <v-col v-for="sprint in filteredSprints" :key="sprint.id" cols="12" md="6" lg="6">
           <v-card rounded="xl" variant="outlined" class="h-100 cursor-pointer sprints-card" @click="goToSprint(sprint.id)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
@@ -179,9 +231,15 @@ onMounted(async () => {
                   </v-list>
                 </v-menu>
               </div>
+              <div class="mb-2">
+                <v-chip size="small" variant="tonal">{{ sprint.status || 'unknown' }}</v-chip>
+              </div>
               <p class="text-body-2 mb-2">{{ formatDateYmd(sprint.startDate) }} → {{ formatDateYmd(sprint.endDate) }}</p>
             </v-card-text>
           </v-card>
+        </v-col>
+        <v-col v-if="filteredSprints.length === 0" cols="12">
+          <v-alert type="info" variant="tonal">No sprints found for this filter.</v-alert>
         </v-col>
       </v-row>
 
