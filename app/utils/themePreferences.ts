@@ -1,7 +1,7 @@
 export type ThemeMode = 'light' | 'dark'
 export type ThemePrimary = 'pink' | 'blue' | 'green' | 'purple'
-export type ThemeRadius = 'compact' | 'comfortable' | 'rounded'
-export type ThemeShadow = 'soft' | 'medium' | 'strong'
+export type ThemeRadius = 'standard' | 'compact' | 'comfortable' | 'rounded'
+export type ThemeShadow = 'standard' | 'soft' | 'medium' | 'strong'
 
 export interface ThemePreference {
   mode: ThemeMode
@@ -16,16 +16,18 @@ export const themePrimaryOptions: Array<{ value: ThemePrimary, label: string, co
   { value: 'pink', label: 'Pink', color: '#e91e63' },
   { value: 'blue', label: 'Blue', color: '#1a73e8' },
   { value: 'green', label: 'Green', color: '#43a047' },
-  { value: 'purple', label: 'Purple', color: '#7e57c2' },
+  { value: 'purple', label: 'Purple', color: '#7e57c2' }
 ]
 
 export const themeRadiusOptions: Array<{ value: ThemeRadius, label: string, radius: string }> = [
+  { value: 'standard', label: 'Standard', radius: '0px' },
   { value: 'compact', label: 'Compact', radius: '8px' },
   { value: 'comfortable', label: 'Comfort', radius: '14px' },
   { value: 'rounded', label: 'Rounded', radius: '22px' },
 ]
 
 export const themeShadowOptions: Array<{ value: ThemeShadow, label: string, shadow: string }> = [
+  { value: 'standard', label: 'Standard', shadow: '0 0px 0px rgba(15, 23, 42, 0.08)' },
   { value: 'soft', label: 'Soft', shadow: '0 4px 14px rgba(15, 23, 42, 0.08)' },
   { value: 'medium', label: 'Medium', shadow: '0 8px 22px rgba(15, 23, 42, 0.14)' },
   { value: 'strong', label: 'Strong', shadow: '0 14px 30px rgba(15, 23, 42, 0.2)' },
@@ -66,8 +68,8 @@ const DARK_BASE_COLORS = {
 export const defaultThemePreference: ThemePreference = {
   mode: 'light',
   primary: 'pink',
-  radius: 'comfortable',
-  shadow: 'medium',
+  radius: 'standard',
+  shadow: 'standard',
 }
 
 export const buildThemeName = (preference: ThemePreference) => `${preference.mode}-${preference.primary}`
@@ -155,7 +157,12 @@ export const isThemePreference = (value: unknown): value is ThemePreference => {
     && themeShadowOptions.some(option => option.value === candidate.shadow)
 }
 
-const normalizeThemePreference = (value: unknown): ThemePreference | null => {
+const normalizeThemePreference = (value: unknown): {
+    mode: "light" | "dark";
+    primary: "pink" | "blue" | "green" | "purple" | "teal" | "gray-dark" | "orange" | undefined;
+    radius: "standard" | "compact" | "comfortable" | "rounded" | undefined;
+    shadow: "standard" | "soft" | "medium" | "strong" | undefined
+} => {
   if (!value || typeof value !== 'object') {
     return null
   }
@@ -174,7 +181,12 @@ const normalizeThemePreference = (value: unknown): ThemePreference | null => {
   }
 }
 
-export const readThemePreferenceFromSession = (): ThemePreference | null => {
+export const readThemePreferenceFromSession = (): {
+    mode: "light" | "dark";
+    primary: "pink" | "blue" | "green" | "purple" | "teal" | "gray-dark" | "orange" | undefined;
+    radius: "standard" | "compact" | "comfortable" | "rounded" | undefined;
+    shadow: "standard" | "soft" | "medium" | "strong" | undefined
+} => {
   if (!import.meta.client) {
     return null
   }

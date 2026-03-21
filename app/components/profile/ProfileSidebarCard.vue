@@ -20,12 +20,6 @@ const memberSince = computed(() => {
 
   return parsedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
 })
-
-const fakeBadges = [
-  { label: 'Ambassadeur', color: 'deep-purple' },
-  { label: 'Mentor actif', color: 'teal' },
-  { label: 'Verified profile', color: 'indigo' },
-]
 </script>
 
 <template>
