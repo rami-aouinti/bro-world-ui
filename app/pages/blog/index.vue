@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import BlogFeed from '~/components/plugins/BlogFeed.vue'
 import BlogSummaryCard from '~/components/plugins/BlogSummaryCard.vue'
+import BlogLocalInsightsCard from '~/components/blog/BlogLocalInsightsCard.vue'
 import { useBlogsStore } from '~/stores/blogs'
 import UiSkeletonCardGrid from "~/components/ui/state/UiSkeletonCardGrid.vue";
 
@@ -162,7 +163,7 @@ watch([infiniteSentinel, hasMorePosts], async () => {
     </template>
 
     <template #layout-aside>
-      <v-card rounded="xl" variant="tonal" class="blog-right-placeholder" />
+      <BlogLocalInsightsCard />
     </template>
 
     <main>
@@ -206,9 +207,4 @@ watch([infiniteSentinel, hasMorePosts], async () => {
   background: linear-gradient(180deg, rgba(var(--v-theme-surface), 0.92), rgba(var(--v-theme-surface-variant), 0.24));
 }
 
-.blog-right-placeholder {
-  min-height: calc(83vh - var(--app-split-shell-margin) * 2);
-  border: 1px dashed rgba(var(--v-theme-on-surface), 0.22);
-  background: color-mix(in srgb, rgb(var(--v-theme-surface-variant)) 46%, transparent);
-}
 </style>
