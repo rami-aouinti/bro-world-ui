@@ -168,6 +168,73 @@ onMounted(async () => {
       </v-card>
       <ProfileSidebarCard v-else />
     </template>
+    <template #aside>
+      <v-card elevation="8" rounded="xl" v-if="friendsStore.friends.length">
+          <h6 class="text-h6 font-weight-bold mb-2">Amis ({{ friendsStore.friends.length }})</h6>
+          <v-list v-if="friendsStore.friends.length" class="pa-0 bg-transparent">
+            <v-list-item v-for="friend in friendsStore.friends" :key="friend.id" class="px-0">
+              <template #prepend>
+                <v-avatar size="24" class="mr-1"><v-img :src="friend.photo || undefined" /></v-avatar>
+              </template>
+              <v-list-item-title>{{ friendDisplayName(friend) }}</v-list-item-title>
+              <template #append>
+                <div class="d-flex ga-2 px-1">
+                  <v-btn icon="mdi-eye" size="small" variant="text" color="success" :to="`/user/${encodeURIComponent(friend.username)}/profile`"></v-btn>
+                  <v-btn icon="mdi-account-minus"  size="small" color="warning" variant="text" :loading="pendingActionKey === `remove-${friend.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`remove-${friend.id}`, () => friendsStore.removeFriend(friend.id))"></v-btn>
+                  <v-btn icon="mdi-account-off"  size="small" color="error" variant="text" :loading="pendingActionKey === `block-friend-${friend.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`block-friend-${friend.id}`, () => friendsStore.blockUser(friend.id))"></v-btn>
+                </div>
+              </template>
+            </v-list-item>
+          </v-list>
+          <p v-else class="text-body-2 text-medium-emphasis mb-0">No friends.</p>
+        </v-card>
+
+      <v-card class="pa-1" elevation="2" rounded="xl">
+          <h6 class="text-h6 font-weight-bold mb-2">Received requests ({{ friendsStore.incomingRequests.length }})</h6>
+          <v-list v-if="friendsStore.incomingRequests.length" class="pa-0 bg-transparent">
+            <v-list-item v-for="user in friendsStore.incomingRequests" :key="user.id" class="px-0">
+              <v-list-item-title>{{ friendDisplayName(user) }}</v-list-item-title>
+              <template #append>
+                <div class="d-flex ga-2">
+                  <v-btn icon="mdi-account-check" size="small" color="success" variant="text" :loading="pendingActionKey === `accept-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`accept-${user.id}`, () => friendsStore.acceptRequest(user.id))"></v-btn>
+                  <v-btn icon="mdi-account-minus" size="small" color="warning" variant="text" :loading="pendingActionKey === `reject-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`reject-${user.id}`, () => friendsStore.rejectRequest(user.id))"></v-btn>
+                  <v-btn icon="mdi-account-off" size="small" color="error" variant="text" :loading="pendingActionKey === `block-incoming-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`block-incoming-${user.id}`, () => friendsStore.blockUser(user.id))"></v-btn>
+                </div>
+              </template>
+            </v-list-item>
+          </v-list>
+          <p v-else class="text-body-2 text-medium-emphasis mb-0">No requests received.</p>
+        </v-card>
+
+      <v-card class="pa-1" elevation="2" rounded="xl">
+          <h6 class="text-h6 font-weight-bold mb-2">Sent requests ({{ friendsStore.sentRequests.length }})</h6>
+          <v-list v-if="friendsStore.sentRequests.length" class="pa-0 bg-transparent">
+            <v-list-item v-for="user in friendsStore.sentRequests" :key="user.id" class="px-0">
+              <v-list-item-title>{{ friendDisplayName(user) }}</v-list-item-title>
+              <template #append>
+                <div class="d-flex ga-2">
+                  <v-btn icon="mdi-account-alert" size="small" color="warning" variant="text" :loading="pendingActionKey === `cancel-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`cancel-${user.id}`, () => friendsStore.cancelSentRequest(user.id))"></v-btn>
+                  <v-btn icon="mdi-account-off" size="small" color="error" variant="text" :loading="pendingActionKey === `block-sent-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`block-sent-${user.id}`, () => friendsStore.blockUser(user.id))"></v-btn>
+                </div>
+              </template>
+            </v-list-item>
+          </v-list>
+          <p v-else class="text-body-2 text-medium-emphasis mb-0">No requests sent.</p>
+        </v-card>
+
+      <v-card class="pa-1" elevation="2" rounded="xl">
+          <h6 class="text-h6 font-weight-bold mb-2">Blocked users ({{ friendsStore.blockedUsers.length }})</h6>
+          <v-list v-if="friendsStore.blockedUsers.length" class="pa-0 bg-transparent">
+            <v-list-item v-for="user in friendsStore.blockedUsers" :key="user.id" class="px-0">
+              <v-list-item-title>{{ friendDisplayName(user) }}</v-list-item-title>
+              <template #append>
+                <v-btn icon="mdi-account-alert" size="small" color="warning" variant="text" :loading="pendingActionKey === `unblock-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`unblock-${user.id}`, () => friendsStore.unblockUser(user.id))"></v-btn>
+              </template>
+            </v-list-item>
+          </v-list>
+          <p v-else class="text-body-2 text-medium-emphasis mb-0">No blocked users.</p>
+        </v-card>
+    </template>
 
     <section>
       <template v-if="isLoading">
@@ -184,7 +251,7 @@ onMounted(async () => {
       <v-alert v-if="actionError" type="error" variant="tonal" class="mb-4">{{ actionError }}</v-alert>
 
       <v-row class="mb-1">
-        <v-col v-for="item in profileStats" :key="item.label" cols="12" sm="6" md="3">
+        <v-col v-for="item in profileStats" :key="item.label" cols="12" sm="6" md="6">
           <v-card class="pa-4 h-100" elevation="1" rounded="xl">
             <div class="d-flex align-center justify-space-between mb-2">
               <span class="text-caption text-medium-emphasis">{{ item.label }}</span>
@@ -193,23 +260,6 @@ onMounted(async () => {
               </v-avatar>
             </div>
             <p class="text-h5 font-weight-bold mb-0">{{ item.value }}</p>
-          </v-card>
-        </v-col>
-      </v-row>
-
-      <v-row>
-        <v-col v-for="highlight in fakeHighlights" :key="highlight.title" cols="12" md="4">
-          <v-card class="pa-4 h-100" rounded="xl" variant="outlined">
-            <div class="d-flex align-center ga-3">
-              <v-avatar size="40" :color="highlight.color" variant="tonal">
-                <v-icon :icon="highlight.icon" />
-              </v-avatar>
-              <div>
-                <p class="mb-0 text-subtitle-2">{{ highlight.title }}</p>
-                <p class="text-body-2 text-medium-emphasis mb-0">{{ highlight.helper }}</p>
-              </div>
-            </div>
-            <p class="text-h5 font-weight-bold mt-4 mb-0">{{ highlight.value }}</p>
           </v-card>
         </v-col>
       </v-row>
@@ -244,9 +294,9 @@ onMounted(async () => {
           </v-card>
         </v-col>
 
-        <v-col cols="12" md="6">
-          <v-card class="h-100 pa-5" elevation="2" rounded="xl">
-            <div class="d-flex align-center justify-space-between mb-4">
+        <v-col cols="12">
+          <v-card class="h-100 pa-3" variant="outlined" elevation="2" rounded="xl">
+            <div class="d-flex align-center justify-space-between mb-2">
               <h6 class="text-h6 font-weight-bold mb-0">Latest applications ({{ latestApplicationsCount }})</h6>
               <v-btn size="small" variant="text" to="/profile/applications">See all</v-btn>
             </div>
@@ -262,85 +312,7 @@ onMounted(async () => {
           </v-card>
         </v-col>
 
-        <v-col cols="12" md="6">
-          <v-card class="pa-5" elevation="2" rounded="xl">
-            <h6 class="text-h6 font-weight-bold mb-4">Amis ({{ friendsStore.friends.length }})</h6>
-            <v-list v-if="friendsStore.friends.length" class="pa-0 bg-transparent">
-              <v-list-item v-for="friend in friendsStore.friends" :key="friend.id" class="px-0">
-                <template #prepend>
-                  <v-avatar size="36" class="mr-2"><v-img :src="friend.photo || undefined" /></v-avatar>
-                </template>
-                <v-list-item-title>{{ friendDisplayName(friend) }}</v-list-item-title>
-                <v-list-item-subtitle>@{{ friend.username }}</v-list-item-subtitle>
-                <template #append>
-                  <div class="d-flex ga-2">
-                    <v-btn size="small" variant="text" :to="`/user/${encodeURIComponent(friend.username)}/profile`">Voir</v-btn>
-                    <v-btn size="small" color="warning" variant="tonal" :loading="pendingActionKey === `remove-${friend.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`remove-${friend.id}`, () => friendsStore.removeFriend(friend.id))">Retirer</v-btn>
-                    <v-btn size="small" color="error" variant="tonal" :loading="pendingActionKey === `block-friend-${friend.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`block-friend-${friend.id}`, () => friendsStore.blockUser(friend.id))">Bloquer</v-btn>
-                  </div>
-                </template>
-              </v-list-item>
-            </v-list>
-            <p v-else class="text-body-2 text-medium-emphasis mb-0">No friends.</p>
-          </v-card>
-        </v-col>
-
-        <v-col cols="12" md="6">
-          <v-card class="pa-5" elevation="2" rounded="xl">
-            <h6 class="text-h6 font-weight-bold mb-4">Received requests ({{ friendsStore.incomingRequests.length }})</h6>
-            <v-list v-if="friendsStore.incomingRequests.length" class="pa-0 bg-transparent">
-              <v-list-item v-for="user in friendsStore.incomingRequests" :key="user.id" class="px-0">
-                <v-list-item-title>{{ friendDisplayName(user) }}</v-list-item-title>
-                <v-list-item-subtitle>@{{ user.username }}</v-list-item-subtitle>
-                <template #append>
-                  <div class="d-flex ga-2">
-                    <v-btn size="small" color="success" variant="tonal" :loading="pendingActionKey === `accept-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`accept-${user.id}`, () => friendsStore.acceptRequest(user.id))">Accepter</v-btn>
-                    <v-btn size="small" color="warning" variant="tonal" :loading="pendingActionKey === `reject-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`reject-${user.id}`, () => friendsStore.rejectRequest(user.id))">Refuser</v-btn>
-                    <v-btn size="small" color="error" variant="tonal" :loading="pendingActionKey === `block-incoming-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`block-incoming-${user.id}`, () => friendsStore.blockUser(user.id))">Bloquer</v-btn>
-                  </div>
-                </template>
-              </v-list-item>
-            </v-list>
-            <p v-else class="text-body-2 text-medium-emphasis mb-0">No requests received.</p>
-          </v-card>
-        </v-col>
-
-        <v-col cols="12" md="6">
-          <v-card class="pa-5" elevation="2" rounded="xl">
-            <h6 class="text-h6 font-weight-bold mb-4">Sent requests ({{ friendsStore.sentRequests.length }})</h6>
-            <v-list v-if="friendsStore.sentRequests.length" class="pa-0 bg-transparent">
-              <v-list-item v-for="user in friendsStore.sentRequests" :key="user.id" class="px-0">
-                <v-list-item-title>{{ friendDisplayName(user) }}</v-list-item-title>
-                <v-list-item-subtitle>@{{ user.username }}</v-list-item-subtitle>
-                <template #append>
-                  <div class="d-flex ga-2">
-                    <v-btn size="small" color="warning" variant="tonal" :loading="pendingActionKey === `cancel-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`cancel-${user.id}`, () => friendsStore.cancelSentRequest(user.id))">Cancel</v-btn>
-                    <v-btn size="small" color="error" variant="tonal" :loading="pendingActionKey === `block-sent-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`block-sent-${user.id}`, () => friendsStore.blockUser(user.id))">Bloquer</v-btn>
-                  </div>
-                </template>
-              </v-list-item>
-            </v-list>
-            <p v-else class="text-body-2 text-medium-emphasis mb-0">No requests sent.</p>
-          </v-card>
-        </v-col>
-
-        <v-col cols="12" md="6">
-          <v-card class="pa-5" elevation="2" rounded="xl">
-            <h6 class="text-h6 font-weight-bold mb-4">Blocked users ({{ friendsStore.blockedUsers.length }})</h6>
-            <v-list v-if="friendsStore.blockedUsers.length" class="pa-0 bg-transparent">
-              <v-list-item v-for="user in friendsStore.blockedUsers" :key="user.id" class="px-0">
-                <v-list-item-title>{{ friendDisplayName(user) }}</v-list-item-title>
-                <v-list-item-subtitle>@{{ user.username }}</v-list-item-subtitle>
-                <template #append>
-                  <v-btn size="small" color="warning" variant="tonal" :loading="pendingActionKey === `unblock-${user.id}`" :disabled="friendsStore.actionLoading" @click="runAction(`unblock-${user.id}`, () => friendsStore.unblockUser(user.id))">Unblock</v-btn>
-                </template>
-              </v-list-item>
-            </v-list>
-            <p v-else class="text-body-2 text-medium-emphasis mb-0">No blocked users.</p>
-          </v-card>
-        </v-col>
-
-        <v-col cols="12" md="6">
+        <v-col cols="12">
           <v-card class="pa-5" elevation="2" rounded="xl">
             <h6 class="text-h6 font-weight-bold mb-4">{{ t('profilePage.timeline.recentActivity') }}</h6>
             <v-timeline density="compact" side="end" class="pa-0">

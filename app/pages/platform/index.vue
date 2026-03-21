@@ -5,6 +5,7 @@ import UiEmptyState from "~/components/ui/state/UiEmptyState.vue";
 import UiSkeletonCardGrid from "~/components/ui/state/UiSkeletonCardGrid.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
 import PlatformSidebarNav from "~/components/platform/PlatformSidebarNav.vue";
+import UiCard from '~/components/ui/UiCard.vue'
 
 const UiActionDialog = defineAsyncComponent(() => import("~/components/ui/UiActionDialog.vue"));
 const UiActionConfirmDialog = defineAsyncComponent(() => import("~/components/ui/UiActionConfirmDialog.vue"));
@@ -126,7 +127,7 @@ const summaryHighlights = computed(() => {
 
 const { pending: applicationsPending, execute: loadApplications } = useAsyncData(
   "platform-applications",
-  () => applicationsStore.fetch({ limit: 5 }),
+  () => applicationsStore.fetch({ limit: 4 }),
   {
     server: false,
     immediate: false,
@@ -193,7 +194,7 @@ const applyFilters = async () => {
   applicationsStore.setPage(1);
   await applicationsStore.fetch({
     page: 1,
-    limit: 5,
+    limit: 4,
     filters: {
       search: search.value,
       platformKey: selectedPlatformKey.value,
@@ -307,54 +308,74 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
 
     <template #sidebar>
       <PlatformSidebarNav title="Platform" subtitle="platform.common.sidebar.application" :items="[]">
-        <h3> Platform </h3>
-        <v-text-field
-            v-model="search"
-            :label="t('platform.filters.search')"
-            prepend-inner-icon="mdi-magnify"
-            variant="outlined"
-            flat
-            density="compact"
-            hide-details
-            class="mb-4"
-            @keyup.enter="applyFilters"
-        />
+        <div class="ga-3 d-flex flex-column">
+          <h3> Platform </h3>
+          <v-text-field
+              v-model="search"
+              :label="t('platform.filters.search')"
+              append-icon="mdi-magnify"
+              variant="outlined"
+              density="compact"
+              hide-details
+              @keyup.enter="applyFilters"
+          />
 
-        <p class="platform-page__platform-key-label mb-2">
-          {{ t("platform.filters.platformKey") }}
-        </p>
-        <div class="platform-page__platform-key-buttons mb-4">
-          <v-btn
-              v-for="platformKey in platformKeyOptions"
-              :key="platformKey"
-              :color="
+          <p class="platform-page__platform-key-label mb-2">
+            {{ t("platform.filters.platformKey") }}
+          </p>
+          <div class="platform-page__platform-key-buttons mb-4">
+            <v-btn
+                v-for="platformKey in platformKeyOptions"
+                :key="platformKey"
+                :color="
                     selectedPlatformKey === platformKey ? 'primary' : undefined
                   "
-              :variant="
+                :variant="
                     selectedPlatformKey === platformKey ? 'flat' : 'outlined'
                   "
-              size="small"
-              rounded="pill"
-              variant="test"
-              class="text-lowercase mx-auto"
-              @click="togglePlatformKey(platformKey)"
-          >
-            {{ platformKey }}
-          </v-btn>
-        </div>
+                size="small"
+                rounded="xl"
+                variant="text"
+                class="text-lowercase mx-auto"
+                @click="togglePlatformKey(platformKey)"
+            >
+              {{ platformKey }}
+            </v-btn>
+          </div>
 
-        <div class="platform-page__filters-actions">
-          <v-btn color="primary" block @click="applyFilters">{{
-              t("platform.filters.apply")
-            }}</v-btn>
-          <v-btn
-              variant="text"
-              block
-              class="mt-2"
-              @click="clearFilters"
-          >{{ t("platform.filters.clear") }}</v-btn
-          >
+          <div class="platform-page__filters-actions">
+            <v-btn color="primary" block @click="applyFilters">{{
+                t("platform.filters.apply")
+              }}</v-btn>
+            <v-btn
+                variant="text"
+                block
+                class="mt-2"
+                @click="clearFilters"
+            >{{ t("platform.filters.clear") }}</v-btn
+            >
+          </div>
         </div>
+      </PlatformSidebarNav>
+    </template>
+
+    <template #aside>
+      <UiCard
+          @click="goToNewPlatform"
+          class="home-hero platform-page__application-card"
+          height="200"
+          variant="outlined"
+          rounded="xl"
+          elevation="8"
+      >
+        <v-card-text>
+          <div class="d-flex flex-column align-center">
+            <v-icon icon="mdi-earth" size="64" class="mx-auto" color="primary" />
+            <h3> {{ t("platform.newPlatform.worldTitle") }} </h3>
+          </div>
+        </v-card-text>
+      </UiCard>
+      <div class="d-flex flex-column align-center mt-4">
         <article
             v-for="highlight in summaryHighlights"
             :key="highlight.label"
@@ -364,11 +385,11 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
           <p class="platform-page__highlight-label px-2">{{ highlight.label }}</p>
           <p class="platform-page__highlight-value px-2">{{ highlight.value }}</p>
         </article>
-      </PlatformSidebarNav>
+      </div>
     </template>
 
     <section>
-      <UiSkeletonCardGrid :cards="6" :columns="4"  v-if="loading" />
+      <UiSkeletonCardGrid :cards="4" :columns="6"  v-if="loading" />
       <div v-else>
         <UiEmptyState
             v-if="isEmpty"
@@ -378,9 +399,9 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
             class="platform-page__state"
         >
           <template #action>
-            <v-card
+            <UiCard
                 @click="goToNewPlatform"
-                class="platform-page__application-card"
+                class="home-hero platform-page__application-card"
                 rounded="xl"
                 elevation="8"
             >
@@ -390,36 +411,20 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
                   <h2> {{ t("platform.newPlatform.worldTitle") }} </h2>
                 </div>
               </v-card-text>
-            </v-card>
+            </UiCard>
           </template>
         </UiEmptyState>
         <div v-else class="platform-page__content">
-          <v-row class="mt-12">
-            <v-col cols="12" md="6" lg="4">
-              <v-card
-                  @click="goToNewPlatform"
-                  class="platform-page__application-card"
+          <v-row class="mt-2">
+            <v-col cols="12" md="6" lg="6" v-for="card in applicationsStore.items" :key="card.id">
+              <UiCard
+                  class="home-hero platform-page__application-card"
                   rounded="xl"
-                  elevation="8"
-              >
-                <v-card-text>
-                  <div class="d-flex flex-column align-center">
-                    <v-icon icon="mdi-earth" size="64" class="mx-auto" color="primary" />
-                    <h2> {{ t("platform.newPlatform.worldTitle") }} </h2>
-                  </div>
-                </v-card-text>
-              </v-card>
-            </v-col>
-            <v-col cols="12" md="6" lg="4" v-for="card in applicationsStore.items" :key="card.id">
-              <v-card
-                  class="platform-page__application-card"
-                  rounded="xl"
+                  variant="outlined"
+                  height="180"
                   elevation="8"
               >
                 <v-toolbar color="transparent">
-                  <template v-slot:prepend>
-                    <v-img rounded="xl" :src="card.photo" cover color="primary" :alt="card.title" height="40" width="40" />
-                  </template>
                   <NuxtLink :to="appHomePath(card)" class="platform-page__row-main-link">
                     <v-toolbar-title class="mt-4 mx-auto">
                       <p class="platform-page__row-title">{{ card.title }}</p>
@@ -459,16 +464,6 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
 
                 <v-card-actions>
                   <v-row>
-                    <div class="justify-self-start">
-                      <UserIdentity
-                          :first-name="card.author?.firstName"
-                          :last-name="card.author?.lastName"
-                          :username="authorUsername(card)"
-                          :photo="card.author?.photo"
-                          :profile-path="authorProfilePath(card)"
-                      />
-                    </div>
-                    <v-spacer></v-spacer>
                     <div class="justify-items-end">
                       <v-chip size="small" variant="tonal" class="text-uppercase">
                         {{ card.platformKey }}
@@ -476,14 +471,14 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
                     </div>
                   </v-row>
                 </v-card-actions>
-              </v-card>
+              </UiCard>
             </v-col>
           </v-row>
           <div class="platform-pagination">
             <v-pagination
                 :model-value="applicationsStore.pagination.page"
                 :length="applicationsStore.pagination.totalPages"
-                :total-visible="6"
+                :total-visible="4"
                 @update:model-value="onPageChange"
             />
           </div>
@@ -559,11 +554,6 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
   position: fixed; bottom: 0; justify-content: center; width: 100%;
 }
 
-.platform-page__state {
-  border: 1px dashed var(--platform-color-border);
-  border-radius: var(--platform-radius-md);
-}
-
 .platform-page__layout {
   display: grid;
   grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
@@ -579,23 +569,15 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
 .platform-page__filters {
   position: relative;
   border-radius: var(--platform-radius-md);
-  border: 1px solid var(--platform-color-border);
   box-shadow: var(--platform-shadow-sm);
-  background: linear-gradient(
-    180deg,
-    var(--platform-color-surface) 0%,
-    var(--platform-color-surface-muted) 100%
-  );
 }
 
 .platform-page__filters-title {
   font-weight: 700;
-  color: var(--platform-color-text-primary);
 }
 
 .platform-page__platform-key-label {
   font-size: 0.86rem;
-  color: var(--platform-color-text-secondary);
   font-weight: 600;
 }
 
@@ -619,9 +601,6 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
 }
 
 .platform-page__hero {
-  border: 1px solid color-mix(in srgb, var(--platform-color-primary) 18%, var(--platform-color-border));
-  background: radial-gradient(circle at top right, rgba(39, 117, 255, 0.17), transparent 48%),
-    linear-gradient(180deg, color-mix(in srgb, var(--platform-color-surface) 90%, #fff 10%) 0%, var(--platform-color-surface) 100%);
   padding: clamp(1rem, 1.4vw + 0.8rem, 1.8rem);
 }
 
@@ -638,12 +617,10 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
   margin: 0;
   font-size: clamp(1.4rem, 1.8vw + 1rem, 2rem);
   line-height: 1.2;
-  color: var(--platform-color-text-primary);
 }
 
 .platform-page__hero-description {
   max-width: 62ch;
-  color: var(--platform-color-text-secondary);
   font-size: 0.98rem;
 }
 
@@ -653,18 +630,16 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
 }
 
 .platform-page__highlight {
-  border: 1px solid color-mix(in srgb, var(--platform-color-border) 70%, transparent);
   border-radius: var(--platform-radius-md);
-  background: color-mix(in srgb, var(--platform-color-surface) 86%, #fff 14%);
   padding: 0.7rem 0.85rem;
   display: flex;
   align-items: center;
+  text-align: center;
   gap: var(--platform-space-2);
 }
 
 .platform-page__highlight-label {
   margin: 0;
-  color: var(--platform-color-text-tertiary);
   font-size: 0.76rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -674,7 +649,6 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
   margin: 0.1rem 0 0;
   font-size: 1rem;
   font-weight: 700;
-  color: var(--platform-color-text-primary);
 }
 
 .platform-page__toolbar,
@@ -691,8 +665,6 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
 }
 
 .platform-page__insights {
-  border-top: 1px solid color-mix(in srgb, var(--platform-color-border) 60%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--platform-color-border) 50%, transparent);
   padding: var(--platform-space-3) 0;
 }
 
@@ -707,19 +679,16 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--platform-color-text-tertiary);
 }
 
 .platform-page__insight-value {
   margin: 0.2rem 0 0;
   font-size: 0.86rem;
   font-weight: 700;
-  color: var(--platform-color-text-primary);
 }
 
 .platform-page__spotlight {
   margin-top: var(--platform-space-2);
-  color: var(--platform-color-text-secondary);
   font-size: 0.85rem;
   line-height: 1.35;
 }
@@ -736,20 +705,17 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
   justify-content: space-between;
   gap: var(--platform-space-5);
   padding-top: var(--platform-space-1);
-  border-top: 1px solid color-mix(in srgb, var(--platform-color-border) 65%, transparent);
 }
 
 .platform-page__meta-label {
   margin: 0 0 0.2rem;
   font-size: 0.7rem;
-  color: var(--platform-color-text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .platform-page__meta-value {
   margin: 0;
-  color: var(--platform-color-text-secondary);
   font-weight: 600;
   font-size: 0.95rem;
 }
@@ -765,12 +731,6 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
 }
 
 .platform-page__applications {
-  border: 1px solid var(--platform-color-border);
-  background: linear-gradient(
-    180deg,
-    var(--platform-color-surface) 0%,
-    var(--platform-color-surface-muted) 100%
-  );
   box-shadow: var(--platform-shadow-sm);
 }
 
@@ -781,12 +741,6 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
 }
 
 .platform-page__application-card {
-  border: 1px solid color-mix(in srgb, var(--platform-color-border) 75%, transparent);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--platform-color-surface) 94%, #fff 6%) 0%,
-    var(--platform-color-surface) 100%
-  );
   padding: var(--platform-space-4);
   display: flex;
   flex-direction: column;
@@ -797,7 +751,6 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
 
 .platform-page__application-card:hover {
   transform: translateY(-4px);
-  border-color: color-mix(in srgb, var(--platform-color-primary) 25%, var(--platform-color-border));
   box-shadow: 0 16px 28px rgba(18, 28, 45, 0.14);
 }
 
@@ -830,12 +783,10 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
   font-weight: 700;
   font-size: 1.2rem;
   line-height: 1.2;
-  color: color-mix(in srgb, var(--platform-color-primary) 24%, var(--platform-color-text-primary));
 }
 
 .platform-page__row-description {
   margin: var(--platform-space-1) 0 0;
-  color: var(--platform-color-text-tertiary);
   font-size: 0.95rem;
   line-height: 1.4;
   display: -webkit-box;
@@ -857,9 +808,6 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
   width: 48px;
   height: 90px;
   border-radius: var(--platform-radius-pill);
-  border: 2px solid var(--platform-color-border-strong);
-  background: var(--platform-color-surface);
-  color: var(--platform-color-text-primary);
   display: flex;
   flex-direction: column;
   align-items: center;

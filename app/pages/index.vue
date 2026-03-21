@@ -34,7 +34,7 @@ watch(locale, loadPageHome)
 <template>
   <main class="home-page">
     <template v-if="isLoading || !homePagePayload">
-      <v-card class="home-hero mb-6" rounded="xl">
+      <v-card class="home-hero mb-6">
         <v-skeleton-loader type="chip" class="mb-4" />
         <v-skeleton-loader type="heading" class="mb-2" />
         <v-skeleton-loader type="text@2" class="mb-4" />
@@ -42,7 +42,7 @@ watch(locale, loadPageHome)
         <v-skeleton-loader type="list-item-two-line@3" />
       </v-card>
 
-      <v-card class="home-section mb-6" rounded="xl">
+      <v-card class="home-section mb-6">
         <v-skeleton-loader type="heading" class="mb-4" />
         <v-row>
           <v-col v-for="index in 3" :key="`feature-skeleton-${index}`" cols="12" md="4">
