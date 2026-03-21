@@ -806,7 +806,7 @@ const submitSharePost = async () => {
 <template>
   <BlogSummaryCard v-if="showSummary" :blog="blog" />
 
-  <v-card v-if="showCreatePost" rounded="xl" class="mb-6 pa-4 create-post-card">
+  <v-card v-if="showCreatePost" variant="outlined" rounded="xl" class="mb-6 pa-4 create-post-card">
     <input
       ref="postPhotoInput"
       type="file"
@@ -1107,7 +1107,7 @@ const submitSharePost = async () => {
 
   <v-row v-if="blog?.posts">
     <v-col v-for="post in blog?.posts" :key="post.id" cols="12">
-      <v-card rounded="xl" class="h-100 blog-post-card">
+      <v-card rounded="xl" variant="outlined" class="h-100 blog-post-card">
         <v-card-title class="d-flex align-center justify-space-between ga-3 flex-wrap pb-2">
           <div class="d-flex align-center ga-3">
             <NuxtLink v-if="postAuthorProfilePath(post)" :to="postAuthorProfilePath(post)" class="avatar-link">
