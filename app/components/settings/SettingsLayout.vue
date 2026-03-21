@@ -51,5 +51,9 @@ const isActive = (to: string) => route.path === to
     <template #default>
       <slot />
     </template>
+
+    <template #aside>
+      <slot name="aside" />
+    </template>
   </PlatformSplitLayout>
 </template>
