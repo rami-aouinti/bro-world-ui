@@ -38,7 +38,33 @@ export const useThemePreferences = () => {
 
   const preference = ref<ThemePreference>(parseThemeName(theme.global.name.value) ?? defaultThemePreference)
 
+  const ensureThemeIsRegistered = (next: ThemePreference) => {
+    const themeName = buildThemeName(next)
+    if (theme.themes.value[themeName]) {
+      return
+    }
+
+    const activeThemeName = theme.global.name.value
+    const activeTheme = theme.themes.value[activeThemeName]
+      ?? theme.themes.value[next.mode]
+      ?? theme.themes.value.light
+      ?? theme.themes.value.dark
+    const primary = themePrimaryOptions.find(option => option.value === next.primary)?.color
+      ?? themePrimaryOptions[0]?.color
+      ?? '#e91e63'
+
+    theme.themes.value[themeName] = {
+      dark: next.mode === 'dark',
+      colors: {
+        ...(activeTheme?.colors ?? {}),
+        primary,
+      },
+      variables: activeTheme?.variables ?? {},
+    }
+  }
+
   const applyThemePreference = (next: ThemePreference) => {
+    ensureThemeIsRegistered(next)
     preference.value = next
     theme.change(buildThemeName(next))
     if (!import.meta.client) {
