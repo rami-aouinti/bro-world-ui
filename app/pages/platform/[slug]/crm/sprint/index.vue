@@ -3,7 +3,7 @@ import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
 import { useCrmStore } from '~/stores/crm'
-import type { CreateCrmSprintPayload } from '~/types/api/crm'
+import type { CreateCrmSprintPayload, CrmSprint } from '~/types/api/crm'
 
 definePageMeta({ public: true, requiresAuth: false })
 
@@ -19,8 +19,17 @@ const showCreateDialog = ref(false)
 const isMutating = ref(false)
 const isPageLoading = ref(true)
 const goToSprint = (id: string) => navigateTo(`/platform/${slug.value}/crm/sprint/${id}`)
-const editSprint = (id: string) => navigateTo(`/platform/${slug.value}/crm/sprint/${id}`)
+const selectSprint = (sprint: CrmSprint) => {
+  selectedItem.value = sprint
+  showFilters.value = false
+}
+const showFiltersPanel = () => {
+  showFilters.value = true
+}
 const selectedStatusFilter = ref('all')
+const selectedItem = ref<CrmSprint | null>(null)
+const showFilters = ref(true)
+const searchQuery = ref('')
 const statusFilters = computed(() => {
   const counts = new Map<string, number>()
 
@@ -48,17 +57,23 @@ const statusFilters = computed(() => {
   ]
 })
 const filteredSprints = computed(() => {
-  if (selectedStatusFilter.value === 'all') {
-    return sprints.value
-  }
-  return sprints.value.filter(sprint => (sprint.status || 'unknown').toLowerCase() === selectedStatusFilter.value)
+  return sprints.value.filter((sprint) => {
+    const matchesStatus = selectedStatusFilter.value === 'all'
+      || (sprint.status || 'unknown').toLowerCase() === selectedStatusFilter.value
+    const query = searchQuery.value.trim().toLowerCase()
+    const matchesSearch = !query
+      || sprint.name.toLowerCase().includes(query)
+      || (sprint.goal || '').toLowerCase().includes(query)
+
+    return matchesStatus && matchesSearch
+  })
 })
 const {
   page,
   paginatedItems: paginatedSprints,
   pageLength,
   shouldShowPagination,
-} = useListingPagination(filteredSprints, [selectedStatusFilter])
+} = useListingPagination(filteredSprints, [selectedStatusFilter, searchQuery])
 
 const form = reactive<CreateCrmSprintPayload>({
   name: '',
@@ -83,6 +98,9 @@ const loadData = async () => {
       crmStore.fetchProjects(slug.value),
       crmStore.fetchSprints(slug.value),
     ])
+    if (selectedItem.value) {
+      selectedItem.value = sprints.value.find(sprint => sprint.id === selectedItem.value?.id) ?? null
+    }
   }
   catch (error) {
     const normalized = normalizeError(error, {
@@ -189,20 +207,43 @@ onMounted(async () => {
     </template>
     <template #aside>
       <div class="d-flex flex-column ga-4">
-        <v-card rounded="xl" variant="outlined">
-          <v-card-title class="text-subtitle-2">Filters</v-card-title>
+        <template v-if="showFilters">
+          <v-card rounded="xl" variant="outlined">
+            <v-card-title class="text-subtitle-2">Filters</v-card-title>
+            <v-card-text class="d-flex flex-column ga-3">
+              <v-text-field
+                v-model="searchQuery"
+                label="Search"
+                density="comfortable"
+                variant="outlined"
+                hide-details
+                prepend-inner-icon="mdi-magnify"
+              />
+              <v-btn
+                v-for="filter in statusFilters"
+                :key="`sprint-filter-${filter.value}`"
+                :variant="selectedStatusFilter === filter.value ? 'flat' : 'tonal'"
+                :color="selectedStatusFilter === filter.value ? 'primary' : undefined"
+                class="justify-space-between"
+                @click="selectedStatusFilter = filter.value"
+              >
+                <span>{{ filter.label }} ({{ filter.count }})</span>
+                <span class="text-caption">{{ filter.ratio }}%</span>
+              </v-btn>
+            </v-card-text>
+          </v-card>
+        </template>
+        <v-card v-else-if="selectedItem" rounded="xl" variant="outlined">
+          <v-card-title class="d-flex justify-space-between align-center ga-2">
+            <span>{{ selectedItem.name }}</span>
+            <v-btn size="small" variant="tonal" prepend-icon="mdi-filter-outline" @click="showFiltersPanel">Filter</v-btn>
+          </v-card-title>
           <v-card-text class="d-flex flex-column ga-2">
-            <v-btn
-              v-for="filter in statusFilters"
-              :key="`sprint-filter-${filter.value}`"
-              :variant="selectedStatusFilter === filter.value ? 'flat' : 'tonal'"
-              :color="selectedStatusFilter === filter.value ? 'primary' : undefined"
-              class="justify-space-between"
-              @click="selectedStatusFilter = filter.value"
-            >
-              <span>{{ filter.label }} ({{ filter.count }})</span>
-              <span class="text-caption">{{ filter.ratio }}%</span>
-            </v-btn>
+            <p class="text-body-2 mb-0">{{ selectedItem.goal || 'No goal' }}</p>
+            <div class="d-flex flex-wrap ga-2">
+              <v-chip size="small" color="primary" variant="tonal">{{ selectedItem.status || 'unknown' }}</v-chip>
+              <v-chip size="small" variant="tonal">{{ formatDateYmd(selectedItem.startDate) }} → {{ formatDateYmd(selectedItem.endDate) }}</v-chip>
+            </div>
           </v-card-text>
         </v-card>
       </div>
@@ -217,7 +258,7 @@ onMounted(async () => {
 
       <v-row v-else>
         <v-col v-for="sprint in paginatedSprints" :key="sprint.id" cols="12" md="6" lg="6">
-          <v-card rounded="xl" variant="outlined" class="h-100 cursor-pointer sprints-card" @click="goToSprint(sprint.id)">
+          <v-card rounded="xl" variant="outlined" class="h-100 cursor-pointer sprints-card" @click="selectSprint(sprint)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
                 <p class="text-subtitle-1 font-weight-bold">{{ sprint?.name }}</p>
@@ -232,7 +273,7 @@ onMounted(async () => {
                     />
                   </template>
                   <v-list density="compact">
-                    <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="editSprint(sprint.id)" />
+                    <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="goToSprint(sprint.id)" />
                     <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="removeSprint(sprint.id)" />
                   </v-list>
                 </v-menu>

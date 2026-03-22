@@ -18,11 +18,22 @@ const isLoading = computed(() => crmStore.isLoading)
 const projects = computed(() => crmStore.getProjects(slug.value))
 const sprints = computed(() => crmStore.getSprints(slug.value))
 const selectedStatusFilter = ref('all')
+const selectedItem = ref<CrmTask | null>(null)
+const showFilters = ref(true)
+const searchQuery = ref('')
 const filteredTasks = computed(() => {
-  if (selectedStatusFilter.value === 'all') {
-    return tasks.value
-  }
-  return tasks.value.filter(task => (task.status || 'unknown').toLowerCase() === selectedStatusFilter.value)
+  return tasks.value.filter((task) => {
+    const matchesStatus = selectedStatusFilter.value === 'all'
+      || (task.status || 'unknown').toLowerCase() === selectedStatusFilter.value
+    const query = searchQuery.value.trim().toLowerCase()
+    const matchesSearch = !query
+      || task.title.toLowerCase().includes(query)
+      || (task.description || '').toLowerCase().includes(query)
+      || (task.projectName || '').toLowerCase().includes(query)
+      || (task.sprintName || '').toLowerCase().includes(query)
+
+    return matchesStatus && matchesSearch
+  })
 })
 const {
   page,
@@ -30,7 +41,7 @@ const {
   paginatedItems: paginatedTasks,
   pageLength,
   shouldShowPagination,
-} = useListingPagination(filteredTasks, [selectedStatusFilter])
+} = useListingPagination(filteredTasks, [selectedStatusFilter, searchQuery])
 const statusFilters = computed(() => {
   const counts = new Map<string, number>()
 
@@ -83,6 +94,15 @@ const { $errorLogger } = useNuxtApp()
 
 const goToTask = (id: string) => navigateTo(`/platform/${slug.value}/crm/task/${id}`)
 
+const selectTask = (task: CrmTask) => {
+  selectedItem.value = task
+  showFilters.value = false
+}
+
+const showFiltersPanel = () => {
+  showFilters.value = true
+}
+
 const loadData = async () => {
   if (!slug.value) {
     return
@@ -101,6 +121,9 @@ const loadData = async () => {
     }
     if (!createForm.sprintId && sprints.value.length) {
       createForm.sprintId = sprints.value[0].id
+    }
+    if (selectedItem.value) {
+      selectedItem.value = tasks.value.find(task => task.id === selectedItem.value?.id) ?? null
     }
   }
   catch (error) {
@@ -202,20 +225,45 @@ onMounted(async () => {
     </template>
     <template #aside>
       <div class="d-flex flex-column ga-4">
-        <v-card rounded="xl" variant="outlined">
-          <v-card-title class="text-subtitle-2">Filters</v-card-title>
+        <template v-if="showFilters">
+          <v-card rounded="xl" variant="outlined">
+            <v-card-title class="text-subtitle-2">Filters</v-card-title>
+            <v-card-text class="d-flex flex-column ga-3">
+              <v-text-field
+                v-model="searchQuery"
+                label="Search"
+                density="comfortable"
+                variant="outlined"
+                hide-details
+                prepend-inner-icon="mdi-magnify"
+              />
+              <v-btn
+                v-for="filter in statusFilters"
+                :key="`task-filter-${filter.value}`"
+                :variant="selectedStatusFilter === filter.value ? 'flat' : 'tonal'"
+                :color="selectedStatusFilter === filter.value ? 'primary' : undefined"
+                class="justify-space-between"
+                @click="selectedStatusFilter = filter.value"
+              >
+                <span>{{ filter.label }} ({{ filter.count }})</span>
+                <span class="text-caption">{{ filter.ratio }}%</span>
+              </v-btn>
+            </v-card-text>
+          </v-card>
+        </template>
+        <v-card v-else-if="selectedItem" rounded="xl" variant="outlined">
+          <v-card-title class="d-flex justify-space-between align-center ga-2">
+            <span>{{ selectedItem.title }}</span>
+            <v-btn size="small" variant="tonal" prepend-icon="mdi-filter-outline" @click="showFiltersPanel">Filter</v-btn>
+          </v-card-title>
           <v-card-text class="d-flex flex-column ga-2">
-            <v-btn
-              v-for="filter in statusFilters"
-              :key="`task-filter-${filter.value}`"
-              :variant="selectedStatusFilter === filter.value ? 'flat' : 'tonal'"
-              :color="selectedStatusFilter === filter.value ? 'primary' : undefined"
-              class="justify-space-between"
-              @click="selectedStatusFilter = filter.value"
-            >
-              <span>{{ filter.label }} ({{ filter.count }})</span>
-              <span class="text-caption">{{ filter.ratio }}%</span>
-            </v-btn>
+            <p class="text-body-2 mb-0">{{ selectedItem.description || 'No description' }}</p>
+            <div class="d-flex flex-wrap ga-2">
+              <v-chip size="small" variant="tonal">{{ selectedItem.projectName }}</v-chip>
+              <v-chip size="small" variant="tonal">{{ selectedItem.sprintName }}</v-chip>
+              <v-chip size="small" color="primary" variant="tonal">{{ selectedItem.status || 'unknown' }}</v-chip>
+              <v-chip size="small" color="secondary" variant="tonal">{{ selectedItem.priority || 'N/A' }}</v-chip>
+            </div>
           </v-card-text>
         </v-card>
       </div>
@@ -234,14 +282,14 @@ onMounted(async () => {
 
       <v-row v-else>
         <v-col v-for="task in paginatedTasks" :key="task.id" cols="12" md="6" lg="6">
-          <v-card rounded="xl" variant="outlined" class="h-100 tasks-card">
+          <v-card rounded="xl" variant="outlined" class="h-100 tasks-card cursor-pointer" @click="selectTask(task)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
                 <p class="text-subtitle-1 font-weight-bold mb-0">{{ task.title }}</p>
                 <div class="d-flex ga-1">
-                  <v-btn icon="mdi-eye" size="small" variant="text" @click="goToTask(task.id)" />
-                  <v-btn icon="mdi-pencil" size="small" variant="text" @click="openPatchDialog(task)" />
-                  <v-btn icon="mdi-delete" size="small" variant="text" color="error" @click="deleteTask(task.id)" />
+                  <v-btn icon="mdi-eye" size="small" variant="text" @click.stop="goToTask(task.id)" />
+                  <v-btn icon="mdi-pencil" size="small" variant="text" @click.stop="openPatchDialog(task)" />
+                  <v-btn icon="mdi-delete" size="small" variant="text" color="error" @click.stop="deleteTask(task.id)" />
                 </div>
               </div>
               <p class="text-body-2 mb-2">{{ task.description || 'No description' }}</p>
@@ -255,7 +303,7 @@ onMounted(async () => {
           </v-card>
         </v-col>
         <v-col v-if="paginatedTasks.length === 0" cols="12">
-          <v-alert type="info" variant="tonal">No tasks found for this filter.</v-alert>
+          <v-alert type="info" variant="tonal">No tasks found for the current filters.</v-alert>
         </v-col>
       </v-row>
 
