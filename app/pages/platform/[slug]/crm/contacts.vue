@@ -45,16 +45,6 @@ const editForm = reactive<UpdateCrmContactPayload>({
 
 const contacts = computed(() => crmStore.getContacts(slug.value))
 
-const tableHeaders = [
-  { title: 'Nom', key: 'name' },
-  { title: 'Email', key: 'email' },
-  { title: 'Téléphone', key: 'phone' },
-  { title: 'Poste', key: 'jobTitle' },
-  { title: 'Ville', key: 'city' },
-  { title: 'Score', key: 'score' },
-  { title: 'Actions', key: 'actions', sortable: false },
-]
-
 const fullName = (contact: CrmContact) => `${contact.firstName ?? ''} ${contact.lastName ?? ''}`.trim() || 'N/A'
 
 const resetCreateForm = () => {
@@ -193,48 +183,40 @@ onMounted(async () => {
         {{ errorMessage }}
       </v-alert>
 
-      <v-skeleton-loader v-if="isPageLoading" type="table-heading, table-thead, table-row-divider@6" />
+      <v-row v-if="isPageLoading">
+        <v-col v-for="index in 6" :key="`contact-skeleton-${index}`" cols="12" md="6" lg="4">
+          <v-skeleton-loader type="card, article" class="h-100" />
+        </v-col>
+      </v-row>
 
-      <v-data-table
-        v-else
-        :headers="tableHeaders"
-        :items="contacts"
-        :items-per-page="5"
-        item-value="id"
-        class="elevation-1 rounded-xl"
-      >
-        <template #item.name="{ item }">
-          {{ fullName(item) }}
-        </template>
-
-        <template #item.email="{ item }">
-          {{ item.email || 'N/A' }}
-        </template>
-
-        <template #item.phone="{ item }">
-          {{ item.phone || 'N/A' }}
-        </template>
-
-        <template #item.jobTitle="{ item }">
-          {{ item.jobTitle || 'N/A' }}
-        </template>
-
-        <template #item.city="{ item }">
-          {{ item.city || 'N/A' }}
-        </template>
-
-        <template #item.score="{ item }">
-          <v-chip size="small" color="primary" variant="tonal">{{ item.score ?? 'N/A' }}</v-chip>
-        </template>
-
-        <template #item.actions="{ item }">
-          <div class="d-flex ga-2 justify-end">
-            <v-btn size="small" variant="text" icon="mdi-eye" @click="openViewDialog(item)" />
-            <v-btn size="small" variant="tonal" @click="openEditDialog(item)">Edit</v-btn>
-            <v-btn size="small" color="error" variant="tonal" @click="removeContact(item.id)">Delete</v-btn>
-          </div>
-        </template>
-      </v-data-table>
+      <v-row v-else>
+        <v-col v-for="contact in contacts" :key="contact.id" cols="12" md="6" lg="4">
+          <v-card rounded="xl" variant="outlined" class="h-100">
+            <v-card-text>
+              <div class="d-flex justify-space-between align-start mb-3 ga-2">
+                <div>
+                  <p class="text-subtitle-1 font-weight-bold mb-1">{{ fullName(contact) }}</p>
+                  <p class="text-body-2 text-medium-emphasis mb-0">{{ contact.jobTitle || 'N/A' }}</p>
+                </div>
+                <v-chip size="small" color="primary" variant="tonal">Score {{ contact.score ?? 'N/A' }}</v-chip>
+              </div>
+              <div class="d-flex flex-column ga-1 text-body-2 mb-3">
+                <p class="mb-0"><strong>Email:</strong> {{ contact.email || 'N/A' }}</p>
+                <p class="mb-0"><strong>Téléphone:</strong> {{ contact.phone || 'N/A' }}</p>
+                <p class="mb-0"><strong>Ville:</strong> {{ contact.city || 'N/A' }}</p>
+              </div>
+              <div class="d-flex ga-2 justify-end">
+                <v-btn size="small" variant="text" icon="mdi-eye" @click="openViewDialog(contact)" />
+                <v-btn size="small" variant="tonal" @click="openEditDialog(contact)">Edit</v-btn>
+                <v-btn size="small" color="error" variant="tonal" @click="removeContact(contact.id)">Delete</v-btn>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col v-if="contacts.length === 0" cols="12">
+          <v-alert type="info" variant="tonal">Aucun contact trouvé.</v-alert>
+        </v-col>
+      </v-row>
 
       <v-dialog v-model="showCreateDialog" max-width="560">
         <v-card>
