@@ -166,6 +166,14 @@ onMounted(loadTask)
 
 <template>
   <PlatformSplitLayout>
+    <client-only>
+      <teleport to="#app-bar-teleport-target">
+        <v-btn variant="outlined" :loading="isLoading" @click="loadTask">Refresh</v-btn>
+      </teleport>
+      <teleport to="#app-bar-teleport-target-right">
+        <v-btn color="primary" @click="showCreateTaskRequestDialog = true">Create task request</v-btn>
+      </teleport>
+    </client-only>
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
@@ -174,10 +182,6 @@ onMounted(loadTask)
       <div class="d-flex align-center justify-space-between mb-4 ga-2 flex-wrap">
         <div>
           <h1 class="text-h5 font-weight-bold mb-1">Task detail</h1>
-        </div>
-        <div class="d-flex ga-2 flex-wrap">
-          <v-btn color="primary" @click="showCreateTaskRequestDialog = true">Create task request</v-btn>
-          <v-btn variant="outlined" :loading="isLoading" @click="loadTask">Refresh</v-btn>
         </div>
       </div>
 

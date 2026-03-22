@@ -59,15 +59,17 @@ const contacts = computed(() => reports.value?.contacts ?? [])
 
 <template>
   <PlatformSplitLayout>
+    <client-only>
+      <teleport to="#app-bar-teleport-target">
+        <v-btn variant="outlined" :loading="pending" @click="refresh()">Refresh reports</v-btn>
+      </teleport>
+    </client-only>
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.reports" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" />
     </template>
     <section>
       <PlatformHeroHeader title="platform.crm.hero.reports.title" subtitle="platform.crm.hero.reports.subtitle" cta="platform.crm.hero.reports.cta" />
 
-      <div class="d-flex justify-end mb-4">
-        <v-btn variant="outlined" :loading="pending" @click="refresh()">Refresh reports</v-btn>
-      </div>
 
       <v-alert v-if="error" type="error" variant="tonal" class="mb-4">
         Unable to load CRM reports.

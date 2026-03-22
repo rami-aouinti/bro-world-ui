@@ -105,12 +105,19 @@ onMounted(loadCompany)
 
 <template>
   <PlatformSplitLayout>
+    <client-only>
+      <teleport to="#app-bar-teleport-target">
+        <v-btn variant="text" icon="mdi-refresh" size="sm" :loading="isLoading" @click="loadCompany"></v-btn>
+      </teleport>
+      <teleport to="#app-bar-teleport-target-right">
+        <v-btn color="primary" @click="showCreateProjectDialog = true">Add Project</v-btn>
+      </teleport>
+    </client-only>
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
     <template #aside>
       <div class="text-center">
-        <v-btn color="primary" @click="showCreateProjectDialog = true">Add Project</v-btn>
         <v-row v-if="(company?.projects || []).length" class="mt-4" dense>
           <v-col v-for="project in company.projects || []" :key="project.id" cols="12">
             <v-card variant="outlined" class="project-card mt-3" @click="openProjectDetail(project?.id)">
@@ -148,7 +155,6 @@ onMounted(loadCompany)
               <v-list-item prepend-icon="mdi-delete" title="Delete" @click="deleteCompany" />
             </v-list>
           </v-menu>
-          <v-btn variant="text" icon="mdi-refresh" size="sm" :loading="isLoading" @click="loadCompany"></v-btn>
         </div>
       </div>
 

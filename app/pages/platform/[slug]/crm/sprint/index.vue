@@ -174,13 +174,15 @@ onMounted(async () => {
                variant="text"
                class="text-none app-bar__link-btn" :loading="isLoading" @click="loadData" icon="mdi-refresh"></v-btn>
       </teleport>
+      <teleport to="#app-bar-teleport-target-right">
+        <v-btn variant="outlined" rounded="xl" block @click="showCreateDialog = true" prepend-icon="mdi-plus">New Sprint</v-btn>
+      </teleport>
     </client-only>
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
     <template #aside>
       <div class="d-flex flex-column ga-4">
-        <v-btn variant="outlined" rounded="xl" block @click="showCreateDialog = true" prepend-icon="mdi-plus">New Sprint</v-btn>
         <v-card rounded="xl" variant="outlined">
           <v-card-title class="text-subtitle-2">Filters</v-card-title>
           <v-card-text class="d-flex flex-column ga-2">
