@@ -45,8 +45,16 @@ const selectedGithubRepositoryFullName = ref('')
 const githubRepositoryActionMessage = ref('')
 const selectedProjectGithubRepository = ref('')
 const pullRequestState = ref<CrmGithubPullRequestState>('open')
+const pullRequestStateOptions = [
+  { title: 'Open', value: 'open' },
+  { title: 'Closed', value: 'closed' },
+  { title: 'Close', value: 'close' },
+] satisfies Array<{ title: string; value: CrmGithubPullRequestState }>
 const projectRepositoryPullRequests = ref<CrmGithubPullRequestListItem[]>([])
 const projectRepositoryBranches = ref<CrmGithubBranch[]>([])
+const githubAccountRepositoriesPagination = ref({ page: 1, limit: 15, totalItems: 0, totalPages: 1, hasNextPage: false })
+const projectRepositoryPullRequestsPagination = ref({ page: 1, limit: 10, totalItems: 0, totalPages: 1, hasNextPage: false })
+const projectRepositoryBranchesPagination = ref({ page: 1, limit: 10, totalItems: 0, totalPages: 1, hasNextPage: false })
 const isLoadingProjectRepositoryPullRequests = ref(false)
 const isLoadingProjectRepositoryBranches = ref(false)
 const projectRepositoryPullRequestsError = ref('')
@@ -161,6 +169,10 @@ const loadProject = async () => {
       crmStore.fetchSprints(slug.value),
     ])
     project.value = await crmStore.fetchProjectById(slug.value, projectId.value)
+    githubRepositories.value = project.value.githubRepositories ?? []
+    if (!selectedProjectGithubRepository.value && githubRepositories.value.length) {
+      selectedProjectGithubRepository.value = githubRepositories.value[0]?.fullName ?? ''
+    }
     taskForm.projectId = projectId.value
     if (!taskForm.sprintId && sprintOptions.value.length) {
       taskForm.sprintId = String(sprintOptions.value[0]?.value ?? '') as CreateCrmTaskPayload['sprintId']
@@ -309,7 +321,7 @@ const loadGithubRepositories = async () => {
   }
 }
 
-const loadProjectRepositoryPullRequests = async (repositoryFullName: string) => {
+const loadProjectRepositoryPullRequests = async (repositoryFullName: string, page = 1) => {
   if (!slug.value || !projectId.value || !repositoryFullName) {
     return
   }
@@ -320,10 +332,17 @@ const loadProjectRepositoryPullRequests = async (repositoryFullName: string) => 
     const response = await crmApi.getProjectGithubPullRequests(slug.value, projectId.value, {
       repo: repositoryFullName,
       state: pullRequestState.value,
-      page: 1,
-      limit: 10,
+      page,
+      limit: projectRepositoryPullRequestsPagination.value.limit,
     })
     projectRepositoryPullRequests.value = response.items ?? []
+    projectRepositoryPullRequestsPagination.value = {
+      page: response.pagination?.page ?? page,
+      limit: response.pagination?.limit ?? projectRepositoryPullRequestsPagination.value.limit,
+      totalItems: response.pagination?.totalItems ?? response.items.length,
+      totalPages: response.pagination?.totalPages ?? 1,
+      hasNextPage: response.pagination?.hasNextPage ?? false,
+    }
   }
   catch {
     projectRepositoryPullRequestsError.value = 'Unable to load pull requests for this repository.'
@@ -333,7 +352,7 @@ const loadProjectRepositoryPullRequests = async (repositoryFullName: string) => 
   }
 }
 
-const loadProjectRepositoryBranches = async (repositoryFullName: string) => {
+const loadProjectRepositoryBranches = async (repositoryFullName: string, page = 1) => {
   if (!slug.value || !projectId.value || !repositoryFullName) {
     return
   }
@@ -343,10 +362,17 @@ const loadProjectRepositoryBranches = async (repositoryFullName: string) => {
   try {
     const response = await crmApi.getProjectGithubBranches(slug.value, projectId.value, {
       repo: repositoryFullName,
-      page: 1,
-      limit: 10,
+      page,
+      limit: projectRepositoryBranchesPagination.value.limit,
     })
     projectRepositoryBranches.value = response.items ?? []
+    projectRepositoryBranchesPagination.value = {
+      page: response.pagination?.page ?? page,
+      limit: response.pagination?.limit ?? projectRepositoryBranchesPagination.value.limit,
+      totalItems: response.pagination?.totalItems ?? response.items.length,
+      totalPages: response.pagination?.totalPages ?? 1,
+      hasNextPage: response.pagination?.hasNextPage ?? false,
+    }
   }
   catch {
     projectRepositoryBranchesError.value = 'Unable to load branches for this repository.'
@@ -356,7 +382,7 @@ const loadProjectRepositoryBranches = async (repositoryFullName: string) => {
   }
 }
 
-const loadSelectedRepositoryDetails = async () => {
+const loadSelectedRepositoryDetails = async (page = 1) => {
   if (!selectedProjectGithubRepository.value) {
     projectRepositoryPullRequests.value = []
     projectRepositoryBranches.value = []
@@ -364,8 +390,8 @@ const loadSelectedRepositoryDetails = async () => {
   }
 
   await Promise.all([
-    loadProjectRepositoryPullRequests(selectedProjectGithubRepository.value),
-    loadProjectRepositoryBranches(selectedProjectGithubRepository.value),
+    loadProjectRepositoryPullRequests(selectedProjectGithubRepository.value, page),
+    loadProjectRepositoryBranches(selectedProjectGithubRepository.value, page),
   ])
 }
 
@@ -374,7 +400,7 @@ const selectProjectGithubRepository = async (repositoryFullName: string) => {
   await loadSelectedRepositoryDetails()
 }
 
-const loadGithubAccountRepositories = async () => {
+const loadGithubAccountRepositories = async (page = 1) => {
   if (!slug.value || !projectId.value) {
     return
   }
@@ -382,8 +408,18 @@ const loadGithubAccountRepositories = async () => {
   isLoadingGithubAccountRepositories.value = true
   githubAccountRepositoriesError.value = ''
   try {
-    const response = await crmApi.getProjectGithubAccountRepositories(slug.value, projectId.value)
+    const response = await crmApi.getProjectGithubAccountRepositories(slug.value, projectId.value, {
+      page,
+      limit: githubAccountRepositoriesPagination.value.limit,
+    })
     githubAccountRepositories.value = response?.items ?? []
+    githubAccountRepositoriesPagination.value = {
+      page: response.pagination?.page ?? page,
+      limit: response.pagination?.limit ?? githubAccountRepositoriesPagination.value.limit,
+      totalItems: response.pagination?.totalItems ?? response.items.length,
+      totalPages: response.pagination?.totalPages ?? 1,
+      hasNextPage: response.pagination?.hasNextPage ?? false,
+    }
   }
   catch {
     githubAccountRepositoriesError.value = 'Unable to load GitHub account repositories.'
@@ -437,7 +473,7 @@ onMounted(async () => {
 })
 onMounted(loadGithubAccountRepositories)
 watch(pullRequestState, async () => {
-  await loadSelectedRepositoryDetails()
+  await loadSelectedRepositoryDetails(1)
 })
 </script>
 
@@ -581,6 +617,15 @@ watch(pullRequestState, async () => {
                     ? `${githubAccountRepositoryOptions.length} repositories available to link.`
                     : 'All account repositories are already linked or no repository is available.' }}
                 </p>
+                <div v-if="githubAccountRepositoriesPagination.totalPages > 1" class="mt-3 d-flex justify-end">
+                  <v-pagination
+                    :model-value="githubAccountRepositoriesPagination.page"
+                    :length="githubAccountRepositoriesPagination.totalPages"
+                    :total-visible="5"
+                    density="comfortable"
+                    @update:model-value="(page) => loadGithubAccountRepositories(Number(page))"
+                  />
+                </div>
               </v-card-text>
             </v-card>
 
@@ -617,7 +662,7 @@ watch(pullRequestState, async () => {
               <v-select
                   v-model="pullRequestState"
                   label="Pull requests"
-                  :items="[{ title: 'Open', value: 'open' }, { title: 'Closed', value: 'closed' }]"
+                  :items="pullRequestStateOptions"
                   item-title="title"
                   item-value="value"
                   density="compact"
@@ -648,6 +693,15 @@ watch(pullRequestState, async () => {
                     <p v-else class="text-body-2 text-medium-emphasis mb-0">
                       {{ selectedProjectGithubRepository ? 'No pull requests found for this repository.' : 'Select a repository to load pull requests.' }}
                     </p>
+                    <div v-if="projectRepositoryPullRequestsPagination.totalPages > 1" class="mt-3 d-flex justify-end">
+                      <v-pagination
+                        :model-value="projectRepositoryPullRequestsPagination.page"
+                        :length="projectRepositoryPullRequestsPagination.totalPages"
+                        :total-visible="5"
+                        density="comfortable"
+                        @update:model-value="(page) => loadProjectRepositoryPullRequests(selectedProjectGithubRepository, Number(page))"
+                      />
+                    </div>
                   </v-card-text>
                 </v-card>
               </v-col>
@@ -671,6 +725,15 @@ watch(pullRequestState, async () => {
                     <p v-else class="text-body-2 text-medium-emphasis mb-0">
                       {{ selectedProjectGithubRepository ? 'No branches found for this repository.' : 'Select a repository to load branches.' }}
                     </p>
+                    <div v-if="projectRepositoryBranchesPagination.totalPages > 1" class="mt-3 d-flex justify-end">
+                      <v-pagination
+                        :model-value="projectRepositoryBranchesPagination.page"
+                        :length="projectRepositoryBranchesPagination.totalPages"
+                        :total-visible="5"
+                        density="comfortable"
+                        @update:model-value="(page) => loadProjectRepositoryBranches(selectedProjectGithubRepository, Number(page))"
+                      />
+                    </div>
                   </v-card-text>
                 </v-card>
               </v-col>

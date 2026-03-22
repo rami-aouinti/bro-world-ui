@@ -23,6 +23,11 @@ const branches = ref<CrmGithubBranch[]>([])
 const branchesPagination = ref({ page: 1, limit: 30, totalItems: 0, totalPages: 1 })
 const selectedPullRequest = ref<CrmGithubPullRequestDetails | null>(null)
 const dashboard = ref<{ open: number; closed: number; merged: number } | null>(null)
+const pullRequestStateOptions = [
+  { title: 'Open', value: 'open' },
+  { title: 'Closed', value: 'closed' },
+  { title: 'Close', value: 'close' },
+] satisfies Array<{ title: string; value: CrmGithubPullRequestState }>
 
 const isLoading = reactive({
   repositories: false,
@@ -135,7 +140,7 @@ const loadPullRequestDetails = async (number: number) => {
   isLoading.pullRequestDetails = true
   errors.pullRequestDetails = ''
   try {
-    selectedPullRequest.value = await crmApi.getProjectGithubPullRequestByNumber(slug.value, projectId.value, number, selectedRepo.value)
+    selectedPullRequest.value = await crmApi.getProjectGithubPullRequestByNumber(slug.value, projectId.value, number, selectedRepo.value, pullRequestState.value)
   }
   catch {
     errors.pullRequestDetails = `Impossible de charger les détails de la PR #${number}.`
@@ -239,7 +244,7 @@ onMounted(async () => {
           <v-select
             v-model="pullRequestState"
             label="State"
-            :items="[{ title: 'Open', value: 'open' }, { title: 'Closed', value: 'closed' }]"
+            :items="pullRequestStateOptions"
             item-title="title"
             item-value="value"
             hide-details
@@ -277,6 +282,14 @@ onMounted(async () => {
                   </tr>
                 </tbody>
               </v-table>
+              <div v-if="pullRequestsPagination.totalPages > 1" class="d-flex justify-end mt-3">
+                <v-pagination
+                  :model-value="pullRequestsPagination.page"
+                  :length="pullRequestsPagination.totalPages"
+                  :total-visible="6"
+                  @update:model-value="(page) => loadPullRequests(Number(page))"
+                />
+              </div>
             </v-card-text>
           </v-card>
         </v-col>
@@ -297,6 +310,14 @@ onMounted(async () => {
                   </template>
                 </v-list-item>
               </v-list>
+              <div v-if="branchesPagination.totalPages > 1" class="d-flex justify-end mt-3">
+                <v-pagination
+                  :model-value="branchesPagination.page"
+                  :length="branchesPagination.totalPages"
+                  :total-visible="6"
+                  @update:model-value="(page) => loadBranches(Number(page))"
+                />
+              </div>
             </v-card-text>
           </v-card>
         </v-col>
