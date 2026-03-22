@@ -53,6 +53,12 @@ const filteredSprints = computed(() => {
   }
   return sprints.value.filter(sprint => (sprint.status || 'unknown').toLowerCase() === selectedStatusFilter.value)
 })
+const {
+  page,
+  paginatedItems: paginatedSprints,
+  pageLength,
+  shouldShowPagination,
+} = useListingPagination(filteredSprints, [selectedStatusFilter])
 
 const form = reactive<CreateCrmSprintPayload>({
   name: '',
@@ -210,7 +216,7 @@ onMounted(async () => {
       </v-row>
 
       <v-row v-else>
-        <v-col v-for="sprint in filteredSprints" :key="sprint.id" cols="12" md="6" lg="6">
+        <v-col v-for="sprint in paginatedSprints" :key="sprint.id" cols="12" md="6" lg="6">
           <v-card rounded="xl" variant="outlined" class="h-100 cursor-pointer sprints-card" @click="goToSprint(sprint.id)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
@@ -238,10 +244,13 @@ onMounted(async () => {
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col v-if="filteredSprints.length === 0" cols="12">
+        <v-col v-if="paginatedSprints.length === 0" cols="12">
           <v-alert type="info" variant="tonal">No sprints found for this filter.</v-alert>
         </v-col>
       </v-row>
+      <div v-if="shouldShowPagination" class="d-flex justify-center mt-4">
+        <v-pagination v-model="page" :length="pageLength" total-visible="5" />
+      </div>
 
       <v-dialog v-model="showCreateDialog" max-width="620">
         <v-card>

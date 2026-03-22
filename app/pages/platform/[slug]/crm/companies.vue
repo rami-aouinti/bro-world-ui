@@ -26,6 +26,12 @@ const form = reactive<CreateCrmCompanyPayload>({
 })
 
 const companies = computed(() => crmStore.getCompanies(slug.value))
+const {
+  page,
+  paginatedItems: paginatedCompanies,
+  pageLength,
+  shouldShowPagination,
+} = useListingPagination(companies)
 
 const goToCompany = (id: string) => navigateTo(`/platform/${slug.value}/crm/company/${id}`)
 const editCompany = (id: string) => navigateTo(`/platform/${slug.value}/crm/company/${id}`)
@@ -118,7 +124,7 @@ onMounted(async () => {
       </v-row>
 
       <v-row v-else>
-        <v-col v-for="company in companies" :key="company.id" cols="12" md="6" lg="6">
+        <v-col v-for="company in paginatedCompanies" :key="company.id" cols="12" md="6" lg="6">
           <v-card rounded="xl" variant="outlined" hover class="h-100 cursor-pointer" @click="goToCompany(company?.id)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
@@ -148,6 +154,9 @@ onMounted(async () => {
           </v-card>
         </v-col>
       </v-row>
+      <div v-if="shouldShowPagination" class="d-flex justify-center mt-4">
+        <v-pagination v-model="page" :length="pageLength" total-visible="5" />
+      </div>
     </section>
   </PlatformSplitLayout>
 </template>
