@@ -347,8 +347,12 @@ const signOut = async () => {
         >
           {{ te(item.key) ? t(item.key) : item.key }}
         </v-btn>
+        <div id="app-bar-teleport-target-right"/>
       </div>
-
+      <v-spacer />
+      <div class="d-flex align-center ga-1 ga-sm-2 mx-auto app-bar__center-links">
+        <div id="app-bar-teleport-target"/>
+      </div>
       <v-spacer />
 
       <div class="d-flex align-center ga-1 ga-sm-2">

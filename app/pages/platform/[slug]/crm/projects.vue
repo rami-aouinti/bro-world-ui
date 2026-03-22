@@ -153,6 +153,13 @@ onMounted(async () => {
 
 <template>
   <PlatformSplitLayout>
+    <client-only>
+      <teleport to="#app-bar-teleport-target">
+        <v-btn size="large"
+               variant="text"
+               class="text-none app-bar__link-btn" :loading="isLoading" @click="loadData" icon="mdi-refresh"></v-btn>
+      </teleport>
+    </client-only>
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
@@ -178,12 +185,6 @@ onMounted(async () => {
       </div>
     </template>
     <section>
-      <div class="d-flex align-center justify-end mb-4 flex-wrap ga-2">
-        <div class="d-flex ga-2 flex-wrap">
-          <v-btn size="sm" variant="text" :loading="isLoading" @click="loadData" icon="mdi-refresh"></v-btn>
-        </div>
-      </div>
-
       <v-row v-if="isPageLoading">
         <v-col v-for="i in 4" :key="`project-skeleton-${i}`" cols="12" md="6" lg="4">
           <v-skeleton-loader type="card, article" class="h-100" />

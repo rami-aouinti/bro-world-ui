@@ -86,6 +86,11 @@ onMounted(async () => {
 
 <template>
   <PlatformSplitLayout>
+    <client-only>
+      <teleport to="#app-bar-teleport-target">
+        <v-btn variant="text" size="sm" icon="mdi-refresh" :loading="crmStore.isLoading" @click="loadCompanies(true)"></v-btn>
+      </teleport>
+    </client-only>
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
@@ -102,12 +107,6 @@ onMounted(async () => {
       </div>
     </template>
     <section>
-      <div class="d-flex align-center justify-end mb-4 flex-wrap ga-2">
-        <div class="d-flex ga-2">
-          <v-btn variant="text" icon="mdi-refresh" size="sm" :loading="crmStore.isLoading" @click="loadCompanies(true)"></v-btn>
-        </div>
-      </div>
-
       <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
         {{ errorMessage }}
       </v-alert>

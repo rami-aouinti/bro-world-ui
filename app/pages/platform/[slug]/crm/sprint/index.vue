@@ -168,6 +168,13 @@ onMounted(async () => {
 
 <template>
   <PlatformSplitLayout>
+    <client-only>
+      <teleport to="#app-bar-teleport-target">
+        <v-btn size="large"
+               variant="text"
+               class="text-none app-bar__link-btn" :loading="isLoading" @click="loadData" icon="mdi-refresh"></v-btn>
+      </teleport>
+    </client-only>
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
@@ -194,15 +201,6 @@ onMounted(async () => {
     </template>
 
     <section>
-      <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
-        <div>
-          <h1 class="text-h5 font-weight-bold mb-1">Sprint Board</h1>
-        </div>
-        <div class="d-flex ga-2 flex-wrap">
-          <v-btn color="primary" variant="outlined" :loading="isLoading" @click="loadData" icon="mdi-refresh"></v-btn>
-        </div>
-      </div>
-
       <v-row v-if="isPageLoading">
         <v-col v-for="i in 4" :key="`sprint-skeleton-${i}`" cols="12" md="6" lg="4">
           <v-skeleton-loader type="card, article" class="h-100" />

@@ -479,6 +479,11 @@ watch(pullRequestState, async () => {
 
 <template>
   <PlatformSplitLayout>
+    <client-only>
+      <teleport to="#app-bar-teleport-target">
+        <v-btn variant="text" size="sm" icon="mdi-refresh" :loading="isLoading" @click="loadProject"></v-btn>
+      </teleport>
+    </client-only>
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
@@ -550,7 +555,6 @@ watch(pullRequestState, async () => {
               <v-list-item prepend-icon="mdi-delete" title="Delete" @click="deleteProject" />
             </v-list>
           </v-menu>
-          <v-btn variant="text" size="sm" icon="mdi-refresh" :loading="isLoading" @click="loadProject"></v-btn>
         </div>
       </div>
 

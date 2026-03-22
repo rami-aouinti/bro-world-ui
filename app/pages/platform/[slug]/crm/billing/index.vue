@@ -196,21 +196,19 @@ onMounted(async () => {
 
 <template>
   <PlatformSplitLayout>
+    <client-only>
+      <teleport to="#app-bar-teleport-target">
+        <v-btn variant="text" size="sm" icon="mdi-refresh" :loading="isPageLoading" @click="loadBillings"></v-btn>
+      </teleport>
+      <teleport to="#app-bar-teleport-target-right">
+        <v-btn variant="outlined" @click="showCreateDialog = true">Create billing</v-btn>
+      </teleport>
+    </client-only>
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
 
     <section>
-      <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
-        <div>
-          <h2 class="text-h5 font-weight-bold mb-1">Billing</h2>
-        </div>
-        <div class="d-flex ga-2">
-          <v-btn color="primary" @click="showCreateDialog = true">Create billing</v-btn>
-          <v-btn variant="outlined" :loading="isPageLoading" @click="loadBillings">Refresh</v-btn>
-        </div>
-      </div>
-
       <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
         {{ errorMessage }}
       </v-alert>
@@ -223,7 +221,7 @@ onMounted(async () => {
 
       <v-row v-else>
         <v-col v-for="billing in billings" :key="billing.id" cols="12" md="6" lg="6">
-          <v-card rounded="xl" hover class="h-100 cursor-pointer" @click="goToDetail(billing.id)">
+          <v-card variant="outlined" rounded="xl" hover class="h-100 cursor-pointer" @click="goToDetail(billing.id)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start ga-2 mb-2">
                 <p class="text-subtitle-1 font-weight-bold">{{ billing.label }}</p>

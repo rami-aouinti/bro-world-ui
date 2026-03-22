@@ -187,6 +187,13 @@ onMounted(async () => {
 
 <template>
   <PlatformSplitLayout>
+    <client-only>
+      <teleport to="#app-bar-teleport-target">
+        <v-btn size="large"
+               variant="text"
+               class="text-none app-bar__link-btn" :loading="isLoading" @click="loadData" icon="mdi-refresh"></v-btn>
+      </teleport>
+    </client-only>
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
@@ -213,15 +220,6 @@ onMounted(async () => {
     </template>
 
     <section>
-      <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
-        <div>
-          <h1 class="text-h5 font-weight-bold mb-1">Tasks list</h1>
-        </div>
-        <div class="d-flex ga-2 flex-wrap">
-          <v-btn color="primary" variant="outlined" :loading="isLoading" @click="loadData" icon="mdi-refresh"></v-btn>
-        </div>
-      </div>
-
       <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
         {{ errorMessage }}
       </v-alert>
