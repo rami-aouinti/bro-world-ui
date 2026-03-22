@@ -188,6 +188,26 @@ export interface CrmGithubRepository {
   defaultBranch: string
 }
 
+export interface CrmGithubProject {
+  id: string
+  title: string
+  number: number
+  url: string
+  closed: boolean
+  updatedAt: string
+}
+
+export interface CrmGithubProjectItem {
+  id: string
+  issue: {
+    id: string
+    number: number
+    title: string
+    url: string
+    state: 'OPEN' | 'CLOSED'
+  } | null
+}
+
 export interface CrmGithubAccountRepository extends CrmGithubRepository {
   name: string
   private: boolean
@@ -197,6 +217,17 @@ export interface CrmGithubAccountRepository extends CrmGithubRepository {
 
 export interface CreateCrmProjectGithubRepositoryPayload {
   fullName: string
+}
+
+export interface CreateCrmGithubProjectPayload {
+  owner: string
+  title: string
+}
+
+export interface CreateCrmGithubRepositoryPayload {
+  name: string
+  description?: string
+  private: boolean
 }
 
 export interface CrmProjectGithubRepositoryMutationResponse {
