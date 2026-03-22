@@ -44,6 +44,12 @@ const editForm = reactive<UpdateCrmContactPayload>({
 })
 
 const contacts = computed(() => crmStore.getContacts(slug.value))
+const {
+  page,
+  paginatedItems: paginatedContacts,
+  pageLength,
+  shouldShowPagination,
+} = useListingPagination(contacts)
 
 const fullName = (contact: CrmContact) => `${contact.firstName ?? ''} ${contact.lastName ?? ''}`.trim() || 'N/A'
 
@@ -190,7 +196,7 @@ onMounted(async () => {
       </v-row>
 
       <v-row v-else>
-        <v-col v-for="contact in contacts" :key="contact.id" cols="12" md="6" lg="4">
+        <v-col v-for="contact in paginatedContacts" :key="contact.id" cols="12" md="6" lg="4">
           <v-card rounded="xl" variant="outlined" class="h-100">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-3 ga-2">
@@ -213,10 +219,13 @@ onMounted(async () => {
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col v-if="contacts.length === 0" cols="12">
+        <v-col v-if="paginatedContacts.length === 0" cols="12">
           <v-alert type="info" variant="tonal">Aucun contact trouvé.</v-alert>
         </v-col>
       </v-row>
+      <div v-if="shouldShowPagination" class="d-flex justify-center mt-4">
+        <v-pagination v-model="page" :length="pageLength" total-visible="5" />
+      </div>
 
       <v-dialog v-model="showCreateDialog" max-width="560">
         <v-card>

@@ -24,7 +24,13 @@ const filteredTasks = computed(() => {
   }
   return tasks.value.filter(task => (task.status || 'unknown').toLowerCase() === selectedStatusFilter.value)
 })
-const paginatedTasks = computed(() => filteredTasks.value.slice((page.value - 1) * itemsPerPage, page.value * itemsPerPage))
+const {
+  page,
+  itemsPerPage,
+  paginatedItems: paginatedTasks,
+  pageLength,
+  shouldShowPagination,
+} = useListingPagination(filteredTasks, [selectedStatusFilter])
 const statusFilters = computed(() => {
   const counts = new Map<string, number>()
 
@@ -56,8 +62,6 @@ const errorMessage = ref('')
 const showCreateDialog = ref(false)
 const showEditDialog = ref(false)
 const isMutating = ref(false)
-const page = ref(1)
-const itemsPerPage = 5
 const selectedTask = ref<CrmTask | null>(null)
 const createForm = reactive<CreateCrmTaskPayload>({
   title: '',
@@ -170,10 +174,6 @@ const deleteTask = async (id: string) => {
   await crmStore.deleteTask(slug.value, id)
 }
 
-watch(selectedStatusFilter, () => {
-  page.value = 1
-})
-
 onMounted(async () => {
   try {
     await loadData()
@@ -259,8 +259,8 @@ onMounted(async () => {
         </v-col>
       </v-row>
 
-      <div v-if="filteredTasks.length > itemsPerPage" class="d-flex justify-center mt-4">
-        <v-pagination v-model="page" :length="Math.ceil(filteredTasks.length / itemsPerPage)" total-visible="5" />
+      <div v-if="shouldShowPagination" class="d-flex justify-center mt-4">
+        <v-pagination v-model="page" :length="pageLength" total-visible="5" />
       </div>
 
       <v-dialog v-model="showCreateDialog" max-width="560">

@@ -21,6 +21,12 @@ const errorMessage = ref('')
 const showCreateDialog = ref(false)
 const showEditDialog = ref(false)
 const billings = ref<Awaited<ReturnType<typeof crmApi.getBillings>>['items']>([])
+const {
+  page,
+  paginatedItems: paginatedBillings,
+  pageLength,
+  shouldShowPagination,
+} = useListingPagination(billings)
 const selectedBillingId = ref('')
 
 const statusOptions: Array<{ title: string, value: CrmBillingStatus }> = [
@@ -220,7 +226,7 @@ onMounted(async () => {
       </v-row>
 
       <v-row v-else>
-        <v-col v-for="billing in billings" :key="billing.id" cols="12" md="6" lg="6">
+        <v-col v-for="billing in paginatedBillings" :key="billing.id" cols="12" md="6" lg="6">
           <v-card variant="outlined" rounded="xl" hover class="h-100 cursor-pointer" @click="goToDetail(billing.id)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start ga-2 mb-2">
@@ -238,6 +244,9 @@ onMounted(async () => {
           </v-card>
         </v-col>
       </v-row>
+      <div v-if="shouldShowPagination" class="d-flex justify-center mt-4">
+        <v-pagination v-model="page" :length="pageLength" total-visible="5" />
+      </div>
 
       <v-dialog v-model="showCreateDialog" max-width="580">
         <v-card>

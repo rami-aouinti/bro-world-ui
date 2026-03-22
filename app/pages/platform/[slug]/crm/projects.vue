@@ -54,6 +54,12 @@ const filteredProjects = computed(() => {
   }
   return projects.value.filter(project => (project.status || 'unknown').toLowerCase() === selectedStatusFilter.value)
 })
+const {
+  page,
+  paginatedItems: paginatedProjects,
+  pageLength,
+  shouldShowPagination,
+} = useListingPagination(filteredProjects, [selectedStatusFilter])
 
 const form = reactive<CreateCrmProjectPayload>({
   name: '',
@@ -194,7 +200,7 @@ onMounted(async () => {
       </v-row>
 
       <v-row v-else>
-        <v-col v-for="project in filteredProjects" :key="project.id" cols="12" md="6" lg="6">
+        <v-col v-for="project in paginatedProjects" :key="project.id" cols="12" md="6" lg="6">
           <v-card rounded="xl" variant="outlined" class="h-100 cursor-pointer projects-card" @click="goToProject(project.id)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
@@ -221,10 +227,13 @@ onMounted(async () => {
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col v-if="filteredProjects.length === 0" cols="12">
+        <v-col v-if="paginatedProjects.length === 0" cols="12">
           <v-alert type="info" variant="tonal">No projects found for this filter.</v-alert>
         </v-col>
       </v-row>
+      <div v-if="shouldShowPagination" class="d-flex justify-center mt-4">
+        <v-pagination v-model="page" :length="pageLength" total-visible="5" />
+      </div>
 
       <v-dialog v-model="showCreateDialog" max-width="620">
         <v-card>
