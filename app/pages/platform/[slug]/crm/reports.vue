@@ -104,28 +104,28 @@ const contacts = computed(() => reports.value?.contacts ?? [])
           </v-col>
         </v-row>
 
-        <v-card rounded="xl" class="mb-4">
-          <v-card-title>Top contacts</v-card-title>
-          <v-table density="compact">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Job title</th>
-                <th>City</th>
-                <th class="text-right">Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="contact in contacts" :key="contact.id">
-                <td>{{ contact.name }}</td>
-                <td>{{ contact.email }}</td>
-                <td>{{ contact.jobTitle }}</td>
-                <td>{{ contact.city }}</td>
-                <td class="text-right">{{ contact.score }}</td>
-              </tr>
-            </tbody>
-          </v-table>
+        <v-card rounded="xl" class="mb-4" variant="text">
+          <v-card-title class="px-0">Top contacts</v-card-title>
+          <v-card-text class="px-0">
+            <v-row>
+              <v-col v-for="contact in contacts" :key="contact.id" cols="12" md="6" lg="4">
+                <v-card rounded="xl" variant="outlined" class="h-100">
+                  <v-card-text>
+                    <div class="d-flex justify-space-between align-start ga-2 mb-2">
+                      <p class="text-subtitle-1 font-weight-bold mb-0">{{ contact.name }}</p>
+                      <v-chip size="small" color="primary" variant="tonal">Score {{ contact.score }}</v-chip>
+                    </div>
+                    <p class="text-body-2 mb-1"><strong>Email:</strong> {{ contact.email || 'N/A' }}</p>
+                    <p class="text-body-2 mb-1"><strong>Poste:</strong> {{ contact.jobTitle || 'N/A' }}</p>
+                    <p class="text-body-2 text-medium-emphasis mb-0"><strong>Ville:</strong> {{ contact.city || 'N/A' }}</p>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+              <v-col v-if="contacts.length === 0" cols="12">
+                <v-alert type="info" variant="tonal">Aucun contact prioritaire.</v-alert>
+              </v-col>
+            </v-row>
+          </v-card-text>
         </v-card>
 
         <v-card rounded="xl">
