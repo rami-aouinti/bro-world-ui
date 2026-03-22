@@ -1,6 +1,7 @@
 import { useApiClient } from '../useApiClient'
 import type { UUID } from '~/types/api/common'
 import type {
+  CreateCrmProjectGithubRepositoryPayload,
   CreateCrmBillingPayload,
   CreateCrmCompanyPayload,
   CreateCrmContactPayload,
@@ -15,12 +16,14 @@ import type {
   CrmContact,
   CrmDashboardResponse,
   CrmEmployee,
+  CrmGithubAccountRepository,
   CrmGithubBranch,
   CrmGithubDashboardResponse,
   CrmGithubPullRequestDetails,
   CrmGithubPullRequestListItem,
   CrmGithubPullRequestState,
   CrmGithubRepository,
+  CrmProjectGithubRepositoryMutationResponse,
   CrmProject,
   CrmPublicUsersResponse,
   CrmReportsResponse,
@@ -113,6 +116,12 @@ export const useCrmApi = () => {
     },
     getProjectGithubRepositories(applicationSlug: string, projectId: UUID) {
       return apiFetch<CrmCollectionResponse<CrmGithubRepository>>(`${basePath(applicationSlug)}/projects/${projectId}/github/repositories`, { method: 'GET' })
+    },
+    getProjectGithubAccountRepositories(applicationSlug: string, projectId: UUID) {
+      return apiFetch<CrmCollectionResponse<CrmGithubAccountRepository>>(`${basePath(applicationSlug)}/projects/${projectId}/github/account/repositories`, { method: 'GET' })
+    },
+    addProjectGithubRepository(applicationSlug: string, projectId: UUID, payload: CreateCrmProjectGithubRepositoryPayload) {
+      return apiFetch<CrmProjectGithubRepositoryMutationResponse>(`${basePath(applicationSlug)}/projects/${projectId}/github/repositories`, { method: 'POST', body: payload })
     },
     getProjectGithubDashboard(applicationSlug: string, projectId: UUID) {
       return apiFetch<CrmGithubDashboardResponse>(`${basePath(applicationSlug)}/projects/${projectId}/github/dashboard`, { method: 'GET' })
