@@ -173,16 +173,54 @@ onMounted(async () => {
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
+    <template #aside>
+      <v-card-title>Détail PR</v-card-title>
+      <v-card-text>
+        <v-alert v-if="errors.pullRequestDetails" type="error" variant="tonal" class="mb-3">{{ errors.pullRequestDetails }}</v-alert>
+        <v-skeleton-loader v-else-if="isLoading.pullRequestDetails" type="article" />
+        <template v-else-if="selectedPullRequest">
+          <p class="text-subtitle-1 font-weight-bold mb-2">#{{ selectedPullRequest.number }} — {{ selectedPullRequest.title }}</p>
+          <p class="mb-1"><strong>Author:</strong> {{ selectedPullRequest.author }}</p>
+          <p class="mb-1"><strong>State:</strong> {{ selectedPullRequest.state }}</p>
+          <p class="mb-1"><strong>Merged at:</strong> {{ formatDate(selectedPullRequest.mergedAt) }}</p>
+          <v-row>
+            <v-col cols="12" md="6">
+              <p>Commits: {{ selectedPullRequest.commits }}</p>
+            </v-col>
+            <v-col cols="12" md="6">
+              <p>Files: {{ selectedPullRequest.changedFiles }}</p>
+            </v-col>
+            <v-col cols="12" md="6">
+              <p>Additions: +{{ selectedPullRequest.additions }}</p>
+            </v-col>
+            <v-col cols="12" md="6">
+              <p>Deletions: -{{ selectedPullRequest.deletions }}</p>
+            </v-col>
+          </v-row>
+          <p class="mb-1"><strong>Head/Base:</strong> {{ selectedPullRequest.head }} → {{ selectedPullRequest.base }}</p>
+          <div class="d-flex ga-2 mt-3 flex-wrap">
+            <v-btn color="primary" variant="flat" :href="selectedPullRequest.htmlUrl" target="_blank" prepend-icon="mdi-open-in-new">Open pull request</v-btn>
+          </div>
+        </template>
+        <p v-else class="text-body-2 text-medium-emphasis mb-0">Select pull request pour voir tous les détails.</p>
+      </v-card-text>
+    </template>
     <section>
       <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-4">
         <div>
           <h2 class="text-h5 mb-1">GitHub Workspace</h2>
-          <p class="text-body-2 text-medium-emphasis mb-0">Project: {{ projectId }}</p>
         </div>
         <v-btn variant="outlined" prepend-icon="mdi-arrow-left" :to="`/platform/${slug}/crm/project/${projectId}`">Back to project</v-btn>
       </div>
 
       <v-alert v-if="errors.repositories" type="error" variant="tonal" class="mb-4">{{ errors.repositories }}</v-alert>
+
+      <v-row dense class="mb-4">
+        <v-col cols="12" md="3"><v-card variant="tonal" color="info"><v-card-text><p class="text-caption mb-1">Open PR</p><p class="text-h6 mb-0">{{ dashboard?.open ?? 0 }}</p></v-card-text></v-card></v-col>
+        <v-col cols="12" md="3"><v-card variant="tonal"><v-card-text><p class="text-caption mb-1">Closed PR</p><p class="text-h6 mb-0">{{ dashboard?.closed ?? 0 }}</p></v-card-text></v-card></v-col>
+        <v-col cols="12" md="3"><v-card variant="tonal" color="success"><v-card-text><p class="text-caption mb-1">Merged PR</p><p class="text-h6 mb-0">{{ dashboard?.merged ?? 0 }}</p></v-card-text></v-card></v-col>
+        <v-col cols="12" md="3"><v-card variant="tonal" color="primary"><v-card-text><p class="text-caption mb-1">Repos linked</p><p class="text-h6 mb-0">{{ repositories.length }}</p></v-card-text></v-card></v-col>
+      </v-row>
 
       <v-row dense class="mb-3">
         <v-col cols="12" md="4">
@@ -197,7 +235,7 @@ onMounted(async () => {
             density="comfortable"
           />
         </v-col>
-        <v-col cols="12" md="2">
+        <v-col cols="12" md="4">
           <v-select
             v-model="pullRequestState"
             label="State"
@@ -210,15 +248,8 @@ onMounted(async () => {
         </v-col>
       </v-row>
 
-      <v-row dense class="mb-4">
-        <v-col cols="12" md="3"><v-card variant="tonal" color="info"><v-card-text><p class="text-caption mb-1">Open PR</p><p class="text-h6 mb-0">{{ dashboard?.open ?? 0 }}</p></v-card-text></v-card></v-col>
-        <v-col cols="12" md="3"><v-card variant="tonal"><v-card-text><p class="text-caption mb-1">Closed PR</p><p class="text-h6 mb-0">{{ dashboard?.closed ?? 0 }}</p></v-card-text></v-card></v-col>
-        <v-col cols="12" md="3"><v-card variant="tonal" color="success"><v-card-text><p class="text-caption mb-1">Merged PR</p><p class="text-h6 mb-0">{{ dashboard?.merged ?? 0 }}</p></v-card-text></v-card></v-col>
-        <v-col cols="12" md="3"><v-card variant="tonal" color="primary"><v-card-text><p class="text-caption mb-1">Repos linked</p><p class="text-h6 mb-0">{{ repositories.length }}</p></v-card-text></v-card></v-col>
-      </v-row>
-
       <v-row dense>
-        <v-col cols="12" lg="7">
+        <v-col cols="12">
           <v-card rounded="xl">
             <v-card-title>Pull requests</v-card-title>
             <v-card-text>
@@ -249,32 +280,7 @@ onMounted(async () => {
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12" lg="5">
-          <v-card rounded="xl" class="mb-4">
-            <v-card-title>Détail PR</v-card-title>
-            <v-card-text>
-              <v-alert v-if="errors.pullRequestDetails" type="error" variant="tonal" class="mb-3">{{ errors.pullRequestDetails }}</v-alert>
-              <v-skeleton-loader v-else-if="isLoading.pullRequestDetails" type="article" />
-              <template v-else-if="selectedPullRequest">
-                <p class="text-subtitle-1 font-weight-bold mb-2">#{{ selectedPullRequest.number }} — {{ selectedPullRequest.title }}</p>
-                <p class="mb-1"><strong>Author:</strong> {{ selectedPullRequest.author }}</p>
-                <p class="mb-1"><strong>State:</strong> {{ selectedPullRequest.state }}</p>
-                <p class="mb-1"><strong>Merged at:</strong> {{ formatDate(selectedPullRequest.mergedAt) }}</p>
-                <p class="mb-1"><strong>Commits:</strong> {{ selectedPullRequest.commits }}</p>
-                <p class="mb-1"><strong>Changed files:</strong> {{ selectedPullRequest.changedFiles }}</p>
-                <p class="mb-1"><strong>Additions:</strong> +{{ selectedPullRequest.additions }}</p>
-                <p class="mb-1"><strong>Deletions:</strong> -{{ selectedPullRequest.deletions }}</p>
-                <p class="mb-1"><strong>Mergeable:</strong> {{ selectedPullRequest.mergeable === null ? 'Unknown' : selectedPullRequest.mergeable ? 'Yes' : 'No' }}</p>
-                <p class="mb-1"><strong>Head/Base:</strong> {{ selectedPullRequest.head }} → {{ selectedPullRequest.base }}</p>
-                <div class="d-flex ga-2 mt-3 flex-wrap">
-                  <v-btn color="primary" variant="flat" :href="selectedPullRequest.htmlUrl" target="_blank" prepend-icon="mdi-open-in-new">Open pull request</v-btn>
-                  <v-btn v-if="selectedPullRequest.statusesUrl" variant="outlined" :href="selectedPullRequest.statusesUrl" target="_blank" prepend-icon="mdi-source-branch">Statuses</v-btn>
-                </div>
-              </template>
-              <p v-else class="text-body-2 text-medium-emphasis mb-0">Sélectionnez une pull request pour voir tous les détails.</p>
-            </v-card-text>
-          </v-card>
-
+        <v-col cols="12">
           <v-card rounded="xl">
             <v-card-title>Branches</v-card-title>
             <v-card-text>

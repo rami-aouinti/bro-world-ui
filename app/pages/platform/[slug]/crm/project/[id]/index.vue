@@ -66,8 +66,8 @@ const filteredRepositories = computed(() => {
   }
 
   return fakeRepositories.value.filter(repo =>
-    repo.name.toLowerCase().includes(query)
-    || repo.description.toLowerCase().includes(query),
+      repo.name.toLowerCase().includes(query)
+      || repo.description.toLowerCase().includes(query),
   )
 })
 const repositoryOpenPrCount = computed(() => selectedRepository.value?.pullRequests.filter(pr => pr.status === 'open').length ?? 0)
@@ -450,9 +450,9 @@ onMounted(loadGithubRepositories)
             <v-skeleton-loader v-else-if="isLoadingGithubRepositories" type="list-item-three-line, list-item-three-line" />
             <v-list v-else-if="githubRepositories.length" lines="two" border rounded>
               <v-list-item
-                v-for="repository in githubRepositories"
-                :key="repository.fullName"
-                @click="openGithubRepository(repository.fullName)"
+                  v-for="repository in githubRepositories"
+                  :key="repository.fullName"
+                  @click="openGithubRepository(repository.fullName)"
               >
                 <template #prepend>
                   <v-avatar color="grey-darken-4" size="34"><v-icon icon="mdi-github" /></v-avatar>
