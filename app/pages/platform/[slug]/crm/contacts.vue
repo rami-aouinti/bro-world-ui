@@ -22,6 +22,10 @@ const showCreateDialog = ref(false)
 const showEditDialog = ref(false)
 const selectedContact = ref<CrmContact | null>(null)
 const showViewDialog = ref(false)
+const selectedItem = ref<CrmContact | null>(null)
+const showFilters = ref(true)
+const searchQuery = ref('')
+const cityFilter = ref('')
 
 const createForm = reactive<CreateCrmContactPayload>({
   firstName: '',
@@ -44,14 +48,32 @@ const editForm = reactive<UpdateCrmContactPayload>({
 })
 
 const contacts = computed(() => crmStore.getContacts(slug.value))
+const filteredContacts = computed(() => contacts.value.filter((contact) => {
+  const query = searchQuery.value.trim().toLowerCase()
+  const city = cityFilter.value.trim().toLowerCase()
+  const matchesSearch = !query
+    || fullName(contact).toLowerCase().includes(query)
+    || (contact.email || '').toLowerCase().includes(query)
+    || (contact.jobTitle || '').toLowerCase().includes(query)
+  const matchesCity = !city || (contact.city || '').toLowerCase().includes(city)
+
+  return matchesSearch && matchesCity
+}))
 const {
   page,
   paginatedItems: paginatedContacts,
   pageLength,
   shouldShowPagination,
-} = useListingPagination(contacts)
+} = useListingPagination(filteredContacts, [searchQuery, cityFilter])
 
 const fullName = (contact: CrmContact) => `${contact.firstName ?? ''} ${contact.lastName ?? ''}`.trim() || 'N/A'
+const selectContact = (contact: CrmContact) => {
+  selectedItem.value = contact
+  showFilters.value = false
+}
+const showFiltersPanel = () => {
+  showFilters.value = true
+}
 
 const resetCreateForm = () => {
   Object.assign(createForm, {
@@ -74,6 +96,9 @@ const loadContacts = async (force = false) => {
 
   try {
     await crmStore.fetchContacts(slug.value, force)
+    if (selectedItem.value) {
+      selectedItem.value = contacts.value.find(contact => contact.id === selectedItem.value?.id) ?? null
+    }
   }
   catch (error) {
     const normalized = normalizeError(error, {
@@ -176,7 +201,30 @@ onMounted(async () => {
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
-
+    <template #aside>
+      <div class="d-flex flex-column ga-4">
+        <template v-if="showFilters">
+          <v-card rounded="xl" variant="outlined">
+            <v-card-title class="text-subtitle-2">Filters</v-card-title>
+            <v-card-text class="d-flex flex-column ga-3">
+              <v-text-field v-model="searchQuery" label="Search" variant="outlined" hide-details prepend-inner-icon="mdi-magnify" />
+              <v-text-field v-model="cityFilter" label="City" variant="outlined" hide-details />
+            </v-card-text>
+          </v-card>
+        </template>
+        <v-card v-else-if="selectedItem" rounded="xl" variant="outlined">
+          <v-card-title class="d-flex justify-space-between align-center ga-2">
+            <span>{{ fullName(selectedItem) }}</span>
+            <v-btn size="small" variant="tonal" prepend-icon="mdi-filter-outline" @click="showFiltersPanel">Filter</v-btn>
+          </v-card-title>
+          <v-card-text>
+            <p class="text-body-2 mb-1"><strong>Email:</strong> {{ selectedItem.email || 'N/A' }}</p>
+            <p class="text-body-2 mb-1"><strong>Job:</strong> {{ selectedItem.jobTitle || 'N/A' }}</p>
+            <p class="text-body-2 mb-0"><strong>City:</strong> {{ selectedItem.city || 'N/A' }}</p>
+          </v-card-text>
+        </v-card>
+      </div>
+    </template>
     <section>
       <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
         <div>
@@ -197,7 +245,7 @@ onMounted(async () => {
 
       <v-row v-else>
         <v-col v-for="contact in paginatedContacts" :key="contact.id" cols="12" md="6" lg="4">
-          <v-card rounded="xl" variant="outlined" class="h-100">
+          <v-card rounded="xl" variant="outlined" class="h-100 cursor-pointer" @click="selectContact(contact)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-3 ga-2">
                 <div>
@@ -212,9 +260,9 @@ onMounted(async () => {
                 <p class="mb-0"><strong>Ville:</strong> {{ contact.city || 'N/A' }}</p>
               </div>
               <div class="d-flex ga-2 justify-end">
-                <v-btn size="small" variant="text" icon="mdi-eye" @click="openViewDialog(contact)" />
-                <v-btn size="small" variant="tonal" @click="openEditDialog(contact)">Edit</v-btn>
-                <v-btn size="small" color="error" variant="tonal" @click="removeContact(contact.id)">Delete</v-btn>
+                <v-btn size="small" variant="text" icon="mdi-eye" @click.stop="openViewDialog(contact)" />
+                <v-btn size="small" variant="tonal" @click.stop="openEditDialog(contact)">Edit</v-btn>
+                <v-btn size="small" color="error" variant="tonal" @click.stop="removeContact(contact.id)">Delete</v-btn>
               </div>
             </v-card-text>
           </v-card>

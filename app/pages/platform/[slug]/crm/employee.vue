@@ -19,8 +19,30 @@ const isPageLoading = ref(true)
 const errorMessage = ref('')
 const employees = ref<CrmEmployee[]>([])
 const paginationTotal = ref(0)
+const selectedItem = ref<CrmEmployee | null>(null)
+const showFilters = ref(true)
+const searchQuery = ref('')
+const roleFilter = ref('')
 
 const fullName = (employee: CrmEmployee) => `${employee.firstName ?? ''} ${employee.lastName ?? ''}`.trim() || 'N/A'
+const filteredEmployees = computed(() => employees.value.filter((employee) => {
+  const query = searchQuery.value.trim().toLowerCase()
+  const role = roleFilter.value.trim().toLowerCase()
+  const matchesSearch = !query
+    || fullName(employee).toLowerCase().includes(query)
+    || (employee.email || '').toLowerCase().includes(query)
+    || (employee.positionName || '').toLowerCase().includes(query)
+  const matchesRole = !role || (employee.roleName || '').toLowerCase().includes(role)
+
+  return matchesSearch && matchesRole
+}))
+const selectEmployee = (employee: CrmEmployee) => {
+  selectedItem.value = employee
+  showFilters.value = false
+}
+const showFiltersPanel = () => {
+  showFilters.value = true
+}
 const formatDate = (value: string | null) => {
   if (!value) {
     return 'N/A'
@@ -39,6 +61,9 @@ const loadEmployees = async () => {
   try {
     const response = await crmApi.getEmployees(slug.value)
     employees.value = response.items
+    if (selectedItem.value) {
+      selectedItem.value = employees.value.find(employee => employee.id === selectedItem.value?.id) ?? null
+    }
     paginationTotal.value = response.pagination?.totalItems ?? response.items.length
   }
   catch (error) {
@@ -72,7 +97,30 @@ onMounted(async () => {
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
-
+    <template #aside>
+      <div class="d-flex flex-column ga-4">
+        <template v-if="showFilters">
+          <v-card rounded="xl" variant="outlined">
+            <v-card-title class="text-subtitle-2">Filters</v-card-title>
+            <v-card-text class="d-flex flex-column ga-3">
+              <v-text-field v-model="searchQuery" label="Search" variant="outlined" hide-details prepend-inner-icon="mdi-magnify" />
+              <v-text-field v-model="roleFilter" label="Role" variant="outlined" hide-details />
+            </v-card-text>
+          </v-card>
+        </template>
+        <v-card v-else-if="selectedItem" rounded="xl" variant="outlined">
+          <v-card-title class="d-flex justify-space-between align-center ga-2">
+            <span>{{ fullName(selectedItem) }}</span>
+            <v-btn size="small" variant="tonal" prepend-icon="mdi-filter-outline" @click="showFiltersPanel">Filter</v-btn>
+          </v-card-title>
+          <v-card-text>
+            <p class="text-body-2 mb-1"><strong>Email:</strong> {{ selectedItem.email || 'N/A' }}</p>
+            <p class="text-body-2 mb-1"><strong>Role:</strong> {{ selectedItem.roleName || 'N/A' }}</p>
+            <p class="text-body-2 mb-0"><strong>Position:</strong> {{ selectedItem.positionName || 'N/A' }}</p>
+          </v-card-text>
+        </v-card>
+      </div>
+    </template>
     <section>
       <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
         <div>
@@ -92,8 +140,8 @@ onMounted(async () => {
       </v-row>
 
       <v-row v-else>
-        <v-col v-for="employee in employees" :key="employee.id" cols="12" md="6" lg="4">
-          <v-card rounded="xl" variant="outlined" class="h-100">
+        <v-col v-for="employee in filteredEmployees" :key="employee.id" cols="12" md="6" lg="4">
+          <v-card rounded="xl" variant="outlined" class="h-100 cursor-pointer" @click="selectEmployee(employee)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start ga-2 mb-2">
                 <p class="text-subtitle-1 font-weight-bold mb-0">{{ fullName(employee) }}</p>
@@ -105,7 +153,7 @@ onMounted(async () => {
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col v-if="employees.length === 0" cols="12">
+        <v-col v-if="filteredEmployees.length === 0" cols="12">
           <v-alert type="info" variant="tonal">Aucun employé trouvé.</v-alert>
         </v-col>
       </v-row>

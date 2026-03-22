@@ -3,7 +3,7 @@ import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { useCrmApi } from '~/composables/api/useCrmApi'
 import { getCrmNav } from '~/data/platform-nav'
-import type { CreateCrmBillingPayload, CrmBillingStatus, UpdateCrmBillingPayload } from '~/types/api/crm'
+import type { CrmBilling, CreateCrmBillingPayload, CrmBillingStatus, UpdateCrmBillingPayload } from '~/types/api/crm'
 
 definePageMeta({ public: true, requiresAuth: false })
 
@@ -21,12 +21,26 @@ const errorMessage = ref('')
 const showCreateDialog = ref(false)
 const showEditDialog = ref(false)
 const billings = ref<Awaited<ReturnType<typeof crmApi.getBillings>>['items']>([])
+const selectedItem = ref<CrmBilling | null>(null)
+const showFilters = ref(true)
+const searchQuery = ref('')
+const statusFilter = ref<'all' | CrmBillingStatus>('all')
+const filteredBillings = computed(() => billings.value.filter((billing) => {
+  const query = searchQuery.value.trim().toLowerCase()
+  const matchesSearch = !query
+    || billing.label.toLowerCase().includes(query)
+    || billing.currency.toLowerCase().includes(query)
+    || billing.companyId.toLowerCase().includes(query)
+  const matchesStatus = statusFilter.value === 'all' || billing.status === statusFilter.value
+
+  return matchesSearch && matchesStatus
+}))
 const {
   page,
   paginatedItems: paginatedBillings,
   pageLength,
   shouldShowPagination,
-} = useListingPagination(billings)
+} = useListingPagination(filteredBillings, [searchQuery, statusFilter])
 const selectedBillingId = ref('')
 
 const statusOptions: Array<{ title: string, value: CrmBillingStatus }> = [
@@ -72,6 +86,15 @@ const formatDate = (date: string | null) => {
   }).format(new Date(date))
 }
 
+const selectBilling = (billing: CrmBilling) => {
+  selectedItem.value = billing
+  showFilters.value = false
+}
+
+const showFiltersPanel = () => {
+  showFilters.value = true
+}
+
 const loadBillings = async () => {
   if (!slug.value) {
     return
@@ -82,6 +105,9 @@ const loadBillings = async () => {
   try {
     const response = await crmApi.getBillings(slug.value)
     billings.value = response.items
+    if (selectedItem.value) {
+      selectedItem.value = billings.value.find(item => item.id === selectedItem.value?.id) ?? null
+    }
   }
   catch (error) {
     const normalized = normalizeError(error, {
@@ -188,7 +214,6 @@ const removeBilling = async (billingId: string) => {
   }
 }
 
-const goToDetail = (billingId: string) => navigateTo(`/platform/${slug.value}/crm/billing/${billingId}`)
 
 onMounted(async () => {
   try {
@@ -213,7 +238,30 @@ onMounted(async () => {
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
-
+    <template #aside>
+      <div class="d-flex flex-column ga-4">
+        <template v-if="showFilters">
+          <v-card rounded="xl" variant="outlined">
+            <v-card-title class="text-subtitle-2">Filters</v-card-title>
+            <v-card-text class="d-flex flex-column ga-3">
+              <v-text-field v-model="searchQuery" label="Search" variant="outlined" hide-details prepend-inner-icon="mdi-magnify" />
+              <v-select v-model="statusFilter" label="Status" variant="outlined" hide-details :items="[{ title: 'All', value: 'all' }, ...statusOptions]" item-title="title" item-value="value" />
+            </v-card-text>
+          </v-card>
+        </template>
+        <v-card v-else-if="selectedItem" rounded="xl" variant="outlined">
+          <v-card-title class="d-flex justify-space-between align-center ga-2">
+            <span>{{ selectedItem.label }}</span>
+            <v-btn size="small" variant="tonal" prepend-icon="mdi-filter-outline" @click="showFiltersPanel">Filter</v-btn>
+          </v-card-title>
+          <v-card-text>
+            <p class="text-body-2 mb-1"><strong>Status:</strong> {{ selectedItem.status }}</p>
+            <p class="text-body-2 mb-1"><strong>Amount:</strong> {{ formatAmount(selectedItem.amount, selectedItem.currency) }}</p>
+            <p class="text-body-2 mb-0"><strong>Due:</strong> {{ formatDate(selectedItem.dueAt) }}</p>
+          </v-card-text>
+        </v-card>
+      </div>
+    </template>
     <section>
       <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
         {{ errorMessage }}
@@ -227,7 +275,7 @@ onMounted(async () => {
 
       <v-row v-else>
         <v-col v-for="billing in paginatedBillings" :key="billing.id" cols="12" md="6" lg="6">
-          <v-card variant="outlined" rounded="xl" hover class="h-100 cursor-pointer" @click="goToDetail(billing.id)">
+          <v-card variant="outlined" rounded="xl" hover class="h-100 cursor-pointer" @click="selectBilling(billing)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start ga-2 mb-2">
                 <p class="text-subtitle-1 font-weight-bold">{{ billing.label }}</p>

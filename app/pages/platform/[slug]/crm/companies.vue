@@ -3,7 +3,7 @@ import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
 import { useCrmStore } from '~/stores/crm'
-import type { CreateCrmCompanyPayload } from '~/types/api/crm'
+import type { CrmCompany, CreateCrmCompanyPayload } from '~/types/api/crm'
 
 definePageMeta({ public: true, requiresAuth: false })
 
@@ -26,15 +26,36 @@ const form = reactive<CreateCrmCompanyPayload>({
 })
 
 const companies = computed(() => crmStore.getCompanies(slug.value))
+const selectedItem = ref<CrmCompany | null>(null)
+const showFilters = ref(true)
+const searchQuery = ref('')
+const industryFilter = ref('')
+const filteredCompanies = computed(() => companies.value.filter((company) => {
+  const query = searchQuery.value.trim().toLowerCase()
+  const industry = industryFilter.value.trim().toLowerCase()
+  const matchesSearch = !query
+    || company.name.toLowerCase().includes(query)
+    || (company.contactEmail || '').toLowerCase().includes(query)
+    || (company.phone || '').toLowerCase().includes(query)
+  const matchesIndustry = !industry || (company.industry || '').toLowerCase().includes(industry)
+
+  return matchesSearch && matchesIndustry
+}))
 const {
   page,
   paginatedItems: paginatedCompanies,
   pageLength,
   shouldShowPagination,
-} = useListingPagination(companies)
+} = useListingPagination(filteredCompanies, [searchQuery, industryFilter])
 
 const goToCompany = (id: string) => navigateTo(`/platform/${slug.value}/crm/company/${id}`)
-const editCompany = (id: string) => navigateTo(`/platform/${slug.value}/crm/company/${id}`)
+const selectCompany = (company: CrmCompany) => {
+  selectedItem.value = company
+  showFilters.value = false
+}
+const showFiltersPanel = () => {
+  showFilters.value = true
+}
 
 const loadCompanies = async (force = false) => {
   if (!slug.value) {
@@ -45,6 +66,9 @@ const loadCompanies = async (force = false) => {
 
   try {
     await crmStore.fetchCompanies(slug.value, force)
+    if (selectedItem.value) {
+      selectedItem.value = companies.value.find(company => company.id === selectedItem.value?.id) ?? null
+    }
   }
   catch (error) {
     const normalized = normalizeError(error, {
@@ -101,15 +125,36 @@ onMounted(async () => {
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
     <template #aside>
-      <div class="text-center">
-        <h3>New Company</h3>
-        <v-text-field v-model="form.name" rounded="xl" variant="outlined" label="Name" required />
-        <v-text-field v-model="form.industry" rounded="xl" variant="outlined"  label="Industry" />
-        <v-text-field v-model="form.website" rounded="xl" variant="outlined"  label="Website" />
-        <v-text-field v-model="form.contactEmail" rounded="xl" variant="outlined"  label="Contact email" type="email" />
-        <v-text-field v-model="form.phone" rounded="xl" variant="outlined" label="Phone" />
-        <v-spacer></v-spacer>
-        <v-btn color="primary" :loading="isMutating" @click="createCompany">Save company</v-btn>
+      <div class="d-flex flex-column ga-4">
+        <template v-if="showFilters">
+          <v-card rounded="xl" variant="outlined">
+            <v-card-title class="text-subtitle-2">Filters</v-card-title>
+            <v-card-text class="d-flex flex-column ga-3">
+              <v-text-field v-model="searchQuery" rounded="xl" variant="outlined" label="Search" prepend-inner-icon="mdi-magnify" hide-details />
+              <v-text-field v-model="industryFilter" rounded="xl" variant="outlined" label="Industry" hide-details />
+            </v-card-text>
+          </v-card>
+          <div class="text-center">
+            <h3>New Company</h3>
+            <v-text-field v-model="form.name" rounded="xl" variant="outlined" label="Name" required />
+            <v-text-field v-model="form.industry" rounded="xl" variant="outlined"  label="Industry" />
+            <v-text-field v-model="form.website" rounded="xl" variant="outlined"  label="Website" />
+            <v-text-field v-model="form.contactEmail" rounded="xl" variant="outlined"  label="Contact email" type="email" />
+            <v-text-field v-model="form.phone" rounded="xl" variant="outlined" label="Phone" />
+            <v-btn color="primary" :loading="isMutating" @click="createCompany">Save company</v-btn>
+          </div>
+        </template>
+        <v-card v-else-if="selectedItem" rounded="xl" variant="outlined">
+          <v-card-title class="d-flex justify-space-between align-center ga-2">
+            <span>{{ selectedItem.name }}</span>
+            <v-btn size="small" variant="tonal" prepend-icon="mdi-filter-outline" @click="showFiltersPanel">Filter</v-btn>
+          </v-card-title>
+          <v-card-text>
+            <p class="text-body-2 mb-1"><strong>Industry:</strong> {{ selectedItem.industry || 'N/A' }}</p>
+            <p class="text-body-2 mb-1"><strong>Email:</strong> {{ selectedItem.contactEmail || 'N/A' }}</p>
+            <p class="text-body-2 mb-0"><strong>Phone:</strong> {{ selectedItem.phone || 'N/A' }}</p>
+          </v-card-text>
+        </v-card>
       </div>
     </template>
     <section>
@@ -125,7 +170,7 @@ onMounted(async () => {
 
       <v-row v-else>
         <v-col v-for="company in paginatedCompanies" :key="company.id" cols="12" md="6" lg="6">
-          <v-card rounded="xl" variant="outlined" hover class="h-100 cursor-pointer" @click="goToCompany(company?.id)">
+          <v-card rounded="xl" variant="outlined" hover class="h-100 cursor-pointer" @click="selectCompany(company)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
                 <NuxtLink :to="company?.website" class="text-decoration-none">
@@ -142,7 +187,7 @@ onMounted(async () => {
                     />
                   </template>
                   <v-list density="compact">
-                    <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="editCompany(company.id)" />
+                    <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="goToCompany(company.id)" />
                     <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="removeCompany(company.id)" />
                   </v-list>
                 </v-menu>
