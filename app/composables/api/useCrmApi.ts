@@ -15,6 +15,12 @@ import type {
   CrmContact,
   CrmDashboardResponse,
   CrmEmployee,
+  CrmGithubBranch,
+  CrmGithubDashboardResponse,
+  CrmGithubPullRequestDetails,
+  CrmGithubPullRequestListItem,
+  CrmGithubPullRequestState,
+  CrmGithubRepository,
   CrmProject,
   CrmPublicUsersResponse,
   CrmReportsResponse,
@@ -104,6 +110,36 @@ export const useCrmApi = () => {
     },
     getProjectById(applicationSlug: string, id: UUID) {
       return apiFetch<CrmProject>(`${basePath(applicationSlug)}/projects/${id}`, { method: 'GET' })
+    },
+    getProjectGithubRepositories(applicationSlug: string, projectId: UUID) {
+      return apiFetch<CrmCollectionResponse<CrmGithubRepository>>(`${basePath(applicationSlug)}/projects/${projectId}/github/repositories`, { method: 'GET' })
+    },
+    getProjectGithubDashboard(applicationSlug: string, projectId: UUID) {
+      return apiFetch<CrmGithubDashboardResponse>(`${basePath(applicationSlug)}/projects/${projectId}/github/dashboard`, { method: 'GET' })
+    },
+    getProjectGithubPullRequests(
+      applicationSlug: string,
+      projectId: UUID,
+      filters: { repo: string; state?: CrmGithubPullRequestState; page?: number; limit?: number },
+    ) {
+      const query = new URLSearchParams({ repo: filters.repo, state: filters.state ?? 'open' })
+      if (filters.page) query.set('page', String(filters.page))
+      if (filters.limit) query.set('limit', String(filters.limit))
+      return apiFetch<CrmCollectionResponse<CrmGithubPullRequestListItem>>(`${basePath(applicationSlug)}/projects/${projectId}/github/pull-requests?${query.toString()}`, { method: 'GET' })
+    },
+    getProjectGithubPullRequestByNumber(applicationSlug: string, projectId: UUID, number: number, repo: string) {
+      const query = new URLSearchParams({ repo })
+      return apiFetch<CrmGithubPullRequestDetails>(`${basePath(applicationSlug)}/projects/${projectId}/github/pull-requests/${number}?${query.toString()}`, { method: 'GET' })
+    },
+    getProjectGithubBranches(
+      applicationSlug: string,
+      projectId: UUID,
+      filters: { repo: string; page?: number; limit?: number },
+    ) {
+      const query = new URLSearchParams({ repo: filters.repo })
+      if (filters.page) query.set('page', String(filters.page))
+      if (filters.limit) query.set('limit', String(filters.limit))
+      return apiFetch<CrmCollectionResponse<CrmGithubBranch>>(`${basePath(applicationSlug)}/projects/${projectId}/github/branches?${query.toString()}`, { method: 'GET' })
     },
     createProject(applicationSlug: string, payload: CreateCrmProjectPayload) {
       return apiFetch<CrmProject>(`${basePath(applicationSlug)}/projects`, { method: 'POST', body: payload })

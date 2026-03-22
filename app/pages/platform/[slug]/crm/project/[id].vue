@@ -2,8 +2,9 @@
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
+import { useCrmApi } from '~/composables/api/useCrmApi'
 import { useCrmStore } from '~/stores/crm'
-import type { CreateCrmTaskPayload, CrmProject } from '~/types/api/crm'
+import type { CreateCrmTaskPayload, CrmGithubRepository, CrmProject } from '~/types/api/crm'
 
 definePageMeta({ public: true, requiresAuth: false })
 
@@ -13,6 +14,7 @@ const projectId = computed(() => String(route.params.id ?? ''))
 const { isOwner } = usePlatformPermissions(slug)
 const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
 const crmStore = useCrmStore()
+const crmApi = useCrmApi()
 
 const project = ref<CrmProject | null>(null)
 const selectedUserId = ref('')
@@ -24,74 +26,9 @@ const isCreatingTask = ref(false)
 const filesToUpload = ref<File[]>([])
 const isUploadingFiles = ref(false)
 const uploadErrorMessage = ref('')
-type RepoPrStatus = 'open' | 'closed' | 'merged'
-type RepoCiStatus = 'success' | 'failed' | 'running' | 'queued'
-
-type FakePullRequest = {
-  id: string
-  title: string
-  author: string
-  status: RepoPrStatus
-  commits: number
-  filesChanged: number
-  ciStatus: RepoCiStatus
-  sourceBranch: string
-  targetBranch: string
-}
-
-type FakeRepository = {
-  id: string
-  name: string
-  provider: 'github'
-  description: string
-  branches: string[]
-  pullRequests: FakePullRequest[]
-  linkedAt: string
-}
-
-const fakeRepositories = ref<FakeRepository[]>([
-  {
-    id: 'repo-1',
-    name: 'mon-org/mon-projet',
-    provider: 'github',
-    description: 'Repository principal lié à ce projet CRM.',
-    branches: ['main', 'develop', 'feature/login', 'feature/kanban-v2'],
-    linkedAt: '2026-02-03T10:20:00Z',
-    pullRequests: [
-      { id: 'PR-148', title: 'feat(auth): secure login flow', author: 'Nadia Perez', status: 'open', commits: 7, filesChanged: 15, ciStatus: 'running', sourceBranch: 'feature/login', targetBranch: 'develop' },
-      { id: 'PR-132', title: 'fix(crm): patch sprint metrics', author: 'Yanis Dumas', status: 'merged', commits: 4, filesChanged: 8, ciStatus: 'success', sourceBranch: 'fix/sprint-metrics', targetBranch: 'main' },
-      { id: 'PR-120', title: 'chore: remove deprecated api helpers', author: 'Camille Roy', status: 'closed', commits: 2, filesChanged: 6, ciStatus: 'failed', sourceBranch: 'chore/cleanup-api', targetBranch: 'develop' },
-    ],
-  },
-  {
-    id: 'repo-2',
-    name: 'mon-org/mon-projet-mobile',
-    provider: 'github',
-    description: 'Application mobile connectée au même backend CRM.',
-    branches: ['main', 'develop', 'release/1.6.0'],
-    linkedAt: '2026-01-17T09:00:00Z',
-    pullRequests: [
-      { id: 'PR-92', title: 'feat(push): add notification center', author: 'Alex Morel', status: 'open', commits: 5, filesChanged: 12, ciStatus: 'queued', sourceBranch: 'feature/push-center', targetBranch: 'develop' },
-      { id: 'PR-81', title: 'hotfix: ios build pipeline', author: 'Lina Costa', status: 'merged', commits: 3, filesChanged: 4, ciStatus: 'success', sourceBranch: 'hotfix/ios-pipeline', targetBranch: 'main' },
-    ],
-  },
-  {
-    id: 'repo-3',
-    name: 'mon-org/crm-design-system',
-    provider: 'github',
-    description: 'Composants UI partagés entre les interfaces CRM.',
-    branches: ['main', 'develop', 'feature/tokens-darkmode'],
-    linkedAt: '2025-12-11T13:10:00Z',
-    pullRequests: [
-      { id: 'PR-203', title: 'feat(ui): semantic color tokens', author: 'Ilyes Laurent', status: 'open', commits: 9, filesChanged: 20, ciStatus: 'running', sourceBranch: 'feature/tokens-darkmode', targetBranch: 'develop' },
-    ],
-  },
-])
-const selectedRepositoryId = ref(fakeRepositories.value[0]?.id ?? '')
-const repoSearch = ref('')
-const repoStatusFilter = ref<'all' | RepoPrStatus>('all')
-const selectedPullRequestId = ref('')
-const currentRepoTab = ref<'dashboard' | 'repositories' | 'branches' | 'pullRequests'>('dashboard')
+const isLoadingGithubRepositories = ref(false)
+const githubRepositoriesError = ref('')
+const githubRepositories = ref<CrmGithubRepository[]>([])
 const projects = computed(() => crmStore.getProjects(slug.value))
 const sprints = computed(() => crmStore.getSprints(slug.value))
 const projectOptions = computed(() => projects.value.map(item => ({ title: item.name, value: item.id })))
@@ -382,7 +319,38 @@ const loadEmployee = async () => {
 }
 onMounted(loadEmployee)
 
+const loadGithubRepositories = async () => {
+  if (!slug.value || !projectId.value) {
+    return
+  }
+
+  isLoadingGithubRepositories.value = true
+  githubRepositoriesError.value = ''
+  try {
+    const response = await crmApi.getProjectGithubRepositories(slug.value, projectId.value)
+    githubRepositories.value = response.items
+  }
+  catch {
+    githubRepositoriesError.value = 'Unable to load GitHub repositories.'
+  }
+  finally {
+    isLoadingGithubRepositories.value = false
+  }
+}
+
+const openGithubRepository = (repositoryName: string) => {
+  if (!repositoryName) {
+    return
+  }
+
+  navigateTo({
+    path: `/platform/${slug.value}/crm/project/${projectId.value}/github`,
+    query: { repo: repositoryName },
+  })
+}
+
 onMounted(loadProject)
+onMounted(loadGithubRepositories)
 </script>
 
 <template>
@@ -473,157 +441,30 @@ onMounted(loadProject)
         <v-card rounded="xl" class="detail-card">
           <v-card-title class="d-flex align-center justify-space-between ga-2 flex-wrap">
             <span>GitHub repositories</span>
-            <v-chip color="primary" variant="tonal">{{ fakeRepositories.length }} linked</v-chip>
+            <v-btn variant="text" size="small" prepend-icon="mdi-open-in-new" @click="openGithubRepository(githubRepositories[0]?.fullName || '')" :disabled="!githubRepositories.length">
+              Open GitHub view
+            </v-btn>
           </v-card-title>
           <v-card-text>
-            <v-tabs v-model="currentRepoTab" color="primary" density="comfortable">
-              <v-tab value="dashboard">Dashboard</v-tab>
-              <v-tab value="repositories">Liste des repos</v-tab>
-              <v-tab value="branches">Branches</v-tab>
-              <v-tab value="pullRequests">Pull requests</v-tab>
-            </v-tabs>
-            <v-window v-model="currentRepoTab" class="mt-4">
-              <v-window-item value="dashboard">
-                <v-row dense>
-                  <v-col cols="12" md="4">
-                    <v-card variant="tonal" color="info">
-                      <v-card-text>
-                        <p class="text-caption mb-1">Repo active</p>
-                        <p class="text-subtitle-1 font-weight-bold mb-0">{{ selectedRepository?.name || 'N/A' }}</p>
-                      </v-card-text>
-                    </v-card>
-                  </v-col>
-                  <v-col cols="12" md="2">
-                    <v-card variant="tonal" color="info"><v-card-text><p class="text-caption mb-1">PR ouvertes</p><p class="text-h6 mb-0">{{ repositoryOpenPrCount }}</p></v-card-text></v-card>
-                  </v-col>
-                  <v-col cols="12" md="2">
-                    <v-card variant="tonal" color="success"><v-card-text><p class="text-caption mb-1">PR mergées</p><p class="text-h6 mb-0">{{ repositoryMergedPrCount }}</p></v-card-text></v-card>
-                  </v-col>
-                  <v-col cols="12" md="2">
-                    <v-card variant="tonal"><v-card-text><p class="text-caption mb-1">PR fermées</p><p class="text-h6 mb-0">{{ repositoryClosedPrCount }}</p></v-card-text></v-card>
-                  </v-col>
-                  <v-col cols="12" md="2">
-                    <v-card variant="tonal" color="primary"><v-card-text><p class="text-caption mb-1">Branches</p><p class="text-h6 mb-0">{{ selectedRepository?.branches.length || 0 }}</p></v-card-text></v-card>
-                  </v-col>
-                </v-row>
-              </v-window-item>
-              <v-window-item value="repositories">
-                <v-text-field v-model="repoSearch" label="Recherche repository" density="compact" prepend-inner-icon="mdi-magnify" hide-details class="mb-3" />
-                <v-list lines="two" border rounded>
-                  <v-list-item
-                    v-for="repo in filteredRepositories"
-                    :key="repo.id"
-                    :active="repo.id === selectedRepositoryId"
-                    @click="selectRepository(repo.id)"
-                  >
-                    <template #prepend>
-                      <v-avatar color="grey-darken-3" size="34"><v-icon icon="mdi-github" /></v-avatar>
-                    </template>
-                    <v-list-item-title>{{ repo.name }}</v-list-item-title>
-                    <v-list-item-subtitle>{{ repo.description }}</v-list-item-subtitle>
-                    <template #append>
-                      <v-chip size="small" variant="tonal">{{ repo.pullRequests.length }} PR</v-chip>
-                    </template>
-                  </v-list-item>
-                </v-list>
-              </v-window-item>
-              <v-window-item value="branches">
-                <p class="text-caption text-medium-emphasis mb-3">Repo: {{ selectedRepository?.name || 'N/A' }}</p>
-                <div class="d-flex ga-2 flex-wrap">
-                  <v-chip v-for="branch in selectedRepository?.branches || []" :key="branch" color="primary" variant="outlined">
-                    {{ branch }}
-                  </v-chip>
-                </div>
-              </v-window-item>
-              <v-window-item value="pullRequests">
-                <div class="d-flex ga-2 flex-wrap align-center mb-3">
-                  <v-select
-                    v-model="repoStatusFilter"
-                    label="Filtre statut"
-                    density="compact"
-                    hide-details
-                    :items="[
-                      { title: 'Tous', value: 'all' },
-                      { title: 'Open', value: 'open' },
-                      { title: 'Closed', value: 'closed' },
-                      { title: 'Merged', value: 'merged' },
-                    ]"
-                    item-title="title"
-                    item-value="value"
-                    style="max-width: 180px;"
-                  />
-                </div>
-                <v-row dense>
-                  <v-col cols="12" md="7">
-                    <v-table density="compact">
-                      <thead>
-                        <tr>
-                          <th>ID</th>
-                          <th>Auteur</th>
-                          <th>Commits</th>
-                          <th>Fichiers</th>
-                          <th>CI/CD</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr
-                          v-for="pr in filteredPullRequests"
-                          :key="pr.id"
-                          class="cursor-pointer"
-                          @click="selectedPullRequestId = pr.id"
-                        >
-                          <td>
-                            <div class="d-flex flex-column">
-                              <strong>{{ pr.id }}</strong>
-                              <span class="text-caption">{{ pr.title }}</span>
-                            </div>
-                          </td>
-                          <td>{{ pr.author }}</td>
-                          <td>{{ pr.commits }}</td>
-                          <td>{{ pr.filesChanged }}</td>
-                          <td><v-chip :color="ciStatusColor(pr.ciStatus)" size="x-small" variant="tonal">{{ pr.ciStatus }}</v-chip></td>
-                        </tr>
-                      </tbody>
-                    </v-table>
-                  </v-col>
-                  <v-col cols="12" md="5">
-                    <v-card variant="outlined" v-if="selectedPullRequest">
-                      <v-card-title class="d-flex justify-space-between ga-2 flex-wrap">
-                        <span>{{ selectedPullRequest.id }}</span>
-                        <v-chip :color="pullRequestStatusColor(selectedPullRequest.status)" size="small" variant="tonal">{{ selectedPullRequest.status }}</v-chip>
-                      </v-card-title>
-                      <v-card-text>
-                        <p class="text-subtitle-2 mb-2">{{ selectedPullRequest.title }}</p>
-                        <p class="text-body-2 mb-1"><strong>Repo:</strong> {{ selectedRepository?.name }}</p>
-                        <p class="text-body-2 mb-1"><strong>Auteur:</strong> {{ selectedPullRequest.author }}</p>
-                        <p class="text-body-2 mb-1"><strong>Branches:</strong> {{ selectedPullRequest.sourceBranch }} → {{ selectedPullRequest.targetBranch }}</p>
-                        <p class="text-body-2 mb-1"><strong>Commits:</strong> {{ selectedPullRequest.commits }}</p>
-                        <p class="text-body-2 mb-4"><strong>Fichiers modifiés:</strong> {{ selectedPullRequest.filesChanged }}</p>
-                        <div class="d-flex ga-2">
-                          <v-btn
-                            color="success"
-                            variant="flat"
-                            :disabled="selectedPullRequest.status !== 'open'"
-                            @click="mergePullRequest(selectedPullRequest.id)"
-                          >
-                            Merge
-                          </v-btn>
-                          <v-btn
-                            color="error"
-                            variant="outlined"
-                            :disabled="selectedPullRequest.status !== 'open'"
-                            @click="closePullRequest(selectedPullRequest.id)"
-                          >
-                            Close PR
-                          </v-btn>
-                        </div>
-                      </v-card-text>
-                    </v-card>
-                    <v-alert v-else type="info" variant="tonal">Aucune pull request avec ce filtre.</v-alert>
-                  </v-col>
-                </v-row>
-              </v-window-item>
-            </v-window>
+            <v-alert v-if="githubRepositoriesError" type="error" variant="tonal" class="mb-3">{{ githubRepositoriesError }}</v-alert>
+            <v-skeleton-loader v-else-if="isLoadingGithubRepositories" type="list-item-three-line, list-item-three-line" />
+            <v-list v-else-if="githubRepositories.length" lines="two" border rounded>
+              <v-list-item
+                v-for="repository in githubRepositories"
+                :key="repository.fullName"
+                @click="openGithubRepository(repository.fullName)"
+              >
+                <template #prepend>
+                  <v-avatar color="grey-darken-4" size="34"><v-icon icon="mdi-github" /></v-avatar>
+                </template>
+                <v-list-item-title>{{ repository.fullName }}</v-list-item-title>
+                <v-list-item-subtitle>Default branch: {{ repository.defaultBranch }}</v-list-item-subtitle>
+                <template #append>
+                  <v-btn icon="mdi-chevron-right" variant="text" />
+                </template>
+              </v-list-item>
+            </v-list>
+            <v-alert v-else type="info" variant="tonal">Aucun repository GitHub lié à ce projet.</v-alert>
           </v-card-text>
         </v-card>
         <v-expand-transition>
