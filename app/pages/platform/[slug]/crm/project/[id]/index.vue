@@ -4,7 +4,15 @@ import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
 import { useCrmApi } from '~/composables/api/useCrmApi'
 import { useCrmStore } from '~/stores/crm'
-import type { CreateCrmTaskPayload, CrmGithubAccountRepository, CrmGithubRepository, CrmProject } from '~/types/api/crm'
+import type {
+  CreateCrmTaskPayload,
+  CrmGithubAccountRepository,
+  CrmGithubBranch,
+  CrmGithubPullRequestListItem,
+  CrmGithubPullRequestState,
+  CrmGithubRepository,
+  CrmProject,
+} from '~/types/api/crm'
 
 definePageMeta({ public: true, requiresAuth: false })
 
@@ -35,6 +43,14 @@ const githubAccountRepositoriesError = ref('')
 const githubAccountRepositories = ref<CrmGithubAccountRepository[]>([])
 const selectedGithubRepositoryFullName = ref('')
 const githubRepositoryActionMessage = ref('')
+const selectedProjectGithubRepository = ref('')
+const pullRequestState = ref<CrmGithubPullRequestState>('open')
+const projectRepositoryPullRequests = ref<CrmGithubPullRequestListItem[]>([])
+const projectRepositoryBranches = ref<CrmGithubBranch[]>([])
+const isLoadingProjectRepositoryPullRequests = ref(false)
+const isLoadingProjectRepositoryBranches = ref(false)
+const projectRepositoryPullRequestsError = ref('')
+const projectRepositoryBranchesError = ref('')
 const projects = computed(() => crmStore.getProjects(slug.value))
 const sprints = computed(() => crmStore.getSprints(slug.value))
 const projectOptions = computed(() => projects.value.map(item => ({ title: item.name, value: item.id })))
@@ -96,6 +112,17 @@ const formatFileSize = (size: number) => {
   const value = size / 1024 ** exponent
 
   return `${value.toFixed(value >= 10 ? 0 : 1)} ${units[exponent]}`
+}
+
+const pullRequestStatusColor = (state: CrmGithubPullRequestState, mergedAt: string | null) => {
+  if (state === 'open') {
+    return 'info'
+  }
+  if (mergedAt) {
+    return 'success'
+  }
+
+  return 'default'
 }
 
 const getTaskTitle = (task: { title?: string; TITLE?: string }) => task.title || task.TITLE || 'Untitled task'
@@ -269,7 +296,10 @@ const loadGithubRepositories = async () => {
   githubRepositoriesError.value = ''
   try {
     const response = await crmApi.getProjectGithubRepositories(slug.value, projectId.value)
-    githubRepositories.value = response?.items
+    githubRepositories.value = response?.items ?? []
+    if (!githubRepositories.value.some(repository => repository.fullName === selectedProjectGithubRepository.value)) {
+      selectedProjectGithubRepository.value = githubRepositories.value[0]?.fullName ?? ''
+    }
   }
   catch {
     githubRepositoriesError.value = 'Unable to load GitHub repositories.'
@@ -277,6 +307,71 @@ const loadGithubRepositories = async () => {
   finally {
     isLoadingGithubRepositories.value = false
   }
+}
+
+const loadProjectRepositoryPullRequests = async (repositoryFullName: string) => {
+  if (!slug.value || !projectId.value || !repositoryFullName) {
+    return
+  }
+
+  isLoadingProjectRepositoryPullRequests.value = true
+  projectRepositoryPullRequestsError.value = ''
+  try {
+    const response = await crmApi.getProjectGithubPullRequests(slug.value, projectId.value, {
+      repo: repositoryFullName,
+      state: pullRequestState.value,
+      page: 1,
+      limit: 10,
+    })
+    projectRepositoryPullRequests.value = response.items ?? []
+  }
+  catch {
+    projectRepositoryPullRequestsError.value = 'Unable to load pull requests for this repository.'
+  }
+  finally {
+    isLoadingProjectRepositoryPullRequests.value = false
+  }
+}
+
+const loadProjectRepositoryBranches = async (repositoryFullName: string) => {
+  if (!slug.value || !projectId.value || !repositoryFullName) {
+    return
+  }
+
+  isLoadingProjectRepositoryBranches.value = true
+  projectRepositoryBranchesError.value = ''
+  try {
+    const response = await crmApi.getProjectGithubBranches(slug.value, projectId.value, {
+      repo: repositoryFullName,
+      page: 1,
+      limit: 10,
+    })
+    projectRepositoryBranches.value = response.items ?? []
+  }
+  catch {
+    projectRepositoryBranchesError.value = 'Unable to load branches for this repository.'
+  }
+  finally {
+    isLoadingProjectRepositoryBranches.value = false
+  }
+}
+
+const loadSelectedRepositoryDetails = async () => {
+  if (!selectedProjectGithubRepository.value) {
+    projectRepositoryPullRequests.value = []
+    projectRepositoryBranches.value = []
+    return
+  }
+
+  await Promise.all([
+    loadProjectRepositoryPullRequests(selectedProjectGithubRepository.value),
+    loadProjectRepositoryBranches(selectedProjectGithubRepository.value),
+  ])
+}
+
+const selectProjectGithubRepository = async (repositoryFullName: string) => {
+  selectedProjectGithubRepository.value = repositoryFullName
+  await loadSelectedRepositoryDetails()
 }
 
 const loadGithubAccountRepositories = async () => {
@@ -311,8 +406,10 @@ const addGithubRepositoryToProject = async () => {
       fullName: selectedGithubRepositoryFullName.value,
     })
     githubRepositories.value = response.repositories ?? []
+    selectedProjectGithubRepository.value = response.repository?.fullName ?? selectedProjectGithubRepository.value
     githubRepositoryActionMessage.value = `Repository ${response.repository.fullName} linked to this project.`
     selectedGithubRepositoryFullName.value = ''
+    await loadSelectedRepositoryDetails()
   }
   catch {
     githubRepositoriesError.value = 'Unable to add this GitHub repository to the project.'
@@ -334,8 +431,14 @@ const openGithubRepository = (repositoryName: string) => {
 }
 
 onMounted(loadProject)
-onMounted(loadGithubRepositories)
+onMounted(async () => {
+  await loadGithubRepositories()
+  await loadSelectedRepositoryDetails()
+})
 onMounted(loadGithubAccountRepositories)
+watch(pullRequestState, async () => {
+  await loadSelectedRepositoryDetails()
+})
 </script>
 
 <template>
@@ -427,7 +530,13 @@ onMounted(loadGithubAccountRepositories)
           <v-card-title class="d-flex align-center justify-space-between ga-2 flex-wrap">
             <span>GitHub repositories</span>
             <div class="d-flex ga-2 flex-wrap">
-              <v-btn variant="text" size="small" icon="mdi-refresh" :loading="isLoadingGithubRepositories || isLoadingGithubAccountRepositories" @click="() => { loadGithubRepositories(); loadGithubAccountRepositories() }" />
+              <v-btn
+                variant="text"
+                size="small"
+                icon="mdi-refresh"
+                :loading="isLoadingGithubRepositories || isLoadingGithubAccountRepositories || isLoadingProjectRepositoryPullRequests || isLoadingProjectRepositoryBranches"
+                @click="() => { loadGithubRepositories(); loadGithubAccountRepositories(); loadSelectedRepositoryDetails() }"
+              />
               <v-btn variant="text" size="small" prepend-icon="mdi-open-in-new" @click="openGithubRepository(githubRepositories[0]?.fullName || '')" :disabled="!githubRepositories.length">
                 Open GitHub view
               </v-btn>
@@ -480,7 +589,8 @@ onMounted(loadGithubAccountRepositories)
               <v-list-item
                   v-for="repository in githubRepositories"
                   :key="repository.fullName"
-                  @click="openGithubRepository(repository.fullName)"
+                  :active="selectedProjectGithubRepository === repository.fullName"
+                  @click="selectProjectGithubRepository(repository.fullName)"
               >
                 <template #prepend>
                   <v-avatar color="grey-darken-4" size="34"><v-icon icon="mdi-github" /></v-avatar>
@@ -488,11 +598,83 @@ onMounted(loadGithubAccountRepositories)
                 <v-list-item-title>{{ repository.fullName }}</v-list-item-title>
                 <v-list-item-subtitle>Default branch: {{ repository.defaultBranch }}</v-list-item-subtitle>
                 <template #append>
-                  <v-btn icon="mdi-chevron-right" variant="text" />
+                  <div class="d-flex ga-1">
+                    <v-btn icon="mdi-open-in-new" variant="text" @click.stop="openGithubRepository(repository.fullName)" />
+                    <v-btn icon="mdi-chevron-right" variant="text" />
+                  </div>
                 </template>
               </v-list-item>
             </v-list>
             <v-alert v-else type="info" variant="tonal">Aucun repository GitHub lié à ce projet.</v-alert>
+
+            <v-divider class="my-4" />
+
+            <div class="d-flex align-center justify-space-between ga-2 flex-wrap mb-3">
+              <p class="text-subtitle-2 mb-0">
+                Repository details
+                <span v-if="selectedProjectGithubRepository" class="text-medium-emphasis">· {{ selectedProjectGithubRepository }}</span>
+              </p>
+              <v-select
+                  v-model="pullRequestState"
+                  label="Pull requests"
+                  :items="[{ title: 'Open', value: 'open' }, { title: 'Closed', value: 'closed' }]"
+                  item-title="title"
+                  item-value="value"
+                  density="compact"
+                  hide-details
+                  style="max-width: 170px;"
+                  :disabled="!selectedProjectGithubRepository"
+              />
+            </div>
+
+            <v-row dense>
+              <v-col cols="12" md="7">
+                <v-card variant="outlined" rounded="lg">
+                  <v-card-title class="text-subtitle-2">Pull requests</v-card-title>
+                  <v-card-text>
+                    <v-alert v-if="projectRepositoryPullRequestsError" type="error" variant="tonal" class="mb-3">{{ projectRepositoryPullRequestsError }}</v-alert>
+                    <v-skeleton-loader v-else-if="isLoadingProjectRepositoryPullRequests" type="list-item, list-item, list-item" />
+                    <v-list v-else-if="projectRepositoryPullRequests.length" lines="two">
+                      <v-list-item v-for="pullRequest in projectRepositoryPullRequests" :key="pullRequest.number">
+                        <v-list-item-title class="text-truncate">#{{ pullRequest.number }} · {{ pullRequest.title }}</v-list-item-title>
+                        <v-list-item-subtitle>{{ pullRequest.author }} · {{ pullRequest.head }} → {{ pullRequest.base }}</v-list-item-subtitle>
+                        <template #append>
+                          <v-chip :color="pullRequestStatusColor(pullRequest.state, pullRequest.mergedAt)" size="small" variant="tonal">
+                            {{ pullRequest.mergedAt ? 'merged' : pullRequest.state }}
+                          </v-chip>
+                        </template>
+                      </v-list-item>
+                    </v-list>
+                    <p v-else class="text-body-2 text-medium-emphasis mb-0">
+                      {{ selectedProjectGithubRepository ? 'No pull requests found for this repository.' : 'Select a repository to load pull requests.' }}
+                    </p>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+              <v-col cols="12" md="5">
+                <v-card variant="outlined" rounded="lg">
+                  <v-card-title class="text-subtitle-2">Branches</v-card-title>
+                  <v-card-text>
+                    <v-alert v-if="projectRepositoryBranchesError" type="error" variant="tonal" class="mb-3">{{ projectRepositoryBranchesError }}</v-alert>
+                    <v-skeleton-loader v-else-if="isLoadingProjectRepositoryBranches" type="list-item, list-item, list-item" />
+                    <v-list v-else-if="projectRepositoryBranches.length" lines="two">
+                      <v-list-item v-for="branch in projectRepositoryBranches" :key="branch.sha">
+                        <v-list-item-title>{{ branch.name }}</v-list-item-title>
+                        <v-list-item-subtitle class="text-truncate">SHA: {{ branch.sha }}</v-list-item-subtitle>
+                        <template #append>
+                          <v-chip :color="branch.protected ? 'success' : 'default'" size="x-small" variant="tonal">
+                            {{ branch.protected ? 'Protected' : 'Open' }}
+                          </v-chip>
+                        </template>
+                      </v-list-item>
+                    </v-list>
+                    <p v-else class="text-body-2 text-medium-emphasis mb-0">
+                      {{ selectedProjectGithubRepository ? 'No branches found for this repository.' : 'Select a repository to load branches.' }}
+                    </p>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
           </v-card-text>
         </v-card>
         <v-expand-transition>
