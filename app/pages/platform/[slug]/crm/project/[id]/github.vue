@@ -43,6 +43,7 @@ const issueForm = reactive<CreateCrmGithubIssuePayload>({
 })
 const isCreatingIssue = ref(false)
 const selectedDetailType = ref<'pull-request' | 'issue'>('pull-request')
+const workspaceTab = ref<'pull-requests' | 'issues' | 'branches'>('pull-requests')
 const dashboard = ref<{ open: number; closed: number; merged: number } | null>(null)
 const pullRequestStateOptions = [
   { title: 'Open', value: 'open' },
@@ -279,6 +280,26 @@ const closeIssue = async () => {
   }
 }
 
+const reopenIssue = async () => {
+  if (!slug.value || !projectId.value || !selectedRepo.value || !selectedIssue.value) return
+  isLoading.issueDetails = true
+  errors.issueDetails = ''
+  try {
+    const response = await crmApi.updateProjectGithubIssue(slug.value, projectId.value, selectedIssue.value.number, {
+      repository: selectedRepo.value,
+      state: 'open',
+    })
+    selectedIssue.value = normalizeGithubIssue(response as Record<string, any>)
+    await loadIssues(issuesPagination.value.page)
+  }
+  catch {
+    errors.issueDetails = 'Impossible de réouvrir cette issue.'
+  }
+  finally {
+    isLoading.issueDetails = false
+  }
+}
+
 watch(selectedRepo, async (repo) => {
   if (!repo) return
   issueForm.repository = repo
@@ -371,6 +392,16 @@ onMounted(async () => {
             >
               Close issue
             </v-btn>
+            <v-btn
+              v-else
+              color="success"
+              variant="outlined"
+              prepend-icon="mdi-backup-restore"
+              :loading="isLoading.issueDetails"
+              @click="reopenIssue"
+            >
+              Reopen issue
+            </v-btn>
           </div>
         </template>
         <p v-else class="text-body-2 text-medium-emphasis mb-0">
@@ -432,8 +463,14 @@ onMounted(async () => {
         </v-col>
       </v-row>
 
+      <v-tabs v-model="workspaceTab" color="primary" class="mb-3">
+        <v-tab value="pull-requests">Pull requests</v-tab>
+        <v-tab value="issues">Issues</v-tab>
+        <v-tab value="branches">Branches</v-tab>
+      </v-tabs>
+
       <v-row dense>
-        <v-col cols="12">
+        <v-col v-if="workspaceTab === 'pull-requests'" cols="12">
           <v-card rounded="xl">
             <v-card-title>Pull requests</v-card-title>
             <v-card-text>
@@ -472,7 +509,7 @@ onMounted(async () => {
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12">
+        <v-col v-if="workspaceTab === 'issues'" cols="12">
           <v-card rounded="xl">
             <v-card-title class="d-flex align-center justify-space-between flex-wrap ga-2">
               <span>Issues</span>
@@ -529,7 +566,7 @@ onMounted(async () => {
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12">
+        <v-col v-if="workspaceTab === 'branches'" cols="12">
           <v-card rounded="xl">
             <v-card-title>Branches</v-card-title>
             <v-card-text>
