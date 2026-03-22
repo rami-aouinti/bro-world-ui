@@ -89,6 +89,8 @@ export interface CrmProject {
   }>
   assignees?: CrmAssignee[]
   tasks?: CrmTaskListItem[]
+  githubRepositories?: CrmGithubRepository[]
+  githubConfigured?: boolean
 }
 
 export interface CrmSprint {
@@ -212,7 +214,7 @@ export interface CrmGithubDashboardResponse {
   }
 }
 
-export type CrmGithubPullRequestState = 'open' | 'closed'
+export type CrmGithubPullRequestState = 'open' | 'closed' | 'close'
 
 export interface CrmGithubPullRequestListItem {
   number: number
@@ -286,6 +288,7 @@ export interface CrmCollectionResponse<T> {
     limit: number
     totalItems: number
     totalPages: number
+    hasNextPage?: boolean
   }
 }
 

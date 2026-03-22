@@ -117,8 +117,16 @@ export const useCrmApi = () => {
     getProjectGithubRepositories(applicationSlug: string, projectId: UUID) {
       return apiFetch<CrmCollectionResponse<CrmGithubRepository>>(`${basePath(applicationSlug)}/projects/${projectId}/github/repositories`, { method: 'GET' })
     },
-    getProjectGithubAccountRepositories(applicationSlug: string, projectId: UUID) {
-      return apiFetch<CrmCollectionResponse<CrmGithubAccountRepository>>(`${basePath(applicationSlug)}/projects/${projectId}/github/account/repositories`, { method: 'GET' })
+    getProjectGithubAccountRepositories(
+      applicationSlug: string,
+      projectId: UUID,
+      filters?: { page?: number; limit?: number },
+    ) {
+      const query = new URLSearchParams()
+      if (filters?.page) query.set('page', String(filters.page))
+      if (filters?.limit) query.set('limit', String(filters.limit))
+      const queryString = query.toString()
+      return apiFetch<CrmCollectionResponse<CrmGithubAccountRepository>>(`${basePath(applicationSlug)}/projects/${projectId}/github/account/repositories${queryString ? `?${queryString}` : ''}`, { method: 'GET' })
     },
     addProjectGithubRepository(applicationSlug: string, projectId: UUID, payload: CreateCrmProjectGithubRepositoryPayload) {
       return apiFetch<CrmProjectGithubRepositoryMutationResponse>(`${basePath(applicationSlug)}/projects/${projectId}/github/repositories`, { method: 'POST', body: payload })
@@ -136,8 +144,15 @@ export const useCrmApi = () => {
       if (filters.limit) query.set('limit', String(filters.limit))
       return apiFetch<CrmCollectionResponse<CrmGithubPullRequestListItem>>(`${basePath(applicationSlug)}/projects/${projectId}/github/pull-requests?${query.toString()}`, { method: 'GET' })
     },
-    getProjectGithubPullRequestByNumber(applicationSlug: string, projectId: UUID, number: number, repo: string) {
+    getProjectGithubPullRequestByNumber(
+      applicationSlug: string,
+      projectId: UUID,
+      number: number,
+      repo: string,
+      state?: CrmGithubPullRequestState,
+    ) {
       const query = new URLSearchParams({ repo })
+      if (state) query.set('state', state)
       return apiFetch<CrmGithubPullRequestDetails>(`${basePath(applicationSlug)}/projects/${projectId}/github/pull-requests/${number}?${query.toString()}`, { method: 'GET' })
     },
     getProjectGithubBranches(
