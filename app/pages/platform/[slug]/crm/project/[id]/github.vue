@@ -3,7 +3,17 @@ import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
 import { useCrmApi } from '~/composables/api/useCrmApi'
-import type { CrmGithubBranch, CrmGithubPullRequestDetails, CrmGithubPullRequestListItem, CrmGithubPullRequestState, CrmGithubRepository } from '~/types/api/crm'
+import type {
+  CreateCrmGithubIssuePayload,
+  CrmGithubBranch,
+  CrmGithubIssueDetails,
+  CrmGithubIssueListItem,
+  CrmGithubIssueState,
+  CrmGithubPullRequestDetails,
+  CrmGithubPullRequestListItem,
+  CrmGithubPullRequestState,
+  CrmGithubRepository,
+} from '~/types/api/crm'
 
 definePageMeta({ public: true, requiresAuth: false })
 
@@ -22,21 +32,47 @@ const pullRequestsPagination = ref({ page: 1, limit: 30, totalItems: 0, totalPag
 const branches = ref<CrmGithubBranch[]>([])
 const branchesPagination = ref({ page: 1, limit: 30, totalItems: 0, totalPages: 1 })
 const selectedPullRequest = ref<CrmGithubPullRequestDetails | null>(null)
+const issueState = ref<CrmGithubIssueState>('all')
+const issues = ref<CrmGithubIssueListItem[]>([])
+const issuesPagination = ref({ page: 1, limit: 30, totalItems: 0, totalPages: 1 })
+const selectedIssue = ref<CrmGithubIssueDetails | null>(null)
+const issueForm = reactive<CreateCrmGithubIssuePayload>({
+  repository: '',
+  title: '',
+  body: '',
+})
+const isCreatingIssue = ref(false)
+const selectedDetailType = ref<'pull-request' | 'issue'>('pull-request')
 const dashboard = ref<{ open: number; closed: number; merged: number } | null>(null)
+const pullRequestStateOptions = [
+  { title: 'Open', value: 'open' },
+  { title: 'Closed', value: 'closed' },
+  { title: 'Close', value: 'close' },
+] satisfies Array<{ title: string; value: CrmGithubPullRequestState }>
+const issueStateOptions = [
+  { title: 'All', value: 'all' },
+  { title: 'Open', value: 'open' },
+  { title: 'Closed', value: 'closed' },
+] satisfies Array<{ title: string; value: CrmGithubIssueState }>
 
 const isLoading = reactive({
   repositories: false,
   dashboard: false,
   pullRequests: false,
   branches: false,
+  issues: false,
   pullRequestDetails: false,
+  issueDetails: false,
 })
 const errors = reactive({
   repositories: '',
   dashboard: '',
   pullRequests: '',
   branches: '',
+  issues: '',
   pullRequestDetails: '',
+  issueDetails: '',
+  createIssue: '',
 })
 
 const formatDate = (date?: string | null) => {
@@ -49,6 +85,20 @@ const pullRequestStatusColor = (state: CrmGithubPullRequestState, mergedAt: stri
   if (mergedAt) return 'success'
   return 'default'
 }
+
+const issueStatusColor = (state: string) => state === 'open' ? 'info' : 'default'
+
+const normalizeGithubIssue = (issue: Record<string, any>): CrmGithubIssueDetails => ({
+  number: Number(issue.number ?? 0),
+  title: String(issue.title ?? ''),
+  state: String(issue.state ?? 'open') as CrmGithubIssueDetails['state'],
+  body: issue.body ?? null,
+  author: String(issue.author ?? issue.user?.login ?? ''),
+  comments: Number(issue.comments ?? 0),
+  htmlUrl: String(issue.htmlUrl ?? issue.html_url ?? ''),
+  createdAt: String(issue.createdAt ?? issue.created_at ?? ''),
+  updatedAt: String(issue.updatedAt ?? issue.updated_at ?? ''),
+})
 
 const loadRepositories = async () => {
   if (!slug.value || !projectId.value) return
@@ -135,7 +185,8 @@ const loadPullRequestDetails = async (number: number) => {
   isLoading.pullRequestDetails = true
   errors.pullRequestDetails = ''
   try {
-    selectedPullRequest.value = await crmApi.getProjectGithubPullRequestByNumber(slug.value, projectId.value, number, selectedRepo.value)
+    selectedPullRequest.value = await crmApi.getProjectGithubPullRequestByNumber(slug.value, projectId.value, number, selectedRepo.value, pullRequestState.value)
+    selectedDetailType.value = 'pull-request'
   }
   catch {
     errors.pullRequestDetails = `Impossible de charger les détails de la PR #${number}.`
@@ -145,10 +196,95 @@ const loadPullRequestDetails = async (number: number) => {
   }
 }
 
+const loadIssues = async (page = 1) => {
+  if (!slug.value || !projectId.value || !selectedRepo.value) return
+  isLoading.issues = true
+  errors.issues = ''
+  try {
+    const response = await crmApi.getProjectGithubIssues(slug.value, projectId.value, {
+      repo: selectedRepo.value,
+      state: issueState.value,
+      page,
+      limit: issuesPagination.value.limit,
+    })
+    issues.value = response.items
+    issuesPagination.value = response.pagination ?? issuesPagination.value
+  }
+  catch {
+    errors.issues = 'Impossible de charger la liste des issues.'
+  }
+  finally {
+    isLoading.issues = false
+  }
+}
+
+const loadIssueDetails = async (number: number) => {
+  if (!slug.value || !projectId.value || !selectedRepo.value) return
+  isLoading.issueDetails = true
+  errors.issueDetails = ''
+  try {
+    const response = await crmApi.getProjectGithubIssueByNumber(slug.value, projectId.value, number, selectedRepo.value)
+    selectedIssue.value = normalizeGithubIssue(response as Record<string, any>)
+    selectedDetailType.value = 'issue'
+  }
+  catch {
+    errors.issueDetails = `Impossible de charger les détails de l'issue #${number}.`
+  }
+  finally {
+    isLoading.issueDetails = false
+  }
+}
+
+const createIssue = async () => {
+  if (!slug.value || !projectId.value || !selectedRepo.value || !issueForm.title.trim()) return
+  isCreatingIssue.value = true
+  errors.createIssue = ''
+  try {
+    const response = await crmApi.createProjectGithubIssue(slug.value, projectId.value, {
+      repository: selectedRepo.value,
+      title: issueForm.title.trim(),
+      body: issueForm.body?.trim() ?? '',
+    })
+    selectedIssue.value = normalizeGithubIssue(response as Record<string, any>)
+    selectedDetailType.value = 'issue'
+    issueForm.title = ''
+    issueForm.body = ''
+    await loadIssues(1)
+  }
+  catch {
+    errors.createIssue = 'Impossible de créer l’issue.'
+  }
+  finally {
+    isCreatingIssue.value = false
+  }
+}
+
+const closeIssue = async () => {
+  if (!slug.value || !projectId.value || !selectedRepo.value || !selectedIssue.value) return
+  isLoading.issueDetails = true
+  errors.issueDetails = ''
+  try {
+    const response = await crmApi.updateProjectGithubIssue(slug.value, projectId.value, selectedIssue.value.number, {
+      repository: selectedRepo.value,
+      state: 'closed',
+    })
+    selectedIssue.value = normalizeGithubIssue(response as Record<string, any>)
+    await loadIssues(issuesPagination.value.page)
+  }
+  catch {
+    errors.issueDetails = 'Impossible de fermer cette issue.'
+  }
+  finally {
+    isLoading.issueDetails = false
+  }
+}
+
 watch(selectedRepo, async (repo) => {
   if (!repo) return
-  await Promise.all([loadPullRequests(1), loadBranches(1)])
+  issueForm.repository = repo
+  await Promise.all([loadPullRequests(1), loadBranches(1), loadIssues(1)])
   selectedPullRequest.value = null
+  selectedIssue.value = null
   await navigateTo({
     path: route.path,
     query: { ...route.query, repo },
@@ -160,10 +296,16 @@ watch(pullRequestState, async () => {
   selectedPullRequest.value = null
 })
 
+watch(issueState, async () => {
+  await loadIssues(1)
+  selectedIssue.value = null
+})
+
 onMounted(async () => {
   await Promise.all([loadRepositories(), loadDashboard()])
   if (selectedRepo.value) {
-    await Promise.all([loadPullRequests(1), loadBranches(1)])
+    issueForm.repository = selectedRepo.value
+    await Promise.all([loadPullRequests(1), loadBranches(1), loadIssues(1)])
   }
 })
 </script>
@@ -174,11 +316,19 @@ onMounted(async () => {
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
     <template #aside>
-      <v-card-title>Détail PR</v-card-title>
+      <v-card-title>Details</v-card-title>
       <v-card-text>
-        <v-alert v-if="errors.pullRequestDetails" type="error" variant="tonal" class="mb-3">{{ errors.pullRequestDetails }}</v-alert>
-        <v-skeleton-loader v-else-if="isLoading.pullRequestDetails" type="article" />
-        <template v-else-if="selectedPullRequest">
+        <v-btn-toggle v-model="selectedDetailType" mandatory density="compact" class="mb-3">
+          <v-btn value="pull-request" size="small">PR</v-btn>
+          <v-btn value="issue" size="small">Issue</v-btn>
+        </v-btn-toggle>
+
+        <v-alert v-if="selectedDetailType === 'pull-request' && errors.pullRequestDetails" type="error" variant="tonal" class="mb-3">{{ errors.pullRequestDetails }}</v-alert>
+        <v-alert v-if="selectedDetailType === 'issue' && errors.issueDetails" type="error" variant="tonal" class="mb-3">{{ errors.issueDetails }}</v-alert>
+
+        <v-skeleton-loader v-if="selectedDetailType === 'pull-request' && isLoading.pullRequestDetails" type="article" />
+        <v-skeleton-loader v-else-if="selectedDetailType === 'issue' && isLoading.issueDetails" type="article" />
+        <template v-else-if="selectedDetailType === 'pull-request' && selectedPullRequest">
           <p class="text-subtitle-1 font-weight-bold mb-2">#{{ selectedPullRequest.number }} — {{ selectedPullRequest.title }}</p>
           <p class="mb-1"><strong>Author:</strong> {{ selectedPullRequest.author }}</p>
           <p class="mb-1"><strong>State:</strong> {{ selectedPullRequest.state }}</p>
@@ -202,7 +352,30 @@ onMounted(async () => {
             <v-btn color="primary" variant="flat" :href="selectedPullRequest.htmlUrl" target="_blank" prepend-icon="mdi-open-in-new">Open pull request</v-btn>
           </div>
         </template>
-        <p v-else class="text-body-2 text-medium-emphasis mb-0">Select pull request pour voir tous les détails.</p>
+        <template v-else-if="selectedDetailType === 'issue' && selectedIssue">
+          <p class="text-subtitle-1 font-weight-bold mb-2">#{{ selectedIssue.number }} — {{ selectedIssue.title }}</p>
+          <p class="mb-1"><strong>Author:</strong> {{ selectedIssue.author }}</p>
+          <p class="mb-1"><strong>State:</strong> {{ selectedIssue.state }}</p>
+          <p class="mb-1"><strong>Comments:</strong> {{ selectedIssue.comments }}</p>
+          <p class="mb-2"><strong>Updated at:</strong> {{ formatDate(selectedIssue.updatedAt) }}</p>
+          <p class="text-body-2 mb-3">{{ selectedIssue.body || 'No description provided.' }}</p>
+          <div class="d-flex ga-2 mt-2 flex-wrap">
+            <v-btn color="primary" variant="flat" :href="selectedIssue.htmlUrl" target="_blank" prepend-icon="mdi-open-in-new">Open issue</v-btn>
+            <v-btn
+              v-if="selectedIssue.state === 'open'"
+              color="warning"
+              variant="outlined"
+              prepend-icon="mdi-check"
+              :loading="isLoading.issueDetails"
+              @click="closeIssue"
+            >
+              Close issue
+            </v-btn>
+          </div>
+        </template>
+        <p v-else class="text-body-2 text-medium-emphasis mb-0">
+          {{ selectedDetailType === 'pull-request' ? 'Select pull request pour voir tous les détails.' : 'Select issue pour voir tous les détails.' }}
+        </p>
       </v-card-text>
     </template>
     <section>
@@ -239,7 +412,18 @@ onMounted(async () => {
           <v-select
             v-model="pullRequestState"
             label="State"
-            :items="[{ title: 'Open', value: 'open' }, { title: 'Closed', value: 'closed' }]"
+            :items="pullRequestStateOptions"
+            item-title="title"
+            item-value="value"
+            hide-details
+            density="comfortable"
+          />
+        </v-col>
+        <v-col cols="12" md="4">
+          <v-select
+            v-model="issueState"
+            label="Issue state"
+            :items="issueStateOptions"
             item-title="title"
             item-value="value"
             hide-details
@@ -277,6 +461,71 @@ onMounted(async () => {
                   </tr>
                 </tbody>
               </v-table>
+              <div v-if="pullRequestsPagination.totalPages > 1" class="d-flex justify-end mt-3">
+                <v-pagination
+                  :model-value="pullRequestsPagination.page"
+                  :length="pullRequestsPagination.totalPages"
+                  :total-visible="6"
+                  @update:model-value="(page) => loadPullRequests(Number(page))"
+                />
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12">
+          <v-card rounded="xl">
+            <v-card-title class="d-flex align-center justify-space-between flex-wrap ga-2">
+              <span>Issues</span>
+            </v-card-title>
+            <v-card-text>
+              <v-alert v-if="errors.createIssue" type="error" variant="tonal" class="mb-3">{{ errors.createIssue }}</v-alert>
+              <v-row dense class="mb-2">
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="issueForm.repository" label="Repository" density="comfortable" readonly />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="issueForm.title" label="Issue title" density="comfortable" />
+                </v-col>
+                <v-col cols="12" md="4" class="d-flex align-center">
+                  <v-btn color="primary" :loading="isCreatingIssue" :disabled="!issueForm.title.trim()" @click="createIssue">Create issue</v-btn>
+                </v-col>
+                <v-col cols="12">
+                  <v-textarea v-model="issueForm.body" label="Issue description" rows="2" auto-grow density="comfortable" />
+                </v-col>
+              </v-row>
+
+              <v-alert v-if="errors.issues" type="error" variant="tonal" class="mb-3">{{ errors.issues }}</v-alert>
+              <v-skeleton-loader v-else-if="isLoading.issues" type="table" />
+              <v-table v-else density="comfortable">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Comments</th>
+                    <th>State</th>
+                    <th>Updated at</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="issue in issues" :key="issue.number" class="cursor-pointer" @click="loadIssueDetails(issue.number)">
+                    <td>#{{ issue.number }}</td>
+                    <td class="text-truncate" style="max-width: 320px;">{{ issue.title }}</td>
+                    <td>{{ issue.author }}</td>
+                    <td>{{ issue.comments }}</td>
+                    <td><v-chip :color="issueStatusColor(issue.state)" size="small" variant="tonal">{{ issue.state }}</v-chip></td>
+                    <td>{{ formatDate(issue.updatedAt) }}</td>
+                  </tr>
+                </tbody>
+              </v-table>
+              <div v-if="issuesPagination.totalPages > 1" class="d-flex justify-end mt-3">
+                <v-pagination
+                  :model-value="issuesPagination.page"
+                  :length="issuesPagination.totalPages"
+                  :total-visible="6"
+                  @update:model-value="(page) => loadIssues(Number(page))"
+                />
+              </div>
             </v-card-text>
           </v-card>
         </v-col>
@@ -297,6 +546,14 @@ onMounted(async () => {
                   </template>
                 </v-list-item>
               </v-list>
+              <div v-if="branchesPagination.totalPages > 1" class="d-flex justify-end mt-3">
+                <v-pagination
+                  :model-value="branchesPagination.page"
+                  :length="branchesPagination.totalPages"
+                  :total-visible="6"
+                  @update:model-value="(page) => loadBranches(Number(page))"
+                />
+              </div>
             </v-card-text>
           </v-card>
         </v-col>

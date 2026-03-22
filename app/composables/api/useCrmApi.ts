@@ -2,6 +2,7 @@ import { useApiClient } from '../useApiClient'
 import type { UUID } from '~/types/api/common'
 import type {
   CreateCrmProjectGithubRepositoryPayload,
+  CreateCrmGithubIssuePayload,
   CreateCrmBillingPayload,
   CreateCrmCompanyPayload,
   CreateCrmContactPayload,
@@ -22,6 +23,9 @@ import type {
   CrmGithubPullRequestDetails,
   CrmGithubPullRequestListItem,
   CrmGithubPullRequestState,
+  CrmGithubIssueState,
+  CrmGithubIssueListItem,
+  CrmGithubIssueDetails,
   CrmGithubRepository,
   CrmProjectGithubRepositoryMutationResponse,
   CrmProject,
@@ -39,6 +43,7 @@ import type {
   UpdateCrmTaskPayload,
   UpdateCrmTaskRequestPayload,
   UpdateCrmTaskRequestStatusPayload,
+  UpdateCrmGithubIssuePayload,
 } from '~/types/api/crm'
 
 export const useCrmApi = () => {
@@ -117,8 +122,16 @@ export const useCrmApi = () => {
     getProjectGithubRepositories(applicationSlug: string, projectId: UUID) {
       return apiFetch<CrmCollectionResponse<CrmGithubRepository>>(`${basePath(applicationSlug)}/projects/${projectId}/github/repositories`, { method: 'GET' })
     },
-    getProjectGithubAccountRepositories(applicationSlug: string, projectId: UUID) {
-      return apiFetch<CrmCollectionResponse<CrmGithubAccountRepository>>(`${basePath(applicationSlug)}/projects/${projectId}/github/account/repositories`, { method: 'GET' })
+    getProjectGithubAccountRepositories(
+      applicationSlug: string,
+      projectId: UUID,
+      filters?: { page?: number; limit?: number },
+    ) {
+      const query = new URLSearchParams()
+      if (filters?.page) query.set('page', String(filters.page))
+      if (filters?.limit) query.set('limit', String(filters.limit))
+      const queryString = query.toString()
+      return apiFetch<CrmCollectionResponse<CrmGithubAccountRepository>>(`${basePath(applicationSlug)}/projects/${projectId}/github/account/repositories${queryString ? `?${queryString}` : ''}`, { method: 'GET' })
     },
     addProjectGithubRepository(applicationSlug: string, projectId: UUID, payload: CreateCrmProjectGithubRepositoryPayload) {
       return apiFetch<CrmProjectGithubRepositoryMutationResponse>(`${basePath(applicationSlug)}/projects/${projectId}/github/repositories`, { method: 'POST', body: payload })
@@ -136,8 +149,15 @@ export const useCrmApi = () => {
       if (filters.limit) query.set('limit', String(filters.limit))
       return apiFetch<CrmCollectionResponse<CrmGithubPullRequestListItem>>(`${basePath(applicationSlug)}/projects/${projectId}/github/pull-requests?${query.toString()}`, { method: 'GET' })
     },
-    getProjectGithubPullRequestByNumber(applicationSlug: string, projectId: UUID, number: number, repo: string) {
+    getProjectGithubPullRequestByNumber(
+      applicationSlug: string,
+      projectId: UUID,
+      number: number,
+      repo: string,
+      state?: CrmGithubPullRequestState,
+    ) {
       const query = new URLSearchParams({ repo })
+      if (state) query.set('state', state)
       return apiFetch<CrmGithubPullRequestDetails>(`${basePath(applicationSlug)}/projects/${projectId}/github/pull-requests/${number}?${query.toString()}`, { method: 'GET' })
     },
     getProjectGithubBranches(
@@ -149,6 +169,31 @@ export const useCrmApi = () => {
       if (filters.page) query.set('page', String(filters.page))
       if (filters.limit) query.set('limit', String(filters.limit))
       return apiFetch<CrmCollectionResponse<CrmGithubBranch>>(`${basePath(applicationSlug)}/projects/${projectId}/github/branches?${query.toString()}`, { method: 'GET' })
+    },
+    getProjectGithubIssues(
+      applicationSlug: string,
+      projectId: UUID,
+      filters: { repo: string; state?: CrmGithubIssueState; page?: number; limit?: number },
+    ) {
+      const query = new URLSearchParams({ repo: filters.repo, state: filters.state ?? 'open' })
+      if (filters.page) query.set('page', String(filters.page))
+      if (filters.limit) query.set('limit', String(filters.limit))
+      return apiFetch<CrmCollectionResponse<CrmGithubIssueListItem>>(`${basePath(applicationSlug)}/projects/${projectId}/github/issues?${query.toString()}`, { method: 'GET' })
+    },
+    createProjectGithubIssue(applicationSlug: string, projectId: UUID, payload: CreateCrmGithubIssuePayload) {
+      return apiFetch<CrmGithubIssueDetails>(`${basePath(applicationSlug)}/projects/${projectId}/github/issues`, { method: 'POST', body: payload })
+    },
+    getProjectGithubIssueByNumber(applicationSlug: string, projectId: UUID, number: number, repo: string) {
+      const query = new URLSearchParams({ repo })
+      return apiFetch<CrmGithubIssueDetails>(`${basePath(applicationSlug)}/projects/${projectId}/github/issues/${number}?${query.toString()}`, { method: 'GET' })
+    },
+    updateProjectGithubIssue(
+      applicationSlug: string,
+      projectId: UUID,
+      number: number,
+      payload: UpdateCrmGithubIssuePayload,
+    ) {
+      return apiFetch<CrmGithubIssueDetails>(`${basePath(applicationSlug)}/projects/${projectId}/github/issues/${number}`, { method: 'PATCH', body: payload })
     },
     createProject(applicationSlug: string, payload: CreateCrmProjectPayload) {
       return apiFetch<CrmProject>(`${basePath(applicationSlug)}/projects`, { method: 'POST', body: payload })
