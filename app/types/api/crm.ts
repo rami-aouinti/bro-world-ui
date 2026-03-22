@@ -181,6 +181,57 @@ export interface CrmDashboardResponse {
   }
 }
 
+export interface CrmGithubRepository {
+  fullName: string
+  defaultBranch: string
+}
+
+export interface CrmGithubDashboardResponse {
+  repositories: CrmGithubRepository[]
+  pullRequests: {
+    open: number
+    closed: number
+    merged: number
+  }
+}
+
+export type CrmGithubPullRequestState = 'open' | 'closed'
+
+export interface CrmGithubPullRequestListItem {
+  number: number
+  title: string
+  state: CrmGithubPullRequestState
+  mergedAt: string | null
+  author: string
+  head: string
+  base: string
+  draft: boolean
+  htmlUrl: string
+}
+
+export interface CrmGithubPullRequestDetails {
+  number: number
+  title: string
+  state: CrmGithubPullRequestState
+  author: string
+  commits: number
+  changedFiles: number
+  additions: number
+  deletions: number
+  mergedAt: string | null
+  mergeable: boolean | null
+  statusesUrl: string | null
+  head: string
+  base: string
+  htmlUrl: string
+}
+
+export interface CrmGithubBranch {
+  name: string
+  protected: boolean
+  sha: string
+}
+
 export interface CrmReportsResponse {
   kpis: {
     pipeline: number

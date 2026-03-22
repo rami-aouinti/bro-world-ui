@@ -2,8 +2,9 @@
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
+import { useCrmApi } from '~/composables/api/useCrmApi'
 import { useCrmStore } from '~/stores/crm'
-import type { CreateCrmTaskPayload, CrmProject } from '~/types/api/crm'
+import type { CreateCrmTaskPayload, CrmGithubRepository, CrmProject } from '~/types/api/crm'
 
 definePageMeta({ public: true, requiresAuth: false })
 
@@ -13,6 +14,7 @@ const projectId = computed(() => String(route.params.id ?? ''))
 const { isOwner } = usePlatformPermissions(slug)
 const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
 const crmStore = useCrmStore()
+const crmApi = useCrmApi()
 
 const project = ref<CrmProject | null>(null)
 const selectedUserId = ref('')
@@ -24,6 +26,9 @@ const isCreatingTask = ref(false)
 const filesToUpload = ref<File[]>([])
 const isUploadingFiles = ref(false)
 const uploadErrorMessage = ref('')
+const isLoadingGithubRepositories = ref(false)
+const githubRepositoriesError = ref('')
+const githubRepositories = ref<CrmGithubRepository[]>([])
 const projects = computed(() => crmStore.getProjects(slug.value))
 const sprints = computed(() => crmStore.getSprints(slug.value))
 const projectOptions = computed(() => projects.value.map(item => ({ title: item.name, value: item.id })))
@@ -239,7 +244,38 @@ const loadEmployee = async () => {
 }
 onMounted(loadEmployee)
 
+const loadGithubRepositories = async () => {
+  if (!slug.value || !projectId.value) {
+    return
+  }
+
+  isLoadingGithubRepositories.value = true
+  githubRepositoriesError.value = ''
+  try {
+    const response = await crmApi.getProjectGithubRepositories(slug.value, projectId.value)
+    githubRepositories.value = response.items
+  }
+  catch {
+    githubRepositoriesError.value = 'Unable to load GitHub repositories.'
+  }
+  finally {
+    isLoadingGithubRepositories.value = false
+  }
+}
+
+const openGithubRepository = (repositoryName: string) => {
+  if (!repositoryName) {
+    return
+  }
+
+  navigateTo({
+    path: `/platform/${slug.value}/crm/project/${projectId.value}/github`,
+    query: { repo: repositoryName },
+  })
+}
+
 onMounted(loadProject)
+onMounted(loadGithubRepositories)
 </script>
 
 <template>
@@ -327,6 +363,35 @@ onMounted(loadProject)
       </template>
 
       <div v-if="project" class="project-detail-grid">
+        <v-card rounded="xl" class="detail-card">
+          <v-card-title class="d-flex align-center justify-space-between ga-2 flex-wrap">
+            <span>GitHub repositories</span>
+            <v-btn variant="text" size="small" prepend-icon="mdi-open-in-new" @click="openGithubRepository(githubRepositories[0]?.fullName || '')" :disabled="!githubRepositories.length">
+              Open GitHub view
+            </v-btn>
+          </v-card-title>
+          <v-card-text>
+            <v-alert v-if="githubRepositoriesError" type="error" variant="tonal" class="mb-3">{{ githubRepositoriesError }}</v-alert>
+            <v-skeleton-loader v-else-if="isLoadingGithubRepositories" type="list-item-three-line, list-item-three-line" />
+            <v-list v-else-if="githubRepositories.length" lines="two" border rounded>
+              <v-list-item
+                v-for="repository in githubRepositories"
+                :key="repository.fullName"
+                @click="openGithubRepository(repository.fullName)"
+              >
+                <template #prepend>
+                  <v-avatar color="grey-darken-4" size="34"><v-icon icon="mdi-github" /></v-avatar>
+                </template>
+                <v-list-item-title>{{ repository.fullName }}</v-list-item-title>
+                <v-list-item-subtitle>Default branch: {{ repository.defaultBranch }}</v-list-item-subtitle>
+                <template #append>
+                  <v-btn icon="mdi-chevron-right" variant="text" />
+                </template>
+              </v-list-item>
+            </v-list>
+            <v-alert v-else type="info" variant="tonal">Aucun repository GitHub lié à ce projet.</v-alert>
+          </v-card-text>
+        </v-card>
         <v-expand-transition>
           <v-card rounded="xl" class="detail-card">
             <v-card-text>
