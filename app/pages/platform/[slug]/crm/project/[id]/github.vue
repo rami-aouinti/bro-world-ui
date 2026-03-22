@@ -4,6 +4,7 @@ import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
 import { useCrmApi } from '~/composables/api/useCrmApi'
 import type {
+  CreateCrmGithubBranchPayload,
   CreateCrmGithubProjectPayload,
   CreateCrmGithubRepositoryPayload,
   CreateCrmGithubIssuePayload,
@@ -59,6 +60,11 @@ const githubRepositoryForm = reactive<CreateCrmGithubRepositoryPayload>({
   description: '',
   private: true,
 })
+const branchForm = reactive<CreateCrmGithubBranchPayload>({
+  repository: '',
+  name: '',
+  sourceBranch: 'master',
+})
 const isCreatingIssue = ref(false)
 const selectedDetailType = ref<'pull-request' | 'issue' | 'project'>('pull-request')
 const workspaceTab = ref<'pull-requests' | 'issues' | 'branches' | 'projects'>('pull-requests')
@@ -86,6 +92,8 @@ const isLoading = reactive({
   issueDetails: false,
   createGithubProject: false,
   createGithubRepository: false,
+  createBranch: false,
+  deleteBranch: false,
 })
 const errors = reactive({
   repositories: '',
@@ -100,6 +108,8 @@ const errors = reactive({
   createIssue: '',
   createGithubProject: '',
   createGithubRepository: '',
+  createBranch: '',
+  deleteBranch: '',
 })
 
 const formatDate = (date?: string | null) => {
@@ -198,6 +208,11 @@ const loadBranches = async (page = 1) => {
     })
     branches.value = response.items
     branchesPagination.value = response.pagination ?? branchesPagination.value
+    if (!branchForm.sourceBranch || !branches.value.some(branch => branch.name === branchForm.sourceBranch)) {
+      branchForm.sourceBranch = branches.value.some(branch => branch.name === 'master')
+        ? 'master'
+        : (branches.value[0]?.name ?? 'master')
+    }
   }
   catch {
     errors.branches = 'Impossible de charger les branches.'
@@ -385,6 +400,46 @@ const createGithubRepository = async () => {
   }
 }
 
+const createBranch = async () => {
+  if (!slug.value || !projectId.value || !selectedRepo.value || !branchForm.name.trim()) return
+  isLoading.createBranch = true
+  errors.createBranch = ''
+  try {
+    await crmApi.createProjectGithubBranch(slug.value, projectId.value, {
+      repository: selectedRepo.value,
+      name: branchForm.name.trim(),
+      sourceBranch: branchForm.sourceBranch?.trim() || 'master',
+    })
+    branchForm.name = ''
+    await loadBranches(1)
+  }
+  catch {
+    errors.createBranch = 'Impossible de créer cette branche.'
+  }
+  finally {
+    isLoading.createBranch = false
+  }
+}
+
+const deleteBranch = async (name: string) => {
+  if (!slug.value || !projectId.value || !selectedRepo.value || !name) return
+  isLoading.deleteBranch = true
+  errors.deleteBranch = ''
+  try {
+    await crmApi.deleteProjectGithubBranch(slug.value, projectId.value, {
+      repository: selectedRepo.value,
+      name,
+    })
+    await loadBranches(1)
+  }
+  catch {
+    errors.deleteBranch = 'Impossible de supprimer cette branche.'
+  }
+  finally {
+    isLoading.deleteBranch = false
+  }
+}
+
 const closeIssue = async () => {
   if (!slug.value || !projectId.value || !selectedRepo.value || !selectedIssue.value) return
   isLoading.issueDetails = true
@@ -428,6 +483,9 @@ const reopenIssue = async () => {
 watch(selectedRepo, async (repo) => {
   if (!repo) return
   issueForm.repository = repo
+  branchForm.repository = repo
+  branchForm.sourceBranch = 'master'
+  branchForm.name = ''
   githubProjectForm.owner = repo.split('/')[0] ?? ''
   await Promise.all([loadPullRequests(1), loadBranches(1), loadIssues(1), loadProjects(1)])
   selectedPullRequest.value = null
@@ -454,6 +512,7 @@ onMounted(async () => {
   await Promise.all([loadRepositories(), loadDashboard()])
   if (selectedRepo.value) {
     issueForm.repository = selectedRepo.value
+    branchForm.repository = selectedRepo.value
     githubProjectForm.owner = selectedRepo.value.split('/')[0] ?? ''
     await Promise.all([loadPullRequests(1), loadBranches(1), loadIssues(1), loadProjects(1)])
   }
@@ -739,15 +798,57 @@ onMounted(async () => {
             <v-card-title>Branches</v-card-title>
             <v-card-text>
               <v-alert v-if="errors.branches" type="error" variant="tonal" class="mb-3">{{ errors.branches }}</v-alert>
-              <v-skeleton-loader v-else-if="isLoading.branches" type="list-item, list-item, list-item" />
+              <v-alert v-if="errors.createBranch" type="error" variant="tonal" class="mb-3">{{ errors.createBranch }}</v-alert>
+              <v-alert v-if="errors.deleteBranch" type="error" variant="tonal" class="mb-3">{{ errors.deleteBranch }}</v-alert>
+
+              <v-row dense class="mb-3">
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="branchForm.repository" label="Repository" density="comfortable" readonly />
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-text-field v-model="branchForm.name" label="New branch name" density="comfortable" placeholder="feature/..." />
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-select
+                    v-model="branchForm.sourceBranch"
+                    label="Source branch"
+                    :items="branches.map(branch => branch.name)"
+                    density="comfortable"
+                    hide-details
+                  />
+                </v-col>
+                <v-col cols="12" md="2" class="d-flex align-center">
+                  <v-btn
+                    color="primary"
+                    :loading="isLoading.createBranch"
+                    :disabled="!branchForm.name.trim() || !branchForm.sourceBranch"
+                    @click="createBranch"
+                  >
+                    Create branch
+                  </v-btn>
+                </v-col>
+              </v-row>
+
+              <v-skeleton-loader v-if="isLoading.branches" type="list-item, list-item, list-item" />
               <v-list v-else lines="two">
                 <v-list-item v-for="branch in branches" :key="branch.sha">
                   <v-list-item-title>{{ branch.name }}</v-list-item-title>
                   <v-list-item-subtitle>SHA: {{ branch.sha }}</v-list-item-subtitle>
                   <template #append>
-                    <v-chip :color="branch.protected ? 'success' : 'default'" size="small" variant="tonal">
-                      {{ branch.protected ? 'Protected' : 'Unprotected' }}
-                    </v-chip>
+                    <div class="d-flex align-center ga-2">
+                      <v-chip :color="branch.protected ? 'success' : 'default'" size="small" variant="tonal">
+                        {{ branch.protected ? 'Protected' : 'Unprotected' }}
+                      </v-chip>
+                      <v-btn
+                        icon="mdi-delete-outline"
+                        size="small"
+                        variant="text"
+                        color="error"
+                        :disabled="branch.protected"
+                        :loading="isLoading.deleteBranch"
+                        @click="deleteBranch(branch.name)"
+                      />
+                    </div>
                   </template>
                 </v-list-item>
               </v-list>

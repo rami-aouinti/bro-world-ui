@@ -1,6 +1,7 @@
 import { useApiClient } from '../useApiClient'
 import type { UUID } from '~/types/api/common'
 import type {
+  CreateCrmGithubBranchPayload,
   CreateCrmGithubProjectPayload,
   CreateCrmGithubRepositoryPayload,
   CreateCrmProjectGithubRepositoryPayload,
@@ -21,6 +22,7 @@ import type {
   CrmEmployee,
   CrmGithubAccountRepository,
   CrmGithubBranch,
+  CrmGithubBranchMutationResponse,
   CrmGithubDashboardResponse,
   CrmGithubPullRequestDetails,
   CrmGithubPullRequestListItem,
@@ -48,6 +50,7 @@ import type {
   UpdateCrmTaskRequestPayload,
   UpdateCrmTaskRequestStatusPayload,
   UpdateCrmGithubIssuePayload,
+  DeleteCrmGithubBranchPayload,
 } from '~/types/api/crm'
 
 export const useCrmApi = () => {
@@ -201,6 +204,12 @@ export const useCrmApi = () => {
       if (filters.page) query.set('page', String(filters.page))
       if (filters.limit) query.set('limit', String(filters.limit))
       return apiFetch<CrmCollectionResponse<CrmGithubBranch>>(`${basePath(applicationSlug)}/projects/${projectId}/github/branches?${query.toString()}`, { method: 'GET' })
+    },
+    createProjectGithubBranch(applicationSlug: string, projectId: UUID, payload: CreateCrmGithubBranchPayload) {
+      return apiFetch<CrmGithubBranchMutationResponse>(`${basePath(applicationSlug)}/projects/${projectId}/github/branches/create`, { method: 'POST', body: payload })
+    },
+    deleteProjectGithubBranch(applicationSlug: string, projectId: UUID, payload: DeleteCrmGithubBranchPayload) {
+      return apiFetch<void>(`${basePath(applicationSlug)}/projects/${projectId}/github/branches/delete`, { method: 'DELETE', body: payload })
     },
     getProjectGithubIssues(
       applicationSlug: string,

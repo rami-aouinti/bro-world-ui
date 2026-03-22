@@ -282,6 +282,24 @@ export interface CrmGithubBranch {
   sha: string
 }
 
+export interface CreateCrmGithubBranchPayload {
+  repository: string
+  name: string
+  sourceBranch?: string
+}
+
+export interface DeleteCrmGithubBranchPayload {
+  repository: string
+  name: string
+}
+
+export interface CrmGithubBranchMutationResponse {
+  name: string
+  sha: string
+  ref: string
+  url: string
+}
+
 export type CrmGithubIssueState = 'open' | 'closed' | 'all'
 
 export interface CrmGithubIssueListItem {
