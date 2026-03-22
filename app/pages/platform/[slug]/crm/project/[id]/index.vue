@@ -4,7 +4,7 @@ import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
 import { useCrmApi } from '~/composables/api/useCrmApi'
 import { useCrmStore } from '~/stores/crm'
-import type { CreateCrmTaskPayload, CrmGithubRepository, CrmProject } from '~/types/api/crm'
+import type { CreateCrmTaskPayload, CrmGithubAccountRepository, CrmGithubRepository, CrmProject } from '~/types/api/crm'
 
 definePageMeta({ public: true, requiresAuth: false })
 
@@ -27,8 +27,14 @@ const filesToUpload = ref<File[]>([])
 const isUploadingFiles = ref(false)
 const uploadErrorMessage = ref('')
 const isLoadingGithubRepositories = ref(false)
+const isLoadingGithubAccountRepositories = ref(false)
+const isAddingGithubRepository = ref(false)
 const githubRepositoriesError = ref('')
 const githubRepositories = ref<CrmGithubRepository[]>([])
+const githubAccountRepositoriesError = ref('')
+const githubAccountRepositories = ref<CrmGithubAccountRepository[]>([])
+const selectedGithubRepositoryFullName = ref('')
+const githubRepositoryActionMessage = ref('')
 const projects = computed(() => crmStore.getProjects(slug.value))
 const sprints = computed(() => crmStore.getSprints(slug.value))
 const projectOptions = computed(() => projects.value.map(item => ({ title: item.name, value: item.id })))
@@ -58,81 +64,16 @@ const projectStatusColor = computed(() => {
 
   return 'warning'
 })
-const selectedRepository = computed(() => fakeRepositories.value.find(repo => repo.id === selectedRepositoryId.value) ?? null)
-const filteredRepositories = computed(() => {
-  const query = repoSearch.value.trim().toLowerCase()
-  if (!query) {
-    return fakeRepositories.value
-  }
-
-  return fakeRepositories.value.filter(repo =>
-      repo.name.toLowerCase().includes(query)
-      || repo.description.toLowerCase().includes(query),
-  )
+const githubAccountRepositoryOptions = computed(() => {
+  const linkedRepositories = new Set(githubRepositories.value.map(repository => repository.fullName))
+  return githubAccountRepositories.value
+      .filter(repository => !linkedRepositories.has(repository.fullName))
+      .map(repository => ({
+        title: repository.fullName,
+        value: repository.fullName,
+        subtitle: `${repository.defaultBranch} · ${repository.private ? 'Private' : 'Public'}`,
+      }))
 })
-const repositoryOpenPrCount = computed(() => selectedRepository.value?.pullRequests.filter(pr => pr.status === 'open').length ?? 0)
-const repositoryMergedPrCount = computed(() => selectedRepository.value?.pullRequests.filter(pr => pr.status === 'merged').length ?? 0)
-const repositoryClosedPrCount = computed(() => selectedRepository.value?.pullRequests.filter(pr => pr.status === 'closed').length ?? 0)
-const filteredPullRequests = computed(() => {
-  const repository = selectedRepository.value
-  if (!repository) {
-    return []
-  }
-
-  if (repoStatusFilter.value === 'all') {
-    return repository.pullRequests
-  }
-
-  return repository.pullRequests.filter(pr => pr.status === repoStatusFilter.value)
-})
-const selectedPullRequest = computed(() => filteredPullRequests.value.find(pr => pr.id === selectedPullRequestId.value) ?? filteredPullRequests.value[0] ?? null)
-
-const ciStatusColor = (status: RepoCiStatus) => {
-  if (status === 'success') return 'success'
-  if (status === 'running') return 'info'
-  if (status === 'queued') return 'warning'
-  return 'error'
-}
-
-const pullRequestStatusColor = (status: RepoPrStatus) => {
-  if (status === 'open') return 'info'
-  if (status === 'merged') return 'success'
-  return 'default'
-}
-
-const selectRepository = (repoId: string) => {
-  selectedRepositoryId.value = repoId
-  selectedPullRequestId.value = ''
-}
-
-const mergePullRequest = (prId: string) => {
-  const repo = selectedRepository.value
-  if (!repo) {
-    return
-  }
-
-  const pr = repo.pullRequests.find(item => item.id === prId)
-  if (!pr || pr.status !== 'open') {
-    return
-  }
-
-  pr.status = 'merged'
-  pr.ciStatus = 'success'
-}
-
-const closePullRequest = (prId: string) => {
-  const repo = selectedRepository.value
-  if (!repo) {
-    return
-  }
-
-  const pr = repo.pullRequests.find(item => item.id === prId)
-  if (!pr || pr.status !== 'open') {
-    return
-  }
-
-  pr.status = 'closed'
-}
 
 const formatDate = (date?: string | null) => {
   if (!date) {
@@ -338,6 +279,49 @@ const loadGithubRepositories = async () => {
   }
 }
 
+const loadGithubAccountRepositories = async () => {
+  if (!slug.value || !projectId.value) {
+    return
+  }
+
+  isLoadingGithubAccountRepositories.value = true
+  githubAccountRepositoriesError.value = ''
+  try {
+    const response = await crmApi.getProjectGithubAccountRepositories(slug.value, projectId.value)
+    githubAccountRepositories.value = response?.items ?? []
+  }
+  catch {
+    githubAccountRepositoriesError.value = 'Unable to load GitHub account repositories.'
+  }
+  finally {
+    isLoadingGithubAccountRepositories.value = false
+  }
+}
+
+const addGithubRepositoryToProject = async () => {
+  if (!slug.value || !projectId.value || !selectedGithubRepositoryFullName.value) {
+    return
+  }
+
+  isAddingGithubRepository.value = true
+  githubRepositoriesError.value = ''
+  githubRepositoryActionMessage.value = ''
+  try {
+    const response = await crmApi.addProjectGithubRepository(slug.value, projectId.value, {
+      fullName: selectedGithubRepositoryFullName.value,
+    })
+    githubRepositories.value = response.repositories ?? []
+    githubRepositoryActionMessage.value = `Repository ${response.repository.fullName} linked to this project.`
+    selectedGithubRepositoryFullName.value = ''
+  }
+  catch {
+    githubRepositoriesError.value = 'Unable to add this GitHub repository to the project.'
+  }
+  finally {
+    isAddingGithubRepository.value = false
+  }
+}
+
 const openGithubRepository = (repositoryName: string) => {
   if (!repositoryName) {
     return
@@ -351,6 +335,7 @@ const openGithubRepository = (repositoryName: string) => {
 
 onMounted(loadProject)
 onMounted(loadGithubRepositories)
+onMounted(loadGithubAccountRepositories)
 </script>
 
 <template>
@@ -441,13 +426,56 @@ onMounted(loadGithubRepositories)
         <v-card rounded="xl" class="detail-card">
           <v-card-title class="d-flex align-center justify-space-between ga-2 flex-wrap">
             <span>GitHub repositories</span>
-            <v-btn variant="text" size="small" prepend-icon="mdi-open-in-new" @click="openGithubRepository(githubRepositories[0]?.fullName || '')" :disabled="!githubRepositories.length">
-              Open GitHub view
-            </v-btn>
+            <div class="d-flex ga-2 flex-wrap">
+              <v-btn variant="text" size="small" icon="mdi-refresh" :loading="isLoadingGithubRepositories || isLoadingGithubAccountRepositories" @click="() => { loadGithubRepositories(); loadGithubAccountRepositories() }" />
+              <v-btn variant="text" size="small" prepend-icon="mdi-open-in-new" @click="openGithubRepository(githubRepositories[0]?.fullName || '')" :disabled="!githubRepositories.length">
+                Open GitHub view
+              </v-btn>
+            </div>
           </v-card-title>
           <v-card-text>
+            <v-alert v-if="githubRepositoryActionMessage" type="success" variant="tonal" class="mb-3">{{ githubRepositoryActionMessage }}</v-alert>
             <v-alert v-if="githubRepositoriesError" type="error" variant="tonal" class="mb-3">{{ githubRepositoriesError }}</v-alert>
-            <v-skeleton-loader v-else-if="isLoadingGithubRepositories" type="list-item-three-line, list-item-three-line" />
+            <v-alert v-if="githubAccountRepositoriesError" type="error" variant="tonal" class="mb-3">{{ githubAccountRepositoriesError }}</v-alert>
+
+            <v-card variant="outlined" rounded="lg" class="mb-4">
+              <v-card-text>
+                <p class="text-subtitle-2 mb-2">Add a repository from your GitHub account</p>
+                <div class="d-flex ga-2 align-center flex-wrap">
+                  <v-autocomplete
+                      v-model="selectedGithubRepositoryFullName"
+                      class="flex-grow-1"
+                      density="comfortable"
+                      label="GitHub repositories"
+                      placeholder="Select a repository"
+                      :items="githubAccountRepositoryOptions"
+                      item-title="title"
+                      item-value="value"
+                      item-props
+                      hide-details
+                      clearable
+                      :loading="isLoadingGithubAccountRepositories"
+                      :disabled="isLoadingGithubAccountRepositories || !githubAccountRepositoryOptions.length"
+                  />
+                  <v-btn
+                      color="primary"
+                      prepend-icon="mdi-plus"
+                      :loading="isAddingGithubRepository"
+                      :disabled="!selectedGithubRepositoryFullName"
+                      @click="addGithubRepositoryToProject"
+                  >
+                    Add
+                  </v-btn>
+                </div>
+                <p class="text-caption text-medium-emphasis mt-2 mb-0">
+                  {{ githubAccountRepositoryOptions.length
+                    ? `${githubAccountRepositoryOptions.length} repositories available to link.`
+                    : 'All account repositories are already linked or no repository is available.' }}
+                </p>
+              </v-card-text>
+            </v-card>
+
+            <v-skeleton-loader v-if="isLoadingGithubRepositories" type="list-item-three-line, list-item-three-line" />
             <v-list v-else-if="githubRepositories.length" lines="two" border rounded>
               <v-list-item
                   v-for="repository in githubRepositories"

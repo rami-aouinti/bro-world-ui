@@ -186,6 +186,23 @@ export interface CrmGithubRepository {
   defaultBranch: string
 }
 
+export interface CrmGithubAccountRepository extends CrmGithubRepository {
+  name: string
+  private: boolean
+  htmlUrl: string
+  owner: string
+}
+
+export interface CreateCrmProjectGithubRepositoryPayload {
+  fullName: string
+}
+
+export interface CrmProjectGithubRepositoryMutationResponse {
+  id: UUID
+  repository: CrmGithubRepository
+  repositories: CrmGithubRepository[]
+}
+
 export interface CrmGithubDashboardResponse {
   repositories: CrmGithubRepository[]
   pullRequests: {
