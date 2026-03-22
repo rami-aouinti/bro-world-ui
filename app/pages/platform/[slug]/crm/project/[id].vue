@@ -328,7 +328,7 @@ const loadGithubRepositories = async () => {
   githubRepositoriesError.value = ''
   try {
     const response = await crmApi.getProjectGithubRepositories(slug.value, projectId.value)
-    githubRepositories.value = response.items
+    githubRepositories.value = response?.items
   }
   catch {
     githubRepositoriesError.value = 'Unable to load GitHub repositories.'
@@ -379,7 +379,7 @@ onMounted(loadGithubRepositories)
                 <v-btn color="primary" :loading="isUploadingFiles" :disabled="!filesToUpload.length" @click="uploadProjectAttachments">Upload</v-btn>
               </div>
               <v-alert v-if="uploadErrorMessage" type="error" variant="tonal" class="mb-4">{{ uploadErrorMessage }}</v-alert>
-              <v-list v-if="(project.attachments || []).length" lines="one">
+              <v-list v-if="(project?.attachments || []).length" lines="one">
                 <v-list-item class="justify-content-start" v-for="file in project.attachments || []" :key="`${file.url}-${file.uploadedAt}`" :title="file.originalName" :subtitle="(`${formatFileSize(file.size)}`)" :href="file.url" target="_blank">
                 </v-list-item>
               </v-list>
@@ -392,7 +392,7 @@ onMounted(loadGithubRepositories)
             <v-card-title>Members</v-card-title>
             <v-card-text>
               <div class="d-flex ga-2 align-center flex-wrap mb-2">
-                <v-select density="compact" v-model="selectedUserId" label="Add user" :items="userOptions" item-title="title" item-value="value" class="assignee-select" hide-details>
+                <v-select v-if="userOptions" density="compact" v-model="selectedUserId" label="Add user" :items="userOptions" item-title="title" item-value="value" class="assignee-select" hide-details>
                   <template #item="{ item, props }">
                     <v-list-item v-bind="props" :subtitle="item?.raw?.email">
                       <template #prepend><v-avatar size="28" :image="item?.raw?.photo || undefined" /></template>
@@ -403,12 +403,12 @@ onMounted(loadGithubRepositories)
               </div>
 
               <TransitionGroup name="chips" tag="div" class="d-flex flex-wrap ga-2">
-                <v-chip v-for="assignee in project.assignees || []" :key="assignee.id || assignee.email" closable @click:close="removeProjectUser(assignee.userId || assignee.id)">
+                <v-chip v-for="assignee in project?.assignees || []" :key="assignee.id || assignee.email" closable @click:close="removeProjectUser(assignee.userId || assignee.id)">
                   <v-avatar start size="20" :image="assignee.photo || undefined" />
                   {{ [assignee.firstName, assignee.lastName].filter(Boolean).join(' ') || assignee.email || assignee.id }}
                 </v-chip>
               </TransitionGroup>
-              <p v-if="!(project.assignees || []).length" class="text-body-2 text-medium-emphasis mt-3">No assignees yet.</p>
+              <p v-if="!(project?.assignees || []).length" class="text-body-2 text-medium-emphasis mt-3">No assignees yet.</p>
             </v-card-text>
           </v-card>
         </v-expand-transition>
@@ -548,8 +548,8 @@ onMounted(loadGithubRepositories)
           <v-card-text>
             <v-text-field v-model="taskForm.title" label="Titre" required />
             <v-textarea v-model="taskForm.description" label="Description" rows="2" />
-            <v-select v-model="taskForm.projectId" label="Projet" :items="projectOptions" item-title="title" item-value="value" />
-            <v-select v-model="taskForm.sprintId" label="Sprint" :items="sprintOptions" item-title="title" item-value="value" />
+            <v-select v-if="projectOptions" v-model="taskForm.projectId" label="Projet" :items="projectOptions" item-title="title" item-value="value" />
+            <v-select v-if="sprintOptions" v-model="taskForm.sprintId" label="Sprint" :items="sprintOptions" item-title="title" item-value="value" />
             <v-text-field v-model="taskForm.status" label="Status" />
             <v-text-field v-model="taskForm.priority" label="Priority" />
           </v-card-text>
