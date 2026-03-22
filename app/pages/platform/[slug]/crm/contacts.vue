@@ -169,6 +169,14 @@ onMounted(async () => {
 
 <template>
   <PlatformSplitLayout>
+    <client-only>
+      <teleport to="#app-bar-teleport-target">
+        <v-btn variant="outlined" :loading="crmStore.isLoading" @click="loadContacts(true)">Refresh</v-btn>
+      </teleport>
+      <teleport to="#app-bar-teleport-target-right">
+        <v-btn color="primary" @click="showCreateDialog = true">Ajouter un contact</v-btn>
+      </teleport>
+    </client-only>
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
@@ -178,10 +186,6 @@ onMounted(async () => {
         <div>
           <h1 class="text-h5 font-weight-bold mb-1">Contacts</h1>
           <p class="text-body-2 text-medium-emphasis">Créer, modifier et supprimer les contacts du CRM.</p>
-        </div>
-        <div class="d-flex ga-2">
-          <v-btn color="primary" @click="showCreateDialog = true">Ajouter un contact</v-btn>
-          <v-btn variant="outlined" :loading="crmStore.isLoading" @click="loadContacts(true)">Refresh</v-btn>
         </div>
       </div>
 

@@ -72,6 +72,11 @@ onMounted(async () => {
 
 <template>
   <PlatformSplitLayout>
+    <client-only>
+      <teleport to="#app-bar-teleport-target">
+        <v-btn variant="outlined" :loading="isPageLoading" @click="loadEmployees">Refresh</v-btn>
+      </teleport>
+    </client-only>
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
@@ -82,7 +87,6 @@ onMounted(async () => {
           <h1 class="text-h5 font-weight-bold mb-1">Employees</h1>
           <p class="text-body-2 text-medium-emphasis">Liste des employés du CRM Sales Hub ({{ paginationTotal }}).</p>
         </div>
-        <v-btn variant="outlined" :loading="isPageLoading" @click="loadEmployees">Refresh</v-btn>
       </div>
 
       <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">

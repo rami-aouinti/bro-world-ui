@@ -171,6 +171,11 @@ onMounted(loadTaskRequest)
 
 <template>
   <PlatformSplitLayout>
+    <client-only>
+      <teleport to="#app-bar-teleport-target">
+        <v-btn variant="outlined" :loading="isLoading" @click="loadTaskRequest">Refresh</v-btn>
+      </teleport>
+    </client-only>
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
@@ -188,7 +193,6 @@ onMounted(loadTaskRequest)
               <v-list-item prepend-icon="mdi-delete" title="Delete" :disabled="isMutating" @click="deleteTaskRequest" />
             </v-list>
           </v-menu>
-          <v-btn variant="outlined" :loading="isLoading" @click="loadTaskRequest">Refresh</v-btn>
         </div>
       </div>
 
