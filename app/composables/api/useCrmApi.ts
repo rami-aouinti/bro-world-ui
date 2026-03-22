@@ -1,6 +1,9 @@
 import { useApiClient } from '../useApiClient'
 import type { UUID } from '~/types/api/common'
 import type {
+  CreateCrmGithubBranchPayload,
+  CreateCrmGithubProjectPayload,
+  CreateCrmGithubRepositoryPayload,
   CreateCrmProjectGithubRepositoryPayload,
   CreateCrmGithubIssuePayload,
   CreateCrmBillingPayload,
@@ -19,6 +22,7 @@ import type {
   CrmEmployee,
   CrmGithubAccountRepository,
   CrmGithubBranch,
+  CrmGithubBranchMutationResponse,
   CrmGithubDashboardResponse,
   CrmGithubPullRequestDetails,
   CrmGithubPullRequestListItem,
@@ -26,6 +30,8 @@ import type {
   CrmGithubIssueState,
   CrmGithubIssueListItem,
   CrmGithubIssueDetails,
+  CrmGithubProject,
+  CrmGithubProjectItem,
   CrmGithubRepository,
   CrmProjectGithubRepositoryMutationResponse,
   CrmProject,
@@ -44,6 +50,7 @@ import type {
   UpdateCrmTaskRequestPayload,
   UpdateCrmTaskRequestStatusPayload,
   UpdateCrmGithubIssuePayload,
+  DeleteCrmGithubBranchPayload,
 } from '~/types/api/crm'
 
 export const useCrmApi = () => {
@@ -136,6 +143,34 @@ export const useCrmApi = () => {
     addProjectGithubRepository(applicationSlug: string, projectId: UUID, payload: CreateCrmProjectGithubRepositoryPayload) {
       return apiFetch<CrmProjectGithubRepositoryMutationResponse>(`${basePath(applicationSlug)}/projects/${projectId}/github/repositories`, { method: 'POST', body: payload })
     },
+    getProjectGithubProjects(
+      applicationSlug: string,
+      projectId: UUID,
+      filters: { repo: string; page?: number; limit?: number },
+    ) {
+      const query = new URLSearchParams({ repo: filters.repo })
+      if (filters.page) query.set('page', String(filters.page))
+      if (filters.limit) query.set('limit', String(filters.limit))
+      return apiFetch<CrmCollectionResponse<CrmGithubProject>>(`${basePath(applicationSlug)}/projects/${projectId}/github/projects?${query.toString()}`, { method: 'GET' })
+    },
+    getProjectGithubProjectItems(
+      applicationSlug: string,
+      projectId: UUID,
+      githubProjectId: string,
+      filters?: { page?: number; limit?: number },
+    ) {
+      const query = new URLSearchParams()
+      if (filters?.page) query.set('page', String(filters.page))
+      if (filters?.limit) query.set('limit', String(filters.limit))
+      const queryString = query.toString()
+      return apiFetch<CrmCollectionResponse<CrmGithubProjectItem>>(`${basePath(applicationSlug)}/projects/${projectId}/github/projects/${githubProjectId}/items${queryString ? `?${queryString}` : ''}`, { method: 'GET' })
+    },
+    createProjectGithubProject(applicationSlug: string, projectId: UUID, payload: CreateCrmGithubProjectPayload) {
+      return apiFetch<CrmGithubProject>(`${basePath(applicationSlug)}/projects/${projectId}/github/projects`, { method: 'POST', body: payload })
+    },
+    createProjectGithubRepository(applicationSlug: string, projectId: UUID, payload: CreateCrmGithubRepositoryPayload) {
+      return apiFetch<CrmGithubRepository>(`${basePath(applicationSlug)}/projects/${projectId}/github/repositories/create`, { method: 'POST', body: payload })
+    },
     getProjectGithubDashboard(applicationSlug: string, projectId: UUID) {
       return apiFetch<CrmGithubDashboardResponse>(`${basePath(applicationSlug)}/projects/${projectId}/github/dashboard`, { method: 'GET' })
     },
@@ -169,6 +204,12 @@ export const useCrmApi = () => {
       if (filters.page) query.set('page', String(filters.page))
       if (filters.limit) query.set('limit', String(filters.limit))
       return apiFetch<CrmCollectionResponse<CrmGithubBranch>>(`${basePath(applicationSlug)}/projects/${projectId}/github/branches?${query.toString()}`, { method: 'GET' })
+    },
+    createProjectGithubBranch(applicationSlug: string, projectId: UUID, payload: CreateCrmGithubBranchPayload) {
+      return apiFetch<CrmGithubBranchMutationResponse>(`${basePath(applicationSlug)}/projects/${projectId}/github/branches/create`, { method: 'POST', body: payload })
+    },
+    deleteProjectGithubBranch(applicationSlug: string, projectId: UUID, payload: DeleteCrmGithubBranchPayload) {
+      return apiFetch<void>(`${basePath(applicationSlug)}/projects/${projectId}/github/branches/delete`, { method: 'DELETE', body: payload })
     },
     getProjectGithubIssues(
       applicationSlug: string,

@@ -4,11 +4,16 @@ import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
 import { useCrmApi } from '~/composables/api/useCrmApi'
 import type {
+  CreateCrmGithubBranchPayload,
+  CreateCrmGithubProjectPayload,
+  CreateCrmGithubRepositoryPayload,
   CreateCrmGithubIssuePayload,
   CrmGithubBranch,
   CrmGithubIssueDetails,
   CrmGithubIssueListItem,
   CrmGithubIssueState,
+  CrmGithubProject,
+  CrmGithubProjectItem,
   CrmGithubPullRequestDetails,
   CrmGithubPullRequestListItem,
   CrmGithubPullRequestState,
@@ -36,14 +41,33 @@ const issueState = ref<CrmGithubIssueState>('all')
 const issues = ref<CrmGithubIssueListItem[]>([])
 const issuesPagination = ref({ page: 1, limit: 30, totalItems: 0, totalPages: 1 })
 const selectedIssue = ref<CrmGithubIssueDetails | null>(null)
+const projects = ref<CrmGithubProject[]>([])
+const projectsPagination = ref({ page: 1, limit: 20, totalItems: 0, totalPages: 1 })
+const selectedGithubProject = ref<CrmGithubProject | null>(null)
+const selectedGithubProjectItems = ref<CrmGithubProjectItem[]>([])
+const projectItemsPagination = ref({ page: 1, limit: 20, totalItems: 0, totalPages: 1 })
 const issueForm = reactive<CreateCrmGithubIssuePayload>({
   repository: '',
   title: '',
   body: '',
 })
+const githubProjectForm = reactive<CreateCrmGithubProjectPayload>({
+  owner: '',
+  title: '',
+})
+const githubRepositoryForm = reactive<CreateCrmGithubRepositoryPayload>({
+  name: '',
+  description: '',
+  private: true,
+})
+const branchForm = reactive<CreateCrmGithubBranchPayload>({
+  repository: '',
+  name: '',
+  sourceBranch: 'master',
+})
 const isCreatingIssue = ref(false)
-const selectedDetailType = ref<'pull-request' | 'issue'>('pull-request')
-const workspaceTab = ref<'pull-requests' | 'issues' | 'branches'>('pull-requests')
+const selectedDetailType = ref<'pull-request' | 'issue' | 'project'>('pull-request')
+const workspaceTab = ref<'pull-requests' | 'issues' | 'branches' | 'projects'>('pull-requests')
 const dashboard = ref<{ open: number; closed: number; merged: number } | null>(null)
 const pullRequestStateOptions = [
   { title: 'Open', value: 'open' },
@@ -62,8 +86,14 @@ const isLoading = reactive({
   pullRequests: false,
   branches: false,
   issues: false,
+  projects: false,
+  projectItems: false,
   pullRequestDetails: false,
   issueDetails: false,
+  createGithubProject: false,
+  createGithubRepository: false,
+  createBranch: false,
+  deleteBranch: false,
 })
 const errors = reactive({
   repositories: '',
@@ -71,9 +101,15 @@ const errors = reactive({
   pullRequests: '',
   branches: '',
   issues: '',
+  projects: '',
+  projectItems: '',
   pullRequestDetails: '',
   issueDetails: '',
   createIssue: '',
+  createGithubProject: '',
+  createGithubRepository: '',
+  createBranch: '',
+  deleteBranch: '',
 })
 
 const formatDate = (date?: string | null) => {
@@ -172,6 +208,11 @@ const loadBranches = async (page = 1) => {
     })
     branches.value = response.items
     branchesPagination.value = response.pagination ?? branchesPagination.value
+    if (!branchForm.sourceBranch || !branches.value.some(branch => branch.name === branchForm.sourceBranch)) {
+      branchForm.sourceBranch = branches.value.some(branch => branch.name === 'master')
+        ? 'master'
+        : (branches.value[0]?.name ?? 'master')
+    }
   }
   catch {
     errors.branches = 'Impossible de charger les branches.'
@@ -236,6 +277,63 @@ const loadIssueDetails = async (number: number) => {
   }
 }
 
+const loadProjects = async (page = 1) => {
+  if (!slug.value || !projectId.value || !selectedRepo.value) return
+  isLoading.projects = true
+  errors.projects = ''
+  try {
+    const response = await crmApi.getProjectGithubProjects(slug.value, projectId.value, {
+      repo: selectedRepo.value,
+      page,
+      limit: projectsPagination.value.limit,
+    })
+    projects.value = response.items
+    projectsPagination.value = response.pagination ?? projectsPagination.value
+    if (!selectedGithubProject.value || !projects.value.some(project => project.id === selectedGithubProject.value?.id)) {
+      selectedGithubProject.value = projects.value[0] ?? null
+    }
+    if (selectedGithubProject.value) {
+      await loadProjectItems(selectedGithubProject.value.id, 1)
+    }
+    else {
+      selectedGithubProjectItems.value = []
+      projectItemsPagination.value = { page: 1, limit: 20, totalItems: 0, totalPages: 1 }
+    }
+  }
+  catch {
+    errors.projects = 'Impossible de charger les projets GitHub.'
+  }
+  finally {
+    isLoading.projects = false
+  }
+}
+
+const loadProjectItems = async (githubProjectId: string, page = 1) => {
+  if (!slug.value || !projectId.value) return
+  isLoading.projectItems = true
+  errors.projectItems = ''
+  try {
+    const response = await crmApi.getProjectGithubProjectItems(slug.value, projectId.value, githubProjectId, {
+      page,
+      limit: projectItemsPagination.value.limit,
+    })
+    selectedGithubProjectItems.value = response.items
+    projectItemsPagination.value = response.pagination ?? projectItemsPagination.value
+    selectedDetailType.value = 'project'
+  }
+  catch {
+    errors.projectItems = 'Impossible de charger les items de ce projet.'
+  }
+  finally {
+    isLoading.projectItems = false
+  }
+}
+
+const selectProject = async (project: CrmGithubProject) => {
+  selectedGithubProject.value = project
+  await loadProjectItems(project.id, 1)
+}
+
 const createIssue = async () => {
   if (!slug.value || !projectId.value || !selectedRepo.value || !issueForm.title.trim()) return
   isCreatingIssue.value = true
@@ -257,6 +355,88 @@ const createIssue = async () => {
   }
   finally {
     isCreatingIssue.value = false
+  }
+}
+
+const createGithubProject = async () => {
+  if (!slug.value || !projectId.value || !githubProjectForm.owner.trim() || !githubProjectForm.title.trim()) return
+  isLoading.createGithubProject = true
+  errors.createGithubProject = ''
+  try {
+    await crmApi.createProjectGithubProject(slug.value, projectId.value, {
+      owner: githubProjectForm.owner.trim(),
+      title: githubProjectForm.title.trim(),
+    })
+    githubProjectForm.title = ''
+    await loadProjects(1)
+  }
+  catch {
+    errors.createGithubProject = 'Impossible de créer le projet GitHub.'
+  }
+  finally {
+    isLoading.createGithubProject = false
+  }
+}
+
+const createGithubRepository = async () => {
+  if (!slug.value || !projectId.value || !githubRepositoryForm.name.trim()) return
+  isLoading.createGithubRepository = true
+  errors.createGithubRepository = ''
+  try {
+    await crmApi.createProjectGithubRepository(slug.value, projectId.value, {
+      name: githubRepositoryForm.name.trim(),
+      description: githubRepositoryForm.description?.trim() ?? '',
+      private: githubRepositoryForm.private,
+    })
+    githubRepositoryForm.name = ''
+    githubRepositoryForm.description = ''
+    await loadRepositories()
+  }
+  catch {
+    errors.createGithubRepository = 'Impossible de créer le repository GitHub.'
+  }
+  finally {
+    isLoading.createGithubRepository = false
+  }
+}
+
+const createBranch = async () => {
+  if (!slug.value || !projectId.value || !selectedRepo.value || !branchForm.name.trim()) return
+  isLoading.createBranch = true
+  errors.createBranch = ''
+  try {
+    await crmApi.createProjectGithubBranch(slug.value, projectId.value, {
+      repository: selectedRepo.value,
+      name: branchForm.name.trim(),
+      sourceBranch: branchForm.sourceBranch?.trim() || 'master',
+    })
+    branchForm.name = ''
+    await loadBranches(1)
+  }
+  catch {
+    errors.createBranch = 'Impossible de créer cette branche.'
+  }
+  finally {
+    isLoading.createBranch = false
+  }
+}
+
+const deleteBranch = async (name: string) => {
+  if (!slug.value || !projectId.value || !selectedRepo.value || !name) return
+  isLoading.deleteBranch = true
+  errors.deleteBranch = ''
+  try {
+    await crmApi.deleteProjectGithubBranch(slug.value, projectId.value, {
+      repository: selectedRepo.value,
+      name,
+    })
+    await loadBranches(1)
+  }
+  catch {
+    errors.deleteBranch = 'Impossible de supprimer cette branche.'
+  }
+  finally {
+    isLoading.deleteBranch = false
   }
 }
 
@@ -303,9 +483,15 @@ const reopenIssue = async () => {
 watch(selectedRepo, async (repo) => {
   if (!repo) return
   issueForm.repository = repo
-  await Promise.all([loadPullRequests(1), loadBranches(1), loadIssues(1)])
+  branchForm.repository = repo
+  branchForm.sourceBranch = 'master'
+  branchForm.name = ''
+  githubProjectForm.owner = repo.split('/')[0] ?? ''
+  await Promise.all([loadPullRequests(1), loadBranches(1), loadIssues(1), loadProjects(1)])
   selectedPullRequest.value = null
   selectedIssue.value = null
+  selectedGithubProject.value = null
+  selectedGithubProjectItems.value = []
   await navigateTo({
     path: route.path,
     query: { ...route.query, repo },
@@ -326,7 +512,9 @@ onMounted(async () => {
   await Promise.all([loadRepositories(), loadDashboard()])
   if (selectedRepo.value) {
     issueForm.repository = selectedRepo.value
-    await Promise.all([loadPullRequests(1), loadBranches(1), loadIssues(1)])
+    branchForm.repository = selectedRepo.value
+    githubProjectForm.owner = selectedRepo.value.split('/')[0] ?? ''
+    await Promise.all([loadPullRequests(1), loadBranches(1), loadIssues(1), loadProjects(1)])
   }
 })
 </script>
@@ -342,13 +530,16 @@ onMounted(async () => {
         <v-btn-toggle v-model="selectedDetailType" mandatory density="compact" class="mb-3">
           <v-btn value="pull-request" size="small">PR</v-btn>
           <v-btn value="issue" size="small">Issue</v-btn>
+          <v-btn value="project" size="small">Project</v-btn>
         </v-btn-toggle>
 
         <v-alert v-if="selectedDetailType === 'pull-request' && errors.pullRequestDetails" type="error" variant="tonal" class="mb-3">{{ errors.pullRequestDetails }}</v-alert>
         <v-alert v-if="selectedDetailType === 'issue' && errors.issueDetails" type="error" variant="tonal" class="mb-3">{{ errors.issueDetails }}</v-alert>
+        <v-alert v-if="selectedDetailType === 'project' && errors.projectItems" type="error" variant="tonal" class="mb-3">{{ errors.projectItems }}</v-alert>
 
         <v-skeleton-loader v-if="selectedDetailType === 'pull-request' && isLoading.pullRequestDetails" type="article" />
         <v-skeleton-loader v-else-if="selectedDetailType === 'issue' && isLoading.issueDetails" type="article" />
+        <v-skeleton-loader v-else-if="selectedDetailType === 'project' && isLoading.projectItems" type="article" />
         <template v-else-if="selectedDetailType === 'pull-request' && selectedPullRequest">
           <p class="text-subtitle-1 font-weight-bold mb-2">#{{ selectedPullRequest.number }} — {{ selectedPullRequest.title }}</p>
           <p class="mb-1"><strong>Author:</strong> {{ selectedPullRequest.author }}</p>
@@ -404,8 +595,43 @@ onMounted(async () => {
             </v-btn>
           </div>
         </template>
+        <template v-else-if="selectedDetailType === 'project' && selectedGithubProject">
+          <p class="text-subtitle-1 font-weight-bold mb-2">#{{ selectedGithubProject.number }} — {{ selectedGithubProject.title }}</p>
+          <p class="mb-1"><strong>Status:</strong> {{ selectedGithubProject.closed ? 'Closed' : 'Open' }}</p>
+          <p class="mb-1"><strong>Updated at:</strong> {{ formatDate(selectedGithubProject.updatedAt) }}</p>
+          <div class="d-flex ga-2 mt-2 mb-3 flex-wrap">
+            <v-btn color="primary" variant="flat" :href="selectedGithubProject.url" target="_blank" prepend-icon="mdi-open-in-new">Open project</v-btn>
+          </div>
+          <v-divider class="mb-3" />
+          <p class="text-subtitle-2 mb-2">Project items</p>
+          <v-list v-if="selectedGithubProjectItems.length" lines="two" density="compact">
+            <v-list-item v-for="item in selectedGithubProjectItems" :key="item.id">
+              <v-list-item-title>{{ item.issue?.title ?? 'No linked issue' }}</v-list-item-title>
+              <v-list-item-subtitle>
+                #{{ item.issue?.number ?? 'N/A' }} — {{ item.issue?.state ?? 'UNKNOWN' }}
+              </v-list-item-subtitle>
+              <template #append>
+                <v-btn
+                  v-if="item.issue?.url"
+                  icon="mdi-open-in-new"
+                  size="small"
+                  variant="text"
+                  :href="item.issue.url"
+                  target="_blank"
+                />
+              </template>
+            </v-list-item>
+          </v-list>
+          <p v-else class="text-body-2 text-medium-emphasis mb-0">No items in this project.</p>
+        </template>
         <p v-else class="text-body-2 text-medium-emphasis mb-0">
-          {{ selectedDetailType === 'pull-request' ? 'Select pull request pour voir tous les détails.' : 'Select issue pour voir tous les détails.' }}
+          {{
+            selectedDetailType === 'pull-request'
+              ? 'Select pull request pour voir tous les détails.'
+              : selectedDetailType === 'issue'
+                ? 'Select issue pour voir tous les détails.'
+                : 'Select GitHub project pour voir ses items.'
+          }}
         </p>
       </v-card-text>
     </template>
@@ -467,6 +693,7 @@ onMounted(async () => {
         <v-tab value="pull-requests">Pull requests</v-tab>
         <v-tab value="issues">Issues</v-tab>
         <v-tab value="branches">Branches</v-tab>
+        <v-tab value="projects">Projects</v-tab>
       </v-tabs>
 
       <v-row dense>
@@ -571,15 +798,57 @@ onMounted(async () => {
             <v-card-title>Branches</v-card-title>
             <v-card-text>
               <v-alert v-if="errors.branches" type="error" variant="tonal" class="mb-3">{{ errors.branches }}</v-alert>
-              <v-skeleton-loader v-else-if="isLoading.branches" type="list-item, list-item, list-item" />
+              <v-alert v-if="errors.createBranch" type="error" variant="tonal" class="mb-3">{{ errors.createBranch }}</v-alert>
+              <v-alert v-if="errors.deleteBranch" type="error" variant="tonal" class="mb-3">{{ errors.deleteBranch }}</v-alert>
+
+              <v-row dense class="mb-3">
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="branchForm.repository" label="Repository" density="comfortable" readonly />
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-text-field v-model="branchForm.name" label="New branch name" density="comfortable" placeholder="feature/..." />
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-select
+                    v-model="branchForm.sourceBranch"
+                    label="Source branch"
+                    :items="branches.map(branch => branch.name)"
+                    density="comfortable"
+                    hide-details
+                  />
+                </v-col>
+                <v-col cols="12" md="2" class="d-flex align-center">
+                  <v-btn
+                    color="primary"
+                    :loading="isLoading.createBranch"
+                    :disabled="!branchForm.name.trim() || !branchForm.sourceBranch"
+                    @click="createBranch"
+                  >
+                    Create branch
+                  </v-btn>
+                </v-col>
+              </v-row>
+
+              <v-skeleton-loader v-if="isLoading.branches" type="list-item, list-item, list-item" />
               <v-list v-else lines="two">
                 <v-list-item v-for="branch in branches" :key="branch.sha">
                   <v-list-item-title>{{ branch.name }}</v-list-item-title>
                   <v-list-item-subtitle>SHA: {{ branch.sha }}</v-list-item-subtitle>
                   <template #append>
-                    <v-chip :color="branch.protected ? 'success' : 'default'" size="small" variant="tonal">
-                      {{ branch.protected ? 'Protected' : 'Unprotected' }}
-                    </v-chip>
+                    <div class="d-flex align-center ga-2">
+                      <v-chip :color="branch.protected ? 'success' : 'default'" size="small" variant="tonal">
+                        {{ branch.protected ? 'Protected' : 'Unprotected' }}
+                      </v-chip>
+                      <v-btn
+                        icon="mdi-delete-outline"
+                        size="small"
+                        variant="text"
+                        color="error"
+                        :disabled="branch.protected"
+                        :loading="isLoading.deleteBranch"
+                        @click="deleteBranch(branch.name)"
+                      />
+                    </div>
                   </template>
                 </v-list-item>
               </v-list>
@@ -589,6 +858,93 @@ onMounted(async () => {
                   :length="branchesPagination.totalPages"
                   :total-visible="6"
                   @update:model-value="(page) => loadBranches(Number(page))"
+                />
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col v-if="workspaceTab === 'projects'" cols="12">
+          <v-card rounded="xl">
+            <v-card-title>Projects</v-card-title>
+            <v-card-text>
+              <v-alert v-if="errors.projects" type="error" variant="tonal" class="mb-3">{{ errors.projects }}</v-alert>
+              <v-alert v-if="errors.createGithubProject" type="error" variant="tonal" class="mb-3">{{ errors.createGithubProject }}</v-alert>
+              <v-alert v-if="errors.createGithubRepository" type="error" variant="tonal" class="mb-3">{{ errors.createGithubRepository }}</v-alert>
+
+              <v-row dense class="mb-3">
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="githubProjectForm.owner" label="Project owner" density="comfortable" />
+                </v-col>
+                <v-col cols="12" md="5">
+                  <v-text-field v-model="githubProjectForm.title" label="New project title" density="comfortable" />
+                </v-col>
+                <v-col cols="12" md="3" class="d-flex align-center">
+                  <v-btn
+                    color="primary"
+                    :loading="isLoading.createGithubProject"
+                    :disabled="!githubProjectForm.owner.trim() || !githubProjectForm.title.trim()"
+                    @click="createGithubProject"
+                  >
+                    Create project
+                  </v-btn>
+                </v-col>
+              </v-row>
+
+              <v-row dense class="mb-4">
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="githubRepositoryForm.name" label="Repository name" density="comfortable" />
+                </v-col>
+                <v-col cols="12" md="5">
+                  <v-text-field v-model="githubRepositoryForm.description" label="Description" density="comfortable" />
+                </v-col>
+                <v-col cols="12" md="2" class="d-flex align-center">
+                  <v-switch v-model="githubRepositoryForm.private" label="Private" color="primary" hide-details />
+                </v-col>
+                <v-col cols="12" md="1" class="d-flex align-center justify-end">
+                  <v-btn color="secondary" :loading="isLoading.createGithubRepository" :disabled="!githubRepositoryForm.name.trim()" @click="createGithubRepository">
+                    Create
+                  </v-btn>
+                </v-col>
+              </v-row>
+
+              <v-skeleton-loader v-if="isLoading.projects" type="table" />
+              <v-table v-else density="comfortable">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Status</th>
+                    <th>Updated at</th>
+                    <th>Link</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="project in projects"
+                    :key="project.id"
+                    class="cursor-pointer"
+                    @click="selectProject(project)"
+                  >
+                    <td>#{{ project.number }}</td>
+                    <td>{{ project.title }}</td>
+                    <td>
+                      <v-chip :color="project.closed ? 'default' : 'success'" size="small" variant="tonal">
+                        {{ project.closed ? 'Closed' : 'Open' }}
+                      </v-chip>
+                    </td>
+                    <td>{{ formatDate(project.updatedAt) }}</td>
+                    <td>
+                      <v-btn icon="mdi-open-in-new" size="small" variant="text" :href="project.url" target="_blank" @click.stop />
+                    </td>
+                  </tr>
+                </tbody>
+              </v-table>
+              <div v-if="projectsPagination.totalPages > 1" class="d-flex justify-end mt-3">
+                <v-pagination
+                  :model-value="projectsPagination.page"
+                  :length="projectsPagination.totalPages"
+                  :total-visible="6"
+                  @update:model-value="(page) => loadProjects(Number(page))"
                 />
               </div>
             </v-card-text>
