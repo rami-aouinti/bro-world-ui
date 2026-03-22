@@ -58,6 +58,81 @@ const projectStatusColor = computed(() => {
 
   return 'warning'
 })
+const selectedRepository = computed(() => fakeRepositories.value.find(repo => repo.id === selectedRepositoryId.value) ?? null)
+const filteredRepositories = computed(() => {
+  const query = repoSearch.value.trim().toLowerCase()
+  if (!query) {
+    return fakeRepositories.value
+  }
+
+  return fakeRepositories.value.filter(repo =>
+    repo.name.toLowerCase().includes(query)
+    || repo.description.toLowerCase().includes(query),
+  )
+})
+const repositoryOpenPrCount = computed(() => selectedRepository.value?.pullRequests.filter(pr => pr.status === 'open').length ?? 0)
+const repositoryMergedPrCount = computed(() => selectedRepository.value?.pullRequests.filter(pr => pr.status === 'merged').length ?? 0)
+const repositoryClosedPrCount = computed(() => selectedRepository.value?.pullRequests.filter(pr => pr.status === 'closed').length ?? 0)
+const filteredPullRequests = computed(() => {
+  const repository = selectedRepository.value
+  if (!repository) {
+    return []
+  }
+
+  if (repoStatusFilter.value === 'all') {
+    return repository.pullRequests
+  }
+
+  return repository.pullRequests.filter(pr => pr.status === repoStatusFilter.value)
+})
+const selectedPullRequest = computed(() => filteredPullRequests.value.find(pr => pr.id === selectedPullRequestId.value) ?? filteredPullRequests.value[0] ?? null)
+
+const ciStatusColor = (status: RepoCiStatus) => {
+  if (status === 'success') return 'success'
+  if (status === 'running') return 'info'
+  if (status === 'queued') return 'warning'
+  return 'error'
+}
+
+const pullRequestStatusColor = (status: RepoPrStatus) => {
+  if (status === 'open') return 'info'
+  if (status === 'merged') return 'success'
+  return 'default'
+}
+
+const selectRepository = (repoId: string) => {
+  selectedRepositoryId.value = repoId
+  selectedPullRequestId.value = ''
+}
+
+const mergePullRequest = (prId: string) => {
+  const repo = selectedRepository.value
+  if (!repo) {
+    return
+  }
+
+  const pr = repo.pullRequests.find(item => item.id === prId)
+  if (!pr || pr.status !== 'open') {
+    return
+  }
+
+  pr.status = 'merged'
+  pr.ciStatus = 'success'
+}
+
+const closePullRequest = (prId: string) => {
+  const repo = selectedRepository.value
+  if (!repo) {
+    return
+  }
+
+  const pr = repo.pullRequests.find(item => item.id === prId)
+  if (!pr || pr.status !== 'open') {
+    return
+  }
+
+  pr.status = 'closed'
+}
 
 const formatDate = (date?: string | null) => {
   if (!date) {
