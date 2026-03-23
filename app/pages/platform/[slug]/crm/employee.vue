@@ -49,6 +49,9 @@ const selectEmployee = (employee: CrmEmployee) => {
   selectedItem.value = employee
   showFilters.value = false
 }
+const openEmployee = (employee: CrmEmployee) => {
+  selectEmployee(employee)
+}
 const showFiltersPanel = () => {
   showFilters.value = true
 }
@@ -205,7 +208,27 @@ onMounted(async () => {
               </div>
               <p class="text-body-2 mb-1"><strong>Email:</strong> {{ employee.email || 'N/A' }}</p>
               <p class="text-body-2 mb-1"><strong>Poste:</strong> {{ employee.positionName || 'N/A' }}</p>
-              <p class="text-body-2 text-medium-emphasis mb-0"><strong>Créé le:</strong> {{ formatDate(employee.createdAt) }}</p>
+              <p class="text-body-2 text-medium-emphasis mb-3"><strong>Créé le:</strong> {{ formatDate(employee.createdAt) }}</p>
+              <div class="d-flex justify-between ga-2">
+                <v-btn variant="outlined" rounded="xl" class="text-body-2" @click.stop="openEmployee(employee)">Open</v-btn>
+                <v-spacer />
+                <v-menu location="bottom end">
+                  <template #activator="{ props }">
+                    <v-btn
+                      v-bind="props"
+                      variant="outlined"
+                      rounded="xl"
+                      class="text-body-2"
+                      @click.stop
+                    >
+                      Manage
+                    </v-btn>
+                  </template>
+                  <v-list density="compact">
+                    <v-list-item title="View in panel" @click.stop="openEmployee(employee)" />
+                  </v-list>
+                </v-menu>
+              </div>
             </v-card-text>
           </v-card>
         </v-col>
