@@ -5,6 +5,7 @@ import { getCrmNav } from '~/data/platform-nav'
 import { useCrmStore } from '~/stores/crm'
 import type { CreateCrmTaskPayload, CrmTask, UpdateCrmTaskPayload } from '~/types/api/crm'
 import {useListingPagination} from '~/composables/useListingPagination'
+import { useCrmApi } from '~/composables/api/useCrmApi'
 import UiSkeletonCardGrid from "~/components/ui/state/UiSkeletonCardGrid.vue";
 
 definePageMeta({ public: true, requiresAuth: false })
@@ -15,11 +16,15 @@ const { isOwner } = usePlatformPermissions(slug)
 const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
 
 const crmStore = useCrmStore()
+const crmApi = useCrmApi()
 const tasks = computed(() => crmStore.getTasks(slug.value))
 const isLoading = computed(() => crmStore.isLoading)
 const projects = computed(() => crmStore.getProjects(slug.value))
 const sprints = computed(() => crmStore.getSprints(slug.value))
 const selectedStatusFilter = ref('all')
+const selectedRepositoryFilter = ref('all')
+const repositoriesByProjectId = ref<Record<string, string[]>>({})
+const repositoryOptions = ref<Array<{ title: string, value: string }>>([])
 const selectedItem = ref<CrmTask | null>(null)
 const showFilters = ref(true)
 const searchQuery = ref('')
@@ -27,6 +32,9 @@ const filteredTasks = computed(() => {
   return tasks.value.filter((task) => {
     const matchesStatus = selectedStatusFilter.value === 'all'
       || (task.status || 'unknown').toLowerCase() === selectedStatusFilter.value
+    const repositories = repositoriesByProjectId.value[task.projectId] ?? []
+    const matchesRepository = selectedRepositoryFilter.value === 'all'
+      || repositories.includes(selectedRepositoryFilter.value)
     const query = searchQuery.value.trim().toLowerCase()
     const matchesSearch = !query
       || task.title.toLowerCase().includes(query)
@@ -34,7 +42,7 @@ const filteredTasks = computed(() => {
       || (task.projectName || '').toLowerCase().includes(query)
       || (task.sprintName || '').toLowerCase().includes(query)
 
-    return matchesStatus && matchesSearch
+    return matchesStatus && matchesRepository && matchesSearch
   })
 })
 const {
@@ -43,7 +51,7 @@ const {
   paginatedItems: paginatedTasks,
   pageLength,
   shouldShowPagination,
-} = useListingPagination(filteredTasks, [selectedStatusFilter, searchQuery])
+} = useListingPagination(filteredTasks, [selectedStatusFilter, selectedRepositoryFilter, searchQuery])
 const statusFilters = computed(() => {
   const counts = new Map<string, number>()
 
@@ -105,6 +113,31 @@ const showFiltersPanel = () => {
   showFilters.value = true
 }
 
+const loadRepositoryFilters = async () => {
+  const projectList = projects.value
+  const repositoriesMap: Record<string, string[]> = {}
+  const allRepositories = new Set<string>()
+
+  await Promise.all(
+    projectList.map(async (project) => {
+      try {
+        const response = await crmApi.getProjectGithubRepositories(slug.value, project.id)
+        const repositories = (response.items ?? []).map(item => item.fullName).filter(Boolean)
+        repositoriesMap[project.id] = repositories
+        repositories.forEach(repository => allRepositories.add(repository))
+      }
+      catch {
+        repositoriesMap[project.id] = []
+      }
+    }),
+  )
+
+  repositoriesByProjectId.value = repositoriesMap
+  repositoryOptions.value = Array.from(allRepositories)
+    .sort((a, b) => a.localeCompare(b))
+    .map(repository => ({ title: repository, value: repository }))
+}
+
 const loadData = async () => {
   if (!slug.value) {
     return
@@ -118,6 +151,7 @@ const loadData = async () => {
       crmStore.fetchProjects(slug.value),
       crmStore.fetchSprints(slug.value),
     ])
+    await loadRepositoryFilters()
     if (!createForm.projectId && projects.value.length) {
       createForm.projectId = projects.value[0].id
     }
@@ -239,6 +273,15 @@ onMounted(async () => {
                 rounded="xl"
                 hide-details
                 prepend-inner-icon="mdi-magnify"
+              />
+              <v-select
+                v-model="selectedRepositoryFilter"
+                label="Repository"
+                density="comfortable"
+                variant="outlined"
+                rounded="xl"
+                hide-details
+                :items="[{ title: 'All repositories', value: 'all' }, ...repositoryOptions]"
               />
               <v-btn
                 v-for="filter in statusFilters"

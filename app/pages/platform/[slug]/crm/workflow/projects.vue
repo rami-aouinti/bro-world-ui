@@ -2,7 +2,6 @@
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
-import { useCrmGithubWorkflow } from '~/composables/crm/useCrmGithubWorkflow'
 import type { CrmProject } from '~/types/api/crm'
 import { useCrmApi } from '~/composables/api/useCrmApi'
 
@@ -14,73 +13,35 @@ const { isOwner } = usePlatformPermissions(slug)
 const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
 const crmApi = useCrmApi()
 
-const isLoadingProjects = ref(false)
-const projectError = ref('')
+const isLoading = ref(false)
+const errorMessage = ref('')
 const projects = ref<CrmProject[]>([])
-const selectedProjectId = ref('')
-const selectedRepo = ref('')
 
-const {
-  repositories,
-  githubProjects,
-  isLoading,
-  errors,
-  projectsPagination,
-  loadRepositories,
-  loadGithubProjects,
-} = useCrmGithubWorkflow({
-  slug,
-  projectId: selectedProjectId,
-  repository: selectedRepo,
-})
+const orderedProjects = computed(() => projects.value.slice().sort((a, b) => a.name.localeCompare(b.name)))
 
-const projectOptions = computed(() => projects.value.map(project => ({ title: project.name, value: project.id })))
-const repoOptions = computed(() => repositories.value.map(item => item.fullName))
-const pageLoading = computed(() => isLoadingProjects.value || isLoading.repositories || isLoading.projects)
-const errorMessage = computed(() => projectError.value || errors.repositories || errors.projects)
-
-const loadProjects = async () => {
+const loadData = async () => {
   if (!slug.value) return
 
-  isLoadingProjects.value = true
-  projectError.value = ''
+  isLoading.value = true
+  errorMessage.value = ''
 
   try {
     const response = await crmApi.getProjects(slug.value)
     projects.value = response.items ?? []
-
-    if (selectedProjectId.value && !projects.value.some(project => project.id === selectedProjectId.value)) {
-      selectedProjectId.value = ''
-    }
   }
   catch {
-    projectError.value = 'Impossible de charger les projets CRM du workflow.'
+    errorMessage.value = 'Impossible de charger les projets CRM du workflow.'
     projects.value = []
-    selectedProjectId.value = ''
   }
   finally {
-    isLoadingProjects.value = false
+    isLoading.value = false
   }
 }
 
-const loadData = async () => {
-  await loadProjects()
-  await loadRepositories()
-  await loadGithubProjects(projectsPagination.value.page)
-}
-
-watch(selectedProjectId, async () => {
-  await loadRepositories()
-  await loadGithubProjects(1)
-})
-
-watch(selectedRepo, async () => {
-  await loadGithubProjects(1)
-})
+const openCreateProject = () => navigateTo(`/platform/${slug.value}/crm/projects`)
 
 onMounted(loadData)
 </script>
-
 
 <template>
   <PlatformSplitLayout>
@@ -91,9 +52,12 @@ onMounted(loadData)
           variant="text"
           class="text-none app-bar__link-btn"
           icon="mdi-refresh"
-          :loading="pageLoading"
+          :loading="isLoading"
           @click="loadData"
         />
+      </teleport>
+      <teleport to="#app-bar-teleport-target-right">
+        <v-btn rounded="xl" variant="outlined" prepend-icon="mdi-plus" @click="openCreateProject">New Project</v-btn>
       </teleport>
     </client-only>
 
@@ -106,59 +70,29 @@ onMounted(loadData)
       />
     </template>
 
-    <template #aside>
-      <v-card rounded="xl" variant="outlined">
-        <v-card-title class="text-subtitle-1">Workflow filters</v-card-title>
-        <v-card-text class="d-flex flex-column ga-3">
-          <v-select
-            v-model="selectedProjectId"
-            label="Project"
-            density="comfortable"
-            variant="outlined"
-            hide-details
-            clearable
-            :items="projectOptions"
-          />
-          <v-select
-            v-model="selectedRepo"
-            label="Repository"
-            density="comfortable"
-            variant="outlined"
-            hide-details
-            :disabled="!selectedProjectId || !repoOptions.length"
-            :items="repoOptions"
-          />
-        </v-card-text>
-      </v-card>
-    </template>
-
     <section>
-      <v-card rounded="xl" variant="outlined" :disabled="!selectedProjectId">
-        <v-card-title>Workflow · GitHub Projects</v-card-title>
+      <v-card rounded="xl" variant="outlined">
+        <v-card-title>Workflow · CRM Projects</v-card-title>
 
         <v-card-text>
           <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
-          <v-alert v-else-if="!selectedProjectId" type="info" variant="tonal" class="mb-4">
-            Sélectionnez un projet CRM dans le panneau de droite pour afficher les GitHub Projects.
-          </v-alert>
-          <v-skeleton-loader v-else-if="pageLoading" type="list-item-three-line, list-item-three-line, list-item-three-line" />
-          <v-alert v-else-if="!selectedRepo" type="info" variant="tonal">
-            Aucun repository GitHub lié à ce projet CRM.
-          </v-alert>
-          <v-alert v-else-if="!githubProjects.length" type="info" variant="tonal">
-            Aucun GitHub Project trouvé pour ce repository.
+          <v-skeleton-loader v-else-if="isLoading" type="list-item-three-line, list-item-three-line, list-item-three-line" />
+          <v-alert v-else-if="!orderedProjects.length" type="info" variant="tonal">
+            Aucun projet CRM trouvé.
           </v-alert>
           <v-list v-else lines="two" border rounded>
-            <v-list-item v-for="item in githubProjects" :key="item.id" :href="item.url" target="_blank" rel="noopener noreferrer">
+            <v-list-item
+              v-for="project in orderedProjects"
+              :key="project.id"
+              :title="project.name"
+              :subtitle="`Statut: ${project.status || 'N/A'}`"
+              @click="navigateTo(`/platform/${slug}/crm/project/${project.id}`)"
+            >
               <template #prepend>
                 <v-avatar color="primary" variant="tonal" size="36">
-                  <v-icon icon="mdi-view-kanban-outline" />
+                  <v-icon icon="mdi-folder-outline" />
                 </v-avatar>
               </template>
-              <v-list-item-title>{{ item.title }}</v-list-item-title>
-              <v-list-item-subtitle>
-                #{{ item.number }} · {{ item.closed ? 'Closed' : 'Open' }} · maj {{ new Date(item.updatedAt).toLocaleString() }}
-              </v-list-item-subtitle>
             </v-list-item>
           </v-list>
         </v-card-text>
