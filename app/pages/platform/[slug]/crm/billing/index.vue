@@ -230,7 +230,14 @@ onMounted(async () => {
   <PlatformSplitLayout>
     <client-only>
       <teleport to="#app-bar-teleport-target">
-        <v-btn variant="text" size="sm" icon="mdi-refresh" :loading="isPageLoading" @click="loadBillings"></v-btn>
+        <v-btn
+          size="large"
+          variant="text"
+          class="text-none app-bar__link-btn"
+          :loading="isPageLoading"
+          @click="loadBillings"
+          icon="mdi-refresh"
+        />
       </teleport>
       <teleport to="#app-bar-teleport-target-right">
         <v-btn variant="outlined" @click="showCreateDialog = true">Create billing</v-btn>
