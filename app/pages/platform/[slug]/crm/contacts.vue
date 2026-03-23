@@ -203,7 +203,7 @@ onMounted(async () => {
         />
       </teleport>
       <teleport to="#app-bar-teleport-target-right">
-        <v-btn color="primary" @click="showCreateDialog = true">Ajouter un contact</v-btn>
+        <v-btn rounded="xl" variant="outlined" @click="showCreateDialog = true">Ajouter un contact</v-btn>
       </teleport>
     </client-only>
     <template #sidebar>

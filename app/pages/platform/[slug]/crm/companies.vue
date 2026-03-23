@@ -18,6 +18,7 @@ const { $errorLogger } = useNuxtApp()
 const errorMessage = ref('')
 const isMutating = ref(false)
 const isPageLoading = ref(true)
+const showCreateDialog = ref(false)
 const form = reactive<CreateCrmCompanyPayload>({
   name: '',
   industry: '',
@@ -58,6 +59,10 @@ const showFiltersPanel = () => {
   showFilters.value = true
 }
 
+const resetCreateForm = () => {
+  Object.assign(form, { name: '', industry: '', website: '', contactEmail: '', phone: '' })
+}
+
 const loadCompanies = async (force = false) => {
   if (!slug.value) {
     return
@@ -90,7 +95,8 @@ const createCompany = async () => {
   isMutating.value = true
   try {
     await crmStore.createCompany(slug.value, { ...form, name: form.name.trim() })
-    Object.assign(form, { name: '', industry: '', website: '', contactEmail: '', phone: '' })
+    showCreateDialog.value = false
+    resetCreateForm()
   }
   finally {
     isMutating.value = false
@@ -129,6 +135,11 @@ onMounted(async () => {
         />
       </teleport>
     </client-only>
+    <client-only>
+      <teleport to="#app-bar-teleport-target-right">
+        <v-btn rounded="xl" variant="outlined" @click="showCreateDialog = true">New Company</v-btn>
+      </teleport>
+    </client-only>
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
@@ -142,15 +153,6 @@ onMounted(async () => {
               <v-text-field v-model="industryFilter" rounded="xl" variant="outlined" label="Industry" hide-details />
             </v-card-text>
           </v-card>
-          <div class="text-center">
-            <h3>New Company</h3>
-            <v-text-field v-model="form.name" rounded="xl" variant="outlined" label="Name" required />
-            <v-text-field v-model="form.industry" rounded="xl" variant="outlined"  label="Industry" />
-            <v-text-field v-model="form.website" rounded="xl" variant="outlined"  label="Website" />
-            <v-text-field v-model="form.contactEmail" rounded="xl" variant="outlined"  label="Contact email" type="email" />
-            <v-text-field v-model="form.phone" rounded="xl" variant="outlined" label="Phone" />
-            <v-btn color="primary" :loading="isMutating" @click="createCompany">Save company</v-btn>
-          </div>
         </template>
         <v-card v-else-if="selectedItem" rounded="xl" variant="outlined">
           <v-card-title class="d-flex justify-space-between align-center ga-2">
@@ -210,6 +212,26 @@ onMounted(async () => {
       <div v-if="shouldShowPagination" class="d-flex justify-center mt-4">
         <v-pagination v-model="page" :length="pageLength" total-visible="5" />
       </div>
+
+      <v-dialog v-model="showCreateDialog" max-width="560">
+        <v-card>
+          <v-card-title>New Company</v-card-title>
+          <v-card-text>
+            <v-row>
+              <v-col cols="12"><v-text-field v-model="form.name" rounded="xl" variant="outlined" label="Name" required /></v-col>
+              <v-col cols="12"><v-text-field v-model="form.industry" rounded="xl" variant="outlined" label="Industry" /></v-col>
+              <v-col cols="12"><v-text-field v-model="form.website" rounded="xl" variant="outlined" label="Website" /></v-col>
+              <v-col cols="12"><v-text-field v-model="form.contactEmail" rounded="xl" variant="outlined" label="Contact email" type="email" /></v-col>
+              <v-col cols="12"><v-text-field v-model="form.phone" rounded="xl" variant="outlined" label="Phone" /></v-col>
+            </v-row>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn variant="text" @click="showCreateDialog = false">Cancel</v-btn>
+            <v-btn color="primary" :loading="isMutating" @click="createCompany">Save company</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </section>
   </PlatformSplitLayout>
 </template>

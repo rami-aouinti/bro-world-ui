@@ -240,7 +240,7 @@ onMounted(async () => {
         />
       </teleport>
       <teleport to="#app-bar-teleport-target-right">
-        <v-btn variant="outlined" @click="showCreateDialog = true">Create billing</v-btn>
+        <v-btn rounded="xl" variant="outlined" @click="showCreateDialog = true">Create billing</v-btn>
       </teleport>
     </client-only>
     <template #sidebar>

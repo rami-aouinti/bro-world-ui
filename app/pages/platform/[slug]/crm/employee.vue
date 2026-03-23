@@ -16,13 +16,22 @@ const { normalizeError } = useApiError()
 const { $errorLogger } = useNuxtApp()
 
 const isPageLoading = ref(true)
+const isMutating = ref(false)
 const errorMessage = ref('')
+const showCreateDialog = ref(false)
 const employees = ref<CrmEmployee[]>([])
 const paginationTotal = ref(0)
 const selectedItem = ref<CrmEmployee | null>(null)
 const showFilters = ref(true)
 const searchQuery = ref('')
 const roleFilter = ref('')
+const createForm = reactive({
+  firstName: '',
+  lastName: '',
+  email: '',
+  positionName: '',
+  roleName: '',
+})
 
 const fullName = (employee: CrmEmployee) => `${employee.firstName ?? ''} ${employee.lastName ?? ''}`.trim() || 'N/A'
 const filteredEmployees = computed(() => employees.value.filter((employee) => {
@@ -42,6 +51,15 @@ const selectEmployee = (employee: CrmEmployee) => {
 }
 const showFiltersPanel = () => {
   showFilters.value = true
+}
+const resetCreateForm = () => {
+  Object.assign(createForm, {
+    firstName: '',
+    lastName: '',
+    email: '',
+    positionName: '',
+    roleName: '',
+  })
 }
 const formatDate = (value: string | null) => {
   if (!value) {
@@ -77,6 +95,36 @@ const loadEmployees = async () => {
   }
 }
 
+const createEmployee = async () => {
+  if (!slug.value || !createForm.firstName.trim() || !createForm.lastName.trim()) {
+    return
+  }
+
+  isMutating.value = true
+  try {
+    const employeeApi = crmApi as typeof crmApi & {
+      createEmployee?: (applicationSlug: string, payload: Record<string, string>) => Promise<CrmEmployee>
+    }
+    if (typeof employeeApi.createEmployee === 'function') {
+      const created = await employeeApi.createEmployee(slug.value, {
+        firstName: createForm.firstName.trim(),
+        lastName: createForm.lastName.trim(),
+        email: createForm.email.trim(),
+        positionName: createForm.positionName.trim(),
+        roleName: createForm.roleName.trim(),
+      })
+      employees.value = [created, ...employees.value]
+      paginationTotal.value += 1
+    }
+
+    showCreateDialog.value = false
+    resetCreateForm()
+  }
+  finally {
+    isMutating.value = false
+  }
+}
+
 onMounted(async () => {
   try {
     await loadEmployees()
@@ -99,6 +147,9 @@ onMounted(async () => {
           @click="loadEmployees"
           icon="mdi-refresh"
         />
+      </teleport>
+      <teleport to="#app-bar-teleport-target-right">
+        <v-btn rounded="xl" variant="outlined" @click="showCreateDialog = true">Ajouter un employé</v-btn>
       </teleport>
     </client-only>
     <template #sidebar>
@@ -164,6 +215,26 @@ onMounted(async () => {
           <v-alert type="info" variant="tonal">Aucun employé trouvé.</v-alert>
         </v-col>
       </v-row>
+
+      <v-dialog v-model="showCreateDialog" max-width="560">
+        <v-card>
+          <v-card-title>Ajouter un employé</v-card-title>
+          <v-card-text>
+            <v-row>
+              <v-col cols="12" md="6"><v-text-field v-model="createForm.firstName" label="Prénom" required /></v-col>
+              <v-col cols="12" md="6"><v-text-field v-model="createForm.lastName" label="Nom" required /></v-col>
+              <v-col cols="12"><v-text-field v-model="createForm.email" label="Email" type="email" /></v-col>
+              <v-col cols="12" md="6"><v-text-field v-model="createForm.positionName" label="Poste" /></v-col>
+              <v-col cols="12" md="6"><v-text-field v-model="createForm.roleName" label="Rôle" /></v-col>
+            </v-row>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn variant="text" @click="showCreateDialog = false">Annuler</v-btn>
+            <v-btn color="primary" :loading="isMutating" @click="createEmployee">Créer</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </section>
   </PlatformSplitLayout>
 </template>
