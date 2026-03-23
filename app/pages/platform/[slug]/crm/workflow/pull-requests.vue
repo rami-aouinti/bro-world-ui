@@ -20,8 +20,12 @@ const projects = ref<CrmProject[]>([])
 const selectedProjectId = ref('')
 const selectedRepo = ref('')
 const pullRequestState = ref<CrmGithubPullRequestState>('open')
+const search = ref('')
 const selectedItem = ref<CrmGithubPullRequestListItem | null>(null)
 const showFilters = ref(true)
+
+const actionLoadingByNumber = ref<Record<number, boolean>>({})
+const actionError = ref('')
 
 const {
   repositories,
@@ -40,9 +44,17 @@ const {
 
 const projectOptions = computed(() => projects.value.map(project => ({ title: project.name, value: project.id })))
 const repoOptions = computed(() => repositories.value.map(item => item.fullName))
+const filteredPullRequests = computed(() => {
+  const query = search.value.trim().toLowerCase()
+  if (!query) return pullRequests.value
+  return pullRequests.value.filter(item =>
+    item.title.toLowerCase().includes(query)
+    || item.author.toLowerCase().includes(query)
+    || String(item.number).includes(query),
+  )
+})
 const pageLoading = computed(() => isLoadingProjects.value || isLoading.repositories || isLoading.pullRequests)
-const errorMessage = computed(() => projectError.value || errors.repositories || errors.pullRequests)
-const createPullRequestUrl = computed(() => selectedRepo.value ? `https://github.com/${selectedRepo.value}/compare` : '')
+const errorMessage = computed(() => projectError.value || errors.repositories || errors.pullRequests || actionError.value)
 
 const loadProjects = async () => {
   if (!slug.value) return
@@ -79,8 +91,29 @@ const selectPullRequest = (pullRequest: CrmGithubPullRequestListItem) => {
   showFilters.value = false
 }
 
+const runPullRequestAction = async (pullRequestNumber: number) => {
+  if (!slug.value || !selectedProjectId.value || !selectedRepo.value) return
+
+  actionLoadingByNumber.value[pullRequestNumber] = true
+  actionError.value = ''
+
+  try {
+    await crmApi.runProjectGithubPullRequestAction(slug.value, selectedProjectId.value, pullRequestNumber, {
+      repository: selectedRepo.value,
+      action: 'sync',
+    })
+  }
+  catch {
+    actionError.value = `Impossible d'exécuter l'action pour la pull request #${pullRequestNumber}.`
+  }
+  finally {
+    actionLoadingByNumber.value[pullRequestNumber] = false
+  }
+}
+
 watch(selectedProjectId, async () => {
   selectedItem.value = null
+  search.value = ''
   showFilters.value = true
   await loadRepositories()
   await loadPullRequests(1)
@@ -88,6 +121,7 @@ watch(selectedProjectId, async () => {
 
 watch([selectedRepo, pullRequestState], async () => {
   selectedItem.value = null
+  search.value = ''
   await loadPullRequests(1)
 })
 
@@ -108,9 +142,6 @@ onMounted(loadData)
           @click="loadData"
         />
       </teleport>
-      <teleport to="#app-bar-teleport-target-right">
-        <v-btn rounded="xl" variant="outlined" prepend-icon="mdi-plus" :disabled="!createPullRequestUrl" :href="createPullRequestUrl" target="_blank" rel="noopener noreferrer">New Pull Request</v-btn>
-      </teleport>
     </client-only>
 
     <template #sidebar>
@@ -123,7 +154,7 @@ onMounted(loadData)
     </template>
 
     <template #aside>
-      <v-card v-if="showFilters" rounded="xl" variant="outlined">
+      <v-card v-if="showFilters" rounded="xl" variant="text">
         <v-card-title class="text-subtitle-1">Workflow filters</v-card-title>
         <v-card-text class="d-flex flex-column ga-3">
           <v-select v-model="selectedProjectId" label="Project" density="comfortable" variant="outlined" hide-details clearable :items="projectOptions" />
@@ -140,6 +171,7 @@ onMounted(loadData)
               { title: 'Closed', value: 'closed' },
             ]"
           />
+          <v-text-field v-model="search" label="Search" density="comfortable" variant="outlined" hide-details clearable prepend-inner-icon="mdi-magnify" :disabled="!selectedRepo" />
         </v-card-text>
       </v-card>
       <v-card v-else-if="selectedItem" rounded="xl" variant="text">
@@ -149,13 +181,13 @@ onMounted(loadData)
           <v-chip size="small" :color="selectedItem.state === 'open' ? 'success' : 'default'" variant="tonal">{{ selectedItem.state }}</v-chip>
           <div class="text-body-2">Author: {{ selectedItem.author }}</div>
           <div class="text-body-2">{{ selectedItem.head }} → {{ selectedItem.base }}</div>
-          <v-btn :href="selectedItem.htmlUrl" target="_blank" rel="noopener noreferrer" variant="outlined" prepend-icon="mdi-open-in-new">Open pull request</v-btn>
+          <v-btn :href="selectedItem.htmlUrl" target="_blank" rel="noopener noreferrer" variant="text" prepend-icon="mdi-open-in-new">Open pull request</v-btn>
         </v-card-text>
       </v-card>
     </template>
 
     <section>
-      <v-card rounded="xl" variant="outlined" :disabled="!selectedProjectId">
+      <v-card rounded="xl" variant="text" :disabled="!selectedProjectId">
         <v-card-title>Workflow · GitHub Pull Requests</v-card-title>
 
         <v-card-text>
@@ -167,15 +199,27 @@ onMounted(loadData)
           <v-alert v-else-if="!selectedRepo" type="info" variant="tonal">
             Aucun repository GitHub lié à ce projet CRM.
           </v-alert>
-          <v-alert v-else-if="!pullRequests.length" type="info" variant="tonal">
+          <v-alert v-else-if="!filteredPullRequests.length" type="info" variant="tonal">
             Aucune pull request trouvée pour ce filtre.
           </v-alert>
           <v-list v-else lines="two" border rounded>
-            <v-list-item v-for="pullRequest in pullRequests" :key="pullRequest.number" @click="selectPullRequest(pullRequest)">
+            <v-list-item v-for="pullRequest in filteredPullRequests" :key="pullRequest.number" @click="selectPullRequest(pullRequest)">
               <v-list-item-title>#{{ pullRequest.number }} · {{ pullRequest.title }}</v-list-item-title>
               <v-list-item-subtitle>
                 {{ pullRequest.author }} · {{ pullRequest.head }} → {{ pullRequest.base }}
               </v-list-item-subtitle>
+              <template #append>
+                <v-btn
+                  v-if="pullRequest.state === 'open'"
+                  size="small"
+                  color="primary"
+                  variant="tonal"
+                  :loading="Boolean(actionLoadingByNumber[pullRequest.number])"
+                  @click.stop="runPullRequestAction(pullRequest.number)"
+                >
+                  Action
+                </v-btn>
+              </template>
             </v-list-item>
           </v-list>
         </v-card-text>

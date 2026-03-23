@@ -55,10 +55,10 @@ export const useCrmGithubWorkflow = (options: UseCrmGithubWorkflowOptions) => {
   const issues = ref<CrmGithubIssueListItem[]>([])
   const githubProjects = ref<CrmGithubProject[]>([])
 
-  const pullRequestsPagination = ref(createPagination(30))
-  const branchesPagination = ref(createPagination(30))
-  const issuesPagination = ref(createPagination(30))
-  const projectsPagination = ref(createPagination(20))
+  const pullRequestsPagination = ref(createPagination(5))
+  const branchesPagination = ref(createPagination(5))
+  const issuesPagination = ref(createPagination(5))
+  const projectsPagination = ref(createPagination(5))
 
   const isLoading = reactive<WorkflowLoadingState>({
     repositories: false,
