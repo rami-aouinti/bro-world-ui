@@ -3,21 +3,18 @@ import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
 import { useCrmApi } from '~/composables/api/useCrmApi'
+import { useCrmGithubWorkflow } from '~/composables/crm/useCrmGithubWorkflow'
 import type {
   CreateCrmGithubBranchPayload,
   CreateCrmGithubProjectPayload,
   CreateCrmGithubRepositoryPayload,
   CreateCrmGithubIssuePayload,
-  CrmGithubBranch,
   CrmGithubIssueDetails,
-  CrmGithubIssueListItem,
   CrmGithubIssueState,
   CrmGithubProject,
   CrmGithubProjectItem,
   CrmGithubPullRequestDetails,
-  CrmGithubPullRequestListItem,
   CrmGithubPullRequestState,
-  CrmGithubRepository,
 } from '~/types/api/crm'
 
 definePageMeta({ public: true, requiresAuth: false })
@@ -29,20 +26,63 @@ const { isOwner } = usePlatformPermissions(slug)
 const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
 const crmApi = useCrmApi()
 
-const repositories = ref<CrmGithubRepository[]>([])
 const selectedRepo = ref('')
 const pullRequestState = ref<CrmGithubPullRequestState>('open')
-const pullRequests = ref<CrmGithubPullRequestListItem[]>([])
-const pullRequestsPagination = ref({ page: 1, limit: 30, totalItems: 0, totalPages: 1 })
-const branches = ref<CrmGithubBranch[]>([])
-const branchesPagination = ref({ page: 1, limit: 30, totalItems: 0, totalPages: 1 })
-const selectedPullRequest = ref<CrmGithubPullRequestDetails | null>(null)
 const issueState = ref<CrmGithubIssueState>('all')
-const issues = ref<CrmGithubIssueListItem[]>([])
-const issuesPagination = ref({ page: 1, limit: 30, totalItems: 0, totalPages: 1 })
+
+const githubWorkflow = useCrmGithubWorkflow({
+  slug,
+  projectId,
+  repository: selectedRepo,
+  pullRequestState,
+  issueState,
+})
+
+const {
+  repositories,
+  pullRequests,
+  branches,
+  issues,
+  pullRequestsPagination,
+  branchesPagination,
+  issuesPagination,
+  loadRepositories,
+  loadPullRequests,
+  loadBranches,
+  loadIssues,
+  loadGithubProjects,
+  projectsPagination,
+  githubProjects,
+} = githubWorkflow
+
+type GithubPageLoadingState = typeof githubWorkflow.isLoading & {
+  dashboard: boolean
+  projectItems: boolean
+  pullRequestDetails: boolean
+  issueDetails: boolean
+  createGithubProject: boolean
+  createGithubRepository: boolean
+  createBranch: boolean
+  deleteBranch: boolean
+}
+type GithubPageErrorState = typeof githubWorkflow.errors & {
+  dashboard: string
+  projectItems: string
+  pullRequestDetails: string
+  issueDetails: string
+  createIssue: string
+  createGithubProject: string
+  createGithubRepository: string
+  createBranch: string
+  deleteBranch: string
+}
+
+const isLoading = githubWorkflow.isLoading as GithubPageLoadingState
+const errors = githubWorkflow.errors as GithubPageErrorState
+
+const projects = githubProjects
+const selectedPullRequest = ref<CrmGithubPullRequestDetails | null>(null)
 const selectedIssue = ref<CrmGithubIssueDetails | null>(null)
-const projects = ref<CrmGithubProject[]>([])
-const projectsPagination = ref({ page: 1, limit: 20, totalItems: 0, totalPages: 1 })
 const selectedGithubProject = ref<CrmGithubProject | null>(null)
 const selectedGithubProjectItems = ref<CrmGithubProjectItem[]>([])
 const projectItemsPagination = ref({ page: 1, limit: 20, totalItems: 0, totalPages: 1 })
@@ -80,13 +120,8 @@ const issueStateOptions = [
   { title: 'Closed', value: 'closed' },
 ] satisfies Array<{ title: string; value: CrmGithubIssueState }>
 
-const isLoading = reactive({
-  repositories: false,
+Object.assign(isLoading, {
   dashboard: false,
-  pullRequests: false,
-  branches: false,
-  issues: false,
-  projects: false,
   projectItems: false,
   pullRequestDetails: false,
   issueDetails: false,
@@ -95,13 +130,8 @@ const isLoading = reactive({
   createBranch: false,
   deleteBranch: false,
 })
-const errors = reactive({
-  repositories: '',
+Object.assign(errors, {
   dashboard: '',
-  pullRequests: '',
-  branches: '',
-  issues: '',
-  projects: '',
   projectItems: '',
   pullRequestDetails: '',
   issueDetails: '',
@@ -137,24 +167,6 @@ const normalizeGithubIssue = (issue: Record<string, any>): CrmGithubIssueDetails
   updatedAt: String(issue.updatedAt ?? issue.updated_at ?? ''),
 })
 
-const loadRepositories = async () => {
-  if (!slug.value || !projectId.value) return
-  isLoading.repositories = true
-  errors.repositories = ''
-  try {
-    const response = await crmApi.getProjectGithubRepositories(slug.value, projectId.value)
-    repositories.value = response.items
-    const queryRepo = String(route.query.repo ?? '')
-    selectedRepo.value = repositories.value.some(item => item.fullName === queryRepo) ? queryRepo : (repositories.value[0]?.fullName ?? '')
-  }
-  catch {
-    errors.repositories = 'Impossible de charger les repositories GitHub.'
-  }
-  finally {
-    isLoading.repositories = false
-  }
-}
-
 const loadDashboard = async () => {
   if (!slug.value || !projectId.value) return
   isLoading.dashboard = true
@@ -164,6 +176,8 @@ const loadDashboard = async () => {
     dashboard.value = response.pullRequests
     if (!repositories.value.length) {
       repositories.value = response.repositories
+      const queryRepo = String(route.query.repo ?? '')
+      selectedRepo.value = repositories.value.some(item => item.fullName === queryRepo) ? queryRepo : (repositories.value[0]?.fullName ?? '')
     }
   }
   catch {
@@ -174,51 +188,19 @@ const loadDashboard = async () => {
   }
 }
 
-const loadPullRequests = async (page = 1) => {
-  if (!slug.value || !projectId.value || !selectedRepo.value) return
-  isLoading.pullRequests = true
-  errors.pullRequests = ''
-  try {
-    const response = await crmApi.getProjectGithubPullRequests(slug.value, projectId.value, {
-      repo: selectedRepo.value,
-      state: pullRequestState.value,
-      page,
-      limit: pullRequestsPagination.value.limit,
-    })
-    pullRequests.value = response.items
-    pullRequestsPagination.value = response.pagination ?? pullRequestsPagination.value
-  }
-  catch {
-    errors.pullRequests = 'Impossible de charger la liste des pull requests.'
-  }
-  finally {
-    isLoading.pullRequests = false
-  }
-}
+const loadProjects = async (page = 1) => {
+  await loadGithubProjects(page)
 
-const loadBranches = async (page = 1) => {
-  if (!slug.value || !projectId.value || !selectedRepo.value) return
-  isLoading.branches = true
-  errors.branches = ''
-  try {
-    const response = await crmApi.getProjectGithubBranches(slug.value, projectId.value, {
-      repo: selectedRepo.value,
-      page,
-      limit: branchesPagination.value.limit,
-    })
-    branches.value = response.items
-    branchesPagination.value = response.pagination ?? branchesPagination.value
-    if (!branchForm.sourceBranch || !branches.value.some(branch => branch.name === branchForm.sourceBranch)) {
-      branchForm.sourceBranch = branches.value.some(branch => branch.name === 'master')
-        ? 'master'
-        : (branches.value[0]?.name ?? 'master')
-    }
+  if (!selectedGithubProject.value || !projects.value.some(project => project.id === selectedGithubProject.value?.id)) {
+    selectedGithubProject.value = projects.value[0] ?? null
   }
-  catch {
-    errors.branches = 'Impossible de charger les branches.'
+
+  if (selectedGithubProject.value) {
+    await loadProjectItems(selectedGithubProject.value.id, 1)
   }
-  finally {
-    isLoading.branches = false
+  else {
+    selectedGithubProjectItems.value = []
+    projectItemsPagination.value = { page: 1, limit: 20, totalItems: 0, totalPages: 1 }
   }
 }
 
@@ -238,28 +220,6 @@ const loadPullRequestDetails = async (number: number) => {
   }
 }
 
-const loadIssues = async (page = 1) => {
-  if (!slug.value || !projectId.value || !selectedRepo.value) return
-  isLoading.issues = true
-  errors.issues = ''
-  try {
-    const response = await crmApi.getProjectGithubIssues(slug.value, projectId.value, {
-      repo: selectedRepo.value,
-      state: issueState.value,
-      page,
-      limit: issuesPagination.value.limit,
-    })
-    issues.value = response.items
-    issuesPagination.value = response.pagination ?? issuesPagination.value
-  }
-  catch {
-    errors.issues = 'Impossible de charger la liste des issues.'
-  }
-  finally {
-    isLoading.issues = false
-  }
-}
-
 const loadIssueDetails = async (number: number) => {
   if (!slug.value || !projectId.value || !selectedRepo.value) return
   isLoading.issueDetails = true
@@ -274,37 +234,6 @@ const loadIssueDetails = async (number: number) => {
   }
   finally {
     isLoading.issueDetails = false
-  }
-}
-
-const loadProjects = async (page = 1) => {
-  if (!slug.value || !projectId.value || !selectedRepo.value) return
-  isLoading.projects = true
-  errors.projects = ''
-  try {
-    const response = await crmApi.getProjectGithubProjects(slug.value, projectId.value, {
-      repo: selectedRepo.value,
-      page,
-      limit: projectsPagination.value.limit,
-    })
-    projects.value = response.items
-    projectsPagination.value = response.pagination ?? projectsPagination.value
-    if (!selectedGithubProject.value || !projects.value.some(project => project.id === selectedGithubProject.value?.id)) {
-      selectedGithubProject.value = projects.value[0] ?? null
-    }
-    if (selectedGithubProject.value) {
-      await loadProjectItems(selectedGithubProject.value.id, 1)
-    }
-    else {
-      selectedGithubProjectItems.value = []
-      projectItemsPagination.value = { page: 1, limit: 20, totalItems: 0, totalPages: 1 }
-    }
-  }
-  catch {
-    errors.projects = 'Impossible de charger les projets GitHub.'
-  }
-  finally {
-    isLoading.projects = false
   }
 }
 
@@ -506,6 +435,14 @@ watch(pullRequestState, async () => {
 watch(issueState, async () => {
   await loadIssues(1)
   selectedIssue.value = null
+})
+
+watch(branches, () => {
+  if (!branchForm.sourceBranch || !branches.value.some(branch => branch.name === branchForm.sourceBranch)) {
+    branchForm.sourceBranch = branches.value.some(branch => branch.name === 'master')
+      ? 'master'
+      : (branches.value[0]?.name ?? 'master')
+  }
 })
 
 onMounted(async () => {
