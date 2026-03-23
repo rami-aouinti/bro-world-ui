@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
-import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
+import CrmListingShell from '~/components/platform/crm/CrmListingShell.vue'
 import { getCrmNav } from '~/data/platform-nav'
 import { useCrmStore } from '~/stores/crm'
 import type { CrmCompany, CreateCrmCompanyPayload } from '~/types/api/crm'
@@ -122,104 +122,104 @@ onMounted(async () => {
 </script>
 
 <template>
-  <PlatformSplitLayout>
-    <client-only>
-      <teleport to="#app-bar-teleport-target">
-        <v-btn
-          size="large"
-          variant="text"
-          class="text-none app-bar__link-btn"
-          :loading="isPageLoading"
-          @click="loadCompanies(true)"
-          icon="mdi-refresh"
-        />
-      </teleport>
-    </client-only>
-    <client-only>
-      <teleport to="#app-bar-teleport-target-right">
-        <v-btn rounded="xl" variant="outlined" @click="showCreateDialog = true">New Company</v-btn>
-      </teleport>
-    </client-only>
+  <CrmListingShell
+    v-model:page="page"
+    :show-filters="showFilters"
+    :should-show-pagination="shouldShowPagination"
+    :page-length="pageLength"
+  >
+    <template #app-bar-left>
+      <v-btn
+        size="large"
+        variant="text"
+        class="text-none app-bar__link-btn"
+        :loading="isPageLoading"
+        @click="loadCompanies(true)"
+        icon="mdi-refresh"
+      />
+    </template>
+
+    <template #app-bar-right>
+      <v-btn rounded="xl" variant="outlined" @click="showCreateDialog = true">New Company</v-btn>
+    </template>
+
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
-    <template #aside>
-      <div class="d-flex flex-column ga-4">
-        <template v-if="showFilters">
-          <v-card rounded="xl" variant="text">
-            <v-card-title class="text-subtitle-2">Filters</v-card-title>
-            <v-card-text class="d-flex flex-column ga-3">
-              <v-text-field v-model="searchQuery" rounded="xl" density="comfortable" variant="outlined" label="Search" prepend-inner-icon="mdi-magnify" hide-details />
-              <v-text-field v-model="industryFilter" rounded="xl" density="comfortable" variant="outlined" label="Industry" prepend-inner-icon="mdi-magnify" hide-details />
+
+    <template #filters>
+      <v-card rounded="xl" variant="text">
+        <v-card-title class="text-subtitle-2">Filters</v-card-title>
+        <v-card-text class="d-flex flex-column ga-3">
+          <v-text-field v-model="searchQuery" rounded="xl" density="comfortable" variant="outlined" label="Search" prepend-inner-icon="mdi-magnify" hide-details />
+          <v-text-field v-model="industryFilter" rounded="xl" density="comfortable" variant="outlined" label="Industry" prepend-inner-icon="mdi-magnify" hide-details />
+        </v-card-text>
+      </v-card>
+    </template>
+
+    <template #selected>
+      <v-card v-if="selectedItem" rounded="xl" variant="text">
+        <v-btn size="small" variant="tonal" prepend-icon="mdi-filter-outline" @click="showFiltersPanel">Filter</v-btn>
+        <h4 class="text-truncate">{{ selectedItem.name }}</h4>
+        <v-card-text>
+          <p class="text-body-2 mb-1"><strong>Industry:</strong> {{ selectedItem.industry || 'N/A' }}</p>
+          <p class="text-body-2 mb-1"><strong>Email:</strong> {{ selectedItem.contactEmail || 'N/A' }}</p>
+          <p class="text-body-2 mb-0"><strong>Phone:</strong> {{ selectedItem.phone || 'N/A' }}</p>
+        </v-card-text>
+      </v-card>
+    </template>
+
+    <template #cards>
+      <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
+        {{ errorMessage }}
+      </v-alert>
+
+      <v-row v-if="isPageLoading">
+        <v-col v-for="i in 6" :key="`company-skeleton-${i}`" cols="12" md="6" lg="6">
+          <v-skeleton-loader type="card, article" class="h-100" />
+        </v-col>
+      </v-row>
+
+      <v-row v-else>
+        <v-col v-for="company in paginatedCompanies" :key="company.id" cols="12" md="6" lg="6">
+          <v-card rounded="xl" variant="outlined" hover class="h-100 cursor-pointer" @click="selectCompany(company)">
+            <v-card-text>
+              <div class="d-flex justify-space-between align-start mb-2 ga-2">
+                <NuxtLink :to="company?.website" class="text-decoration-none">
+                  <p class="text-subtitle-1 font-weight-bold">{{ company?.name }}</p>
+                </NuxtLink>
+              </div>
+              <p class="text-body-2 text-medium-emphasis mb-2">{{ company?.industry || 'N/A' }}</p>
+              <p class="text-body-2 mb-1">Email : {{ company?.contactEmail || 'Email not specified' }}</p>
+              <p class="text-body-2 mb-3">Phone : {{ company?.phone || 'Phone not specified' }}</p>
+              <div class="d-flex justify-between ga-2">
+                <v-btn variant="outlined" rounded="xl" class="text-body-2" @click.stop="goToCompany(company.id)">Open</v-btn>
+                <v-spacer />
+                <v-menu location="bottom end">
+                  <template #activator="{ props }">
+                    <v-btn
+                      v-bind="props"
+                      variant="outlined"
+                      rounded="xl"
+                      class="text-body-2"
+                      @click.stop
+                    >
+                      Manage
+                    </v-btn>
+                  </template>
+                  <v-list density="compact">
+                    <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="goToCompany(company.id)" />
+                    <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="removeCompany(company.id)" />
+                  </v-list>
+                </v-menu>
+              </div>
             </v-card-text>
           </v-card>
-        </template>
-        <v-card v-else-if="selectedItem" rounded="xl" variant="text">
-          <v-btn size="small" variant="tonal" prepend-icon="mdi-filter-outline" @click="showFiltersPanel">Filter</v-btn>
-          <h4 class="text-truncate">{{ selectedItem.name }}</h4>
-          <v-card-text>
-            <p class="text-body-2 mb-1"><strong>Industry:</strong> {{ selectedItem.industry || 'N/A' }}</p>
-            <p class="text-body-2 mb-1"><strong>Email:</strong> {{ selectedItem.contactEmail || 'N/A' }}</p>
-            <p class="text-body-2 mb-0"><strong>Phone:</strong> {{ selectedItem.phone || 'N/A' }}</p>
-          </v-card-text>
-        </v-card>
-      </div>
+        </v-col>
+      </v-row>
     </template>
-    <section class="companies-page">
-      <div class="companies-page__content">
-        <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
-          {{ errorMessage }}
-        </v-alert>
 
-        <v-row v-if="isPageLoading">
-          <v-col v-for="i in 6" :key="`company-skeleton-${i}`" cols="12" md="6" lg="6">
-            <v-skeleton-loader type="card, article" class="h-100" />
-          </v-col>
-        </v-row>
-
-        <v-row v-else>
-          <v-col v-for="company in paginatedCompanies" :key="company.id" cols="12" md="6" lg="6">
-            <v-card rounded="xl" variant="outlined" hover class="h-100 cursor-pointer" @click="selectCompany(company)">
-              <v-card-text>
-                <div class="d-flex justify-space-between align-start mb-2 ga-2">
-                  <NuxtLink :to="company?.website" class="text-decoration-none">
-                    <p class="text-subtitle-1 font-weight-bold">{{ company?.name }}</p>
-                  </NuxtLink>
-                </div>
-                <p class="text-body-2 text-medium-emphasis mb-2">{{ company?.industry || 'N/A' }}</p>
-                <p class="text-body-2 mb-1">Email : {{ company?.contactEmail || 'Email not specified' }}</p>
-                <p class="text-body-2 mb-3">Phone : {{ company?.phone || 'Phone not specified' }}</p>
-                <div class="d-flex justify-between ga-2">
-                  <v-btn variant="outlined" rounded="xl" class="text-body-2" @click.stop="goToCompany(company.id)">Open</v-btn>
-                  <v-spacer />
-                  <v-menu location="bottom end">
-                    <template #activator="{ props }">
-                      <v-btn
-                        v-bind="props"
-                        variant="outlined"
-                        rounded="xl"
-                        class="text-body-2"
-                        @click.stop
-                      >
-                        Manage
-                      </v-btn>
-                    </template>
-                    <v-list density="compact">
-                      <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="goToCompany(company.id)" />
-                      <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="removeCompany(company.id)" />
-                    </v-list>
-                  </v-menu>
-                </div>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
-      </div>
-
-      <div v-if="shouldShowPagination" class="companies-page__footer d-flex justify-center">
-        <v-pagination v-model="page" :length="pageLength" total-visible="5" />
-      </div>
-
+    <template #dialogs>
       <v-dialog v-model="showCreateDialog" max-width="560">
         <v-card>
           <v-card-title>New Company</v-card-title>
@@ -239,22 +239,6 @@ onMounted(async () => {
           </v-card-actions>
         </v-card>
       </v-dialog>
-    </section>
-  </PlatformSplitLayout>
+    </template>
+  </CrmListingShell>
 </template>
-<style scoped>
-.companies-page {
-  min-height: 75vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.companies-page__content {
-  flex: 1;
-}
-
-.companies-page__footer {
-  margin-top: auto;
-  padding-bottom: 0;
-}
-</style>
