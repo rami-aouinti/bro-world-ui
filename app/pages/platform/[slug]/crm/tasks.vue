@@ -4,6 +4,8 @@ import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
 import { useCrmStore } from '~/stores/crm'
 import type { CreateCrmTaskPayload, CrmTask, UpdateCrmTaskPayload } from '~/types/api/crm'
+import {useListingPagination} from '~/composables/useListingPagination'
+import UiSkeletonCardGrid from "~/components/ui/state/UiSkeletonCardGrid.vue";
 
 definePageMeta({ public: true, requiresAuth: false })
 
@@ -217,7 +219,7 @@ onMounted(async () => {
                class="text-none app-bar__link-btn" :loading="isLoading" @click="loadData" icon="mdi-refresh"></v-btn>
       </teleport>
       <teleport to="#app-bar-teleport-target-right">
-        <v-btn color="primary" block @click="showCreateDialog = true" prepend-icon="mdi-plus">New Task</v-btn>
+        <v-btn rounded="xl" variant="outlined" block @click="showCreateDialog = true">New Task</v-btn>
       </teleport>
     </client-only>
     <template #sidebar>
@@ -226,7 +228,7 @@ onMounted(async () => {
     <template #aside>
       <div class="d-flex flex-column ga-4">
         <template v-if="showFilters">
-          <v-card rounded="xl" variant="outlined">
+          <v-card rounded="xl" variant="text">
             <v-card-title class="text-subtitle-2">Filters</v-card-title>
             <v-card-text class="d-flex flex-column ga-3">
               <v-text-field
@@ -234,6 +236,7 @@ onMounted(async () => {
                 label="Search"
                 density="comfortable"
                 variant="outlined"
+                rounded="xl"
                 hide-details
                 prepend-inner-icon="mdi-magnify"
               />
@@ -251,13 +254,11 @@ onMounted(async () => {
             </v-card-text>
           </v-card>
         </template>
-        <v-card v-else-if="selectedItem" rounded="xl" variant="outlined">
-          <v-card-title class="d-flex justify-space-between align-center ga-2">
-            <span>{{ selectedItem.title }}</span>
-            <v-btn size="small" variant="tonal" prepend-icon="mdi-filter-outline" @click="showFiltersPanel">Filter</v-btn>
-          </v-card-title>
+        <v-card v-else-if="selectedItem" rounded="xl" variant="text">
+          <v-btn size="small" variant="tonal" prepend-icon="mdi-filter-outline" @click="showFiltersPanel">Filter</v-btn>
+          <h4 class="text-truncate">{{ selectedItem.title }}</h4>
           <v-card-text class="d-flex flex-column ga-2">
-            <p class="text-body-2 mb-0">{{ selectedItem.description || 'No description' }}</p>
+            <p v-if="selectedItem.description" class="text-body-2 mb-0">{{ selectedItem?.description || 'No description' }}</p>
             <div class="d-flex flex-wrap ga-2">
               <v-chip size="small" variant="tonal">{{ selectedItem.projectName }}</v-chip>
               <v-chip size="small" variant="tonal">{{ selectedItem.sprintName }}</v-chip>
@@ -269,80 +270,89 @@ onMounted(async () => {
       </div>
     </template>
 
-    <section>
-      <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
-        {{ errorMessage }}
-      </v-alert>
+    <section class="tasks-page">
+      <div class="tasks-page__content">
+        <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
+          {{ errorMessage }}
+        </v-alert>
 
-      <v-row v-if="isPageLoading">
-        <v-col v-for="i in 6" :key="`task-skeleton-${i}`" cols="12" md="6" lg="6">
-          <v-skeleton-loader type="card, article" class="h-100" />
-        </v-col>
-      </v-row>
+        <UiSkeletonCardGrid :cards="4" :columns="6"  v-if="isPageLoading" />
 
-      <v-row v-else>
-        <v-col v-for="task in paginatedTasks" :key="task.id" cols="12" md="6" lg="6">
-          <v-card rounded="xl" variant="outlined" class="h-100 tasks-card cursor-pointer" @click="selectTask(task)">
-            <v-card-text>
-              <div class="d-flex justify-space-between align-start mb-2 ga-2">
-                <p class="text-subtitle-1 font-weight-bold mb-0">{{ task.title }}</p>
-                <div class="d-flex ga-1">
-                  <v-btn icon="mdi-eye" size="small" variant="text" @click.stop="goToTask(task.id)" />
-                  <v-btn icon="mdi-pencil" size="small" variant="text" @click.stop="openPatchDialog(task)" />
-                  <v-btn icon="mdi-delete" size="small" variant="text" color="error" @click.stop="deleteTask(task.id)" />
+        <v-row v-else>
+          <v-col v-for="task in paginatedTasks" :key="task.id" cols="12" md="6" lg="6">
+            <v-card rounded="xl" variant="outlined" class="h-100 tasks-card cursor-pointer" @click="selectTask(task)">
+              <v-card-text>
+                <div class="d-flex justify-space-between align-start mb-2 ga-2">
+                  <p class="text-subtitle-1 font-weight-bold mb-0">{{ task.title }}</p>
                 </div>
-              </div>
-              <p class="text-body-2 mb-2">{{ task.description || 'No description' }}</p>
-              <div class="d-flex flex-wrap ga-2">
-                <v-chip size="small" variant="tonal">{{ task.projectName }}</v-chip>
-                <v-chip size="small" variant="tonal">{{ task.sprintName }}</v-chip>
-                <v-chip size="small" color="primary" variant="tonal">{{ task.status || 'unknown' }}</v-chip>
-                <v-chip size="small" color="secondary" variant="tonal">{{ task.priority || 'N/A' }}</v-chip>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col v-if="paginatedTasks.length === 0" cols="12">
-          <v-alert type="info" variant="tonal">No tasks found for the current filters.</v-alert>
-        </v-col>
-      </v-row>
-
-      <div v-if="shouldShowPagination" class="d-flex justify-center mt-4">
-        <v-pagination v-model="page" :length="pageLength" total-visible="5" />
+              </v-card-text>
+              <v-card-text>
+                <div class="d-flex justify-between">
+                  <v-btn @click.stop="goToTask(task.id)" variant="outlined" rounded="xl" class="text-body-2">Open</v-btn>
+                  <v-spacer />
+                  <v-menu location="bottom end">
+                    <template #activator="{ props }">
+                      <v-btn
+                          v-bind="props"
+                          variant="outlined" rounded="xl" class="text-body-2"
+                          @click.stop
+                      >Manage</v-btn>
+                    </template>
+                    <v-list density="compact">
+                      <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="openPatchDialog(task)" />
+                      <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="deleteTask(task.id)" />
+                    </v-list>
+                  </v-menu>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+          <v-col v-if="paginatedTasks.length === 0" cols="12">
+            <v-alert type="info" variant="tonal">No tasks found for the current filters.</v-alert>
+          </v-col>
+        </v-row>
       </div>
-
+      <div v-if="shouldShowPagination" class="tasks-page__footer d-flex justify-center">
+        <v-pagination v-model="page" :length="pageLength" total-visible="4" />
+      </div>
       <v-dialog v-model="showCreateDialog" max-width="560">
         <v-card>
-          <v-card-title>Créer un task</v-card-title>
+          <v-card-title>Create task</v-card-title>
           <v-card-text>
-            <v-text-field v-model="createForm.title" label="Titre" required />
-            <v-textarea v-model="createForm.description" label="Description" rows="2" />
-            <v-select v-model="createForm.projectId" label="Projet" :items="projects" item-title="name" item-value="id" />
-            <v-select v-model="createForm.sprintId" label="Sprint" :items="sprints" item-title="name" item-value="id" />
-            <v-text-field v-model="createForm.status" label="Status" />
-            <v-text-field v-model="createForm.priority" label="Priority" />
+            <v-text-field rounded="xl" variant="outlined" v-model="createForm.title" label="Titre" required />
+            <v-textarea rounded="xl" variant="outlined" v-model="createForm.description" label="Description" rows="2" />
+            <v-select rounded="xl" variant="outlined" v-model="createForm.projectId" label="Project" :items="projects" item-title="name" item-value="id" />
+            <v-select rounded="xl" variant="outlined" v-model="createForm.sprintId" label="Sprint" :items="sprints" item-title="name" item-value="id" />
+            <v-row>
+              <v-col cols="6">
+                <v-text-field rounded="xl" variant="outlined" v-model="createForm.status" label="Status" />
+              </v-col>
+              <v-col cols="6">
+                <v-text-field rounded="xl" variant="outlined" v-model="createForm.priority" label="Priority" />
+              </v-col>
+            </v-row>
           </v-card-text>
           <v-card-actions>
             <v-spacer />
-            <v-btn variant="text" @click="showCreateDialog = false">Annuler</v-btn>
-            <v-btn color="primary" :loading="isMutating" @click="createTask">Créer</v-btn>
+            <v-btn variant="text" @click="showCreateDialog = false">Cancel</v-btn>
+            <v-btn color="primary" :loading="isMutating" @click="createTask">Create</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
 
       <v-dialog v-model="showEditDialog" max-width="560">
         <v-card>
-          <v-card-title>Patch task</v-card-title>
+          <v-card-title>Update task</v-card-title>
           <v-card-text>
-            <v-text-field v-model="editForm.title" label="Titre" />
-            <v-textarea v-model="editForm.description" label="Description" rows="2" />
-            <v-text-field v-model="editForm.status" label="Status" />
-            <v-text-field v-model="editForm.priority" label="Priority" />
+            <v-text-field rounded="xl" variant="outlined" v-model="editForm.title" label="Titre" />
+            <v-textarea rounded="xl" variant="outlined" v-model="editForm.description" label="Description" rows="2" />
+            <v-text-field rounded="xl" variant="outlined" v-model="editForm.status" label="Status" />
+            <v-text-field rounded="xl" variant="outlined" v-model="editForm.priority" label="Priority" />
           </v-card-text>
           <v-card-actions>
             <v-spacer />
-            <v-btn variant="text" @click="showEditDialog = false">Annuler</v-btn>
-            <v-btn color="primary" :loading="isMutating" @click="patchTask">Enregistrer</v-btn>
+            <v-btn variant="text" @click="showEditDialog = false">Cancel</v-btn>
+            <v-btn color="primary" :loading="isMutating" @click="patchTask">Save</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -350,6 +360,20 @@ onMounted(async () => {
   </PlatformSplitLayout>
 </template>
 <style scoped>
+.tasks-page {
+  min-height: 75vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.tasks-page__content {
+  flex: 1;
+}
+
+.tasks-page__footer {
+  margin-top: auto;
+  padding-bottom: 0px;
+}
 .tasks-card:hover {
   box-shadow: 0 10px 24px rgba(var(--v-theme-primary));
   transition: transform 140ms ease, box-shadow 140ms ease;

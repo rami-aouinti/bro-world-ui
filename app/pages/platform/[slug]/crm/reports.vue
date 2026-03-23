@@ -4,6 +4,7 @@ import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import PlatformHeroHeader from '~/components/platform/sections/PlatformHeroHeader.vue'
 import { getCrmNav } from '~/data/platform-nav'
 import { useCrmApi } from '~/composables/api/useCrmApi'
+import UiSkeletonCardGrid from "~/components/ui/state/UiSkeletonCardGrid.vue";
 
 const crmApi = useCrmApi()
 
@@ -61,54 +62,47 @@ const contacts = computed(() => reports.value?.contacts ?? [])
   <PlatformSplitLayout>
     <client-only>
       <teleport to="#app-bar-teleport-target">
-        <v-btn variant="outlined" :loading="pending" @click="refresh()">Refresh reports</v-btn>
+        <v-btn variant="text" icon="mdi-refresh" :loading="pending" @click="refresh()"></v-btn>
       </teleport>
     </client-only>
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.reports" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" />
     </template>
+    <template #aside>
+      <v-row class="mb-2">
+        <v-col v-for="stat in kpiCards" :key="stat.label" cols="12" sm="6">
+          <v-card rounded="xl" variant="tonal" color="primary">
+            <v-card-text>
+              <div class="text-caption mb-1">{{ stat.label }}</div>
+              <div class="text-h5 font-weight-bold">{{ stat.value }}</div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+      <v-row class="mb-4">
+        <v-col v-for="item in countCards" :key="item.label" cols="12" sm="6">
+          <v-card rounded="xl">
+            <v-card-text>
+              <div class="text-caption text-medium-emphasis">{{ item.label }}</div>
+              <div class="text-h6 font-weight-bold">{{ item.value }}</div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+    </template>
     <section>
-      <PlatformHeroHeader title="platform.crm.hero.reports.title" subtitle="platform.crm.hero.reports.subtitle" cta="platform.crm.hero.reports.cta" />
-
-
       <v-alert v-if="error" type="error" variant="tonal" class="mb-4">
         Unable to load CRM reports.
       </v-alert>
 
-      <v-row v-if="pending" class="mb-2">
-        <v-col v-for="index in 4" :key="`kpi-skeleton-${index}`" cols="12" sm="6" lg="3">
-          <v-skeleton-loader type="card" />
-        </v-col>
-      </v-row>
+      <UiSkeletonCardGrid :cards="4" :columns="6"  v-if="pending" />
 
       <template v-else>
-        <v-row class="mb-2">
-          <v-col v-for="stat in kpiCards" :key="stat.label" cols="12" sm="6" lg="3">
-            <v-card rounded="xl" variant="tonal" color="primary">
-              <v-card-text>
-                <div class="text-caption mb-1">{{ stat.label }}</div>
-                <div class="text-h5 font-weight-bold">{{ stat.value }}</div>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
-
-        <v-row class="mb-4">
-          <v-col v-for="item in countCards" :key="item.label" cols="12" sm="6" md="4" lg="2">
-            <v-card rounded="xl">
-              <v-card-text>
-                <div class="text-caption text-medium-emphasis">{{ item.label }}</div>
-                <div class="text-h6 font-weight-bold">{{ item.value }}</div>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
-
         <v-card rounded="xl" class="mb-4" variant="text">
           <v-card-title class="px-0">Top contacts</v-card-title>
           <v-card-text class="px-0">
             <v-row>
-              <v-col v-for="contact in contacts" :key="contact.id" cols="12" md="6" lg="4">
+              <v-col v-for="contact in contacts" :key="contact.id" cols="12" md="6">
                 <v-card rounded="xl" variant="outlined" class="h-100">
                   <v-card-text>
                     <div class="d-flex justify-space-between align-start ga-2 mb-2">

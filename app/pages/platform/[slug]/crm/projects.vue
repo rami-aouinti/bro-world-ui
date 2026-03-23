@@ -4,6 +4,8 @@ import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
 import { useCrmStore } from '~/stores/crm'
 import type { CreateCrmProjectPayload, CrmProject } from '~/types/api/crm'
+import {useListingPagination} from '~/composables/useListingPagination'
+import UiSkeletonCardGrid from "~/components/ui/state/UiSkeletonCardGrid.vue";
 
 definePageMeta({ public: true, requiresAuth: false })
 
@@ -185,7 +187,7 @@ onMounted(async () => {
                class="text-none app-bar__link-btn" :loading="isLoading" @click="loadData" icon="mdi-refresh"></v-btn>
       </teleport>
       <teleport to="#app-bar-teleport-target-right">
-        <v-btn color="primary" block @click="showCreateDialog = true" prepend-icon="mdi-plus">New Project</v-btn>
+        <v-btn rounded="xl" variant="outlined" block @click="showCreateDialog = true">New Project</v-btn>
       </teleport>
     </client-only>
     <template #sidebar>
@@ -194,7 +196,7 @@ onMounted(async () => {
     <template #aside>
       <div class="d-flex flex-column ga-4">
         <template v-if="showFilters">
-          <v-card rounded="xl" variant="outlined">
+          <v-card rounded="xl" variant="text">
             <v-card-title class="text-subtitle-2">Filters</v-card-title>
             <v-card-text class="d-flex flex-column ga-3">
               <v-text-field
@@ -202,6 +204,7 @@ onMounted(async () => {
                 label="Search"
                 density="comfortable"
                 variant="outlined"
+                rounded="xl"
                 hide-details
                 prepend-inner-icon="mdi-magnify"
               />
@@ -219,62 +222,57 @@ onMounted(async () => {
             </v-card-text>
           </v-card>
         </template>
-        <v-card v-else-if="selectedItem" rounded="xl" variant="outlined">
-          <v-card-title class="d-flex justify-space-between align-center ga-2">
-            <span>{{ selectedItem.name }}</span>
-            <v-btn size="small" variant="tonal" prepend-icon="mdi-filter-outline" @click="showFiltersPanel">Filter</v-btn>
-          </v-card-title>
-          <v-card-text class="d-flex flex-column ga-2">
-            <p class="text-body-2 mb-0">{{ selectedItem.description || 'No description' }}</p>
+        <v-card v-else-if="selectedItem" rounded="xl" variant="text">
+          <v-btn size="small" variant="tonal" prepend-icon="mdi-filter-outline" @click="showFiltersPanel">Filter</v-btn>
+          <h4 class="text-truncate">{{ selectedItem.name }}</h4>
+            <p v-if="selectedItem.description" class="text-body-2 mb-0">{{ selectedItem?.description || 'No description' }}</p>
             <div class="d-flex flex-wrap ga-2">
-              <v-chip size="small" variant="tonal">{{ selectedItem.code || 'No code' }}</v-chip>
               <v-chip size="small" color="primary" variant="tonal">{{ selectedItem.status || 'unknown' }}</v-chip>
             </div>
-          </v-card-text>
         </v-card>
       </div>
     </template>
-    <section>
-      <v-row v-if="isPageLoading">
-        <v-col v-for="i in 4" :key="`project-skeleton-${i}`" cols="12" md="6" lg="4">
-          <v-skeleton-loader type="card, article" class="h-100" />
-        </v-col>
-      </v-row>
+    <section class="projects-page">
+      <div class="projects-page__content">
+        <UiSkeletonCardGrid :cards="4" :columns="6"  v-if="isPageLoading" />
+        <v-row v-else>
+          <v-col v-for="project in paginatedProjects" :key="project.id" cols="12" md="6" lg="6">
+            <v-card rounded="xl" variant="outlined" class="h-100 cursor-pointer projects-card" @click="selectProject(project)">
+              <v-card-text>
+                <div class="d-flex justify-space-between align-start mb-2 ga-2">
+                  <p class="text-subtitle-1 font-weight-bold text-truncate">{{ project.name }}</p>
+                </div>
+              </v-card-text>
+              <v-card-text>
+                <div class="d-flex justify-between">
+                  <v-btn @click.stop="goToProject(project.id)" variant="outlined" rounded="xl" class="text-body-2">Open</v-btn>
+                  <v-spacer />
+                  <v-menu location="bottom end">
+                    <template #activator="{ props }">
+                      <v-btn
+                          v-bind="props"
+                          variant="outlined" rounded="xl" class="text-body-2"
+                          @click.stop
+                      >Manage</v-btn>
+                    </template>
+                    <v-list density="compact">
+                      <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="goToProject(project.id)" />
+                      <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="removeProject(project.id)" />
+                    </v-list>
+                  </v-menu>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-col>
 
-      <v-row v-else>
-        <v-col v-for="project in paginatedProjects" :key="project.id" cols="12" md="6" lg="6">
-          <v-card rounded="xl" variant="outlined" class="h-100 cursor-pointer projects-card" @click="selectProject(project)">
-            <v-card-text>
-              <div class="d-flex justify-space-between align-start mb-2 ga-2">
-                <p class="text-subtitle-1 font-weight-bold">{{ project.name }}</p>
-                <v-menu location="bottom end">
-                  <template #activator="{ props }">
-                    <v-btn
-                      v-bind="props"
-                      size="x-small"
-                      icon="mdi-cog"
-                      variant="text"
-                      @click.stop
-                    />
-                  </template>
-                  <v-list density="compact">
-                    <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="goToProject(project.id)" />
-                    <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="removeProject(project.id)" />
-                  </v-list>
-                </v-menu>
-              </div>
-              <div class="d-flex align-center ga-2">
-                <v-chip size="small" variant="tonal">{{ project.status || 'unknown' }}</v-chip>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col v-if="paginatedProjects.length === 0" cols="12">
-          <v-alert type="info" variant="tonal">No projects found for this filter.</v-alert>
-        </v-col>
-      </v-row>
-      <div v-if="shouldShowPagination" class="d-flex justify-center mt-4">
-        <v-pagination v-model="page" :length="pageLength" total-visible="5" />
+          <v-col v-if="paginatedProjects.length === 0" cols="12">
+            <v-alert type="info" variant="tonal">No projects found for this filter.</v-alert>
+          </v-col>
+        </v-row>
+      </div>
+
+      <div v-if="shouldShowPagination" class="projects-page__footer d-flex justify-center">
+        <v-pagination v-model="page" :length="pageLength" total-visible="4" />
       </div>
 
       <v-dialog v-model="showCreateDialog" max-width="620">
@@ -300,6 +298,21 @@ onMounted(async () => {
   </PlatformSplitLayout>
 </template>
 <style scoped>
+.projects-page {
+  min-height: 75vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.projects-page__content {
+  flex: 1;
+}
+
+.projects-page__footer {
+  margin-top: auto;
+  padding-bottom: 0px;
+}
+
 .projects-card:hover {
   box-shadow: 0 10px 24px rgba(var(--v-theme-primary));
   transition: transform 140ms ease, box-shadow 140ms ease;

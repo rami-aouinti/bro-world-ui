@@ -36,7 +36,6 @@ const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
       <v-alert v-if="showAccessDenied" type="error" variant="tonal" class="mb-4">
         Admin access denied: insufficient permissions for this application.
       </v-alert>
-      <PlatformHeroHeader title="platform.crm.hero.home.title" subtitle="" cta="platform.crm.hero.home.cta" />
       <v-row>
         <v-col v-for="company in crmCompanies" :key="company.id" cols="12" md="6" xl="4">
           <v-card rounded="xl" variant="outlined" class="crm-company-card h-100" hover>

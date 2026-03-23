@@ -4,6 +4,7 @@ import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
 import { useCrmStore } from '~/stores/crm'
 import type { CrmContact, CreateCrmContactPayload, UpdateCrmContactPayload } from '~/types/api/crm'
+import {useListingPagination} from '~/composables/useListingPagination'
 
 definePageMeta({ public: true, requiresAuth: false })
 

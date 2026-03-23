@@ -4,6 +4,8 @@ import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
 import { useCrmStore } from '~/stores/crm'
 import type { CreateCrmSprintPayload, CrmSprint } from '~/types/api/crm'
+import {useListingPagination} from '~/composables/useListingPagination'
+import UiSkeletonCardGrid from "~/components/ui/state/UiSkeletonCardGrid.vue";
 
 definePageMeta({ public: true, requiresAuth: false })
 
@@ -199,7 +201,7 @@ onMounted(async () => {
                class="text-none app-bar__link-btn" :loading="isLoading" @click="loadData" icon="mdi-refresh"></v-btn>
       </teleport>
       <teleport to="#app-bar-teleport-target-right">
-        <v-btn variant="outlined" rounded="xl" block @click="showCreateDialog = true" prepend-icon="mdi-plus">New Sprint</v-btn>
+        <v-btn variant="outlined" rounded="xl" block @click="showCreateDialog = true">New Sprint</v-btn>
       </teleport>
     </client-only>
     <template #sidebar>
@@ -208,12 +210,13 @@ onMounted(async () => {
     <template #aside>
       <div class="d-flex flex-column ga-4">
         <template v-if="showFilters">
-          <v-card rounded="xl" variant="outlined">
+          <v-card rounded="xl" variant="text">
             <v-card-title class="text-subtitle-2">Filters</v-card-title>
             <v-card-text class="d-flex flex-column ga-3">
               <v-text-field
                 v-model="searchQuery"
                 label="Search"
+                rounded="xl"
                 density="comfortable"
                 variant="outlined"
                 hide-details
@@ -233,11 +236,9 @@ onMounted(async () => {
             </v-card-text>
           </v-card>
         </template>
-        <v-card v-else-if="selectedItem" rounded="xl" variant="outlined">
-          <v-card-title class="d-flex justify-space-between align-center ga-2">
-            <span>{{ selectedItem.name }}</span>
-            <v-btn size="small" variant="tonal" prepend-icon="mdi-filter-outline" @click="showFiltersPanel">Filter</v-btn>
-          </v-card-title>
+        <v-card v-else-if="selectedItem" rounded="xl" variant="text">
+          <v-btn size="small" variant="tonal" prepend-icon="mdi-filter-outline" @click="showFiltersPanel">Filter</v-btn>
+          <h4 class="text-truncate">{{ selectedItem.name }}</h4>
           <v-card-text class="d-flex flex-column ga-2">
             <p class="text-body-2 mb-0">{{ selectedItem.goal || 'No goal' }}</p>
             <div class="d-flex flex-wrap ga-2">
@@ -249,60 +250,58 @@ onMounted(async () => {
       </div>
     </template>
 
-    <section>
-      <v-row v-if="isPageLoading">
-        <v-col v-for="i in 4" :key="`sprint-skeleton-${i}`" cols="12" md="6" lg="4">
-          <v-skeleton-loader type="card, article" class="h-100" />
-        </v-col>
-      </v-row>
+    <section class="sprints-page">
+      <div class="sprints-page__content">
+        <UiSkeletonCardGrid :cards="4" :columns="6"  v-if="isPageLoading" />
 
-      <v-row v-else>
-        <v-col v-for="sprint in paginatedSprints" :key="sprint.id" cols="12" md="6" lg="6">
-          <v-card rounded="xl" variant="outlined" class="h-100 cursor-pointer sprints-card" @click="selectSprint(sprint)">
-            <v-card-text>
-              <div class="d-flex justify-space-between align-start mb-2 ga-2">
-                <p class="text-subtitle-1 font-weight-bold">{{ sprint?.name }}</p>
-                <v-menu location="bottom end">
-                  <template #activator="{ props }">
-                    <v-btn
-                      v-bind="props"
-                      size="x-small"
-                      icon="mdi-cog"
-                      variant="text"
-                      @click.stop
-                    />
-                  </template>
-                  <v-list density="compact">
-                    <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="goToSprint(sprint.id)" />
-                    <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="removeSprint(sprint.id)" />
-                  </v-list>
-                </v-menu>
-              </div>
-              <div class="mb-2">
-                <v-chip size="small" variant="tonal">{{ sprint.status || 'unknown' }}</v-chip>
-              </div>
-              <p class="text-body-2 mb-2">{{ formatDateYmd(sprint.startDate) }} → {{ formatDateYmd(sprint.endDate) }}</p>
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col v-if="paginatedSprints.length === 0" cols="12">
-          <v-alert type="info" variant="tonal">No sprints found for this filter.</v-alert>
-        </v-col>
-      </v-row>
-      <div v-if="shouldShowPagination" class="d-flex justify-center mt-4">
-        <v-pagination v-model="page" :length="pageLength" total-visible="5" />
+        <v-row v-else>
+          <v-col v-for="sprint in paginatedSprints" :key="sprint.id" cols="12" md="6" lg="6">
+            <v-card rounded="xl" variant="outlined" class="h-100 cursor-pointer sprints-card" @click="selectSprint(sprint)">
+              <v-card-text>
+                <div class="d-flex justify-space-between align-start mb-2 ga-2">
+                  <p class="text-subtitle-1 font-weight-bold">{{ sprint?.name }}</p>
+                </div>
+              </v-card-text>
+              <v-card-text>
+                <div class="d-flex justify-between">
+                  <v-btn @click.stop="goToSprint(sprint.id)" variant="outlined" rounded="xl" class="text-body-2">Open</v-btn>
+                  <v-spacer />
+                  <v-menu location="bottom end">
+                    <template #activator="{ props }">
+                      <v-btn
+                          v-bind="props"
+                          variant="outlined" rounded="xl" class="text-body-2"
+                          @click.stop
+                      >Manage</v-btn>
+                    </template>
+                    <v-list density="compact">
+                      <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="goToSprint(sprint.id)" />
+                      <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="removeSprint(sprint.id)" />
+                    </v-list>
+                  </v-menu>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+          <v-col v-if="paginatedSprints.length === 0" cols="12">
+            <v-alert type="info" variant="tonal">No sprints found for this filter.</v-alert>
+          </v-col>
+        </v-row>
+      </div>
+      <div v-if="shouldShowPagination" class="sprints-page__footer d-flex justify-center">
+        <v-pagination v-model="page" :length="pageLength" total-visible="4" />
       </div>
 
       <v-dialog v-model="showCreateDialog" max-width="620">
         <v-card>
           <v-card-title>Add sprint</v-card-title>
           <v-card-text>
-            <v-text-field v-model="form.name" label="Name" required />
-            <v-text-field v-model="form.goal" label="Goal" />
-            <v-select v-model="form.projectId" label="Project" :items="projects" item-title="name" item-value="id" />
-            <v-text-field v-model="form.status" label="Status" />
-            <v-text-field v-model="form.startDate" label="Start date" type="datetime-local" />
-            <v-text-field v-model="form.endDate" label="End date" type="datetime-local" />
+            <v-text-field rounded="xl" variant="outlined" v-model="form.name" label="Name" required />
+            <v-text-field rounded="xl" variant="outlined" v-model="form.goal" label="Goal" />
+            <v-select rounded="xl" variant="outlined" v-model="form.projectId" label="Project" :items="projects" item-title="name" item-value="id" />
+            <v-text-field rounded="xl" variant="outlined" v-model="form.status" label="Status" />
+            <v-text-field rounded="xl" variant="outlined" v-model="form.startDate" label="Start date" type="datetime-local" />
+            <v-text-field rounded="xl" variant="outlined" v-model="form.endDate" label="End date" type="datetime-local" />
           </v-card-text>
           <v-card-actions>
             <v-spacer />
@@ -315,6 +314,20 @@ onMounted(async () => {
   </PlatformSplitLayout>
 </template>
 <style scoped>
+.sprints-page {
+  min-height: 75vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.sprints-page__content {
+  flex: 1;
+}
+
+.sprints-page__footer {
+  margin-top: auto;
+  padding-bottom: 0px;
+}
 .sprints-card:hover {
   box-shadow: 0 10px 24px rgba(var(--v-theme-primary));
   transition: transform 140ms ease, box-shadow 140ms ease;
