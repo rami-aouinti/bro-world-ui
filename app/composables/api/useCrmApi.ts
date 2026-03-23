@@ -1,10 +1,13 @@
 import { useApiClient } from '../useApiClient'
 import type { UUID } from '~/types/api/common'
 import type {
+  CreateCrmEmployeePayload,
   CreateCrmGithubBranchPayload,
+  CreateCrmGithubIssueCommentPayload,
   CreateCrmGithubProjectPayload,
   CreateCrmGithubRepositoryPayload,
   CreateCrmProjectGithubRepositoryPayload,
+  CreateCrmProjectWikiPagePayload,
   CreateCrmGithubIssuePayload,
   CreateCrmBillingPayload,
   CreateCrmCompanyPayload,
@@ -13,6 +16,7 @@ import type {
   CreateCrmSprintPayload,
   CreateCrmTaskPayload,
   CreateCrmTaskRequestPayload,
+  CreateCrmTaskRequestGithubBranchPayload,
   CrmAttachment,
   CrmBilling,
   CrmCollectionResponse,
@@ -29,11 +33,23 @@ import type {
   CrmGithubPullRequestState,
   CrmGithubIssueState,
   CrmGithubIssueListItem,
+  CrmGithubSyncJob,
   CrmGithubIssueDetails,
   CrmGithubProject,
   CrmGithubProjectItem,
   CrmGithubRepository,
   CrmProjectGithubRepositoryMutationResponse,
+  MoveCrmGithubIssuePayload,
+  QueueCrmGithubBootstrapSyncPayload,
+  ReplaceCrmBillingPayload,
+  ReplaceCrmContactPayload,
+  ReplaceCrmEmployeePayload,
+  ReplaceCrmGithubRepositoryPayload,
+  ReplaceCrmProjectPayload,
+  ReplaceCrmSprintPayload,
+  ReplaceCrmTaskPayload,
+  ReplaceCrmTaskRequestPayload,
+  RunCrmGithubPullRequestActionPayload,
   CrmProject,
   CrmPublicUsersResponse,
   CrmReportsResponse,
@@ -48,6 +64,7 @@ import type {
   UpdateCrmSprintPayload,
   UpdateCrmTaskPayload,
   UpdateCrmTaskRequestPayload,
+  UpdateCrmEmployeePayload,
   UpdateCrmTaskRequestStatusPayload,
   UpdateCrmGithubIssuePayload,
   DeleteCrmGithubBranchPayload,
@@ -72,6 +89,12 @@ export const useCrmApi = () => {
     createCompany(applicationSlug: string, payload: CreateCrmCompanyPayload) {
       return apiFetch<CrmCompany>(`${basePath(applicationSlug)}/companies`, { method: 'POST', body: payload })
     },
+    replaceCompany(applicationSlug: string, id: UUID, payload: CreateCrmCompanyPayload) {
+      return apiFetch<CrmCompany>(`${basePath(applicationSlug)}/companies/${id}`, { method: 'PUT', body: payload })
+    },
+    updateCompany(applicationSlug: string, id: UUID, payload: CreateCrmCompanyPayload) {
+      return apiFetch<CrmCompany>(`${basePath(applicationSlug)}/companies/${id}`, { method: 'PATCH', body: payload })
+    },
     deleteCompany(applicationSlug: string, id: UUID) {
       return apiFetch<void>(`${basePath(applicationSlug)}/companies/${id}`, { method: 'DELETE' })
     },
@@ -89,6 +112,9 @@ export const useCrmApi = () => {
     },
     createContact(applicationSlug: string, payload: CreateCrmContactPayload) {
       return apiFetch<CrmContact>(`${basePath(applicationSlug)}/contacts`, { method: 'POST', body: payload })
+    },
+    replaceContact(applicationSlug: string, id: UUID, payload: ReplaceCrmContactPayload) {
+      return apiFetch<CrmContact>(`${basePath(applicationSlug)}/contacts/${id}`, { method: 'PUT', body: payload })
     },
     updateContact(applicationSlug: string, id: UUID, payload: UpdateCrmContactPayload) {
       return apiFetch<CrmContact>(`${basePath(applicationSlug)}/contacts/${id}`, { method: 'PATCH', body: payload })
@@ -109,6 +135,9 @@ export const useCrmApi = () => {
     },
     createBilling(applicationSlug: string, payload: CreateCrmBillingPayload) {
       return apiFetch<CrmBilling>(`${basePath(applicationSlug)}/billings`, { method: 'POST', body: payload })
+    },
+    replaceBilling(applicationSlug: string, id: UUID, payload: ReplaceCrmBillingPayload) {
+      return apiFetch<CrmBilling>(`${basePath(applicationSlug)}/billings/${id}`, { method: 'PUT', body: payload })
     },
     updateBilling(applicationSlug: string, id: UUID, payload: UpdateCrmBillingPayload) {
       return apiFetch<CrmBilling>(`${basePath(applicationSlug)}/billings/${id}`, { method: 'PATCH', body: payload })
@@ -143,6 +172,16 @@ export const useCrmApi = () => {
     addProjectGithubRepository(applicationSlug: string, projectId: UUID, payload: CreateCrmProjectGithubRepositoryPayload) {
       return apiFetch<CrmProjectGithubRepositoryMutationResponse>(`${basePath(applicationSlug)}/projects/${projectId}/github/repositories`, { method: 'POST', body: payload })
     },
+    replaceProjectGithubRepository(applicationSlug: string, projectId: UUID, repositoryId: UUID, payload: ReplaceCrmGithubRepositoryPayload) {
+      return apiFetch<CrmGithubRepository>(`${basePath(applicationSlug)}/projects/${projectId}/github/repositories/${repositoryId}`, { method: 'PUT', body: payload })
+    },
+    deleteProjectGithubRepository(applicationSlug: string, projectId: UUID, repositoryId: UUID, deleteRemote = false) {
+      const query = new URLSearchParams({ deleteRemote: String(deleteRemote) })
+      return apiFetch<void>(`${basePath(applicationSlug)}/projects/${projectId}/github/repositories/${repositoryId}?${query.toString()}`, { method: 'DELETE' })
+    },
+    getProjectGithubRepositoryById(applicationSlug: string, projectId: UUID, repository: string) {
+      return apiFetch<CrmGithubRepository>(`${basePath(applicationSlug)}/projects/${projectId}/github/repositories/${repository}`, { method: 'GET' })
+    },
     getProjectGithubProjects(
       applicationSlug: string,
       projectId: UUID,
@@ -167,6 +206,15 @@ export const useCrmApi = () => {
     },
     createProjectGithubProject(applicationSlug: string, projectId: UUID, payload: CreateCrmGithubProjectPayload) {
       return apiFetch<CrmGithubProject>(`${basePath(applicationSlug)}/projects/${projectId}/github/projects`, { method: 'POST', body: payload })
+    },
+    moveProjectGithubIssue(
+      applicationSlug: string,
+      projectId: UUID,
+      githubProjectId: string,
+      itemId: string,
+      payload: MoveCrmGithubIssuePayload,
+    ) {
+      return apiFetch<void>(`${basePath(applicationSlug)}/projects/${projectId}/github/projects/${githubProjectId}/items/${itemId}/move`, { method: 'POST', body: payload })
     },
     createProjectGithubRepository(applicationSlug: string, projectId: UUID, payload: CreateCrmGithubRepositoryPayload) {
       return apiFetch<CrmGithubRepository>(`${basePath(applicationSlug)}/projects/${projectId}/github/repositories/create`, { method: 'POST', body: payload })
@@ -236,8 +284,31 @@ export const useCrmApi = () => {
     ) {
       return apiFetch<CrmGithubIssueDetails>(`${basePath(applicationSlug)}/projects/${projectId}/github/issues/${number}`, { method: 'PATCH', body: payload })
     },
+    addProjectGithubIssueComment(applicationSlug: string, projectId: UUID, number: number, payload: CreateCrmGithubIssueCommentPayload) {
+      return apiFetch<void>(`${basePath(applicationSlug)}/projects/${projectId}/github/issues/${number}/comments`, { method: 'POST', body: payload })
+    },
+    runProjectGithubPullRequestAction(
+      applicationSlug: string,
+      projectId: UUID,
+      number: number,
+      payload: RunCrmGithubPullRequestActionPayload,
+    ) {
+      return apiFetch<void>(`${basePath(applicationSlug)}/projects/${projectId}/github/pull-requests/${number}/action`, { method: 'POST', body: payload })
+    },
+    queueGithubBootstrapSync(applicationSlug: string, payload: QueueCrmGithubBootstrapSyncPayload) {
+      return apiFetch<{ jobId: UUID }>(`${basePath(applicationSlug)}/github/sync/bootstrap`, { method: 'POST', body: payload })
+    },
+    getGithubSyncJobStatus(applicationSlug: string, jobId: UUID) {
+      return apiFetch<CrmGithubSyncJob>(`${basePath(applicationSlug)}/github/sync/jobs/${jobId}`, { method: 'GET' })
+    },
+    handleGithubWebhook(payload: unknown, headers: Record<string, string>) {
+      return apiFetch<unknown>('/api/v1/crm/github/webhook', { method: 'POST', body: payload, headers })
+    },
     createProject(applicationSlug: string, payload: CreateCrmProjectPayload) {
       return apiFetch<CrmProject>(`${basePath(applicationSlug)}/projects`, { method: 'POST', body: payload })
+    },
+    replaceProject(applicationSlug: string, id: UUID, payload: ReplaceCrmProjectPayload) {
+      return apiFetch<CrmProject>(`${basePath(applicationSlug)}/projects/${id}`, { method: 'PUT', body: payload })
     },
     updateProject(applicationSlug: string, id: UUID, payload: UpdateCrmProjectPayload) {
       return apiFetch<CrmProject>(`${basePath(applicationSlug)}/projects/${id}`, { method: 'PATCH', body: payload })
@@ -250,6 +321,9 @@ export const useCrmApi = () => {
     },
     removeProjectAssignee(applicationSlug: string, id: UUID, userId: UUID) {
       return apiFetch<void>(`${basePath(applicationSlug)}/projects/${id}/assignees/${userId}`, { method: 'DELETE' })
+    },
+    createProjectWikiPage(applicationSlug: string, id: UUID, payload: CreateCrmProjectWikiPagePayload) {
+      return apiFetch<void>(`${basePath(applicationSlug)}/projects/${id}/wiki-pages`, { method: 'POST', body: payload })
     },
 
 
@@ -271,6 +345,9 @@ export const useCrmApi = () => {
     createSprint(applicationSlug: string, payload: CreateCrmSprintPayload) {
       return apiFetch<CrmSprint>(`${basePath(applicationSlug)}/sprints`, { method: 'POST', body: payload })
     },
+    replaceSprint(applicationSlug: string, id: UUID, payload: ReplaceCrmSprintPayload) {
+      return apiFetch<CrmSprint>(`${basePath(applicationSlug)}/sprints/${id}`, { method: 'PUT', body: payload })
+    },
     updateSprint(applicationSlug: string, id: UUID, payload: UpdateCrmSprintPayload) {
       return apiFetch<CrmSprint>(`${basePath(applicationSlug)}/sprints/${id}`, { method: 'PATCH', body: payload })
     },
@@ -283,6 +360,12 @@ export const useCrmApi = () => {
     removeSprintAssignee(applicationSlug: string, id: UUID, userId: UUID) {
       return apiFetch<void>(`${basePath(applicationSlug)}/sprints/${id}/assignees/${userId}`, { method: 'DELETE' })
     },
+    attachTaskToSprint(applicationSlug: string, sprintId: UUID, taskId: UUID) {
+      return apiFetch<void>(`${basePath(applicationSlug)}/sprints/${sprintId}/tasks/${taskId}`, { method: 'PUT' })
+    },
+    detachTaskFromSprint(applicationSlug: string, sprintId: UUID, taskId: UUID) {
+      return apiFetch<void>(`${basePath(applicationSlug)}/sprints/${sprintId}/tasks/${taskId}`, { method: 'DELETE' })
+    },
 
     getTasks(applicationSlug: string) {
       return apiFetch<CrmTaskListResponse>(`${basePath(applicationSlug)}/tasks`, { method: 'GET' })
@@ -292,6 +375,9 @@ export const useCrmApi = () => {
     },
     createTask(applicationSlug: string, payload: CreateCrmTaskPayload) {
       return apiFetch<CrmTask>(`${basePath(applicationSlug)}/tasks`, { method: 'POST', body: payload })
+    },
+    replaceTask(applicationSlug: string, id: UUID, payload: ReplaceCrmTaskPayload) {
+      return apiFetch<CrmTask>(`${basePath(applicationSlug)}/tasks/${id}`, { method: 'PUT', body: payload })
     },
     updateTask(applicationSlug: string, id: UUID, payload: UpdateCrmTaskPayload) {
       return apiFetch<CrmTask>(`${basePath(applicationSlug)}/tasks/${id}`, { method: 'PATCH', body: payload })
@@ -334,6 +420,9 @@ export const useCrmApi = () => {
     createTaskRequest(applicationSlug: string, payload: CreateCrmTaskRequestPayload) {
       return apiFetch<CrmTaskRequest>(`${basePath(applicationSlug)}/task-requests`, { method: 'POST', body: payload })
     },
+    replaceTaskRequest(applicationSlug: string, id: UUID, payload: ReplaceCrmTaskRequestPayload) {
+      return apiFetch<CrmTaskRequest>(`${basePath(applicationSlug)}/task-requests/${id}`, { method: 'PUT', body: payload })
+    },
     updateTaskRequest(applicationSlug: string, id: UUID, payload: UpdateCrmTaskRequestPayload) {
       return apiFetch<CrmTaskRequest>(`${basePath(applicationSlug)}/task-requests/${id}`, { method: 'PATCH', body: payload })
     },
@@ -361,6 +450,39 @@ export const useCrmApi = () => {
     },
     updateTaskRequestStatusPut(applicationSlug: string, id: UUID, payload: UpdateCrmTaskRequestStatusPayload) {
       return apiFetch<void>(`${basePath(applicationSlug)}/task-requests/${id}/status`, { method: 'PUT', body: payload })
+    },
+    getTaskRequestGithubBranches(applicationSlug: string, taskRequestId: UUID) {
+      return apiFetch<CrmCollectionResponse<CrmGithubBranch>>(`${basePath(applicationSlug)}/task-requests/${taskRequestId}/github/branches`, { method: 'GET' })
+    },
+    createTaskRequestGithubBranch(applicationSlug: string, taskRequestId: UUID, payload: CreateCrmTaskRequestGithubBranchPayload) {
+      return apiFetch<CrmGithubBranchMutationResponse>(`${basePath(applicationSlug)}/task-requests/${taskRequestId}/github/branches`, { method: 'POST', body: payload })
+    },
+    deleteTaskRequestGithubBranch(applicationSlug: string, taskRequestId: UUID, branchId: string) {
+      return apiFetch<void>(`${basePath(applicationSlug)}/task-requests/${taskRequestId}/github/branches/${branchId}`, { method: 'DELETE' })
+    },
+    createEmployee(applicationSlug: string, payload: CreateCrmEmployeePayload) {
+      return apiFetch<CrmEmployee>(`${basePath(applicationSlug)}/employees`, { method: 'POST', body: payload })
+    },
+    getEmployeeById(applicationSlug: string, employeeId: UUID) {
+      return apiFetch<CrmEmployee>(`${basePath(applicationSlug)}/employees/${employeeId}`, { method: 'GET' })
+    },
+    replaceEmployee(applicationSlug: string, employeeId: UUID, payload: ReplaceCrmEmployeePayload) {
+      return apiFetch<CrmEmployee>(`${basePath(applicationSlug)}/employees/${employeeId}`, { method: 'PUT', body: payload })
+    },
+    updateEmployee(applicationSlug: string, employeeId: UUID, payload: UpdateCrmEmployeePayload) {
+      return apiFetch<CrmEmployee>(`${basePath(applicationSlug)}/employees/${employeeId}`, { method: 'PATCH', body: payload })
+    },
+    deleteEmployee(applicationSlug: string, employeeId: UUID) {
+      return apiFetch<void>(`${basePath(applicationSlug)}/employees/${employeeId}`, { method: 'DELETE' })
+    },
+    addEmployeeRole(applicationSlug: string, employeeId: UUID, payload: { roleId: UUID }) {
+      return apiFetch<void>(`${basePath(applicationSlug)}/employees/${employeeId}/roles`, { method: 'POST', body: payload })
+    },
+    detachEmployeeRole(applicationSlug: string, employeeId: UUID, payload: { roleId: UUID }) {
+      return apiFetch<void>(`${basePath(applicationSlug)}/employees/${employeeId}/roles`, { method: 'DELETE', body: payload })
+    },
+    patchEmployeeRole(applicationSlug: string, employeeId: UUID, payload: { roleId: UUID; metadata?: Record<string, unknown> }) {
+      return apiFetch<void>(`${basePath(applicationSlug)}/employees/${employeeId}/roles`, { method: 'PATCH', body: payload })
     },
   }
 }

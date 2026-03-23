@@ -184,8 +184,13 @@ export interface CrmDashboardResponse {
 }
 
 export interface CrmGithubRepository {
+  id?: UUID
+  name?: string
   fullName: string
-  defaultBranch: string
+  defaultBranch?: string
+  private?: boolean
+  syncStatus?: string
+  metadata?: Record<string, unknown>
 }
 
 export interface CrmGithubProject {
@@ -288,6 +293,12 @@ export interface CreateCrmGithubBranchPayload {
   sourceBranch?: string
 }
 
+export interface CreateCrmTaskRequestGithubBranchPayload {
+  repository: string
+  name: string
+  sourceBranch?: string
+}
+
 export interface DeleteCrmGithubBranchPayload {
   repository: string
   name: string
@@ -317,15 +328,64 @@ export interface CrmGithubIssueDetails extends CrmGithubIssueListItem {
   body: string | null
 }
 
+export interface CrmGithubSyncJob {
+  id: UUID
+  applicationSlug: string
+  owner: string
+  startedAt: string | null
+  finishedAt: string | null
+  status: string
+  projectsCreated: number
+  reposAttached: number
+  issuesImported: number
+  errorsCount: number
+  errors: Record<string, unknown>[]
+}
+
 export interface CreateCrmGithubIssuePayload {
   repository: string
   title: string
   body?: string
 }
 
+export interface CreateCrmGithubIssueCommentPayload {
+  repository: string
+  body: string
+}
+
 export interface UpdateCrmGithubIssuePayload {
   repository: string
   state: 'open' | 'closed'
+}
+
+export interface QueueCrmGithubBootstrapSyncPayload {
+  token: string
+  owner: string
+  issueTarget?: 'task' | 'task-request'
+  createPublicProject?: boolean
+  dryRun?: boolean
+}
+
+export interface CreateCrmProjectWikiPagePayload {
+  title: string
+  content: string
+}
+
+export interface ReplaceCrmGithubRepositoryPayload {
+  defaultBranch?: string
+  syncStatus?: string
+  metadata?: Record<string, unknown>
+}
+
+export interface MoveCrmGithubIssuePayload {
+  fieldId: string
+  value: string
+}
+
+export interface RunCrmGithubPullRequestActionPayload {
+  repository: string
+  action: string
+  options?: Record<string, unknown>
 }
 
 export interface CrmReportsResponse {
@@ -459,10 +519,27 @@ export interface UpdateCrmProjectPayload {
   dueAt?: string
 }
 
+export interface ReplaceCrmProjectPayload extends Required<Pick<CreateCrmProjectPayload, 'name' | 'companyId'>> {
+  code?: string
+  description?: string
+  status?: string
+  startedAt?: string
+  dueAt?: string
+}
+
 export interface UpdateCrmContactPayload {
   companyId?: UUID
   firstName?: string
   lastName?: string
+  email?: string
+  phone?: string
+  jobTitle?: string
+  city?: string
+  score?: number
+}
+
+export interface ReplaceCrmContactPayload extends Required<Pick<CreateCrmContactPayload, 'firstName' | 'lastName'>> {
+  companyId?: UUID
   email?: string
   phone?: string
   jobTitle?: string
@@ -479,11 +556,26 @@ export interface UpdateCrmSprintPayload {
   endDate?: string
 }
 
+export interface ReplaceCrmSprintPayload extends Required<Pick<CreateCrmSprintPayload, 'name' | 'projectId'>> {
+  goal?: string
+  status?: string
+  startDate?: string
+  endDate?: string
+}
+
 export interface UpdateCrmTaskPayload {
   title?: string
   description?: string
   projectId?: UUID
   sprintId?: UUID
+  status?: string
+  priority?: string
+  dueAt?: string
+  estimatedHours?: number
+}
+
+export interface ReplaceCrmTaskPayload extends Required<Pick<CreateCrmTaskPayload, 'title' | 'projectId' | 'sprintId'>> {
+  description?: string
   status?: string
   priority?: string
   dueAt?: string
@@ -500,9 +592,18 @@ export interface UpdateCrmBillingPayload {
   paidAt?: string | null
 }
 
+export interface ReplaceCrmBillingPayload extends Required<Pick<CreateCrmBillingPayload, 'companyId' | 'label' | 'amount' | 'currency' | 'status'>> {
+  dueAt?: string | null
+  paidAt?: string | null
+}
+
 export interface UpdateCrmTaskRequestPayload {
   title?: string
   taskId?: UUID
+  status?: string
+}
+
+export interface ReplaceCrmTaskRequestPayload extends Required<Pick<CreateCrmTaskRequestPayload, 'title' | 'taskId'>> {
   status?: string
 }
 
@@ -514,4 +615,21 @@ export interface CreateCrmTaskRequestPayload {
 
 export interface UpdateCrmTaskRequestStatusPayload {
   status: string
+}
+
+export interface CreateCrmEmployeePayload {
+  userId: UUID
+  positionName?: string
+  roleName?: string
+}
+
+export interface UpdateCrmEmployeePayload {
+  userId?: UUID
+  positionName?: string
+  roleName?: string
+}
+
+export interface ReplaceCrmEmployeePayload extends Required<Pick<CreateCrmEmployeePayload, 'userId'>> {
+  positionName?: string
+  roleName?: string
 }
