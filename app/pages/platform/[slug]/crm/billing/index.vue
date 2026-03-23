@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
-import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
+import CrmListingShell from '~/components/platform/crm/CrmListingShell.vue'
 import { useCrmApi } from '~/composables/api/useCrmApi'
 import { getCrmNav } from '~/data/platform-nav'
 import type { CrmBilling, CreateCrmBillingPayload, CrmBillingStatus, UpdateCrmBillingPayload } from '~/types/api/crm'
@@ -228,101 +228,103 @@ onMounted(async () => {
 </script>
 
 <template>
-  <PlatformSplitLayout>
-    <client-only>
-      <teleport to="#app-bar-teleport-target">
-        <v-btn
-          size="large"
-          variant="text"
-          class="text-none app-bar__link-btn"
-          :loading="isPageLoading"
-          @click="loadBillings"
-          icon="mdi-refresh"
-        />
-      </teleport>
-      <teleport to="#app-bar-teleport-target-right">
-        <v-btn rounded="xl" variant="outlined" @click="showCreateDialog = true">Create billing</v-btn>
-      </teleport>
-    </client-only>
+  <CrmListingShell
+    v-model:page="page"
+    :show-filters="showFilters"
+    :should-show-pagination="shouldShowPagination"
+    :page-length="pageLength"
+  >
+    <template #app-bar-left>
+      <v-btn
+        size="large"
+        variant="text"
+        class="text-none app-bar__link-btn"
+        :loading="isPageLoading"
+        @click="loadBillings"
+        icon="mdi-refresh"
+      />
+    </template>
+
+    <template #app-bar-right>
+      <v-btn rounded="xl" variant="outlined" @click="showCreateDialog = true">Create billing</v-btn>
+    </template>
+
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
-    <template #aside>
-      <div class="d-flex flex-column ga-4">
-        <template v-if="showFilters">
-          <v-card rounded="xl" variant="text">
-            <v-card-title class="text-subtitle-2">Filters</v-card-title>
-            <v-card-text class="d-flex flex-column ga-3">
-              <v-text-field v-model="searchQuery" label="Search" rounded="xl" density="comfortable" variant="outlined" hide-details prepend-inner-icon="mdi-magnify" />
-              <v-select v-model="statusFilter" label="Status" rounded="xl" density="comfortable" variant="outlined" hide-details prepend-inner-icon="mdi-magnify" :items="[{ title: 'All', value: 'all' }, ...statusOptions]" item-title="title" item-value="value" />
+
+    <template #filters>
+      <v-card rounded="xl" variant="text">
+        <v-card-title class="text-subtitle-2">Filters</v-card-title>
+        <v-card-text class="d-flex flex-column ga-3">
+          <v-text-field v-model="searchQuery" label="Search" rounded="xl" density="comfortable" variant="outlined" hide-details prepend-inner-icon="mdi-magnify" />
+          <v-select v-model="statusFilter" label="Status" rounded="xl" density="comfortable" variant="outlined" hide-details prepend-inner-icon="mdi-magnify" :items="[{ title: 'All', value: 'all' }, ...statusOptions]" item-title="title" item-value="value" />
+        </v-card-text>
+      </v-card>
+    </template>
+
+    <template #selected>
+      <v-card v-if="selectedItem" rounded="xl" variant="text">
+        <v-btn size="small" variant="tonal" prepend-icon="mdi-filter-outline" @click="showFiltersPanel">Filter</v-btn>
+        <h4 class="text-truncate">{{ selectedItem.label }}</h4>
+        <v-card-text>
+          <p class="text-body-2 mb-1"><strong>Status:</strong> {{ selectedItem.status }}</p>
+          <p class="text-body-2 mb-1"><strong>Amount:</strong> {{ formatAmount(selectedItem.amount, selectedItem.currency) }}</p>
+          <p class="text-body-2 mb-0"><strong>Due:</strong> {{ formatDate(selectedItem.dueAt) }}</p>
+        </v-card-text>
+      </v-card>
+    </template>
+
+    <template #cards>
+      <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
+        {{ errorMessage }}
+      </v-alert>
+
+      <v-row v-if="isPageLoading">
+        <v-col v-for="i in 6" :key="`billing-skeleton-${i}`" cols="12" md="6" lg="6">
+          <v-skeleton-loader type="card, article" class="h-100" />
+        </v-col>
+      </v-row>
+
+      <v-row v-else>
+        <v-col v-for="billing in paginatedBillings" :key="billing.id" cols="12" md="6" lg="6">
+          <v-card variant="outlined" rounded="xl" hover class="h-100 cursor-pointer" @click="selectBilling(billing)">
+            <v-card-text>
+              <div class="d-flex justify-space-between align-start ga-2 mb-2">
+                <p class="text-subtitle-1 font-weight-bold">{{ billing.label }}</p>
+                <v-chip size="small" color="primary" variant="tonal">{{ billing.status }}</v-chip>
+              </div>
+              <p class="text-body-2 mb-1">{{ formatAmount(billing.amount, billing.currency) }}</p>
+              <p class="text-body-2 text-medium-emphasis mb-1">Due: {{ formatDate(billing.dueAt) }}</p>
+              <p class="text-body-2 text-medium-emphasis mb-3">Paid: {{ formatDate(billing.paidAt) }}</p>
+              <div class="d-flex justify-between ga-2">
+                <v-btn variant="outlined" rounded="xl" class="text-body-2" @click.stop="goToBilling(billing.id)">Open</v-btn>
+                <v-spacer />
+                <v-menu location="bottom end">
+                  <template #activator="{ props }">
+                    <v-btn
+                      v-bind="props"
+                      variant="outlined"
+                      rounded="xl"
+                      class="text-body-2"
+                      @click.stop
+                    >
+                      Manage
+                    </v-btn>
+                  </template>
+                  <v-list density="compact">
+                    <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="openEditDialog(billing.id)" />
+                    <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="removeBilling(billing.id)" />
+                  </v-list>
+                </v-menu>
+              </div>
             </v-card-text>
           </v-card>
-        </template>
-        <v-card v-else-if="selectedItem" rounded="xl" variant="text">
-          <v-btn size="small" variant="tonal" prepend-icon="mdi-filter-outline" @click="showFiltersPanel">Filter</v-btn>
-          <h4 class="text-truncate">{{ selectedItem.label }}</h4>
-          <v-card-text>
-            <p class="text-body-2 mb-1"><strong>Status:</strong> {{ selectedItem.status }}</p>
-            <p class="text-body-2 mb-1"><strong>Amount:</strong> {{ formatAmount(selectedItem.amount, selectedItem.currency) }}</p>
-            <p class="text-body-2 mb-0"><strong>Due:</strong> {{ formatDate(selectedItem.dueAt) }}</p>
-          </v-card-text>
-        </v-card>
-      </div>
+        </v-col>
+      </v-row>
     </template>
-    <section class="billing-page">
-      <div class="billing-page__content">
-        <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
-          {{ errorMessage }}
-        </v-alert>
 
-        <v-row v-if="isPageLoading">
-          <v-col v-for="i in 6" :key="`billing-skeleton-${i}`" cols="12" md="6" lg="6">
-            <v-skeleton-loader type="card, article" class="h-100" />
-          </v-col>
-        </v-row>
-
-        <v-row v-else>
-          <v-col v-for="billing in paginatedBillings" :key="billing.id" cols="12" md="6" lg="6">
-            <v-card variant="outlined" rounded="xl" hover class="h-100 cursor-pointer" @click="selectBilling(billing)">
-              <v-card-text>
-                <div class="d-flex justify-space-between align-start ga-2 mb-2">
-                  <p class="text-subtitle-1 font-weight-bold">{{ billing.label }}</p>
-                  <v-chip size="small" color="primary" variant="tonal">{{ billing.status }}</v-chip>
-                </div>
-                <p class="text-body-2 mb-1">{{ formatAmount(billing.amount, billing.currency) }}</p>
-                <p class="text-body-2 text-medium-emphasis mb-1">Due: {{ formatDate(billing.dueAt) }}</p>
-                <p class="text-body-2 text-medium-emphasis mb-3">Paid: {{ formatDate(billing.paidAt) }}</p>
-                <div class="d-flex justify-between ga-2">
-                  <v-btn variant="outlined" rounded="xl" class="text-body-2" @click.stop="goToBilling(billing.id)">Open</v-btn>
-                  <v-spacer />
-                  <v-menu location="bottom end">
-                    <template #activator="{ props }">
-                      <v-btn
-                        v-bind="props"
-                        variant="outlined"
-                        rounded="xl"
-                        class="text-body-2"
-                        @click.stop
-                      >
-                        Manage
-                      </v-btn>
-                    </template>
-                    <v-list density="compact">
-                      <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="openEditDialog(billing.id)" />
-                      <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="removeBilling(billing.id)" />
-                    </v-list>
-                  </v-menu>
-                </div>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
-      </div>
-
-      <div v-if="shouldShowPagination" class="billing-page__footer d-flex justify-center">
-        <v-pagination v-model="page" :length="pageLength" total-visible="5" />
-      </div>
-
+    <template #dialogs>
       <v-dialog v-model="showCreateDialog" max-width="580">
         <v-card>
           <v-card-title>Create billing</v-card-title>
@@ -362,22 +364,6 @@ onMounted(async () => {
           </v-card-actions>
         </v-card>
       </v-dialog>
-    </section>
-  </PlatformSplitLayout>
+    </template>
+  </CrmListingShell>
 </template>
-<style scoped>
-.billing-page {
-  min-height: 75vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.billing-page__content {
-  flex: 1;
-}
-
-.billing-page__footer {
-  margin-top: auto;
-  padding-bottom: 0;
-}
-</style>
