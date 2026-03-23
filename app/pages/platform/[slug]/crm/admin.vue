@@ -5,6 +5,7 @@ import { getCrmNav } from '~/data/platform-nav'
 
 definePageMeta({ public: false, requiresAuth: true })
 const route = useRoute()
+const router = useRouter()
 const slug = computed(() => String(route.params.slug ?? ''))
 const platformPermissions = usePlatformPermissions(slug)
 const { isOwner } = platformPermissions
@@ -42,7 +43,7 @@ onMounted(async () => {
     accessDenied.value = true
 
     setTimeout(() => {
-      navigateTo(platformPermissions.getDeniedRedirectPath('crm'))
+      router.push(platformPermissions.getDeniedRedirectPath('crm'))
     }, 1200)
   }
 })
