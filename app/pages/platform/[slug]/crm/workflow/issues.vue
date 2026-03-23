@@ -20,8 +20,14 @@ const projects = ref<CrmProject[]>([])
 const selectedProjectId = ref('')
 const selectedRepo = ref('')
 const issueState = ref<CrmGithubIssueState>('open')
+const search = ref('')
 const selectedItem = ref<CrmGithubIssueListItem | null>(null)
 const showFilters = ref(true)
+
+const isCreateDialogOpen = ref(false)
+const isCreatingIssue = ref(false)
+const createIssueError = ref('')
+const createIssuePayload = reactive({ repository: '', title: '' })
 
 const {
   repositories,
@@ -40,9 +46,17 @@ const {
 
 const projectOptions = computed(() => projects.value.map(project => ({ title: project.name, value: project.id })))
 const repoOptions = computed(() => repositories.value.map(item => item.fullName))
+const filteredIssues = computed(() => {
+  const query = search.value.trim().toLowerCase()
+  if (!query) return issues.value
+  return issues.value.filter(item =>
+    item.title.toLowerCase().includes(query)
+    || item.author.toLowerCase().includes(query)
+    || String(item.number).includes(query),
+  )
+})
 const pageLoading = computed(() => isLoadingProjects.value || isLoading.repositories || isLoading.issues)
-const errorMessage = computed(() => projectError.value || errors.repositories || errors.issues)
-const createIssueUrl = computed(() => selectedRepo.value ? `https://github.com/${selectedRepo.value}/issues/new` : '')
+const errorMessage = computed(() => projectError.value || errors.repositories || errors.issues || createIssueError.value)
 
 const loadProjects = async () => {
   if (!slug.value) return
@@ -79,8 +93,38 @@ const selectIssue = (issue: CrmGithubIssueListItem) => {
   showFilters.value = false
 }
 
+const openCreateDialog = () => {
+  createIssueError.value = ''
+  createIssuePayload.repository = selectedRepo.value
+  createIssuePayload.title = ''
+  isCreateDialogOpen.value = true
+}
+
+const createIssue = async () => {
+  if (!slug.value || !selectedProjectId.value || !createIssuePayload.repository || !createIssuePayload.title.trim()) return
+
+  isCreatingIssue.value = true
+  createIssueError.value = ''
+
+  try {
+    await crmApi.createProjectGithubIssue(slug.value, selectedProjectId.value, {
+      repository: createIssuePayload.repository,
+      title: createIssuePayload.title.trim(),
+    })
+    isCreateDialogOpen.value = false
+    await loadIssues(1)
+  }
+  catch {
+    createIssueError.value = 'Impossible de créer l\'issue GitHub.'
+  }
+  finally {
+    isCreatingIssue.value = false
+  }
+}
+
 watch(selectedProjectId, async () => {
   selectedItem.value = null
+  search.value = ''
   showFilters.value = true
   await loadRepositories()
   await loadIssues(1)
@@ -88,6 +132,7 @@ watch(selectedProjectId, async () => {
 
 watch([selectedRepo, issueState], async () => {
   selectedItem.value = null
+  search.value = ''
   await loadIssues(1)
 })
 
@@ -109,7 +154,7 @@ onMounted(loadData)
         />
       </teleport>
       <teleport to="#app-bar-teleport-target-right">
-        <v-btn rounded="xl" variant="outlined" prepend-icon="mdi-plus" :disabled="!createIssueUrl" :href="createIssueUrl" target="_blank" rel="noopener noreferrer">New Issue</v-btn>
+        <v-btn rounded="xl" variant="text" prepend-icon="mdi-plus" :disabled="!selectedProjectId || !selectedRepo" @click="openCreateDialog">New Issue</v-btn>
       </teleport>
     </client-only>
 
@@ -123,7 +168,7 @@ onMounted(loadData)
     </template>
 
     <template #aside>
-      <v-card v-if="showFilters" rounded="xl" variant="outlined">
+      <v-card v-if="showFilters" rounded="xl" variant="text">
         <v-card-title class="text-subtitle-1">Workflow filters</v-card-title>
         <v-card-text class="d-flex flex-column ga-3">
           <v-select v-model="selectedProjectId" label="Project" density="comfortable" variant="outlined" hide-details clearable :items="projectOptions" />
@@ -141,6 +186,7 @@ onMounted(loadData)
               { title: 'All', value: 'all' },
             ]"
           />
+          <v-text-field v-model="search" label="Search" density="comfortable" variant="outlined" hide-details clearable prepend-inner-icon="mdi-magnify" :disabled="!selectedRepo" />
         </v-card-text>
       </v-card>
       <v-card v-else-if="selectedItem" rounded="xl" variant="text">
@@ -150,13 +196,13 @@ onMounted(loadData)
           <v-chip size="small" :color="selectedItem.state === 'open' ? 'success' : 'default'" variant="tonal">{{ selectedItem.state }}</v-chip>
           <div class="text-body-2">Author: {{ selectedItem.author }}</div>
           <div class="text-body-2">Updated: {{ new Date(selectedItem.updatedAt).toLocaleString() }}</div>
-          <v-btn :href="selectedItem.htmlUrl" target="_blank" rel="noopener noreferrer" variant="outlined" prepend-icon="mdi-open-in-new">Open issue</v-btn>
+          <v-btn :href="selectedItem.htmlUrl" target="_blank" rel="noopener noreferrer" variant="text" prepend-icon="mdi-open-in-new">Open issue</v-btn>
         </v-card-text>
       </v-card>
     </template>
 
     <section>
-      <v-card rounded="xl" variant="outlined" :disabled="!selectedProjectId">
+      <v-card rounded="xl" variant="text" :disabled="!selectedProjectId">
         <v-card-title>Workflow · GitHub Issues</v-card-title>
 
         <v-card-text>
@@ -168,11 +214,11 @@ onMounted(loadData)
           <v-alert v-else-if="!selectedRepo" type="info" variant="tonal">
             Aucun repository GitHub lié à ce projet CRM.
           </v-alert>
-          <v-alert v-else-if="!issues.length" type="info" variant="tonal">
+          <v-alert v-else-if="!filteredIssues.length" type="info" variant="tonal">
             Aucune issue trouvée pour ce filtre.
           </v-alert>
           <v-list v-else lines="two" border rounded>
-            <v-list-item v-for="issue in issues" :key="issue.number" @click="selectIssue(issue)">
+            <v-list-item v-for="issue in filteredIssues" :key="issue.number" @click="selectIssue(issue)">
               <v-list-item-title>#{{ issue.number }} · {{ issue.title }}</v-list-item-title>
               <v-list-item-subtitle>
                 {{ issue.author }} · {{ new Date(issue.updatedAt).toLocaleString() }}
@@ -185,5 +231,20 @@ onMounted(loadData)
         </v-card-actions>
       </v-card>
     </section>
+
+    <v-dialog v-model="isCreateDialogOpen" max-width="520">
+      <v-card rounded="xl" variant="text">
+        <v-card-title>Create an issue</v-card-title>
+        <v-card-text class="d-flex flex-column ga-3">
+          <v-alert v-if="createIssueError" type="error" variant="tonal">{{ createIssueError }}</v-alert>
+          <v-select v-model="createIssuePayload.repository" label="Repository" density="comfortable" variant="outlined" :items="repoOptions" :disabled="isCreatingIssue" />
+          <v-text-field v-model="createIssuePayload.title" label="Issue title" density="comfortable" variant="outlined" placeholder="Corriger la synchronisation CRM" :disabled="isCreatingIssue" />
+        </v-card-text>
+        <v-card-actions class="justify-end">
+          <v-btn variant="text" :disabled="isCreatingIssue" @click="isCreateDialogOpen = false">Cancel</v-btn>
+          <v-btn color="primary" variant="tonal" :loading="isCreatingIssue" :disabled="!createIssuePayload.repository || !createIssuePayload.title.trim()" @click="createIssue">Create</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </PlatformSplitLayout>
 </template>
