@@ -269,54 +269,57 @@ onMounted(async () => {
         </v-card>
       </div>
     </template>
-    <section>
-      <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
-        {{ errorMessage }}
-      </v-alert>
+    <section class="billing-page">
+      <div class="billing-page__content">
+        <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
+          {{ errorMessage }}
+        </v-alert>
 
-      <v-row v-if="isPageLoading">
-        <v-col v-for="i in 6" :key="`billing-skeleton-${i}`" cols="12" md="6" lg="6">
-          <v-skeleton-loader type="card, article" class="h-100" />
-        </v-col>
-      </v-row>
+        <v-row v-if="isPageLoading">
+          <v-col v-for="i in 6" :key="`billing-skeleton-${i}`" cols="12" md="6" lg="6">
+            <v-skeleton-loader type="card, article" class="h-100" />
+          </v-col>
+        </v-row>
 
-      <v-row v-else>
-        <v-col v-for="billing in paginatedBillings" :key="billing.id" cols="12" md="6" lg="6">
-          <v-card variant="outlined" rounded="xl" hover class="h-100 cursor-pointer" @click="selectBilling(billing)">
-            <v-card-text>
-              <div class="d-flex justify-space-between align-start ga-2 mb-2">
-                <p class="text-subtitle-1 font-weight-bold">{{ billing.label }}</p>
-                <v-chip size="small" color="primary" variant="tonal">{{ billing.status }}</v-chip>
-              </div>
-              <p class="text-body-2 mb-1">{{ formatAmount(billing.amount, billing.currency) }}</p>
-              <p class="text-body-2 text-medium-emphasis mb-1">Due: {{ formatDate(billing.dueAt) }}</p>
-              <p class="text-body-2 text-medium-emphasis mb-3">Paid: {{ formatDate(billing.paidAt) }}</p>
-              <div class="d-flex justify-between ga-2">
-                <v-btn variant="outlined" rounded="xl" class="text-body-2" @click.stop="goToBilling(billing.id)">Open</v-btn>
-                <v-spacer />
-                <v-menu location="bottom end">
-                  <template #activator="{ props }">
-                    <v-btn
-                      v-bind="props"
-                      variant="outlined"
-                      rounded="xl"
-                      class="text-body-2"
-                      @click.stop
-                    >
-                      Manage
-                    </v-btn>
-                  </template>
-                  <v-list density="compact">
-                    <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="openEditDialog(billing.id)" />
-                    <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="removeBilling(billing.id)" />
-                  </v-list>
-                </v-menu>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-      <div v-if="shouldShowPagination" class="d-flex justify-center mt-4">
+        <v-row v-else>
+          <v-col v-for="billing in paginatedBillings" :key="billing.id" cols="12" md="6" lg="6">
+            <v-card variant="outlined" rounded="xl" hover class="h-100 cursor-pointer" @click="selectBilling(billing)">
+              <v-card-text>
+                <div class="d-flex justify-space-between align-start ga-2 mb-2">
+                  <p class="text-subtitle-1 font-weight-bold">{{ billing.label }}</p>
+                  <v-chip size="small" color="primary" variant="tonal">{{ billing.status }}</v-chip>
+                </div>
+                <p class="text-body-2 mb-1">{{ formatAmount(billing.amount, billing.currency) }}</p>
+                <p class="text-body-2 text-medium-emphasis mb-1">Due: {{ formatDate(billing.dueAt) }}</p>
+                <p class="text-body-2 text-medium-emphasis mb-3">Paid: {{ formatDate(billing.paidAt) }}</p>
+                <div class="d-flex justify-between ga-2">
+                  <v-btn variant="outlined" rounded="xl" class="text-body-2" @click.stop="goToBilling(billing.id)">Open</v-btn>
+                  <v-spacer />
+                  <v-menu location="bottom end">
+                    <template #activator="{ props }">
+                      <v-btn
+                        v-bind="props"
+                        variant="outlined"
+                        rounded="xl"
+                        class="text-body-2"
+                        @click.stop
+                      >
+                        Manage
+                      </v-btn>
+                    </template>
+                    <v-list density="compact">
+                      <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="openEditDialog(billing.id)" />
+                      <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="removeBilling(billing.id)" />
+                    </v-list>
+                  </v-menu>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </div>
+
+      <div v-if="shouldShowPagination" class="billing-page__footer d-flex justify-center">
         <v-pagination v-model="page" :length="pageLength" total-visible="5" />
       </div>
 
@@ -362,3 +365,19 @@ onMounted(async () => {
     </section>
   </PlatformSplitLayout>
 </template>
+<style scoped>
+.billing-page {
+  min-height: 75vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.billing-page__content {
+  flex: 1;
+}
+
+.billing-page__footer {
+  margin-top: auto;
+  padding-bottom: 0;
+}
+</style>
