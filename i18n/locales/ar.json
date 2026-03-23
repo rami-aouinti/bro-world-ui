@@ -504,7 +504,13 @@
         "settings": "Settings",
         "billing": "Billing",
         "tickets": "Tickets",
-        "tasks": "المهام"
+        "tasks": "المهام",
+        "workflow": "سير العمل",
+        "workflowProjects": "مشاريع سير العمل",
+        "workflowRepositories": "مستودعات سير العمل",
+        "workflowIssues": "مشكلات سير العمل",
+        "workflowPullRequests": "طلبات السحب لسير العمل",
+        "workflowBranches": "فروع سير العمل"
       },
       "hero": {
         "home": {

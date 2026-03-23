@@ -504,7 +504,13 @@
         "settings": "Settings",
         "billing": "Billing",
         "tickets": "Tickets",
-        "tasks": "Aufgaben"
+        "tasks": "Aufgaben",
+        "workflow": "Workflow",
+        "workflowProjects": "Workflow-Projekte",
+        "workflowRepositories": "Workflow-Repositories",
+        "workflowIssues": "Workflow-Issues",
+        "workflowPullRequests": "Workflow-Pull-Requests",
+        "workflowBranches": "Workflow-Branches"
       },
       "hero": {
         "home": {
