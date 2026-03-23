@@ -15,43 +15,35 @@ const crmApi = useCrmApi()
 const isLoading = ref(false)
 const errorMessage = ref('')
 const projects = ref<CrmProject[]>([])
-const repositoriesByProjectId = ref<Record<string, string[]>>({})
 const selectedProjectId = ref('')
+const repoOptions = ref<string[]>([])
 const selectedRepo = ref('')
 const githubProjects = ref<CrmGithubProject[]>([])
 
-const selectableProjects = computed(() => projects.value.filter(project => (repositoriesByProjectId.value[project.id] ?? []).length > 0))
-const repoOptions = computed(() => repositoriesByProjectId.value[selectedProjectId.value] ?? [])
+const projectOptions = computed(() => projects.value.map(project => ({ title: project.name, value: project.id })))
 
-const loadProjectRepositories = async () => {
+const loadProjects = async () => {
+  if (!slug.value) return
+
   const response = await crmApi.getProjects(slug.value)
   projects.value = response.items ?? []
 
-  const entries = await Promise.all(
-    projects.value.map(async (project) => {
-      try {
-        const repositoriesResponse = await crmApi.getProjectGithubRepositories(slug.value, project.id)
-        return [project.id, (repositoriesResponse.items ?? []).map(item => item.fullName)] as const
-      }
-      catch {
-        return [project.id, []] as const
-      }
-    }),
-  )
-
-  repositoriesByProjectId.value = Object.fromEntries(entries)
-
-  if (!selectableProjects.value.length) {
+  if (selectedProjectId.value && !projects.value.some(project => project.id === selectedProjectId.value)) {
     selectedProjectId.value = ''
+  }
+}
+
+const loadRepositories = async () => {
+  if (!slug.value || !selectedProjectId.value) {
+    repoOptions.value = []
     selectedRepo.value = ''
     return
   }
 
-  if (!selectedProjectId.value || !selectableProjects.value.some(project => project.id === selectedProjectId.value)) {
-    selectedProjectId.value = selectableProjects.value[0]?.id ?? ''
-  }
+  const response = await crmApi.getProjectGithubRepositories(slug.value, selectedProjectId.value)
+  repoOptions.value = (response.items ?? []).map(item => item.fullName)
 
-  if (!selectedRepo.value || !repoOptions.value.includes(selectedRepo.value)) {
+  if (!repoOptions.value.includes(selectedRepo.value)) {
     selectedRepo.value = repoOptions.value[0] ?? ''
   }
 }
@@ -78,7 +70,8 @@ const loadData = async () => {
   errorMessage.value = ''
 
   try {
-    await loadProjectRepositories()
+    await loadProjects()
+    await loadRepositories()
     await loadGithubProjects()
   }
   catch {
@@ -90,17 +83,17 @@ const loadData = async () => {
 }
 
 watch(selectedProjectId, () => {
-  const availableRepos = repositoriesByProjectId.value[selectedProjectId.value] ?? []
-  if (!availableRepos.includes(selectedRepo.value)) {
-    selectedRepo.value = availableRepos[0] ?? ''
-  }
+  selectedRepo.value = ''
+  githubProjects.value = []
+
+  loadRepositories()
+    .then(() => loadGithubProjects())
+    .catch(() => {
+      errorMessage.value = 'Impossible de charger les GitHub Projects pour ce workflow.'
+    })
 })
 
 watch(selectedRepo, () => {
-  if (!selectedRepo.value) {
-    githubProjects.value = []
-    return
-  }
   loadGithubProjects().catch(() => {
     errorMessage.value = 'Impossible de charger les GitHub Projects pour ce workflow.'
   })
@@ -133,48 +126,46 @@ onMounted(loadData)
       />
     </template>
 
-    <section>
+    <template #aside>
       <v-card rounded="xl" variant="outlined">
-        <v-card-title class="d-flex flex-wrap ga-3 align-center justify-space-between">
-          <span>Workflow · GitHub Projects</span>
-          <div class="d-flex ga-3 flex-wrap">
-            <v-select
-              v-model="selectedProjectId"
-              label="CRM Project"
-              density="comfortable"
-              variant="outlined"
-              hide-details
-              min-width="220"
-              :items="selectableProjects.map(project => ({ title: project.name, value: project.id }))"
-            />
-            <v-select
-              v-model="selectedRepo"
-              label="Repository"
-              density="comfortable"
-              variant="outlined"
-              hide-details
-              min-width="260"
-              :disabled="!selectedProjectId"
-              :items="repoOptions"
-            />
-          </div>
-        </v-card-title>
+        <v-card-title class="text-subtitle-1">Workflow filters</v-card-title>
+        <v-card-text class="d-flex flex-column ga-3">
+          <v-select
+            v-model="selectedProjectId"
+            label="Project"
+            density="comfortable"
+            variant="outlined"
+            hide-details
+            clearable
+            :items="projectOptions"
+          />
+          <v-select
+            v-model="selectedRepo"
+            label="Repository"
+            density="comfortable"
+            variant="outlined"
+            hide-details
+            :disabled="!selectedProjectId || !repoOptions.length"
+            :items="repoOptions"
+          />
+        </v-card-text>
+      </v-card>
+    </template>
+
+    <section>
+      <v-card rounded="xl" variant="outlined" :disabled="!selectedProjectId">
+        <v-card-title>Workflow · GitHub Projects</v-card-title>
 
         <v-card-text>
           <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
-          <v-skeleton-loader v-else-if="isLoading" type="list-item-three-line, list-item-three-line, list-item-three-line" />
-          <v-alert
-            v-else-if="!selectedProjectId || !selectedRepo"
-            type="info"
-            variant="tonal"
-          >
-            Aucun repository GitHub lié à vos projets CRM.
+          <v-alert v-else-if="!selectedProjectId" type="info" variant="tonal" class="mb-4">
+            Sélectionnez un projet CRM dans le panneau de droite pour afficher les GitHub Projects.
           </v-alert>
-          <v-alert
-            v-else-if="!githubProjects.length"
-            type="info"
-            variant="tonal"
-          >
+          <v-skeleton-loader v-else-if="isLoading" type="list-item-three-line, list-item-three-line, list-item-three-line" />
+          <v-alert v-else-if="!selectedRepo" type="info" variant="tonal">
+            Aucun repository GitHub lié à ce projet CRM.
+          </v-alert>
+          <v-alert v-else-if="!githubProjects.length" type="info" variant="tonal">
             Aucun GitHub Project trouvé pour ce repository.
           </v-alert>
           <v-list v-else lines="two" border rounded>
