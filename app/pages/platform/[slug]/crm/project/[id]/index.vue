@@ -483,16 +483,17 @@ watch(pullRequestState, async () => {
       <teleport to="#app-bar-teleport-target">
         <v-btn variant="text" size="sm" icon="mdi-refresh" :loading="isLoading" @click="loadProject"></v-btn>
       </teleport>
+      <teleport to="#app-bar-teleport-target-right">
+        <v-btn rounded="xl" variant="outlined"  @click="showCreateTaskDialog = true"> New Task </v-btn>
+      </teleport>
     </client-only>
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
     <template #aside>
       <div class="text-center">
-        <v-btn color="primary" @click="showCreateTaskDialog = true">New Task</v-btn>
         <v-expand-transition>
           <v-card rounded="xl" class="detail-card mt-4">
-            <v-card-title>Tasks</v-card-title>
             <v-card-text>
               <div class="d-flex ga-2 align-center align-items-center flex-wrap mb-4">
                 <v-file-input
@@ -567,21 +568,6 @@ watch(pullRequestState, async () => {
 
       <div v-if="project" class="project-detail-grid">
         <v-card rounded="xl" class="detail-card">
-          <v-card-title class="d-flex align-center justify-space-between ga-2 flex-wrap">
-            <span>GitHub repositories</span>
-            <div class="d-flex ga-2 flex-wrap">
-              <v-btn
-                variant="text"
-                size="small"
-                icon="mdi-refresh"
-                :loading="isLoadingGithubRepositories || isLoadingGithubAccountRepositories || isLoadingProjectRepositoryPullRequests || isLoadingProjectRepositoryBranches"
-                @click="() => { loadGithubRepositories(); loadGithubAccountRepositories(); loadSelectedRepositoryDetails() }"
-              />
-              <v-btn variant="text" size="small" prepend-icon="mdi-open-in-new" @click="openGithubRepository(githubRepositories[0]?.fullName || '')" :disabled="!githubRepositories.length">
-                Open GitHub view
-              </v-btn>
-            </div>
-          </v-card-title>
           <v-card-text>
             <v-alert v-if="githubRepositoryActionMessage" type="success" variant="tonal" class="mb-3">{{ githubRepositoryActionMessage }}</v-alert>
             <v-alert v-if="githubRepositoriesError" type="error" variant="tonal" class="mb-3">{{ githubRepositoriesError }}</v-alert>
@@ -656,92 +642,6 @@ watch(pullRequestState, async () => {
             </v-list>
             <v-alert v-else type="info" variant="tonal">Aucun repository GitHub lié à ce projet.</v-alert>
 
-            <v-divider class="my-4" />
-
-            <div class="d-flex align-center justify-space-between ga-2 flex-wrap mb-3">
-              <p class="text-subtitle-2 mb-0">
-                Repository details
-                <span v-if="selectedProjectGithubRepository" class="text-medium-emphasis">· {{ selectedProjectGithubRepository }}</span>
-              </p>
-              <v-select
-                  v-model="pullRequestState"
-                  label="Pull requests"
-                  :items="pullRequestStateOptions"
-                  item-title="title"
-                  item-value="value"
-                  density="compact"
-                  hide-details
-                  style="max-width: 170px;"
-                  :disabled="!selectedProjectGithubRepository"
-              />
-            </div>
-
-            <v-row dense>
-              <v-col cols="12" md="7">
-                <v-card variant="outlined" rounded="lg">
-                  <v-card-title class="text-subtitle-2">Pull requests</v-card-title>
-                  <v-card-text>
-                    <v-alert v-if="projectRepositoryPullRequestsError" type="error" variant="tonal" class="mb-3">{{ projectRepositoryPullRequestsError }}</v-alert>
-                    <v-skeleton-loader v-else-if="isLoadingProjectRepositoryPullRequests" type="list-item, list-item, list-item" />
-                    <v-list v-else-if="projectRepositoryPullRequests.length" lines="two">
-                      <v-list-item v-for="pullRequest in projectRepositoryPullRequests" :key="pullRequest.number">
-                        <v-list-item-title class="text-truncate">#{{ pullRequest.number }} · {{ pullRequest.title }}</v-list-item-title>
-                        <v-list-item-subtitle>{{ pullRequest.author }} · {{ pullRequest.head }} → {{ pullRequest.base }}</v-list-item-subtitle>
-                        <template #append>
-                          <v-chip :color="pullRequestStatusColor(pullRequest.state, pullRequest.mergedAt)" size="small" variant="tonal">
-                            {{ pullRequest.mergedAt ? 'merged' : pullRequest.state }}
-                          </v-chip>
-                        </template>
-                      </v-list-item>
-                    </v-list>
-                    <p v-else class="text-body-2 text-medium-emphasis mb-0">
-                      {{ selectedProjectGithubRepository ? 'No pull requests found for this repository.' : 'Select a repository to load pull requests.' }}
-                    </p>
-                    <div v-if="projectRepositoryPullRequestsPagination.totalPages > 1" class="mt-3 d-flex justify-end">
-                      <v-pagination
-                        :model-value="projectRepositoryPullRequestsPagination.page"
-                        :length="projectRepositoryPullRequestsPagination.totalPages"
-                        :total-visible="5"
-                        density="comfortable"
-                        @update:model-value="(page) => loadProjectRepositoryPullRequests(selectedProjectGithubRepository, Number(page))"
-                      />
-                    </div>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-              <v-col cols="12" md="5">
-                <v-card variant="outlined" rounded="lg">
-                  <v-card-title class="text-subtitle-2">Branches</v-card-title>
-                  <v-card-text>
-                    <v-alert v-if="projectRepositoryBranchesError" type="error" variant="tonal" class="mb-3">{{ projectRepositoryBranchesError }}</v-alert>
-                    <v-skeleton-loader v-else-if="isLoadingProjectRepositoryBranches" type="list-item, list-item, list-item" />
-                    <v-list v-else-if="projectRepositoryBranches.length" lines="two">
-                      <v-list-item v-for="branch in projectRepositoryBranches" :key="branch.sha">
-                        <v-list-item-title>{{ branch.name }}</v-list-item-title>
-                        <v-list-item-subtitle class="text-truncate">SHA: {{ branch.sha }}</v-list-item-subtitle>
-                        <template #append>
-                          <v-chip :color="branch.protected ? 'success' : 'default'" size="x-small" variant="tonal">
-                            {{ branch.protected ? 'Protected' : 'Open' }}
-                          </v-chip>
-                        </template>
-                      </v-list-item>
-                    </v-list>
-                    <p v-else class="text-body-2 text-medium-emphasis mb-0">
-                      {{ selectedProjectGithubRepository ? 'No branches found for this repository.' : 'Select a repository to load branches.' }}
-                    </p>
-                    <div v-if="projectRepositoryBranchesPagination.totalPages > 1" class="mt-3 d-flex justify-end">
-                      <v-pagination
-                        :model-value="projectRepositoryBranchesPagination.page"
-                        :length="projectRepositoryBranchesPagination.totalPages"
-                        :total-visible="5"
-                        density="comfortable"
-                        @update:model-value="(page) => loadProjectRepositoryBranches(selectedProjectGithubRepository, Number(page))"
-                      />
-                    </div>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-            </v-row>
           </v-card-text>
         </v-card>
         <v-expand-transition>

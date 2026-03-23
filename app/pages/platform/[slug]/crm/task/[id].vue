@@ -168,10 +168,10 @@ onMounted(loadTask)
   <PlatformSplitLayout>
     <client-only>
       <teleport to="#app-bar-teleport-target">
-        <v-btn variant="outlined" :loading="isLoading" @click="loadTask">Refresh</v-btn>
+        <v-btn variant="text" icon="mdi-refresh" :loading="isLoading" @click="loadTask"></v-btn>
       </teleport>
       <teleport to="#app-bar-teleport-target-right">
-        <v-btn color="primary" @click="showCreateTaskRequestDialog = true">Create task request</v-btn>
+        <v-btn  rounded="xl" variant="outlined" @click="showCreateTaskRequestDialog = true">Create task request</v-btn>
       </teleport>
     </client-only>
     <template #sidebar>
@@ -179,12 +179,6 @@ onMounted(loadTask)
     </template>
 
     <section>
-      <div class="d-flex align-center justify-space-between mb-4 ga-2 flex-wrap">
-        <div>
-          <h1 class="text-h5 font-weight-bold mb-1">Task detail</h1>
-        </div>
-      </div>
-
       <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
       <v-alert v-if="uploadErrorMessage" type="error" variant="tonal" class="mb-4">{{ uploadErrorMessage }}</v-alert>
 

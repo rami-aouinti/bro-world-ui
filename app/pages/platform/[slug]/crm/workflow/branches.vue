@@ -4,6 +4,7 @@ import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
 import { useCrmGithubWorkflow } from '~/composables/crm/useCrmGithubWorkflow'
 import type { CrmProject } from '~/types/api/crm'
+import { useCrmApi } from '~/composables/api/useCrmApi'
 
 definePageMeta({ public: true, requiresAuth: false })
 

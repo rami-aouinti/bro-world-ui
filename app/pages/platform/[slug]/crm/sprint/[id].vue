@@ -178,18 +178,42 @@ onMounted(loadSprint)
         <v-btn variant="text" icon="mdi-refresh" :loading="isLoading" @click="loadSprint"></v-btn>
       </teleport>
       <teleport to="#app-bar-teleport-target-right">
-        <v-btn color="primary" variant="text" @click="showCreateTaskDialog = true" icon="mdi-plus"></v-btn>
+        <v-btn rounded="xl" variant="outlined"  @click="showCreateTaskDialog = true"> Add Task </v-btn>
       </teleport>
     </client-only>
     <template #sidebar>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
-
+    <template #aside>
+      <v-card v-if="sprint" rounded="xl" class="mb-4">
+        <v-card-title>Tasks</v-card-title>
+        <v-card-text>
+          <v-row v-if="(sprint.tasks || []).length" dense>
+            <v-col v-for="item in sprint.tasks || []" :key="item.id" cols="12">
+              <v-card variant="tonal" class="task-card" @click="openTaskDetail(item.id)">
+                <v-card-text>
+                  <div class="d-flex justify-space-between align-start ga-2">
+                    <p class="text-subtitle-2 font-weight-bold mb-1">{{ getTaskTitle(item) }}</p>
+                    <v-menu location="bottom end">
+                      <template #activator="{ props }">
+                        <v-btn v-bind="props" icon="mdi-cog" size="x-small" variant="text" @click.stop />
+                      </template>
+                      <v-list density="compact">
+                        <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="editSprintTask(item.id)" />
+                        <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="deleteSprintTask(item.id)" />
+                      </v-list>
+                    </v-menu>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+          <p v-else class="text-body-2 text-medium-emphasis">No tasks available.</p>
+        </v-card-text>
+      </v-card>
+    </template>
     <section>
-      <div class="d-flex align-center justify-space-between mb-4 ga-2 flex-wrap">
-        <div>
-          <h1 class="text-h5 font-weight-bold mb-1">Sprint detail</h1>
-        </div>
+      <div class="d-flex align-center justify-space-between mb-2 ga-2 flex-wrap">
         <div class="d-flex ga-2 flex-wrap">
           <v-menu location="bottom end">
             <template #activator="{ props }">
@@ -210,7 +234,7 @@ onMounted(loadSprint)
         <v-skeleton-loader type="heading, list-item-three-line, list-item-three-line" />
       </template>
 
-      <v-card v-if="sprint" rounded="xl" class="mb-4">
+      <v-card v-if="sprint" rounded="xl" class="mb-2">
         <v-card-text class="d-grid ga-2">
           <p><strong>Name:</strong> {{ sprint.name }}</p>
           <p><strong>Goal:</strong> {{ sprint.goal || 'N/A' }}</p>
@@ -218,39 +242,6 @@ onMounted(loadSprint)
           <p><strong>Project name:</strong> {{ sprint.project?.name || 'N/A' }}</p>
           <p><strong>Start date:</strong> {{ sprint.startDate || 'N/A' }}</p>
           <p><strong>End date:</strong> {{ sprint.endDate || 'N/A' }}</p>
-        </v-card-text>
-      </v-card>
-
-
-      <v-card v-if="sprint" rounded="xl" class="mb-4">
-        <v-card-title>Tasks</v-card-title>
-        <v-card-text>
-          <v-row v-if="(sprint.tasks || []).length" dense>
-            <v-col v-for="item in sprint.tasks || []" :key="item.id" cols="12" md="6">
-              <v-card variant="tonal" class="task-card" @click="openTaskDetail(item.id)">
-                <v-card-text>
-                  <div class="d-flex justify-space-between align-start ga-2">
-                    <p class="text-subtitle-2 font-weight-bold mb-1">{{ getTaskTitle(item) }}</p>
-                    <v-menu location="bottom end">
-                      <template #activator="{ props }">
-                        <v-btn v-bind="props" icon="mdi-cog" size="x-small" variant="text" @click.stop />
-                      </template>
-                      <v-list density="compact">
-                        <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="editSprintTask(item.id)" />
-                        <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="deleteSprintTask(item.id)" />
-                      </v-list>
-                    </v-menu>
-                  </div>
-                  <p class="text-body-2 text-medium-emphasis mb-2">{{ item.description || 'No description' }}</p>
-                  <div class="d-flex align-center justify-space-between ga-2 flex-wrap">
-                    <v-chip size="small" variant="tonal">{{ item.status }}</v-chip>
-                    <span class="text-caption text-medium-emphasis">{{ item.dueAt || 'N/A' }}</span>
-                  </div>
-                </v-card-text>
-              </v-card>
-            </v-col>
-          </v-row>
-          <p v-else class="text-body-2 text-medium-emphasis">No tasks available.</p>
         </v-card-text>
       </v-card>
 

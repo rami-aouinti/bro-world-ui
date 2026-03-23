@@ -309,67 +309,78 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
     <template #sidebar>
       <div class="ga-3 d-flex flex-column">
         <h3> Platform </h3>
-        <div class="platform-page__platform-key-buttons mb-4">
-          <v-btn
-              v-for="platformKey in platformKeyOptions"
-              :key="platformKey"
-              :color="
-                    selectedPlatformKey === platformKey ? 'primary' : undefined
-                  "
-              :variant="
-                    selectedPlatformKey === platformKey ? 'flat' : 'outlined'
-                  "
-              size="small"
-              rounded="xl"
-              variant="text"
-              class="text-lowercase mx-auto"
-              @click="togglePlatformKey(platformKey)"
-          >
-            {{ platformKey }}
-          </v-btn>
-        </div>
+        <UiCard
+            @click="goToNewPlatform"
+            class="home-hero platform-page__application-card"
+            height="200"
+            variant="outlined"
+            rounded="xl"
+            elevation="8"
+        >
+          <v-card-text>
+            <div class="d-flex flex-column align-center">
+              <v-icon icon="mdi-earth" size="64" class="mx-auto" color="primary" />
+              <h3> {{ t("platform.newPlatform.worldTitle") }} </h3>
+            </div>
+          </v-card-text>
+        </UiCard>
 
-        <div class="platform-page__filters-actions">
-          <v-btn color="primary" block @click="applyFilters">{{
-              t("platform.filters.apply")
-            }}</v-btn>
-          <v-btn
-              variant="text"
-              block
-              class="mt-2"
-              @click="clearFilters"
-          >{{ t("platform.filters.clear") }}</v-btn
+        <div class="d-flex flex-column align-center mt-4">
+          <article
+              v-for="highlight in summaryHighlights"
+              :key="highlight.label"
+              class="platform-page__highlight"
           >
+            <v-icon :icon="highlight.icon" size="20" color="primary" />
+            <p class="platform-page__highlight-label px-2">{{ highlight.label }}</p>
+            <p class="platform-page__highlight-value px-2">{{ highlight.value }}</p>
+          </article>
         </div>
       </div>
     </template>
 
     <template #aside>
-      <UiCard
-          @click="goToNewPlatform"
-          class="home-hero platform-page__application-card"
-          height="200"
+      <h3> Filter </h3>
+      <v-text-field
+          v-model="search"
+          :label="t('platform.filters.search')"
           variant="outlined"
+          density="compact"
           rounded="xl"
-          elevation="8"
-      >
-        <v-card-text>
-          <div class="d-flex flex-column align-center">
-            <v-icon icon="mdi-earth" size="64" class="mx-auto" color="primary" />
-            <h3> {{ t("platform.newPlatform.worldTitle") }} </h3>
-          </div>
-        </v-card-text>
-      </UiCard>
-      <div class="d-flex flex-column align-center mt-4">
-        <article
-            v-for="highlight in summaryHighlights"
-            :key="highlight.label"
-            class="platform-page__highlight"
+          hide-details
+          @keyup.enter="applyFilters"
+      />
+      <div class="platform-page__platform-key-buttons mt-3 mb-4">
+        <v-btn
+            v-for="platformKey in platformKeyOptions"
+            :key="platformKey"
+            :color="
+                    selectedPlatformKey === platformKey ? 'primary' : undefined
+                  "
+            :variant="
+                    selectedPlatformKey === platformKey ? 'flat' : 'outlined'
+                  "
+            size="small"
+            rounded="xl"
+            variant="text"
+            class="text-lowercase mx-auto"
+            @click="togglePlatformKey(platformKey)"
         >
-          <v-icon :icon="highlight.icon" size="20" color="primary" />
-          <p class="platform-page__highlight-label px-2">{{ highlight.label }}</p>
-          <p class="platform-page__highlight-value px-2">{{ highlight.value }}</p>
-        </article>
+          {{ platformKey }}
+        </v-btn>
+      </div>
+
+      <div class="platform-page__filters-actions">
+        <v-btn color="primary" block @click="applyFilters">{{
+            t("platform.filters.apply")
+          }}</v-btn>
+        <v-btn
+            variant="text"
+            block
+            class="mt-2"
+            @click="clearFilters"
+        >{{ t("platform.filters.clear") }}</v-btn
+        >
       </div>
     </template>
 
@@ -400,15 +411,6 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
           </template>
         </UiEmptyState>
         <div v-else class="platform-page__content">
-          <v-text-field
-              v-model="search"
-              :label="t('platform.filters.search')"
-              variant="outlined"
-              density="compact"
-              rounded="xl"
-              hide-details
-              @keyup.enter="applyFilters"
-          />
           <v-row class="mt-2">
             <v-col cols="12" md="6" lg="6" v-for="card in applicationsStore.items" :key="card.id">
               <UiCard
@@ -421,7 +423,7 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
                 <v-toolbar color="transparent">
                   <NuxtLink :to="appHomePath(card)" class="platform-page__row-main-link">
                     <v-toolbar-title class="mt-4 mx-auto">
-                      <p class="platform-page__row-title">{{ card.title }}</p>
+                      <p class="platform-page__row-title text-truncate">{{ card.title }}</p>
                     </v-toolbar-title>
                   </NuxtLink>
 
@@ -775,13 +777,13 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
 .platform-page__row-title {
   margin: 0;
   font-weight: 700;
-  font-size: 1.2rem;
+  font-size: 0.8rem;
   line-height: 1.2;
 }
 
 .platform-page__row-description {
   margin: var(--platform-space-1) 0 0;
-  font-size: 0.95rem;
+  font-size: 0.75rem;
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
