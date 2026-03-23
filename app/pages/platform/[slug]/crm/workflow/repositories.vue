@@ -3,8 +3,9 @@ import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
 import { useCrmGithubWorkflow } from '~/composables/crm/useCrmGithubWorkflow'
-import type { CrmProject } from '~/types/api/crm'
+import type { CrmGithubRepository, CrmProject } from '~/types/api/crm'
 import { useCrmApi } from '~/composables/api/useCrmApi'
+import { useListingPagination } from '~/composables/useListingPagination'
 
 definePageMeta({ public: true, requiresAuth: false })
 
@@ -19,6 +20,8 @@ const projectError = ref('')
 const projects = ref<CrmProject[]>([])
 const selectedProjectId = ref('')
 const selectedRepo = ref('')
+const selectedItem = ref<CrmGithubRepository | null>(null)
+const showFilters = ref(true)
 
 const {
   repositories,
@@ -31,8 +34,15 @@ const {
   repository: selectedRepo,
 })
 
+const {
+  page,
+  pageLength,
+  paginatedItems: paginatedRepositories,
+  shouldShowPagination,
+} = useListingPagination(repositories, [selectedProjectId])
+
 const projectOptions = computed(() => projects.value.map(project => ({ title: project.name, value: project.id })))
-const orderedRepositories = computed(() => repositories.value.slice().sort((a, b) => a.fullName.localeCompare(b.fullName)))
+const orderedRepositories = computed(() => paginatedRepositories.value.slice().sort((a, b) => a.fullName.localeCompare(b.fullName)))
 const pageLoading = computed(() => isLoadingProjects.value || isLoading.repositories)
 const errorMessage = computed(() => projectError.value || errors.repositories)
 
@@ -48,6 +58,8 @@ const loadProjects = async () => {
 
     if (selectedProjectId.value && !projects.value.some(project => project.id === selectedProjectId.value)) {
       selectedProjectId.value = ''
+      selectedItem.value = null
+      showFilters.value = true
     }
   }
   catch {
@@ -65,7 +77,14 @@ const loadData = async () => {
   await loadRepositories()
 }
 
+const selectRepository = (repository: CrmGithubRepository) => {
+  selectedItem.value = repository
+  showFilters.value = false
+}
+
 watch(selectedProjectId, async () => {
+  selectedItem.value = null
+  showFilters.value = true
   await loadRepositories()
 })
 
@@ -98,7 +117,7 @@ onMounted(loadData)
     </template>
 
     <template #aside>
-      <v-card rounded="xl" variant="outlined">
+      <v-card v-if="showFilters" rounded="xl" variant="outlined">
         <v-card-title class="text-subtitle-1">Workflow filters</v-card-title>
         <v-card-text>
           <v-select
@@ -112,6 +131,15 @@ onMounted(loadData)
           />
         </v-card-text>
       </v-card>
+      <v-card v-else-if="selectedItem" rounded="xl" variant="text">
+        <v-btn size="small" variant="tonal" prepend-icon="mdi-filter-outline" @click="showFilters = true">Filter</v-btn>
+        <v-card-title class="px-0">{{ selectedItem.fullName }}</v-card-title>
+        <v-card-text class="px-0 d-flex flex-column ga-2">
+          <v-chip size="small" variant="tonal">Default branch: {{ selectedItem.defaultBranch || 'N/A' }}</v-chip>
+          <v-chip size="small" :color="selectedItem.private ? 'warning' : 'success'" variant="tonal">{{ selectedItem.private ? 'Private' : 'Public' }}</v-chip>
+          <v-btn :href="`https://github.com/${selectedItem.fullName}`" target="_blank" rel="noopener noreferrer" variant="outlined" prepend-icon="mdi-open-in-new">Open on GitHub</v-btn>
+        </v-card-text>
+      </v-card>
     </template>
 
     <section>
@@ -123,11 +151,11 @@ onMounted(loadData)
             Sélectionnez un projet CRM dans le panneau de droite pour afficher les repositories.
           </v-alert>
           <v-skeleton-loader v-else-if="pageLoading" type="list-item-three-line, list-item-three-line, list-item-three-line" />
-          <v-alert v-else-if="!orderedRepositories.length" type="info" variant="tonal">
+          <v-alert v-else-if="!repositories.length" type="info" variant="tonal">
             Aucun repository GitHub lié à ce projet CRM.
           </v-alert>
           <v-list v-else lines="two" border rounded>
-            <v-list-item v-for="repository in orderedRepositories" :key="repository.fullName" :href="`https://github.com/${repository.fullName}`" target="_blank" rel="noopener noreferrer">
+            <v-list-item v-for="repository in orderedRepositories" :key="repository.fullName" @click="selectRepository(repository)">
               <template #prepend>
                 <v-avatar color="grey-darken-4" size="36"><v-icon icon="mdi-github" /></v-avatar>
               </template>
@@ -138,6 +166,9 @@ onMounted(loadData)
             </v-list-item>
           </v-list>
         </v-card-text>
+        <v-card-actions v-if="shouldShowPagination" class="justify-center">
+          <v-pagination v-model="page" :length="pageLength" total-visible="4" />
+        </v-card-actions>
       </v-card>
     </section>
   </PlatformSplitLayout>

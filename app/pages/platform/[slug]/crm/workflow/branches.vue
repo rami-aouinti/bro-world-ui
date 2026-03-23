@@ -3,7 +3,7 @@ import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
 import { useCrmGithubWorkflow } from '~/composables/crm/useCrmGithubWorkflow'
-import type { CrmProject } from '~/types/api/crm'
+import type { CrmGithubBranch, CrmProject } from '~/types/api/crm'
 import { useCrmApi } from '~/composables/api/useCrmApi'
 
 definePageMeta({ public: true, requiresAuth: false })
@@ -19,6 +19,8 @@ const projectError = ref('')
 const projects = ref<CrmProject[]>([])
 const selectedProjectId = ref('')
 const selectedRepo = ref('')
+const selectedItem = ref<CrmGithubBranch | null>(null)
+const showFilters = ref(true)
 
 const {
   repositories,
@@ -38,6 +40,7 @@ const projectOptions = computed(() => projects.value.map(project => ({ title: pr
 const repoOptions = computed(() => repositories.value.map(item => item.fullName))
 const pageLoading = computed(() => isLoadingProjects.value || isLoading.repositories || isLoading.branches)
 const errorMessage = computed(() => projectError.value || errors.repositories || errors.branches)
+const createBranchUrl = computed(() => selectedRepo.value ? `https://github.com/${selectedRepo.value}/branches` : '')
 
 const loadProjects = async () => {
   if (!slug.value) return
@@ -69,12 +72,20 @@ const loadData = async () => {
   await loadBranches(branchesPagination.value.page)
 }
 
+const selectBranch = (branch: CrmGithubBranch) => {
+  selectedItem.value = branch
+  showFilters.value = false
+}
+
 watch(selectedProjectId, async () => {
+  selectedItem.value = null
+  showFilters.value = true
   await loadRepositories()
   await loadBranches(1)
 })
 
 watch(selectedRepo, async () => {
+  selectedItem.value = null
   await loadBranches(1)
 })
 
@@ -95,6 +106,9 @@ onMounted(loadData)
           @click="loadData"
         />
       </teleport>
+      <teleport to="#app-bar-teleport-target-right">
+        <v-btn rounded="xl" variant="outlined" prepend-icon="mdi-plus" :disabled="!createBranchUrl" :href="createBranchUrl" target="_blank" rel="noopener noreferrer">New Branch</v-btn>
+      </teleport>
     </client-only>
 
     <template #sidebar>
@@ -107,27 +121,20 @@ onMounted(loadData)
     </template>
 
     <template #aside>
-      <v-card rounded="xl" variant="outlined">
+      <v-card v-if="showFilters" rounded="xl" variant="outlined">
         <v-card-title class="text-subtitle-1">Workflow filters</v-card-title>
         <v-card-text class="d-flex flex-column ga-3">
-          <v-select
-            v-model="selectedProjectId"
-            label="Project"
-            density="comfortable"
-            variant="outlined"
-            hide-details
-            clearable
-            :items="projectOptions"
-          />
-          <v-select
-            v-model="selectedRepo"
-            label="Repository"
-            density="comfortable"
-            variant="outlined"
-            hide-details
-            :disabled="!selectedProjectId || !repoOptions.length"
-            :items="repoOptions"
-          />
+          <v-select v-model="selectedProjectId" label="Project" density="comfortable" variant="outlined" hide-details clearable :items="projectOptions" />
+          <v-select v-model="selectedRepo" label="Repository" density="comfortable" variant="outlined" hide-details :disabled="!selectedProjectId || !repoOptions.length" :items="repoOptions" />
+        </v-card-text>
+      </v-card>
+      <v-card v-else-if="selectedItem" rounded="xl" variant="text">
+        <v-btn size="small" variant="tonal" prepend-icon="mdi-filter-outline" @click="showFilters = true">Filter</v-btn>
+        <v-card-title class="px-0">{{ selectedItem.name }}</v-card-title>
+        <v-card-text class="px-0 d-flex flex-column ga-2">
+          <v-chip size="small" :color="selectedItem.protected ? 'warning' : 'info'" variant="tonal">{{ selectedItem.protected ? 'Protected' : 'Unprotected' }}</v-chip>
+          <div class="text-body-2">SHA: {{ selectedItem.sha }}</div>
+          <v-btn :href="`https://github.com/${selectedRepo}/tree/${selectedItem.name}`" target="_blank" rel="noopener noreferrer" variant="outlined" prepend-icon="mdi-open-in-new">Open branch</v-btn>
         </v-card-text>
       </v-card>
     </template>
@@ -149,7 +156,7 @@ onMounted(loadData)
             Aucune branche trouvée pour ce repository.
           </v-alert>
           <v-list v-else lines="two" border rounded>
-            <v-list-item v-for="branch in branches" :key="branch.sha">
+            <v-list-item v-for="branch in branches" :key="branch.sha" @click="selectBranch(branch)">
               <template #prepend>
                 <v-avatar :color="branch.protected ? 'warning' : 'info'" variant="tonal" size="34">
                   <v-icon icon="mdi-source-branch" />
@@ -162,6 +169,9 @@ onMounted(loadData)
             </v-list-item>
           </v-list>
         </v-card-text>
+        <v-card-actions v-if="branchesPagination.totalPages > 1" class="justify-center">
+          <v-pagination :model-value="branchesPagination.page" :length="branchesPagination.totalPages" total-visible="5" @update:model-value="(value) => loadBranches(Number(value))" />
+        </v-card-actions>
       </v-card>
     </section>
   </PlatformSplitLayout>

@@ -52,7 +52,7 @@ const pullRequestStateOptions = [
 ] satisfies Array<{ title: string; value: CrmGithubPullRequestState }>
 const projectRepositoryPullRequests = ref<CrmGithubPullRequestListItem[]>([])
 const projectRepositoryBranches = ref<CrmGithubBranch[]>([])
-const githubAccountRepositoriesPagination = ref({ page: 1, limit: 15, totalItems: 0, totalPages: 1, hasNextPage: false })
+const githubAccountRepositoriesPagination = ref({ page: 1, limit: 100, totalItems: 0, totalPages: 1, hasNextPage: false })
 const projectRepositoryPullRequestsPagination = ref({ page: 1, limit: 10, totalItems: 0, totalPages: 1, hasNextPage: false })
 const projectRepositoryBranchesPagination = ref({ page: 1, limit: 10, totalItems: 0, totalPages: 1, hasNextPage: false })
 const isLoadingProjectRepositoryPullRequests = ref(false)
@@ -400,7 +400,7 @@ const selectProjectGithubRepository = async (repositoryFullName: string) => {
   await loadSelectedRepositoryDetails()
 }
 
-const loadGithubAccountRepositories = async (page = 1) => {
+const loadGithubAccountRepositories = async () => {
   if (!slug.value || !projectId.value) {
     return
   }
@@ -408,17 +408,27 @@ const loadGithubAccountRepositories = async (page = 1) => {
   isLoadingGithubAccountRepositories.value = true
   githubAccountRepositoriesError.value = ''
   try {
-    const response = await crmApi.getProjectGithubAccountRepositories(slug.value, projectId.value, {
-      page,
-      limit: githubAccountRepositoriesPagination.value.limit,
-    })
-    githubAccountRepositories.value = response?.items ?? []
+    let page = 1
+    let hasNextPage = true
+    const repositories: CrmGithubAccountRepository[] = []
+
+    while (hasNextPage) {
+      const response = await crmApi.getProjectGithubAccountRepositories(slug.value, projectId.value, {
+        page,
+        limit: githubAccountRepositoriesPagination.value.limit,
+      })
+      repositories.push(...(response?.items ?? []))
+      hasNextPage = Boolean(response.pagination?.hasNextPage)
+      page += 1
+    }
+
+    githubAccountRepositories.value = repositories
     githubAccountRepositoriesPagination.value = {
-      page: response.pagination?.page ?? page,
-      limit: response.pagination?.limit ?? githubAccountRepositoriesPagination.value.limit,
-      totalItems: response.pagination?.totalItems ?? response.items.length,
-      totalPages: response.pagination?.totalPages ?? 1,
-      hasNextPage: response.pagination?.hasNextPage ?? false,
+      page: 1,
+      limit: githubAccountRepositoriesPagination.value.limit,
+      totalItems: repositories.length,
+      totalPages: 1,
+      hasNextPage: false,
     }
   }
   catch {
@@ -607,15 +617,6 @@ watch(pullRequestState, async () => {
                     ? `${githubAccountRepositoryOptions.length} repositories available to link.`
                     : 'All account repositories are already linked or no repository is available.' }}
                 </p>
-                <div v-if="githubAccountRepositoriesPagination.totalPages > 1" class="mt-3 d-flex justify-end">
-                  <v-pagination
-                    :model-value="githubAccountRepositoriesPagination.page"
-                    :length="githubAccountRepositoriesPagination.totalPages"
-                    :total-visible="5"
-                    density="comfortable"
-                    @update:model-value="(page) => loadGithubAccountRepositories(Number(page))"
-                  />
-                </div>
               </v-card-text>
             </v-card>
 
