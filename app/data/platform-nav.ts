@@ -34,6 +34,12 @@ const platformFeatureFlags: Record<PlatformName, Record<string, boolean>> = {
     dashboard: true,
     companies: true,
     projects: true,
+    workflow: true,
+    workflowProjects: true,
+    workflowRepositories: true,
+    workflowIssues: true,
+    workflowPullRequests: true,
+    workflowBranches: true,
     tasks: true,
     kanaban: true,
     contacts: true,
@@ -86,7 +92,22 @@ const isFeatureEnabled = (platform: PlatformName, item: PlatformNavItem) => {
   return platformFeatureFlags[platform][item.featureFlag] !== false
 }
 
-const resolveNav = (platform: PlatformName, nav: PlatformNavItem[], isOwner: boolean) => nav.filter((item) => hasAccess(item, isOwner) && isFeatureEnabled(platform, item))
+const resolveNavItem = (platform: PlatformName, item: PlatformNavItem, isOwner: boolean): PlatformNavItem | null => {
+  if (!hasAccess(item, isOwner) || !isFeatureEnabled(platform, item)) return null
+
+  if (!item.children?.length) return item
+
+  const children = item.children
+    .map((child) => resolveNavItem(platform, child as PlatformNavItem, isOwner))
+    .filter((child): child is PlatformNavItem => child !== null)
+
+  return { ...item, children }
+}
+
+const resolveNav = (platform: PlatformName, nav: PlatformNavItem[], isOwner: boolean) =>
+  nav
+    .map((item) => resolveNavItem(platform, item, isOwner))
+    .filter((item): item is PlatformNavItem => item !== null)
 
 export const getCrmNav = (slug: string, isOwner = false): PlatformNavItem[] => {
   const base = `/platform/${slug}/crm`
@@ -96,6 +117,20 @@ export const getCrmNav = (slug: string, isOwner = false): PlatformNavItem[] => {
     { title: 'Kanaban', icon: 'mdi-robot-outline', to: `${base}/kanaban`, section: 'operations', featureFlag: 'kanaban' },
     { title: 'platform.crm.nav.tasks', icon: 'mdi-format-list-bulleted-square', to: `${base}/tasks`, section: 'operations', featureFlag: 'tasks' },
     { title: 'platform.crm.nav.sprint', icon: 'mdi-run-fast', to: `${base}/sprint`, section: 'operations', featureFlag: 'sprint' },
+    {
+      title: 'platform.crm.nav.workflow',
+      icon: 'mdi-source-branch',
+      to: `${base}/workflow/projects`,
+      section: 'operations',
+      featureFlag: 'workflow',
+      children: [
+        { title: 'platform.crm.nav.workflow.projects', icon: 'mdi-briefcase-outline', to: `${base}/workflow/projects`, featureFlag: 'workflowProjects' },
+        { title: 'platform.crm.nav.workflow.repositories', icon: 'mdi-source-repository', to: `${base}/workflow/repositories`, featureFlag: 'workflowRepositories' },
+        { title: 'platform.crm.nav.workflow.issues', icon: 'mdi-alert-circle-outline', to: `${base}/workflow/issues`, featureFlag: 'workflowIssues' },
+        { title: 'platform.crm.nav.workflow.pullRequests', icon: 'mdi-source-pull', to: `${base}/workflow/pull-requests`, featureFlag: 'workflowPullRequests' },
+        { title: 'platform.crm.nav.workflow.branches', icon: 'mdi-source-branch', to: `${base}/workflow/branches`, featureFlag: 'workflowBranches' },
+      ],
+    },
     { title: 'platform.crm.nav.calendar', icon: 'mdi-calendar-month-outline', to: `${base}/calendar`, section: 'operations', featureFlag: 'calendar' },
     { title: 'platform.crm.nav.settings', icon: 'mdi-cog-outline', to: `${base}/settings`, section: 'operations', featureFlag: 'settings' },
     { title: 'platform.common.nav.admin', icon: 'mdi-shield-outline', to: `${base}/admin`, section: 'admin', rights: 'owner', featureFlag: 'admin' },
