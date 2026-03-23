@@ -265,10 +265,26 @@ onMounted(async () => {
                 <p class="mb-0"><strong>Téléphone:</strong> {{ contact.phone || 'N/A' }}</p>
                 <p class="mb-0"><strong>Ville:</strong> {{ contact.city || 'N/A' }}</p>
               </div>
-              <div class="d-flex ga-2 justify-end">
-                <v-btn size="small" variant="text" icon="mdi-eye" @click.stop="openViewDialog(contact)" />
-                <v-btn size="small" variant="tonal" @click.stop="openEditDialog(contact)">Edit</v-btn>
-                <v-btn size="small" color="error" variant="tonal" @click.stop="removeContact(contact.id)">Delete</v-btn>
+              <div class="d-flex justify-between ga-2">
+                <v-btn variant="outlined" rounded="xl" class="text-body-2" @click.stop="openViewDialog(contact)">Open</v-btn>
+                <v-spacer />
+                <v-menu location="bottom end">
+                  <template #activator="{ props }">
+                    <v-btn
+                      v-bind="props"
+                      variant="outlined"
+                      rounded="xl"
+                      class="text-body-2"
+                      @click.stop
+                    >
+                      Manage
+                    </v-btn>
+                  </template>
+                  <v-list density="compact">
+                    <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="openEditDialog(contact)" />
+                    <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="removeContact(contact.id)" />
+                  </v-list>
+                </v-menu>
               </div>
             </v-card-text>
           </v-card>

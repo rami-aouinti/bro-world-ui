@@ -86,6 +86,7 @@ const formatDate = (date: string | null) => {
     timeStyle: 'short',
   }).format(new Date(date))
 }
+const goToBilling = (id: string) => navigateTo(`/platform/${slug.value}/crm/billing/${id}`)
 
 const selectBilling = (billing: CrmBilling) => {
   selectedItem.value = billing
@@ -290,9 +291,26 @@ onMounted(async () => {
               <p class="text-body-2 mb-1">{{ formatAmount(billing.amount, billing.currency) }}</p>
               <p class="text-body-2 text-medium-emphasis mb-1">Due: {{ formatDate(billing.dueAt) }}</p>
               <p class="text-body-2 text-medium-emphasis mb-3">Paid: {{ formatDate(billing.paidAt) }}</p>
-              <div class="d-flex ga-2">
-                <v-btn size="small" variant="tonal" @click.stop="openEditDialog(billing.id)">Edit</v-btn>
-                <v-btn size="small" color="error" variant="tonal" :loading="isMutating" @click.stop="removeBilling(billing.id)">Delete</v-btn>
+              <div class="d-flex justify-between ga-2">
+                <v-btn variant="outlined" rounded="xl" class="text-body-2" @click.stop="goToBilling(billing.id)">Open</v-btn>
+                <v-spacer />
+                <v-menu location="bottom end">
+                  <template #activator="{ props }">
+                    <v-btn
+                      v-bind="props"
+                      variant="outlined"
+                      rounded="xl"
+                      class="text-body-2"
+                      @click.stop
+                    >
+                      Manage
+                    </v-btn>
+                  </template>
+                  <v-list density="compact">
+                    <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="openEditDialog(billing.id)" />
+                    <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="removeBilling(billing.id)" />
+                  </v-list>
+                </v-menu>
               </div>
             </v-card-text>
           </v-card>
