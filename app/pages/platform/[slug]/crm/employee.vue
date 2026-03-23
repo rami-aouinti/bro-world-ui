@@ -164,7 +164,7 @@ onMounted(async () => {
     </template>
 
     <template #app-bar-right>
-      <v-btn rounded="xl" variant="outlined" @click="showCreateDialog = true">Ajouter un employé</v-btn>
+      <v-btn rounded="xl" variant="outlined" @click="showCreateDialog = true">Add employee</v-btn>
     </template>
 
     <template #sidebar>
@@ -194,13 +194,6 @@ onMounted(async () => {
     </template>
 
     <template #cards>
-      <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
-        <div>
-          <h1 class="text-h5 font-weight-bold mb-1">Employees</h1>
-          <p class="text-body-2 text-medium-emphasis">Liste des employés du CRM Sales Hub ({{ paginationTotal }}).</p>
-        </div>
-      </div>
-
       <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
         {{ errorMessage }}
       </v-alert>
@@ -212,16 +205,13 @@ onMounted(async () => {
       </v-row>
 
       <v-row v-else>
-        <v-col v-for="employee in paginatedEmployees" :key="employee.id" cols="12" md="6" lg="4">
+        <v-col v-for="employee in paginatedEmployees" :key="employee.id" cols="12" md="6">
           <v-card rounded="xl" variant="outlined" class="h-100 cursor-pointer" @click="selectEmployee(employee)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start ga-2 mb-2">
                 <p class="text-subtitle-1 font-weight-bold mb-0">{{ fullName(employee) }}</p>
                 <v-chip size="small" color="primary" variant="tonal">{{ employee.roleName || 'N/A' }}</v-chip>
               </div>
-              <p class="text-body-2 mb-1"><strong>Email:</strong> {{ employee.email || 'N/A' }}</p>
-              <p class="text-body-2 mb-1"><strong>Poste:</strong> {{ employee.positionName || 'N/A' }}</p>
-              <p class="text-body-2 text-medium-emphasis mb-3"><strong>Créé le:</strong> {{ formatDate(employee.createdAt) }}</p>
               <div class="d-flex justify-between ga-2">
                 <v-btn variant="outlined" rounded="xl" class="text-body-2" @click.stop="openEmployee(employee)">Open</v-btn>
                 <v-spacer />
@@ -254,7 +244,7 @@ onMounted(async () => {
     <template #dialogs>
       <v-dialog v-model="showCreateDialog" max-width="560">
         <v-card>
-          <v-card-title>Ajouter un employé</v-card-title>
+          <v-card-title>Add employee</v-card-title>
           <v-card-text>
             <v-row>
               <v-col cols="12" md="6"><v-text-field v-model="createForm.firstName" label="Prénom" required /></v-col>

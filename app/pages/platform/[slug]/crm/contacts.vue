@@ -208,7 +208,7 @@ onMounted(async () => {
     </template>
 
     <template #app-bar-right>
-      <v-btn rounded="xl" variant="outlined" @click="showCreateDialog = true">Ajouter un contact</v-btn>
+      <v-btn rounded="xl" variant="outlined" @click="showCreateDialog = true">Add contact</v-btn>
     </template>
 
     <template #sidebar>
@@ -238,13 +238,6 @@ onMounted(async () => {
     </template>
 
     <template #cards>
-      <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
-        <div>
-          <h1 class="text-h5 font-weight-bold mb-1">Contacts</h1>
-          <p class="text-body-2 text-medium-emphasis">Créer, modifier et supprimer les contacts du CRM.</p>
-        </div>
-      </div>
-
       <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
         {{ errorMessage }}
       </v-alert>
@@ -256,7 +249,7 @@ onMounted(async () => {
       </v-row>
 
       <v-row v-else>
-        <v-col v-for="contact in paginatedContacts" :key="contact.id" cols="12" md="6" lg="4">
+        <v-col v-for="contact in paginatedContacts" :key="contact.id" cols="12" md="6">
           <v-card rounded="xl" variant="outlined" class="h-100 cursor-pointer" @click="selectContact(contact)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-3 ga-2">
@@ -265,11 +258,6 @@ onMounted(async () => {
                   <p class="text-body-2 text-medium-emphasis mb-0">{{ contact.jobTitle || 'N/A' }}</p>
                 </div>
                 <v-chip size="small" color="primary" variant="tonal">Score {{ contact.score ?? 'N/A' }}</v-chip>
-              </div>
-              <div class="d-flex flex-column ga-1 text-body-2 mb-3">
-                <p class="mb-0"><strong>Email:</strong> {{ contact.email || 'N/A' }}</p>
-                <p class="mb-0"><strong>Téléphone:</strong> {{ contact.phone || 'N/A' }}</p>
-                <p class="mb-0"><strong>Ville:</strong> {{ contact.city || 'N/A' }}</p>
               </div>
               <div class="d-flex justify-between ga-2">
                 <v-btn variant="outlined" rounded="xl" class="text-body-2" @click.stop="openViewDialog(contact)">Open</v-btn>

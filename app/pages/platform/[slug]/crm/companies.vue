@@ -160,11 +160,13 @@ onMounted(async () => {
     <template #selected>
       <v-card v-if="selectedItem" rounded="xl" variant="text">
         <v-btn size="small" variant="tonal" prepend-icon="mdi-filter-outline" @click="showFiltersPanel">Filter</v-btn>
-        <h4 class="text-truncate">{{ selectedItem.name }}</h4>
+        <NuxtLink :to="selectedItem?.website" class="text-decoration-none">
+          <h4 class="text-truncate">{{ selectedItem?.name }}</h4>
+        </NuxtLink>
         <v-card-text>
-          <p class="text-body-2 mb-1"><strong>Industry:</strong> {{ selectedItem.industry || 'N/A' }}</p>
-          <p class="text-body-2 mb-1"><strong>Email:</strong> {{ selectedItem.contactEmail || 'N/A' }}</p>
-          <p class="text-body-2 mb-0"><strong>Phone:</strong> {{ selectedItem.phone || 'N/A' }}</p>
+          <p class="text-body-2 mb-1"><strong>Industry:</strong> {{ selectedItem?.industry || 'N/A' }}</p>
+          <p class="text-body-2 mb-1"><strong>Email:</strong> {{ selectedItem?.contactEmail || 'N/A' }}</p>
+          <p class="text-body-2 mb-0"><strong>Phone:</strong> {{ selectedItem?.phone || 'N/A' }}</p>
         </v-card-text>
       </v-card>
     </template>
@@ -185,13 +187,8 @@ onMounted(async () => {
           <v-card rounded="xl" variant="outlined" hover class="h-100 cursor-pointer" @click="selectCompany(company)">
             <v-card-text>
               <div class="d-flex justify-space-between align-start mb-2 ga-2">
-                <NuxtLink :to="company?.website" class="text-decoration-none">
-                  <p class="text-subtitle-1 font-weight-bold">{{ company?.name }}</p>
-                </NuxtLink>
+                <p class="text-subtitle-1 font-weight-bold">{{ company?.name }}</p>
               </div>
-              <p class="text-body-2 text-medium-emphasis mb-2">{{ company?.industry || 'N/A' }}</p>
-              <p class="text-body-2 mb-1">Email : {{ company?.contactEmail || 'Email not specified' }}</p>
-              <p class="text-body-2 mb-3">Phone : {{ company?.phone || 'Phone not specified' }}</p>
               <div class="d-flex justify-between ga-2">
                 <v-btn variant="outlined" rounded="xl" class="text-body-2" @click.stop="goToCompany(company.id)">Open</v-btn>
                 <v-spacer />
