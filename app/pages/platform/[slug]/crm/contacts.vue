@@ -212,19 +212,17 @@ onMounted(async () => {
     <template #aside>
       <div class="d-flex flex-column ga-4">
         <template v-if="showFilters">
-          <v-card rounded="xl" variant="outlined">
+          <v-card rounded="xl" variant="text">
             <v-card-title class="text-subtitle-2">Filters</v-card-title>
             <v-card-text class="d-flex flex-column ga-3">
-              <v-text-field v-model="searchQuery" label="Search" variant="outlined" hide-details prepend-inner-icon="mdi-magnify" />
-              <v-text-field v-model="cityFilter" label="City" variant="outlined" hide-details />
+              <v-text-field v-model="searchQuery" label="Search" rounded="xl" density="comfortable" variant="outlined" hide-details prepend-inner-icon="mdi-magnify" />
+              <v-text-field v-model="cityFilter" label="City" rounded="xl" density="comfortable" variant="outlined" hide-details prepend-inner-icon="mdi-magnify" />
             </v-card-text>
           </v-card>
         </template>
-        <v-card v-else-if="selectedItem" rounded="xl" variant="outlined">
-          <v-card-title class="d-flex justify-space-between align-center ga-2">
-            <span>{{ fullName(selectedItem) }}</span>
-            <v-btn size="small" variant="tonal" prepend-icon="mdi-filter-outline" @click="showFiltersPanel">Filter</v-btn>
-          </v-card-title>
+        <v-card v-else-if="selectedItem" rounded="xl" variant="text">
+          <v-btn size="small" variant="tonal" prepend-icon="mdi-filter-outline" @click="showFiltersPanel">Filter</v-btn>
+          <h4 class="text-truncate">{{ fullName(selectedItem) }}</h4>
           <v-card-text>
             <p class="text-body-2 mb-1"><strong>Email:</strong> {{ selectedItem.email || 'N/A' }}</p>
             <p class="text-body-2 mb-1"><strong>Job:</strong> {{ selectedItem.jobTitle || 'N/A' }}</p>
