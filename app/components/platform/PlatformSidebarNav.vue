@@ -86,16 +86,44 @@ watch(isAuthenticated, async () => {
 <template>
   <div class="platform-sidebar-nav">
     <v-list nav density="compact" rounded="xl" class="platform-sidebar-nav__list">
-      <v-list-item
-        v-for="item in navItems"
-        :key="item.to"
-        :to="item.to"
-        rounded="lg"
-        :prepend-icon="item.icon"
-        :title="resolveLabel(item.title)"
-        :subtitle="resolveLabel(item.subtitle)"
-        color="primary"
-      />
+      <template v-for="item in navItems" :key="item.to">
+        <v-list-group
+          v-if="item.children?.length"
+          :value="item.to"
+        >
+          <template #activator="{ props: activatorProps }">
+            <v-list-item
+              v-bind="activatorProps"
+              rounded="lg"
+              :prepend-icon="item.icon"
+              :title="resolveLabel(item.title)"
+              :subtitle="resolveLabel(item.subtitle)"
+              color="primary"
+            />
+          </template>
+
+          <v-list-item
+            v-for="child in item.children"
+            :key="child.to"
+            :to="child.to"
+            rounded="lg"
+            :prepend-icon="child.icon"
+            :title="resolveLabel(child.title)"
+            :subtitle="resolveLabel(child.subtitle)"
+            color="primary"
+          />
+        </v-list-group>
+
+        <v-list-item
+          v-else
+          :to="item.to"
+          rounded="lg"
+          :prepend-icon="item.icon"
+          :title="resolveLabel(item.title)"
+          :subtitle="resolveLabel(item.subtitle)"
+          color="primary"
+        />
+      </template>
     </v-list>
     <slot />
   </div>

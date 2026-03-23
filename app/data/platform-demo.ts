@@ -3,6 +3,7 @@ export interface NavItem {
   icon: string
   to: string
   subtitle?: string
+  children?: NavItem[]
   badge?: string
   section?: string
   rights?: 'public' | 'owner'
