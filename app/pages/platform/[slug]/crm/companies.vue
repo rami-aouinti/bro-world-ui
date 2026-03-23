@@ -119,7 +119,14 @@ onMounted(async () => {
   <PlatformSplitLayout>
     <client-only>
       <teleport to="#app-bar-teleport-target">
-        <v-btn variant="text" size="sm" icon="mdi-refresh" :loading="crmStore.isLoading" @click="loadCompanies(true)"></v-btn>
+        <v-btn
+          size="large"
+          variant="text"
+          class="text-none app-bar__link-btn"
+          :loading="isPageLoading"
+          @click="loadCompanies(true)"
+          icon="mdi-refresh"
+        />
       </teleport>
     </client-only>
     <template #sidebar>

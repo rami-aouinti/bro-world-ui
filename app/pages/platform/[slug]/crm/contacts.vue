@@ -193,7 +193,14 @@ onMounted(async () => {
   <PlatformSplitLayout>
     <client-only>
       <teleport to="#app-bar-teleport-target">
-        <v-btn variant="outlined" :loading="crmStore.isLoading" @click="loadContacts(true)">Refresh</v-btn>
+        <v-btn
+          size="large"
+          variant="text"
+          class="text-none app-bar__link-btn"
+          :loading="isPageLoading"
+          @click="loadContacts(true)"
+          icon="mdi-refresh"
+        />
       </teleport>
       <teleport to="#app-bar-teleport-target-right">
         <v-btn color="primary" @click="showCreateDialog = true">Ajouter un contact</v-btn>

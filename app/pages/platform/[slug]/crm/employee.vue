@@ -91,7 +91,14 @@ onMounted(async () => {
   <PlatformSplitLayout>
     <client-only>
       <teleport to="#app-bar-teleport-target">
-        <v-btn variant="outlined" :loading="isPageLoading" @click="loadEmployees">Refresh</v-btn>
+        <v-btn
+          size="large"
+          variant="text"
+          class="text-none app-bar__link-btn"
+          :loading="isPageLoading"
+          @click="loadEmployees"
+          icon="mdi-refresh"
+        />
       </teleport>
     </client-only>
     <template #sidebar>
