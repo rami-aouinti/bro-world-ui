@@ -165,55 +165,58 @@ onMounted(async () => {
         </v-card>
       </div>
     </template>
-    <section>
-      <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
-        {{ errorMessage }}
-      </v-alert>
+    <section class="companies-page">
+      <div class="companies-page__content">
+        <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
+          {{ errorMessage }}
+        </v-alert>
 
-      <v-row v-if="isPageLoading">
-        <v-col v-for="i in 6" :key="`company-skeleton-${i}`" cols="12" md="6" lg="6">
-          <v-skeleton-loader type="card, article" class="h-100" />
-        </v-col>
-      </v-row>
+        <v-row v-if="isPageLoading">
+          <v-col v-for="i in 6" :key="`company-skeleton-${i}`" cols="12" md="6" lg="6">
+            <v-skeleton-loader type="card, article" class="h-100" />
+          </v-col>
+        </v-row>
 
-      <v-row v-else>
-        <v-col v-for="company in paginatedCompanies" :key="company.id" cols="12" md="6" lg="6">
-          <v-card rounded="xl" variant="outlined" hover class="h-100 cursor-pointer" @click="selectCompany(company)">
-            <v-card-text>
-              <div class="d-flex justify-space-between align-start mb-2 ga-2">
-                <NuxtLink :to="company?.website" class="text-decoration-none">
-                  <p class="text-subtitle-1 font-weight-bold">{{ company?.name }}</p>
-                </NuxtLink>
-              </div>
-              <p class="text-body-2 text-medium-emphasis mb-2">{{ company?.industry || 'N/A' }}</p>
-              <p class="text-body-2 mb-1">Email : {{ company?.contactEmail || 'Email not specified' }}</p>
-              <p class="text-body-2 mb-3">Phone : {{ company?.phone || 'Phone not specified' }}</p>
-              <div class="d-flex justify-between ga-2">
-                <v-btn variant="outlined" rounded="xl" class="text-body-2" @click.stop="goToCompany(company.id)">Open</v-btn>
-                <v-spacer />
-                <v-menu location="bottom end">
-                  <template #activator="{ props }">
-                    <v-btn
-                      v-bind="props"
-                      variant="outlined"
-                      rounded="xl"
-                      class="text-body-2"
-                      @click.stop
-                    >
-                      Manage
-                    </v-btn>
-                  </template>
-                  <v-list density="compact">
-                    <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="goToCompany(company.id)" />
-                    <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="removeCompany(company.id)" />
-                  </v-list>
-                </v-menu>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-      <div v-if="shouldShowPagination" class="d-flex justify-center mt-4">
+        <v-row v-else>
+          <v-col v-for="company in paginatedCompanies" :key="company.id" cols="12" md="6" lg="6">
+            <v-card rounded="xl" variant="outlined" hover class="h-100 cursor-pointer" @click="selectCompany(company)">
+              <v-card-text>
+                <div class="d-flex justify-space-between align-start mb-2 ga-2">
+                  <NuxtLink :to="company?.website" class="text-decoration-none">
+                    <p class="text-subtitle-1 font-weight-bold">{{ company?.name }}</p>
+                  </NuxtLink>
+                </div>
+                <p class="text-body-2 text-medium-emphasis mb-2">{{ company?.industry || 'N/A' }}</p>
+                <p class="text-body-2 mb-1">Email : {{ company?.contactEmail || 'Email not specified' }}</p>
+                <p class="text-body-2 mb-3">Phone : {{ company?.phone || 'Phone not specified' }}</p>
+                <div class="d-flex justify-between ga-2">
+                  <v-btn variant="outlined" rounded="xl" class="text-body-2" @click.stop="goToCompany(company.id)">Open</v-btn>
+                  <v-spacer />
+                  <v-menu location="bottom end">
+                    <template #activator="{ props }">
+                      <v-btn
+                        v-bind="props"
+                        variant="outlined"
+                        rounded="xl"
+                        class="text-body-2"
+                        @click.stop
+                      >
+                        Manage
+                      </v-btn>
+                    </template>
+                    <v-list density="compact">
+                      <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="goToCompany(company.id)" />
+                      <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="removeCompany(company.id)" />
+                    </v-list>
+                  </v-menu>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </div>
+
+      <div v-if="shouldShowPagination" class="companies-page__footer d-flex justify-center">
         <v-pagination v-model="page" :length="pageLength" total-visible="5" />
       </div>
 
@@ -239,3 +242,19 @@ onMounted(async () => {
     </section>
   </PlatformSplitLayout>
 </template>
+<style scoped>
+.companies-page {
+  min-height: 75vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.companies-page__content {
+  flex: 1;
+}
+
+.companies-page__footer {
+  margin-top: auto;
+  padding-bottom: 0;
+}
+</style>

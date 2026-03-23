@@ -4,6 +4,7 @@ import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { useCrmApi } from '~/composables/api/useCrmApi'
 import { getCrmNav } from '~/data/platform-nav'
 import type { CrmEmployee } from '~/types/api/crm'
+import { useListingPagination } from '~/composables/useListingPagination'
 
 definePageMeta({ public: false, requiresAuth: true })
 
@@ -45,6 +46,12 @@ const filteredEmployees = computed(() => employees.value.filter((employee) => {
 
   return matchesSearch && matchesRole
 }))
+const {
+  page,
+  paginatedItems: paginatedEmployees,
+  pageLength,
+  shouldShowPagination,
+} = useListingPagination(filteredEmployees, [searchQuery, roleFilter])
 const selectEmployee = (employee: CrmEmployee) => {
   selectedItem.value = employee
   showFilters.value = false
@@ -180,62 +187,68 @@ onMounted(async () => {
         </v-card>
       </div>
     </template>
-    <section>
-      <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
-        <div>
-          <h1 class="text-h5 font-weight-bold mb-1">Employees</h1>
-          <p class="text-body-2 text-medium-emphasis">Liste des employés du CRM Sales Hub ({{ paginationTotal }}).</p>
+    <section class="employee-page">
+      <div class="employee-page__content">
+        <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
+          <div>
+            <h1 class="text-h5 font-weight-bold mb-1">Employees</h1>
+            <p class="text-body-2 text-medium-emphasis">Liste des employés du CRM Sales Hub ({{ paginationTotal }}).</p>
+          </div>
         </div>
+
+        <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
+          {{ errorMessage }}
+        </v-alert>
+
+        <v-row v-if="isPageLoading">
+          <v-col v-for="index in 6" :key="`employee-skeleton-${index}`" cols="12" md="6" lg="4">
+            <v-skeleton-loader type="card, article" class="h-100" />
+          </v-col>
+        </v-row>
+
+        <v-row v-else>
+          <v-col v-for="employee in paginatedEmployees" :key="employee.id" cols="12" md="6" lg="4">
+            <v-card rounded="xl" variant="outlined" class="h-100 cursor-pointer" @click="selectEmployee(employee)">
+              <v-card-text>
+                <div class="d-flex justify-space-between align-start ga-2 mb-2">
+                  <p class="text-subtitle-1 font-weight-bold mb-0">{{ fullName(employee) }}</p>
+                  <v-chip size="small" color="primary" variant="tonal">{{ employee.roleName || 'N/A' }}</v-chip>
+                </div>
+                <p class="text-body-2 mb-1"><strong>Email:</strong> {{ employee.email || 'N/A' }}</p>
+                <p class="text-body-2 mb-1"><strong>Poste:</strong> {{ employee.positionName || 'N/A' }}</p>
+                <p class="text-body-2 text-medium-emphasis mb-3"><strong>Créé le:</strong> {{ formatDate(employee.createdAt) }}</p>
+                <div class="d-flex justify-between ga-2">
+                  <v-btn variant="outlined" rounded="xl" class="text-body-2" @click.stop="openEmployee(employee)">Open</v-btn>
+                  <v-spacer />
+                  <v-menu location="bottom end">
+                    <template #activator="{ props }">
+                      <v-btn
+                        v-bind="props"
+                        variant="outlined"
+                        rounded="xl"
+                        class="text-body-2"
+                        @click.stop
+                      >
+                        Manage
+                      </v-btn>
+                    </template>
+                    <v-list density="compact">
+                      <v-list-item title="View in panel" @click.stop="openEmployee(employee)" />
+                    </v-list>
+                  </v-menu>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+          <v-col v-if="paginatedEmployees.length === 0" cols="12">
+            <v-alert type="info" variant="tonal">Aucun employé trouvé.</v-alert>
+          </v-col>
+        </v-row>
       </div>
 
-      <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
-        {{ errorMessage }}
-      </v-alert>
-
-      <v-row v-if="isPageLoading">
-        <v-col v-for="index in 6" :key="`employee-skeleton-${index}`" cols="12" md="6" lg="4">
-          <v-skeleton-loader type="card, article" class="h-100" />
-        </v-col>
-      </v-row>
-
-      <v-row v-else>
-        <v-col v-for="employee in filteredEmployees" :key="employee.id" cols="12" md="6" lg="4">
-          <v-card rounded="xl" variant="outlined" class="h-100 cursor-pointer" @click="selectEmployee(employee)">
-            <v-card-text>
-              <div class="d-flex justify-space-between align-start ga-2 mb-2">
-                <p class="text-subtitle-1 font-weight-bold mb-0">{{ fullName(employee) }}</p>
-                <v-chip size="small" color="primary" variant="tonal">{{ employee.roleName || 'N/A' }}</v-chip>
-              </div>
-              <p class="text-body-2 mb-1"><strong>Email:</strong> {{ employee.email || 'N/A' }}</p>
-              <p class="text-body-2 mb-1"><strong>Poste:</strong> {{ employee.positionName || 'N/A' }}</p>
-              <p class="text-body-2 text-medium-emphasis mb-3"><strong>Créé le:</strong> {{ formatDate(employee.createdAt) }}</p>
-              <div class="d-flex justify-between ga-2">
-                <v-btn variant="outlined" rounded="xl" class="text-body-2" @click.stop="openEmployee(employee)">Open</v-btn>
-                <v-spacer />
-                <v-menu location="bottom end">
-                  <template #activator="{ props }">
-                    <v-btn
-                      v-bind="props"
-                      variant="outlined"
-                      rounded="xl"
-                      class="text-body-2"
-                      @click.stop
-                    >
-                      Manage
-                    </v-btn>
-                  </template>
-                  <v-list density="compact">
-                    <v-list-item title="View in panel" @click.stop="openEmployee(employee)" />
-                  </v-list>
-                </v-menu>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col v-if="filteredEmployees.length === 0" cols="12">
-          <v-alert type="info" variant="tonal">Aucun employé trouvé.</v-alert>
-        </v-col>
-      </v-row>
+      <div v-if="shouldShowPagination" class="employee-page__footer d-flex justify-center">
+        <v-pagination v-model="page" :length="pageLength" total-visible="5" />
+      </div>
 
       <v-dialog v-model="showCreateDialog" max-width="560">
         <v-card>
@@ -259,3 +272,19 @@ onMounted(async () => {
     </section>
   </PlatformSplitLayout>
 </template>
+<style scoped>
+.employee-page {
+  min-height: 75vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.employee-page__content {
+  flex: 1;
+}
+
+.employee-page__footer {
+  margin-top: auto;
+  padding-bottom: 0;
+}
+</style>

@@ -231,69 +231,72 @@ onMounted(async () => {
         </v-card>
       </div>
     </template>
-    <section>
-      <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
-        <div>
-          <h1 class="text-h5 font-weight-bold mb-1">Contacts</h1>
-          <p class="text-body-2 text-medium-emphasis">Créer, modifier et supprimer les contacts du CRM.</p>
+    <section class="contacts-page">
+      <div class="contacts-page__content">
+        <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
+          <div>
+            <h1 class="text-h5 font-weight-bold mb-1">Contacts</h1>
+            <p class="text-body-2 text-medium-emphasis">Créer, modifier et supprimer les contacts du CRM.</p>
+          </div>
         </div>
+
+        <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
+          {{ errorMessage }}
+        </v-alert>
+
+        <v-row v-if="isPageLoading">
+          <v-col v-for="index in 6" :key="`contact-skeleton-${index}`" cols="12" md="6" lg="4">
+            <v-skeleton-loader type="card, article" class="h-100" />
+          </v-col>
+        </v-row>
+
+        <v-row v-else>
+          <v-col v-for="contact in paginatedContacts" :key="contact.id" cols="12" md="6" lg="4">
+            <v-card rounded="xl" variant="outlined" class="h-100 cursor-pointer" @click="selectContact(contact)">
+              <v-card-text>
+                <div class="d-flex justify-space-between align-start mb-3 ga-2">
+                  <div>
+                    <p class="text-subtitle-1 font-weight-bold mb-1">{{ fullName(contact) }}</p>
+                    <p class="text-body-2 text-medium-emphasis mb-0">{{ contact.jobTitle || 'N/A' }}</p>
+                  </div>
+                  <v-chip size="small" color="primary" variant="tonal">Score {{ contact.score ?? 'N/A' }}</v-chip>
+                </div>
+                <div class="d-flex flex-column ga-1 text-body-2 mb-3">
+                  <p class="mb-0"><strong>Email:</strong> {{ contact.email || 'N/A' }}</p>
+                  <p class="mb-0"><strong>Téléphone:</strong> {{ contact.phone || 'N/A' }}</p>
+                  <p class="mb-0"><strong>Ville:</strong> {{ contact.city || 'N/A' }}</p>
+                </div>
+                <div class="d-flex justify-between ga-2">
+                  <v-btn variant="outlined" rounded="xl" class="text-body-2" @click.stop="openViewDialog(contact)">Open</v-btn>
+                  <v-spacer />
+                  <v-menu location="bottom end">
+                    <template #activator="{ props }">
+                      <v-btn
+                        v-bind="props"
+                        variant="outlined"
+                        rounded="xl"
+                        class="text-body-2"
+                        @click.stop
+                      >
+                        Manage
+                      </v-btn>
+                    </template>
+                    <v-list density="compact">
+                      <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="openEditDialog(contact)" />
+                      <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="removeContact(contact.id)" />
+                    </v-list>
+                  </v-menu>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+          <v-col v-if="paginatedContacts.length === 0" cols="12">
+            <v-alert type="info" variant="tonal">Aucun contact trouvé.</v-alert>
+          </v-col>
+        </v-row>
       </div>
 
-      <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">
-        {{ errorMessage }}
-      </v-alert>
-
-      <v-row v-if="isPageLoading">
-        <v-col v-for="index in 6" :key="`contact-skeleton-${index}`" cols="12" md="6" lg="4">
-          <v-skeleton-loader type="card, article" class="h-100" />
-        </v-col>
-      </v-row>
-
-      <v-row v-else>
-        <v-col v-for="contact in paginatedContacts" :key="contact.id" cols="12" md="6" lg="4">
-          <v-card rounded="xl" variant="outlined" class="h-100 cursor-pointer" @click="selectContact(contact)">
-            <v-card-text>
-              <div class="d-flex justify-space-between align-start mb-3 ga-2">
-                <div>
-                  <p class="text-subtitle-1 font-weight-bold mb-1">{{ fullName(contact) }}</p>
-                  <p class="text-body-2 text-medium-emphasis mb-0">{{ contact.jobTitle || 'N/A' }}</p>
-                </div>
-                <v-chip size="small" color="primary" variant="tonal">Score {{ contact.score ?? 'N/A' }}</v-chip>
-              </div>
-              <div class="d-flex flex-column ga-1 text-body-2 mb-3">
-                <p class="mb-0"><strong>Email:</strong> {{ contact.email || 'N/A' }}</p>
-                <p class="mb-0"><strong>Téléphone:</strong> {{ contact.phone || 'N/A' }}</p>
-                <p class="mb-0"><strong>Ville:</strong> {{ contact.city || 'N/A' }}</p>
-              </div>
-              <div class="d-flex justify-between ga-2">
-                <v-btn variant="outlined" rounded="xl" class="text-body-2" @click.stop="openViewDialog(contact)">Open</v-btn>
-                <v-spacer />
-                <v-menu location="bottom end">
-                  <template #activator="{ props }">
-                    <v-btn
-                      v-bind="props"
-                      variant="outlined"
-                      rounded="xl"
-                      class="text-body-2"
-                      @click.stop
-                    >
-                      Manage
-                    </v-btn>
-                  </template>
-                  <v-list density="compact">
-                    <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="openEditDialog(contact)" />
-                    <v-list-item prepend-icon="mdi-delete" title="Delete" @click.stop="removeContact(contact.id)" />
-                  </v-list>
-                </v-menu>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col v-if="paginatedContacts.length === 0" cols="12">
-          <v-alert type="info" variant="tonal">Aucun contact trouvé.</v-alert>
-        </v-col>
-      </v-row>
-      <div v-if="shouldShowPagination" class="d-flex justify-center mt-4">
+      <div v-if="shouldShowPagination" class="contacts-page__footer d-flex justify-center">
         <v-pagination v-model="page" :length="pageLength" total-visible="5" />
       </div>
 
@@ -361,3 +364,19 @@ onMounted(async () => {
     </section>
   </PlatformSplitLayout>
 </template>
+<style scoped>
+.contacts-page {
+  min-height: 75vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.contacts-page__content {
+  flex: 1;
+}
+
+.contacts-page__footer {
+  margin-top: auto;
+  padding-bottom: 0;
+}
+</style>
