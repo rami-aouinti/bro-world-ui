@@ -29,27 +29,17 @@ export function normalizeBearerToken(rawToken: string | undefined) {
   return trimmed.replace(/^Bearer\s+/i, '')
 }
 
-export const buildSessionProfile = (profile: UserProfile): Pick<UserProfile, 'id' | 'username' | 'firstName' | 'lastName' | 'email' | 'photo'> & { userId: string } => ({
-  id: profile.id,
-  userId: String(profile.id),
-  username: profile.username,
-  firstName: profile.firstName,
-  lastName: profile.lastName,
-  email: profile.email,
-  photo: profile.photo,
-})
-
 const validateProfile = (profile: UserProfile) => {
   if (!profile?.id || !profile?.username || !profile?.email || !profile?.firstName || !profile?.lastName) {
     throw createAuthError(502, 'Incomplete user profile', AUTH_ERROR_CODES.PROFILE_INVALID)
   }
 }
 
-export const mapToSessionResponse = (authCookie: Awaited<ReturnType<typeof setAuthCookie>>): SessionResponse => ({
+export const mapToSessionResponse = (profile: UserProfile, authCookie: Awaited<ReturnType<typeof setAuthCookie>>): SessionResponse => ({
   authenticated: true,
-  profile: authCookie.profile as UserProfile,
-  roles: authCookie.roles,
-  locale: authCookie.locale,
+  profile,
+  roles: profile.roles ?? [],
+  locale: profile.locale || profile.language || 'en',
   expiresAt: authCookie.expiresAt,
 })
 
@@ -70,12 +60,10 @@ export const createAuthSessionBuilder = (deps: SessionBuilderDeps) => async (eve
 
   const authCookie = await deps.persistCookie(event, {
     token,
-    profile: buildSessionProfile(profile),
-    roles: profile.roles ?? [],
-    locale: profile.locale || profile.language || 'en',
+    sessionVersion: 1,
   })
 
-  return mapToSessionResponse(authCookie)
+  return mapToSessionResponse(profile, authCookie)
 }
 
 export const fetchProfileWithAuthorization = async (token: string): Promise<UserProfile> => {

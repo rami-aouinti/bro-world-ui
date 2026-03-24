@@ -79,16 +79,7 @@ describe('authSessionBuilder', () => {
   it('construit la session et le cookie quand tout est valide', async () => {
     const persistCookie = mock.fn(async () => ({
       token: 'valid-token',
-      profile: {
-        id: 'u1',
-        userId: 'u1',
-        username: 'john',
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john@example.com',
-      },
-      roles: ['user'],
-      locale: 'fr',
+      sessionVersion: 1,
       expiresAt: '2030-01-01T00:00:00.000Z',
     }))
 
@@ -113,11 +104,13 @@ describe('authSessionBuilder', () => {
       authenticated: true,
       profile: {
         id: 'u1',
-        userId: 'u1',
         username: 'john',
         firstName: 'John',
         lastName: 'Doe',
         email: 'john@example.com',
+        roles: ['user'],
+        language: 'fr',
+        timezone: 'Europe/Paris',
       },
       roles: ['user'],
       locale: 'fr',

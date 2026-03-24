@@ -2,17 +2,24 @@ import type { H3Event } from 'h3'
 
 export interface StoredAuthCookie {
   token: string
-  profile: Record<string, unknown> | null
-  roles: string[]
-  locale: string | null
   expiresAt: string
+  sessionVersion?: number
+}
+
+interface LegacyStoredAuthCookie {
+  token: string
+  expiresAt?: string
+  profile?: Record<string, unknown> | null
+  roles?: string[]
+  locale?: string | null
+  sessionVersion?: number
 }
 
 export type AuthCookiePayload = Omit<StoredAuthCookie, 'expiresAt'>
 
-const parseStoredAuthCookie = (value: string): StoredAuthCookie | null => {
+const parseRawAuthCookie = (value: string): LegacyStoredAuthCookie | null => {
   try {
-    const parsed = JSON.parse(value) as StoredAuthCookie
+    const parsed = JSON.parse(value) as LegacyStoredAuthCookie
 
     if (!parsed || typeof parsed !== 'object' || typeof parsed.token !== 'string') {
       return null
@@ -25,24 +32,57 @@ const parseStoredAuthCookie = (value: string): StoredAuthCookie | null => {
   }
 }
 
+const normalizeStoredAuthCookie = (parsed: LegacyStoredAuthCookie, ttlSeconds: number): { cookie: StoredAuthCookie, migrated: boolean } | null => {
+  if (!parsed.token.trim()) {
+    return null
+  }
+
+  const hasValidExpiresAt = typeof parsed.expiresAt === 'string' && !Number.isNaN(new Date(parsed.expiresAt).getTime())
+
+  const cookie: StoredAuthCookie = {
+    token: parsed.token,
+    expiresAt: hasValidExpiresAt ? parsed.expiresAt as string : new Date(Date.now() + ttlSeconds * 1000).toISOString(),
+    sessionVersion: typeof parsed.sessionVersion === 'number' ? parsed.sessionVersion : 1,
+  }
+
+  const migrated = !hasValidExpiresAt
+    || parsed.profile !== undefined
+    || parsed.roles !== undefined
+    || parsed.locale !== undefined
+    || typeof parsed.sessionVersion !== 'number'
+
+  return { cookie, migrated }
+}
+
 const encodeAuthCookie = (payload: StoredAuthCookie) => Buffer
   .from(JSON.stringify(payload), 'utf-8')
   .toString('base64url')
 
-const decodeAuthCookie = (raw: string): StoredAuthCookie | null => {
+const decodeAuthCookie = (raw: string, ttlSeconds: number): { cookie: StoredAuthCookie, migrated: boolean } | null => {
   const normalized = raw.trim().replace(/^"|"$/g, '')
 
   if (!normalized) {
     return null
   }
 
-  const fromBase64 = parseStoredAuthCookie(Buffer.from(normalized, 'base64url').toString('utf-8'))
+  try {
+    const fromBase64 = parseRawAuthCookie(Buffer.from(normalized, 'base64url').toString('utf-8'))
 
-  if (fromBase64) {
-    return fromBase64
+    if (fromBase64) {
+      return normalizeStoredAuthCookie(fromBase64, ttlSeconds)
+    }
+  }
+  catch {
+    // ignore invalid base64 and try plain JSON
   }
 
-  return parseStoredAuthCookie(normalized)
+  const fromJson = parseRawAuthCookie(normalized)
+
+  if (!fromJson) {
+    return null
+  }
+
+  return normalizeStoredAuthCookie(fromJson, ttlSeconds)
 }
 
 const decodeLegacyTokenCookie = (raw: string): string | null => {
@@ -122,7 +162,8 @@ export const setAuthCookie = async (event: H3Event, payload: AuthCookiePayload) 
   const secure = shouldUseSecureCookie(event, cookieSecure)
 
   const nextCookiePayload: StoredAuthCookie = {
-    ...payload,
+    token: payload.token,
+    sessionVersion: payload.sessionVersion ?? 1,
     expiresAt: new Date(Date.now() + ttlSeconds * 1000).toISOString(),
   }
 
@@ -150,17 +191,28 @@ export const readAuthCookie = async (event: H3Event): Promise<StoredAuthCookie |
 
   if (sessionId) {
     const storage = getSessionStorage()
-    const storedSession = await storage.getItem<StoredAuthCookie>(buildSessionStorageKey(sessionId))
+    const storedSession = await storage.getItem<LegacyStoredAuthCookie>(buildSessionStorageKey(sessionId))
 
-    if (!storedSession || isExpired(storedSession.expiresAt)) {
+    if (!storedSession) {
       await storage.removeItem(buildSessionStorageKey(sessionId))
       return null
     }
 
-    return storedSession
+    const normalizedStoredSession = normalizeStoredAuthCookie(storedSession, ttlSeconds)
+
+    if (!normalizedStoredSession || isExpired(normalizedStoredSession.cookie.expiresAt)) {
+      await storage.removeItem(buildSessionStorageKey(sessionId))
+      return null
+    }
+
+    if (normalizedStoredSession.migrated) {
+      await storage.setItem(buildSessionStorageKey(sessionId), normalizedStoredSession.cookie)
+    }
+
+    return normalizedStoredSession.cookie
   }
 
-  const payload = decodeAuthCookie(decodedCookie)
+  const payload = decodeAuthCookie(decodedCookie, ttlSeconds)
 
   if (!payload) {
     const legacyToken = decodeLegacyTokenCookie(decodedCookie)
@@ -169,20 +221,24 @@ export const readAuthCookie = async (event: H3Event): Promise<StoredAuthCookie |
       return null
     }
 
-    return {
+    return setAuthCookie(event, {
       token: legacyToken,
-      profile: null,
-      roles: [],
-      locale: null,
-      expiresAt: new Date(Date.now() + ttlSeconds * 1000).toISOString(),
-    }
+      sessionVersion: 1,
+    })
   }
 
-  if (isExpired(payload.expiresAt)) {
+  if (isExpired(payload.cookie.expiresAt)) {
     return null
   }
 
-  return payload
+  if (payload.migrated) {
+    return setAuthCookie(event, {
+      token: payload.cookie.token,
+      sessionVersion: payload.cookie.sessionVersion,
+    })
+  }
+
+  return payload.cookie
 }
 
 export const requireAuthCookie = async (event: H3Event) => {

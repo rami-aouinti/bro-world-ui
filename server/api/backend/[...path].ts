@@ -2,7 +2,7 @@ import { readAuthCookie, requireAuthCookie, setAuthCookie } from '~~/server/util
 import { getRedisClient } from '~~/server/utils/redis'
 import { buildCacheKey, buildCacheScanPattern, buildCacheScopePrefix, buildQueryHash, toPathResourceIdentifier } from '~~/server/utils/cacheKeyBuilder'
 import { createHash } from 'node:crypto'
-import { buildFunctionalQuerySegment, getAuthUserIdFromProfile, getPrivateResourceIdentifier, isPrivateCacheRoute } from '~~/server/utils/privateCacheKey'
+import { buildFunctionalQuerySegment, getPrivateResourceIdentifier, isPrivateCacheRoute } from '~~/server/utils/privateCacheKey'
 
 const PUBLIC_BACKEND_PATHS = new Set([
   '/api/health',
@@ -675,7 +675,7 @@ export default defineEventHandler(async (event) => {
     authCookiePayload = await readAuthCookie(event) || undefined
   }
 
-  const authenticatedUserId = getAuthUserIdFromProfile(authCookiePayload?.profile as Record<string, unknown> | null | undefined)
+  const authenticatedUserId = undefined
 
   const method = getMethod(event)
   const contentType = getHeader(event, 'content-type') || ''
