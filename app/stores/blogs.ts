@@ -26,6 +26,7 @@ type GeneralCacheKeyParts = {
   limit: number
 }
 
+type BlogCacheScope = 'general' | 'mine'
 
 type CreatePostPayload = {
   content?: string | null
@@ -48,6 +49,7 @@ export const useBlogsStore = defineStore('blogs', () => {
   const isLoadingMore = ref(false)
   const currentGeneralVisibility = ref<BlogVisibility>('private')
   const lastPrivateGeneralQuery = ref<BlogListQuery>({ page: 1, limit: DEFAULT_BLOG_PAGE_LIMIT })
+  const lastMyPostsQuery = ref<BlogListQuery>({ page: 1, limit: DEFAULT_BLOG_PAGE_LIMIT })
   const myPosts = ref<BlogWithPagination | null>(null)
   const myPostsPagination = ref<BlogPagination | null>(null)
   const reactionTypes = ref<string[]>([...BLOG_REACTION_FALLBACK_TYPES])
@@ -465,6 +467,7 @@ export const useBlogsStore = defineStore('blogs', () => {
     const page = options?.page ?? 1
     const limit = options?.limit ?? DEFAULT_BLOG_PAGE_LIMIT
     const append = options?.append ?? page > 1
+    lastMyPostsQuery.value = { page, limit }
 
     const cacheKey = `mine:${page}:${limit}`
     const now = Date.now()
@@ -534,15 +537,51 @@ export const useBlogsStore = defineStore('blogs', () => {
     }
   }
 
-  const invalidateGeneralCache = () => {
+  const invalidateBlogsCache = (scopes: BlogCacheScope[]) => {
+    const scopeSet = new Set(scopes)
+
     Object.keys(cache.value)
-      .filter(key => key.startsWith('general:') || key.startsWith('mine:'))
+      .filter((key) => {
+        const invalidateGeneral = scopeSet.has('general') && key.startsWith('general:')
+        const invalidateMine = scopeSet.has('mine') && key.startsWith('mine:')
+        return invalidateGeneral || invalidateMine
+      })
       .forEach((key) => {
         delete cache.value[key]
       })
 
-    generalPagination.value = null
-    myPostsPagination.value = null
+    if (scopeSet.has('general')) {
+      generalPagination.value = null
+    }
+
+    if (scopeSet.has('mine')) {
+      myPostsPagination.value = null
+    }
+  }
+
+  const refetchInvalidatedBlogs = async (scopes: BlogCacheScope[]) => {
+    const scopeSet = new Set(scopes)
+
+    if (scopeSet.has('general')) {
+      const isPublic = currentGeneralVisibility.value === 'public'
+      const query = isPublic
+        ? { page: 1, limit: DEFAULT_BLOG_PAGE_LIMIT }
+        : lastPrivateGeneralQuery.value
+
+      await fetchGeneral(true, isPublic, {
+        page: query.page,
+        limit: query.limit,
+        append: false,
+      })
+    }
+
+    if (scopeSet.has('mine')) {
+      await fetchMyPosts(true, {
+        page: lastMyPostsQuery.value.page,
+        limit: lastMyPostsQuery.value.limit,
+        append: false,
+      })
+    }
   }
 
   const createPost = async (blogId: string, payload: CreatePostPayload) => {
@@ -550,7 +589,8 @@ export const useBlogsStore = defineStore('blogs', () => {
 
     if (response?.status === 'accepted') {
       addRootPostToStore(payload, response.id)
-      invalidateGeneralCache()
+      invalidateBlogsCache(['general', 'mine'])
+      await refetchInvalidatedBlogs(['general', 'mine'])
     }
   }
 
@@ -562,13 +602,15 @@ export const useBlogsStore = defineStore('blogs', () => {
       content: payload.content ?? post.content,
       filePath: payload.filePath === undefined ? post.filePath : payload.filePath,
     }))
-    invalidateGeneralCache()
+    invalidateBlogsCache(['general', 'mine'])
+    await refetchInvalidatedBlogs(['general', 'mine'])
   }
 
   const deletePost = async (postId: string) => {
     await blogsApi.deletePost(postId)
     deletePostFromStore(postId)
-    invalidateGeneralCache()
+    invalidateBlogsCache(['general', 'mine'])
+    await refetchInvalidatedBlogs(['general', 'mine'])
   }
 
   const createPostReaction = async (postId: string, payload: { type: string }) => {
@@ -576,7 +618,8 @@ export const useBlogsStore = defineStore('blogs', () => {
 
     if (response?.status === 'accepted') {
       addPostReactionToStore(postId, payload.type, response.id)
-      invalidateGeneralCache()
+      invalidateBlogsCache(['general', 'mine'])
+      await refetchInvalidatedBlogs(['general', 'mine'])
     }
   }
 
@@ -585,20 +628,23 @@ export const useBlogsStore = defineStore('blogs', () => {
 
     if (response?.status === 'accepted') {
       addCommentToStore(postId, payload, response.id)
-      invalidateGeneralCache()
+      invalidateBlogsCache(['general', 'mine'])
+      await refetchInvalidatedBlogs(['general', 'mine'])
     }
   }
 
   const updateComment = async (commentId: string, payload: { content: string }) => {
     await blogsApi.updateComment(commentId, payload)
     updateCommentInStore(commentId, payload)
-    invalidateGeneralCache()
+    invalidateBlogsCache(['general', 'mine'])
+    await refetchInvalidatedBlogs(['general', 'mine'])
   }
 
   const deleteComment = async (commentId: string) => {
     await blogsApi.deleteComment(commentId)
     deleteCommentFromStore(commentId)
-    invalidateGeneralCache()
+    invalidateBlogsCache(['general', 'mine'])
+    await refetchInvalidatedBlogs(['general', 'mine'])
   }
 
   const createReaction = async (commentId: string, payload: { type: string }) => {
@@ -606,20 +652,23 @@ export const useBlogsStore = defineStore('blogs', () => {
 
     if (response?.status === 'accepted') {
       addCommentReactionToStore(commentId, payload.type, response.id)
-      invalidateGeneralCache()
+      invalidateBlogsCache(['general', 'mine'])
+      await refetchInvalidatedBlogs(['general', 'mine'])
     }
   }
 
   const deleteReaction = async (reactionId: string) => {
     await blogsApi.deleteReaction(reactionId)
     deleteReactionFromStore(reactionId)
-    invalidateGeneralCache()
+    invalidateBlogsCache(['general', 'mine'])
+    await refetchInvalidatedBlogs(['general', 'mine'])
   }
 
   const updateReaction = async (reactionId: string, payload: { type: string }) => {
     await blogsApi.updateReaction(reactionId, payload)
     updateReactionInStore(reactionId, payload)
-    invalidateGeneralCache()
+    invalidateBlogsCache(['general', 'mine'])
+    await refetchInvalidatedBlogs(['general', 'mine'])
   }
 
   return {
@@ -635,7 +684,8 @@ export const useBlogsStore = defineStore('blogs', () => {
     fetchMyPosts,
     fetchNextMyPostsPage,
     fetchReactionTypes,
-    invalidateGeneralCache,
+    invalidateBlogsCache,
+    refetchInvalidatedBlogs,
     createPost,
     updatePost,
     deletePost,
