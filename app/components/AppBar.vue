@@ -302,9 +302,16 @@ const availableLocales = computed(() => locales.value
 const localeFlags: Record<string, string> = {
   en: '🇬🇧',
   fr: '🇫🇷',
+  es: '🇪🇸',
+  de: '🇩🇪',
+  ar: '🇸🇦',
+  pt: '🇵🇹',
 }
 
-const getFlag = (code: string) => localeFlags[code] ?? '🌐'
+const getFlag = (code: string) => {
+  const normalizedCode = code.toLowerCase().split(/[-_]/)[0]
+  return localeFlags[normalizedCode] ?? '🌐'
+}
 
 const signOut = async () => {
   if (!canPermission('profile.logout')) {
@@ -519,7 +526,7 @@ const signOut = async () => {
 
         <v-menu location="bottom end" :close-on-content-click="false">
           <template #activator="{ props }">
-            <span class="px-2" v-bind="props">{{ getFlag(locale) }}</span>
+            <span class="px-2 app-bar__locale-flag" v-bind="props">{{ getFlag(locale) }}</span>
           </template>
 
           <v-list class="py-1 app-bar__menu" min-width="180">
@@ -532,7 +539,7 @@ const signOut = async () => {
               @click="setLocale(item.code)"
             >
               <template #prepend>
-                <span class="text-body-1">{{ getFlag(item.code) }}</span>
+                <span class="text-body-1 app-bar__locale-flag">{{ getFlag(item.code) }}</span>
               </template>
               <template #append>
                 <v-icon v-if="locale === item.code" icon="mdi-check" size="16" />
@@ -875,6 +882,10 @@ const signOut = async () => {
 
 .app-bar__option-pill--active {
   background: rgba(var(--v-theme-primary), 0.2);
+}
+
+.app-bar__locale-flag {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
 }
 
 .app-bar__message-item :deep(.v-list-item__content) {
