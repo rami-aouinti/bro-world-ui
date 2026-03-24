@@ -94,7 +94,16 @@ export const useAuth = () => {
       const session = await authFetch<SessionResponse>('/api/auth/session', {
         method: 'GET',
       })
-      await applySessionState(session)
+
+      if (!session.authenticated) {
+        await applySessionState(session)
+        return
+      }
+
+      const profileSession = await authFetch<SessionResponse>('/api/auth/profile', {
+        method: 'GET',
+      })
+      await applySessionState(profileSession)
     }
     catch {
       await applySessionState({ authenticated: false, profile: null, roles: [], locale: null })

@@ -1,4 +1,4 @@
-import type { SessionResponse, UserProfile } from '../../../app/types/api/user'
+import type { SessionResponse } from '../../../app/types/api/user'
 import { readAuthCookie, setAuthCookie } from '../../../server/utils/authCookie'
 
 export default defineEventHandler(async (event): Promise<SessionResponse> => {
@@ -13,13 +13,16 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
     }
   }
 
-  const nextAuthCookie = await setAuthCookie(event, authCookie)
+  const nextAuthCookie = await setAuthCookie(event, {
+    token: authCookie.token,
+    sessionVersion: authCookie.sessionVersion,
+  })
 
   return {
     authenticated: true,
-    profile: nextAuthCookie.profile as UserProfile | null,
-    roles: nextAuthCookie.roles,
-    locale: nextAuthCookie.locale,
+    profile: null,
+    roles: [],
+    locale: null,
     expiresAt: nextAuthCookie.expiresAt,
   }
 })
