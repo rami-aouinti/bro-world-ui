@@ -542,7 +542,8 @@ const signOut = async () => {
             >
               <template #prepend>
                 <span class="text-body-1 app-bar__locale-flag">
-                  <img class="app-bar__locale-flag-image" :src="getFlag(item.code).src" :alt="getFlag(item.code).alt" width="20" height="14">
+                  <img class="app-bar__locale-flag-image mx-4" :src="getFlag(item.code).src" :alt="getFlag(item.code).alt" width="20" height="14">
+                  {{ getFlag(item.code).alt }}
                 </span>
               </template>
               <template #append>
