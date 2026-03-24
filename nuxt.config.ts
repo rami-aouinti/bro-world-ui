@@ -161,7 +161,7 @@ export default defineNuxtConfig({
       cookieSameSite: sessionCookieSameSite,
     },
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost',
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'https://bro-world.org',
       mercurePublicUrl: process.env.NUXT_PUBLIC_MERCURE_PUBLIC_URL || 'http://localhost:3100/.well-known/mercure',
       useMockData,
     },
