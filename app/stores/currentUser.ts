@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { useUsersApi } from '~/composables/api/useUsersApi'
 import type { UserApplication, UserFriendRead, UserMeRead, UserMePasswordPayload, UserMeProfilePayload } from '~/types/api/user'
 
+type CurrentUserCacheScope = 'me' | 'applications' | 'friends'
+
 export const useCurrentUserStore = defineStore('current-user', () => {
   const api = useUsersApi()
 
@@ -26,6 +28,26 @@ export const useCurrentUserStore = defineStore('current-user', () => {
     finally {
       loading.value = false
     }
+  }
+
+  const invalidateCurrentUserCache = (scopes: CurrentUserCacheScope[]) => {
+    const scopeSet = new Set(scopes)
+
+    if (scopeSet.has('me')) {
+      me.value = null
+    }
+
+    initialized.value = false
+  }
+
+  const refetchCurrentUser = async (scopes: CurrentUserCacheScope[]) => {
+    const scopeSet = new Set(scopes)
+
+    if (scopeSet.has('me') || scopeSet.has('applications') || scopeSet.has('friends')) {
+      return fetchMe(true)
+    }
+
+    return me.value
   }
 
 
@@ -65,32 +87,26 @@ export const useCurrentUserStore = defineStore('current-user', () => {
   }
 
   const updateProfile = async (payload: UserMeProfilePayload) => {
-    const updated = await api.updateMyProfile(payload)
-    me.value = updated
-    initialized.value = true
-    return updated
+    await api.updateMyProfile(payload)
+    invalidateCurrentUserCache(['me', 'applications', 'friends'])
+    return refetchCurrentUser(['me', 'applications', 'friends'])
   }
 
   const updatePassword = async (payload: UserMePasswordPayload) => {
     await api.updateMyPassword(payload)
+    invalidateCurrentUserCache(['me'])
+    await refetchCurrentUser(['me'])
   }
 
   const deleteAccount = async () => {
     await api.deleteMe()
-    me.value = null
-    initialized.value = false
+    invalidateCurrentUserCache(['me', 'applications', 'friends'])
   }
 
   const uploadPhoto = async (photo: File) => {
-    const response = await api.uploadMyPhoto(photo)
-    if (me.value) {
-      me.value = {
-        ...me.value,
-        photo: response.photo,
-      }
-    }
-
-    return response
+    await api.uploadMyPhoto(photo)
+    invalidateCurrentUserCache(['me'])
+    return refetchCurrentUser(['me'])
   }
 
   return {
@@ -99,6 +115,8 @@ export const useCurrentUserStore = defineStore('current-user', () => {
     initialized,
     displayName,
     fetchMe,
+    invalidateCurrentUserCache,
+    refetchCurrentUser,
     fetchMyApplications,
     fetchMyLatestApplications,
     getMyFriendsFromProfile,
