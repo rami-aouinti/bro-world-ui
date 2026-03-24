@@ -299,12 +299,19 @@ const availableLocales = computed(() => locales.value
   .filter((value): value is { code: string, name: string } => Boolean(value)))
 
 
-const localeFlags: Record<string, string> = {
-  en: '🇬🇧',
-  fr: '🇫🇷',
+const localeFlags: Record<string, { src: string, alt: string }> = {
+  en: { src: '/images/flags/gb.svg', alt: 'English' },
+  fr: { src: '/images/flags/fr.svg', alt: 'Français' },
+  es: { src: '/images/flags/es.svg', alt: 'Español' },
+  de: { src: '/images/flags/de.svg', alt: 'Deutsch' },
+  ar: { src: '/images/flags/sa.svg', alt: 'العربية' },
+  pt: { src: '/images/flags/pt.svg', alt: 'Português' },
 }
 
-const getFlag = (code: string) => localeFlags[code] ?? '🌐'
+const getFlag = (code: string) => {
+  const normalizedCode = code.toLowerCase().split(/[-_]/)[0]
+  return localeFlags[normalizedCode] ?? { src: '/images/flags/gb.svg', alt: normalizedCode.toUpperCase() }
+}
 
 const signOut = async () => {
   if (!canPermission('profile.logout')) {
@@ -519,7 +526,9 @@ const signOut = async () => {
 
         <v-menu location="bottom end" :close-on-content-click="false">
           <template #activator="{ props }">
-            <span class="px-2" v-bind="props">{{ getFlag(locale) }}</span>
+            <span class="px-2 app-bar__locale-flag" v-bind="props">
+              <img class="app-bar__locale-flag-image" :src="getFlag(locale).src" :alt="getFlag(locale).alt" width="20" height="14">
+            </span>
           </template>
 
           <v-list class="py-1 app-bar__menu" min-width="180">
@@ -532,7 +541,9 @@ const signOut = async () => {
               @click="setLocale(item.code)"
             >
               <template #prepend>
-                <span class="text-body-1">{{ getFlag(item.code) }}</span>
+                <span class="text-body-1 app-bar__locale-flag">
+                  <img class="app-bar__locale-flag-image" :src="getFlag(item.code).src" :alt="getFlag(item.code).alt" width="20" height="14">
+                </span>
               </template>
               <template #append>
                 <v-icon v-if="locale === item.code" icon="mdi-check" size="16" />
@@ -875,6 +886,17 @@ const signOut = async () => {
 
 .app-bar__option-pill--active {
   background: rgba(var(--v-theme-primary), 0.2);
+}
+
+.app-bar__locale-flag {
+  display: inline-flex;
+  align-items: center;
+}
+
+.app-bar__locale-flag-image {
+  display: block;
+  border-radius: 2px;
+  object-fit: cover;
 }
 
 .app-bar__message-item :deep(.v-list-item__content) {
