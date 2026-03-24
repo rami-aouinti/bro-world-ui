@@ -11,6 +11,9 @@ export const useAuth = () => {
 
   const token = useState<string | null>('auth-token', () => null)
   const initialized = useState<boolean>('auth-session-initialized', () => false)
+  const warmupTaskIds = useState<number[]>('auth-warmup-task-ids', () => [])
+  const warmupControllers = useState<AbortController[]>('auth-warmup-controllers', () => [])
+  const warmupHooksRegistered = useState<boolean>('auth-warmup-hooks-registered', () => false)
 
   const authFetch = <T>(url: string, options: Parameters<typeof $fetch<T>>[1] = {}) => {
     if (import.meta.server) {
@@ -39,33 +42,95 @@ export const useAuth = () => {
     }
   }
 
+  const isSensitiveNavigation = (targetPath: string) => {
+    const sensitivePrefixes = ['/login', '/register', '/logout', '/auth']
+
+    return sensitivePrefixes.some(prefix => targetPath.startsWith(prefix))
+  }
+
+  const cancelWarmupQueue = () => {
+    warmupTaskIds.value.forEach(taskId => window.clearTimeout(taskId))
+    warmupTaskIds.value = []
+
+    warmupControllers.value.forEach(controller => controller.abort())
+    warmupControllers.value = []
+  }
+
+  const registerWarmupCancellationHooks = () => {
+    if (import.meta.server || warmupHooksRegistered.value) {
+      return
+    }
+
+    const router = useRouter()
+
+    router.beforeEach((to) => {
+      if (isSensitiveNavigation(to.path)) {
+        cancelWarmupQueue()
+      }
+    })
+
+    warmupHooksRegistered.value = true
+  }
+
+  const queueLowPriorityWarmup = (task: () => Promise<void>, delayMs = 250) => {
+    if (import.meta.server) {
+      return
+    }
+
+    const taskId = window.setTimeout(async () => {
+      warmupTaskIds.value = warmupTaskIds.value.filter(id => id !== taskId)
+      await task()
+    }, delayMs)
+
+    warmupTaskIds.value = [...warmupTaskIds.value, taskId]
+  }
+
 
   const warmupPrivateCaches = async (session: SessionResponse) => {
     if (!session.authenticated || import.meta.server) {
       return
     }
 
-    try {
-      await Promise.allSettled([
-      authFetch('/api/backend/api/v1/notifications', {
+    registerWarmupCancellationHooks()
+    cancelWarmupQueue()
+
+    const warmupRequests = [
+      (signal: AbortSignal) => authFetch('/api/backend/api/v1/notifications', {
         method: 'GET',
+        signal,
         query: {
           limit: 3,
           offset: 0,
         },
       }),
-      authFetch('/api/backend/api/v1/chat/private/conversations', {
+      (signal: AbortSignal) => authFetch('/api/backend/api/v1/chat/private/conversations', {
         method: 'GET',
+        signal,
         query: {
           limit: 20,
           page: 1,
         },
       }),
-      ])
-    }
-    catch (error) {
-      console.warn('Auth warmup cache failed', error)
-    }
+    ]
+
+    warmupRequests.forEach((request, index) => {
+      queueLowPriorityWarmup(async () => {
+        const controller = new AbortController()
+        warmupControllers.value = [...warmupControllers.value, controller]
+
+        try {
+          await request(controller.signal)
+        }
+        catch (error) {
+          if ((error as { name?: string })?.name !== 'AbortError') {
+            console.warn('Auth warmup cache failed', error)
+          }
+        }
+        finally {
+          warmupControllers.value = warmupControllers.value.filter(activeController => activeController !== controller)
+        }
+      }, 250 + (index * 150))
+    })
   }
 
   const applySessionState = async (session: SessionResponse) => {
@@ -162,6 +227,10 @@ export const useAuth = () => {
   }
 
   const logout = async () => {
+    if (import.meta.client) {
+      cancelWarmupQueue()
+    }
+
     await authFetch('/api/auth/logout', { method: 'POST' })
     initialized.value = true
     await applySessionState({ authenticated: false, profile: null, roles: [], locale: null })
