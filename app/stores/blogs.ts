@@ -53,6 +53,8 @@ export const useBlogsStore = defineStore('blogs', () => {
   const myPosts = ref<BlogWithPagination | null>(null)
   const myPostsPagination = ref<BlogPagination | null>(null)
   const reactionTypes = ref<string[]>([...BLOG_REACTION_FALLBACK_TYPES])
+  const inFlightRequests = ref<Record<string, Promise<BlogWithPagination>>>({})
+  const reactionTypesInFlight = ref<Promise<string[]> | null>(null)
 
   const mergeGeneralPosts = (currentBlog: BlogWithPagination | null, incomingBlog: BlogWithPagination) => {
     if (!currentBlog) {
@@ -420,6 +422,10 @@ export const useBlogsStore = defineStore('blogs', () => {
       return general.value
     }
 
+    if (inFlightRequests.value[cacheKey]) {
+      return inFlightRequests.value[cacheKey]
+    }
+
     if (append) {
       isLoadingMore.value = true
     }
@@ -428,15 +434,22 @@ export const useBlogsStore = defineStore('blogs', () => {
     }
 
     try {
-      const response = await blogsApi.getGeneral(isPublic, { page, limit })
-      general.value = append ? mergeGeneralPosts(general.value, response) : response
-      generalPagination.value = response.pagination ?? null
-      cache.value[cacheKey] = {
-        data: response,
-        cachedAt: now,
-      }
+      inFlightRequests.value[cacheKey] = blogsApi.getGeneral(isPublic, { page, limit })
+        .then((response) => {
+          general.value = append ? mergeGeneralPosts(general.value, response) : response
+          generalPagination.value = response.pagination ?? null
+          cache.value[cacheKey] = {
+            data: response,
+            cachedAt: Date.now(),
+          }
 
-      return general.value
+          return general.value as BlogWithPagination
+        })
+        .finally(() => {
+          delete inFlightRequests.value[cacheKey]
+        })
+
+      return await inFlightRequests.value[cacheKey]
     }
     finally {
       isLoading.value = false
@@ -485,6 +498,10 @@ export const useBlogsStore = defineStore('blogs', () => {
       return myPosts.value
     }
 
+    if (inFlightRequests.value[cacheKey]) {
+      return inFlightRequests.value[cacheKey]
+    }
+
     if (append) {
       isLoadingMore.value = true
     }
@@ -493,15 +510,22 @@ export const useBlogsStore = defineStore('blogs', () => {
     }
 
     try {
-      const response = await blogsApi.getMyPosts({ page, limit })
-      myPosts.value = append ? mergeGeneralPosts(myPosts.value, response) : response
-      myPostsPagination.value = response.pagination ?? null
-      cache.value[cacheKey] = {
-        data: response,
-        cachedAt: now,
-      }
+      inFlightRequests.value[cacheKey] = blogsApi.getMyPosts({ page, limit })
+        .then((response) => {
+          myPosts.value = append ? mergeGeneralPosts(myPosts.value, response) : response
+          myPostsPagination.value = response.pagination ?? null
+          cache.value[cacheKey] = {
+            data: response,
+            cachedAt: Date.now(),
+          }
 
-      return myPosts.value
+          return myPosts.value as BlogWithPagination
+        })
+        .finally(() => {
+          delete inFlightRequests.value[cacheKey]
+        })
+
+      return await inFlightRequests.value[cacheKey]
     }
     finally {
       isLoading.value = false
@@ -526,13 +550,25 @@ export const useBlogsStore = defineStore('blogs', () => {
   }
 
   const fetchReactionTypes = async () => {
+    if (reactionTypesInFlight.value) {
+      return reactionTypesInFlight.value
+    }
+
     try {
-      const response = await blogsApi.getReactionTypes()
-      reactionTypes.value = response.items?.length ? response.items : [...BLOG_REACTION_FALLBACK_TYPES]
-      return reactionTypes.value
+      reactionTypesInFlight.value = blogsApi.getReactionTypes()
+        .then((response) => {
+          reactionTypes.value = response.items?.length ? response.items : [...BLOG_REACTION_FALLBACK_TYPES]
+          return reactionTypes.value
+        })
+        .finally(() => {
+          reactionTypesInFlight.value = null
+        })
+
+      return await reactionTypesInFlight.value
     }
     catch {
       reactionTypes.value = [...BLOG_REACTION_FALLBACK_TYPES]
+      reactionTypesInFlight.value = null
       return reactionTypes.value
     }
   }
