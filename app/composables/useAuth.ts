@@ -4,6 +4,7 @@ import { FALLBACK_LOCALE, getProfilePreferredLocale, normalizeLocaleCodes, resol
 
 import type { LoginPayload, RegisterPayload } from '~/types/api/common'
 import type { SessionResponse } from '~/types/api/user'
+import type { AuthState } from '~/stores/authSession'
 
 let activeSessionInitPromise: Promise<void> | null = null
 let activeSessionInitCorrelationId: string | null = null
@@ -176,6 +177,10 @@ export const useAuth = () => {
       && !session.profile
       && !!authSession.profile
 
+    const nextAuthState: AuthState = !session.authenticated
+      ? 'unauthenticated'
+      : (session.sessionStatus === 'degraded' ? 'degraded' : 'authenticated')
+
     authSession.setUserSession({
       token: token.value,
       profile: shouldKeepExistingProfile ? authSession.profile : session.profile,
@@ -183,6 +188,7 @@ export const useAuth = () => {
       locale: session.locale,
       profileUnavailable: session.sessionStatus === 'degraded',
       sessionStatus: session.sessionStatus ?? (session.authenticated ? 'healthy' : 'invalid'),
+      authState: nextAuthState,
     })
 
     const preferredLocale = session.authenticated
@@ -261,6 +267,7 @@ export const useAuth = () => {
     const correlationId = createCorrelationId(force ? 'session-revalidate' : 'session-init')
     sessionCorrelationId.value = correlationId
     activeSessionInitCorrelationId = correlationId
+    authSession.authState = 'initializing'
 
     activeSessionInitPromise = (async () => {
       logSessionFlow('session.init.start', { force })
@@ -368,7 +375,16 @@ export const useAuth = () => {
     }
   }
 
-  const isAuthenticated = computed(() => Boolean(token.value || authSession.token))
+  const isAuthenticated = computed(() => authSession.authState === 'authenticated' || authSession.authState === 'degraded')
+  const authState = computed(() => authSession.authState)
+
+  const awaitAuthReady = async () => {
+    if (authSession.authState !== 'initializing' && initialized.value) {
+      return
+    }
+
+    await initSession()
+  }
 
   const login = async (usernameOrEmail: string, password: string) => {
     const payload: LoginPayload = {
@@ -439,6 +455,8 @@ export const useAuth = () => {
     initialized,
     initSession,
     isAuthenticated,
+    authState,
+    awaitAuthReady,
     login,
     register,
     fetchProfile,
