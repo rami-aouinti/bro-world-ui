@@ -133,16 +133,11 @@ const loadData = async () => {
       status: normalized.status,
     })
 
-    if (normalized.status !== null && normalized.status >= 500) {
+    if (normalized.status === 401 || normalized.status === 403 || normalized.status === 502 || (normalized.status !== null && normalized.status >= 500)) {
       isProfileTemporarilyUnavailable.value = true
       if (!profile.value && currentUser.me) {
         profile.value = currentUser.me
       }
-      return
-    }
-
-    if (normalized.status === 401 || normalized.status === 403) {
-      loadError.value = normalized.message
       return
     }
 
@@ -267,7 +262,7 @@ onMounted(async () => {
         variant="tonal"
         class="mb-4"
       >
-        profil temporairement indisponible
+        Profil indisponible temporairement
       </v-alert>
       <v-alert v-if="loadError" type="error" variant="tonal" class="mb-4">{{ loadError }}</v-alert>
       <v-alert v-if="actionError" type="error" variant="tonal" class="mb-4">{{ actionError }}</v-alert>
