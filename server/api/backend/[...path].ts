@@ -185,6 +185,57 @@ const isProfileIdentityMutation = (path: string, method: string) => {
     && (path.startsWith('/api/v1/profile') || path.startsWith('/api/v1/users/me'))
 }
 
+interface SessionSnapshotCandidate {
+  id?: unknown
+  username?: unknown
+  firstName?: unknown
+  lastName?: unknown
+  email?: unknown
+  photo?: unknown
+}
+
+const asSnapshotString = (value: unknown) => typeof value === 'string' && value.trim() ? value : undefined
+
+const extractSnapshotFromMutationResponse = (targetPath: string, method: string, response: unknown): SessionSnapshotCandidate | null => {
+  if (!isProfileIdentityMutation(targetPath, method) || !response || typeof response !== 'object') {
+    return null
+  }
+
+  if (targetPath.startsWith('/api/v1/profile/photo') && method === 'POST') {
+    const photoCandidate = asSnapshotString((response as { photo?: unknown }).photo)
+
+    return photoCandidate ? { photo: photoCandidate } : null
+  }
+
+  const candidate = response as SessionSnapshotCandidate
+  return {
+    id: candidate.id,
+    username: candidate.username,
+    firstName: candidate.firstName,
+    lastName: candidate.lastName,
+    email: candidate.email,
+    photo: candidate.photo,
+  }
+}
+
+const mergeAuthUserSnapshot = (
+  existingSnapshot: Record<string, unknown> | undefined,
+  incomingSnapshot: SessionSnapshotCandidate | null,
+) => {
+  if (!existingSnapshot || !incomingSnapshot) {
+    return existingSnapshot
+  }
+
+  return {
+    id: asSnapshotString(incomingSnapshot.id) ?? asSnapshotString(existingSnapshot.id),
+    username: asSnapshotString(incomingSnapshot.username) ?? asSnapshotString(existingSnapshot.username),
+    firstName: asSnapshotString(incomingSnapshot.firstName) ?? asSnapshotString(existingSnapshot.firstName),
+    lastName: asSnapshotString(incomingSnapshot.lastName) ?? asSnapshotString(existingSnapshot.lastName),
+    email: asSnapshotString(incomingSnapshot.email) ?? asSnapshotString(existingSnapshot.email),
+    photo: asSnapshotString(incomingSnapshot.photo) ?? asSnapshotString(existingSnapshot.photo),
+  }
+}
+
 const CACHE_RESOURCE_POLICIES: CacheResourcePolicy[] = [
   {
     name: 'profile',
@@ -1175,7 +1226,13 @@ export default defineEventHandler(async (event) => {
     }
 
     if (authCookiePayload) {
-      await setAuthCookie(event, authCookiePayload)
+      const snapshotFromMutation = extractSnapshotFromMutationResponse(targetPath, method, response)
+      const nextUserSnapshot = mergeAuthUserSnapshot(authCookiePayload.userSnapshot, snapshotFromMutation)
+
+      await setAuthCookie(event, {
+        ...authCookiePayload,
+        userSnapshot: nextUserSnapshot,
+      })
     }
 
     return response

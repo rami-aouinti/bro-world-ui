@@ -330,43 +330,34 @@ export const useAuth = () => {
 
         await applySessionState(baseSession)
 
-        try {
-          const profileSession = await authFetch<SessionResponse>('/api/auth/profile', {
-            method: 'GET',
-          })
-          logSessionFlow('profile.endpoint.done', { hasProfile: Boolean(profileSession.profile) })
-          await applySessionState({
-            ...baseSession,
-            ...profileSession,
-            authenticated: true,
-            sessionStatus: 'healthy',
-          })
-          warmupPrivateCachesOnce({
-            ...baseSession,
-            ...profileSession,
-            authenticated: true,
-            sessionStatus: 'healthy',
-          }, 'init-session')
-        }
-        catch (profileError) {
-          const profileStatus = getErrorStatus(profileError)
-          logSessionFlow('profile.endpoint.error', { status: profileStatus })
+        warmupPrivateCachesOnce(baseSession, 'init-session')
 
-          await applySessionState({
-            authenticated: true,
-            profile: authSession.profile || baseSession.profile,
-            roles: baseSession.roles,
-            locale: baseSession.locale,
-            sessionStatus: 'degraded',
-          })
-          warmupPrivateCachesOnce({
-            authenticated: true,
-            profile: authSession.profile || baseSession.profile,
-            roles: baseSession.roles,
-            locale: baseSession.locale,
-            sessionStatus: 'degraded',
-          }, 'init-session')
-        }
+        void (async () => {
+          try {
+            const profileSession = await authFetch<SessionResponse>('/api/auth/profile', {
+              method: 'GET',
+            })
+            logSessionFlow('profile.endpoint.done', { hasProfile: Boolean(profileSession.profile) })
+            await applySessionState({
+              ...baseSession,
+              ...profileSession,
+              authenticated: true,
+              sessionStatus: 'healthy',
+            })
+          }
+          catch (profileError) {
+            const profileStatus = getErrorStatus(profileError)
+            logSessionFlow('profile.endpoint.error', { status: profileStatus })
+
+            await applySessionState({
+              authenticated: true,
+              profile: authSession.profile || baseSession.profile,
+              roles: baseSession.roles,
+              locale: baseSession.locale,
+              sessionStatus: 'degraded',
+            })
+          }
+        })()
       }
       catch (sessionError) {
         const sessionStatusCode = getErrorStatus(sessionError)
