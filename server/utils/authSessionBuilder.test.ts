@@ -51,6 +51,25 @@ describe('authSessionBuilder', () => {
     })
   })
 
+  it('retourne une erreur auth si le profile backend répond 401/403', async () => {
+    ;(globalThis as any).useRuntimeConfig = () => ({ public: { apiBase: 'http://api.example.test' } })
+    ;(globalThis as any).$fetch = mock.fn(async () => {
+      throw {
+        response: {
+          status: 401,
+        },
+      }
+    })
+
+    await assert.rejects(fetchProfileWithAuthorization('expired-token'), {
+      statusCode: 401,
+      statusMessage: 'Unauthorized profile access',
+      data: {
+        code: AUTH_ERROR_CODES.PROFILE_UNAUTHORIZED,
+      },
+    })
+  })
+
   it('retourne une erreur homogène si le profil est incomplet', async () => {
     const builder = createAuthSessionBuilder({
       fetchProfile: async () => ({
