@@ -1,15 +1,28 @@
 import { createHash } from 'node:crypto'
 
+const PRIVATE_BLOG_ROUTE_PREFIXES = [
+  '/api/v1/private/blogs',
+  '/api/v1/private/blog',
+  '/api/v1/blogs/me',
+]
+
 const PRIVATE_CACHE_ROUTE_PREFIXES = [
   '/api/v1/users/me',
   '/api/v1/profile',
   '/api/v1/chat/private',
   '/api/v1/notifications',
-  '/api/v1/private/blogs',
+  ...PRIVATE_BLOG_ROUTE_PREFIXES,
   '/api/v1/private/stories',
 ]
 
-export const isPrivateCacheRoute = (path) => PRIVATE_CACHE_ROUTE_PREFIXES.some(prefix => path.startsWith(prefix))
+const BLOG_ENTITY_SEGMENTS = new Set(['blogs', 'blog', 'posts', 'post'])
+const BLOG_SUB_RESOURCES = new Set(['comments', 'comment', 'reactions', 'reaction'])
+
+const toPathSegments = (path = '') => path.split('/').filter(Boolean)
+
+export const isPrivateBlogRoute = (path) => PRIVATE_BLOG_ROUTE_PREFIXES.some(prefix => path.startsWith(prefix))
+
+export const isPrivateCacheRoute = (path) => isPrivateBlogRoute(path) || PRIVATE_CACHE_ROUTE_PREFIXES.some(prefix => path.startsWith(prefix))
 
 export const getAuthUserIdFromProfile = (profile) => {
   if (!profile || typeof profile !== 'object') {
@@ -42,6 +55,44 @@ export const buildPrivateQueryHash = (query = {}) => createHash('sha256')
   .update(buildFunctionalQuerySegment(query))
   .digest('hex')
   .slice(0, 16)
+
+const getPrivateBlogResourceIdentifier = (path) => {
+  const segments = toPathSegments(path)
+
+  if (segments[2] === 'blogs' && segments[3] === 'me') {
+    return 'blog:me'
+  }
+
+  const privateBlogsIndex = segments.findIndex((segment, index) => segment === 'blogs' && segments[index - 1] === 'private')
+  const privateBlogIndex = segments.findIndex((segment, index) => segment === 'blog' && segments[index - 1] === 'private')
+  const entityIndex = segments.findIndex(segment => BLOG_ENTITY_SEGMENTS.has(segment))
+  const blogIndex = privateBlogsIndex >= 0
+    ? privateBlogsIndex
+    : (privateBlogIndex >= 0 ? privateBlogIndex : entityIndex)
+
+  if (blogIndex < 0) {
+    return 'blog:list'
+  }
+
+  const postId = segments[blogIndex + 1]
+
+  if (!postId || postId === 'application' || postId === 'general') {
+    return 'blog:list'
+  }
+
+  const subResourceIndex = segments.findIndex((segment, index) => index > blogIndex && BLOG_SUB_RESOURCES.has(segment))
+
+  if (subResourceIndex < 0) {
+    return `blog:${postId}`
+  }
+
+  const subResource = segments[subResourceIndex].replace(/s$/, '')
+  const subResourceId = segments[subResourceIndex + 1]
+
+  return subResourceId
+    ? `blog:${postId}:${subResource}:${subResourceId}`
+    : `blog:${postId}:${subResource}`
+}
 
 export const getPrivateResourceIdentifier = (path) => {
   if (path.startsWith('/api/v1/users/me/applications/latest')) {
@@ -86,14 +137,24 @@ export const getPrivateResourceIdentifier = (path) => {
     return storyId ? `story:${storyId}` : 'story:list'
   }
 
-  if (path.startsWith('/api/v1/private/blogs/') || path.startsWith('/api/v1/blogs/')) {
-    const segments = path.split('/').filter(Boolean)
-    const isPrivateBlogsPath = segments[2] === 'private' && segments[3] === 'blogs'
-    const blogId = isPrivateBlogsPath ? segments[4] : segments[3]
-    return blogId ? `blog:${blogId}` : 'blog:list'
+  if (isPrivateBlogRoute(path) || path.startsWith('/api/v1/blogs/')) {
+    return getPrivateBlogResourceIdentifier(path)
   }
 
   return 'resource'
+}
+
+export const getPrivateResourceInvalidationPattern = (path) => {
+  if (isPrivateBlogRoute(path) || path.startsWith('/api/v1/blogs/')) {
+    return 'blog:*'
+  }
+
+  if (path.startsWith('/api/v1/private/stories')) {
+    return 'story:*'
+  }
+
+  const identifier = getPrivateResourceIdentifier(path)
+  return `${identifier}*`
 }
 
 export const canReadPrivateCache = (authUserId, cacheUserId) => Boolean(authUserId) && authUserId === cacheUserId
