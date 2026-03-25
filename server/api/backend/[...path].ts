@@ -640,6 +640,25 @@ const buildForwardHeaders = (event: any): Record<string, string> => {
   return headers
 }
 
+const logApiTelemetry = (
+  level: 'info' | 'warn',
+  payload: {
+    path: string
+    isPrivate: boolean
+    authState: string
+    attempt: number
+    responseStatus: number | string
+    errorSource: string | null
+    sessionCorrelationId: string | null
+    method: string
+    event?: string
+    [key: string]: unknown
+  },
+) => {
+  const logger = level === 'warn' ? console.warn : console.info
+  logger('[api-telemetry]', payload)
+}
+
 const recordTop401Endpoints = (
   targetPath: string,
   method: string,
@@ -672,6 +691,8 @@ const handleBackendError = (
   context: {
     targetPath: string
     method: string
+    isPrivate: boolean
+    authState: string
     hasAuthCookie: boolean
     hasBearerToken: boolean
     sessionCorrelationId: string | null
@@ -680,11 +701,14 @@ const handleBackendError = (
   const statusCode = error?.statusCode || error?.response?.status
   const isNetworkError = !statusCode
 
-  console.warn('[api-telemetry]', {
+  logApiTelemetry('warn', {
     path: context.targetPath,
+    isPrivate: context.isPrivate,
+    authState: context.authState,
     method: context.method,
-    status: statusCode || 'network_error',
     attempt: 1,
+    responseStatus: statusCode || 'network_error',
+    errorSource: isNetworkError ? 'network' : 'backend',
     hasAuthCookie: context.hasAuthCookie,
     hasBearerToken: context.hasBearerToken,
     errorType: isNetworkError ? 'network_error' : 'http_error',
@@ -693,6 +717,17 @@ const handleBackendError = (
 
   if (statusCode === 401 || statusCode === 403) {
     recordTop401Endpoints(context.targetPath, context.method, 'backend_401', context.sessionCorrelationId)
+    logApiTelemetry('warn', {
+      event: 'api.error.401.backend',
+      path: context.targetPath,
+      isPrivate: context.isPrivate,
+      authState: context.authState,
+      method: context.method,
+      attempt: 1,
+      responseStatus: statusCode,
+      errorSource: 'backend',
+      sessionCorrelationId: context.sessionCorrelationId,
+    })
     throw createError({
       statusCode,
       statusMessage: error?.statusMessage || (statusCode === 401 ? 'Unauthorized' : 'Forbidden'),
@@ -722,17 +757,25 @@ export default defineEventHandler(async (event) => {
   const sessionCorrelationId = getHeader(event, 'x-session-correlation-id') || null
   const isPublicRoute = PUBLIC_BACKEND_PATHS.has(targetPath)
     || PUBLIC_BACKEND_PATH_PREFIXES.some(prefix => targetPath.startsWith(prefix))
+  const isPrivate = !isPublicRoute
 
   const tokenFromAuthorizationHeader = normalizeBearerToken(getHeader(event, 'authorization'))
   let bearerToken: string | undefined = tokenFromAuthorizationHeader
   let authCookiePayload = await readAuthCookie(event) || undefined
+  const authState = bearerToken
+    ? 'authorization_header'
+    : (authCookiePayload ? 'cookie' : 'missing')
 
   if (!isPublicRoute && !bearerToken && !authCookiePayload) {
-    console.warn('[api-telemetry]', {
+    logApiTelemetry('warn', {
+      event: 'api.blocked.auth_not_ready',
       path: targetPath,
+      isPrivate,
+      authState,
       method: getMethod(event),
-      status: 500,
       attempt: 1,
+      responseStatus: 500,
+      errorSource: 'gateway',
       hasAuthCookie: false,
       hasBearerToken: false,
       errorType: 'gateway_auth_not_ready',
@@ -823,11 +866,14 @@ export default defineEventHandler(async (event) => {
       headers,
     })
 
-    console.info('[api-telemetry]', {
+    logApiTelemetry('info', {
       path: targetPath,
+      isPrivate,
+      authState: bearerToken ? authState : (authCookiePayload ? 'cookie' : 'missing'),
       method,
-      status: '2xx',
       attempt: 1,
+      responseStatus: '2xx',
+      errorSource: null,
       hasAuthCookie: Boolean(authCookiePayload),
       hasBearerToken: Boolean(bearerToken),
       sessionCorrelationId,
@@ -895,6 +941,8 @@ export default defineEventHandler(async (event) => {
     handleBackendError(error, {
       targetPath,
       method,
+      isPrivate,
+      authState: bearerToken ? 'bearer' : (authCookiePayload ? 'cookie' : 'missing'),
       hasAuthCookie: Boolean(authCookiePayload),
       hasBearerToken: Boolean(bearerToken),
       sessionCorrelationId,
