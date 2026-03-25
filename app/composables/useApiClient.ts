@@ -25,6 +25,7 @@ const BURST_WINDOW_MS = 1_000
 const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 const AUTH_AUTO_RETRY_EXCLUSIONS = ['api/auth/login', 'api/auth/register']
 const inFlightRequests = new Map<string, Promise<unknown>>()
+const endpoint401Counts = new Map<string, number>()
 let burstWindowStartedAt = 0
 let burstCount = 0
 
@@ -107,6 +108,36 @@ const isRetryableNetworkError = (error: unknown) => {
   return networkError.name === 'FetchError'
     || networkError.message?.toLowerCase().includes('network')
     || networkError.message?.toLowerCase().includes('failed to fetch')
+}
+
+const getErrorStatus = (error: unknown) => (error as { status?: number, response?: { status?: number } })?.status
+  ?? (error as { response?: { status?: number } })?.response?.status
+
+const recordTop401Endpoint = (
+  normalizedUrl: string,
+  method: string,
+  source: 'backend_401' | 'local_401_missing_cookie',
+  sessionCorrelationId: string | null,
+) => {
+  const key = `${method} ${normalizedUrl} [${source}]`
+  endpoint401Counts.set(key, (endpoint401Counts.get(key) || 0) + 1)
+  const total401 = Array.from(endpoint401Counts.values()).reduce((sum, count) => sum + count, 0)
+
+  if (total401 % 10 !== 0) {
+    return
+  }
+
+  const topEndpoints = Array
+    .from(endpoint401Counts.entries())
+    .sort((first, second) => second[1] - first[1])
+    .slice(0, 5)
+    .map(([endpointKey, count]) => ({ endpointKey, count }))
+
+  console.warn('[api-telemetry][401-top-endpoints]', {
+    total401,
+    topEndpoints,
+    sessionCorrelationId,
+  })
 }
 
 const revalidateSessionWithGlobalThrottle = async (auth: ReturnType<typeof useAuth>) => {
@@ -206,6 +237,10 @@ export const useApiClient = () => {
       nextHeaders['Idempotency-Key'] = options.idempotencyKey
     }
 
+    if (!nextHeaders['x-session-correlation-id'] && auth.sessionCorrelationId.value) {
+      nextHeaders['x-session-correlation-id'] = auth.sessionCorrelationId.value
+    }
+
     const requestPromise = (async () => {
       try {
         const fetchOptions = { ...options } as Parameters<typeof $fetch<T>>[1] & {
@@ -225,6 +260,16 @@ export const useApiClient = () => {
               ...fetchOptions,
               credentials: 'include',
               headers: nextHeaders,
+            })
+
+            console.info('[api-telemetry]', {
+              path: normalizedUrl,
+              method,
+              status: '2xx',
+              attempt,
+              hasBearerToken,
+              hasAuthorizationHeader: Boolean(nextHeaders.Authorization),
+              sessionCorrelationId: auth.sessionCorrelationId.value,
             })
 
             if (auth.isAuthenticated.value) {
@@ -253,15 +298,31 @@ export const useApiClient = () => {
           catch (error) {
             lastError = error
 
-            const status = (error as { status?: number, response?: { status?: number } })?.status
-              ?? (error as { response?: { status?: number } })?.response?.status
+            const status = getErrorStatus(error)
             const is401 = status === 401
             const isRetryableStatus = status !== undefined && RETRYABLE_HTTP_STATUSES.has(status)
-            const isRetryableError = isRetryableStatus || isRetryableNetworkError(error)
+            const isNetworkError = isRetryableNetworkError(error)
+            const isRetryableError = isRetryableStatus || isNetworkError
             const hasRemainingAttempts = attempt <= maxRetries
+            const telemetrySource = (error as { data?: { telemetryCategory?: string } })?.data?.telemetryCategory
+            const authFailureType = telemetrySource === 'local_401_missing_cookie'
+              ? 'local_401_missing_cookie'
+              : 'backend_401'
+
+            console.warn('[api-telemetry]', {
+              path: normalizedUrl,
+              method,
+              status: status || 'network_error',
+              attempt,
+              hasBearerToken,
+              hasAuthorizationHeader: Boolean(nextHeaders.Authorization),
+              errorType: isNetworkError ? 'network_error' : (is401 ? authFailureType : 'http_error'),
+              sessionCorrelationId: auth.sessionCorrelationId.value,
+            })
 
             if (is401) {
               track401Burst(tracker, normalizedUrl, method)
+              recordTop401Endpoint(normalizedUrl, method, authFailureType, auth.sessionCorrelationId.value)
 
               if (hasRetriedAfter401 || isAutoRetryExcludedPath) {
                 auth.lastAuthFailureAt.value = now()
