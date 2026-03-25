@@ -10,8 +10,9 @@ definePageMeta({
   skeleton: 'card-grid',
 })
 
-const { isAuthenticated } = useAuth()
+const { initSession, authState } = useAuth()
 const { t } = useI18n()
+const { resolveSensitiveError, isDebugMode } = useSensitivePageFeedback()
 const quizApi = useQuizApi()
 const quizCatalogStore = useQuizCatalogStore()
 
@@ -22,6 +23,9 @@ const isFinished = ref(false)
 const hasStarted = ref(false)
 const isSubmitting = ref(false)
 const submitError = ref('')
+const submitErrorRequestId = ref<string | null>(null)
+const loadErrorMessage = ref('')
+const loadErrorRequestId = ref<string | null>(null)
 const submitResult = ref<SubmitQuizResult | null>(null)
 const selectedLevel = ref<string | null>(null)
 const selectedCategory = ref<string | null>(null)
@@ -30,12 +34,17 @@ let timerInterval: ReturnType<typeof setInterval> | null = null
 
 const { data: quiz, pending, error, execute: loadQuiz } = useAsyncData(
   'general-quiz',
-  () => quizApi.getGeneralQuiz(isAuthenticated.value, {
-    level: selectedLevel.value,
-    category: selectedCategory.value,
-  }),
+  async () => {
+    await initSession()
+    const allowPrivateQuiz = authState.value === 'authenticated' || authState.value === 'degraded'
+
+    return quizApi.getGeneralQuiz(allowPrivateQuiz, {
+      level: selectedLevel.value,
+      category: selectedCategory.value,
+    })
+  },
   {
-    watch: [isAuthenticated, selectedLevel, selectedCategory],
+    watch: [authState, selectedLevel, selectedCategory],
     server: false,
     immediate: true,
   },
@@ -225,8 +234,15 @@ const submitQuiz = async () => {
       })),
     })
   }
-  catch {
-    submitError.value = t('quizPage.submitError')
+  catch (error) {
+    const resolved = resolveSensitiveError(error, {
+      authState: authState.value,
+      domain: 'quizPage',
+      action: 'submit',
+      fallbackKey: 'quizPage.submitError',
+    })
+    submitError.value = resolved.message || t('quizPage.submitError')
+    submitErrorRequestId.value = resolved.requestId
   }
   finally {
     isSubmitting.value = false
@@ -324,6 +340,23 @@ watch(() => quiz.value?.id, () => {
     resetState()
   }
 })
+
+watch(error, (value) => {
+  if (!value) {
+    loadErrorMessage.value = ''
+    loadErrorRequestId.value = null
+    return
+  }
+
+  const resolved = resolveSensitiveError(value, {
+    authState: authState.value,
+    domain: 'quizPage',
+    action: 'load',
+    fallbackKey: 'quizPage.loadError',
+  })
+  loadErrorMessage.value = resolved.message || t('quizPage.loadError')
+  loadErrorRequestId.value = resolved.requestId
+}, { immediate: true })
 
 onMounted(() => {
   isInitialLoading.value = true
@@ -458,7 +491,8 @@ onBeforeUnmount(() => {
 
     <section>
       <v-alert v-if="error" type="error" variant="tonal" class="mb-6">
-        {{ t('quizPage.loadError') }}
+        {{ loadErrorMessage || t('quizPage.loadError') }}
+        <div v-if="isDebugMode && loadErrorRequestId" class="text-caption mt-1">requestId: {{ loadErrorRequestId }}</div>
       </v-alert>
 
       <v-skeleton-loader v-else-if="pending && isInitialLoading" type="heading, article, list-item-three-line@2, actions" />
@@ -561,6 +595,7 @@ onBeforeUnmount(() => {
             <v-skeleton-loader v-if="isSubmitting" v-for="item in [1, 2, 3]" type="card" class="mb-4" />
             <v-alert v-else-if="submitError" type="warning" variant="tonal" class="mb-4">
               {{ submitError }}
+              <div v-if="isDebugMode && submitErrorRequestId" class="text-caption mt-1">requestId: {{ submitErrorRequestId }}</div>
             </v-alert>
 
             <div v-else-if="submitResult" class="d-flex flex-column ga-3">

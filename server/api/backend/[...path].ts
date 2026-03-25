@@ -1,7 +1,7 @@
 import { readAuthCookie, setAuthCookie } from '~~/server/utils/authCookie'
 import { getRedisClient } from '~~/server/utils/redis'
 import { buildCacheKey, buildCacheScanPattern, buildCacheScopePrefix, buildQueryHash, toPathResourceIdentifier } from '~~/server/utils/cacheKeyBuilder'
-import { createHash } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import { buildFunctionalQuerySegment, getPrivateResourceIdentifier, isPrivateCacheRoute } from '~~/server/utils/privateCacheKey'
 
 const PUBLIC_BACKEND_PATHS = new Set([
@@ -23,6 +23,7 @@ const PUBLIC_BACKEND_PATHS = new Set([
   '/api/v1/page/public/contact/fr',
   '/api/v1/page/public/faq/en',
   '/api/v1/page/public/faq/fr',
+  '/api/v1/public/quiz/general/leaderboard',
 ])
 
 const PUBLIC_BACKEND_PATH_PREFIXES = [
@@ -617,9 +618,10 @@ const getResourceInvalidationActions = (targetPath: string, method: string) => {
   return actions
 }
 
-const buildForwardHeaders = (event: any): Record<string, string> => {
+const buildForwardHeaders = (event: any, requestCorrelationId: string): Record<string, string> => {
   const headers: Record<string, string> = {
     accept: getHeader(event, 'accept') || 'application/json',
+    'x-session-correlation-id': requestCorrelationId,
   }
 
   const contentType = getHeader(event, 'content-type')
@@ -632,18 +634,32 @@ const buildForwardHeaders = (event: any): Record<string, string> => {
     headers['content-length'] = contentLength
   }
 
-  const sessionCorrelationId = getHeader(event, 'x-session-correlation-id')
-  if (sessionCorrelationId) {
-    headers['x-session-correlation-id'] = sessionCorrelationId
-  }
-
   return headers
+}
+
+const logApiTelemetry = (
+  level: 'info' | 'warn',
+  payload: {
+    path: string
+    isPrivate: boolean
+    authState: string
+    attempt: number
+    responseStatus: number | string
+    errorSource: string | null
+    sessionCorrelationId: string | null
+    method: string
+    event?: string
+    [key: string]: unknown
+  },
+) => {
+  const logger = level === 'warn' ? console.warn : console.info
+  logger('[api-telemetry]', payload)
 }
 
 const recordTop401Endpoints = (
   targetPath: string,
   method: string,
-  source: 'backend_401' | 'local_401_missing_cookie',
+  source: 'local_401' | 'backend_401',
   sessionCorrelationId: string | null,
 ) => {
   const key = `${method} ${targetPath} [${source}]`
@@ -672,6 +688,8 @@ const handleBackendError = (
   context: {
     targetPath: string
     method: string
+    isPrivate: boolean
+    authState: string
     hasAuthCookie: boolean
     hasBearerToken: boolean
     sessionCorrelationId: string | null
@@ -680,11 +698,14 @@ const handleBackendError = (
   const statusCode = error?.statusCode || error?.response?.status
   const isNetworkError = !statusCode
 
-  console.warn('[api-telemetry]', {
+  logApiTelemetry('warn', {
     path: context.targetPath,
+    isPrivate: context.isPrivate,
+    authState: context.authState,
     method: context.method,
-    status: statusCode || 'network_error',
     attempt: 1,
+    responseStatus: statusCode || 'network_error',
+    errorSource: isNetworkError ? 'network' : 'backend',
     hasAuthCookie: context.hasAuthCookie,
     hasBearerToken: context.hasBearerToken,
     errorType: isNetworkError ? 'network_error' : 'http_error',
@@ -693,11 +714,26 @@ const handleBackendError = (
 
   if (statusCode === 401 || statusCode === 403) {
     recordTop401Endpoints(context.targetPath, context.method, 'backend_401', context.sessionCorrelationId)
+    logApiTelemetry('warn', {
+      event: 'api.error.401.backend',
+      path: context.targetPath,
+      isPrivate: context.isPrivate,
+      authState: context.authState,
+      method: context.method,
+      attempt: 1,
+      responseStatus: statusCode,
+      errorSource: 'backend',
+      sessionCorrelationId: context.sessionCorrelationId,
+    })
     throw createError({
       statusCode,
-      statusMessage: 'Backend authentication failed',
+      statusMessage: error?.statusMessage || (statusCode === 401 ? 'Unauthorized' : 'Forbidden'),
       data: {
+        ...(error?.data || {}),
+        source: 'backend',
+        errorSource: 'backend',
         telemetryCategory: 'backend_401',
+        sessionCorrelationId: context.sessionCorrelationId,
       },
     })
   }
@@ -717,31 +753,47 @@ export default defineEventHandler(async (event) => {
 
   const path = getRouterParam(event, 'path') || ''
   const targetPath = `/${path}`
-  const sessionCorrelationId = getHeader(event, 'x-session-correlation-id') || null
+  const requestCorrelationId = getHeader(event, 'x-session-correlation-id') || randomUUID()
+  const sessionCorrelationId = requestCorrelationId
+  setHeader(event, 'x-session-correlation-id', requestCorrelationId)
   const isPublicRoute = PUBLIC_BACKEND_PATHS.has(targetPath)
     || PUBLIC_BACKEND_PATH_PREFIXES.some(prefix => targetPath.startsWith(prefix))
+  const isPrivate = !isPublicRoute
 
   const tokenFromAuthorizationHeader = normalizeBearerToken(getHeader(event, 'authorization'))
   let bearerToken: string | undefined = tokenFromAuthorizationHeader
-  let authCookiePayload = await readAuthCookie(event) || undefined
+  let authCookiePayload = !isPublicRoute
+    ? await readAuthCookie(event) || undefined
+    : undefined
+  const authState = bearerToken
+    ? 'authorization_header'
+    : (authCookiePayload ? 'cookie' : 'missing')
 
   if (!isPublicRoute && !bearerToken && !authCookiePayload) {
-    console.warn('[api-telemetry]', {
+    recordTop401Endpoints(targetPath, getMethod(event), 'local_401', sessionCorrelationId)
+    logApiTelemetry('warn', {
+      event: 'api.error.401.local',
       path: targetPath,
+      isPrivate,
+      authState,
       method: getMethod(event),
-      status: 401,
       attempt: 1,
+      responseStatus: 401,
+      errorSource: 'local',
       hasAuthCookie: false,
       hasBearerToken: false,
-      errorType: 'local_401_missing_cookie',
+      errorType: 'gateway_auth_not_ready',
       sessionCorrelationId,
     })
-    recordTop401Endpoints(targetPath, getMethod(event), 'local_401_missing_cookie', sessionCorrelationId)
     throw createError({
       statusCode: 401,
-      statusMessage: 'Local authentication cookie missing',
+      statusMessage: 'AUTH_NOT_READY',
       data: {
-        telemetryCategory: 'local_401_missing_cookie',
+        code: 'SESSION_MISSING',
+        errorSource: 'local',
+        source: 'gateway',
+        telemetryCategory: 'gateway_auth_not_ready',
+        sessionCorrelationId,
       },
     })
   }
@@ -806,7 +858,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const headers = buildForwardHeaders(event)
+    const headers = buildForwardHeaders(event, requestCorrelationId)
 
     if (bearerToken) {
       headers.Authorization = `Bearer ${bearerToken}`
@@ -820,11 +872,14 @@ export default defineEventHandler(async (event) => {
       headers,
     })
 
-    console.info('[api-telemetry]', {
+    logApiTelemetry('info', {
       path: targetPath,
+      isPrivate,
+      authState: bearerToken ? authState : (authCookiePayload ? 'cookie' : 'missing'),
       method,
-      status: '2xx',
       attempt: 1,
+      responseStatus: '2xx',
+      errorSource: null,
       hasAuthCookie: Boolean(authCookiePayload),
       hasBearerToken: Boolean(bearerToken),
       sessionCorrelationId,
@@ -892,6 +947,8 @@ export default defineEventHandler(async (event) => {
     handleBackendError(error, {
       targetPath,
       method,
+      isPrivate,
+      authState: bearerToken ? 'bearer' : (authCookiePayload ? 'cookie' : 'missing'),
       hasAuthCookie: Boolean(authCookiePayload),
       hasBearerToken: Boolean(bearerToken),
       sessionCorrelationId,

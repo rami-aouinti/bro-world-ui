@@ -1,3 +1,10 @@
+import {
+  normalizeErrorResponse,
+  normalizeSuccessResponse,
+  normalizeUnknownErrorResponse,
+  type ApiResponseEnvelope,
+} from './api/responseNormalizer'
+
 const SERVER_SESSION_PLACEHOLDER = '__server_session__'
 const CRITICAL_API_PATTERNS = [
   'api/v1/auth',
@@ -8,6 +15,15 @@ const PRIVATE_AUTH_REQUIRED_PATTERNS = [
   'api/v1/blog',
   'api/v1/quiz',
 ]
+const PUBLIC_QUIZ_ENDPOINT_PREFIX = 'api/v1/public/quiz/'
+const PRIVATE_ENDPOINT_PREFIXES = [
+  'api/v1/private/',
+  'api/v1/users/me',
+  'api/v1/chat/private/',
+]
+const PRIVATE_ENDPOINT_EXACT_MATCHES = new Set([
+  'api/v1/notifications',
+])
 const RETRYABLE_NETWORK_ERROR_CODES = new Set([
   'ECONNRESET',
   'ECONNREFUSED',
@@ -21,30 +37,62 @@ const RETRYABLE_NETWORK_ERROR_CODES = new Set([
   'UND_ERR_SOCKET',
   'ABORT_ERR',
 ])
-const RETRYABLE_HTTP_STATUSES = new Set([502, 503, 504])
-const RETRY_DELAYS_IN_MS = [150, 300]
 const MAX_RETRIES = 2
-const AUTH_REVALIDATION_COOLDOWN_MS = 20_000
+const NETWORK_RETRY_BASE_DELAY_MS = 120
+const NETWORK_RETRY_JITTER_MS = 80
 const BURST_WINDOW_MS = 1_000
 const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
-const AUTH_AUTO_RETRY_EXCLUSIONS = ['api/auth/login', 'api/auth/register']
 const inFlightRequests = new Map<string, Promise<unknown>>()
 const endpoint401Counts = new Map<string, number>()
 let burstWindowStartedAt = 0
 let burstCount = 0
-let sharedAuthRevalidationPromise: Promise<boolean> | null = null
-let lastGlobalAuthRevalidationAt = 0
+let sharedPrivateAuthInitPromise: Promise<void> | null = null
 
 const normalizeApiPath = (url: string) => url.replace(/^\/+/, '')
 
 const isCriticalApiCall = (normalizedUrl: string) => CRITICAL_API_PATTERNS.some(pattern => normalizedUrl.includes(pattern))
 const isPrivateAuthRequiredEndpoint = (normalizedUrl: string) => {
   const lowerNormalizedUrl = normalizedUrl.toLowerCase()
+
+  if (lowerNormalizedUrl.startsWith(PUBLIC_QUIZ_ENDPOINT_PREFIX)) {
+    return false
+  }
+
   return PRIVATE_AUTH_REQUIRED_PATTERNS.some(pattern => lowerNormalizedUrl.includes(pattern))
+}
+const isPrivateEndpoint = (url: string) => {
+  const normalizedUrl = normalizeApiPath(url).toLowerCase()
+
+  if (normalizedUrl.startsWith(PUBLIC_QUIZ_ENDPOINT_PREFIX)) {
+    return false
+  }
+
+  if (PRIVATE_ENDPOINT_EXACT_MATCHES.has(normalizedUrl)) {
+    return true
+  }
+
+  return PRIVATE_ENDPOINT_PREFIXES.some(pattern => normalizedUrl.startsWith(pattern))
 }
 
 const now = () => (import.meta.client ? performance.now() : Date.now())
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+const getNetworkRetryDelay = (attempt: number) => {
+  const cappedAttempt = Math.max(1, attempt)
+  const exponentialBackoff = NETWORK_RETRY_BASE_DELAY_MS * 2 ** (cappedAttempt - 1)
+  const jitter = Math.floor(Math.random() * NETWORK_RETRY_JITTER_MS)
+
+  return exponentialBackoff + jitter
+}
+
+export class NormalizedApiClientError extends Error {
+  response: ApiResponseEnvelope<null>
+
+  constructor(response: ApiResponseEnvelope<null>, message = 'API request failed') {
+    super(message)
+    this.name = 'NormalizedApiClientError'
+    this.response = response
+  }
+}
 
 type ApiFetchOptions<T> = Parameters<typeof $fetch<T>>[1] & {
   retryUnsafeMutations?: boolean
@@ -120,8 +168,24 @@ const isRetryableNetworkError = (error: unknown) => {
     || networkError.message?.toLowerCase().includes('failed to fetch')
 }
 
-const getErrorStatus = (error: unknown) => (error as { status?: number, response?: { status?: number } })?.status
-  ?? (error as { response?: { status?: number } })?.response?.status
+const logApiTelemetry = (
+  level: 'info' | 'warn',
+  payload: {
+    path: string
+    isPrivate: boolean
+    authState: string
+    attempt: number
+    responseStatus: number | string
+    errorSource: string | null
+    sessionCorrelationId: string | null
+    method: string
+    event?: string
+    [key: string]: unknown
+  },
+) => {
+  const logger = level === 'warn' ? console.warn : console.info
+  logger('[api-telemetry]', payload)
+}
 
 const recordTop401Endpoint = (
   normalizedUrl: string,
@@ -150,42 +214,27 @@ const recordTop401Endpoint = (
   })
 }
 
-const revalidateSessionWithGlobalThrottle = async (auth: ReturnType<typeof useAuth>) => {
-  if (sharedAuthRevalidationPromise) {
-    return sharedAuthRevalidationPromise
+const ensurePrivateAuthReady = async (auth: ReturnType<typeof useAuth>) => {
+  const isSessionReady = auth.initialized.value && auth.authState.value !== 'initializing'
+
+  if (!isSessionReady) {
+    if (!sharedPrivateAuthInitPromise) {
+      sharedPrivateAuthInitPromise = (async () => {
+        try {
+          await auth.initSession()
+        }
+        finally {
+          sharedPrivateAuthInitPromise = null
+        }
+      })()
+    }
+
+    await sharedPrivateAuthInitPromise
   }
 
-  const currentTime = now()
-  const isWithinGlobalThrottleWindow = lastGlobalAuthRevalidationAt > 0
-    && (currentTime - lastGlobalAuthRevalidationAt) < AUTH_REVALIDATION_COOLDOWN_MS
-
-  if (isWithinGlobalThrottleWindow) {
-    return false
+  if (auth.authState.value === 'initializing') {
+    await auth.awaitAuthReady()
   }
-
-  const lastFailureAt = auth.lastAuthFailureAt.value
-  const isInCooldownWindow = lastFailureAt > 0 && (currentTime - lastFailureAt) < AUTH_REVALIDATION_COOLDOWN_MS
-
-  if (isInCooldownWindow) {
-    return false
-  }
-
-  sharedAuthRevalidationPromise = (async () => {
-    try {
-      lastGlobalAuthRevalidationAt = now()
-      await auth.initSession(true)
-      return true
-    }
-    catch (error) {
-      auth.lastAuthFailureAt.value = now()
-      throw error
-    }
-    finally {
-      sharedAuthRevalidationPromise = null
-    }
-  })()
-
-  return sharedAuthRevalidationPromise
 }
 
 const track401Burst = (tracker: ReturnType<typeof useTracker>, path: string, method: string) => {
@@ -214,16 +263,25 @@ export const useApiClient = () => {
 
   const apiFetch = async <T>(url: string, options: ApiFetchOptions<T> = {}) => {
     const normalizedUrl = normalizeApiPath(url)
+    const requestAuthorization = requestHeaders.authorization
+    const isPrivateRoute = isPrivateEndpoint(normalizedUrl)
+    const sessionCorrelationId = auth.sessionCorrelationId.value
+
+    if (isPrivateRoute) {
+      await ensurePrivateAuthReady(auth)
+    }
+
     const token = authSession.token
     const hasBearerToken = Boolean(token && token !== SERVER_SESSION_PLACEHOLDER)
-    const requestAuthorization = requestHeaders.authorization
     const startedAt = now()
     const method = resolveMethod(options.method)
     const requestCorrelationId = `${method.toLowerCase()}-${Date.now()}-${hashValue(`${normalizedUrl}:${Math.random()}`)}`
     const dedupeKey = buildRequestDedupeKey(method, normalizedUrl, options as ApiFetchOptions<unknown>)
     const existingRequest = inFlightRequests.get(dedupeKey) as Promise<T> | undefined
-    const isPrivateEndpoint = isPrivateAuthRequiredEndpoint(normalizedUrl)
-    const hasAuthContext = auth.isAuthenticated.value || hasBearerToken || Boolean(requestAuthorization)
+    const isAuthRequiredEndpoint = isPrivateAuthRequiredEndpoint(normalizedUrl)
+    const isPublicQuizEndpoint = normalizedUrl.toLowerCase().startsWith(PUBLIC_QUIZ_ENDPOINT_PREFIX)
+    const canUsePrivateSession = auth.authState.value === 'authenticated' || auth.authState.value === 'degraded'
+    const hasAuthenticatedSession = canUsePrivateSession || Boolean(requestAuthorization)
 
     if (existingRequest) {
       tracker.track('api.request.deduplicated', {
@@ -234,7 +292,50 @@ export const useApiClient = () => {
       return existingRequest
     }
 
-    if (isPrivateEndpoint && !hasAuthContext) {
+    if (isPrivateRoute && !hasAuthenticatedSession) {
+      logApiTelemetry('warn', {
+        event: 'api.blocked.auth_not_ready',
+        path: normalizedUrl,
+        isPrivate: isPrivateRoute,
+        authState: auth.authState.value,
+        attempt: 1,
+        responseStatus: 403,
+        errorSource: 'client_auth_guard',
+        method,
+        sessionCorrelationId,
+      })
+      auth.lastAuthFailureAt.value = now()
+      const unauthorizedError = createError({
+        statusCode: 403,
+        statusMessage: 'Authentication required',
+        data: { telemetryCategory: 'private_endpoint_blocked_client_side' },
+      })
+
+      tracker.trackError('api.request.failed', unauthorizedError, {
+        path: normalizedUrl,
+        method,
+        dedupeKey,
+      })
+
+      throw new NormalizedApiClientError(normalizeErrorResponse(unauthorizedError, 403))
+    }
+    if (isAuthRequiredEndpoint && !hasAuthenticatedSession) {
+      tracker.track('api.error.auth_missing_local', {
+        path: normalizedUrl,
+        method,
+        sessionCorrelationId,
+      })
+      logApiTelemetry('warn', {
+        event: 'api.error.auth_missing_local',
+        path: normalizedUrl,
+        isPrivate: isPrivateRoute,
+        authState: auth.authState.value,
+        attempt: 1,
+        responseStatus: 401,
+        errorSource: 'local_auth_missing',
+        method,
+        sessionCorrelationId,
+      })
       track401Burst(tracker, normalizedUrl, method)
       recordTop401Endpoint(normalizedUrl, method, 'local_401_missing_cookie', auth.sessionCorrelationId.value)
       auth.lastAuthFailureAt.value = now()
@@ -250,13 +351,12 @@ export const useApiClient = () => {
         dedupeKey,
       })
 
-      throw unauthorizedError
+      throw new NormalizedApiClientError(normalizeErrorResponse(unauthorizedError, 401))
     }
     const isMutation = MUTATION_METHODS.has(method)
     const canRetryMutation = Boolean(options.idempotencyKey || options.retryUnsafeMutations)
     const canRetry = !isMutation || canRetryMutation
-    const isAutoRetryExcludedPath = AUTH_AUTO_RETRY_EXCLUSIONS.some(path => normalizedUrl.startsWith(path))
-    const maxRetries = canRetry && !isAutoRetryExcludedPath ? MAX_RETRIES : 0
+    const maxRetries = canRetry ? MAX_RETRIES : 0
 
     const nextHeaders: Record<string, string> = {
       ...(options.headers as Record<string, string> | undefined),
@@ -289,25 +389,30 @@ export const useApiClient = () => {
 
         let lastError: unknown = null
 
-        let hasRetriedAfter401 = false
-        let hasConsumedAuthReplay = false
-
         for (let attempt = 1; attempt <= maxRetries + 1; attempt += 1) {
           try {
-            const response = await $fetch<T>(`/api/backend/${normalizedUrl}`, {
+            const response = await $fetch.raw<T>(`/api/backend/${normalizedUrl}`, {
               ...fetchOptions,
               credentials: 'include',
               headers: nextHeaders,
             })
+            const normalizedResponse = normalizeSuccessResponse<T>(
+              response.status,
+              response._data as T,
+              response.headers,
+            )
 
-            console.info('[api-telemetry]', {
+            logApiTelemetry('info', {
               path: normalizedUrl,
+              isPrivate: isPrivateRoute,
+              authState: auth.authState.value,
               method,
-              status: '2xx',
               attempt,
+              responseStatus: '2xx',
+              errorSource: null,
               hasBearerToken,
               hasAuthorizationHeader: Boolean(nextHeaders.Authorization),
-              sessionCorrelationId: auth.sessionCorrelationId.value,
+              sessionCorrelationId,
             })
 
             if (auth.isAuthenticated.value) {
@@ -331,14 +436,15 @@ export const useApiClient = () => {
 
             auth.lastAuthFailureAt.value = 0
 
-            return response
+            return normalizedResponse.data as T
           }
           catch (error) {
             lastError = error
 
-            const status = getErrorStatus(error)
+            const normalizedError = normalizeErrorResponse(error)
+            const status = normalizedError.status
             const is401 = status === 401
-            const isRetryableStatus = status !== undefined && RETRYABLE_HTTP_STATUSES.has(status)
+            const isRetryableStatus = typeof status === 'number' && status >= 500 && status < 600
             const isNetworkError = isRetryableNetworkError(error)
             const isRetryableError = !is401 && (isRetryableStatus || isNetworkError)
             const hasRemainingAttempts = attempt <= maxRetries
@@ -347,50 +453,41 @@ export const useApiClient = () => {
               ? 'local_401_missing_cookie'
               : 'backend_401'
 
-            console.warn('[api-telemetry]', {
+            const errorSource = isNetworkError
+              ? 'network'
+              : (is401 ? authFailureType : 'http')
+
+            logApiTelemetry('warn', {
               path: normalizedUrl,
+              isPrivate: isPrivateRoute,
+              authState: auth.authState.value,
               method,
-              status: status || 'network_error',
               attempt,
+              responseStatus: status || 'network_error',
+              errorSource: normalizedError.errorSource ?? errorSource,
               hasBearerToken,
               hasAuthorizationHeader: Boolean(nextHeaders.Authorization),
               errorType: isNetworkError ? 'network_error' : (is401 ? authFailureType : 'http_error'),
-              sessionCorrelationId: auth.sessionCorrelationId.value,
+              sessionCorrelationId,
             })
 
             if (is401) {
+              if (authFailureType === 'backend_401') {
+                tracker.track('api.error.401.backend', {
+                  path: normalizedUrl,
+                  method,
+                  attempt,
+                  sessionCorrelationId,
+                })
+              }
               track401Burst(tracker, normalizedUrl, method)
               recordTop401Endpoint(normalizedUrl, method, authFailureType, auth.sessionCorrelationId.value)
 
-              if (hasRetriedAfter401 || isAutoRetryExcludedPath) {
-                auth.lastAuthFailureAt.value = now()
+              if (isPublicQuizEndpoint) {
                 break
               }
 
-              hasRetriedAfter401 = true
-              hasConsumedAuthReplay = true
-
-              const didRevalidateSession = await revalidateSessionWithGlobalThrottle(auth)
-
-              if (!didRevalidateSession) {
-                auth.lastAuthFailureAt.value = now()
-                break
-              }
-
-              if (didRevalidateSession) {
-                console.info('[auth-correlation]', {
-                  event: 'session.revalidation.confirmed_401',
-                  requestCorrelationId,
-                  sessionCorrelationId: auth.sessionCorrelationId.value,
-                  path: normalizedUrl,
-                  method,
-                })
-              }
-
-              continue
-            }
-
-            if (hasConsumedAuthReplay) {
+              auth.lastAuthFailureAt.value = now()
               break
             }
 
@@ -398,12 +495,15 @@ export const useApiClient = () => {
               break
             }
 
-            const delay = RETRY_DELAYS_IN_MS[attempt - 1] ?? RETRY_DELAYS_IN_MS[RETRY_DELAYS_IN_MS.length - 1]
-            await sleep(delay)
+            if (isNetworkError) {
+              await sleep(getNetworkRetryDelay(attempt))
+            }
           }
         }
 
-        throw lastError
+        throw new NormalizedApiClientError(
+          lastError ? normalizeErrorResponse(lastError) : normalizeUnknownErrorResponse(),
+        )
       }
       catch (error) {
         if (isCriticalApiCall(normalizedUrl)) {

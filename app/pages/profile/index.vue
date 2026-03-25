@@ -14,7 +14,8 @@ definePageMeta({
 const currentUser = useCurrentUserStore()
 const authSession = useAuthSessionStore()
 const { t } = useI18n()
-const { normalizeError } = useApiError()
+const { authState } = useAuth()
+const { resolveSensitiveError, isDebugMode } = useSensitivePageFeedback()
 const { $errorLogger } = useNuxtApp()
 const friendsStore = useFriendsStore()
 
@@ -22,6 +23,8 @@ const profile = ref<UserMeRead | null>(null)
 const latestApplications = ref<UserApplication[]>([])
 const loadError = ref('')
 const actionError = ref('')
+const loadErrorRequestId = ref<string | null>(null)
+const actionErrorRequestId = ref<string | null>(null)
 const pendingActionKey = ref('')
 const isLoading = ref(true)
 const isProfileTemporarilyUnavailable = ref(false)
@@ -106,6 +109,7 @@ const friendDisplayName = (friend: UserFriendRead) => `${friend.firstName} ${fri
 
 const loadData = async () => {
   loadError.value = ''
+  loadErrorRequestId.value = null
   isProfileTemporarilyUnavailable.value = false
   isLoading.value = true
   try {
@@ -122,7 +126,8 @@ const loadData = async () => {
     await friendsResult
   }
   catch (error) {
-    const normalized = normalizeError(error, {
+    const normalized = resolveSensitiveError(error, {
+      authState: authState.value,
       domain: 'profilePage',
       action: 'loadSocial',
       fallbackKey: 'profilePage.errors.loadSocial',
@@ -142,6 +147,7 @@ const loadData = async () => {
     }
 
     loadError.value = normalized.message
+    loadErrorRequestId.value = normalized.requestId
   }
   finally {
     isLoading.value = false
@@ -150,13 +156,15 @@ const loadData = async () => {
 
 const runAction = async (actionKey: string, action: () => Promise<void>) => {
   actionError.value = ''
+  actionErrorRequestId.value = null
   pendingActionKey.value = actionKey
 
   try {
     await action()
   }
   catch (error) {
-    const normalized = normalizeError(error, {
+    const normalized = resolveSensitiveError(error, {
+      authState: authState.value,
       fallbackKey: 'errors.actionUnavailable',
     })
     $errorLogger(error, {
@@ -165,6 +173,7 @@ const runAction = async (actionKey: string, action: () => Promise<void>) => {
       status: normalized.status,
     })
     actionError.value = normalized.message
+    actionErrorRequestId.value = normalized.requestId
   }
   finally {
     pendingActionKey.value = ''
@@ -264,8 +273,14 @@ onMounted(async () => {
       >
         Profil indisponible temporairement
       </v-alert>
-      <v-alert v-if="loadError" type="error" variant="tonal" class="mb-4">{{ loadError }}</v-alert>
-      <v-alert v-if="actionError" type="error" variant="tonal" class="mb-4">{{ actionError }}</v-alert>
+      <v-alert v-if="loadError" type="error" variant="tonal" class="mb-4">
+        {{ loadError }}
+        <div v-if="isDebugMode && loadErrorRequestId" class="text-caption mt-1">requestId: {{ loadErrorRequestId }}</div>
+      </v-alert>
+      <v-alert v-if="actionError" type="error" variant="tonal" class="mb-4">
+        {{ actionError }}
+        <div v-if="isDebugMode && actionErrorRequestId" class="text-caption mt-1">requestId: {{ actionErrorRequestId }}</div>
+      </v-alert>
 
       <v-row class="mb-1">
         <v-col v-for="item in profileStats" :key="item.label" cols="12" sm="6" md="6">
