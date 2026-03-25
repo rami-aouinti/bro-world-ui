@@ -37,20 +37,16 @@ const RETRYABLE_NETWORK_ERROR_CODES = new Set([
   'UND_ERR_SOCKET',
   'ABORT_ERR',
 ])
-const RETRYABLE_HTTP_STATUSES = new Set([502, 503, 504])
-const RETRY_DELAYS_IN_MS = [150, 300]
 const MAX_RETRIES = 2
-const AUTH_REVALIDATION_COOLDOWN_MS = 20_000
+const NETWORK_RETRY_BASE_DELAY_MS = 120
+const NETWORK_RETRY_JITTER_MS = 80
 const BURST_WINDOW_MS = 1_000
 const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
-const AUTH_AUTO_RETRY_EXCLUSIONS = ['api/auth/login', 'api/auth/register']
 const inFlightRequests = new Map<string, Promise<unknown>>()
 const endpoint401Counts = new Map<string, number>()
 let burstWindowStartedAt = 0
 let burstCount = 0
-let sharedAuthRevalidationPromise: Promise<boolean> | null = null
 let sharedPrivateAuthInitPromise: Promise<void> | null = null
-let lastGlobalAuthRevalidationAt = 0
 
 const normalizeApiPath = (url: string) => url.replace(/^\/+/, '')
 
@@ -80,6 +76,13 @@ const isPrivateEndpoint = (url: string) => {
 
 const now = () => (import.meta.client ? performance.now() : Date.now())
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+const getNetworkRetryDelay = (attempt: number) => {
+  const cappedAttempt = Math.max(1, attempt)
+  const exponentialBackoff = NETWORK_RETRY_BASE_DELAY_MS * 2 ** (cappedAttempt - 1)
+  const jitter = Math.floor(Math.random() * NETWORK_RETRY_JITTER_MS)
+
+  return exponentialBackoff + jitter
+}
 
 export class NormalizedApiClientError extends Error {
   response: ApiResponseEnvelope<null>
@@ -209,44 +212,6 @@ const recordTop401Endpoint = (
     topEndpoints,
     sessionCorrelationId,
   })
-}
-
-const revalidateSessionWithGlobalThrottle = async (auth: ReturnType<typeof useAuth>) => {
-  if (sharedAuthRevalidationPromise) {
-    return sharedAuthRevalidationPromise
-  }
-
-  const currentTime = now()
-  const isWithinGlobalThrottleWindow = lastGlobalAuthRevalidationAt > 0
-    && (currentTime - lastGlobalAuthRevalidationAt) < AUTH_REVALIDATION_COOLDOWN_MS
-
-  if (isWithinGlobalThrottleWindow) {
-    return false
-  }
-
-  const lastFailureAt = auth.lastAuthFailureAt.value
-  const isInCooldownWindow = lastFailureAt > 0 && (currentTime - lastFailureAt) < AUTH_REVALIDATION_COOLDOWN_MS
-
-  if (isInCooldownWindow) {
-    return false
-  }
-
-  sharedAuthRevalidationPromise = (async () => {
-    try {
-      lastGlobalAuthRevalidationAt = now()
-      await auth.initSession(true)
-      return true
-    }
-    catch (error) {
-      auth.lastAuthFailureAt.value = now()
-      throw error
-    }
-    finally {
-      sharedAuthRevalidationPromise = null
-    }
-  })()
-
-  return sharedAuthRevalidationPromise
 }
 
 const ensurePrivateAuthReady = async (auth: ReturnType<typeof useAuth>) => {
@@ -391,8 +356,7 @@ export const useApiClient = () => {
     const isMutation = MUTATION_METHODS.has(method)
     const canRetryMutation = Boolean(options.idempotencyKey || options.retryUnsafeMutations)
     const canRetry = !isMutation || canRetryMutation
-    const isAutoRetryExcludedPath = AUTH_AUTO_RETRY_EXCLUSIONS.some(path => normalizedUrl.startsWith(path))
-    const maxRetries = canRetry && !isAutoRetryExcludedPath ? MAX_RETRIES : 0
+    const maxRetries = canRetry ? MAX_RETRIES : 0
 
     const nextHeaders: Record<string, string> = {
       ...(options.headers as Record<string, string> | undefined),
@@ -424,9 +388,6 @@ export const useApiClient = () => {
         delete fetchOptions.idempotencyKey
 
         let lastError: unknown = null
-
-        let hasRetriedAfter401 = false
-        let hasConsumedAuthReplay = false
 
         for (let attempt = 1; attempt <= maxRetries + 1; attempt += 1) {
           try {
@@ -483,7 +444,7 @@ export const useApiClient = () => {
             const normalizedError = normalizeErrorResponse(error)
             const status = normalizedError.status
             const is401 = status === 401
-            const isRetryableStatus = typeof status === 'number' && RETRYABLE_HTTP_STATUSES.has(status)
+            const isRetryableStatus = typeof status === 'number' && status >= 500 && status < 600
             const isNetworkError = isRetryableNetworkError(error)
             const isRetryableError = !is401 && (isRetryableStatus || isNetworkError)
             const hasRemainingAttempts = attempt <= maxRetries
@@ -526,35 +487,7 @@ export const useApiClient = () => {
                 break
               }
 
-              if (hasRetriedAfter401 || isAutoRetryExcludedPath) {
-                auth.lastAuthFailureAt.value = now()
-                break
-              }
-
-              hasRetriedAfter401 = true
-              hasConsumedAuthReplay = true
-
-              const didRevalidateSession = await revalidateSessionWithGlobalThrottle(auth)
-
-              if (!didRevalidateSession) {
-                auth.lastAuthFailureAt.value = now()
-                break
-              }
-
-              if (didRevalidateSession) {
-                console.info('[auth-correlation]', {
-                  event: 'session.revalidation.confirmed_401',
-                  requestCorrelationId,
-                  sessionCorrelationId: auth.sessionCorrelationId.value,
-                  path: normalizedUrl,
-                  method,
-                })
-              }
-
-              continue
-            }
-
-            if (hasConsumedAuthReplay) {
+              auth.lastAuthFailureAt.value = now()
               break
             }
 
@@ -562,8 +495,9 @@ export const useApiClient = () => {
               break
             }
 
-            const delay = RETRY_DELAYS_IN_MS[attempt - 1] ?? RETRY_DELAYS_IN_MS[RETRY_DELAYS_IN_MS.length - 1]
-            await sleep(delay)
+            if (isNetworkError) {
+              await sleep(getNetworkRetryDelay(attempt))
+            }
           }
         }
 
