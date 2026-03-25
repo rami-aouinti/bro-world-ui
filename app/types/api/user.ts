@@ -95,7 +95,12 @@ export interface UserMeRead {
   email: string
   firstName: string
   lastName: string
+  language?: string
+  locale?: string
+  timezone?: string
   photo?: string
+  roles?: string[]
+  userGroups?: string[]
   profile?: UserMeProfileDetails
   socials: UserSocial[]
   sessions: UserSession[]

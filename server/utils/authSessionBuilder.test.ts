@@ -4,6 +4,7 @@ import {
   AUTH_ERROR_CODES,
   createAuthSessionBuilder,
   fetchProfileWithAuthorization,
+  mapToSessionResponse,
   normalizeBearerToken,
 } from './authSessionBuilder.ts'
 
@@ -49,6 +50,37 @@ describe('authSessionBuilder', () => {
         code: AUTH_ERROR_CODES.PROFILE_FETCH_FAILED,
       },
     })
+  })
+
+  it('appelle /users/me et mappe la réponse vers UserProfile', async () => {
+    ;(globalThis as any).useRuntimeConfig = () => ({ public: { apiBase: 'http://api.example.test' } })
+    const fetchMock = mock.fn(async () => ({
+      id: 'u1',
+      username: 'john',
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john@example.com',
+      roles: ['user'],
+      locale: 'fr',
+    }))
+    ;(globalThis as any).$fetch = fetchMock
+
+    const profile = await fetchProfileWithAuthorization('valid-token')
+
+    assert.deepEqual(profile, {
+      id: 'u1',
+      username: 'john',
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john@example.com',
+      language: undefined,
+      locale: 'fr',
+      timezone: 'UTC',
+      photo: undefined,
+      roles: ['user'],
+      userGroups: undefined,
+    })
+    assert.deepEqual(fetchMock.mock.calls[0]?.arguments[0], '/api/v1/users/me')
   })
 
   it('retourne une erreur auth si le profile backend répond 401/403', async () => {
@@ -135,5 +167,27 @@ describe('authSessionBuilder', () => {
       locale: 'fr',
       expiresAt: '2030-01-01T00:00:00.000Z',
     })
+  })
+
+  it('mapToSessionResponse conserve roles, locale et expiresAt', () => {
+    const response = mapToSessionResponse({
+      id: 'u1',
+      username: 'john',
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john@example.com',
+      roles: ['admin'],
+      language: 'fr',
+      locale: 'fr-CA',
+      timezone: 'America/Toronto',
+    }, {
+      token: 'valid-token',
+      sessionVersion: 1,
+      expiresAt: '2030-01-01T00:00:00.000Z',
+    })
+
+    assert.equal(response.roles[0], 'admin')
+    assert.equal(response.locale, 'fr-CA')
+    assert.equal(response.expiresAt, '2030-01-01T00:00:00.000Z')
   })
 })
