@@ -12,7 +12,7 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
   catch (error: unknown) {
     const code = (error as { data?: { code?: string } })?.data?.code
 
-    if (code === AUTH_ERROR_CODES.PROFILE_UNAUTHORIZED) {
+    if (code === AUTH_ERROR_CODES.PROFILE_UNAUTHORIZED || code === AUTH_ERROR_CODES.TOKEN_INVALID) {
       throw createAuthError(401, 'Authentication token expired or invalid', AUTH_ERROR_CODES.TOKEN_INVALID)
     }
 
