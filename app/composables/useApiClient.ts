@@ -8,6 +8,14 @@ const PRIVATE_AUTH_REQUIRED_PATTERNS = [
   'api/v1/blog',
   'api/v1/quiz',
 ]
+const PRIVATE_ENDPOINT_PREFIXES = [
+  'api/v1/private/',
+  'api/v1/users/me',
+  'api/v1/chat/private/',
+]
+const PRIVATE_ENDPOINT_EXACT_MATCHES = new Set([
+  'api/v1/notifications',
+])
 const RETRYABLE_NETWORK_ERROR_CODES = new Set([
   'ECONNRESET',
   'ECONNREFUSED',
@@ -41,6 +49,15 @@ const isCriticalApiCall = (normalizedUrl: string) => CRITICAL_API_PATTERNS.some(
 const isPrivateAuthRequiredEndpoint = (normalizedUrl: string) => {
   const lowerNormalizedUrl = normalizedUrl.toLowerCase()
   return PRIVATE_AUTH_REQUIRED_PATTERNS.some(pattern => lowerNormalizedUrl.includes(pattern))
+}
+const isPrivateEndpoint = (url: string) => {
+  const normalizedUrl = normalizeApiPath(url).toLowerCase()
+
+  if (PRIVATE_ENDPOINT_EXACT_MATCHES.has(normalizedUrl)) {
+    return true
+  }
+
+  return PRIVATE_ENDPOINT_PREFIXES.some(pattern => normalizedUrl.startsWith(pattern))
 }
 
 const now = () => (import.meta.client ? performance.now() : Date.now())
@@ -214,16 +231,22 @@ export const useApiClient = () => {
 
   const apiFetch = async <T>(url: string, options: ApiFetchOptions<T> = {}) => {
     const normalizedUrl = normalizeApiPath(url)
+    const requestAuthorization = requestHeaders.authorization
+    const isPrivateRoute = isPrivateEndpoint(normalizedUrl)
+
+    if (isPrivateRoute && !auth.initialized.value) {
+      await auth.initSession()
+    }
+
     const token = authSession.token
     const hasBearerToken = Boolean(token && token !== SERVER_SESSION_PLACEHOLDER)
-    const requestAuthorization = requestHeaders.authorization
     const startedAt = now()
     const method = resolveMethod(options.method)
     const requestCorrelationId = `${method.toLowerCase()}-${Date.now()}-${hashValue(`${normalizedUrl}:${Math.random()}`)}`
     const dedupeKey = buildRequestDedupeKey(method, normalizedUrl, options as ApiFetchOptions<unknown>)
     const existingRequest = inFlightRequests.get(dedupeKey) as Promise<T> | undefined
-    const isPrivateEndpoint = isPrivateAuthRequiredEndpoint(normalizedUrl)
-    const hasAuthContext = auth.isAuthenticated.value || hasBearerToken || Boolean(requestAuthorization)
+    const isAuthRequiredEndpoint = isPrivateAuthRequiredEndpoint(normalizedUrl)
+    const hasAuthenticatedSession = auth.isAuthenticated.value || hasBearerToken || Boolean(requestAuthorization)
 
     if (existingRequest) {
       tracker.track('api.request.deduplicated', {
@@ -234,7 +257,23 @@ export const useApiClient = () => {
       return existingRequest
     }
 
-    if (isPrivateEndpoint && !hasAuthContext) {
+    if (isPrivateRoute && !hasAuthenticatedSession) {
+      auth.lastAuthFailureAt.value = now()
+      const unauthorizedError = createError({
+        statusCode: 403,
+        statusMessage: 'Authentication required',
+        data: { telemetryCategory: 'private_endpoint_blocked_client_side' },
+      })
+
+      tracker.trackError('api.request.failed', unauthorizedError, {
+        path: normalizedUrl,
+        method,
+        dedupeKey,
+      })
+
+      throw unauthorizedError
+    }
+    if (isAuthRequiredEndpoint && !hasAuthenticatedSession) {
       track401Burst(tracker, normalizedUrl, method)
       recordTop401Endpoint(normalizedUrl, method, 'local_401_missing_cookie', auth.sessionCorrelationId.value)
       auth.lastAuthFailureAt.value = now()
