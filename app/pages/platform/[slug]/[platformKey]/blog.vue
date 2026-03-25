@@ -2,6 +2,7 @@
 import BlogFeed from '~/components/plugins/BlogFeed.vue'
 import { useBlogsApi } from '~/composables/api/useBlogsApi'
 import { usePlatformPluginPage } from '~/composables/platform/usePlatformPluginPage'
+import type { BlogRead } from '~/types/api/blog'
 
 definePageMeta({ public: true, requiresAuth: false })
 
@@ -9,18 +10,46 @@ const { slug, navItems, isAuthenticated } = usePlatformPluginPage()
 const { t } = useI18n()
 const blogsApi = useBlogsApi()
 
-const { data: blog, pending, error, execute: loadBlog } = useAsyncData(
-  () => `application-blog-${slug.value}`,
-  () => blogsApi.getApplicationBlog(slug.value),
-  {
-    watch: [slug],
-    server: false,
-    immediate: false,
-  },
-)
+const blog = ref<BlogRead | null>(null)
+const pending = ref(false)
+const error = ref<unknown>(null)
+let blogController: AbortController | null = null
 
-onMounted(() => {
+const isAbortError = (err: unknown) => err instanceof DOMException && err.name === 'AbortError'
+
+const loadBlog = async () => {
+  blogController?.abort()
+  const controller = new AbortController()
+  blogController = controller
+
+  pending.value = true
+  error.value = null
+
+  try {
+    const response = await blogsApi.getApplicationBlog(slug.value, { signal: controller.signal })
+
+    if (blogController === controller) {
+      blog.value = response
+    }
+  }
+  catch (loadError: unknown) {
+    if (!isAbortError(loadError) && blogController === controller) {
+      error.value = loadError
+    }
+  }
+  finally {
+    if (blogController === controller) {
+      pending.value = false
+    }
+  }
+}
+
+watch(slug, () => {
   void loadBlog()
+}, { immediate: true })
+
+onBeforeUnmount(() => {
+  blogController?.abort()
 })
 </script>
 
