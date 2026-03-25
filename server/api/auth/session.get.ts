@@ -59,7 +59,7 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
   const nextAuthCookie = await setAuthCookie(event, {
     token: authCookie.token,
     sessionVersion: authCookie.sessionVersion,
-    profileSnapshot: authCookie.profileSnapshot,
+    userSnapshot: authCookie.userSnapshot,
   })
 
   return {
