@@ -9,6 +9,7 @@ definePageMeta({
 
 const route = useRoute()
 const inboxStore = useInboxStore()
+const { initSession, authState } = useAuth()
 const isLoadingConversation = ref(false)
 const selectedConversationMessages = ref<PrivateChatMessage[]>([])
 
@@ -25,6 +26,14 @@ const loadConversationMessages = async () => {
 
   try {
     isLoadingConversation.value = true
+    await initSession()
+
+    const canCallPrivateEndpoint = authState.value === 'authenticated' || authState.value === 'degraded'
+    if (!canCallPrivateEndpoint) {
+      selectedConversationMessages.value = []
+      return
+    }
+
     selectedConversationMessages.value = await inboxStore.fetchConversationMessages(conversationId.value)
   }
   catch {

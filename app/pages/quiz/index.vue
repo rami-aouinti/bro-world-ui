@@ -10,7 +10,7 @@ definePageMeta({
   skeleton: 'card-grid',
 })
 
-const { isAuthenticated } = useAuth()
+const { initSession, authState } = useAuth()
 const { t } = useI18n()
 const quizApi = useQuizApi()
 const quizCatalogStore = useQuizCatalogStore()
@@ -30,12 +30,17 @@ let timerInterval: ReturnType<typeof setInterval> | null = null
 
 const { data: quiz, pending, error, execute: loadQuiz } = useAsyncData(
   'general-quiz',
-  () => quizApi.getGeneralQuiz(isAuthenticated.value, {
-    level: selectedLevel.value,
-    category: selectedCategory.value,
-  }),
+  async () => {
+    await initSession()
+    const allowPrivateQuiz = authState.value === 'authenticated' || authState.value === 'degraded'
+
+    return quizApi.getGeneralQuiz(allowPrivateQuiz, {
+      level: selectedLevel.value,
+      category: selectedCategory.value,
+    })
+  },
   {
-    watch: [isAuthenticated, selectedLevel, selectedCategory],
+    watch: [authState, selectedLevel, selectedCategory],
     server: false,
     immediate: true,
   },
