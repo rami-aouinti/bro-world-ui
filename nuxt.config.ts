@@ -143,7 +143,7 @@ export default defineNuxtConfig({
     langDir: 'locales',
   },
   runtimeConfig: {
-    redisUrl: process.env.REDIS_URL || '',
+    redisUrl: process.env.REDIS_URL || process.env.NUXT_REDIS_URL || '',
     cacheEnv: process.env.CACHE_ENV || process.env.NODE_ENV || 'dev',
     cacheApp: process.env.CACHE_APP || 'bro-ui',
     cacheVersion: process.env.CACHE_VERSION || 'v1',

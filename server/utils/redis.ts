@@ -2,6 +2,7 @@ import { createClient } from 'redis'
 
 let redisClient: ReturnType<typeof createClient> | null = null
 const REDIS_CONNECT_TIMEOUT_MS = 1_000
+let redisAvailabilityLogged = false
 
 const connectWithTimeout = async (client: ReturnType<typeof createClient>) => {
   await Promise.race([
@@ -20,7 +21,7 @@ export const getRedisClient = async () => {
   if (!config.redisUrl) {
     throw createError({
       statusCode: 500,
-      statusMessage: 'REDIS_URL is not configured',
+      statusMessage: 'REDIS_URL (or NUXT_REDIS_URL) is not configured',
     })
   }
 
@@ -45,4 +46,47 @@ export const getRedisClient = async () => {
   }
 
   return redisClient
+}
+
+export const checkRedisCacheHealth = async () => {
+  const config = useRuntimeConfig()
+  const cacheContext = {
+    cacheEnv: config.cacheEnv,
+    cacheApp: config.cacheApp,
+    cacheVersion: config.cacheVersion,
+  }
+
+  if (!config.redisUrl) {
+    if (!redisAvailabilityLogged) {
+      console.warn('Redis cache disabled', {
+        reason: 'missing REDIS_URL/NUXT_REDIS_URL',
+        ...cacheContext,
+      })
+      redisAvailabilityLogged = true
+    }
+
+    return false
+  }
+
+  try {
+    await getRedisClient()
+
+    if (!redisAvailabilityLogged) {
+      console.info('Redis cache enabled', cacheContext)
+      redisAvailabilityLogged = true
+    }
+
+    return true
+  } catch (error) {
+    if (!redisAvailabilityLogged) {
+      console.warn('Redis cache disabled', {
+        reason: 'connection_failed',
+        ...cacheContext,
+        error,
+      })
+      redisAvailabilityLogged = true
+    }
+
+    return false
+  }
 }
