@@ -2,7 +2,7 @@ import { readAuthCookie, setAuthCookie } from '~~/server/utils/authCookie'
 import { getRedisClient } from '~~/server/utils/redis'
 import { buildCacheKey, buildCacheScanPattern, buildCacheScopePrefix, buildQueryHash, toPathResourceIdentifier } from '~~/server/utils/cacheKeyBuilder'
 import { createHash, randomUUID } from 'node:crypto'
-import { buildFunctionalQuerySegment, getPrivateResourceIdentifier, isPrivateCacheRoute } from '~~/server/utils/privateCacheKey'
+import { buildPrivateQueryHash, getPrivateResourceIdentifier, isPrivateCacheRoute } from '~~/server/utils/privateCacheKey'
 
 const PUBLIC_BACKEND_PATHS = new Set([
   '/api/health',
@@ -136,7 +136,7 @@ const ONE_DAY_IN_SECONDS = 60 * 60 * 24
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 const LONG_LIVED_PUBLIC_PAGE_SLUGS = new Set(['home', 'about', 'contact', 'faq'])
 
-type CacheResource = 'profile' | 'conversation' | 'notifications' | 'events' | 'blog'
+type CacheResource = 'profile' | 'conversations' | 'notifications' | 'events' | 'posts'
 type CacheMetricType = 'hit' | 'miss' | 'invalidate'
 
 interface CacheResourcePolicy {
@@ -165,13 +165,13 @@ const CACHE_RESOURCE_POLICIES: CacheResourcePolicy[] = [
     ],
   },
   {
-    name: 'conversation',
+    name: 'conversations',
     ttlSeconds: TWO_MINUTES_IN_SECONDS,
     isMatch: path => path.startsWith('/api/v1/chat/private/conversations'),
     invalidationRules: [
       {
-        event: 'conversation.new_message',
-        when: (path, method) => method === 'POST' && path.startsWith('/api/v1/chat/private/conversations'),
+        event: 'conversations.mutation',
+        when: (path, method) => MUTATION_METHODS.has(method) && path.startsWith('/api/v1/chat/private/conversations'),
         cachePrefixes: ['/api/v1/chat/private/conversations'],
       },
     ],
@@ -182,8 +182,8 @@ const CACHE_RESOURCE_POLICIES: CacheResourcePolicy[] = [
     isMatch: path => path.startsWith('/api/v1/notifications'),
     invalidationRules: [
       {
-        event: 'notifications.read_or_create',
-        when: (path, method) => ['POST', 'PATCH', 'PUT', 'DELETE'].includes(method) && path.startsWith('/api/v1/notifications'),
+        event: 'notifications.mutation',
+        when: (path, method) => MUTATION_METHODS.has(method) && path.startsWith('/api/v1/notifications'),
         cachePrefixes: ['/api/v1/notifications'],
       },
     ],
@@ -201,12 +201,12 @@ const CACHE_RESOURCE_POLICIES: CacheResourcePolicy[] = [
     ],
   },
   {
-    name: 'blog',
+    name: 'posts',
     ttlSeconds: TEN_MINUTES_IN_SECONDS,
     isMatch: path => path.startsWith('/api/v1/private/blogs') || path.startsWith('/api/v1/public/blogs') || path.startsWith('/api/v1/blogs') || path.startsWith('/api/v1/blog/') || path.startsWith('/api/v1/private/stories'),
     invalidationRules: [
       {
-        event: 'blog.publish_or_update_or_delete',
+        event: 'posts.publish_or_update_or_delete',
         when: (path, method) => MUTATION_METHODS.has(method) && (path.startsWith('/api/v1/private/blogs') || path.startsWith('/api/v1/private/blog/') || path.startsWith('/api/v1/blogs') || path.startsWith('/api/v1/private/stories')),
         cachePrefixes: ['/api/v1/private/blogs', '/api/v1/blogs', '/api/v1/private/stories'],
         publicTags: ['blog:*'],
@@ -357,14 +357,13 @@ const getEntityCacheKey = (path: string, query: Record<string, any>) => {
 }
 
 const getPrivateCacheKey = (path: string, query: Record<string, any>, userId: string) => {
-  const functionalSegment = buildFunctionalQuerySegment(query)
+  const queryHash = buildPrivateQueryHash(query)
   const privateResource = getPrivateResourceIdentifier(path)
 
   return buildCacheKey({
     scope: 'private',
     resource: userId,
-    identifier: `${privateResource}:${functionalSegment}`,
-    query,
+    identifier: `${privateResource}:${queryHash}`,
   })
 }
 
@@ -459,7 +458,7 @@ const clearCacheByPrefix = async (prefix: string) => {
     const redis = await getRedisClient()
     const { resource, identifier } = toPathResourceIdentifier(prefix)
     const pattern = buildCacheScanPattern({
-      scope: prefix.includes('/private') ? 'private' : 'public',
+      scope: isPrivateCacheRoute(prefix) ? 'private' : 'public',
       resource,
       identifierPattern: `${identifier}*`,
     })
@@ -501,19 +500,49 @@ const clearPublicCacheByTag = async (tagPattern: string) => {
   }
 }
 
-const invalidateUserProfile = async () => {
-  const deletedByProfile = await clearCacheByPrefix('/api/v1/profile')
-  const deletedByUsersMe = await clearCacheByPrefix('/api/v1/users/me')
+const clearPrivateCacheByUserAndPrefix = async (userId: string | undefined, prefix: string) => {
+  if (!userId) {
+    return 0
+  }
+
+  try {
+    const redis = await getRedisClient()
+    const privateResource = getPrivateResourceIdentifier(prefix)
+    const pattern = buildCacheScanPattern({
+      scope: 'private',
+      resource: userId,
+      identifierPattern: `${privateResource}*`,
+    })
+    const keysToDelete: string[] = []
+
+    for await (const key of redis.scanIterator({ MATCH: pattern, COUNT: 100 })) {
+      keysToDelete.push(String(key))
+    }
+
+    if (keysToDelete.length) {
+      await redis.del(keysToDelete)
+    }
+
+    return keysToDelete.length
+  } catch (error) {
+    console.warn('Private cache invalidation failed', error)
+    return 0
+  }
+}
+
+const invalidateUserProfile = async (userId?: string) => {
+  const deletedByProfile = await clearPrivateCacheByUserAndPrefix(userId, '/api/v1/profile')
+  const deletedByUsersMe = await clearPrivateCacheByUserAndPrefix(userId, '/api/v1/users/me')
   await recordCacheMetric('profile', 'invalidate', `profile:${deletedByProfile + deletedByUsersMe}`)
 }
 
-const invalidateConversation = async () => {
-  const deleted = await clearCacheByPrefix('/api/v1/chat/private/conversations')
-  await recordCacheMetric('conversation', 'invalidate', `conversation:${deleted}`)
+const invalidateConversations = async (userId?: string) => {
+  const deleted = await clearPrivateCacheByUserAndPrefix(userId, '/api/v1/chat/private/conversations')
+  await recordCacheMetric('conversations', 'invalidate', `conversations:${deleted}`)
 }
 
-const invalidateNotifications = async () => {
-  const deleted = await clearCacheByPrefix('/api/v1/notifications')
+const invalidateNotifications = async (userId?: string) => {
+  const deleted = await clearPrivateCacheByUserAndPrefix(userId, '/api/v1/notifications')
   await recordCacheMetric('notifications', 'invalidate', `notifications:${deleted}`)
 }
 
@@ -522,10 +551,11 @@ const invalidateEvents = async () => {
   await recordCacheMetric('events', 'invalidate', `events:${deleted}`)
 }
 
-const invalidateBlog = async () => {
-  const deletedPrivate = await clearCacheByPrefix('/api/v1/private/blogs')
+const invalidatePosts = async (userId?: string) => {
+  const deletedPrivateBlogs = await clearPrivateCacheByUserAndPrefix(userId, '/api/v1/private/blogs')
+  const deletedPrivateStories = await clearPrivateCacheByUserAndPrefix(userId, '/api/v1/private/stories')
   const deletedPublic = await clearPublicCacheByTag('blog:*')
-  await recordCacheMetric('blog', 'invalidate', `blog:${deletedPrivate + deletedPublic}`)
+  await recordCacheMetric('posts', 'invalidate', `posts:${deletedPrivateBlogs + deletedPrivateStories + deletedPublic}`)
 }
 
 const storeNotificationEvent = async (input: {
@@ -581,22 +611,22 @@ const getPublicInvalidationTags = (targetPath: string) => {
   return []
 }
 
-const getResourceInvalidationActions = (targetPath: string, method: string) => {
+const getResourceInvalidationActions = (targetPath: string, method: string, userId?: string) => {
   const actions: Array<() => Promise<void>> = []
 
   const addAction = (resource: CacheResource) => {
     if (resource === 'profile') {
-      actions.push(invalidateUserProfile)
+      actions.push(() => invalidateUserProfile(userId))
       return
     }
 
-    if (resource === 'conversation') {
-      actions.push(invalidateConversation)
+    if (resource === 'conversations') {
+      actions.push(() => invalidateConversations(userId))
       return
     }
 
     if (resource === 'notifications') {
-      actions.push(invalidateNotifications)
+      actions.push(() => invalidateNotifications(userId))
       return
     }
 
@@ -605,7 +635,7 @@ const getResourceInvalidationActions = (targetPath: string, method: string) => {
       return
     }
 
-    actions.push(invalidateBlog)
+    actions.push(() => invalidatePosts(userId))
   }
 
   for (const policy of CACHE_RESOURCE_POLICIES) {
@@ -616,6 +646,41 @@ const getResourceInvalidationActions = (targetPath: string, method: string) => {
   }
 
   return actions
+}
+
+const decodeJwtPayload = (token: string) => {
+  const chunks = token.split('.')
+  if (chunks.length < 2) {
+    return null
+  }
+
+  try {
+    const payload = JSON.parse(Buffer.from(chunks[1], 'base64url').toString('utf-8'))
+    return payload && typeof payload === 'object' ? payload : null
+  } catch {
+    return null
+  }
+}
+
+const getAuthenticatedUserId = (bearerToken?: string) => {
+  if (!bearerToken) {
+    return undefined
+  }
+
+  const payload = decodeJwtPayload(bearerToken)
+  if (!payload) {
+    return undefined
+  }
+
+  const candidate = (payload as Record<string, unknown>).userId
+    ?? (payload as Record<string, unknown>).sub
+    ?? (payload as Record<string, unknown>).id
+
+  if (typeof candidate === 'string' || typeof candidate === 'number') {
+    return String(candidate)
+  }
+
+  return undefined
 }
 
 const buildForwardHeaders = (event: any, requestCorrelationId: string): Record<string, string> => {
@@ -802,7 +867,7 @@ export default defineEventHandler(async (event) => {
     bearerToken = authCookiePayload.token
   }
 
-  const authenticatedUserId = undefined
+  const authenticatedUserId = getAuthenticatedUserId(bearerToken)
 
   const method = getMethod(event)
   const contentType = getHeader(event, 'content-type') || ''
@@ -920,7 +985,7 @@ export default defineEventHandler(async (event) => {
 
     const shouldInvalidateEntityCache = MUTATION_METHODS.has(method)
     if (shouldInvalidateEntityCache) {
-      const resourceInvalidationActions = getResourceInvalidationActions(targetPath, method)
+      const resourceInvalidationActions = getResourceInvalidationActions(targetPath, method, authenticatedUserId)
       for (const action of resourceInvalidationActions) {
         await action()
       }
