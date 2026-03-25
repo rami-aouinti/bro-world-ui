@@ -140,6 +140,25 @@ const isRetryableNetworkError = (error: unknown) => {
 const getErrorStatus = (error: unknown) => (error as { status?: number, response?: { status?: number } })?.status
   ?? (error as { response?: { status?: number } })?.response?.status
 
+const logApiTelemetry = (
+  level: 'info' | 'warn',
+  payload: {
+    path: string
+    isPrivate: boolean
+    authState: string
+    attempt: number
+    responseStatus: number | string
+    errorSource: string | null
+    sessionCorrelationId: string | null
+    method: string
+    event?: string
+    [key: string]: unknown
+  },
+) => {
+  const logger = level === 'warn' ? console.warn : console.info
+  logger('[api-telemetry]', payload)
+}
+
 const recordTop401Endpoint = (
   normalizedUrl: string,
   method: string,
@@ -233,6 +252,7 @@ export const useApiClient = () => {
     const normalizedUrl = normalizeApiPath(url)
     const requestAuthorization = requestHeaders.authorization
     const isPrivateRoute = isPrivateEndpoint(normalizedUrl)
+    const sessionCorrelationId = auth.sessionCorrelationId.value
 
     if (isPrivateRoute) {
       await auth.awaitAuthReady()
@@ -259,6 +279,17 @@ export const useApiClient = () => {
     }
 
     if (isPrivateRoute && auth.authState.value === 'initializing') {
+      logApiTelemetry('warn', {
+        event: 'api.blocked.auth_not_ready',
+        path: normalizedUrl,
+        isPrivate: isPrivateRoute,
+        authState: auth.authState.value,
+        attempt: 1,
+        responseStatus: 503,
+        errorSource: 'client_auth_guard',
+        method,
+        sessionCorrelationId,
+      })
       const initializingError = createError({
         statusCode: 503,
         statusMessage: 'Authentication is initializing',
@@ -275,6 +306,17 @@ export const useApiClient = () => {
     }
 
     if (isPrivateRoute && !hasAuthenticatedSession) {
+      logApiTelemetry('warn', {
+        event: 'api.blocked.auth_not_ready',
+        path: normalizedUrl,
+        isPrivate: isPrivateRoute,
+        authState: auth.authState.value,
+        attempt: 1,
+        responseStatus: 403,
+        errorSource: 'client_auth_guard',
+        method,
+        sessionCorrelationId,
+      })
       auth.lastAuthFailureAt.value = now()
       const unauthorizedError = createError({
         statusCode: 403,
@@ -291,6 +333,22 @@ export const useApiClient = () => {
       throw unauthorizedError
     }
     if (isAuthRequiredEndpoint && !hasAuthenticatedSession) {
+      tracker.track('api.error.auth_missing_local', {
+        path: normalizedUrl,
+        method,
+        sessionCorrelationId,
+      })
+      logApiTelemetry('warn', {
+        event: 'api.error.auth_missing_local',
+        path: normalizedUrl,
+        isPrivate: isPrivateRoute,
+        authState: auth.authState.value,
+        attempt: 1,
+        responseStatus: 401,
+        errorSource: 'local_auth_missing',
+        method,
+        sessionCorrelationId,
+      })
       track401Burst(tracker, normalizedUrl, method)
       recordTop401Endpoint(normalizedUrl, method, 'local_401_missing_cookie', auth.sessionCorrelationId.value)
       auth.lastAuthFailureAt.value = now()
@@ -356,14 +414,17 @@ export const useApiClient = () => {
               headers: nextHeaders,
             })
 
-            console.info('[api-telemetry]', {
+            logApiTelemetry('info', {
               path: normalizedUrl,
+              isPrivate: isPrivateRoute,
+              authState: auth.authState.value,
               method,
-              status: '2xx',
               attempt,
+              responseStatus: '2xx',
+              errorSource: null,
               hasBearerToken,
               hasAuthorizationHeader: Boolean(nextHeaders.Authorization),
-              sessionCorrelationId: auth.sessionCorrelationId.value,
+              sessionCorrelationId,
             })
 
             if (auth.isAuthenticated.value) {
@@ -403,18 +464,33 @@ export const useApiClient = () => {
               ? 'local_401_missing_cookie'
               : 'backend_401'
 
-            console.warn('[api-telemetry]', {
+            const errorSource = isNetworkError
+              ? 'network'
+              : (is401 ? authFailureType : 'http')
+
+            logApiTelemetry('warn', {
               path: normalizedUrl,
+              isPrivate: isPrivateRoute,
+              authState: auth.authState.value,
               method,
-              status: status || 'network_error',
               attempt,
+              responseStatus: status || 'network_error',
+              errorSource,
               hasBearerToken,
               hasAuthorizationHeader: Boolean(nextHeaders.Authorization),
               errorType: isNetworkError ? 'network_error' : (is401 ? authFailureType : 'http_error'),
-              sessionCorrelationId: auth.sessionCorrelationId.value,
+              sessionCorrelationId,
             })
 
             if (is401) {
+              if (authFailureType === 'backend_401') {
+                tracker.track('api.error.401.backend', {
+                  path: normalizedUrl,
+                  method,
+                  attempt,
+                  sessionCorrelationId,
+                })
+              }
               track401Burst(tracker, normalizedUrl, method)
               recordTop401Endpoint(normalizedUrl, method, authFailureType, auth.sessionCorrelationId.value)
 
