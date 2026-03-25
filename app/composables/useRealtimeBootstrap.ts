@@ -4,6 +4,9 @@ import { useInboxStore } from '~/stores/inbox'
 import { useNotificationsStore } from '~/stores/notifications'
 
 let activeBootstrapPromise: Promise<void> | null = null
+let activeResyncPromise: Promise<void> | null = null
+
+const createCorrelationId = (prefix: string) => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
 
 export const useRealtimeBootstrap = () => {
   const authSession = useAuthSessionStore()
@@ -14,6 +17,27 @@ export const useRealtimeBootstrap = () => {
   const inboxStore = useInboxStore()
 
   const bootstrappedUserId = useState<string | null>('realtime-bootstrap-user-id', () => null)
+
+  const fetchRealtimeResources = async (reason: 'bootstrap' | 'mercure-reconnect') => {
+    const correlationId = createCorrelationId(reason)
+    console.info(`[realtime][${correlationId}] start notifications+conversations sync`, {
+      reason,
+      userId: authSession.profile?.id ?? null,
+    })
+
+    const [notifications, conversations] = await Promise.all([
+      notificationsApi.getNotifications(100, 0),
+      privateChatApi.getConversations(20, 1),
+    ])
+
+    notificationsStore.setNotifications(notifications)
+    inboxStore.setConversations(conversations)
+
+    console.info(`[realtime][${correlationId}] done notifications+conversations sync`, {
+      notificationsCount: notifications.items?.length ?? 0,
+      conversationsCount: conversations.items?.length ?? 0,
+    })
+  }
 
   const bootstrap = async () => {
     if (!isAuthenticated.value || !authSession.profile?.id) {
@@ -30,13 +54,7 @@ export const useRealtimeBootstrap = () => {
     }
 
     activeBootstrapPromise = (async () => {
-      const [notifications, conversations] = await Promise.all([
-        notificationsApi.getNotifications(100, 0),
-        privateChatApi.getConversations(20, 1),
-      ])
-
-      notificationsStore.setNotifications(notifications)
-      inboxStore.setConversations(conversations)
+      await fetchRealtimeResources('bootstrap')
       bootstrappedUserId.value = authSession.profile?.id ?? null
     })()
 
@@ -45,6 +63,26 @@ export const useRealtimeBootstrap = () => {
     }
     finally {
       activeBootstrapPromise = null
+    }
+  }
+
+  const resyncAfterMercureReconnect = async () => {
+    if (!isAuthenticated.value || !authSession.profile?.id) {
+      return
+    }
+
+    if (activeResyncPromise) {
+      await activeResyncPromise
+      return
+    }
+
+    activeResyncPromise = fetchRealtimeResources('mercure-reconnect')
+
+    try {
+      await activeResyncPromise
+    }
+    finally {
+      activeResyncPromise = null
     }
   }
 
@@ -66,5 +104,8 @@ export const useRealtimeBootstrap = () => {
     { immediate: true },
   )
 
-  return { bootstrap }
+  return {
+    bootstrap,
+    resyncAfterMercureReconnect,
+  }
 }
