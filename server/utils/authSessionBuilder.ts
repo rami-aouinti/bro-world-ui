@@ -36,6 +36,15 @@ const validateProfile = (profile: UserProfile) => {
   }
 }
 
+export const buildProfileSnapshot = (profile: UserProfile) => ({
+  id: profile.id,
+  username: profile.username,
+  firstName: profile.firstName,
+  lastName: profile.lastName,
+  email: profile.email,
+  photo: profile.photo,
+})
+
 export const mapToSessionResponse = (profile: UserProfile, authCookie: Awaited<ReturnType<typeof setAuthCookie>>): SessionResponse => ({
   authenticated: true,
   profile,
@@ -58,10 +67,12 @@ export const createAuthSessionBuilder = (deps: SessionBuilderDeps) => async (eve
 
   const profile = await deps.fetchProfile(token)
   validateProfile(profile)
+  const profileSnapshot = buildProfileSnapshot(profile)
 
   const authCookie = await deps.persistCookie(event, {
     token,
     sessionVersion: 1,
+    profileSnapshot,
   })
 
   return mapToSessionResponse(profile, authCookie)

@@ -1,9 +1,20 @@
 import type { H3Event } from 'h3'
+import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto'
+
+interface SessionProfileSnapshot {
+  id: string
+  username: string
+  firstName: string
+  lastName: string
+  email: string
+  photo?: string
+}
 
 export interface StoredAuthCookie {
   token: string
   expiresAt: string
   sessionVersion?: number
+  profileSnapshot?: SessionProfileSnapshot
 }
 
 interface LegacyStoredAuthCookie {
@@ -121,6 +132,7 @@ const getAuthConfig = () => {
     cookieName: config.session.cookieName,
     cookieSecure: Boolean(config.session.cookieSecure),
     cookieSameSite: config.session.cookieSameSite,
+    sessionPassword: String(config.session.password || ''),
   }
 }
 
@@ -129,6 +141,15 @@ const getSessionStorage = () => useStorage('data')
 const AUTH_SESSION_STORAGE_BASE_KEY = 'auth:session:'
 const buildSessionStorageKey = (sessionId: string) => `${AUTH_SESSION_STORAGE_BASE_KEY}${sessionId}`
 
+const createSessionCookieSignature = (sessionId: string, password: string) => createHmac('sha256', password)
+  .update(sessionId)
+  .digest('base64url')
+
+const encodeSessionIdCookie = (sessionId: string, password: string) => {
+  const signature = createSessionCookieSignature(sessionId, password)
+  return `sid:${sessionId}.${signature}`
+}
+
 const parseSessionIdFromCookie = (rawCookie: string) => {
   const normalized = rawCookie.trim().replace(/^"|"$/g, '')
 
@@ -136,7 +157,32 @@ const parseSessionIdFromCookie = (rawCookie: string) => {
     return null
   }
 
-  return normalized.slice(4).trim() || null
+  const signedValue = normalized.slice(4).trim()
+  if (!signedValue) {
+    return null
+  }
+
+  const separatorIndex = signedValue.lastIndexOf('.')
+  if (separatorIndex <= 0 || separatorIndex === signedValue.length - 1) {
+    return null
+  }
+
+  return {
+    sessionId: signedValue.slice(0, separatorIndex),
+    signature: signedValue.slice(separatorIndex + 1),
+  }
+}
+
+const verifySessionCookieSignature = (sessionId: string, signature: string, password: string) => {
+  const expectedSignature = createSessionCookieSignature(sessionId, password)
+  const expectedBuffer = Buffer.from(expectedSignature)
+  const receivedBuffer = Buffer.from(signature)
+
+  if (expectedBuffer.length !== receivedBuffer.length) {
+    return false
+  }
+
+  return timingSafeEqual(expectedBuffer, receivedBuffer)
 }
 
 const shouldUseSecureCookie = (event: H3Event, configuredSecure: boolean) => {
@@ -158,16 +204,23 @@ const shouldUseSecureCookie = (event: H3Event, configuredSecure: boolean) => {
 }
 
 export const setAuthCookie = async (event: H3Event, payload: AuthCookiePayload) => {
-  const { ttlSeconds, cookieName, cookieSecure, cookieSameSite } = getAuthConfig()
+  const { ttlSeconds, cookieName, cookieSecure, cookieSameSite, sessionPassword } = getAuthConfig()
   const secure = shouldUseSecureCookie(event, cookieSecure)
+  const storage = getSessionStorage()
+  const sessionId = randomUUID()
 
   const nextCookiePayload: StoredAuthCookie = {
     token: payload.token,
     sessionVersion: payload.sessionVersion ?? 1,
+    profileSnapshot: payload.profileSnapshot,
     expiresAt: new Date(Date.now() + ttlSeconds * 1000).toISOString(),
   }
 
-  setCookie(event, cookieName, encodeAuthCookie(nextCookiePayload), {
+  await storage.setItem(buildSessionStorageKey(sessionId), nextCookiePayload, {
+    ttl: ttlSeconds,
+  })
+
+  setCookie(event, cookieName, encodeSessionIdCookie(sessionId, sessionPassword), {
     path: '/',
     maxAge: ttlSeconds,
     httpOnly: true,
@@ -179,7 +232,7 @@ export const setAuthCookie = async (event: H3Event, payload: AuthCookiePayload) 
 }
 
 export const readAuthCookie = async (event: H3Event): Promise<StoredAuthCookie | null> => {
-  const { cookieName, ttlSeconds } = getAuthConfig()
+  const { cookieName, ttlSeconds, sessionPassword } = getAuthConfig()
   const rawCookie = getCookie(event, cookieName)
 
   if (!rawCookie) {
@@ -187,26 +240,33 @@ export const readAuthCookie = async (event: H3Event): Promise<StoredAuthCookie |
   }
 
   const decodedCookie = decodeURIComponent(rawCookie)
-  const sessionId = parseSessionIdFromCookie(decodedCookie)
+  const parsedSessionCookie = parseSessionIdFromCookie(decodedCookie)
 
-  if (sessionId) {
+  if (parsedSessionCookie) {
+    if (!verifySessionCookieSignature(parsedSessionCookie.sessionId, parsedSessionCookie.signature, sessionPassword)) {
+      return null
+    }
+
     const storage = getSessionStorage()
-    const storedSession = await storage.getItem<LegacyStoredAuthCookie>(buildSessionStorageKey(sessionId))
+    const storageKey = buildSessionStorageKey(parsedSessionCookie.sessionId)
+    const storedSession = await storage.getItem<LegacyStoredAuthCookie>(storageKey)
 
     if (!storedSession) {
-      await storage.removeItem(buildSessionStorageKey(sessionId))
+      await storage.removeItem(storageKey)
       return null
     }
 
     const normalizedStoredSession = normalizeStoredAuthCookie(storedSession, ttlSeconds)
 
     if (!normalizedStoredSession || isExpired(normalizedStoredSession.cookie.expiresAt)) {
-      await storage.removeItem(buildSessionStorageKey(sessionId))
+      await storage.removeItem(storageKey)
       return null
     }
 
     if (normalizedStoredSession.migrated) {
-      await storage.setItem(buildSessionStorageKey(sessionId), normalizedStoredSession.cookie)
+      await storage.setItem(storageKey, normalizedStoredSession.cookie, {
+        ttl: ttlSeconds,
+      })
     }
 
     return normalizedStoredSession.cookie
@@ -263,11 +323,11 @@ export const clearAuthCookie = async (event: H3Event) => {
 
   if (rawCookie) {
     const decodedCookie = decodeURIComponent(rawCookie)
-    const sessionId = parseSessionIdFromCookie(decodedCookie)
+    const parsedSessionCookie = parseSessionIdFromCookie(decodedCookie)
 
-    if (sessionId) {
+    if (parsedSessionCookie) {
       const storage = getSessionStorage()
-      await storage.removeItem(buildSessionStorageKey(sessionId))
+      await storage.removeItem(buildSessionStorageKey(parsedSessionCookie.sessionId))
     }
   }
 
