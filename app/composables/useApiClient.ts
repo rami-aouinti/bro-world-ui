@@ -234,8 +234,8 @@ export const useApiClient = () => {
     const requestAuthorization = requestHeaders.authorization
     const isPrivateRoute = isPrivateEndpoint(normalizedUrl)
 
-    if (isPrivateRoute && !auth.initialized.value) {
-      await auth.initSession()
+    if (isPrivateRoute) {
+      await auth.awaitAuthReady()
     }
 
     const token = authSession.token
@@ -246,7 +246,8 @@ export const useApiClient = () => {
     const dedupeKey = buildRequestDedupeKey(method, normalizedUrl, options as ApiFetchOptions<unknown>)
     const existingRequest = inFlightRequests.get(dedupeKey) as Promise<T> | undefined
     const isAuthRequiredEndpoint = isPrivateAuthRequiredEndpoint(normalizedUrl)
-    const hasAuthenticatedSession = auth.isAuthenticated.value || hasBearerToken || Boolean(requestAuthorization)
+    const canUsePrivateSession = auth.authState.value === 'authenticated' || auth.authState.value === 'degraded'
+    const hasAuthenticatedSession = canUsePrivateSession || Boolean(requestAuthorization)
 
     if (existingRequest) {
       tracker.track('api.request.deduplicated', {
@@ -255,6 +256,22 @@ export const useApiClient = () => {
       })
 
       return existingRequest
+    }
+
+    if (isPrivateRoute && auth.authState.value === 'initializing') {
+      const initializingError = createError({
+        statusCode: 503,
+        statusMessage: 'Authentication is initializing',
+        data: { telemetryCategory: 'private_endpoint_blocked_initializing' },
+      })
+
+      tracker.trackError('api.request.failed', initializingError, {
+        path: normalizedUrl,
+        method,
+        dedupeKey,
+      })
+
+      throw initializingError
     }
 
     if (isPrivateRoute && !hasAuthenticatedSession) {
