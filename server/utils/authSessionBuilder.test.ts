@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { beforeEach, describe, it, mock } from 'node:test'
 import {
   AUTH_ERROR_CODES,
+  buildProfileSnapshot,
   createAuthSessionBuilder,
   fetchProfileWithAuthorization,
   mapToSessionResponse,
@@ -151,6 +152,18 @@ describe('authSessionBuilder', () => {
     const response = await builder({} as never, 'Bearer valid-token')
 
     assert.equal(persistCookie.mock.callCount(), 1)
+    assert.deepEqual(persistCookie.mock.calls[0]?.arguments[1], {
+      token: 'valid-token',
+      sessionVersion: 1,
+      profileSnapshot: {
+        id: 'u1',
+        username: 'john',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@example.com',
+        photo: undefined,
+      },
+    })
     assert.deepEqual(response, {
       authenticated: true,
       profile: {
@@ -166,6 +179,31 @@ describe('authSessionBuilder', () => {
       roles: ['user'],
       locale: 'fr',
       expiresAt: '2030-01-01T00:00:00.000Z',
+    })
+  })
+
+  it('construit un snapshot minimal du profil', () => {
+    const snapshot = buildProfileSnapshot({
+      id: 'u1',
+      username: 'john',
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john@example.com',
+      roles: ['user'],
+      timezone: 'UTC',
+      language: 'fr',
+      locale: 'fr-FR',
+      photo: 'https://cdn.example.test/avatar.jpg',
+      userGroups: ['g1'],
+    })
+
+    assert.deepEqual(snapshot, {
+      id: 'u1',
+      username: 'john',
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john@example.com',
+      photo: 'https://cdn.example.test/avatar.jpg',
     })
   })
 
