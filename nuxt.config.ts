@@ -120,6 +120,7 @@ export default defineNuxtConfig({
           retainFocus: false,
         },
       },
+      ssr: true,
       theme: {
         defaultTheme: buildThemeName(defaultThemePreference),
         themes: buildVuetifyThemes(),
