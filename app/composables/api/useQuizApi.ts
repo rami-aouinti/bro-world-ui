@@ -30,11 +30,17 @@ export const useQuizApi = () => {
   }
 
   return {
-    getApplicationQuiz(applicationSlug: string) {
-      return apiFetch<QuizRead>(`/api/v1/quiz/applications/${applicationSlug}`, { method: 'GET' })
+    getApplicationQuiz(applicationSlug: string, options?: { signal?: AbortSignal }) {
+      return apiFetch<QuizRead>(`/api/v1/quiz/applications/${applicationSlug}`, {
+        method: 'GET',
+        signal: options?.signal,
+      })
     },
-    getApplicationQuizStats(applicationSlug: string) {
-      return apiFetch<QuizStatsRead>(`/api/v1/quiz/applications/${applicationSlug}/stats`, { method: 'GET' })
+    getApplicationQuizStats(applicationSlug: string, options?: { signal?: AbortSignal }) {
+      return apiFetch<QuizStatsRead>(`/api/v1/quiz/applications/${applicationSlug}/stats`, {
+        method: 'GET',
+        signal: options?.signal,
+      })
     },
     createApplicationQuizQuestion(applicationSlug: string, payload: CreateQuizQuestionPayload) {
       return apiFetch<{ status: string }>(`/api/v1/quiz/applications/${applicationSlug}/questions`, {

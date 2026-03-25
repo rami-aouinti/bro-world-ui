@@ -2,33 +2,21 @@
 import QuizBoard from '~/components/plugins/QuizBoard.vue'
 import { useQuizApi } from '~/composables/api/useQuizApi'
 import { usePlatformPluginPage } from '~/composables/platform/usePlatformPluginPage'
-import type { CreateQuizQuestionPayload } from '~/types/api/quiz'
+import type { CreateQuizQuestionPayload, QuizRead, QuizStatsRead } from '~/types/api/quiz'
 
 definePageMeta({ public: true, requiresAuth: false })
 
-const { slug, navItems, isOwner } = usePlatformPluginPage()
+const { slug, navItems, isOwner, isAuthenticated } = usePlatformPluginPage()
 const { t } = useI18n()
 const quizApi = useQuizApi()
 
-const { data: quiz, pending, error, execute: loadQuiz } = useAsyncData(
-  () => `application-quiz-${slug.value}`,
-  () => quizApi.getApplicationQuiz(slug.value),
-  {
-    watch: [slug],
-    server: false,
-    immediate: false,
-  },
-)
-
-const { data: stats, pending: pendingStats, execute: loadStats } = useAsyncData(
-  () => `application-quiz-stats-${slug.value}`,
-  () => quizApi.getApplicationQuizStats(slug.value),
-  {
-    watch: [slug],
-    server: false,
-    immediate: false,
-  },
-)
+const quiz = ref<QuizRead | null>(null)
+const stats = ref<QuizStatsRead | null>(null)
+const pending = ref(false)
+const pendingStats = ref(false)
+const error = ref<unknown>(null)
+let quizController: AbortController | null = null
+let statsController: AbortController | null = null
 
 const addQuestionDialog = ref(false)
 const addQuestionTrigger = ref<HTMLElement | null>(null)
@@ -46,6 +34,8 @@ const form = ref<CreateQuizQuestionPayload>({
   points: 1,
   explanation: '',
 })
+
+const isAbortError = (err: unknown) => err instanceof DOMException && err.name === 'AbortError'
 
 const resetForm = () => {
   form.value = {
@@ -88,6 +78,73 @@ watch(addQuestionDialog, (isOpen, wasOpen) => {
   }
 })
 
+const canLoadStats = computed(() => isOwner.value || isAuthenticated.value)
+
+const loadQuiz = async () => {
+  quizController?.abort()
+  const controller = new AbortController()
+  quizController = controller
+
+  pending.value = true
+  error.value = null
+
+  try {
+    const response = await quizApi.getApplicationQuiz(slug.value, { signal: controller.signal })
+
+    if (quizController === controller) {
+      quiz.value = response
+    }
+  }
+  catch (loadError: unknown) {
+    if (!isAbortError(loadError) && quizController === controller) {
+      error.value = loadError
+    }
+  }
+  finally {
+    if (quizController === controller) {
+      pending.value = false
+    }
+  }
+}
+
+const loadStats = async () => {
+  if (!canLoadStats.value) {
+    statsController?.abort()
+    stats.value = null
+    pendingStats.value = false
+
+    return
+  }
+
+  statsController?.abort()
+  const controller = new AbortController()
+  statsController = controller
+  pendingStats.value = true
+
+  try {
+    const response = await quizApi.getApplicationQuizStats(slug.value, { signal: controller.signal })
+
+    if (statsController === controller) {
+      stats.value = response
+    }
+  }
+  catch (loadError: unknown) {
+    if (!isAbortError(loadError) && statsController === controller) {
+      stats.value = null
+    }
+  }
+  finally {
+    if (statsController === controller) {
+      pendingStats.value = false
+    }
+  }
+}
+
+const loadPageData = async () => {
+  await loadQuiz()
+  await loadStats()
+}
+
 const submitQuestion = async () => {
   if (!canSubmit.value) {
     return
@@ -112,7 +169,7 @@ const submitQuestion = async () => {
     await quizApi.createApplicationQuizQuestion(slug.value, payload)
     addQuestionDialog.value = false
     resetForm()
-    await Promise.all([loadQuiz(), loadStats()])
+    await loadPageData()
   }
   catch (submitErr: unknown) {
     submitError.value = submitErr instanceof Error ? submitErr.message : 'Unable to create the question.'
@@ -122,8 +179,13 @@ const submitQuestion = async () => {
   }
 }
 
-onMounted(() => {
-  void Promise.all([loadQuiz(), loadStats()])
+watch(slug, () => {
+  void loadPageData()
+}, { immediate: true })
+
+onBeforeUnmount(() => {
+  quizController?.abort()
+  statsController?.abort()
 })
 </script>
 

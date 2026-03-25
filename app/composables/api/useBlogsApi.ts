@@ -27,8 +27,11 @@ export const useBlogsApi = () => {
         },
       })
     },
-    getApplicationBlog(applicationSlug: string) {
-      return apiFetch<BlogRead>(`/api/v1/blog/${applicationSlug}/feed`, { method: 'GET' })
+    getApplicationBlog(applicationSlug: string, options?: { signal?: AbortSignal }) {
+      return apiFetch<BlogRead>(`/api/v1/blog/${applicationSlug}/feed`, {
+        method: 'GET',
+        signal: options?.signal,
+      })
     },
 
     getReactionTypes() {
