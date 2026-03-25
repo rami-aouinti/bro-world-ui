@@ -138,7 +138,10 @@ export const useAuth = () => {
   }
 
   const applySessionState = async (session: SessionResponse) => {
-    token.value = session.authenticated ? '__server_session__' : null
+    const existingToken = token.value || authSession.token || null
+    token.value = session.authenticated
+      ? (existingToken || '__server_session__')
+      : null
     const shouldKeepExistingProfile = session.authenticated
       && session.sessionStatus === 'degraded'
       && !session.profile
@@ -256,14 +259,9 @@ export const useAuth = () => {
           const profileStatus = getErrorStatus(profileError)
           logSessionFlow('profile.endpoint.error', { status: profileStatus })
 
-          if (profileStatus === 401 || profileStatus === 403) {
-            await clearLocalSession()
-            return
-          }
-
           await applySessionState({
             authenticated: true,
-            profile: baseSession.profile,
+            profile: authSession.profile || baseSession.profile,
             roles: baseSession.roles,
             locale: baseSession.locale,
             sessionStatus: 'degraded',
@@ -273,11 +271,6 @@ export const useAuth = () => {
       catch (sessionError) {
         const sessionStatusCode = getErrorStatus(sessionError)
         logSessionFlow('session.endpoint.error', { status: sessionStatusCode })
-
-        if (sessionStatusCode === 401 || sessionStatusCode === 403) {
-          await clearLocalSession()
-          return
-        }
 
         const hasLocalSession = Boolean(token.value || authSession.token || authSession.profile)
 
@@ -314,7 +307,7 @@ export const useAuth = () => {
     }
   }
 
-  const isAuthenticated = computed(() => Boolean(token.value))
+  const isAuthenticated = computed(() => Boolean(token.value || authSession.token))
 
   const login = async (usernameOrEmail: string, password: string) => {
     const payload: LoginPayload = {
