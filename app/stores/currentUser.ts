@@ -1,13 +1,19 @@
 import { defineStore } from 'pinia'
 import { useUsersApi } from '~/composables/api/useUsersApi'
+import { useAuth } from '~/composables/useAuth'
 import { useAuthSessionStore } from '~/stores/authSession'
+import { useInboxStore } from '~/stores/inbox'
+import { useNotificationsStore } from '~/stores/notifications'
 import type { UserApplication, UserFriendRead, UserMeRead, UserMePasswordPayload, UserMeProfilePayload } from '~/types/api/user'
 
 type CurrentUserCacheScope = 'me' | 'applications' | 'friends'
 
 export const useCurrentUserStore = defineStore('current-user', () => {
   const api = useUsersApi()
+  const auth = useAuth()
   const authSession = useAuthSessionStore()
+  const notificationsStore = useNotificationsStore()
+  const inboxStore = useInboxStore()
 
   const me = ref<UserMeRead | null>(null)
   const loading = ref(false)
@@ -134,6 +140,9 @@ export const useCurrentUserStore = defineStore('current-user', () => {
 
   const updateProfile = async (payload: UserMeProfilePayload) => {
     await api.updateMyProfile(payload)
+    await auth.fetchProfile()
+    notificationsStore.clear()
+    inboxStore.invalidateCache()
     invalidateCurrentUserCache(['me', 'applications', 'friends'])
     return refetchCurrentUser(['me', 'applications', 'friends'])
   }
@@ -151,6 +160,9 @@ export const useCurrentUserStore = defineStore('current-user', () => {
 
   const uploadPhoto = async (photo: File) => {
     await api.uploadMyPhoto(photo)
+    await auth.fetchProfile()
+    notificationsStore.clear()
+    inboxStore.invalidateCache()
     invalidateCurrentUserCache(['me'])
     return refetchCurrentUser(['me'])
   }

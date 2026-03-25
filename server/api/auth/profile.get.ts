@@ -1,6 +1,6 @@
 import type { SessionResponse } from '../../../app/types/api/user'
 import { requireAuthCookie, setAuthCookie } from '../../../server/utils/authCookie'
-import { AUTH_ERROR_CODES, createAuthError, fetchProfileWithAuthorization } from '../../../server/utils/authSessionBuilder'
+import { AUTH_ERROR_CODES, buildProfileSnapshot, createAuthError, fetchProfileWithAuthorization } from '../../../server/utils/authSessionBuilder'
 
 export default defineEventHandler(async (event): Promise<SessionResponse> => {
   const authCookie = await requireAuthCookie(event)
@@ -22,7 +22,7 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
   const nextAuthCookie = await setAuthCookie(event, {
     token: authCookie.token,
     sessionVersion: authCookie.sessionVersion,
-    userSnapshot: authCookie.userSnapshot,
+    userSnapshot: buildProfileSnapshot(profile),
   })
 
   return {
