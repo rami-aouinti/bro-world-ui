@@ -23,7 +23,7 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
   try {
     const config = useRuntimeConfig()
 
-    await $fetch('/api/v1/profile', {
+    await $fetch('/api/v1/users/me', {
       method: 'GET',
       baseURL: config.public.apiBase,
       timeout: 4000,
