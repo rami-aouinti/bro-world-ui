@@ -1,5 +1,5 @@
 import type { SessionResponse } from '../../../app/types/api/user'
-import { clearAuthCookie, readAuthCookie, setAuthCookie } from '../../../server/utils/authCookie'
+import { readAuthCookie, setAuthCookie } from '../../../server/utils/authCookie'
 
 const unauthenticatedResponse = (): SessionResponse => ({
   authenticated: false,
@@ -36,9 +36,15 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
   catch (error) {
     const statusCode = isFetchErrorWithStatus(error) ? error.response?.status : undefined
 
+    // token persistence mode: no auto-clear on backend auth failure
     if (statusCode === 401 || statusCode === 403) {
-      await clearAuthCookie(event)
-      return unauthenticatedResponse()
+      return {
+        authenticated: true,
+        profile: null,
+        roles: [],
+        locale: null,
+        sessionStatus: 'degraded',
+      }
     }
 
     return {
