@@ -50,15 +50,9 @@ export const useCurrentUserStore = defineStore('current-user', () => {
       const status = getErrorStatus(error)
       lastFetchStatus.value = status
 
-      if (status === 401 || status === 403) {
-        isDegraded.value = false
-        me.value = null
-        initialized.value = false
-        throw error
-      }
-
-      if (status !== null && status >= 500) {
+      if (status === 401 || status === 403 || status === 502 || (status !== null && status >= 500)) {
         isDegraded.value = true
+        initialized.value = true
         if (authSession.sessionStatus !== 'invalid') {
           authSession.setUserSession({
             token: authSession.token,
@@ -68,6 +62,10 @@ export const useCurrentUserStore = defineStore('current-user', () => {
             profileUnavailable: true,
             sessionStatus: 'degraded',
           })
+        }
+
+        if (me.value) {
+          return me.value
         }
       }
 
