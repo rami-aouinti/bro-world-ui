@@ -19,6 +19,8 @@ export const useAuth = () => {
   const warmupDoneForSessionId = useState<string | null>('auth-warmup-done-session-id', () => null)
   const sessionInitSequence = useState<number>('auth-session-init-sequence', () => 0)
   const sessionCorrelationId = useState<string | null>('auth-session-correlation-id', () => null)
+  const authRevalidateInFlight = useState<Promise<void> | null>('auth-revalidate-in-flight', () => null)
+  const lastAuthFailureAt = useState<number>('auth-last-auth-failure-at', () => 0)
 
   const authFetch = <T>(url: string, options: Parameters<typeof $fetch<T>>[1] = {}) => {
     if (import.meta.server) {
@@ -436,5 +438,7 @@ export const useAuth = () => {
     fetchProfile,
     logout,
     sessionCorrelationId,
+    authRevalidateInFlight,
+    lastAuthFailureAt,
   }
 }
