@@ -4,7 +4,6 @@ import ConversationAvatarGroup from '~/components/inbox/ConversationAvatarGroup.
 import { computed, ref, watch } from 'vue'
 import { useDisplay } from 'vuetify'
 import type { NotificationRead } from '~/types/api/notification'
-import { useNotificationsApi } from '~/composables/api/useNotificationsApi'
 import { useNotificationTarget } from '~/composables/useNotificationTarget'
 import { buildConversationPreview } from '~/utils/inboxConversationPreview'
 import { useInboxStore } from '~/stores/inbox'
@@ -40,7 +39,6 @@ const { logout, isAuthenticated } = useAuth()
 const isProfileMenuOpen = ref(false)
 const isNotificationsMenuOpen = ref(false)
 const isInboxMenuOpen = ref(false)
-const notificationsApi = useNotificationsApi()
 const inboxStore = useInboxStore()
 const notificationsStore = useNotificationsStore()
 const { getNotificationTarget } = useNotificationTarget()
@@ -84,7 +82,6 @@ watch(isNotificationsMenuOpen, async (isOpen) => {
     return
   }
 
-  await notificationsApi.markAllAsRead()
   notificationsStore.markAllAsReadLocally()
 })
 

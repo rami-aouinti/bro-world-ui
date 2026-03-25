@@ -6,7 +6,6 @@ import UiStatChip from '~/components/ui/UiStatChip.vue'
 import ConversationAvatarGroup from '~/components/inbox/ConversationAvatarGroup.vue'
 import UiAvatar from '~/components/ui/UiAvatar.vue'
 import type { PrivateChatConversation, PrivateChatMessage } from '~/types/api/chat'
-import { usePrivateChatApi } from '~/composables/api/usePrivateChatApi'
 import { useInboxStore } from '~/stores/inbox'
 
 const props = withDefaults(defineProps<{
@@ -21,7 +20,6 @@ const props = withDefaults(defineProps<{
 
 const router = useRouter()
 const authSession = useAuthSessionStore()
-const privateChatApi = usePrivateChatApi()
 const inboxStore = useInboxStore()
 const draftMessage = ref('')
 const isSendingMessage = ref(false)
@@ -34,7 +32,6 @@ const deleteDialog = ref(false)
 const messageToDelete = ref<PrivateChatMessage | null>(null)
 const editContent = ref('')
 const conversationMessages = ref<PrivateChatMessage[]>([])
-const readingConversationIds = ref<Set<string>>(new Set())
 
 
 const fallbackSender = {
@@ -312,53 +309,6 @@ const getMessageReactionPreview = (message: PrivateChatMessage) => {
   return reactionIconByValue[latestReaction.reaction] ?? latestReaction.reaction
 }
 
-const markConversationAsReadIfNeeded = async (conversationId: string) => {
-  if (isUsingDemoData.value) {
-    return
-  }
-
-  const conversation = conversations.value.find(item => item.id === conversationId)
-
-  if (!conversation || conversation.unread <= 0 || readingConversationIds.value.has(conversationId)) {
-    return
-  }
-
-  try {
-    readingConversationIds.value.add(conversationId)
-    await privateChatApi.markConversationAsReadAll(conversationId)
-
-    if (inboxConversationsSummary.value) {
-      inboxConversationsSummary.value.items = inboxConversationsSummary.value.items.map(item =>
-        item.id === conversationId
-          ? {
-              ...item,
-              unreadMessagesCount: 0,
-              messages: item.messages.map(message => message.read
-                ? message
-                : {
-                    ...message,
-                    read: true,
-                    readAt: message.readAt ?? new Date().toISOString(),
-                  }),
-            }
-          : item)
-    }
-
-    if (props.selectedConversationId === conversationId) {
-      conversationMessages.value = conversationMessages.value.map(message => message.read
-        ? message
-        : {
-            ...message,
-            read: true,
-            readAt: message.readAt ?? new Date().toISOString(),
-          })
-    }
-  }
-  finally {
-    readingConversationIds.value.delete(conversationId)
-  }
-}
-
 const goToConversation = async (conversationId: string) => {
   await router.push(`/inbox/${conversationId}`)
 }
@@ -390,11 +340,9 @@ watch(
 )
 
 const refreshConversationData = async () => {
-  await inboxStore.fetchConversations(true)
-
   if (props.selectedConversationId) {
-    const response = await privateChatApi.getConversationMessages(props.selectedConversationId)
-    conversationMessages.value = sortMessages((response.items ?? []).map(item => normalizeMessage(item)))
+    const messages = await inboxStore.fetchConversationMessages(props.selectedConversationId, true)
+    conversationMessages.value = sortMessages(messages.map(item => normalizeMessage(item)))
   }
 }
 
@@ -500,18 +448,6 @@ const sendMessage = async () => {
     isSendingMessage.value = false
   }
 }
-
-watch(
-  () => [activeConversation.value?.id, activeConversation.value?.unread, props.isConversationLoading],
-  async ([conversationId, unread, isConversationLoading]) => {
-    if (!conversationId || isConversationLoading || !unread) {
-      return
-    }
-
-    await markConversationAsReadIfNeeded(conversationId)
-  },
-  { immediate: true },
-)
 
 const addReaction = async (messageId: string, reaction: string) => {
   if (isUsingDemoData.value) {
