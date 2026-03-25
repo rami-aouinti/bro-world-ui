@@ -28,6 +28,7 @@ const inFlightRequests = new Map<string, Promise<unknown>>()
 const endpoint401Counts = new Map<string, number>()
 let burstWindowStartedAt = 0
 let burstCount = 0
+let sharedAuthRevalidationPromise: Promise<boolean> | null = null
 
 const normalizeApiPath = (url: string) => url.replace(/^\/+/, '')
 
@@ -141,9 +142,8 @@ const recordTop401Endpoint = (
 }
 
 const revalidateSessionWithGlobalThrottle = async (auth: ReturnType<typeof useAuth>) => {
-  if (auth.authRevalidateInFlight.value) {
-    await auth.authRevalidateInFlight.value
-    return true
+  if (sharedAuthRevalidationPromise) {
+    return sharedAuthRevalidationPromise
   }
 
   const currentTime = now()
@@ -154,22 +154,21 @@ const revalidateSessionWithGlobalThrottle = async (auth: ReturnType<typeof useAu
     return false
   }
 
-  auth.authRevalidateInFlight.value = (async () => {
+  sharedAuthRevalidationPromise = (async () => {
     try {
       await auth.initSession(true)
+      return true
     }
     catch (error) {
       auth.lastAuthFailureAt.value = now()
       throw error
     }
     finally {
-      auth.authRevalidateInFlight.value = null
+      sharedAuthRevalidationPromise = null
     }
   })()
 
-  await auth.authRevalidateInFlight.value
-
-  return true
+  return sharedAuthRevalidationPromise
 }
 
 const track401Burst = (tracker: ReturnType<typeof useTracker>, path: string, method: string) => {
@@ -253,6 +252,7 @@ export const useApiClient = () => {
         let lastError: unknown = null
 
         let hasRetriedAfter401 = false
+        let hasConsumedAuthReplay = false
 
         for (let attempt = 1; attempt <= maxRetries + 1; attempt += 1) {
           try {
@@ -330,6 +330,7 @@ export const useApiClient = () => {
               }
 
               hasRetriedAfter401 = true
+              hasConsumedAuthReplay = true
 
               const didRevalidateSession = await revalidateSessionWithGlobalThrottle(auth)
 
@@ -349,6 +350,10 @@ export const useApiClient = () => {
               }
 
               continue
+            }
+
+            if (hasConsumedAuthReplay) {
+              break
             }
 
             if (!(isRetryableError && hasRemainingAttempts && canRetry)) {
