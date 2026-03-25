@@ -136,10 +136,10 @@ const ONE_HOUR_IN_SECONDS = 60 * 60
 const SIX_HOURS_IN_SECONDS = ONE_HOUR_IN_SECONDS * 6
 const FIFTEEN_MINUTES_IN_SECONDS = 60 * 15
 const TEN_MINUTES_IN_SECONDS = 60 * 10
-const THREE_MINUTES_IN_SECONDS = 60 * 3
 const TWO_MINUTES_IN_SECONDS = 60 * 2
 const THIRTY_SECONDS_IN_SECONDS = 30
 const ONE_DAY_IN_SECONDS = 60 * 60 * 24
+const SEVEN_DAYS_IN_SECONDS = ONE_DAY_IN_SECONDS * 7
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 const LONG_LIVED_PUBLIC_PAGE_SLUGS = new Set(['home', 'about', 'contact', 'faq'])
 
@@ -174,7 +174,7 @@ const isProfileIdentityMutation = (path: string, method: string) => {
 const CACHE_RESOURCE_POLICIES: CacheResourcePolicy[] = [
   {
     name: 'profile',
-    ttlSeconds: THREE_MINUTES_IN_SECONDS,
+    ttlSeconds: SEVEN_DAYS_IN_SECONDS,
     isMatch: path => path.startsWith('/api/v1/profile') || path.startsWith('/api/v1/users/me'),
     invalidationRules: [
       {
@@ -669,9 +669,27 @@ const clearPrivateCacheByUserAndPrefix = async (userId: string | undefined, pref
 }
 
 const invalidateUserProfile = async (userId?: string) => {
-  const deletedByProfile = await clearPrivateCacheByUserAndPrefix(userId, '/api/v1/profile')
-  const deletedByUsersMe = await clearPrivateCacheByUserAndPrefix(userId, '/api/v1/users/me')
-  await recordCacheMetric('profile', 'invalidate', `profile:${deletedByProfile + deletedByUsersMe}`)
+  const targetedPrefixes = ['/api/v1/profile', '/api/v1/users/me']
+  let deletedPublic = 0
+  let deletedPrivate = 0
+
+  for (const prefix of targetedPrefixes) {
+    const deletedFromPublic = await clearCacheByPrefix(prefix)
+    const deletedFromPrivate = await clearPrivateCacheByUserAndPrefix(userId, prefix)
+    deletedPublic += deletedFromPublic
+    deletedPrivate += deletedFromPrivate
+  }
+
+  const totalDeleted = deletedPublic + deletedPrivate
+  await recordCacheMetric('profile', 'invalidate', `profile:public=${deletedPublic}:private=${deletedPrivate}:total=${totalDeleted}`)
+  console.info('[cache.invalidation]', {
+    resource: 'profile',
+    reason: 'profile_or_users_me_identity_mutation',
+    targetedPrefixes,
+    deletedPublic,
+    deletedPrivate,
+    deletedTotal: totalDeleted,
+  })
 }
 
 const invalidateConversations = async (userId?: string) => {
