@@ -1,5 +1,5 @@
 import type { H3Event } from 'h3'
-import type { SessionResponse, UserProfile } from '../../app/types/api/user'
+import type { SessionResponse, UserMeRead, UserProfile } from '../../app/types/api/user'
 import { setAuthCookie } from './authCookie.ts'
 
 export const AUTH_ERROR_CODES = {
@@ -70,8 +70,7 @@ export const createAuthSessionBuilder = (deps: SessionBuilderDeps) => async (eve
 export const fetchProfileWithAuthorization = async (token: string): Promise<UserProfile> => {
   try {
     const config = useRuntimeConfig()
-
-    return await $fetch<UserProfile>('/api/v1/profile', {
+    const me = await $fetch<UserMeRead>('/api/v1/users/me', {
       method: 'GET',
       baseURL: config.public.apiBase,
       headers: {
@@ -79,6 +78,20 @@ export const fetchProfileWithAuthorization = async (token: string): Promise<User
         Authorization: `Bearer ${token}`,
       },
     })
+
+    return {
+      id: me.id,
+      username: me.username,
+      firstName: me.firstName,
+      lastName: me.lastName,
+      email: me.email,
+      language: me.language,
+      locale: me.locale,
+      timezone: me.timezone ?? 'UTC',
+      photo: me.photo,
+      roles: me.roles ?? [],
+      userGroups: me.userGroups,
+    }
   }
   catch (error: unknown) {
     const statusCode =
