@@ -152,6 +152,7 @@ const profileName = computed(() => {
 
   return `${profile.firstName} ${profile.lastName}`.trim() || profile.username
 })
+const profilePhoto = computed(() => authSession.profile?.photo || authSession.userSnapshot?.photo || undefined)
 
 const availableLocales = computed(() => locales.value
   .map((item) => {
@@ -362,7 +363,7 @@ const signOut = async () => {
         <v-menu location="bottom end" v-model="isProfileMenuOpen">
           <template #activator="{ props }">
             <UiAvatar :aria-label="t('app.navigation.profile')"
-                      v-bind="props" :src="authSession.profile?.photo" size="xs" :name="profileName" status="online" class="me-1" />
+                      v-bind="props" :src="profilePhoto" size="xs" :name="profileName" status="online" class="me-1" />
           </template>
 
           <v-list class="py-1 app-bar__menu" min-width="220">
