@@ -6,6 +6,7 @@ import type { LoginPayload, RegisterPayload } from '~/types/api/common'
 import type { SessionResponse } from '~/types/api/user'
 
 let activeSessionInitPromise: Promise<void> | null = null
+let activeSessionInitCorrelationId: string | null = null
 
 export const useAuth = () => {
   const authSession = useAuthSessionStore()
@@ -19,6 +20,8 @@ export const useAuth = () => {
   const warmupDoneForSessionId = useState<string | null>('auth-warmup-done-session-id', () => null)
   const sessionInitSequence = useState<number>('auth-session-init-sequence', () => 0)
   const sessionCorrelationId = useState<string | null>('auth-session-correlation-id', () => null)
+  const authRevalidateInFlight = useState<Promise<void> | null>('auth-revalidate-in-flight', () => null)
+  const lastAuthFailureAt = useState<number>('auth-last-auth-failure-at', () => 0)
 
   const authFetch = <T>(url: string, options: Parameters<typeof $fetch<T>>[1] = {}) => {
     if (import.meta.server) {
@@ -242,8 +245,11 @@ export const useAuth = () => {
   }
 
   const initSession = async (force = false) => {
-    if (!force && activeSessionInitPromise) {
-      logSessionFlow('session.init.reused', { force })
+    if (activeSessionInitPromise) {
+      logSessionFlow('session.init.reused', {
+        force,
+        activeCorrelationId: activeSessionInitCorrelationId,
+      })
       await activeSessionInitPromise
       return
     }
@@ -254,6 +260,7 @@ export const useAuth = () => {
 
     const correlationId = createCorrelationId(force ? 'session-revalidate' : 'session-init')
     sessionCorrelationId.value = correlationId
+    activeSessionInitCorrelationId = correlationId
 
     activeSessionInitPromise = (async () => {
       logSessionFlow('session.init.start', { force })
@@ -357,6 +364,7 @@ export const useAuth = () => {
     }
     finally {
       activeSessionInitPromise = null
+      activeSessionInitCorrelationId = null
     }
   }
 
@@ -436,5 +444,7 @@ export const useAuth = () => {
     fetchProfile,
     logout,
     sessionCorrelationId,
+    authRevalidateInFlight,
+    lastAuthFailureAt,
   }
 }

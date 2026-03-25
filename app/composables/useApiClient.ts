@@ -17,14 +17,18 @@ const RETRYABLE_NETWORK_ERROR_CODES = new Set([
   'UND_ERR_SOCKET',
   'ABORT_ERR',
 ])
-const RETRYABLE_HTTP_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504])
+const RETRYABLE_HTTP_STATUSES = new Set([502, 503, 504])
 const RETRY_DELAYS_IN_MS = [150, 300]
-const MAX_ATTEMPTS = 3
-const SESSION_REVALIDATION_THROTTLE_WINDOW_MS = 10_000
+const MAX_RETRIES = 2
+const AUTH_REVALIDATION_COOLDOWN_MS = 20_000
+const BURST_WINDOW_MS = 1_000
 const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
+const AUTH_AUTO_RETRY_EXCLUSIONS = ['api/auth/login', 'api/auth/register']
 const inFlightRequests = new Map<string, Promise<unknown>>()
-let lastSessionRevalidationAt = 0
-let activeSessionRevalidation: Promise<void> | null = null
+const endpoint401Counts = new Map<string, number>()
+let burstWindowStartedAt = 0
+let burstCount = 0
+let sharedAuthRevalidationPromise: Promise<boolean> | null = null
 
 const normalizeApiPath = (url: string) => url.replace(/^\/+/, '')
 
@@ -94,10 +98,6 @@ const isRetryableNetworkError = (error: unknown) => {
 
   const status = networkError.status ?? networkError.response?.status
 
-  if (status && RETRYABLE_HTTP_STATUSES.has(status)) {
-    return true
-  }
-
   if (status) {
     return false
   }
@@ -111,33 +111,82 @@ const isRetryableNetworkError = (error: unknown) => {
     || networkError.message?.toLowerCase().includes('failed to fetch')
 }
 
+const getErrorStatus = (error: unknown) => (error as { status?: number, response?: { status?: number } })?.status
+  ?? (error as { response?: { status?: number } })?.response?.status
+
+const recordTop401Endpoint = (
+  normalizedUrl: string,
+  method: string,
+  source: 'backend_401' | 'local_401_missing_cookie',
+  sessionCorrelationId: string | null,
+) => {
+  const key = `${method} ${normalizedUrl} [${source}]`
+  endpoint401Counts.set(key, (endpoint401Counts.get(key) || 0) + 1)
+  const total401 = Array.from(endpoint401Counts.values()).reduce((sum, count) => sum + count, 0)
+
+  if (total401 % 10 !== 0) {
+    return
+  }
+
+  const topEndpoints = Array
+    .from(endpoint401Counts.entries())
+    .sort((first, second) => second[1] - first[1])
+    .slice(0, 5)
+    .map(([endpointKey, count]) => ({ endpointKey, count }))
+
+  console.warn('[api-telemetry][401-top-endpoints]', {
+    total401,
+    topEndpoints,
+    sessionCorrelationId,
+  })
+}
+
 const revalidateSessionWithGlobalThrottle = async (auth: ReturnType<typeof useAuth>) => {
+  if (sharedAuthRevalidationPromise) {
+    return sharedAuthRevalidationPromise
+  }
+
   const currentTime = now()
-  const isWithinThrottleWindow = currentTime - lastSessionRevalidationAt < SESSION_REVALIDATION_THROTTLE_WINDOW_MS
+  const lastFailureAt = auth.lastAuthFailureAt.value
+  const isInCooldownWindow = lastFailureAt > 0 && (currentTime - lastFailureAt) < AUTH_REVALIDATION_COOLDOWN_MS
 
-  if (isWithinThrottleWindow) {
-    if (activeSessionRevalidation) {
-      await activeSessionRevalidation
-    }
-
+  if (isInCooldownWindow) {
     return false
   }
 
-  if (!activeSessionRevalidation) {
-    activeSessionRevalidation = (async () => {
-      try {
-        await auth.initSession(true)
-        lastSessionRevalidationAt = now()
-      }
-      finally {
-        activeSessionRevalidation = null
-      }
-    })()
+  sharedAuthRevalidationPromise = (async () => {
+    try {
+      await auth.initSession(true)
+      return true
+    }
+    catch (error) {
+      auth.lastAuthFailureAt.value = now()
+      throw error
+    }
+    finally {
+      sharedAuthRevalidationPromise = null
+    }
+  })()
+
+  return sharedAuthRevalidationPromise
+}
+
+const track401Burst = (tracker: ReturnType<typeof useTracker>, path: string, method: string) => {
+  const currentTime = now()
+
+  if (!burstWindowStartedAt || currentTime - burstWindowStartedAt > BURST_WINDOW_MS) {
+    burstWindowStartedAt = currentTime
+    burstCount = 0
   }
 
-  await activeSessionRevalidation
+  burstCount += 1
 
-  return true
+  tracker.track('401_burst', {
+    count: burstCount,
+    path,
+    method,
+    windowMs: BURST_WINDOW_MS,
+  })
 }
 
 export const useApiClient = () => {
@@ -168,6 +217,8 @@ export const useApiClient = () => {
     const isMutation = MUTATION_METHODS.has(method)
     const canRetryMutation = Boolean(options.idempotencyKey || options.retryUnsafeMutations)
     const canRetry = !isMutation || canRetryMutation
+    const isAutoRetryExcludedPath = AUTH_AUTO_RETRY_EXCLUSIONS.some(path => normalizedUrl.startsWith(path))
+    const maxRetries = canRetry && !isAutoRetryExcludedPath ? MAX_RETRIES : 0
 
     const nextHeaders: Record<string, string> = {
       ...(options.headers as Record<string, string> | undefined),
@@ -185,6 +236,10 @@ export const useApiClient = () => {
       nextHeaders['Idempotency-Key'] = options.idempotencyKey
     }
 
+    if (!nextHeaders['x-session-correlation-id'] && auth.sessionCorrelationId.value) {
+      nextHeaders['x-session-correlation-id'] = auth.sessionCorrelationId.value
+    }
+
     const requestPromise = (async () => {
       try {
         const fetchOptions = { ...options } as Parameters<typeof $fetch<T>>[1] & {
@@ -196,12 +251,25 @@ export const useApiClient = () => {
 
         let lastError: unknown = null
 
-        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+        let hasRetriedAfter401 = false
+        let hasConsumedAuthReplay = false
+
+        for (let attempt = 1; attempt <= maxRetries + 1; attempt += 1) {
           try {
             const response = await $fetch<T>(`/api/backend/${normalizedUrl}`, {
               ...fetchOptions,
               credentials: 'include',
               headers: nextHeaders,
+            })
+
+            console.info('[api-telemetry]', {
+              path: normalizedUrl,
+              method,
+              status: '2xx',
+              attempt,
+              hasBearerToken,
+              hasAuthorizationHeader: Boolean(nextHeaders.Authorization),
+              sessionCorrelationId: auth.sessionCorrelationId.value,
             })
 
             if (auth.isAuthenticated.value) {
@@ -223,19 +291,53 @@ export const useApiClient = () => {
               })
             }
 
+            auth.lastAuthFailureAt.value = 0
+
             return response
           }
           catch (error) {
             lastError = error
 
-            const status = (error as { status?: number, response?: { status?: number } })?.status
-              ?? (error as { response?: { status?: number } })?.response?.status
+            const status = getErrorStatus(error)
             const is401 = status === 401
-            const isRetryableError = isRetryableNetworkError(error)
-            const hasRemainingAttempts = attempt < MAX_ATTEMPTS
+            const isRetryableStatus = status !== undefined && RETRYABLE_HTTP_STATUSES.has(status)
+            const isNetworkError = isRetryableNetworkError(error)
+            const isRetryableError = isRetryableStatus || isNetworkError
+            const hasRemainingAttempts = attempt <= maxRetries
+            const telemetrySource = (error as { data?: { telemetryCategory?: string } })?.data?.telemetryCategory
+            const authFailureType = telemetrySource === 'local_401_missing_cookie'
+              ? 'local_401_missing_cookie'
+              : 'backend_401'
+
+            console.warn('[api-telemetry]', {
+              path: normalizedUrl,
+              method,
+              status: status || 'network_error',
+              attempt,
+              hasBearerToken,
+              hasAuthorizationHeader: Boolean(nextHeaders.Authorization),
+              errorType: isNetworkError ? 'network_error' : (is401 ? authFailureType : 'http_error'),
+              sessionCorrelationId: auth.sessionCorrelationId.value,
+            })
 
             if (is401) {
+              track401Burst(tracker, normalizedUrl, method)
+              recordTop401Endpoint(normalizedUrl, method, authFailureType, auth.sessionCorrelationId.value)
+
+              if (hasRetriedAfter401 || isAutoRetryExcludedPath) {
+                auth.lastAuthFailureAt.value = now()
+                break
+              }
+
+              hasRetriedAfter401 = true
+              hasConsumedAuthReplay = true
+
               const didRevalidateSession = await revalidateSessionWithGlobalThrottle(auth)
+
+              if (!didRevalidateSession) {
+                auth.lastAuthFailureAt.value = now()
+                break
+              }
 
               if (didRevalidateSession) {
                 console.info('[auth-correlation]', {
@@ -247,6 +349,10 @@ export const useApiClient = () => {
                 })
               }
 
+              continue
+            }
+
+            if (hasConsumedAuthReplay) {
               break
             }
 

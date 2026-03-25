@@ -5,6 +5,7 @@ import { useNotificationsStore } from '~/stores/notifications'
 
 let activeBootstrapPromise: Promise<void> | null = null
 let activeResyncPromise: Promise<void> | null = null
+let isRealtimeBootstrapOrchestratorInitialized = false
 
 const createCorrelationId = (prefix: string) => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
 
@@ -86,23 +87,27 @@ export const useRealtimeBootstrap = () => {
     }
   }
 
-  watch(
-    () => ({
-      authenticated: isAuthenticated.value,
-      userId: authSession.profile?.id ?? null,
-    }),
-    async ({ authenticated, userId }) => {
-      if (!authenticated || !userId) {
-        bootstrappedUserId.value = null
-        notificationsStore.clear()
-        inboxStore.invalidateCache()
-        return
-      }
+  if (!isRealtimeBootstrapOrchestratorInitialized) {
+    isRealtimeBootstrapOrchestratorInitialized = true
 
-      await bootstrap()
-    },
-    { immediate: true },
-  )
+    watch(
+      () => ({
+        authenticated: isAuthenticated.value,
+        userId: authSession.profile?.id ?? null,
+      }),
+      async ({ authenticated, userId }) => {
+        if (!authenticated || !userId) {
+          bootstrappedUserId.value = null
+          notificationsStore.clear()
+          inboxStore.invalidateCache()
+          return
+        }
+
+        await bootstrap()
+      },
+      { immediate: true },
+    )
+  }
 
   return {
     bootstrap,
