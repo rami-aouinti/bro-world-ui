@@ -1,4 +1,5 @@
 import { useApiClient } from '../useApiClient'
+import { normalizeErrorResponse } from './responseNormalizer'
 import type { ShopProductCreatePayload, ShopProductCreateResponse } from '~/types/api/shopProducts'
 
 export class ShopProductsApiError extends Error {
@@ -9,18 +10,6 @@ export class ShopProductsApiError extends Error {
     this.name = 'ShopProductsApiError'
     this.statusCode = statusCode
   }
-}
-
-const getStatusCode = (error: unknown): number => {
-  if (typeof error === 'object' && error !== null && 'statusCode' in error && typeof error.statusCode === 'number') {
-    return error.statusCode
-  }
-
-  if (typeof error === 'object' && error !== null && 'status' in error && typeof error.status === 'number') {
-    return error.status
-  }
-
-  return 500
 }
 
 export const mapCreateProductErrorMessage = (statusCode: number): string => {
@@ -49,7 +38,7 @@ export const useShopProductsApi = () => {
       })
     }
     catch (error: unknown) {
-      const statusCode = getStatusCode(error)
+      const statusCode = normalizeErrorResponse(error).status ?? 500
       throw new ShopProductsApiError(statusCode, mapCreateProductErrorMessage(statusCode))
     }
   }

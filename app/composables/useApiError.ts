@@ -1,3 +1,6 @@
+import { normalizeErrorResponse } from './api/responseNormalizer'
+import { NormalizedApiClientError } from './useApiClient'
+
 type ApiErrorSeverity = 'info' | 'warning' | 'error'
 type ApiErrorDisplayMode = 'toast' | 'alert'
 
@@ -47,28 +50,17 @@ const readErrorMessage = (error: NuxtFetchErrorLike) => {
   return typeof error.message === 'string' ? error.message : ''
 }
 
-const deriveStatus = (error: NuxtFetchErrorLike): number | null => {
-  if (typeof error.statusCode === 'number') {
-    return error.statusCode
-  }
-
-  if (typeof error.status === 'number') {
-    return error.status
-  }
-
-  if (typeof error.response?.status === 'number') {
-    return error.response.status
-  }
-
-  return null
-}
+const deriveStatus = (error: unknown): number | null => normalizeErrorResponse(error).status
 
 export const useApiError = () => {
   const { t, te } = useI18n({ useScope: 'global' })
 
   const normalizeError = (error: unknown, options: UseApiErrorOptions = {}): NormalizedApiError => {
+    const normalizedTransportError = error instanceof NormalizedApiClientError
+      ? error.response
+      : normalizeErrorResponse(error)
     const errorLike = (isObject(error) ? error : {}) as NuxtFetchErrorLike
-    const status = deriveStatus(errorLike)
+    const status = deriveStatus(normalizedTransportError)
 
     const statusKey = status === 401
       ? 'errors.unauthorized'

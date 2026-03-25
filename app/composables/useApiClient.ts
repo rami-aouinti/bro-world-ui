@@ -1,3 +1,10 @@
+import {
+  normalizeErrorResponse,
+  normalizeSuccessResponse,
+  normalizeUnknownErrorResponse,
+  type ApiResponseEnvelope,
+} from './api/responseNormalizer'
+
 const SERVER_SESSION_PLACEHOLDER = '__server_session__'
 const CRITICAL_API_PATTERNS = [
   'api/v1/auth',
@@ -73,6 +80,16 @@ const isPrivateEndpoint = (url: string) => {
 const now = () => (import.meta.client ? performance.now() : Date.now())
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
+export class NormalizedApiClientError extends Error {
+  response: ApiResponseEnvelope<null>
+
+  constructor(response: ApiResponseEnvelope<null>, message = 'API request failed') {
+    super(message)
+    this.name = 'NormalizedApiClientError'
+    this.response = response
+  }
+}
+
 type ApiFetchOptions<T> = Parameters<typeof $fetch<T>>[1] & {
   retryUnsafeMutations?: boolean
   idempotencyKey?: string
@@ -146,9 +163,6 @@ const isRetryableNetworkError = (error: unknown) => {
     || networkError.message?.toLowerCase().includes('network')
     || networkError.message?.toLowerCase().includes('failed to fetch')
 }
-
-const getErrorStatus = (error: unknown) => (error as { status?: number, response?: { status?: number } })?.status
-  ?? (error as { response?: { status?: number } })?.response?.status
 
 const logApiTelemetry = (
   level: 'info' | 'warn',
@@ -313,7 +327,7 @@ export const useApiClient = () => {
         dedupeKey,
       })
 
-      throw initializingError
+      throw new NormalizedApiClientError(normalizeErrorResponse(initializingError, 503))
     }
 
     if (isPrivateRoute && !hasAuthenticatedSession) {
@@ -341,7 +355,7 @@ export const useApiClient = () => {
         dedupeKey,
       })
 
-      throw unauthorizedError
+      throw new NormalizedApiClientError(normalizeErrorResponse(unauthorizedError, 403))
     }
     if (isAuthRequiredEndpoint && !hasAuthenticatedSession) {
       tracker.track('api.error.auth_missing_local', {
@@ -375,7 +389,7 @@ export const useApiClient = () => {
         dedupeKey,
       })
 
-      throw unauthorizedError
+      throw new NormalizedApiClientError(normalizeErrorResponse(unauthorizedError, 401))
     }
     const isMutation = MUTATION_METHODS.has(method)
     const canRetryMutation = Boolean(options.idempotencyKey || options.retryUnsafeMutations)
@@ -419,11 +433,16 @@ export const useApiClient = () => {
 
         for (let attempt = 1; attempt <= maxRetries + 1; attempt += 1) {
           try {
-            const response = await $fetch<T>(`/api/backend/${normalizedUrl}`, {
+            const response = await $fetch.raw<T>(`/api/backend/${normalizedUrl}`, {
               ...fetchOptions,
               credentials: 'include',
               headers: nextHeaders,
             })
+            const normalizedResponse = normalizeSuccessResponse<T>(
+              response.status,
+              response._data as T,
+              response.headers,
+            )
 
             logApiTelemetry('info', {
               path: normalizedUrl,
@@ -459,14 +478,15 @@ export const useApiClient = () => {
 
             auth.lastAuthFailureAt.value = 0
 
-            return response
+            return normalizedResponse.data as T
           }
           catch (error) {
             lastError = error
 
-            const status = getErrorStatus(error)
+            const normalizedError = normalizeErrorResponse(error)
+            const status = normalizedError.status
             const is401 = status === 401
-            const isRetryableStatus = status !== undefined && RETRYABLE_HTTP_STATUSES.has(status)
+            const isRetryableStatus = typeof status === 'number' && RETRYABLE_HTTP_STATUSES.has(status)
             const isNetworkError = isRetryableNetworkError(error)
             const isRetryableError = !is401 && (isRetryableStatus || isNetworkError)
             const hasRemainingAttempts = attempt <= maxRetries
@@ -486,7 +506,7 @@ export const useApiClient = () => {
               method,
               attempt,
               responseStatus: status || 'network_error',
-              errorSource,
+              errorSource: normalizedError.errorSource ?? errorSource,
               hasBearerToken,
               hasAuthorizationHeader: Boolean(nextHeaders.Authorization),
               errorType: isNetworkError ? 'network_error' : (is401 ? authFailureType : 'http_error'),
@@ -550,7 +570,9 @@ export const useApiClient = () => {
           }
         }
 
-        throw lastError
+        throw new NormalizedApiClientError(
+          lastError ? normalizeErrorResponse(lastError) : normalizeUnknownErrorResponse(),
+        )
       }
       catch (error) {
         if (isCriticalApiCall(normalizedUrl)) {
