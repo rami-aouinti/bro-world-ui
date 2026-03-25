@@ -78,6 +78,13 @@ const CACHE_METRICS_KEY = buildCacheKey({
   resource: 'cache',
   identifier: 'metrics',
 })
+const CACHE_ALERTS_KEY = buildCacheKey({
+  scope: 'system',
+  resource: 'cache',
+  identifier: 'alerts',
+})
+const REDIS_UNAVAILABLE_ALERT_KEY = 'redis.unavailable'
+const CACHE_HIT_RATE_ALERT_DROP = 0.2
 
 const MUTATION_METHODS = new Set(['POST', 'PATCH', 'DELETE', 'PUT'])
 const endpoint401Counts = new Map<string, number>()
@@ -371,6 +378,80 @@ const getCacheResourcePolicy = (path: string) => CACHE_RESOURCE_POLICIES.find(po
 
 const getEntityCacheTtl = (path: string) => getCacheResourcePolicy(path)?.ttlSeconds || ONE_DAY_IN_SECONDS
 
+const getCacheMetricField = (resource: CacheResource | 'generic', field: string) => `${resource}.${field}`
+
+const recordRedisLatency = async (resource: CacheResource | 'generic', operation: 'read' | 'write' | 'invalidate', durationMs: number) => {
+  const countField = getCacheMetricField(resource, `redisLatency.${operation}.count`)
+  const sumField = getCacheMetricField(resource, `redisLatency.${operation}.sumMs`)
+
+  try {
+    const redis = await getRedisClient()
+    await redis.hIncrBy(CACHE_METRICS_KEY, countField, 1)
+    await redis.hIncrByFloat(CACHE_METRICS_KEY, sumField, durationMs)
+  } catch (error) {
+    console.warn('Redis latency metric write failed', error)
+  }
+}
+
+const clearRedisUnavailableAlert = async () => {
+  try {
+    const redis = await getRedisClient()
+    await redis.hDel(CACHE_ALERTS_KEY, REDIS_UNAVAILABLE_ALERT_KEY)
+  } catch {
+    // noop
+  }
+}
+
+const raiseCacheAlert = async (alertKey: string, payload: Record<string, unknown>) => {
+  const alert = {
+    ...payload,
+    key: alertKey,
+    createdAt: new Date().toISOString(),
+  }
+
+  console.warn('[cache.alert]', alert)
+
+  try {
+    const redis = await getRedisClient()
+    await redis.hSet(CACHE_ALERTS_KEY, alertKey, JSON.stringify(alert))
+  } catch (error) {
+    console.warn('Cache alert write failed', error)
+  }
+}
+
+const evaluateCacheHitRateAlert = async (resource: CacheResource | 'generic') => {
+  const hitField = getCacheMetricField(resource, 'hit')
+  const missField = getCacheMetricField(resource, 'miss')
+
+  try {
+    const redis = await getRedisClient()
+    const metrics = await redis.hmGet(CACHE_METRICS_KEY, [hitField, missField])
+    const hits = Number(metrics[0] || 0)
+    const misses = Number(metrics[1] || 0)
+    const total = hits + misses
+
+    if (total < 20) {
+      return
+    }
+
+    const hitRate = hits / total
+    if (hitRate >= CACHE_HIT_RATE_ALERT_DROP) {
+      return
+    }
+
+    await raiseCacheAlert(`${resource}.hit_rate_drop`, {
+      resource,
+      type: 'hit_rate_drop',
+      hitRate,
+      hits,
+      misses,
+      threshold: CACHE_HIT_RATE_ALERT_DROP,
+    })
+  } catch (error) {
+    console.warn('Cache hit-rate evaluation failed', error)
+  }
+}
+
 const recordCacheMetric = async (resource: CacheResource | 'generic', metric: CacheMetricType, detail: string) => {
   const metricKey = `${resource}.${metric}`
 
@@ -386,6 +467,10 @@ const recordCacheMetric = async (resource: CacheResource | 'generic', metric: Ca
     metric,
     detail,
   })
+
+  if (metric === 'miss' || metric === 'hit') {
+    await evaluateCacheHitRateAlert(resource)
+  }
 }
 
 const normalizeBearerToken = (rawToken: string | null | undefined) => {
@@ -416,7 +501,13 @@ const getUsersMeCacheKey = (path: string, query: Record<string, any>, bearerToke
 const readCache = async (
   cacheKey: string,
   label: string,
-  options: { requiresUserContext?: boolean, userId?: string, resource?: CacheResource | 'generic' } = {},
+  options: {
+    requiresUserContext?: boolean
+    userId?: string
+    resource?: CacheResource | 'generic'
+    requestId?: string
+    targetPath?: string
+  } = {},
 ) => {
   if (options.requiresUserContext && !options.userId) {
     return null
@@ -424,31 +515,65 @@ const readCache = async (
 
   const metricResource = options.resource || 'generic'
 
+  const redisReadStart = performance.now()
+
   try {
     const redis = await getRedisClient()
+    await clearRedisUnavailableAlert()
     const cachedValue = await redis.get(cacheKey)
+    const redisReadDuration = Number((performance.now() - redisReadStart).toFixed(2))
+    await recordRedisLatency(metricResource, 'read', redisReadDuration)
 
     if (!cachedValue) {
       await recordCacheMetric(metricResource, 'miss', cacheKey)
+      console.info('[cache.lookup]', {
+        requestId: options.requestId || null,
+        path: options.targetPath || null,
+        label,
+        status: 'cache_miss',
+        redisLatencyMs: redisReadDuration,
+      })
       return null
     }
 
     await recordCacheMetric(metricResource, 'hit', cacheKey)
+    console.info('[cache.lookup]', {
+      requestId: options.requestId || null,
+      path: options.targetPath || null,
+      label,
+      status: 'cache_hit',
+      redisLatencyMs: redisReadDuration,
+    })
     return JSON.parse(cachedValue)
   } catch (error) {
+    await raiseCacheAlert(REDIS_UNAVAILABLE_ALERT_KEY, {
+      type: 'redis_unavailable',
+      reason: 'cache_read_failed',
+      label,
+    })
     console.warn(`${label} cache read failed`, error)
     await recordCacheMetric(metricResource, 'miss', `${cacheKey}:read-failed`)
     return null
   }
 }
 
-const writeCache = async (cacheKey: string, payload: unknown, ttl: number, label: string) => {
+const writeCache = async (cacheKey: string, payload: unknown, ttl: number, label: string, resource: CacheResource | 'generic' = 'generic') => {
+  const redisWriteStart = performance.now()
+
   try {
     const redis = await getRedisClient()
+    await clearRedisUnavailableAlert()
     await redis.set(cacheKey, JSON.stringify(payload), {
       EX: ttl,
     })
+    const redisWriteDuration = Number((performance.now() - redisWriteStart).toFixed(2))
+    await recordRedisLatency(resource, 'write', redisWriteDuration)
   } catch (error) {
+    await raiseCacheAlert(REDIS_UNAVAILABLE_ALERT_KEY, {
+      type: 'redis_unavailable',
+      reason: 'cache_write_failed',
+      label,
+    })
     console.warn(`${label} cache write failed`, error)
   }
 }
@@ -884,7 +1009,7 @@ export default defineEventHandler(async (event) => {
   const shouldCacheEntity = !publicRouteCacheSpec && method === 'GET' && ENTITY_CACHE_PREFIXES.some(prefix => targetPath.startsWith(prefix))
 
   if (publicRouteCacheSpec) {
-    const cachedPayload = await readCache(publicRouteCacheSpec.cacheKey, 'Public route')
+    const cachedPayload = await readCache(publicRouteCacheSpec.cacheKey, 'Public route', { requestId: requestCorrelationId, targetPath })
 
     if (cachedPayload !== null) {
       return cachedPayload
@@ -893,7 +1018,7 @@ export default defineEventHandler(async (event) => {
 
   if (shouldCacheLocalization) {
     const cacheKey = getLocalizationCacheKey(targetPath, query)
-    const cachedPayload = await readCache(cacheKey, 'Localization')
+    const cachedPayload = await readCache(cacheKey, 'Localization', { requestId: requestCorrelationId, targetPath })
 
     if (cachedPayload !== null) {
       return cachedPayload
@@ -914,6 +1039,8 @@ export default defineEventHandler(async (event) => {
           requiresUserContext: isPrivateRoute,
           userId: authenticatedUserId,
           resource: resourcePolicy?.name,
+          requestId: requestCorrelationId,
+          targetPath,
         })
       : null
 
@@ -928,6 +1055,13 @@ export default defineEventHandler(async (event) => {
     if (bearerToken) {
       headers.Authorization = `Bearer ${bearerToken}`
     }
+
+    console.info('[cache.lookup]', {
+      requestId: requestCorrelationId,
+      path: targetPath,
+      status: 'backend_fetch',
+      reason: 'cache_miss_or_bypass',
+    })
 
     const response = await $fetch(targetPath, {
       method,
@@ -951,12 +1085,12 @@ export default defineEventHandler(async (event) => {
     })
 
     if (publicRouteCacheSpec) {
-      await writeCache(publicRouteCacheSpec.cacheKey, response, publicRouteCacheSpec.ttl, 'Public route')
+      await writeCache(publicRouteCacheSpec.cacheKey, response, publicRouteCacheSpec.ttl, 'Public route', 'generic')
     }
 
     if (shouldCacheLocalization) {
       const cacheKey = getLocalizationCacheKey(targetPath, query)
-      await writeCache(cacheKey, response, ONE_YEAR_IN_SECONDS, 'Localization')
+      await writeCache(cacheKey, response, ONE_YEAR_IN_SECONDS, 'Localization', 'generic')
     }
 
     if (shouldCacheEntity) {
@@ -969,7 +1103,7 @@ export default defineEventHandler(async (event) => {
             : getEntityCacheKey(targetPath, query))
 
       if (cacheKey) {
-        await writeCache(cacheKey, response, getEntityCacheTtl(targetPath), resourcePolicy ? `Entity:${resourcePolicy.name}` : 'Entity')
+        await writeCache(cacheKey, response, getEntityCacheTtl(targetPath), resourcePolicy ? `Entity:${resourcePolicy.name}` : 'Entity', resourcePolicy?.name || 'generic')
       }
     }
 
