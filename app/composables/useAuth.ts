@@ -135,19 +135,62 @@ export const useAuth = () => {
 
   const applySessionState = async (session: SessionResponse) => {
     token.value = session.authenticated ? '__server_session__' : null
+    const shouldKeepExistingProfile = session.authenticated
+      && session.sessionStatus === 'degraded'
+      && !session.profile
+      && !!authSession.profile
+
     authSession.setUserSession({
       token: token.value,
-      profile: session.profile,
+      profile: shouldKeepExistingProfile ? authSession.profile : session.profile,
       roles: session.roles,
       locale: session.locale,
+      profileUnavailable: session.sessionStatus === 'degraded',
+      sessionStatus: session.sessionStatus ?? (session.authenticated ? 'healthy' : 'invalid'),
     })
 
     const preferredLocale = session.authenticated
-      ? (session.locale || getProfilePreferredLocale(session.profile))
+      ? (session.locale || getProfilePreferredLocale(shouldKeepExistingProfile ? authSession.profile : session.profile))
       : FALLBACK_LOCALE
 
     await applyLocalePreference(preferredLocale)
     void warmupPrivateCaches(session)
+  }
+
+  const getErrorStatus = (error: unknown): number | null => {
+    if (!error || typeof error !== 'object') {
+      return null
+    }
+
+    const candidate = error as {
+      statusCode?: unknown
+      status?: unknown
+      response?: { status?: unknown }
+    }
+
+    if (typeof candidate.statusCode === 'number') {
+      return candidate.statusCode
+    }
+
+    if (typeof candidate.status === 'number') {
+      return candidate.status
+    }
+
+    if (typeof candidate.response?.status === 'number') {
+      return candidate.response.status
+    }
+
+    return null
+  }
+
+  const clearLocalSession = async () => {
+    await applySessionState({
+      authenticated: false,
+      profile: null,
+      roles: [],
+      locale: null,
+      sessionStatus: 'invalid',
+    })
   }
 
   const initSession = async (force = false) => {
@@ -156,22 +199,61 @@ export const useAuth = () => {
     }
 
     try {
-      const session = await authFetch<SessionResponse>('/api/auth/session', {
+      const baseSession = await authFetch<SessionResponse>('/api/auth/session', {
         method: 'GET',
       })
 
-      if (!session.authenticated) {
-        await applySessionState(session)
+      if (!baseSession.authenticated) {
+        await clearLocalSession()
         return
       }
 
-      const profileSession = await authFetch<SessionResponse>('/api/auth/profile', {
-        method: 'GET',
-      })
-      await applySessionState(profileSession)
+      try {
+        const profileSession = await authFetch<SessionResponse>('/api/auth/profile', {
+          method: 'GET',
+        })
+        await applySessionState({
+          ...baseSession,
+          ...profileSession,
+          authenticated: true,
+          sessionStatus: 'healthy',
+        })
+      }
+      catch (profileError) {
+        const profileStatus = getErrorStatus(profileError)
+
+        if (profileStatus === 401 || profileStatus === 403) {
+          await clearLocalSession()
+          return
+        }
+
+        await applySessionState({
+          authenticated: true,
+          profile: baseSession.profile,
+          roles: baseSession.roles,
+          locale: baseSession.locale,
+          sessionStatus: 'degraded',
+        })
+      }
     }
-    catch {
-      await applySessionState({ authenticated: false, profile: null, roles: [], locale: null })
+    catch (sessionError) {
+      const sessionStatusCode = getErrorStatus(sessionError)
+
+      if (sessionStatusCode === 401 || sessionStatusCode === 403) {
+        await clearLocalSession()
+      }
+      else if (token.value) {
+        await applySessionState({
+          authenticated: true,
+          profile: authSession.profile,
+          roles: authSession.roles,
+          locale: authSession.locale,
+          sessionStatus: 'degraded',
+        })
+      }
+      else {
+        await clearLocalSession()
+      }
     }
     finally {
       initialized.value = true
@@ -233,7 +315,7 @@ export const useAuth = () => {
 
     await authFetch('/api/auth/logout', { method: 'POST' })
     initialized.value = true
-    await applySessionState({ authenticated: false, profile: null, roles: [], locale: null })
+    await clearLocalSession()
   }
 
   return {
