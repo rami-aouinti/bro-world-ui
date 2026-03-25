@@ -3,13 +3,14 @@ import UiAvatar from '~/components/ui/UiAvatar.vue'
 import ConversationAvatarGroup from '~/components/inbox/ConversationAvatarGroup.vue'
 import { computed, ref, watch } from 'vue'
 import { useDisplay } from 'vuetify'
-import type { NotificationListResponse, NotificationRead } from '~/types/api/notification'
-import type { PrivateConversationsResponse } from '~/types/api/chat'
+import type { NotificationRead } from '~/types/api/notification'
+import type { PrivateChatMessage } from '~/types/api/chat'
 import { useNotificationsApi } from '~/composables/api/useNotificationsApi'
-import { usePrivateChatApi } from '~/composables/api/usePrivateChatApi'
 import { useNotificationTarget } from '~/composables/useNotificationTarget'
 import { useMercureEventSource } from '~/composables/useMercureEventSource'
 import { buildConversationPreview } from '~/utils/inboxConversationPreview'
+import { useInboxStore } from '~/stores/inbox'
+import { useNotificationsStore } from '~/stores/notifications'
 
 interface NavItem {
   key: string
@@ -42,27 +43,10 @@ const isProfileMenuOpen = ref(false)
 const isNotificationsMenuOpen = ref(false)
 const isInboxMenuOpen = ref(false)
 const notificationsApi = useNotificationsApi()
-const privateChatApi = usePrivateChatApi()
+const inboxStore = useInboxStore()
+const notificationsStore = useNotificationsStore()
 const { getNotificationTarget } = useNotificationTarget()
-
-const { data: inboxConversationsSummary, refresh: refreshInboxConversationsSummary } = useAsyncData<PrivateConversationsResponse>(
-  'appbar-inbox-latest',
-  () => privateChatApi.getConversations(20, 1),
-  {
-    default: () => ({
-      items: [],
-      pagination: {
-        page: 1,
-        limit: 20,
-        totalItems: 0,
-        totalPages: 0,
-      },
-      filters: [],
-    }),
-    watch: [isAuthenticated],
-    immediate: isAuthenticated.value,
-  },
-)
+const inboxConversationsSummary = computed(() => inboxStore.conversationsSummary)
 
 const inboxConversationsPreview = computed<InboxConversationPreview[]>(() => (inboxConversationsSummary.value?.items ?? [])
   .map(buildConversationPreview)
@@ -70,14 +54,6 @@ const inboxConversationsPreview = computed<InboxConversationPreview[]>(() => (in
   .slice(0, 3))
 
 const inboxUnreadCount = computed(() => inboxConversationsPreview.value.reduce((total, item) => total + item.unread, 0))
-
-watch(isInboxMenuOpen, async (isOpen) => {
-  if (!isOpen || !isAuthenticated.value) {
-    return
-  }
-
-  await refreshInboxConversationsSummary()
-})
 
 const mainHeaderItems = computed<NavItem[]>(() => [
   { key: 'app.navigation.platform', to: '/platform', icon: 'mdi-view-grid-outline' },
@@ -101,18 +77,9 @@ const actionItems = computed<ActionNavItem[]>(() => {
   ]
 })
 
-const { data: notificationsSummary, refresh: refreshNotificationsSummary } = useAsyncData<NotificationListResponse>(
-  'appbar-notifications-latest',
-  () => notificationsApi.getNotifications(3, 0),
-  {
-    default: () => ({ items: [], unreadCount: 0 }),
-    watch: [isAuthenticated],
-    immediate: isAuthenticated.value,
-  },
-)
-
-const notificationPreviewItems = computed(() => notificationsSummary.value?.items ?? [])
-const unreadNotificationsCount = computed(() => notificationsSummary.value?.unreadCount ?? 0)
+const notificationsSummary = computed(() => notificationsStore.notifications)
+const notificationPreviewItems = computed(() => notificationsSummary.value.items.slice(0, 3))
+const unreadNotificationsCount = computed(() => notificationsSummary.value.unreadCount)
 
 const mercureTopics = computed(() => {
   if (!authSession.profile?.id) {
@@ -165,7 +132,23 @@ useMercureEventSource(mercureTopics, async (payload) => {
   }
 
   if (isConversationMessagePayload(payload)) {
-    await refreshInboxConversationsSummary()
+    const incomingMessage: PrivateChatMessage = {
+      id: payload.id,
+      content: payload.content,
+      sender: {
+        id: payload.senderId,
+        firstName: 'Utilisateur',
+        lastName: '',
+        photo: null,
+        owner: authSession.profile?.id === payload.senderId,
+      },
+      attachments: [],
+      read: false,
+      readAt: null,
+      createdAt: new Date().toISOString(),
+      reactions: [],
+    }
+    inboxStore.applyIncomingMessage(payload.conversationId, incomingMessage, authSession.profile?.id)
     return
   }
 
@@ -173,31 +156,15 @@ useMercureEventSource(mercureTopics, async (payload) => {
     return
   }
 
-  if (!notificationsSummary.value) {
-    await refreshNotificationsSummary()
-    return
-  }
-
-  if (notificationsSummary.value.items.some(item => item.id === payload.id)) {
-    return
-  }
-
-  notificationsSummary.value = {
-    ...notificationsSummary.value,
-    unreadCount: notificationsSummary.value.unreadCount + 1,
-    items: [
-      {
-        id: payload.id,
-        title: payload.title,
-        description: payload.description ?? '',
-        type: payload.type,
-        read: false,
-        createdAt: new Date().toISOString(),
-        from: null,
-      },
-      ...notificationsSummary.value.items,
-    ].slice(0, 3),
-  }
+  notificationsStore.prependNotification({
+    id: payload.id,
+    title: payload.title,
+    description: payload.description ?? '',
+    type: payload.type,
+    read: false,
+    createdAt: new Date().toISOString(),
+    from: null,
+  })
 })
 
 watch(isNotificationsMenuOpen, async (isOpen) => {
@@ -206,7 +173,7 @@ watch(isNotificationsMenuOpen, async (isOpen) => {
   }
 
   await notificationsApi.markAllAsRead()
-  await refreshNotificationsSummary()
+  notificationsStore.markAllAsReadLocally()
 })
 
 const getNotificationAvatarLabel = (notification: NotificationRead) => {

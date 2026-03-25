@@ -5,7 +5,7 @@ import UiStateEmptyState from '~/components/ui/state/UiEmptyState.vue'
 import UiStatChip from '~/components/ui/UiStatChip.vue'
 import ConversationAvatarGroup from '~/components/inbox/ConversationAvatarGroup.vue'
 import UiAvatar from '~/components/ui/UiAvatar.vue'
-import type { PrivateChatConversation, PrivateChatMessage, PrivateConversationsResponse } from '~/types/api/chat'
+import type { PrivateChatConversation, PrivateChatMessage } from '~/types/api/chat'
 import { usePrivateChatApi } from '~/composables/api/usePrivateChatApi'
 import { useInboxStore } from '~/stores/inbox'
 import { useMercureEventSource } from '~/composables/useMercureEventSource'
@@ -95,24 +95,7 @@ const availableReactions = [
   { value: 'sad', icon: '😢', label: 'Sad' },
 ]
 
-const { data: inboxConversationsSummary, refresh: refreshInboxConversations } = useAsyncData<PrivateConversationsResponse>(
-  'inbox-conversations',
-  () => privateChatApi.getConversations(20, 1),
-  {
-    default: () => ({
-      items: [],
-      pagination: {
-        page: 1,
-        limit: 20,
-        totalItems: 0,
-        totalPages: 0,
-      },
-      filters: [],
-    }),
-    watch: [() => authSession.profile?.id],
-    immediate: Boolean(authSession.profile),
-  },
-)
+const inboxConversationsSummary = computed(() => inboxStore.conversationsSummary)
 
 const getLatestMessage = (conversation: PrivateChatConversation): PrivateChatMessage | null => {
   if (!conversation.messages.length) {
@@ -450,27 +433,7 @@ const normalizeAttachments = (attachments: unknown) => {
 
 
 const prependMessageToConversationCache = (conversationId: string, message: PrivateChatMessage) => {
-  if (!inboxConversationsSummary.value) {
-    return
-  }
-
-  inboxConversationsSummary.value.items = inboxConversationsSummary.value.items.map((conversation) => {
-    if (conversation.id !== conversationId) {
-      return conversation
-    }
-
-    if (conversation.messages.some(item => item.id === message.id)) {
-      return conversation
-    }
-
-    return {
-      ...conversation,
-      messages: [...conversation.messages, message],
-      unreadMessagesCount: message.sender.id === authSession.profile?.id
-        ? conversation.unreadMessagesCount
-        : conversation.unreadMessagesCount + 1,
-    }
-  })
+  inboxStore.applyIncomingMessage(conversationId, message, authSession.profile?.id)
 }
 
 useMercureEventSource(mercureTopics, async (payload) => {
@@ -479,7 +442,16 @@ useMercureEventSource(mercureTopics, async (payload) => {
   }
 
   if (payload.conversationId !== activeConversation.value?.id) {
-    await refreshInboxConversations()
+    prependMessageToConversationCache(payload.conversationId, normalizeMessage({
+      id: payload.id,
+      content: payload.content,
+      sender: resolveSenderFromPayload(payload.senderId),
+      attachments: normalizeAttachments(payload.attachments),
+      read: false,
+      readAt: null,
+      createdAt: payload.createdAt ?? new Date().toISOString(),
+      reactions: [],
+    }))
     return
   }
 
@@ -530,8 +502,7 @@ watch(
 )
 
 const refreshConversationData = async () => {
-  clearNuxtData('inbox-conversations')
-  await refreshInboxConversations()
+  await inboxStore.fetchConversations(true)
 
   if (props.selectedConversationId) {
     const response = await privateChatApi.getConversationMessages(props.selectedConversationId)
@@ -559,11 +530,13 @@ const applyReactionToMessageCaches = (messageId: string, reaction: { id: string,
       : message,
   )
 
-  if (!inboxConversationsSummary.value || !activeConversation.value?.id) {
+  if (!activeConversation.value?.id) {
     return
   }
 
-  inboxConversationsSummary.value.items = inboxConversationsSummary.value.items.map((conversation) => {
+  inboxStore.conversationsCache.data = {
+    ...inboxStore.conversationsSummary,
+    items: inboxStore.conversationsSummary.items.map((conversation) => {
     if (conversation.id !== activeConversation.value?.id) {
       return conversation
     }
@@ -576,7 +549,8 @@ const applyReactionToMessageCaches = (messageId: string, reaction: { id: string,
           : message,
       ),
     }
-  })
+    }),
+  }
 }
 
 const sendMessage = async () => {
@@ -614,8 +588,10 @@ const sendMessage = async () => {
         : message,
     )
 
-    if (inboxConversationsSummary.value) {
-      inboxConversationsSummary.value.items = inboxConversationsSummary.value.items.map((conversation) => {
+    if (inboxStore.conversationsCache.data) {
+      inboxStore.conversationsCache.data = {
+        ...inboxStore.conversationsSummary,
+        items: inboxStore.conversationsSummary.items.map((conversation) => {
         if (conversation.id !== conversationId) {
           return conversation
         }
@@ -628,7 +604,8 @@ const sendMessage = async () => {
               : message,
           ),
         }
-      })
+        }),
+      }
     }
   }
   finally {

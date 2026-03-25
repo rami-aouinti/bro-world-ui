@@ -11,6 +11,17 @@ import type {
 
 const CACHE_TTL_MS = 60_000
 
+const EMPTY_CONVERSATIONS_RESPONSE: PrivateConversationsResponse = {
+  items: [],
+  pagination: {
+    page: 1,
+    limit: 20,
+    totalItems: 0,
+    totalPages: 0,
+  },
+  filters: [],
+}
+
 export const useInboxStore = defineStore('inbox', () => {
   const privateChatApi = usePrivateChatApi()
   const conversationsCache = useState<{ data: PrivateConversationsResponse | null, cachedAt: number }>('inbox-conversations-cache', () => ({
@@ -18,6 +29,8 @@ export const useInboxStore = defineStore('inbox', () => {
     cachedAt: 0,
   }))
   const messagesCache = useState<Record<string, { items: PrivateChatMessage[], cachedAt: number }>>('inbox-messages-cache', () => ({}))
+
+  const conversationsSummary = computed<PrivateConversationsResponse>(() => conversationsCache.value.data ?? EMPTY_CONVERSATIONS_RESPONSE)
 
   const isConversationsCacheFresh = (force = false) => !force
     && conversationsCache.value.data
@@ -27,16 +40,20 @@ export const useInboxStore = defineStore('inbox', () => {
     && messagesCache.value[conversationId]
     && Date.now() - messagesCache.value[conversationId].cachedAt < CACHE_TTL_MS
 
+  const setConversations = (data: PrivateConversationsResponse) => {
+    conversationsCache.value = {
+      data,
+      cachedAt: Date.now(),
+    }
+  }
+
   const fetchConversations = async (force = false) => {
     if (isConversationsCacheFresh(force) && conversationsCache.value.data) {
       return conversationsCache.value.data
     }
 
     const data = await privateChatApi.getConversations(20, 1)
-    conversationsCache.value = {
-      data,
-      cachedAt: Date.now(),
-    }
+    setConversations(data)
     return data
   }
 
@@ -55,6 +72,32 @@ export const useInboxStore = defineStore('inbox', () => {
     }
 
     return items
+  }
+
+  const applyIncomingMessage = (conversationId: string, message: PrivateChatMessage, currentUserId?: string | null) => {
+    if (!conversationsCache.value.data) {
+      return
+    }
+
+    conversationsCache.value = {
+      ...conversationsCache.value,
+      data: {
+        ...conversationsCache.value.data,
+        items: conversationsCache.value.data.items.map((conversation) => {
+          if (conversation.id !== conversationId || conversation.messages.some(item => item.id === message.id)) {
+            return conversation
+          }
+
+          return {
+            ...conversation,
+            messages: [...conversation.messages, message],
+            unreadMessagesCount: message.sender.id === currentUserId
+              ? conversation.unreadMessagesCount
+              : conversation.unreadMessagesCount + 1,
+          }
+        }),
+      },
+    }
   }
 
   const invalidateCache = (conversationId?: string) => {
@@ -109,9 +152,12 @@ export const useInboxStore = defineStore('inbox', () => {
 
   return {
     conversationsCache,
+    conversationsSummary,
     messagesCache,
+    setConversations,
     fetchConversations,
     fetchConversationMessages,
+    applyIncomingMessage,
     invalidateCache,
     addMessage,
     updateMessage,
