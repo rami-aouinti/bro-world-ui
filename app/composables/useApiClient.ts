@@ -4,6 +4,10 @@ const CRITICAL_API_PATTERNS = [
   'api/v1/applications',
   'api/v1/crm',
 ]
+const PRIVATE_AUTH_REQUIRED_PATTERNS = [
+  'api/v1/blog',
+  'api/v1/quiz',
+]
 const RETRYABLE_NETWORK_ERROR_CODES = new Set([
   'ECONNRESET',
   'ECONNREFUSED',
@@ -29,10 +33,15 @@ const endpoint401Counts = new Map<string, number>()
 let burstWindowStartedAt = 0
 let burstCount = 0
 let sharedAuthRevalidationPromise: Promise<boolean> | null = null
+let lastGlobalAuthRevalidationAt = 0
 
 const normalizeApiPath = (url: string) => url.replace(/^\/+/, '')
 
 const isCriticalApiCall = (normalizedUrl: string) => CRITICAL_API_PATTERNS.some(pattern => normalizedUrl.includes(pattern))
+const isPrivateAuthRequiredEndpoint = (normalizedUrl: string) => {
+  const lowerNormalizedUrl = normalizedUrl.toLowerCase()
+  return PRIVATE_AUTH_REQUIRED_PATTERNS.some(pattern => lowerNormalizedUrl.includes(pattern))
+}
 
 const now = () => (import.meta.client ? performance.now() : Date.now())
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
@@ -147,6 +156,13 @@ const revalidateSessionWithGlobalThrottle = async (auth: ReturnType<typeof useAu
   }
 
   const currentTime = now()
+  const isWithinGlobalThrottleWindow = lastGlobalAuthRevalidationAt > 0
+    && (currentTime - lastGlobalAuthRevalidationAt) < AUTH_REVALIDATION_COOLDOWN_MS
+
+  if (isWithinGlobalThrottleWindow) {
+    return false
+  }
+
   const lastFailureAt = auth.lastAuthFailureAt.value
   const isInCooldownWindow = lastFailureAt > 0 && (currentTime - lastFailureAt) < AUTH_REVALIDATION_COOLDOWN_MS
 
@@ -156,6 +172,7 @@ const revalidateSessionWithGlobalThrottle = async (auth: ReturnType<typeof useAu
 
   sharedAuthRevalidationPromise = (async () => {
     try {
+      lastGlobalAuthRevalidationAt = now()
       await auth.initSession(true)
       return true
     }
@@ -205,6 +222,8 @@ export const useApiClient = () => {
     const requestCorrelationId = `${method.toLowerCase()}-${Date.now()}-${hashValue(`${normalizedUrl}:${Math.random()}`)}`
     const dedupeKey = buildRequestDedupeKey(method, normalizedUrl, options as ApiFetchOptions<unknown>)
     const existingRequest = inFlightRequests.get(dedupeKey) as Promise<T> | undefined
+    const isPrivateEndpoint = isPrivateAuthRequiredEndpoint(normalizedUrl)
+    const hasAuthContext = auth.isAuthenticated.value || hasBearerToken || Boolean(requestAuthorization)
 
     if (existingRequest) {
       tracker.track('api.request.deduplicated', {
@@ -213,6 +232,25 @@ export const useApiClient = () => {
       })
 
       return existingRequest
+    }
+
+    if (isPrivateEndpoint && !hasAuthContext) {
+      track401Burst(tracker, normalizedUrl, method)
+      recordTop401Endpoint(normalizedUrl, method, 'local_401_missing_cookie', auth.sessionCorrelationId.value)
+      auth.lastAuthFailureAt.value = now()
+      const unauthorizedError = createError({
+        statusCode: 401,
+        statusMessage: 'Unauthorized',
+        data: { telemetryCategory: 'local_401_missing_cookie' },
+      })
+
+      tracker.trackError('api.request.failed', unauthorizedError, {
+        path: normalizedUrl,
+        method,
+        dedupeKey,
+      })
+
+      throw unauthorizedError
     }
     const isMutation = MUTATION_METHODS.has(method)
     const canRetryMutation = Boolean(options.idempotencyKey || options.retryUnsafeMutations)
@@ -302,7 +340,7 @@ export const useApiClient = () => {
             const is401 = status === 401
             const isRetryableStatus = status !== undefined && RETRYABLE_HTTP_STATUSES.has(status)
             const isNetworkError = isRetryableNetworkError(error)
-            const isRetryableError = isRetryableStatus || isNetworkError
+            const isRetryableError = !is401 && (isRetryableStatus || isNetworkError)
             const hasRemainingAttempts = attempt <= maxRetries
             const telemetrySource = (error as { data?: { telemetryCategory?: string } })?.data?.telemetryCategory
             const authFailureType = telemetrySource === 'local_401_missing_cookie'
