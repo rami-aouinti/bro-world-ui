@@ -3,8 +3,8 @@ import { useAuthSessionStore } from '~/stores/authSession'
 import { FALLBACK_LOCALE, getProfilePreferredLocale, normalizeLocaleCodes, resolveLocale } from '~/utils/locale'
 
 import type { LoginPayload, RegisterPayload } from '~/types/api/common'
-import type { SessionResponse } from '~/types/api/user'
-import type { AuthState } from '~/stores/authSession'
+import type { SessionResponse, UserProfile } from '~/types/api/user'
+import type { AuthState, UserProfileSnapshot } from '~/stores/authSession'
 
 let activeSessionInitPromise: Promise<void> | null = null
 let activeSessionInitCorrelationId: string | null = null
@@ -168,6 +168,7 @@ export const useAuth = () => {
   }
 
   const applySessionState = async (session: SessionResponse) => {
+    const incomingSnapshot = ((session as SessionResponse & { userSnapshot?: UserProfileSnapshot | null }).userSnapshot) ?? null
     const existingToken = token.value || authSession.token || null
     token.value = session.authenticated
       ? (existingToken || '__server_session__')
@@ -176,6 +177,20 @@ export const useAuth = () => {
       && session.sessionStatus === 'degraded'
       && !session.profile
       && !!authSession.profile
+    const shouldUseSnapshot = session.authenticated
+      && !session.profile
+      && !shouldKeepExistingProfile
+      && !!incomingSnapshot
+
+    const resolvedProfile = !session.authenticated
+      ? null
+      : (session.profile
+        || (shouldKeepExistingProfile ? authSession.profile : null)
+        || (shouldUseSnapshot ? incomingSnapshot as UserProfile : null)
+        || authSession.profile)
+
+    const profilePartial = Boolean(session.authenticated && resolvedProfile && !session.profile
+      && (shouldUseSnapshot || authSession.profilePartial))
 
     const nextAuthState: AuthState = !session.authenticated
       ? 'unauthenticated'
@@ -183,7 +198,11 @@ export const useAuth = () => {
 
     authSession.setUserSession({
       token: token.value,
-      profile: shouldKeepExistingProfile ? authSession.profile : session.profile,
+      profile: resolvedProfile,
+      userSnapshot: session.authenticated
+        ? (session.profile || incomingSnapshot || authSession.userSnapshot)
+        : null,
+      profilePartial,
       roles: session.roles,
       locale: session.locale,
       profileUnavailable: session.sessionStatus === 'degraded',
@@ -192,7 +211,7 @@ export const useAuth = () => {
     })
 
     const preferredLocale = session.authenticated
-      ? (session.locale || getProfilePreferredLocale(shouldKeepExistingProfile ? authSession.profile : session.profile))
+      ? (session.locale || getProfilePreferredLocale(resolvedProfile))
       : FALLBACK_LOCALE
 
     await applyLocalePreference(preferredLocale)
@@ -289,6 +308,8 @@ export const useAuth = () => {
           })
           return
         }
+
+        await applySessionState(baseSession)
 
         try {
           const profileSession = await authFetch<SessionResponse>('/api/auth/profile', {
