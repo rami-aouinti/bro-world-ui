@@ -276,8 +276,12 @@ export const useAuth = () => {
 
         if (sessionStatusCode === 401 || sessionStatusCode === 403) {
           await clearLocalSession()
+          return
         }
-        else if (token.value) {
+
+        const hasLocalSession = Boolean(token.value || authSession.token || authSession.profile)
+
+        if (hasLocalSession) {
           await applySessionState({
             authenticated: true,
             profile: authSession.profile,
@@ -285,10 +289,16 @@ export const useAuth = () => {
             locale: authSession.locale,
             sessionStatus: 'degraded',
           })
+          return
         }
-        else {
-          await clearLocalSession()
-        }
+
+        await applySessionState({
+          authenticated: false,
+          profile: null,
+          roles: [],
+          locale: null,
+          sessionStatus: 'invalid',
+        })
       }
       finally {
         initialized.value = true
