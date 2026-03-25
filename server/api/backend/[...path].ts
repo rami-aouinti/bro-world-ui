@@ -643,7 +643,7 @@ const buildForwardHeaders = (event: any): Record<string, string> => {
 const recordTop401Endpoints = (
   targetPath: string,
   method: string,
-  source: 'backend_401' | 'local_401_missing_cookie',
+  source: 'backend_401',
   sessionCorrelationId: string | null,
 ) => {
   const key = `${method} ${targetPath} [${source}]`
@@ -695,8 +695,10 @@ const handleBackendError = (
     recordTop401Endpoints(context.targetPath, context.method, 'backend_401', context.sessionCorrelationId)
     throw createError({
       statusCode,
-      statusMessage: 'Backend authentication failed',
+      statusMessage: error?.statusMessage || (statusCode === 401 ? 'Unauthorized' : 'Forbidden'),
       data: {
+        ...(error?.data || {}),
+        source: 'backend',
         telemetryCategory: 'backend_401',
       },
     })
@@ -729,19 +731,20 @@ export default defineEventHandler(async (event) => {
     console.warn('[api-telemetry]', {
       path: targetPath,
       method: getMethod(event),
-      status: 401,
+      status: 500,
       attempt: 1,
       hasAuthCookie: false,
       hasBearerToken: false,
-      errorType: 'local_401_missing_cookie',
+      errorType: 'gateway_auth_not_ready',
       sessionCorrelationId,
     })
-    recordTop401Endpoints(targetPath, getMethod(event), 'local_401_missing_cookie', sessionCorrelationId)
     throw createError({
-      statusCode: 401,
-      statusMessage: 'Local authentication cookie missing',
+      statusCode: 500,
+      statusMessage: 'AUTH_NOT_READY',
       data: {
-        telemetryCategory: 'local_401_missing_cookie',
+        code: 'SESSION_MISSING',
+        source: 'gateway',
+        telemetryCategory: 'gateway_auth_not_ready',
       },
     })
   }
