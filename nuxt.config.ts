@@ -115,6 +115,7 @@ export default defineNuxtConfig({
   modules: ['vuetify-nuxt-module', '@nuxtjs/i18n', '@pinia/nuxt', 'nuxt-auth-utils'],
   vuetify: {
     vuetifyOptions: {
+      ssr: true,
       theme: {
         defaultTheme: buildThemeName(defaultThemePreference),
         themes: buildVuetifyThemes(),
