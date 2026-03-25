@@ -2,63 +2,48 @@
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import UiListCard from '~/components/ui/UiListCard.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
-import { useNotificationsApi } from '~/composables/api/useNotificationsApi'
 import { useNotificationTarget } from '~/composables/useNotificationTarget'
-import type { NotificationListResponse, NotificationRead } from '~/types/api/notification'
+import type { NotificationRead } from '~/types/api/notification'
 import { useMercureEventSource } from '~/composables/useMercureEventSource'
+import { useNotificationsStore } from '~/stores/notifications'
 
 definePageMeta({
   public: false,
   requiresAuth: true,
 })
 
-const notificationsApi = useNotificationsApi()
-const { normalizeError } = useApiError()
-const { $errorLogger } = useNuxtApp()
 const authSession = useAuthSessionStore()
-const isLoading = ref(false)
-const errorMessage = ref('')
-const notificationsResponse = ref<NotificationListResponse | null>(null)
-const notifications = ref<NotificationRead[]>([])
+const notificationsStore = useNotificationsStore()
+const notifications = computed<NotificationRead[]>(() => notificationsStore.notifications.items)
 const { getNotificationTarget } = useNotificationTarget()
 
 const mercureTopics = computed(() => authSession.profile?.id
   ? [`/users/${authSession.profile.id}/notifications`]
   : [])
 
-const loadNotifications = async () => {
-  try {
-    isLoading.value = true
-    errorMessage.value = ''
-    notificationsResponse.value = await notificationsApi.getNotifications(100, 0)
-    notifications.value = notificationsResponse.value?.items ?? []
+useMercureEventSource(mercureTopics, (payload) => {
+  if (!payload || typeof payload !== 'object') {
+    return
   }
-  catch (error) {
-    const normalized = normalizeError(error, {
-      domain: 'notifications',
-      action: 'load',
-      fallbackKey: 'notifications.errors.load',
-    })
-    $errorLogger(error, {
-      area: 'notifications',
-      action: 'load',
-      status: normalized.status,
-    })
-    errorMessage.value = normalized.message
+
+  const candidate = payload as Record<string, unknown>
+  if (
+    typeof candidate.id !== 'string'
+    || typeof candidate.title !== 'string'
+    || typeof candidate.type !== 'string'
+  ) {
+    return
   }
-  finally {
-    isLoading.value = false
-  }
-}
 
-useMercureEventSource(mercureTopics, async () => {
-  await loadNotifications()
-})
-
-onMounted(async () => {
-  await loadNotifications()
-
-  await nextTick()
+  notificationsStore.prependNotification({
+    id: candidate.id,
+    title: candidate.title,
+    description: typeof candidate.description === 'string' ? candidate.description : '',
+    type: candidate.type,
+    read: false,
+    createdAt: new Date().toISOString(),
+    from: null,
+  })
 })
 </script>
 
@@ -81,20 +66,7 @@ onMounted(async () => {
             <v-chip color="primary" size="small" variant="tonal">{{ notifications?.length }}</v-chip>
           </div>
 
-          <template v-if="isLoading">
-            <v-skeleton-loader type="list-item-avatar-one-line@6" class="mb-4" />
-          </template>
-
-          <v-alert
-            v-else-if="errorMessage"
-            type="error"
-            variant="tonal"
-            class="mb-4"
-          >
-            {{ errorMessage }}
-          </v-alert>
-
-          <v-list v-else class="bg-transparent pa-0" lines="one">
+          <v-list class="bg-transparent pa-0" lines="one">
             <v-list-item
               v-for="item in notifications"
               :key="item.id"
