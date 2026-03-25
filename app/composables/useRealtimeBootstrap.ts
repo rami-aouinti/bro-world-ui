@@ -11,7 +11,7 @@ const createCorrelationId = (prefix: string) => `${prefix}-${Date.now().toString
 
 export const useRealtimeBootstrap = () => {
   const authSession = useAuthSessionStore()
-  const { isAuthenticated } = useAuth()
+  const { initSession, isAuthenticated, authState } = useAuth()
   const notificationsApi = useNotificationsApi()
   const privateChatApi = usePrivateChatApi()
   const notificationsStore = useNotificationsStore()
@@ -26,12 +26,10 @@ export const useRealtimeBootstrap = () => {
       userId: authSession.profile?.id ?? null,
     })
 
-    const [notifications, conversations] = await Promise.all([
-      notificationsApi.getNotifications(100, 0),
-      privateChatApi.getConversations(20, 1),
-    ])
-
+    const notifications = await notificationsApi.getNotifications(100, 0)
     notificationsStore.setNotifications(notifications)
+
+    const conversations = await privateChatApi.getConversations(20, 1)
     inboxStore.setConversations(conversations)
 
     console.info(`[realtime][${correlationId}] done notifications+conversations sync`, {
@@ -41,7 +39,10 @@ export const useRealtimeBootstrap = () => {
   }
 
   const bootstrap = async () => {
-    if (!isAuthenticated.value || !authSession.profile?.id) {
+    await initSession()
+
+    const canCallPrivateEndpoints = (authState.value === 'authenticated' || authState.value === 'degraded') && Boolean(authSession.profile?.id)
+    if (!canCallPrivateEndpoints || !isAuthenticated.value || !authSession.profile?.id) {
       return
     }
 
@@ -68,7 +69,10 @@ export const useRealtimeBootstrap = () => {
   }
 
   const resyncAfterMercureReconnect = async () => {
-    if (!isAuthenticated.value || !authSession.profile?.id) {
+    await initSession()
+
+    const canCallPrivateEndpoints = (authState.value === 'authenticated' || authState.value === 'degraded') && Boolean(authSession.profile?.id)
+    if (!canCallPrivateEndpoints || !isAuthenticated.value || !authSession.profile?.id) {
       return
     }
 
