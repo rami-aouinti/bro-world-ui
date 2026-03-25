@@ -255,6 +255,8 @@ export const requireAuthCookie = async (event: H3Event) => {
 }
 
 export const clearAuthCookie = async (event: H3Event) => {
+  // GARDE AUTH: ne jamais appeler cette fonction hors logout explicite (`/api/auth/logout`).
+  // Le token ne doit jamais être supprimé automatiquement.
   const { cookieName, cookieSecure, cookieSameSite } = getAuthConfig()
   const secure = shouldUseSecureCookie(event, cookieSecure)
   const rawCookie = getCookie(event, cookieName)

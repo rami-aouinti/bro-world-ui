@@ -144,6 +144,8 @@ export interface SessionResponse {
    * - `invalid`: session invalide confirmée uniquement après 401/403 backend.
    *
    * Politique d'exploitation:
+   * - Le token n’est jamais supprimé automatiquement.
+   * - Seul `/api/auth/logout` efface cookie et état local.
    * - logout uniquement sur `invalid` issu d'un 401/403 backend confirmé.
    * - ne jamais invalider la session sur erreur backend 5xx/transitoire.
    */

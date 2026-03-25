@@ -191,6 +191,8 @@ export const useAuth = () => {
   }
 
   const clearLocalSession = async () => {
+    // GARDE AUTH: cette fonction ne doit être appelée que par `logout()`.
+    // Le token ne doit jamais être supprimé automatiquement.
     await applySessionState({
       authenticated: false,
       profile: null,
@@ -239,7 +241,13 @@ export const useAuth = () => {
         logSessionFlow('session.endpoint.done', { authenticated: baseSession.authenticated })
 
         if (!baseSession.authenticated) {
-          await clearLocalSession()
+          await applySessionState({
+            authenticated: false,
+            profile: null,
+            roles: [],
+            locale: null,
+            sessionStatus: 'invalid',
+          })
           return
         }
 
