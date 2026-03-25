@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+
 const PRIVATE_CACHE_ROUTE_PREFIXES = [
   '/api/v1/users/me',
   '/api/v1/profile',
@@ -35,6 +37,11 @@ export const buildFunctionalQuerySegment = (query = {}) => {
     .map(([key, value]) => `${key}=${Array.isArray(value) ? value.join(',') : String(value)}`)
     .join('&')
 }
+
+export const buildPrivateQueryHash = (query = {}) => createHash('sha256')
+  .update(buildFunctionalQuerySegment(query))
+  .digest('hex')
+  .slice(0, 16)
 
 export const getPrivateResourceIdentifier = (path) => {
   if (path.startsWith('/api/v1/users/me/applications/latest')) {
