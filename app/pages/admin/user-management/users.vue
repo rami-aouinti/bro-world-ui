@@ -156,7 +156,7 @@ const {
       <pre class="text-body-2" style="white-space: pre-wrap;">{{ JSON.stringify(selectedUser, null, 2) }}</pre>
     </UiActionDialog>
 
-    <v-dialog retain-focus v-model="rolesDialog" max-width="560">
+    <v-dialog v-model="rolesDialog" max-width="560">
       <v-card rounded="xl">
         <v-card-title>{{ t('admin.users.dialogs.userRoles') }}</v-card-title>
         <v-card-text>
@@ -165,7 +165,7 @@ const {
       </v-card>
     </v-dialog>
 
-    <v-dialog retain-focus v-model="groupsDialog" max-width="700">
+    <v-dialog v-model="groupsDialog" max-width="700">
       <v-card rounded="xl">
         <v-card-title>{{ t('admin.users.dialogs.userGroups') }}</v-card-title>
         <v-card-text>

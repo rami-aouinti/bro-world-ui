@@ -161,7 +161,7 @@ onMounted(loadProfile)
       </div>
     </v-form>
 
-    <v-dialog v-model="infoDialog" max-width="560" retain-focus>
+    <v-dialog v-model="infoDialog" max-width="560">
       <v-card>
         <v-card-title>Edit profile information</v-card-title>
         <v-card-text>

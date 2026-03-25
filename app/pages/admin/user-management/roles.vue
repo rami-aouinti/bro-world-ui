@@ -96,7 +96,7 @@ onMounted(async () => {
       </template>
     </UiDataTable>
 
-    <v-dialog retain-focus v-model="showDialog" max-width="700">
+    <v-dialog v-model="showDialog" max-width="700">
       <v-card rounded="xl">
         <v-card-title>{{ t('admin.roles.dialogs.details') }}</v-card-title>
         <v-card-text>
