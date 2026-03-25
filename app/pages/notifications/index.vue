@@ -4,7 +4,6 @@ import UiListCard from '~/components/ui/UiListCard.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import { useNotificationTarget } from '~/composables/useNotificationTarget'
 import type { NotificationRead } from '~/types/api/notification'
-import { useMercureEventSource } from '~/composables/useMercureEventSource'
 import { useNotificationsStore } from '~/stores/notifications'
 
 definePageMeta({
@@ -12,39 +11,11 @@ definePageMeta({
   requiresAuth: true,
 })
 
-const authSession = useAuthSessionStore()
 const notificationsStore = useNotificationsStore()
 const notifications = computed<NotificationRead[]>(() => notificationsStore.notifications.items)
 const { getNotificationTarget } = useNotificationTarget()
 
-const mercureTopics = computed(() => authSession.profile?.id
-  ? [`/users/${authSession.profile.id}/notifications`]
-  : [])
 
-useMercureEventSource(mercureTopics, (payload) => {
-  if (!payload || typeof payload !== 'object') {
-    return
-  }
-
-  const candidate = payload as Record<string, unknown>
-  if (
-    typeof candidate.id !== 'string'
-    || typeof candidate.title !== 'string'
-    || typeof candidate.type !== 'string'
-  ) {
-    return
-  }
-
-  notificationsStore.prependNotification({
-    id: candidate.id,
-    title: candidate.title,
-    description: typeof candidate.description === 'string' ? candidate.description : '',
-    type: candidate.type,
-    read: false,
-    createdAt: new Date().toISOString(),
-    from: null,
-  })
-})
 </script>
 
 <template>

@@ -75,6 +75,16 @@ export const useInboxStore = defineStore('inbox', () => {
   }
 
   const applyIncomingMessage = (conversationId: string, message: PrivateChatMessage, currentUserId?: string | null) => {
+    const existingCache = messagesCache.value[conversationId]
+    const existingMessage = existingCache?.items.some(item => item.id === message.id)
+
+    if (!existingMessage) {
+      messagesCache.value[conversationId] = {
+        items: [...(existingCache?.items ?? []), message],
+        cachedAt: Date.now(),
+      }
+    }
+
     if (!conversationsCache.value.data) {
       return
     }
