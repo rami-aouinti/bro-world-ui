@@ -58,7 +58,7 @@ const roadmapAnnouncements: MockAnnouncement[] = [
 const isLoading = ref(false)
 const errorMessage = ref('')
 const blogsStore = useBlogsStore()
-const { isAuthenticated } = useAuth()
+const { initSession, isAuthenticated, authState } = useAuth()
 
 const blog = computed(() => blogsStore.general)
 const blogPagination = computed(() => blogsStore.generalPagination)
@@ -78,7 +78,9 @@ const loadMorePosts = async () => {
   }
 
   try {
-    await blogsStore.fetchNextGeneralPage(!isAuthenticated.value, 5)
+    await initSession()
+    const isPublicFeed = !isPrivateSessionReady()
+    await blogsStore.fetchNextGeneralPage(isPublicFeed, 5)
   }
   catch (error) {
     console.error(error)
@@ -122,11 +124,16 @@ const keyTopics = computed(() => {
     : ['innovation', 'produit', 'leadership', 'culture', 'croissance', 'design']
 })
 
+const isPrivateSessionReady = () => authState.value === 'authenticated' || authState.value === 'degraded'
+
 const loadBlogs = async () => {
   try {
     isLoading.value = true
     errorMessage.value = ''
-    await blogsStore.fetchGeneral(false, !isAuthenticated.value, { page: 1, limit: 5, append: false })
+    await initSession()
+
+    const isPublicFeed = !isPrivateSessionReady()
+    await blogsStore.fetchGeneral(false, isPublicFeed, { page: 1, limit: 5, append: false })
   } catch (error) {
     console.error(error)
     errorMessage.value = 'Impossible de charger le blog.'
