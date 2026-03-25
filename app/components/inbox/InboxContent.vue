@@ -8,7 +8,6 @@ import UiAvatar from '~/components/ui/UiAvatar.vue'
 import type { PrivateChatConversation, PrivateChatMessage } from '~/types/api/chat'
 import { usePrivateChatApi } from '~/composables/api/usePrivateChatApi'
 import { useInboxStore } from '~/stores/inbox'
-import { useMercureEventSource } from '~/composables/useMercureEventSource'
 
 const props = withDefaults(defineProps<{
   selectedConversationId?: string | null
@@ -262,9 +261,13 @@ const inboxInsights = computed(() => {
 
 
 watch(
-  () => props.selectedConversationMessages,
-  (messages) => {
-    conversationMessages.value = sortMessages((messages ?? []).map(item => normalizeMessage(item)))
+  () => [
+    props.selectedConversationMessages,
+    props.selectedConversationId ? inboxStore.messagesCache[props.selectedConversationId]?.items ?? [] : [],
+  ],
+  ([propMessages, cachedMessages]) => {
+    const sourceMessages = (cachedMessages.length ? cachedMessages : propMessages) ?? []
+    conversationMessages.value = sortMessages(sourceMessages.map(item => normalizeMessage(item)))
   },
   { immediate: true, deep: true },
 )
@@ -362,124 +365,9 @@ const goToConversation = async (conversationId: string) => {
 
 const me = computed(() => authSession.profile?.id)
 
-const mercureTopics = computed(() => {
-  const topics: string[] = []
-
-  if (authSession.profile?.id) {
-    topics.push(`/users/${authSession.profile.id}/notifications`)
-  }
-
-  if (activeConversation.value?.id) {
-    topics.push(`/conversations/${activeConversation.value.id}/messages`)
-  }
-
-  return topics
-})
-
-const isConversationMessagePayload = (payload: unknown): payload is {
-  id: string
-  conversationId: string
-  senderId: string
-  content: string
-  createdAt?: string
-  attachments?: unknown
-} => {
-  if (!payload || typeof payload !== 'object') {
-    return false
-  }
-
-  const candidate = payload as Record<string, unknown>
-  return typeof candidate.id === 'string'
-    && typeof candidate.conversationId === 'string'
-    && typeof candidate.senderId === 'string'
-    && typeof candidate.content === 'string'
-}
-
-const resolveSenderFromPayload = (senderId: string) => {
-  const profile = authSession.profile
-  if (profile?.id === senderId) {
-    return {
-      id: profile.id,
-      firstName: profile.firstName,
-      lastName: profile.lastName,
-      photo: profile.photo,
-      owner: true,
-    }
-  }
-
-  const conversation = inboxConversationsSummary.value?.items.find(item => item.id === activeConversation.value?.id)
-  const participant = conversation?.participants.find(item => item.user.id === senderId)?.user
-
-  if (participant) {
-    return participant
-  }
-
-  return {
-    id: senderId,
-    firstName: 'Utilisateur',
-    lastName: '',
-    photo: null,
-    owner: false,
-  }
-}
-
-const normalizeAttachments = (attachments: unknown) => {
-  if (!attachments) {
-    return []
-  }
-
-  return Array.isArray(attachments) ? attachments : [attachments]
-}
-
-
 const prependMessageToConversationCache = (conversationId: string, message: PrivateChatMessage) => {
   inboxStore.applyIncomingMessage(conversationId, message, authSession.profile?.id)
 }
-
-useMercureEventSource(mercureTopics, async (payload) => {
-  if (isUsingDemoData.value || !isConversationMessagePayload(payload)) {
-    return
-  }
-
-  if (payload.conversationId !== activeConversation.value?.id) {
-    prependMessageToConversationCache(payload.conversationId, normalizeMessage({
-      id: payload.id,
-      content: payload.content,
-      sender: resolveSenderFromPayload(payload.senderId),
-      attachments: normalizeAttachments(payload.attachments),
-      read: false,
-      readAt: null,
-      createdAt: payload.createdAt ?? new Date().toISOString(),
-      reactions: [],
-    }))
-    return
-  }
-
-  if (conversationMessages.value.some(message => message.id === payload.id)) {
-    return
-  }
-
-  const incomingMessage = normalizeMessage({
-    id: payload.id,
-    content: payload.content,
-    sender: resolveSenderFromPayload(payload.senderId),
-    attachments: normalizeAttachments(payload.attachments),
-    read: false,
-    readAt: null,
-    createdAt: payload.createdAt ?? new Date().toISOString(),
-    reactions: [],
-  })
-
-  conversationMessages.value = sortMessages([
-    ...conversationMessages.value,
-    incomingMessage,
-  ])
-
-  prependMessageToConversationCache(payload.conversationId, incomingMessage)
-
-  await nextTick()
-  scrollMessagesToBottom()
-})
 
 const scrollMessagesToBottom = () => {
   const container = messagesContainerRef.value

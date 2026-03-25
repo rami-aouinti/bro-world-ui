@@ -4,10 +4,8 @@ import ConversationAvatarGroup from '~/components/inbox/ConversationAvatarGroup.
 import { computed, ref, watch } from 'vue'
 import { useDisplay } from 'vuetify'
 import type { NotificationRead } from '~/types/api/notification'
-import type { PrivateChatMessage } from '~/types/api/chat'
 import { useNotificationsApi } from '~/composables/api/useNotificationsApi'
 import { useNotificationTarget } from '~/composables/useNotificationTarget'
-import { useMercureEventSource } from '~/composables/useMercureEventSource'
 import { buildConversationPreview } from '~/utils/inboxConversationPreview'
 import { useInboxStore } from '~/stores/inbox'
 import { useNotificationsStore } from '~/stores/notifications'
@@ -80,92 +78,6 @@ const actionItems = computed<ActionNavItem[]>(() => {
 const notificationsSummary = computed(() => notificationsStore.notifications)
 const notificationPreviewItems = computed(() => notificationsSummary.value.items.slice(0, 3))
 const unreadNotificationsCount = computed(() => notificationsSummary.value.unreadCount)
-
-const mercureTopics = computed(() => {
-  if (!authSession.profile?.id) {
-    return []
-  }
-
-  return [
-    `/users/${authSession.profile.id}/notifications`,
-    ...(inboxConversationsSummary.value?.items ?? []).map(conversation => `/conversations/${conversation.id}/messages`),
-  ]
-})
-
-const isNotificationPayload = (payload: unknown): payload is {
-  id: string
-  title: string
-  description?: string
-  type: string
-  recipientId?: string
-} => {
-  if (!payload || typeof payload !== 'object') {
-    return false
-  }
-
-  const candidate = payload as Record<string, unknown>
-  return typeof candidate.id === 'string'
-    && typeof candidate.title === 'string'
-    && typeof candidate.type === 'string'
-}
-
-const isConversationMessagePayload = (payload: unknown): payload is {
-  id: string
-  conversationId: string
-  senderId: string
-  content: string
-} => {
-  if (!payload || typeof payload !== 'object') {
-    return false
-  }
-
-  const candidate = payload as Record<string, unknown>
-  return typeof candidate.id === 'string'
-    && typeof candidate.conversationId === 'string'
-    && typeof candidate.senderId === 'string'
-    && typeof candidate.content === 'string'
-}
-
-useMercureEventSource(mercureTopics, async (payload) => {
-  if (!isAuthenticated.value) {
-    return
-  }
-
-  if (isConversationMessagePayload(payload)) {
-    const incomingMessage: PrivateChatMessage = {
-      id: payload.id,
-      content: payload.content,
-      sender: {
-        id: payload.senderId,
-        firstName: 'Utilisateur',
-        lastName: '',
-        photo: null,
-        owner: authSession.profile?.id === payload.senderId,
-      },
-      attachments: [],
-      read: false,
-      readAt: null,
-      createdAt: new Date().toISOString(),
-      reactions: [],
-    }
-    inboxStore.applyIncomingMessage(payload.conversationId, incomingMessage, authSession.profile?.id)
-    return
-  }
-
-  if (!isNotificationPayload(payload)) {
-    return
-  }
-
-  notificationsStore.prependNotification({
-    id: payload.id,
-    title: payload.title,
-    description: payload.description ?? '',
-    type: payload.type,
-    read: false,
-    createdAt: new Date().toISOString(),
-    from: null,
-  })
-})
 
 watch(isNotificationsMenuOpen, async (isOpen) => {
   if (!isOpen || unreadNotificationsCount.value === 0) {
