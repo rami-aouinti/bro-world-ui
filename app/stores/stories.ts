@@ -1,11 +1,13 @@
 import { defineStore } from 'pinia'
 import { useStoriesApi } from '~/composables/api/useStoriesApi'
+import { useAuthSessionStore } from '~/stores/authSession'
 import type { StoryGroup } from '~/types/api/story'
 
 const STORIES_TTL_MS = 60_000
 
 export const useStoriesStore = defineStore('stories', () => {
   const storiesApi = useStoriesApi()
+  const authSession = useAuthSessionStore()
 
   const stories = ref<StoryGroup[]>([])
   const cachedAt = ref(0)
@@ -15,6 +17,10 @@ export const useStoriesStore = defineStore('stories', () => {
   const isCacheFresh = computed(() => Date.now() - cachedAt.value < STORIES_TTL_MS)
 
   const fetchStories = async (force = false) => {
+    if (!authSession.token) {
+      return stories.value
+    }
+
     if (!force && isCacheFresh.value && stories.value.length) {
       return stories.value
     }
