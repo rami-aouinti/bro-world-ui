@@ -158,6 +158,19 @@ interface CacheResourcePolicy {
   }>
 }
 
+const isProfileIdentityMutation = (path: string, method: string) => {
+  if (path.startsWith('/api/v1/profile/photo') && method === 'POST') {
+    return true
+  }
+
+  if (path.startsWith('/api/v1/users/me/profile') && (method === 'PATCH' || method === 'PUT')) {
+    return true
+  }
+
+  return (method === 'PATCH' || method === 'PUT')
+    && (path.startsWith('/api/v1/profile') || path.startsWith('/api/v1/users/me'))
+}
+
 const CACHE_RESOURCE_POLICIES: CacheResourcePolicy[] = [
   {
     name: 'profile',
@@ -166,8 +179,8 @@ const CACHE_RESOURCE_POLICIES: CacheResourcePolicy[] = [
     invalidationRules: [
       {
         event: 'profile.update',
-        when: (path, method) => ['PATCH', 'PUT'].includes(method) && (path.startsWith('/api/v1/profile') || path.startsWith('/api/v1/users/me')),
-        cachePrefixes: ['/api/v1/profile', '/api/v1/users/me'],
+        when: isProfileIdentityMutation,
+        cachePrefixes: ['/api/v1/profile', '/api/v1/users/me', '/api/v1/notifications', '/api/v1/chat/private/conversations'],
       },
     ],
   },
