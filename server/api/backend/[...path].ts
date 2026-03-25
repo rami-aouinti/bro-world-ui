@@ -773,34 +773,8 @@ const getResourceInvalidationActions = (targetPath: string, method: string, user
   return actions
 }
 
-const decodeJwtPayload = (token: string) => {
-  const chunks = token.split('.')
-  if (chunks.length < 2) {
-    return null
-  }
-
-  try {
-    const payload = JSON.parse(Buffer.from(chunks[1], 'base64url').toString('utf-8'))
-    return payload && typeof payload === 'object' ? payload : null
-  } catch {
-    return null
-  }
-}
-
-const getAuthenticatedUserId = (bearerToken?: string) => {
-  if (!bearerToken) {
-    return undefined
-  }
-
-  const payload = decodeJwtPayload(bearerToken)
-  if (!payload) {
-    return undefined
-  }
-
-  const candidate = (payload as Record<string, unknown>).userId
-    ?? (payload as Record<string, unknown>).sub
-    ?? (payload as Record<string, unknown>).id
-
+const getAuthenticatedUserIdFromSession = (authCookiePayload?: Record<string, any>) => {
+  const candidate = authCookiePayload?.userSnapshot?.id
   if (typeof candidate === 'string' || typeof candidate === 'number') {
     return String(candidate)
   }
@@ -992,7 +966,7 @@ export default defineEventHandler(async (event) => {
     bearerToken = authCookiePayload.token
   }
 
-  const authenticatedUserId = getAuthenticatedUserId(bearerToken)
+  const authenticatedUserId = getAuthenticatedUserIdFromSession(authCookiePayload as Record<string, any> | undefined)
 
   const method = getMethod(event)
   const contentType = getHeader(event, 'content-type') || ''
@@ -1028,6 +1002,14 @@ export default defineEventHandler(async (event) => {
   if (shouldCacheEntity) {
     const isPrivateRoute = isPrivateCacheRoute(targetPath)
     const resourcePolicy = getCacheResourcePolicy(targetPath)
+    const privateCacheUserIdResolved = !isPrivateRoute || Boolean(authenticatedUserId)
+    if (isPrivateRoute) {
+      console.info('[cache.private.user-context]', {
+        requestId: requestCorrelationId,
+        path: targetPath,
+        privateCacheUserIdResolved,
+      })
+    }
     const cacheKey = isPrivateRoute
       ? (authenticatedUserId ? getPrivateCacheKey(targetPath, query, authenticatedUserId) : undefined)
       : (targetPath.startsWith('/api/v1/users/me') && bearerToken
@@ -1096,6 +1078,14 @@ export default defineEventHandler(async (event) => {
     if (shouldCacheEntity) {
       const isPrivateRoute = isPrivateCacheRoute(targetPath)
       const resourcePolicy = getCacheResourcePolicy(targetPath)
+      const privateCacheUserIdResolved = !isPrivateRoute || Boolean(authenticatedUserId)
+      if (isPrivateRoute) {
+        console.info('[cache.private.user-context]', {
+          requestId: requestCorrelationId,
+          path: targetPath,
+          privateCacheUserIdResolved,
+        })
+      }
       const cacheKey = isPrivateRoute
         ? (authenticatedUserId ? getPrivateCacheKey(targetPath, query, authenticatedUserId) : undefined)
         : (targetPath.startsWith('/api/v1/users/me') && bearerToken
