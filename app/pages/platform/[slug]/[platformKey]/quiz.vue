@@ -6,7 +6,7 @@ import type { CreateQuizQuestionPayload } from '~/types/api/quiz'
 
 definePageMeta({ public: true, requiresAuth: false })
 
-const { slug, navItems, isOwner } = usePlatformPluginPage()
+const { slug, navItems, isOwner, isAuthenticated } = usePlatformPluginPage()
 const { t } = useI18n()
 const quizApi = useQuizApi()
 
@@ -112,7 +112,7 @@ const submitQuestion = async () => {
     await quizApi.createApplicationQuizQuestion(slug.value, payload)
     addQuestionDialog.value = false
     resetForm()
-    await Promise.all([loadQuiz(), loadStats()])
+    await loadPageData()
   }
   catch (submitErr: unknown) {
     submitError.value = submitErr instanceof Error ? submitErr.message : 'Unable to create the question.'
@@ -122,8 +122,22 @@ const submitQuestion = async () => {
   }
 }
 
+const canLoadStats = computed(() => isOwner.value || isAuthenticated.value)
+
+const loadPageData = async () => {
+  if (pending.value) {
+    return
+  }
+
+  await loadQuiz()
+
+  if (canLoadStats.value) {
+    await loadStats()
+  }
+}
+
 onMounted(() => {
-  void Promise.all([loadQuiz(), loadStats()])
+  void loadPageData()
 })
 </script>
 
