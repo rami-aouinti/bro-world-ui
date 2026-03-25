@@ -16,6 +16,7 @@ export const useAuth = () => {
   const warmupTaskIds = useState<number[]>('auth-warmup-task-ids', () => [])
   const warmupControllers = useState<AbortController[]>('auth-warmup-controllers', () => [])
   const warmupHooksRegistered = useState<boolean>('auth-warmup-hooks-registered', () => false)
+  const warmupDoneForSessionId = useState<string | null>('auth-warmup-done-session-id', () => null)
   const sessionInitSequence = useState<number>('auth-session-init-sequence', () => 0)
   const sessionCorrelationId = useState<string | null>('auth-session-correlation-id', () => null)
 
@@ -137,6 +138,31 @@ export const useAuth = () => {
     })
   }
 
+  const resolveWarmupSessionId = (session: SessionResponse) => {
+    if (!session.authenticated) {
+      return null
+    }
+
+    return String(session.profile?.id || token.value || authSession.token || session.expiresAt || '__server_session__')
+  }
+
+  const warmupPrivateCachesOnce = (session: SessionResponse, trigger: 'login' | 'init-session') => {
+    const warmupSessionId = resolveWarmupSessionId(session)
+
+    if (!warmupSessionId || warmupDoneForSessionId.value === warmupSessionId) {
+      logSessionFlow('warmup.skipped', {
+        trigger,
+        warmupSessionId,
+        alreadyDone: warmupDoneForSessionId.value === warmupSessionId,
+      })
+      return
+    }
+
+    warmupDoneForSessionId.value = warmupSessionId
+    logSessionFlow('warmup.started', { trigger, warmupSessionId })
+    void warmupPrivateCaches(session)
+  }
+
   const applySessionState = async (session: SessionResponse) => {
     const existingToken = token.value || authSession.token || null
     token.value = session.authenticated
@@ -161,7 +187,6 @@ export const useAuth = () => {
       : FALLBACK_LOCALE
 
     await applyLocalePreference(preferredLocale)
-    void warmupPrivateCaches(session)
   }
 
   const getErrorStatus = (error: unknown): number | null => {
@@ -262,6 +287,12 @@ export const useAuth = () => {
             authenticated: true,
             sessionStatus: 'healthy',
           })
+          warmupPrivateCachesOnce({
+            ...baseSession,
+            ...profileSession,
+            authenticated: true,
+            sessionStatus: 'healthy',
+          }, 'init-session')
         }
         catch (profileError) {
           const profileStatus = getErrorStatus(profileError)
@@ -274,6 +305,13 @@ export const useAuth = () => {
             locale: baseSession.locale,
             sessionStatus: 'degraded',
           })
+          warmupPrivateCachesOnce({
+            authenticated: true,
+            profile: authSession.profile || baseSession.profile,
+            roles: baseSession.roles,
+            locale: baseSession.locale,
+            sessionStatus: 'degraded',
+          }, 'init-session')
         }
       }
       catch (sessionError) {
@@ -290,6 +328,13 @@ export const useAuth = () => {
             locale: authSession.locale,
             sessionStatus: 'degraded',
           })
+          warmupPrivateCachesOnce({
+            authenticated: true,
+            profile: authSession.profile,
+            roles: authSession.roles,
+            locale: authSession.locale,
+            sessionStatus: 'degraded',
+          }, 'init-session')
           return
         }
 
@@ -333,6 +378,9 @@ export const useAuth = () => {
 
     initialized.value = true
     await applySessionState(response)
+    if (response.authenticated) {
+      warmupPrivateCachesOnce(response, 'login')
+    }
     logSessionFlow('login.complete', { authenticated: response.authenticated })
 
     return response
@@ -374,6 +422,7 @@ export const useAuth = () => {
 
     await authFetch('/api/auth/logout', { method: 'POST' })
     initialized.value = true
+    warmupDoneForSessionId.value = null
     await clearLocalSession()
   }
 
