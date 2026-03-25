@@ -4,6 +4,7 @@ import { setAuthCookie } from './authCookie.ts'
 
 export const AUTH_ERROR_CODES = {
   TOKEN_INVALID: 'AUTH_TOKEN_INVALID',
+  PROFILE_UNAUTHORIZED: 'AUTH_PROFILE_UNAUTHORIZED',
   PROFILE_FETCH_FAILED: 'AUTH_PROFILE_FETCH_FAILED',
   PROFILE_INVALID: 'AUTH_PROFILE_INVALID',
 } as const
@@ -79,7 +80,17 @@ export const fetchProfileWithAuthorization = async (token: string): Promise<User
       },
     })
   }
-  catch {
+  catch (error: unknown) {
+    const statusCode =
+      (error as { statusCode?: number })?.statusCode
+      ?? (error as { status?: number })?.status
+      ?? (error as { response?: { status?: number } })?.response?.status
+      ?? (error as { cause?: { status?: number } })?.cause?.status
+
+    if (statusCode === 401 || statusCode === 403) {
+      throw createAuthError(401, 'Unauthorized profile access', AUTH_ERROR_CODES.PROFILE_UNAUTHORIZED)
+    }
+
     throw createAuthError(502, 'Unable to retrieve user profile', AUTH_ERROR_CODES.PROFILE_FETCH_FAILED)
   }
 }
