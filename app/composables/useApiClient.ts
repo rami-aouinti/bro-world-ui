@@ -114,6 +114,7 @@ export const useApiClient = () => {
     const requestAuthorization = requestHeaders.authorization
     const startedAt = now()
     const method = resolveMethod(options.method)
+    const requestCorrelationId = `${method.toLowerCase()}-${Date.now()}-${hashValue(`${normalizedUrl}:${Math.random()}`)}`
     const dedupeKey = buildRequestDedupeKey(method, normalizedUrl, options as ApiFetchOptions<unknown>)
     const existingRequest = inFlightRequests.get(dedupeKey) as Promise<T> | undefined
 
@@ -156,6 +157,8 @@ export const useApiClient = () => {
 
         let lastError: unknown = null
 
+        let didSessionRevalidation = false
+
         for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
           try {
             const response = await $fetch<T>(`/api/backend/${normalizedUrl}`, {
@@ -163,6 +166,17 @@ export const useApiClient = () => {
               credentials: 'include',
               headers: nextHeaders,
             })
+
+            if (auth.isAuthenticated.value) {
+              console.info('[auth-correlation]', {
+                event: 'private.api.success',
+                requestCorrelationId,
+                sessionCorrelationId: auth.sessionCorrelationId.value,
+                path: normalizedUrl,
+                method,
+                attempt,
+              })
+            }
 
             if (isCriticalApiCall(normalizedUrl)) {
               tracker.trackLatency(normalizedUrl, startedAt, {
@@ -187,7 +201,15 @@ export const useApiClient = () => {
               break
             }
 
-            if (is401) {
+            if (is401 && !didSessionRevalidation) {
+              didSessionRevalidation = true
+              console.info('[auth-correlation]', {
+                event: 'session.revalidation.confirmed_401',
+                requestCorrelationId,
+                sessionCorrelationId: auth.sessionCorrelationId.value,
+                path: normalizedUrl,
+                method,
+              })
               await auth.initSession(true)
             }
 

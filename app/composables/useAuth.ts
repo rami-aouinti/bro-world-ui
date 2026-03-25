@@ -5,6 +5,8 @@ import { FALLBACK_LOCALE, getProfilePreferredLocale, normalizeLocaleCodes, resol
 import type { LoginPayload, RegisterPayload } from '~/types/api/common'
 import type { SessionResponse } from '~/types/api/user'
 
+let activeSessionInitPromise: Promise<void> | null = null
+
 export const useAuth = () => {
   const authSession = useAuthSessionStore()
   const nuxtApp = useNuxtApp()
@@ -14,6 +16,8 @@ export const useAuth = () => {
   const warmupTaskIds = useState<number[]>('auth-warmup-task-ids', () => [])
   const warmupControllers = useState<AbortController[]>('auth-warmup-controllers', () => [])
   const warmupHooksRegistered = useState<boolean>('auth-warmup-hooks-registered', () => false)
+  const sessionInitSequence = useState<number>('auth-session-init-sequence', () => 0)
+  const sessionCorrelationId = useState<string | null>('auth-session-correlation-id', () => null)
 
   const authFetch = <T>(url: string, options: Parameters<typeof $fetch<T>>[1] = {}) => {
     if (import.meta.server) {
@@ -193,70 +197,110 @@ export const useAuth = () => {
     })
   }
 
+  const createCorrelationId = (prefix: string) => {
+    sessionInitSequence.value += 1
+
+    return `${prefix}-${Date.now()}-${sessionInitSequence.value}`
+  }
+
+  const logSessionFlow = (event: string, details: Record<string, unknown> = {}) => {
+    console.info('[auth-correlation]', {
+      event,
+      sessionCorrelationId: sessionCorrelationId.value,
+      ...details,
+    })
+  }
+
   const initSession = async (force = false) => {
+    if (!force && activeSessionInitPromise) {
+      logSessionFlow('session.init.reused', { force })
+      await activeSessionInitPromise
+      return
+    }
+
     if (initialized.value && !force) {
       return
     }
 
-    try {
-      const baseSession = await authFetch<SessionResponse>('/api/auth/session', {
-        method: 'GET',
-      })
+    const correlationId = createCorrelationId(force ? 'session-revalidate' : 'session-init')
+    sessionCorrelationId.value = correlationId
 
-      if (!baseSession.authenticated) {
-        await clearLocalSession()
-        return
-      }
+    activeSessionInitPromise = (async () => {
+      logSessionFlow('session.init.start', { force })
 
       try {
-        const profileSession = await authFetch<SessionResponse>('/api/auth/profile', {
+        const baseSession = await authFetch<SessionResponse>('/api/auth/session', {
           method: 'GET',
         })
-        await applySessionState({
-          ...baseSession,
-          ...profileSession,
-          authenticated: true,
-          sessionStatus: 'healthy',
-        })
-      }
-      catch (profileError) {
-        const profileStatus = getErrorStatus(profileError)
 
-        if (profileStatus === 401 || profileStatus === 403) {
+        logSessionFlow('session.endpoint.done', { authenticated: baseSession.authenticated })
+
+        if (!baseSession.authenticated) {
           await clearLocalSession()
           return
         }
 
-        await applySessionState({
-          authenticated: true,
-          profile: baseSession.profile,
-          roles: baseSession.roles,
-          locale: baseSession.locale,
-          sessionStatus: 'degraded',
-        })
-      }
-    }
-    catch (sessionError) {
-      const sessionStatusCode = getErrorStatus(sessionError)
+        try {
+          const profileSession = await authFetch<SessionResponse>('/api/auth/profile', {
+            method: 'GET',
+          })
+          logSessionFlow('profile.endpoint.done', { hasProfile: Boolean(profileSession.profile) })
+          await applySessionState({
+            ...baseSession,
+            ...profileSession,
+            authenticated: true,
+            sessionStatus: 'healthy',
+          })
+        }
+        catch (profileError) {
+          const profileStatus = getErrorStatus(profileError)
+          logSessionFlow('profile.endpoint.error', { status: profileStatus })
 
-      if (sessionStatusCode === 401 || sessionStatusCode === 403) {
-        await clearLocalSession()
+          if (profileStatus === 401 || profileStatus === 403) {
+            await clearLocalSession()
+            return
+          }
+
+          await applySessionState({
+            authenticated: true,
+            profile: baseSession.profile,
+            roles: baseSession.roles,
+            locale: baseSession.locale,
+            sessionStatus: 'degraded',
+          })
+        }
       }
-      else if (token.value) {
-        await applySessionState({
-          authenticated: true,
-          profile: authSession.profile,
-          roles: authSession.roles,
-          locale: authSession.locale,
-          sessionStatus: 'degraded',
-        })
+      catch (sessionError) {
+        const sessionStatusCode = getErrorStatus(sessionError)
+        logSessionFlow('session.endpoint.error', { status: sessionStatusCode })
+
+        if (sessionStatusCode === 401 || sessionStatusCode === 403) {
+          await clearLocalSession()
+        }
+        else if (token.value) {
+          await applySessionState({
+            authenticated: true,
+            profile: authSession.profile,
+            roles: authSession.roles,
+            locale: authSession.locale,
+            sessionStatus: 'degraded',
+          })
+        }
+        else {
+          await clearLocalSession()
+        }
       }
-      else {
-        await clearLocalSession()
+      finally {
+        initialized.value = true
+        logSessionFlow('session.init.complete', { force, initialized: initialized.value })
       }
+    })()
+
+    try {
+      await activeSessionInitPromise
     }
     finally {
-      initialized.value = true
+      activeSessionInitPromise = null
     }
   }
 
@@ -267,6 +311,9 @@ export const useAuth = () => {
       username: usernameOrEmail,
       password,
     }
+    const correlationId = createCorrelationId('login')
+    sessionCorrelationId.value = correlationId
+    logSessionFlow('login.start', { username: usernameOrEmail })
 
     const response = await authFetch<SessionResponse>('/api/auth/login', {
       method: 'POST',
@@ -275,6 +322,7 @@ export const useAuth = () => {
 
     initialized.value = true
     await applySessionState(response)
+    logSessionFlow('login.complete', { authenticated: response.authenticated })
 
     return response
   }
@@ -327,5 +375,6 @@ export const useAuth = () => {
     register,
     fetchProfile,
     logout,
+    sessionCorrelationId,
   }
 }
