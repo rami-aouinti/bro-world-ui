@@ -67,12 +67,12 @@ export const createAuthSessionBuilder = (deps: SessionBuilderDeps) => async (eve
 
   const profile = await deps.fetchProfile(token)
   validateProfile(profile)
-  const profileSnapshot = buildProfileSnapshot(profile)
+  const userSnapshot = buildProfileSnapshot(profile)
 
   const authCookie = await deps.persistCookie(event, {
     token,
     sessionVersion: 1,
-    profileSnapshot,
+    userSnapshot,
   })
 
   return mapToSessionResponse(profile, authCookie)

@@ -155,7 +155,7 @@ describe('authSessionBuilder', () => {
     assert.deepEqual(persistCookie.mock.calls[0]?.arguments[1], {
       token: 'valid-token',
       sessionVersion: 1,
-      profileSnapshot: {
+      userSnapshot: {
         id: 'u1',
         username: 'john',
         firstName: 'John',
