@@ -48,6 +48,7 @@ export const buildProfileSnapshot = (profile: UserProfile) => ({
 export const mapToSessionResponse = (profile: UserProfile, authCookie: Awaited<ReturnType<typeof setAuthCookie>>): SessionResponse => ({
   authenticated: true,
   profile,
+  userSnapshot: authCookie.userSnapshot ?? buildProfileSnapshot(profile),
   roles: profile.roles ?? [],
   locale: profile.locale || profile.language || 'en',
   expiresAt: authCookie.expiresAt,

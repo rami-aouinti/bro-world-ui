@@ -176,6 +176,14 @@ describe('authSessionBuilder', () => {
         language: 'fr',
         timezone: 'Europe/Paris',
       },
+      userSnapshot: {
+        id: 'u1',
+        username: 'john',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@example.com',
+        photo: undefined,
+      },
       roles: ['user'],
       locale: 'fr',
       expiresAt: '2030-01-01T00:00:00.000Z',
@@ -207,7 +215,7 @@ describe('authSessionBuilder', () => {
     })
   })
 
-  it('mapToSessionResponse conserve roles, locale et expiresAt', () => {
+  it('mapToSessionResponse conserve snapshot, roles, locale et expiresAt', () => {
     const response = mapToSessionResponse({
       id: 'u1',
       username: 'john',
@@ -221,9 +229,18 @@ describe('authSessionBuilder', () => {
     }, {
       token: 'valid-token',
       sessionVersion: 1,
+      userSnapshot: {
+        id: 'u1',
+        username: 'john',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@example.com',
+        photo: 'https://cdn.example.test/photo.jpg',
+      },
       expiresAt: '2030-01-01T00:00:00.000Z',
     })
 
+    assert.equal(response.userSnapshot?.photo, 'https://cdn.example.test/photo.jpg')
     assert.equal(response.roles[0], 'admin')
     assert.equal(response.locale, 'fr-CA')
     assert.equal(response.expiresAt, '2030-01-01T00:00:00.000Z')
