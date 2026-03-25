@@ -213,7 +213,7 @@ onBeforeUnmount(() => {
       <QuizBoard v-else-if="quiz" :quiz="quiz" />
     </template>
 
-    <v-dialog v-model="addQuestionDialog" max-width="720" retain-focus>
+    <v-dialog v-model="addQuestionDialog" max-width="720">
       <v-card>
         <v-card-title class="text-h6">Add a question</v-card-title>
         <v-card-text>

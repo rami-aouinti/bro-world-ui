@@ -119,6 +119,9 @@ export default defineNuxtConfig({
         VDialog: {
           retainFocus: false,
         },
+        VMenu: {
+          retainFocus: false,
+        },
       },
       ssr: true,
       theme: {
