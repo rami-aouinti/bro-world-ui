@@ -115,6 +115,11 @@ export default defineNuxtConfig({
   modules: ['vuetify-nuxt-module', '@nuxtjs/i18n', '@pinia/nuxt', 'nuxt-auth-utils'],
   vuetify: {
     vuetifyOptions: {
+      defaults: {
+        VDialog: {
+          retainFocus: false,
+        },
+      },
       ssr: true,
       theme: {
         defaultTheme: buildThemeName(defaultThemePreference),
