@@ -329,7 +329,7 @@ const formatRelativeTime = (dateInput?: string | null) => {
 
 onMounted(() => {
   void blogsStore.fetchReactionTypes()
-  if (props.showStories) {
+  if (props.showStories && props.canInteract) {
     void storiesStore.fetchStories()
   }
 })

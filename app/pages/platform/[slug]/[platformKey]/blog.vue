@@ -28,6 +28,6 @@ onMounted(() => {
   <PlatformPluginPageShell title="Blog" :slug="slug" :nav-items="navItems">
     <v-alert v-if="error" type="error" variant="tonal" class="mb-4">{{ t('platform.errors.blogLoad') }}</v-alert>
     <v-skeleton-loader v-else-if="pending" type="image, article@2" class="mb-4" />
-    <BlogFeed v-else-if="blog" :blog="blog" :can-interact="isAuthenticated" />
+    <BlogFeed v-else-if="blog" :blog="blog" :show-stories="isAuthenticated" :can-interact="isAuthenticated" />
   </PlatformPluginPageShell>
 </template>
