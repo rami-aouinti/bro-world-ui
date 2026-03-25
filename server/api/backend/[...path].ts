@@ -1,4 +1,4 @@
-import { readAuthCookie, requireAuthCookie, setAuthCookie } from '~~/server/utils/authCookie'
+import { readAuthCookie, setAuthCookie } from '~~/server/utils/authCookie'
 import { getRedisClient } from '~~/server/utils/redis'
 import { buildCacheKey, buildCacheScanPattern, buildCacheScopePrefix, buildQueryHash, toPathResourceIdentifier } from '~~/server/utils/cacheKeyBuilder'
 import { createHash } from 'node:crypto'
@@ -79,6 +79,7 @@ const CACHE_METRICS_KEY = buildCacheKey({
 })
 
 const MUTATION_METHODS = new Set(['POST', 'PATCH', 'DELETE', 'PUT'])
+const endpoint401Counts = new Map<string, number>()
 
 const ENTITY_CACHE_INVALIDATION_RULES: Array<{ routePrefix: string, cachePrefixes: string[] }> = [
   {
@@ -631,16 +632,73 @@ const buildForwardHeaders = (event: any): Record<string, string> => {
     headers['content-length'] = contentLength
   }
 
+  const sessionCorrelationId = getHeader(event, 'x-session-correlation-id')
+  if (sessionCorrelationId) {
+    headers['x-session-correlation-id'] = sessionCorrelationId
+  }
+
   return headers
 }
 
-const handleBackendError = (error: any) => {
+const recordTop401Endpoints = (
+  targetPath: string,
+  method: string,
+  source: 'backend_401' | 'local_401_missing_cookie',
+  sessionCorrelationId: string | null,
+) => {
+  const key = `${method} ${targetPath} [${source}]`
+  endpoint401Counts.set(key, (endpoint401Counts.get(key) || 0) + 1)
+  const total401 = Array.from(endpoint401Counts.values()).reduce((sum, count) => sum + count, 0)
+
+  if (total401 % 10 !== 0) {
+    return
+  }
+
+  const topEndpoints = Array
+    .from(endpoint401Counts.entries())
+    .sort((first, second) => second[1] - first[1])
+    .slice(0, 5)
+    .map(([endpointKey, count]) => ({ endpointKey, count }))
+
+  console.warn('[api-telemetry][401-top-endpoints]', {
+    total401,
+    topEndpoints,
+    sessionCorrelationId,
+  })
+}
+
+const handleBackendError = (
+  error: any,
+  context: {
+    targetPath: string
+    method: string
+    hasAuthCookie: boolean
+    hasBearerToken: boolean
+    sessionCorrelationId: string | null
+  },
+) => {
   const statusCode = error?.statusCode || error?.response?.status
+  const isNetworkError = !statusCode
+
+  console.warn('[api-telemetry]', {
+    path: context.targetPath,
+    method: context.method,
+    status: statusCode || 'network_error',
+    attempt: 1,
+    hasAuthCookie: context.hasAuthCookie,
+    hasBearerToken: context.hasBearerToken,
+    errorType: isNetworkError ? 'network_error' : 'http_error',
+    sessionCorrelationId: context.sessionCorrelationId,
+  })
 
   if (statusCode === 401 || statusCode === 403) {
+    recordTop401Endpoints(context.targetPath, context.method, 'backend_401', context.sessionCorrelationId)
     throw createError({
       statusCode,
       statusMessage: 'Backend authentication failed',
+      data: {
+        telemetryCategory: 'backend_401',
+      },
     })
   }
 
@@ -659,20 +717,37 @@ export default defineEventHandler(async (event) => {
 
   const path = getRouterParam(event, 'path') || ''
   const targetPath = `/${path}`
+  const sessionCorrelationId = getHeader(event, 'x-session-correlation-id') || null
   const isPublicRoute = PUBLIC_BACKEND_PATHS.has(targetPath)
     || PUBLIC_BACKEND_PATH_PREFIXES.some(prefix => targetPath.startsWith(prefix))
 
   const tokenFromAuthorizationHeader = normalizeBearerToken(getHeader(event, 'authorization'))
   let bearerToken: string | undefined = tokenFromAuthorizationHeader
-  let authCookiePayload: Awaited<ReturnType<typeof requireAuthCookie>> | undefined
+  let authCookiePayload = await readAuthCookie(event) || undefined
 
-  if (!isPublicRoute && !bearerToken) {
-    authCookiePayload = await requireAuthCookie(event)
-    bearerToken = authCookiePayload.token
+  if (!isPublicRoute && !bearerToken && !authCookiePayload) {
+    console.warn('[api-telemetry]', {
+      path: targetPath,
+      method: getMethod(event),
+      status: 401,
+      attempt: 1,
+      hasAuthCookie: false,
+      hasBearerToken: false,
+      errorType: 'local_401_missing_cookie',
+      sessionCorrelationId,
+    })
+    recordTop401Endpoints(targetPath, getMethod(event), 'local_401_missing_cookie', sessionCorrelationId)
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Local authentication cookie missing',
+      data: {
+        telemetryCategory: 'local_401_missing_cookie',
+      },
+    })
   }
 
-  if (!authCookiePayload && !isPublicRoute) {
-    authCookiePayload = await readAuthCookie(event) || undefined
+  if (!bearerToken && authCookiePayload) {
+    bearerToken = authCookiePayload.token
   }
 
   const authenticatedUserId = undefined
@@ -745,6 +820,16 @@ export default defineEventHandler(async (event) => {
       headers,
     })
 
+    console.info('[api-telemetry]', {
+      path: targetPath,
+      method,
+      status: '2xx',
+      attempt: 1,
+      hasAuthCookie: Boolean(authCookiePayload),
+      hasBearerToken: Boolean(bearerToken),
+      sessionCorrelationId,
+    })
+
     if (publicRouteCacheSpec) {
       await writeCache(publicRouteCacheSpec.cacheKey, response, publicRouteCacheSpec.ttl, 'Public route')
     }
@@ -804,6 +889,12 @@ export default defineEventHandler(async (event) => {
 
     return response
   } catch (error) {
-    handleBackendError(error)
+    handleBackendError(error, {
+      targetPath,
+      method,
+      hasAuthCookie: Boolean(authCookiePayload),
+      hasBearerToken: Boolean(bearerToken),
+      sessionCorrelationId,
+    })
   }
 })
