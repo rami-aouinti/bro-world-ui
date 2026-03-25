@@ -162,7 +162,7 @@ export default defineNuxtConfig({
     },
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'https://bro-world.org',
-      mercurePublicUrl: process.env.NUXT_PUBLIC_MERCURE_PUBLIC_URL || 'http://bro-world.org:3000/.well-known/mercure',
+      mercurePublicUrl: process.env.NUXT_PUBLIC_MERCURE_PUBLIC_URL || 'https://bro-world.org/.well-known/mercure',
       useMockData,
     },
   },
