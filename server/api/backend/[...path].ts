@@ -2,7 +2,7 @@ import { readAuthCookie, setAuthCookie } from '~~/server/utils/authCookie'
 import { getRedisClient } from '~~/server/utils/redis'
 import { buildCacheKey, buildCacheScanPattern, buildCacheScopePrefix, buildQueryHash, toPathResourceIdentifier } from '~~/server/utils/cacheKeyBuilder'
 import { createHash, randomUUID } from 'node:crypto'
-import { buildPrivateQueryHash, getPrivateResourceIdentifier, isPrivateCacheRoute } from '~~/server/utils/privateCacheKey'
+import { buildPrivateQueryHash, getPrivateResourceIdentifier, getPrivateResourceInvalidationPattern, isPrivateBlogRoute, isPrivateCacheRoute } from '~~/server/utils/privateCacheKey'
 
 const PUBLIC_BACKEND_PATHS = new Set([
   '/api/health',
@@ -56,6 +56,8 @@ const ENTITY_CACHE_PREFIXES = [
   '/api/v1/recruit/public',
   '/api/v1/recruit/private',
   '/api/v1/private/blogs',
+  '/api/v1/private/blog',
+  '/api/v1/blogs/me',
   '/api/v1/private/stories',
   '/api/v1/blog/',
   '/api/v1/profile',
@@ -104,7 +106,19 @@ const ENTITY_CACHE_INVALIDATION_RULES: Array<{ routePrefix: string, cachePrefixe
   },
   {
     routePrefix: '/api/v1/private/blog/',
-    cachePrefixes: ['/api/v1/private/blogs'],
+    cachePrefixes: ['/api/v1/private/blogs', '/api/v1/private/blog'],
+  },
+  {
+    routePrefix: '/api/v1/blogs/me',
+    cachePrefixes: ['/api/v1/blogs/me', '/api/v1/private/blogs', '/api/v1/private/blog'],
+  },
+  {
+    routePrefix: '/api/v1/private/blog/comments',
+    cachePrefixes: ['/api/v1/private/blogs', '/api/v1/private/blog'],
+  },
+  {
+    routePrefix: '/api/v1/private/blog/reactions',
+    cachePrefixes: ['/api/v1/private/blogs', '/api/v1/private/blog'],
   },
   {
     routePrefix: '/api/v1/private/stories',
@@ -223,11 +237,11 @@ const CACHE_RESOURCE_POLICIES: CacheResourcePolicy[] = [
   {
     name: 'posts',
     ttlSeconds: TEN_MINUTES_IN_SECONDS,
-    isMatch: path => path.startsWith('/api/v1/private/blogs') || path.startsWith('/api/v1/public/blogs') || path.startsWith('/api/v1/blogs') || path.startsWith('/api/v1/blog/') || path.startsWith('/api/v1/private/stories'),
+    isMatch: path => isPrivateBlogRoute(path) || path.startsWith('/api/v1/public/blogs') || path.startsWith('/api/v1/blogs') || path.startsWith('/api/v1/blog/') || path.startsWith('/api/v1/private/stories'),
     invalidationRules: [
       {
         event: 'posts.publish_or_update_or_delete',
-        when: (path, method) => MUTATION_METHODS.has(method) && (path.startsWith('/api/v1/private/blogs') || path.startsWith('/api/v1/private/blog/') || path.startsWith('/api/v1/blogs') || path.startsWith('/api/v1/private/stories')),
+        when: (path, method) => MUTATION_METHODS.has(method) && (isPrivateBlogRoute(path) || path.startsWith('/api/v1/private/blog/comments') || path.startsWith('/api/v1/private/blog/reactions') || path.startsWith('/api/v1/blogs') || path.startsWith('/api/v1/private/stories')),
         cachePrefixes: ['/api/v1/private/blogs', '/api/v1/blogs', '/api/v1/private/stories'],
         publicTags: ['blog:*'],
       },
@@ -645,11 +659,11 @@ const clearPrivateCacheByUserAndPrefix = async (userId: string | undefined, pref
 
   try {
     const redis = await getRedisClient()
-    const privateResource = getPrivateResourceIdentifier(prefix)
+    const identifierPattern = getPrivateResourceInvalidationPattern(prefix)
     const pattern = buildCacheScanPattern({
       scope: 'private',
       resource: userId,
-      identifierPattern: `${privateResource}*`,
+      identifierPattern,
     })
     const keysToDelete: string[] = []
 
@@ -709,9 +723,11 @@ const invalidateEvents = async () => {
 
 const invalidatePosts = async (userId?: string) => {
   const deletedPrivateBlogs = await clearPrivateCacheByUserAndPrefix(userId, '/api/v1/private/blogs')
+  const deletedPrivateBlogPost = await clearPrivateCacheByUserAndPrefix(userId, '/api/v1/private/blog')
+  const deletedPrivateBlogMe = await clearPrivateCacheByUserAndPrefix(userId, '/api/v1/blogs/me')
   const deletedPrivateStories = await clearPrivateCacheByUserAndPrefix(userId, '/api/v1/private/stories')
   const deletedPublic = await clearPublicCacheByTag('blog:*')
-  await recordCacheMetric('posts', 'invalidate', `posts:${deletedPrivateBlogs + deletedPrivateStories + deletedPublic}`)
+  await recordCacheMetric('posts', 'invalidate', `posts:${deletedPrivateBlogs + deletedPrivateBlogPost + deletedPrivateBlogMe + deletedPrivateStories + deletedPublic}`)
 }
 
 const storeNotificationEvent = async (input: {
@@ -752,7 +768,7 @@ const getInvalidationCachePrefixes = (targetPath: string) => {
 }
 
 const getPublicInvalidationTags = (targetPath: string) => {
-  if (targetPath.startsWith('/api/v1/private/blogs/') || targetPath.startsWith('/api/v1/private/blog/') || targetPath.startsWith('/api/v1/blogs/') || targetPath.startsWith('/api/v1/blog/')) {
+  if (targetPath.startsWith('/api/v1/private/blogs/') || targetPath.startsWith('/api/v1/private/blog/') || targetPath.startsWith('/api/v1/private/blog/comments') || targetPath.startsWith('/api/v1/private/blog/reactions') || targetPath.startsWith('/api/v1/blogs/') || targetPath.startsWith('/api/v1/blog/')) {
     return ['blog:*']
   }
 
