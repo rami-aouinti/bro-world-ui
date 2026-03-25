@@ -1,15 +1,34 @@
 import { defineStore } from 'pinia'
 import { useUsersApi } from '~/composables/api/useUsersApi'
+import { useAuthSessionStore } from '~/stores/authSession'
 import type { UserApplication, UserFriendRead, UserMeRead, UserMePasswordPayload, UserMeProfilePayload } from '~/types/api/user'
 
 type CurrentUserCacheScope = 'me' | 'applications' | 'friends'
 
 export const useCurrentUserStore = defineStore('current-user', () => {
   const api = useUsersApi()
+  const authSession = useAuthSessionStore()
 
   const me = ref<UserMeRead | null>(null)
   const loading = ref(false)
   const initialized = ref(false)
+  const lastFetchStatus = ref<number | null>(null)
+  const isDegraded = ref(false)
+
+  const getErrorStatus = (error: unknown): number | null => {
+    if (!error || typeof error !== 'object') return null
+
+    const candidate = error as {
+      statusCode?: unknown
+      status?: unknown
+      response?: { status?: unknown }
+    }
+
+    if (typeof candidate.statusCode === 'number') return candidate.statusCode
+    if (typeof candidate.status === 'number') return candidate.status
+    if (typeof candidate.response?.status === 'number') return candidate.response.status
+    return null
+  }
 
   const displayName = computed(() => {
     if (!me.value) return 'Guest User'
@@ -23,7 +42,36 @@ export const useCurrentUserStore = defineStore('current-user', () => {
     try {
       me.value = await api.getMe()
       initialized.value = true
+      lastFetchStatus.value = null
+      isDegraded.value = false
       return me.value
+    }
+    catch (error) {
+      const status = getErrorStatus(error)
+      lastFetchStatus.value = status
+
+      if (status === 401 || status === 403) {
+        isDegraded.value = false
+        me.value = null
+        initialized.value = false
+        throw error
+      }
+
+      if (status !== null && status >= 500) {
+        isDegraded.value = true
+        if (authSession.sessionStatus !== 'invalid') {
+          authSession.setUserSession({
+            token: authSession.token,
+            profile: authSession.profile,
+            roles: authSession.roles,
+            locale: authSession.locale,
+            profileUnavailable: true,
+            sessionStatus: 'degraded',
+          })
+        }
+      }
+
+      throw error
     }
     finally {
       loading.value = false
@@ -113,6 +161,8 @@ export const useCurrentUserStore = defineStore('current-user', () => {
     me,
     loading,
     initialized,
+    isDegraded,
+    lastFetchStatus,
     displayName,
     fetchMe,
     invalidateCurrentUserCache,
