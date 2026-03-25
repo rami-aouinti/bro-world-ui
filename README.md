@@ -87,8 +87,19 @@ node --test scripts/private-cache-security.test.mjs
 1. `useAuth().initSession()` appelle `GET /api/auth/session` pour hydrater l'état client au chargement.
 2. Les endpoints `POST /api/auth/login` et `POST /api/auth/register` délèguent l'auth au backend puis construisent la session applicative.
 3. Le serveur stocke le contexte auth (profil, rôles, locale, expiration) dans un cookie de session signé/chiffré.
-4. `useAuth` applique ensuite l'état dans `useAuthSessionStore` (token placeholder côté client + profil/rôles/locale).
-5. `POST /api/auth/logout` efface le cookie de session et réinitialise l'état front.
+4. La source d'identité canonique est `GET /api/v1/users/me` pour:
+   - validation de session,
+   - chargement du profil auth,
+   - alimentation des données de la page profile.
+5. Les chemins parallèles de type `/api/v1/profile` sont interdits pour la logique d'auth principale (ils restent réservés aux usages métier non-auth).
+6. `sessionStatus` est strictement défini comme `healthy | degraded | invalid`:
+   - `healthy`: session valide confirmée côté backend,
+   - `degraded`: backend temporairement indisponible (5xx/timeout), session locale conservée,
+   - `invalid`: invalidation confirmée par un 401/403 backend.
+7. Politique de logout/exploitation:
+   - logout uniquement sur `invalid` issu d'un 401/403 backend confirmé,
+   - en cas de 5xx backend, rester connecté en mode dégradé (ne pas casser la session).
+8. `POST /api/auth/logout` efface le cookie de session et réinitialise l'état front.
 
 ## Stratégie i18n
 
