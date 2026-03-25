@@ -4,6 +4,7 @@ import { readAuthCookie, setAuthCookie } from '../../../server/utils/authCookie'
 const unauthenticatedResponse = (): SessionResponse => ({
   authenticated: false,
   profile: null,
+  userSnapshot: null,
   roles: [],
   locale: null,
   sessionStatus: 'invalid',
@@ -41,6 +42,7 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
       return {
         authenticated: true,
         profile: null,
+        userSnapshot: authCookie.userSnapshot ?? null,
         roles: [],
         locale: null,
         sessionStatus: 'degraded',
@@ -50,6 +52,7 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
     return {
       authenticated: true,
       profile: null,
+      userSnapshot: authCookie.userSnapshot ?? null,
       roles: [],
       locale: null,
       sessionStatus: 'degraded',
@@ -65,6 +68,7 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
   return {
     authenticated: true,
     profile: null,
+    userSnapshot: nextAuthCookie.userSnapshot ?? null,
     roles: [],
     locale: null,
     sessionStatus: 'healthy',

@@ -132,9 +132,19 @@ export type UserMeProfilePayload = Partial<UserMeProfileDetails & {
 
 export type SessionStatus = 'healthy' | 'degraded' | 'invalid'
 
+export interface SessionUserSnapshot {
+  id: UUID
+  username: string
+  firstName: string
+  lastName: string
+  email: string
+  photo?: string
+}
+
 export interface SessionResponse {
   authenticated: boolean
   profile: UserProfile | null
+  userSnapshot?: SessionUserSnapshot | null
   roles: string[]
   locale: string | null
   /**

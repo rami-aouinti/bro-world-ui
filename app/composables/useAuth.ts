@@ -167,8 +167,17 @@ export const useAuth = () => {
     void warmupPrivateCaches(session)
   }
 
+  const buildUserSnapshot = (profile: UserProfile): UserProfileSnapshot => ({
+    id: profile.id,
+    username: profile.username,
+    firstName: profile.firstName,
+    lastName: profile.lastName,
+    email: profile.email,
+    photo: profile.photo,
+  })
+
   const applySessionState = async (session: SessionResponse) => {
-    const incomingSnapshot = ((session as SessionResponse & { userSnapshot?: UserProfileSnapshot | null }).userSnapshot) ?? null
+    const incomingSnapshot = session.userSnapshot ?? null
     const existingToken = token.value || authSession.token || null
     token.value = session.authenticated
       ? (existingToken || '__server_session__')
@@ -181,11 +190,21 @@ export const useAuth = () => {
       && !session.profile
       && !shouldKeepExistingProfile
       && !!incomingSnapshot
+    const mergedProfileFromSnapshotPhoto = session.authenticated
+      && !session.profile
+      && incomingSnapshot?.photo
+      && authSession.profile
+      ? {
+          ...authSession.profile,
+          photo: incomingSnapshot.photo,
+        }
+      : null
 
     const resolvedProfile = !session.authenticated
       ? null
       : (session.profile
         || (shouldKeepExistingProfile ? authSession.profile : null)
+        || mergedProfileFromSnapshotPhoto
         || (shouldUseSnapshot ? incomingSnapshot as UserProfile : null)
         || authSession.profile)
 
@@ -200,7 +219,7 @@ export const useAuth = () => {
       token: token.value,
       profile: resolvedProfile,
       userSnapshot: session.authenticated
-        ? (session.profile || incomingSnapshot || authSession.userSnapshot)
+        ? (session.profile ? buildUserSnapshot(session.profile) : (incomingSnapshot || authSession.userSnapshot))
         : null,
       profilePartial,
       roles: session.roles,
@@ -455,7 +474,15 @@ export const useAuth = () => {
       method: 'GET',
     })
 
-    await applySessionState(response)
+    if (response.profile) {
+      await applySessionState({
+        ...response,
+        userSnapshot: buildUserSnapshot(response.profile),
+      })
+    }
+    else {
+      await applySessionState(response)
+    }
 
     return response.profile
   }
