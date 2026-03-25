@@ -14,6 +14,7 @@ const toScopeKey = (applicationSlug?: string, isPrivate = true) => `${applicatio
 export const useCalendarEventsStore = defineStore('calendar-events', () => {
   const calendarApi = useCalendarEventsApi()
   const cache = useState<Record<string, { items: CalendarEventRead[], cachedAt: number }>>('calendar-events-cache', () => ({}))
+  const inFlight = useState<Record<string, Promise<CalendarEventRead[]>>>('calendar-events-inflight', () => ({}))
 
   const fetchList = async (applicationSlug?: string, isPrivate = true, force = false) => {
     const scope = toScopeKey(applicationSlug, isPrivate)
@@ -23,17 +24,29 @@ export const useCalendarEventsStore = defineStore('calendar-events', () => {
       return entry.items
     }
 
-    const items = await calendarApi.list(applicationSlug, isPrivate)
-    cache.value[scope] = {
-      items,
-      cachedAt: Date.now(),
+    if (inFlight.value[scope]) {
+      return inFlight.value[scope]
     }
-    return items
+
+    inFlight.value[scope] = calendarApi.list(applicationSlug, isPrivate)
+      .then((items) => {
+        cache.value[scope] = {
+          items,
+          cachedAt: Date.now(),
+        }
+        return items
+      })
+      .finally(() => {
+        delete inFlight.value[scope]
+      })
+
+    return inFlight.value[scope]
   }
 
   const invalidateCache = (applicationSlug?: string) => {
     const scope = toScopeKey(applicationSlug, true)
     delete cache.value[scope]
+    delete inFlight.value[scope]
     clearNuxtData('calendar-events')
   }
 
@@ -62,6 +75,7 @@ export const useCalendarEventsStore = defineStore('calendar-events', () => {
 
   return {
     cache,
+    inFlight,
     fetchList,
     invalidateCache,
     create,

@@ -29,6 +29,8 @@ export const useInboxStore = defineStore('inbox', () => {
     cachedAt: 0,
   }))
   const messagesCache = useState<Record<string, { items: PrivateChatMessage[], cachedAt: number }>>('inbox-messages-cache', () => ({}))
+  const conversationsInFlight = useState<Promise<PrivateConversationsResponse> | null>('inbox-conversations-inflight', () => null)
+  const messagesInFlight = useState<Record<string, Promise<PrivateChatMessage[]>>>('inbox-messages-inflight', () => ({}))
 
   const conversationsSummary = computed<PrivateConversationsResponse>(() => conversationsCache.value.data ?? EMPTY_CONVERSATIONS_RESPONSE)
 
@@ -52,9 +54,20 @@ export const useInboxStore = defineStore('inbox', () => {
       return conversationsCache.value.data
     }
 
-    const data = await privateChatApi.getConversations(20, 1)
-    setConversations(data)
-    return data
+    if (conversationsInFlight.value) {
+      return conversationsInFlight.value
+    }
+
+    conversationsInFlight.value = privateChatApi.getConversations(20, 1)
+      .then((data) => {
+        setConversations(data)
+        return data
+      })
+      .finally(() => {
+        conversationsInFlight.value = null
+      })
+
+    return conversationsInFlight.value
   }
 
   const fetchConversationMessages = async (conversationId: string, force = false) => {
@@ -62,16 +75,27 @@ export const useInboxStore = defineStore('inbox', () => {
       return messagesCache.value[conversationId].items
     }
 
-    const response = await privateChatApi.getConversationMessages(conversationId)
-    const items = [...(response.items ?? [])]
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-
-    messagesCache.value[conversationId] = {
-      items,
-      cachedAt: Date.now(),
+    if (messagesInFlight.value[conversationId]) {
+      return messagesInFlight.value[conversationId]
     }
 
-    return items
+    messagesInFlight.value[conversationId] = privateChatApi.getConversationMessages(conversationId)
+      .then((response) => {
+        const items = [...(response.items ?? [])]
+          .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+
+        messagesCache.value[conversationId] = {
+          items,
+          cachedAt: Date.now(),
+        }
+
+        return items
+      })
+      .finally(() => {
+        delete messagesInFlight.value[conversationId]
+      })
+
+    return messagesInFlight.value[conversationId]
   }
 
   const applyIncomingMessage = (conversationId: string, message: PrivateChatMessage, currentUserId?: string | null) => {
@@ -118,11 +142,14 @@ export const useInboxStore = defineStore('inbox', () => {
 
     if (conversationId) {
       delete messagesCache.value[conversationId]
+      delete messagesInFlight.value[conversationId]
     }
     else {
       messagesCache.value = {}
+      messagesInFlight.value = {}
     }
 
+    conversationsInFlight.value = null
     clearNuxtData('inbox-conversations')
   }
 

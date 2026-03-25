@@ -1,28 +1,38 @@
 <script setup lang="ts">
-import { useCalendarEventsApi } from '~/composables/api/useCalendarEventsApi'
 import { usePlatformPluginPage } from '~/composables/platform/usePlatformPluginPage'
 import type { CalendarEventRead } from '~/types/api/calendar'
+import { useCalendarEventsStore } from '~/stores/calendarEvents'
 
 definePageMeta({ public: true, requiresAuth: false })
 
 const { slug, navItems, isAuthenticated } = usePlatformPluginPage()
 const { t } = useI18n()
-const calendarApi = useCalendarEventsApi()
+const calendarEventsStore = useCalendarEventsStore()
+const events = ref<CalendarEventRead[]>([])
+const pending = ref(false)
+const error = ref<unknown>(null)
 
-const { data: events, pending, error, execute: loadCalendar } = useAsyncData(
-  () => `application-calendar-${slug.value}-${isAuthenticated.value ? 'private' : 'public'}`,
-  async () => {
-    return calendarApi.list(slug.value, isAuthenticated.value)
-  },
-  {
-    watch: [slug, isAuthenticated],
-    server: false,
-    immediate: false,
-    default: () => [] as CalendarEventRead[],
-  },
-)
+const loadCalendar = async (force = false) => {
+  pending.value = true
+  error.value = null
+
+  try {
+    events.value = await calendarEventsStore.fetchList(slug.value, isAuthenticated.value, force)
+  }
+  catch (loadError) {
+    error.value = loadError
+    events.value = []
+  }
+  finally {
+    pending.value = false
+  }
+}
 
 onMounted(() => {
+  void loadCalendar()
+})
+
+watch([slug, isAuthenticated], () => {
   void loadCalendar()
 })
 </script>

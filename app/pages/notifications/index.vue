@@ -3,7 +3,6 @@ import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import UiListCard from '~/components/ui/UiListCard.vue'
 import UiSectionHeader from '~/components/ui/UiSectionHeader.vue'
 import { useNotificationTarget } from '~/composables/useNotificationTarget'
-import { useNotificationsApi } from '~/composables/api/useNotificationsApi'
 import type { NotificationRead } from '~/types/api/notification'
 import { useNotificationsStore } from '~/stores/notifications'
 
@@ -13,7 +12,6 @@ definePageMeta({
 })
 
 const notificationsStore = useNotificationsStore()
-const notificationsApi = useNotificationsApi()
 const { initSession, authState } = useAuth()
 const { resolveSensitiveError, isDebugMode } = useSensitivePageFeedback()
 const notifications = computed<NotificationRead[]>(() => notificationsStore.notifications.items)
@@ -29,8 +27,7 @@ const loadNotifications = async () => {
 
   try {
     await initSession()
-    const response = await notificationsApi.getNotifications(100, 0)
-    notificationsStore.setNotifications(response)
+    await notificationsStore.fetchNotifications(false, { limit: 100, offset: 0 })
   }
   catch (error) {
     const resolved = resolveSensitiveError(error, {

@@ -1,5 +1,3 @@
-import { useNotificationsApi } from '~/composables/api/useNotificationsApi'
-import { usePrivateChatApi } from '~/composables/api/usePrivateChatApi'
 import { useInboxStore } from '~/stores/inbox'
 import { useNotificationsStore } from '~/stores/notifications'
 
@@ -12,8 +10,6 @@ const createCorrelationId = (prefix: string) => `${prefix}-${Date.now().toString
 export const useRealtimeBootstrap = () => {
   const authSession = useAuthSessionStore()
   const { initSession, isAuthenticated, authState } = useAuth()
-  const notificationsApi = useNotificationsApi()
-  const privateChatApi = usePrivateChatApi()
   const notificationsStore = useNotificationsStore()
   const inboxStore = useInboxStore()
 
@@ -26,11 +22,9 @@ export const useRealtimeBootstrap = () => {
       userId: authSession.profile?.id ?? null,
     })
 
-    const notifications = await notificationsApi.getNotifications(100, 0)
-    notificationsStore.setNotifications(notifications)
+    const notifications = await notificationsStore.fetchNotifications(reason === 'mercure-reconnect', { limit: 100, offset: 0 })
 
-    const conversations = await privateChatApi.getConversations(20, 1)
-    inboxStore.setConversations(conversations)
+    const conversations = await inboxStore.fetchConversations(reason === 'mercure-reconnect')
 
     console.info(`[realtime][${correlationId}] done notifications+conversations sync`, {
       notificationsCount: notifications.items?.length ?? 0,
