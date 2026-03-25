@@ -20,12 +20,13 @@ const RETRYABLE_NETWORK_ERROR_CODES = new Set([
 const RETRYABLE_HTTP_STATUSES = new Set([502, 503, 504])
 const RETRY_DELAYS_IN_MS = [150, 300]
 const MAX_RETRIES = 2
-const SESSION_REVALIDATION_THROTTLE_WINDOW_MS = 10_000
+const AUTH_REVALIDATION_COOLDOWN_MS = 20_000
+const BURST_WINDOW_MS = 1_000
 const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 const AUTH_AUTO_RETRY_EXCLUSIONS = ['api/auth/login', 'api/auth/register']
 const inFlightRequests = new Map<string, Promise<unknown>>()
-let lastSessionRevalidationAt = 0
-let activeSessionRevalidation: Promise<void> | null = null
+let burstWindowStartedAt = 0
+let burstCount = 0
 
 const normalizeApiPath = (url: string) => url.replace(/^\/+/, '')
 
@@ -109,32 +110,53 @@ const isRetryableNetworkError = (error: unknown) => {
 }
 
 const revalidateSessionWithGlobalThrottle = async (auth: ReturnType<typeof useAuth>) => {
+  if (auth.authRevalidateInFlight.value) {
+    await auth.authRevalidateInFlight.value
+    return true
+  }
+
   const currentTime = now()
-  const isWithinThrottleWindow = currentTime - lastSessionRevalidationAt < SESSION_REVALIDATION_THROTTLE_WINDOW_MS
+  const lastFailureAt = auth.lastAuthFailureAt.value
+  const isInCooldownWindow = lastFailureAt > 0 && (currentTime - lastFailureAt) < AUTH_REVALIDATION_COOLDOWN_MS
 
-  if (isWithinThrottleWindow) {
-    if (activeSessionRevalidation) {
-      await activeSessionRevalidation
-    }
-
+  if (isInCooldownWindow) {
     return false
   }
 
-  if (!activeSessionRevalidation) {
-    activeSessionRevalidation = (async () => {
-      try {
-        await auth.initSession(true)
-        lastSessionRevalidationAt = now()
-      }
-      finally {
-        activeSessionRevalidation = null
-      }
-    })()
-  }
+  auth.authRevalidateInFlight.value = (async () => {
+    try {
+      await auth.initSession(true)
+    }
+    catch (error) {
+      auth.lastAuthFailureAt.value = now()
+      throw error
+    }
+    finally {
+      auth.authRevalidateInFlight.value = null
+    }
+  })()
 
-  await activeSessionRevalidation
+  await auth.authRevalidateInFlight.value
 
   return true
+}
+
+const track401Burst = (tracker: ReturnType<typeof useTracker>, path: string, method: string) => {
+  const currentTime = now()
+
+  if (!burstWindowStartedAt || currentTime - burstWindowStartedAt > BURST_WINDOW_MS) {
+    burstWindowStartedAt = currentTime
+    burstCount = 0
+  }
+
+  burstCount += 1
+
+  tracker.track('401_burst', {
+    count: burstCount,
+    path,
+    method,
+    windowMs: BURST_WINDOW_MS,
+  })
 }
 
 export const useApiClient = () => {
@@ -224,6 +246,8 @@ export const useApiClient = () => {
               })
             }
 
+            auth.lastAuthFailureAt.value = 0
+
             return response
           }
           catch (error) {
@@ -237,13 +261,21 @@ export const useApiClient = () => {
             const hasRemainingAttempts = attempt <= maxRetries
 
             if (is401) {
+              track401Burst(tracker, normalizedUrl, method)
+
               if (hasRetriedAfter401 || isAutoRetryExcludedPath) {
+                auth.lastAuthFailureAt.value = now()
                 break
               }
 
               hasRetriedAfter401 = true
 
               const didRevalidateSession = await revalidateSessionWithGlobalThrottle(auth)
+
+              if (!didRevalidateSession) {
+                auth.lastAuthFailureAt.value = now()
+                break
+              }
 
               if (didRevalidateSession) {
                 console.info('[auth-correlation]', {
