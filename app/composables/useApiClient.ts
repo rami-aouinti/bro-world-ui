@@ -49,6 +49,7 @@ const endpoint401Counts = new Map<string, number>()
 let burstWindowStartedAt = 0
 let burstCount = 0
 let sharedAuthRevalidationPromise: Promise<boolean> | null = null
+let sharedPrivateAuthInitPromise: Promise<void> | null = null
 let lastGlobalAuthRevalidationAt = 0
 
 const normalizeApiPath = (url: string) => url.replace(/^\/+/, '')
@@ -248,6 +249,29 @@ const revalidateSessionWithGlobalThrottle = async (auth: ReturnType<typeof useAu
   return sharedAuthRevalidationPromise
 }
 
+const ensurePrivateAuthReady = async (auth: ReturnType<typeof useAuth>) => {
+  const isSessionReady = auth.initialized.value && auth.authState.value !== 'initializing'
+
+  if (!isSessionReady) {
+    if (!sharedPrivateAuthInitPromise) {
+      sharedPrivateAuthInitPromise = (async () => {
+        try {
+          await auth.initSession()
+        }
+        finally {
+          sharedPrivateAuthInitPromise = null
+        }
+      })()
+    }
+
+    await sharedPrivateAuthInitPromise
+  }
+
+  if (auth.authState.value === 'initializing') {
+    await auth.awaitAuthReady()
+  }
+}
+
 const track401Burst = (tracker: ReturnType<typeof useTracker>, path: string, method: string) => {
   const currentTime = now()
 
@@ -279,7 +303,7 @@ export const useApiClient = () => {
     const sessionCorrelationId = auth.sessionCorrelationId.value
 
     if (isPrivateRoute) {
-      await auth.awaitAuthReady()
+      await ensurePrivateAuthReady(auth)
     }
 
     const token = authSession.token
@@ -301,33 +325,6 @@ export const useApiClient = () => {
       })
 
       return existingRequest
-    }
-
-    if (isPrivateRoute && auth.authState.value === 'initializing') {
-      logApiTelemetry('warn', {
-        event: 'api.blocked.auth_not_ready',
-        path: normalizedUrl,
-        isPrivate: isPrivateRoute,
-        authState: auth.authState.value,
-        attempt: 1,
-        responseStatus: 503,
-        errorSource: 'client_auth_guard',
-        method,
-        sessionCorrelationId,
-      })
-      const initializingError = createError({
-        statusCode: 503,
-        statusMessage: 'Authentication is initializing',
-        data: { telemetryCategory: 'private_endpoint_blocked_initializing' },
-      })
-
-      tracker.trackError('api.request.failed', initializingError, {
-        path: normalizedUrl,
-        method,
-        dedupeKey,
-      })
-
-      throw new NormalizedApiClientError(normalizeErrorResponse(initializingError, 503))
     }
 
     if (isPrivateRoute && !hasAuthenticatedSession) {
