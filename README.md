@@ -165,3 +165,36 @@ Le workflow GitHub Actions publie automatiquement un commentaire "Bundle diff" s
 - taille JS initiale (base vs PR),
 - taille CSS initiale (base vs PR),
 - delta par métrique.
+
+## Stratégie cache (par endpoint)
+
+Le proxy backend `server/api/backend/[...path].ts` applique une stratégie de cache Redis orientée ressources, avec invalidation active sur mutations.
+
+### Endpoints couverts
+
+- **Profile** (`/api/v1/profile`, `/api/v1/users/me`)
+  - TTL: **3 minutes**.
+  - Invalidation sur `PATCH|PUT` profile/users.
+- **Notifications** (`/api/v1/notifications`)
+  - TTL: **30 secondes**.
+  - Invalidation sur `POST|PATCH|PUT|DELETE`.
+- **Conversations** (`/api/v1/chat/private/conversations`)
+  - TTL: **2 minutes**.
+  - Invalidation sur `POST|PATCH|PUT|DELETE`.
+- **Posts** (`/api/v1/private/blogs`, `/api/v1/blogs`, `/api/v1/private/stories`, `/api/v1/blog/*`)
+  - TTL: **10 minutes**.
+  - Invalidation sur mutations + purge des tags publics `blog:*`.
+- **Events** (`/api/v1/events`)
+  - TTL: **15 minutes**.
+  - Invalidation sur `POST|PATCH|PUT|DELETE`.
+
+### Observabilité cache
+
+- Endpoint admin: `GET /api/admin/cache/stats`
+  - expose **hit rate / miss rate**, **latence Redis moyenne** (read/write/invalidate), **compteurs d'invalidation**, et alertes actives.
+- Logs corrélés:
+  - `requestId` propagé via `x-session-correlation-id`.
+  - événements `cache_hit`, `cache_miss`, `backend_fetch` pour comparer rapidement les chemins de lecture.
+- Alerting:
+  - alerte `*.hit_rate_drop` si le taux de hit passe sous le seuil configuré en runtime.
+  - alerte `redis.unavailable` si lecture/écriture cache échoue.

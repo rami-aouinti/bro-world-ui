@@ -17,6 +17,27 @@ const statisticsApi = useStatisticsApi()
 const loading = ref(true)
 const errorMessage = ref('')
 const dashboardStats = ref<AdminStatisticsResponse | null>(null)
+const cacheStats = ref<CacheStatsResponse | null>(null)
+
+interface CacheResourceStats {
+  resource: string
+  hit: number
+  miss: number
+  hitRate: number
+  missRate: number
+  invalidations: number
+  redisLatencyMs: {
+    read: number
+    write: number
+    invalidate: number
+  }
+}
+
+interface CacheStatsResponse {
+  generatedAt: string
+  resources: CacheResourceStats[]
+  alerts: Array<Record<string, unknown>>
+}
 
 const mockDashboardStats: AdminStatisticsResponse = {
   users: { total: 2841, thisWeek: 64, thisMonth: 218, thisYear: 1430 },
@@ -121,12 +142,26 @@ const growthStats = computed(() => {
   ]
 })
 
+const fetchCacheStats = async () => {
+  try {
+    cacheStats.value = await $fetch<CacheStatsResponse>('/api/admin/cache/stats')
+  }
+  catch {
+    cacheStats.value = null
+  }
+}
+
 const fetchStatistics = async () => {
   loading.value = true
   errorMessage.value = ''
 
   try {
-    dashboardStats.value = await statisticsApi.getAdminStatistics()
+    const [statisticsResponse] = await Promise.all([
+      statisticsApi.getAdminStatistics(),
+      fetchCacheStats(),
+    ])
+
+    dashboardStats.value = statisticsResponse
   }
   catch {
     dashboardStats.value = mockDashboardStats
@@ -255,6 +290,58 @@ onMounted(async () => {
             <v-icon :icon="item.icon" :color="item.color" />
           </div>
           <div class="text-h5 font-weight-bold">{{ item.value }}</div>
+        </UiCard>
+      </v-col>
+    </v-row>
+
+
+    <v-row class="mt-2">
+      <v-col cols="12">
+        <UiCard rounded="lg">
+          <div class="d-flex flex-wrap align-center justify-space-between ga-2 mb-4">
+            <div>
+              <div class="text-h6">Cache observability</div>
+              <p class="text-body-2 text-medium-emphasis mb-0">Hit/miss rates, invalidations, and Redis latency by endpoint family.</p>
+            </div>
+            <v-btn color="primary" variant="text" prepend-icon="mdi-refresh" @click="fetchCacheStats">Refresh cache stats</v-btn>
+          </div>
+
+          <v-alert
+            v-if="cacheStats?.alerts?.length"
+            type="warning"
+            variant="tonal"
+            class="mb-4"
+          >
+            <div class="font-weight-medium">Active cache alerts</div>
+            <ul class="pl-5 mb-0">
+              <li v-for="(alert, index) in cacheStats.alerts" :key="`cache-alert-${index}`">
+                {{ JSON.stringify(alert) }}
+              </li>
+            </ul>
+          </v-alert>
+
+          <v-table density="comfortable">
+            <thead>
+              <tr>
+                <th>Resource</th>
+                <th class="text-right">Hit rate</th>
+                <th class="text-right">Miss rate</th>
+                <th class="text-right">Invalidations</th>
+                <th class="text-right">Redis read (ms)</th>
+                <th class="text-right">Redis write (ms)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="resource in cacheStats?.resources ?? []" :key="resource.resource">
+                <td class="text-capitalize">{{ resource.resource }}</td>
+                <td class="text-right">{{ resource.hitRate.toFixed(2) }}%</td>
+                <td class="text-right">{{ resource.missRate.toFixed(2) }}%</td>
+                <td class="text-right">{{ resource.invalidations }}</td>
+                <td class="text-right">{{ resource.redisLatencyMs.read.toFixed(2) }}</td>
+                <td class="text-right">{{ resource.redisLatencyMs.write.toFixed(2) }}</td>
+              </tr>
+            </tbody>
+          </v-table>
         </UiCard>
       </v-col>
     </v-row>
