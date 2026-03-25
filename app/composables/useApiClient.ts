@@ -17,11 +17,12 @@ const RETRYABLE_NETWORK_ERROR_CODES = new Set([
   'UND_ERR_SOCKET',
   'ABORT_ERR',
 ])
-const RETRYABLE_HTTP_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504])
+const RETRYABLE_HTTP_STATUSES = new Set([502, 503, 504])
 const RETRY_DELAYS_IN_MS = [150, 300]
-const MAX_ATTEMPTS = 3
+const MAX_RETRIES = 2
 const SESSION_REVALIDATION_THROTTLE_WINDOW_MS = 10_000
 const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
+const AUTH_AUTO_RETRY_EXCLUSIONS = ['api/auth/login', 'api/auth/register']
 const inFlightRequests = new Map<string, Promise<unknown>>()
 let lastSessionRevalidationAt = 0
 let activeSessionRevalidation: Promise<void> | null = null
@@ -94,10 +95,6 @@ const isRetryableNetworkError = (error: unknown) => {
 
   const status = networkError.status ?? networkError.response?.status
 
-  if (status && RETRYABLE_HTTP_STATUSES.has(status)) {
-    return true
-  }
-
   if (status) {
     return false
   }
@@ -168,6 +165,8 @@ export const useApiClient = () => {
     const isMutation = MUTATION_METHODS.has(method)
     const canRetryMutation = Boolean(options.idempotencyKey || options.retryUnsafeMutations)
     const canRetry = !isMutation || canRetryMutation
+    const isAutoRetryExcludedPath = AUTH_AUTO_RETRY_EXCLUSIONS.some(path => normalizedUrl.startsWith(path))
+    const maxRetries = canRetry && !isAutoRetryExcludedPath ? MAX_RETRIES : 0
 
     const nextHeaders: Record<string, string> = {
       ...(options.headers as Record<string, string> | undefined),
@@ -196,7 +195,9 @@ export const useApiClient = () => {
 
         let lastError: unknown = null
 
-        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+        let hasRetriedAfter401 = false
+
+        for (let attempt = 1; attempt <= maxRetries + 1; attempt += 1) {
           try {
             const response = await $fetch<T>(`/api/backend/${normalizedUrl}`, {
               ...fetchOptions,
@@ -231,10 +232,17 @@ export const useApiClient = () => {
             const status = (error as { status?: number, response?: { status?: number } })?.status
               ?? (error as { response?: { status?: number } })?.response?.status
             const is401 = status === 401
-            const isRetryableError = isRetryableNetworkError(error)
-            const hasRemainingAttempts = attempt < MAX_ATTEMPTS
+            const isRetryableStatus = status !== undefined && RETRYABLE_HTTP_STATUSES.has(status)
+            const isRetryableError = isRetryableStatus || isRetryableNetworkError(error)
+            const hasRemainingAttempts = attempt <= maxRetries
 
             if (is401) {
+              if (hasRetriedAfter401 || isAutoRetryExcludedPath) {
+                break
+              }
+
+              hasRetriedAfter401 = true
+
               const didRevalidateSession = await revalidateSessionWithGlobalThrottle(auth)
 
               if (didRevalidateSession) {
@@ -247,7 +255,7 @@ export const useApiClient = () => {
                 })
               }
 
-              break
+              continue
             }
 
             if (!(isRetryableError && hasRemainingAttempts && canRetry)) {
