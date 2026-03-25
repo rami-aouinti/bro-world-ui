@@ -1,6 +1,7 @@
+import type { PrivateChatMessage } from '~/types/api/chat'
 import { computed, onBeforeUnmount, watch, type Ref } from 'vue'
-
-type MercureMessageHandler = (payload: unknown) => void
+import { useInboxStore } from '~/stores/inbox'
+import { useNotificationsStore } from '~/stores/notifications'
 
 type MercureConnectionLifecycle = {
   onReconnect?: () => void
@@ -8,7 +9,6 @@ type MercureConnectionLifecycle = {
 
 type SubscriptionEntry = {
   topics: Set<string>
-  handler: MercureMessageHandler
 }
 
 let mercureEventSource: EventSource | null = null
@@ -18,6 +18,50 @@ let mercureHasOpenedAtLeastOnce = false
 let shouldNotifyReconnectOnNextOpen = false
 
 const subscriptions = new Map<number, SubscriptionEntry>()
+const subscriptionLifecycles = new Map<number, MercureConnectionLifecycle>()
+
+const isNotificationPayload = (payload: unknown): payload is {
+  id: string
+  title: string
+  description?: string
+  type: string
+} => {
+  if (!payload || typeof payload !== 'object') {
+    return false
+  }
+
+  const candidate = payload as Record<string, unknown>
+  return typeof candidate.id === 'string'
+    && typeof candidate.title === 'string'
+    && typeof candidate.type === 'string'
+}
+
+const isConversationMessagePayload = (payload: unknown): payload is {
+  id: string
+  conversationId: string
+  senderId: string
+  content: string
+  createdAt?: string
+  attachments?: unknown
+} => {
+  if (!payload || typeof payload !== 'object') {
+    return false
+  }
+
+  const candidate = payload as Record<string, unknown>
+  return typeof candidate.id === 'string'
+    && typeof candidate.conversationId === 'string'
+    && typeof candidate.senderId === 'string'
+    && typeof candidate.content === 'string'
+}
+
+const normalizeAttachments = (attachments: unknown) => {
+  if (!attachments) {
+    return []
+  }
+
+  return Array.isArray(attachments) ? attachments : [attachments]
+}
 
 const getActiveTopics = () => {
   const topics = new Set<string>()
@@ -41,6 +85,76 @@ const closeEventSource = () => {
   shouldNotifyReconnectOnNextOpen = false
 }
 
+const createMessageDispatcher = () => {
+  const authSession = useAuthSessionStore()
+  const { isAuthenticated } = useAuth()
+  const notificationsStore = useNotificationsStore()
+  const inboxStore = useInboxStore()
+
+  const resolveConversationSender = (conversationId: string, senderId: string): PrivateChatMessage['sender'] => {
+    const profile = authSession.profile
+
+    if (profile?.id === senderId) {
+      return {
+        id: profile.id,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        photo: profile.photo,
+        owner: true,
+      }
+    }
+
+    const conversation = inboxStore.conversationsSummary?.items.find(item => item.id === conversationId)
+    const participant = conversation?.participants.find(item => item.user.id === senderId)?.user
+
+    if (participant) {
+      return participant
+    }
+
+    return {
+      id: senderId,
+      firstName: 'Utilisateur',
+      lastName: '',
+      photo: null,
+      owner: false,
+    }
+  }
+
+  return (payload: unknown) => {
+    if (!isAuthenticated.value || !authSession.profile?.id) {
+      return
+    }
+
+    if (isConversationMessagePayload(payload)) {
+      inboxStore.applyIncomingMessage(payload.conversationId, {
+        id: payload.id,
+        content: payload.content,
+        sender: resolveConversationSender(payload.conversationId, payload.senderId),
+        attachments: normalizeAttachments(payload.attachments),
+        read: false,
+        readAt: null,
+        createdAt: payload.createdAt ?? new Date().toISOString(),
+        reactions: [],
+      }, authSession.profile.id)
+      return
+    }
+
+    if (!isNotificationPayload(payload)) {
+      return
+    }
+
+    notificationsStore.prependNotification({
+      id: payload.id,
+      title: payload.title,
+      description: payload.description ?? '',
+      type: payload.type,
+      read: false,
+      createdAt: new Date().toISOString(),
+      from: null,
+    })
+  }
+}
+
 const connectEventSource = () => {
   if (!import.meta.client) {
     return
@@ -61,6 +175,7 @@ const connectEventSource = () => {
 
   closeEventSource()
 
+  const dispatchMessage = createMessageDispatcher()
   const url = new URL(config.public.mercurePublicUrl)
   topics.forEach(topic => url.searchParams.append('topic', topic))
 
@@ -88,13 +203,10 @@ const connectEventSource = () => {
       payload = event.data
     }
 
-    subscriptions.forEach(({ handler }) => {
-      handler(payload)
-    })
+    dispatchMessage(payload)
   }
 
   source.onerror = () => {
-    // Browser EventSource handles automatic reconnection.
     if (mercureHasOpenedAtLeastOnce) {
       shouldNotifyReconnectOnNextOpen = true
     }
@@ -121,18 +233,14 @@ const unregisterTopics = (subscriptionId: number) => {
   connectEventSource()
 }
 
-const subscriptionLifecycles = new Map<number, MercureConnectionLifecycle>()
-
 export const useMercureEventSource = (
   topics: Ref<string[]>,
-  onMessage: MercureMessageHandler,
   lifecycle: MercureConnectionLifecycle = {},
 ) => {
   const subscriptionId = ++nextSubscriptionId
 
   subscriptions.set(subscriptionId, {
     topics: new Set(),
-    handler: onMessage,
   })
   subscriptionLifecycles.set(subscriptionId, lifecycle)
 
