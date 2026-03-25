@@ -8,6 +8,7 @@ const PRIVATE_AUTH_REQUIRED_PATTERNS = [
   'api/v1/blog',
   'api/v1/quiz',
 ]
+const PUBLIC_QUIZ_ENDPOINT_PREFIX = 'api/v1/public/quiz/'
 const PRIVATE_ENDPOINT_PREFIXES = [
   'api/v1/private/',
   'api/v1/users/me',
@@ -48,10 +49,19 @@ const normalizeApiPath = (url: string) => url.replace(/^\/+/, '')
 const isCriticalApiCall = (normalizedUrl: string) => CRITICAL_API_PATTERNS.some(pattern => normalizedUrl.includes(pattern))
 const isPrivateAuthRequiredEndpoint = (normalizedUrl: string) => {
   const lowerNormalizedUrl = normalizedUrl.toLowerCase()
+
+  if (lowerNormalizedUrl.startsWith(PUBLIC_QUIZ_ENDPOINT_PREFIX)) {
+    return false
+  }
+
   return PRIVATE_AUTH_REQUIRED_PATTERNS.some(pattern => lowerNormalizedUrl.includes(pattern))
 }
 const isPrivateEndpoint = (url: string) => {
   const normalizedUrl = normalizeApiPath(url).toLowerCase()
+
+  if (normalizedUrl.startsWith(PUBLIC_QUIZ_ENDPOINT_PREFIX)) {
+    return false
+  }
 
   if (PRIVATE_ENDPOINT_EXACT_MATCHES.has(normalizedUrl)) {
     return true
@@ -266,6 +276,7 @@ export const useApiClient = () => {
     const dedupeKey = buildRequestDedupeKey(method, normalizedUrl, options as ApiFetchOptions<unknown>)
     const existingRequest = inFlightRequests.get(dedupeKey) as Promise<T> | undefined
     const isAuthRequiredEndpoint = isPrivateAuthRequiredEndpoint(normalizedUrl)
+    const isPublicQuizEndpoint = normalizedUrl.toLowerCase().startsWith(PUBLIC_QUIZ_ENDPOINT_PREFIX)
     const canUsePrivateSession = auth.authState.value === 'authenticated' || auth.authState.value === 'degraded'
     const hasAuthenticatedSession = canUsePrivateSession || Boolean(requestAuthorization)
 
@@ -493,6 +504,10 @@ export const useApiClient = () => {
               }
               track401Burst(tracker, normalizedUrl, method)
               recordTop401Endpoint(normalizedUrl, method, authFailureType, auth.sessionCorrelationId.value)
+
+              if (isPublicQuizEndpoint) {
+                break
+              }
 
               if (hasRetriedAfter401 || isAutoRetryExcludedPath) {
                 auth.lastAuthFailureAt.value = now()
