@@ -17,10 +17,14 @@ const RETRYABLE_NETWORK_ERROR_CODES = new Set([
   'UND_ERR_SOCKET',
   'ABORT_ERR',
 ])
+const RETRYABLE_HTTP_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504])
 const RETRY_DELAYS_IN_MS = [150, 300]
 const MAX_ATTEMPTS = 3
+const SESSION_REVALIDATION_THROTTLE_WINDOW_MS = 10_000
 const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 const inFlightRequests = new Map<string, Promise<unknown>>()
+let lastSessionRevalidationAt = 0
+let activeSessionRevalidation: Promise<void> | null = null
 
 const normalizeApiPath = (url: string) => url.replace(/^\/+/, '')
 
@@ -88,7 +92,13 @@ const isRetryableNetworkError = (error: unknown) => {
     message?: string
   }
 
-  if (networkError.status || networkError.response?.status) {
+  const status = networkError.status ?? networkError.response?.status
+
+  if (status && RETRYABLE_HTTP_STATUSES.has(status)) {
+    return true
+  }
+
+  if (status) {
     return false
   }
 
@@ -99,6 +109,35 @@ const isRetryableNetworkError = (error: unknown) => {
   return networkError.name === 'FetchError'
     || networkError.message?.toLowerCase().includes('network')
     || networkError.message?.toLowerCase().includes('failed to fetch')
+}
+
+const revalidateSessionWithGlobalThrottle = async (auth: ReturnType<typeof useAuth>) => {
+  const currentTime = now()
+  const isWithinThrottleWindow = currentTime - lastSessionRevalidationAt < SESSION_REVALIDATION_THROTTLE_WINDOW_MS
+
+  if (isWithinThrottleWindow) {
+    if (activeSessionRevalidation) {
+      await activeSessionRevalidation
+    }
+
+    return false
+  }
+
+  if (!activeSessionRevalidation) {
+    activeSessionRevalidation = (async () => {
+      try {
+        await auth.initSession(true)
+        lastSessionRevalidationAt = now()
+      }
+      finally {
+        activeSessionRevalidation = null
+      }
+    })()
+  }
+
+  await activeSessionRevalidation
+
+  return true
 }
 
 export const useApiClient = () => {
@@ -157,8 +196,6 @@ export const useApiClient = () => {
 
         let lastError: unknown = null
 
-        let didSessionRevalidation = false
-
         for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
           try {
             const response = await $fetch<T>(`/api/backend/${normalizedUrl}`, {
@@ -194,23 +231,27 @@ export const useApiClient = () => {
             const status = (error as { status?: number, response?: { status?: number } })?.status
               ?? (error as { response?: { status?: number } })?.response?.status
             const is401 = status === 401
-            const isRetryableError = is401 || isRetryableNetworkError(error)
+            const isRetryableError = isRetryableNetworkError(error)
             const hasRemainingAttempts = attempt < MAX_ATTEMPTS
 
-            if (!(isRetryableError && hasRemainingAttempts && canRetry)) {
+            if (is401) {
+              const didRevalidateSession = await revalidateSessionWithGlobalThrottle(auth)
+
+              if (didRevalidateSession) {
+                console.info('[auth-correlation]', {
+                  event: 'session.revalidation.confirmed_401',
+                  requestCorrelationId,
+                  sessionCorrelationId: auth.sessionCorrelationId.value,
+                  path: normalizedUrl,
+                  method,
+                })
+              }
+
               break
             }
 
-            if (is401 && !didSessionRevalidation) {
-              didSessionRevalidation = true
-              console.info('[auth-correlation]', {
-                event: 'session.revalidation.confirmed_401',
-                requestCorrelationId,
-                sessionCorrelationId: auth.sessionCorrelationId.value,
-                path: normalizedUrl,
-                method,
-              })
-              await auth.initSession(true)
+            if (!(isRetryableError && hasRemainingAttempts && canRetry)) {
+              break
             }
 
             const delay = RETRY_DELAYS_IN_MS[attempt - 1] ?? RETRY_DELAYS_IN_MS[RETRY_DELAYS_IN_MS.length - 1]
