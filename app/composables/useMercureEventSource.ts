@@ -2,6 +2,10 @@ import { computed, onBeforeUnmount, watch, type Ref } from 'vue'
 
 type MercureMessageHandler = (payload: unknown) => void
 
+type MercureConnectionLifecycle = {
+  onReconnect?: () => void
+}
+
 type SubscriptionEntry = {
   topics: Set<string>
   handler: MercureMessageHandler
@@ -10,6 +14,8 @@ type SubscriptionEntry = {
 let mercureEventSource: EventSource | null = null
 let activeTopicsKey = ''
 let nextSubscriptionId = 0
+let mercureHasOpenedAtLeastOnce = false
+let shouldNotifyReconnectOnNextOpen = false
 
 const subscriptions = new Map<number, SubscriptionEntry>()
 
@@ -31,6 +37,8 @@ const closeEventSource = () => {
   mercureEventSource.close()
   mercureEventSource = null
   activeTopicsKey = ''
+  mercureHasOpenedAtLeastOnce = false
+  shouldNotifyReconnectOnNextOpen = false
 }
 
 const connectEventSource = () => {
@@ -58,6 +66,18 @@ const connectEventSource = () => {
 
   const source = new EventSource(url.toString(), { withCredentials: false })
 
+  source.onopen = () => {
+    if (mercureHasOpenedAtLeastOnce && shouldNotifyReconnectOnNextOpen) {
+      subscriptions.forEach((_entry, id) => {
+        const lifecycle = subscriptionLifecycles.get(id)
+        lifecycle?.onReconnect?.()
+      })
+      shouldNotifyReconnectOnNextOpen = false
+    }
+
+    mercureHasOpenedAtLeastOnce = true
+  }
+
   source.onmessage = (event) => {
     let payload: unknown = event.data
 
@@ -75,6 +95,9 @@ const connectEventSource = () => {
 
   source.onerror = () => {
     // Browser EventSource handles automatic reconnection.
+    if (mercureHasOpenedAtLeastOnce) {
+      shouldNotifyReconnectOnNextOpen = true
+    }
   }
 
   mercureEventSource = source
@@ -94,16 +117,24 @@ const registerTopics = (subscriptionId: number, topics: string[]) => {
 
 const unregisterTopics = (subscriptionId: number) => {
   subscriptions.delete(subscriptionId)
+  subscriptionLifecycles.delete(subscriptionId)
   connectEventSource()
 }
 
-export const useMercureEventSource = (topics: Ref<string[]>, onMessage: MercureMessageHandler) => {
+const subscriptionLifecycles = new Map<number, MercureConnectionLifecycle>()
+
+export const useMercureEventSource = (
+  topics: Ref<string[]>,
+  onMessage: MercureMessageHandler,
+  lifecycle: MercureConnectionLifecycle = {},
+) => {
   const subscriptionId = ++nextSubscriptionId
 
   subscriptions.set(subscriptionId, {
     topics: new Set(),
     handler: onMessage,
   })
+  subscriptionLifecycles.set(subscriptionId, lifecycle)
 
   const deduplicatedTopics = computed(() => [...new Set(topics.value.filter(Boolean))])
 

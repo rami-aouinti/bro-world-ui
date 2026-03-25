@@ -1,11 +1,13 @@
 import type { PrivateChatMessage } from '~/types/api/chat'
 import { useMercureEventSource } from '~/composables/useMercureEventSource'
+import { useRealtimeBootstrap } from '~/composables/useRealtimeBootstrap'
 import { useInboxStore } from '~/stores/inbox'
 import { useNotificationsStore } from '~/stores/notifications'
 
 export const useMercureOrchestrator = () => {
   const authSession = useAuthSessionStore()
   const { isAuthenticated } = useAuth()
+  const { resyncAfterMercureReconnect } = useRealtimeBootstrap()
   const notificationsStore = useNotificationsStore()
   const inboxStore = useInboxStore()
 
@@ -94,37 +96,49 @@ export const useMercureOrchestrator = () => {
     return Array.isArray(attachments) ? attachments : [attachments]
   }
 
-  useMercureEventSource(mercureTopics, (payload) => {
-    if (!isAuthenticated.value || !authSession.profile?.id) {
-      return
-    }
+  useMercureEventSource(
+    mercureTopics,
+    (payload) => {
+      if (!isAuthenticated.value || !authSession.profile?.id) {
+        return
+      }
 
-    if (isConversationMessagePayload(payload)) {
-      inboxStore.applyIncomingMessage(payload.conversationId, {
+      if (isConversationMessagePayload(payload)) {
+        inboxStore.applyIncomingMessage(payload.conversationId, {
+          id: payload.id,
+          content: payload.content,
+          sender: resolveConversationSender(payload.conversationId, payload.senderId),
+          attachments: normalizeAttachments(payload.attachments),
+          read: false,
+          readAt: null,
+          createdAt: payload.createdAt ?? new Date().toISOString(),
+          reactions: [],
+        }, authSession.profile.id)
+        return
+      }
+
+      if (!isNotificationPayload(payload)) {
+        return
+      }
+
+      notificationsStore.prependNotification({
         id: payload.id,
-        content: payload.content,
-        sender: resolveConversationSender(payload.conversationId, payload.senderId),
-        attachments: normalizeAttachments(payload.attachments),
+        title: payload.title,
+        description: payload.description ?? '',
+        type: payload.type,
         read: false,
-        readAt: null,
-        createdAt: payload.createdAt ?? new Date().toISOString(),
-        reactions: [],
-      }, authSession.profile.id)
-      return
-    }
+        createdAt: new Date().toISOString(),
+        from: null,
+      })
+    },
+    {
+      onReconnect: () => {
+        if (!isAuthenticated.value || !authSession.profile?.id) {
+          return
+        }
 
-    if (!isNotificationPayload(payload)) {
-      return
-    }
-
-    notificationsStore.prependNotification({
-      id: payload.id,
-      title: payload.title,
-      description: payload.description ?? '',
-      type: payload.type,
-      read: false,
-      createdAt: new Date().toISOString(),
-      from: null,
-    })
-  })
+        void resyncAfterMercureReconnect()
+      },
+    },
+  )
 }
