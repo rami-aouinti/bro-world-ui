@@ -57,8 +57,10 @@ const roadmapAnnouncements: MockAnnouncement[] = [
 
 const isLoading = ref(false)
 const errorMessage = ref('')
+const errorRequestId = ref<string | null>(null)
 const blogsStore = useBlogsStore()
 const { initSession, isAuthenticated, authState } = useAuth()
+const { resolveSensitiveError, isDebugMode } = useSensitivePageFeedback()
 
 const blog = computed(() => blogsStore.general)
 const blogPagination = computed(() => blogsStore.generalPagination)
@@ -130,13 +132,20 @@ const loadBlogs = async () => {
   try {
     isLoading.value = true
     errorMessage.value = ''
+    errorRequestId.value = null
     await initSession()
 
     const isPublicFeed = !isPrivateSessionReady()
     await blogsStore.fetchGeneral(false, isPublicFeed, { page: 1, limit: 5, append: false })
   } catch (error) {
-    console.error(error)
-    errorMessage.value = 'Impossible de charger le blog.'
+    const resolved = resolveSensitiveError(error, {
+      authState: authState.value,
+      domain: 'blogPage',
+      action: 'load',
+      fallbackKey: 'errors.server',
+    })
+    errorMessage.value = resolved.message
+    errorRequestId.value = resolved.requestId
   } finally {
     isLoading.value = false
   }
@@ -175,7 +184,10 @@ watch([infiniteSentinel, hasMorePosts], async () => {
 
     <main>
       <UiSkeletonCardGrid :cards="5" :columns="12" v-if="isLoading" />
-      <v-alert v-else-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
+      <v-alert v-else-if="errorMessage" type="error" variant="tonal" class="mb-4">
+        {{ errorMessage }}
+        <div v-if="isDebugMode && errorRequestId" class="text-caption mt-1">requestId: {{ errorRequestId }}</div>
+      </v-alert>
       <BlogFeed v-else-if="blog" :blog="blog" :show-summary="false" :can-interact="isAuthenticated" />
 
       <div v-if="blog && hasMorePosts" ref="infiniteSentinel" class="infinite-sentinel py-4">
