@@ -14,6 +14,7 @@ describe('useApiClient', () => {
     vi.stubGlobal('useAuthSessionStore', vi.fn(() => ({ token: 'abc123' })))
     vi.stubGlobal('useRequestHeaders', vi.fn(() => ({ authorization: 'Bearer server' })))
     vi.stubGlobal('useTracker', vi.fn(() => ({ trackLatency, trackError })))
+    vi.stubGlobal('useAuth', vi.fn(() => ({ isAuthenticated: { value: false }, sessionCorrelationId: { value: null }, initSession: vi.fn() })))
 
     const { useApiClient } = await import('~/app/composables/useApiClient')
     const { apiFetch } = useApiClient()
@@ -37,6 +38,7 @@ describe('useApiClient', () => {
     vi.stubGlobal('useAuthSessionStore', vi.fn(() => ({ token: '__server_session__' })))
     vi.stubGlobal('useRequestHeaders', vi.fn(() => ({ authorization: 'Bearer server' })))
     vi.stubGlobal('useTracker', vi.fn(() => ({ trackLatency, trackError: vi.fn() })))
+    vi.stubGlobal('useAuth', vi.fn(() => ({ isAuthenticated: { value: false }, sessionCorrelationId: { value: null }, initSession: vi.fn() })))
 
     const { useApiClient } = await import('~/app/composables/useApiClient')
     const { apiFetch } = useApiClient()
@@ -51,6 +53,55 @@ describe('useApiClient', () => {
     expect(trackLatency).not.toHaveBeenCalled()
   })
 
+
+
+  it('déclenche une revalidation de session sur 401 backend', async () => {
+    const fetchMock = vi.fn()
+      .mockRejectedValueOnce({ status: 401 })
+      .mockResolvedValueOnce({ ok: true })
+    const initSession = vi.fn(async () => {})
+
+    vi.stubGlobal('$fetch', fetchMock)
+    vi.stubGlobal('useAuthSessionStore', vi.fn(() => ({ token: 'abc123' })))
+    vi.stubGlobal('useRequestHeaders', vi.fn(() => ({ authorization: '' })))
+    vi.stubGlobal('useTracker', vi.fn(() => ({ trackLatency: vi.fn(), trackError: vi.fn(), track: vi.fn() })))
+    vi.stubGlobal('useAuth', vi.fn(() => ({
+      isAuthenticated: { value: true },
+      sessionCorrelationId: { value: 'corr-1' },
+      initSession,
+    })))
+
+    const { useApiClient } = await import('~/app/composables/useApiClient')
+    const { apiFetch } = useApiClient()
+
+    const result = await apiFetch('/api/v1/private/stories', { method: 'GET' })
+
+    expect(result).toEqual({ ok: true })
+    expect(initSession).toHaveBeenCalledWith(true)
+    expect(initSession).toHaveBeenCalledTimes(1)
+  })
+
+  it('ne revalide pas la session sur erreur transitoire 5xx (stories/endpoints privés)', async () => {
+    const fetchMock = vi.fn().mockRejectedValue({ status: 503 })
+    const initSession = vi.fn(async () => {})
+
+    vi.stubGlobal('$fetch', fetchMock)
+    vi.stubGlobal('useAuthSessionStore', vi.fn(() => ({ token: 'abc123' })))
+    vi.stubGlobal('useRequestHeaders', vi.fn(() => ({ authorization: '' })))
+    vi.stubGlobal('useTracker', vi.fn(() => ({ trackLatency: vi.fn(), trackError: vi.fn(), track: vi.fn() })))
+    vi.stubGlobal('useAuth', vi.fn(() => ({
+      isAuthenticated: { value: true },
+      sessionCorrelationId: { value: 'corr-1' },
+      initSession,
+    })))
+
+    const { useApiClient } = await import('~/app/composables/useApiClient')
+    const { apiFetch } = useApiClient()
+
+    await expect(apiFetch('/api/v1/private/stories', { method: 'GET' })).rejects.toEqual({ status: 503 })
+    expect(initSession).not.toHaveBeenCalled()
+  })
+
   it('mesure la latence sur un endpoint critique', async () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true })
     const trackLatency = vi.fn()
@@ -58,6 +109,7 @@ describe('useApiClient', () => {
     vi.stubGlobal('useAuthSessionStore', vi.fn(() => ({ token: 'abc123' })))
     vi.stubGlobal('useRequestHeaders', vi.fn(() => ({ authorization: '' })))
     vi.stubGlobal('useTracker', vi.fn(() => ({ trackLatency, trackError: vi.fn() })))
+    vi.stubGlobal('useAuth', vi.fn(() => ({ isAuthenticated: { value: false }, sessionCorrelationId: { value: null }, initSession: vi.fn() })))
 
     const { useApiClient } = await import('~/app/composables/useApiClient')
     const { apiFetch } = useApiClient()
