@@ -130,17 +130,24 @@ export type UserMeProfilePayload = Partial<UserMeProfileDetails & {
   email: string
 }>
 
+export type SessionStatus = 'healthy' | 'degraded' | 'invalid'
+
 export interface SessionResponse {
   authenticated: boolean
   profile: UserProfile | null
   roles: string[]
   locale: string | null
   /**
-   * `healthy`: cookie + backend token validation succeeded.
-   * `degraded`: local session kept while backend validation is temporarily unavailable (5xx/timeout).
-   * `invalid`: no valid local session (missing cookie or backend returned 401/403).
+   * Source d'autorité: `/api/v1/users/me`.
+   * - `healthy`: validation backend confirmée et profil auth chargé depuis `/api/v1/users/me`.
+   * - `degraded`: session locale conservée quand le backend est indisponible (5xx/timeout), sans logout.
+   * - `invalid`: session invalide confirmée uniquement après 401/403 backend.
+   *
+   * Politique d'exploitation:
+   * - logout uniquement sur `invalid` issu d'un 401/403 backend confirmé.
+   * - ne jamais invalider la session sur erreur backend 5xx/transitoire.
    */
-  sessionStatus?: 'healthy' | 'degraded' | 'invalid'
+  sessionStatus?: SessionStatus
   expiresAt?: string
 }
 
