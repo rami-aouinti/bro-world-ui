@@ -12,6 +12,7 @@ type NotificationPreferencesResponse = {
 }
 
 const { apiFetch } = useApiClient()
+const { initSession, authState } = useAuth()
 const { normalizeError } = useApiError()
 const { $errorLogger } = useNuxtApp()
 const isLoading = ref(true)
@@ -26,6 +27,13 @@ const loadPreferences = async () => {
   isLoading.value = true
 
   try {
+    await initSession()
+
+    const canCallPrivateEndpoint = authState.value === 'authenticated' || authState.value === 'degraded'
+    if (!canCallPrivateEndpoint) {
+      preferences.value = []
+      return
+    }
     const response = await apiFetch<NotificationPreferencesResponse>('/api/v1/profile/configuration/user.notifications.preferences', {
       method: 'GET',
     })
