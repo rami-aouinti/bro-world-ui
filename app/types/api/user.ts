@@ -130,6 +130,12 @@ export interface SessionResponse {
   profile: UserProfile | null
   roles: string[]
   locale: string | null
+  /**
+   * `healthy`: cookie + backend token validation succeeded.
+   * `degraded`: local session kept while backend validation is temporarily unavailable (5xx/timeout).
+   * `invalid`: no valid local session (missing cookie or backend returned 401/403).
+   */
+  sessionStatus?: 'healthy' | 'degraded' | 'invalid'
   expiresAt?: string
 }
 
