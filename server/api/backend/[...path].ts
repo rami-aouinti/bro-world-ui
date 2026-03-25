@@ -23,6 +23,7 @@ const PUBLIC_BACKEND_PATHS = new Set([
   '/api/v1/page/public/contact/fr',
   '/api/v1/page/public/faq/en',
   '/api/v1/page/public/faq/fr',
+  '/api/v1/public/quiz/general/leaderboard',
 ])
 
 const PUBLIC_BACKEND_PATH_PREFIXES = [
@@ -761,7 +762,9 @@ export default defineEventHandler(async (event) => {
 
   const tokenFromAuthorizationHeader = normalizeBearerToken(getHeader(event, 'authorization'))
   let bearerToken: string | undefined = tokenFromAuthorizationHeader
-  let authCookiePayload = await readAuthCookie(event) || undefined
+  let authCookiePayload = !isPublicRoute
+    ? await readAuthCookie(event) || undefined
+    : undefined
   const authState = bearerToken
     ? 'authorization_header'
     : (authCookiePayload ? 'cookie' : 'missing')
