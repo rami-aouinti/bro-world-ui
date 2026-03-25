@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import ProfileSidebarCard from '~/components/profile/ProfileSidebarCard.vue'
+import { useAuthSessionStore } from '~/stores/authSession'
 import { useCurrentUserStore } from '~/stores/currentUser'
 import { useFriendsStore } from '~/stores/friends'
 import type { UserApplication, UserFriendRead, UserMeRead } from '~/types/api/user'
@@ -11,6 +12,7 @@ definePageMeta({
 })
 
 const currentUser = useCurrentUserStore()
+const authSession = useAuthSessionStore()
 const { t } = useI18n()
 const { normalizeError } = useApiError()
 const { $errorLogger } = useNuxtApp()
@@ -22,6 +24,7 @@ const loadError = ref('')
 const actionError = ref('')
 const pendingActionKey = ref('')
 const isLoading = ref(true)
+const isProfileTemporarilyUnavailable = ref(false)
 
 
 const profileStats = computed(() => {
@@ -84,6 +87,7 @@ const fakeActivityTimeline = [
 ]
 
 const latestApplicationsCount = computed(() => latestApplications.value.length)
+const hasDegradedSession = computed(() => authSession.sessionStatus === 'degraded' || currentUser.isDegraded)
 
 const applicationStatusColor = (status: string) => {
   switch (status) {
@@ -102,9 +106,13 @@ const friendDisplayName = (friend: UserFriendRead) => `${friend.firstName} ${fri
 
 const loadData = async () => {
   loadError.value = ''
+  isProfileTemporarilyUnavailable.value = false
   isLoading.value = true
   try {
-    profile.value = await currentUser.fetchMe(true)
+    const me = await currentUser.fetchMe(true)
+    if (me) {
+      profile.value = me
+    }
     const [friendsResult, latestApplicationsResult] = await Promise.all([
       friendsStore.fetchAll(false),
       currentUser.fetchMyLatestApplications(),
@@ -124,6 +132,20 @@ const loadData = async () => {
       action: 'loadData',
       status: normalized.status,
     })
+
+    if (normalized.status !== null && normalized.status >= 500) {
+      isProfileTemporarilyUnavailable.value = true
+      if (!profile.value && currentUser.me) {
+        profile.value = currentUser.me
+      }
+      return
+    }
+
+    if (normalized.status === 401 || normalized.status === 403) {
+      loadError.value = normalized.message
+      return
+    }
+
     loadError.value = normalized.message
   }
   finally {
@@ -239,6 +261,14 @@ onMounted(async () => {
       </template>
 
       <template v-else>
+      <v-alert
+        v-if="isProfileTemporarilyUnavailable"
+        type="warning"
+        variant="tonal"
+        class="mb-4"
+      >
+        profil temporairement indisponible
+      </v-alert>
       <v-alert v-if="loadError" type="error" variant="tonal" class="mb-4">{{ loadError }}</v-alert>
       <v-alert v-if="actionError" type="error" variant="tonal" class="mb-4">{{ actionError }}</v-alert>
 
@@ -260,7 +290,17 @@ onMounted(async () => {
         <v-col cols="12">
           <v-card class="h-100 pa-3" variant="outlined" elevation="2" rounded="xl">
             <div class="d-flex align-center justify-space-between mb-2">
-              <h6 class="text-h6 font-weight-bold mb-0">Latest applications ({{ latestApplicationsCount }})</h6>
+              <div class="d-flex align-center ga-2">
+                <h6 class="text-h6 font-weight-bold mb-0">Latest applications ({{ latestApplicationsCount }})</h6>
+                <v-chip
+                  v-if="hasDegradedSession"
+                  size="small"
+                  color="warning"
+                  variant="tonal"
+                >
+                  Session dégradée
+                </v-chip>
+              </div>
               <v-btn size="small" variant="text" to="/profile/applications">See all</v-btn>
             </div>
             <v-list v-if="latestApplicationsCount" class="pa-0 bg-transparent">
