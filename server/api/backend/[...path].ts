@@ -1,7 +1,7 @@
 import { readAuthCookie, setAuthCookie } from '~~/server/utils/authCookie'
 import { getRedisClient } from '~~/server/utils/redis'
 import { buildCacheKey, buildCacheScanPattern, buildCacheScopePrefix, buildQueryHash, toPathResourceIdentifier } from '~~/server/utils/cacheKeyBuilder'
-import { createHash } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import { buildFunctionalQuerySegment, getPrivateResourceIdentifier, isPrivateCacheRoute } from '~~/server/utils/privateCacheKey'
 
 const PUBLIC_BACKEND_PATHS = new Set([
@@ -618,9 +618,10 @@ const getResourceInvalidationActions = (targetPath: string, method: string) => {
   return actions
 }
 
-const buildForwardHeaders = (event: any): Record<string, string> => {
+const buildForwardHeaders = (event: any, requestCorrelationId: string): Record<string, string> => {
   const headers: Record<string, string> = {
     accept: getHeader(event, 'accept') || 'application/json',
+    'x-session-correlation-id': requestCorrelationId,
   }
 
   const contentType = getHeader(event, 'content-type')
@@ -631,11 +632,6 @@ const buildForwardHeaders = (event: any): Record<string, string> => {
   const contentLength = getHeader(event, 'content-length')
   if (contentLength) {
     headers['content-length'] = contentLength
-  }
-
-  const sessionCorrelationId = getHeader(event, 'x-session-correlation-id')
-  if (sessionCorrelationId) {
-    headers['x-session-correlation-id'] = sessionCorrelationId
   }
 
   return headers
@@ -663,7 +659,7 @@ const logApiTelemetry = (
 const recordTop401Endpoints = (
   targetPath: string,
   method: string,
-  source: 'backend_401',
+  source: 'local_401' | 'backend_401',
   sessionCorrelationId: string | null,
 ) => {
   const key = `${method} ${targetPath} [${source}]`
@@ -735,7 +731,9 @@ const handleBackendError = (
       data: {
         ...(error?.data || {}),
         source: 'backend',
+        errorSource: 'backend',
         telemetryCategory: 'backend_401',
+        sessionCorrelationId: context.sessionCorrelationId,
       },
     })
   }
@@ -755,7 +753,9 @@ export default defineEventHandler(async (event) => {
 
   const path = getRouterParam(event, 'path') || ''
   const targetPath = `/${path}`
-  const sessionCorrelationId = getHeader(event, 'x-session-correlation-id') || null
+  const requestCorrelationId = getHeader(event, 'x-session-correlation-id') || randomUUID()
+  const sessionCorrelationId = requestCorrelationId
+  setHeader(event, 'x-session-correlation-id', requestCorrelationId)
   const isPublicRoute = PUBLIC_BACKEND_PATHS.has(targetPath)
     || PUBLIC_BACKEND_PATH_PREFIXES.some(prefix => targetPath.startsWith(prefix))
   const isPrivate = !isPublicRoute
@@ -770,27 +770,30 @@ export default defineEventHandler(async (event) => {
     : (authCookiePayload ? 'cookie' : 'missing')
 
   if (!isPublicRoute && !bearerToken && !authCookiePayload) {
+    recordTop401Endpoints(targetPath, getMethod(event), 'local_401', sessionCorrelationId)
     logApiTelemetry('warn', {
-      event: 'api.blocked.auth_not_ready',
+      event: 'api.error.401.local',
       path: targetPath,
       isPrivate,
       authState,
       method: getMethod(event),
       attempt: 1,
-      responseStatus: 500,
-      errorSource: 'gateway',
+      responseStatus: 401,
+      errorSource: 'local',
       hasAuthCookie: false,
       hasBearerToken: false,
       errorType: 'gateway_auth_not_ready',
       sessionCorrelationId,
     })
     throw createError({
-      statusCode: 500,
+      statusCode: 401,
       statusMessage: 'AUTH_NOT_READY',
       data: {
         code: 'SESSION_MISSING',
+        errorSource: 'local',
         source: 'gateway',
         telemetryCategory: 'gateway_auth_not_ready',
+        sessionCorrelationId,
       },
     })
   }
@@ -855,7 +858,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const headers = buildForwardHeaders(event)
+    const headers = buildForwardHeaders(event, requestCorrelationId)
 
     if (bearerToken) {
       headers.Authorization = `Bearer ${bearerToken}`
