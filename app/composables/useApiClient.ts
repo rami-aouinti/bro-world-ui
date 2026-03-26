@@ -98,6 +98,7 @@ export class NormalizedApiClientError extends Error {
 type ApiFetchOptions<T> = Parameters<typeof $fetch<T>>[1] & {
   retryUnsafeMutations?: boolean
   idempotencyKey?: string
+  skipAuthHeader?: boolean
 }
 
 const resolveMethod = (method: string | undefined) => (method || 'GET').toUpperCase()
@@ -455,11 +456,11 @@ export const useApiClient = () => {
       ...(options.headers as Record<string, string> | undefined),
     }
 
-    if (!nextHeaders.Authorization && hasBearerToken) {
+    if (!options.skipAuthHeader && !nextHeaders.Authorization && hasBearerToken) {
       nextHeaders.Authorization = `Bearer ${token}`
     }
 
-    if (!nextHeaders.Authorization && requestAuthorization) {
+    if (!options.skipAuthHeader && !nextHeaders.Authorization && requestAuthorization) {
       nextHeaders.Authorization = requestAuthorization
     }
 
@@ -479,6 +480,7 @@ export const useApiClient = () => {
         }
         delete fetchOptions.retryUnsafeMutations
         delete fetchOptions.idempotencyKey
+        delete fetchOptions.skipAuthHeader
 
         let lastError: unknown = null
 
