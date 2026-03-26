@@ -36,12 +36,30 @@ const { data: quiz, pending, error, execute: loadQuiz } = useAsyncData(
   'general-quiz',
   async () => {
     await initSession()
-    const allowPrivateQuiz = authState.value === 'authenticated' || authState.value === 'degraded'
-
-    return quizApi.getGeneralQuiz(allowPrivateQuiz, {
+    const filters = {
       level: selectedLevel.value,
       category: selectedCategory.value,
-    })
+    }
+    const allowPrivateQuiz = authState.value === 'authenticated' || authState.value === 'degraded'
+
+    if (!allowPrivateQuiz) {
+      return quizApi.getGeneralQuiz(false, filters)
+    }
+
+    try {
+      return await quizApi.getGeneralQuiz(true, filters)
+    }
+    catch (privateQuizError: unknown) {
+      const statusCode = typeof privateQuizError === 'object' && privateQuizError !== null
+        ? Number((privateQuizError as { statusCode?: number, status?: number }).statusCode ?? (privateQuizError as { status?: number }).status)
+        : NaN
+
+      if (statusCode === 401 || statusCode === 403) {
+        return quizApi.getGeneralQuiz(false, filters)
+      }
+
+      throw privateQuizError
+    }
   },
   {
     watch: [authState, selectedLevel, selectedCategory],
@@ -165,14 +183,14 @@ const resolveRankIcon = (rank: number) => {
 
 const resolveRankColor = (rank: number) => {
   if (rank === 1) {
-    return 'warning'
+    return 'primary'
   }
 
   if (rank === 2) {
-    return 'grey'
+    return 'info'
   }
 
-  return 'deep-orange'
+  return 'success'
 }
 
 const stopTimer = () => {
@@ -472,14 +490,14 @@ onBeforeUnmount(() => {
             variant="text"
         >
           <div class="d-flex align-center ga-2">
-            <v-chip size="small" variant="flat" :color="resolveRankColor(index + 1)">
+            <v-chip size="small" variant="tonal" :color="resolveRankColor(index + 1)" class="leaderboard-rank-chip">
               <v-icon start :icon="resolveRankIcon(index + 1)" />
               #{{ index + 1 }}
             </v-chip>
             <v-avatar :image="entry.photo || undefined" size="24" />
             <p class="text-body-2 font-weight-medium text-truncate">{{ entry.firstName }} {{ entry.lastName }}</p>
 
-            <p class="text-caption text-medium-emphasis text-end">{{ entry.averageWeightedScore.toFixed(2) }} pts</p>
+            <p class="text-caption leaderboard-score text-end">{{ entry.averageWeightedScore.toFixed(2) }} pts</p>
 
           </div>
         </v-sheet>
@@ -655,6 +673,14 @@ onBeforeUnmount(() => {
 .leaderboard-item:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.leaderboard-rank-chip {
+  font-weight: 700;
+}
+
+.leaderboard-score {
+  color: rgba(var(--v-theme-on-surface), 0.9);
 }
 
 .answer-card {

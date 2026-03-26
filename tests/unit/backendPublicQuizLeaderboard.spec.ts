@@ -32,7 +32,7 @@ vi.mock('~~/server/utils/privateCacheKey', () => ({
   isPrivateCacheRoute: vi.fn(() => false),
 }))
 
-describe('backend proxy - public quiz leaderboard', () => {
+describe('backend proxy - public quiz routes', () => {
   beforeEach(() => {
     vi.resetModules()
     vi.clearAllMocks()
@@ -40,8 +40,9 @@ describe('backend proxy - public quiz leaderboard', () => {
     ;(globalThis as any).useRuntimeConfig = () => ({
       public: { apiBase: 'http://api.example.test' },
     })
-    ;(globalThis as any).getRouterParam = () => 'api/v1/public/quiz/general/leaderboard'
+    ;(globalThis as any).getRouterParam = vi.fn(() => 'api/v1/public/quiz/general/leaderboard')
     ;(globalThis as any).getHeader = () => undefined
+    ;(globalThis as any).setHeader = vi.fn()
     ;(globalThis as any).getMethod = () => 'GET'
     ;(globalThis as any).getQuery = () => ({})
     ;(globalThis as any).readBody = vi.fn()
@@ -50,7 +51,13 @@ describe('backend proxy - public quiz leaderboard', () => {
     ;(globalThis as any).$fetch = fetchMock
   })
 
-  it('n’exige pas de cookie/token local et ne force pas Authorization', async () => {
+  it.each([
+    'api/v1/public/quiz/general',
+    'api/v1/public/quiz/general/categories',
+    'api/v1/public/quiz/general/levels',
+    'api/v1/public/quiz/general/leaderboard',
+  ])('n’exige pas de cookie/token local ni Authorization pour %s', async (publicPath) => {
+    ;(globalThis as any).getRouterParam = vi.fn(() => publicPath)
     const handlerModule = await import('~/server/api/backend/[...path].ts')
     const handler = handlerModule.default
 
