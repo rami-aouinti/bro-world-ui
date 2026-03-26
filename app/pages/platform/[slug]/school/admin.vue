@@ -4,7 +4,7 @@ import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import { schoolClasses } from '~/data/platform-demo'
 import { getSchoolNav } from '~/data/platform-nav'
 
-definePageMeta({ public: true, requiresAuth: false })
+definePageMeta({ public: true, requiresAuth: false, requiresPlatformAdmin: true, platformDomain: 'school' })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const page = computed(() => route.path.split('/').pop() || 'home')

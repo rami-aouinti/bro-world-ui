@@ -6,7 +6,7 @@ import { getShopNav } from '~/data/platform-nav'
 import UiEmptyState from '~/components/ui/state/UiEmptyState.vue'
 import UiStateAlert from '~/components/ui/state/UiStateAlert.vue'
 
-definePageMeta({ public: true, requiresAuth: false })
+definePageMeta({ public: true, requiresAuth: false, requiresPlatformAdmin: true, platformDomain: 'shop' })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const page = computed(() => route.path.split('/').pop() || 'home')
