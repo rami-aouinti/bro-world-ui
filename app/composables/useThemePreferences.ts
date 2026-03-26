@@ -35,7 +35,10 @@ export const useThemePreferences = () => {
   }
 
   const bootstrapPreference = defaultThemePreference
-  theme.change(buildThemeName(bootstrapPreference))
+  const bootstrapThemeName = buildThemeName(bootstrapPreference)
+  if (theme.global.name.value !== bootstrapThemeName) {
+    theme.global.name.value = bootstrapThemeName
+  }
   const preference = ref<ThemePreference>(bootstrapPreference)
 
   const ensureThemeIsRegistered = (next: ThemePreference) => {
@@ -66,7 +69,7 @@ export const useThemePreferences = () => {
   const applyThemePreference = (next: ThemePreference) => {
     ensureThemeIsRegistered(next)
     preference.value = next
-    theme.change(buildThemeName(next))
+    theme.global.name.value = buildThemeName(next)
     if (!import.meta.client) {
       return
     }
