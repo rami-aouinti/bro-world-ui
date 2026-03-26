@@ -177,9 +177,9 @@ watch(locale, loadPageContent)
         </v-chip>
 
         <h1 class="text-h4 text-md-h3 font-weight-bold mb-2">{{ aboutPagePayload.hero.title }}</h1>
-        <p class="text-body-1 text-medium-emphasis mb-4">{{ aboutPagePayload.hero.subtitle }}</p>
+        <p class="text-body-1 about-text-secondary mb-4">{{ aboutPagePayload.hero.subtitle }}</p>
 
-        <p v-for="paragraph in aboutPagePayload.hero.paragraphs" :key="paragraph" class="text-body-2 text-medium-emphasis mb-3">
+        <p v-for="paragraph in aboutPagePayload.hero.paragraphs" :key="paragraph" class="text-body-2 about-text-secondary mb-3">
           {{ paragraph }}
         </p>
 
@@ -202,7 +202,7 @@ watch(locale, loadPageContent)
             <h2 class="text-h6">{{ card.title }}</h2>
           </div>
           <p class="text-body-2 mb-3">{{ card.description }}</p>
-          <p v-for="paragraph in card.paragraphs" :key="`${card.title}-${paragraph}`" class="text-body-2 text-medium-emphasis mb-2">
+          <p v-for="paragraph in card.paragraphs" :key="`${card.title}-${paragraph}`" class="text-body-2 about-text-secondary mb-2">
             {{ paragraph }}
           </p>
           <ul class="text-body-2 ps-5 mb-0">
@@ -222,7 +222,7 @@ watch(locale, loadPageContent)
               <div>
                 <div class="about-metric-card__value">{{ metric.value }}</div>
                 <div class="about-metric-card__label">{{ metric.label }}</div>
-                <div class="text-caption text-medium-emphasis">{{ metric.context }}</div>
+                <div class="text-caption about-text-secondary">{{ metric.context }}</div>
               </div>
             </div>
           </div>
@@ -242,7 +242,7 @@ watch(locale, loadPageContent)
             size="small"
           >
             <v-card class="about-timeline-card" rounded="lg" hover>
-              <p class="text-caption text-medium-emphasis mb-1">{{ entry.period }}</p>
+              <p class="text-caption about-text-secondary mb-1">{{ entry.period }}</p>
               <p class="text-subtitle-1 font-weight-medium mb-2">{{ entry.title }}</p>
               <p class="text-body-2 mb-2">{{ entry.description }}</p>
               <ul class="text-body-2 ps-5 mb-0">
@@ -257,7 +257,7 @@ watch(locale, loadPageContent)
     <v-fade-transition>
       <v-card class="about-section about-section--cta mt-6" rounded="xl" variant="tonal">
         <h2 class="text-h6 mb-2">{{ aboutPagePayload.cta.title }}</h2>
-        <p class="text-body-2 text-medium-emphasis mb-4">{{ aboutPagePayload.cta.description }}</p>
+        <p class="text-body-2 about-text-secondary mb-4">{{ aboutPagePayload.cta.description }}</p>
         <div class="about-cta-actions">
           <v-btn class="about-cta-actions__btn" color="primary">{{ aboutPagePayload.cta.primaryAction }}</v-btn>
           <v-btn class="about-cta-actions__btn" variant="outlined">{{ aboutPagePayload.cta.secondaryAction }}</v-btn>
@@ -276,5 +276,9 @@ watch(locale, loadPageContent)
 }
 .about-page {
   padding: 3.5rem;
+}
+
+.about-text-secondary {
+  color: rgb(var(--v-theme-on-surface));
 }
 </style>
