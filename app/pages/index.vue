@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import UiCard from '~/components/ui/UiCard.vue'
-import HomeSecondarySections from '~/components/marketing/home/HomeSecondarySections.server.vue'
+import { defineAsyncComponent, computed, nextTick, onMounted, ref } from 'vue'
 import { usePublicPagesStore } from '~/stores/publicPages'
-import { computed } from 'vue'
+
+const HomeSecondarySections = defineAsyncComponent(() => import('~/components/marketing/home/HomeSecondarySections.vue'))
 
 definePageMeta({
   public: true,
@@ -23,6 +24,20 @@ const { data, pending, refresh } = await useAsyncData(
 )
 const homePagePayload = computed(() => data.value)
 const showNavigationSkeleton = computed(() => pending.value && Boolean(data.value))
+const showSecondarySections = ref(false)
+
+onMounted(async () => {
+  await nextTick()
+  if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+    window.requestIdleCallback(() => {
+      showSecondarySections.value = true
+    })
+    return
+  }
+
+  showSecondarySections.value = true
+})
+
 defineExpose({ refresh })
 </script>
 
@@ -37,7 +52,7 @@ defineExpose({ refresh })
         <v-skeleton-loader type="list-item-two-line@3" />
       </v-card>
 
-      <v-card class="home-section mb-6">
+      <v-card class="home-section home-section--above-fold mb-6">
         <v-skeleton-loader type="heading" class="mb-4" />
         <v-row>
           <v-col v-for="index in 3" :key="`feature-skeleton-${index}`" cols="12" md="4">
@@ -68,7 +83,9 @@ defineExpose({ refresh })
         </UiCard>
       </v-fade-transition>
 
-      <HomeSecondarySections :payload="homePagePayload" />
+      <div v-if="showSecondarySections">
+        <HomeSecondarySections :payload="homePagePayload" />
+      </div>
     </template>
 
     <template v-else>
@@ -82,38 +99,3 @@ defineExpose({ refresh })
     </template>
   </main>
 </template>
-
-<style scoped>
-.home-page {
-  padding: 3.5rem;
-}
-
-.home-hero,
-.home-section,
-.home-final-cta {
-  padding: 1.5rem;
-}
-
-.home-hero__actions,
-.home-final-cta__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
-.home-hero__btn,
-.home-final-cta__btn {
-  min-width: 12rem;
-}
-
-.home-feature-card,
-.home-metric-card,
-.home-step-card {
-  padding: 1rem;
-}
-
-.home-feature-card__icon,
-.home-step-card__icon {
-  color: rgb(var(--v-theme-primary));
-}
-</style>
