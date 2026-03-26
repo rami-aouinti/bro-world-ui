@@ -296,7 +296,24 @@ watch(locale, loadPageContent)
   padding: 3.5rem;
 }
 
+.contact-form-wrapper {
+  background-color: rgb(255, 255, 255);
+}
+
 .contact-page :deep(.v-field-label) {
-  color: rgba(0, 0, 0, 0.82);
+  color: rgb(24, 24, 27);
+  opacity: 1;
+}
+
+.contact-page :deep(.v-field__input),
+.contact-page :deep(.v-field input),
+.contact-page :deep(.v-field textarea),
+.contact-page :deep(.v-select__selection-text),
+.contact-page :deep(.v-select__selection) {
+  color: rgb(17, 24, 39);
+}
+
+.contact-page :deep(.v-field--variant-outlined .v-field__outline) {
+  --v-field-border-opacity: 0.7;
 }
 </style>
