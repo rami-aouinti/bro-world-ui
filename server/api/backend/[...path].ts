@@ -1,4 +1,4 @@
-import { readAuthCookie, setAuthCookie } from '~~/server/utils/authCookie'
+import { clearAuthCookie, getFallbackAuthCookie, readAuthCookie, setAuthCookie } from '~~/server/utils/authCookie'
 import { getRedisClient } from '~~/server/utils/redis'
 import { buildCacheKey, buildCacheScanPattern, buildCacheScopePrefix, buildQueryHash, toPathResourceIdentifier } from '~~/server/utils/cacheKeyBuilder'
 import { createHash, randomUUID } from 'node:crypto'
@@ -1122,7 +1122,9 @@ export default defineEventHandler(async (event) => {
           ? getUsersMeCacheKey(targetPath, query, bearerToken)
           : getEntityCacheKey(targetPath, query))
 
-    const cachedPayload = cacheKey
+    // Do not serve cached payloads for private routes: backend auth must be authoritative
+    // to avoid returning stale private data when a JWT becomes invalid/revoked.
+    const cachedPayload = (!isPrivateRoute && cacheKey)
       ? await readCache(cacheKey, 'Entity', {
           requiresUserContext: isPrivateRoute,
           userId: authenticatedUserId,
@@ -1137,13 +1139,23 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  try {
+  const executeBackendRequest = async (token?: string) => {
     const headers = buildForwardHeaders(event, requestCorrelationId)
 
-    if (bearerToken) {
-      headers.Authorization = `Bearer ${bearerToken}`
+    if (token) {
+      headers.Authorization = `Bearer ${token}`
     }
 
+    return $fetch(targetPath, {
+      method,
+      baseURL: config.public.apiBase,
+      query,
+      body,
+      headers,
+    })
+  }
+
+  try {
     console.info('[cache.lookup]', {
       requestId: requestCorrelationId,
       path: targetPath,
@@ -1151,13 +1163,39 @@ export default defineEventHandler(async (event) => {
       reason: 'cache_miss_or_bypass',
     })
 
-    const response = await $fetch(targetPath, {
-      method,
-      baseURL: config.public.apiBase,
-      query,
-      body,
-      headers,
-    })
+    let response: any
+
+    try {
+      response = await executeBackendRequest(bearerToken)
+    }
+    catch (error) {
+      const statusCode =
+        (error as { statusCode?: number })?.statusCode
+        ?? (error as { status?: number })?.status
+        ?? (error as { response?: { status?: number } })?.response?.status
+      const canRetryWithFallback = (statusCode === 401 || statusCode === 403) && !tokenFromAuthorizationHeader
+
+      if (!canRetryWithFallback) {
+        throw error
+      }
+
+      const fallbackAuthCookie = await getFallbackAuthCookie(event)
+      const canRetryWithToken = Boolean(fallbackAuthCookie?.token && fallbackAuthCookie.token !== bearerToken)
+
+      if (!canRetryWithToken) {
+        throw error
+      }
+
+      bearerToken = fallbackAuthCookie.token
+      authCookiePayload = fallbackAuthCookie
+      await setAuthCookie(event, {
+        token: fallbackAuthCookie.token,
+        sessionVersion: fallbackAuthCookie.sessionVersion,
+        userSnapshot: fallbackAuthCookie.userSnapshot,
+      })
+
+      response = await executeBackendRequest(bearerToken)
+    }
 
     logApiTelemetry('info', {
       path: targetPath,
@@ -1198,7 +1236,8 @@ export default defineEventHandler(async (event) => {
             ? getUsersMeCacheKey(targetPath, query, bearerToken)
             : getEntityCacheKey(targetPath, query))
 
-      if (cacheKey) {
+      // Keep entity cache only for non-private routes.
+      if (cacheKey && !isPrivateRoute) {
         await writeCache(cacheKey, response, getEntityCacheTtl(targetPath), resourcePolicy ? `Entity:${resourcePolicy.name}` : 'Entity', resourcePolicy?.name || 'generic')
       }
     }
@@ -1245,6 +1284,15 @@ export default defineEventHandler(async (event) => {
 
     return response
   } catch (error) {
+    const statusCode =
+      (error as { statusCode?: number })?.statusCode
+      ?? (error as { status?: number })?.status
+      ?? (error as { response?: { status?: number } })?.response?.status
+
+    if ((statusCode === 401 || statusCode === 403) && !tokenFromAuthorizationHeader) {
+      await clearAuthCookie(event)
+    }
+
     handleBackendError(error, {
       targetPath,
       method,
