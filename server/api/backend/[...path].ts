@@ -23,6 +23,9 @@ const PUBLIC_BACKEND_PATHS = new Set([
   '/api/v1/page/public/contact/fr',
   '/api/v1/page/public/faq/en',
   '/api/v1/page/public/faq/fr',
+  '/api/v1/public/quiz/general',
+  '/api/v1/public/quiz/general/categories',
+  '/api/v1/public/quiz/general/levels',
   '/api/v1/public/quiz/general/leaderboard',
 ])
 
