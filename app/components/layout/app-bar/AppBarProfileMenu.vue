@@ -32,8 +32,15 @@ const profilePhoto = computed(() => authSession.profile?.photo || authSession.us
 <template>
   <v-menu location="bottom end" v-model="isProfileMenuOpen">
     <template #activator="{ props: menuProps }">
-      <UiAvatar :aria-label="t('app.navigation.profile')"
-                v-bind="menuProps" :src="profilePhoto" size="xs" :name="profileName" status="online" class="me-1" />
+      <v-btn
+        v-bind="menuProps"
+        variant="text"
+        class="me-1 pa-0"
+        min-width="0"
+        :aria-label="t('app.navigation.profile')"
+      >
+        <UiAvatar :src="profilePhoto" size="xs" :name="profileName" status="online" />
+      </v-btn>
     </template>
 
     <v-list class="py-1 app-bar__menu" min-width="220">
