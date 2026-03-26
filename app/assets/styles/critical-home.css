@@ -44,6 +44,6 @@
 }
 
 .app-bar-lite__brand-world {
-  font-weight: 600;
-  color: rgb(var(--v-theme-primary));
+  font-weight: 700;
+  color: color-mix(in srgb, rgb(var(--v-theme-on-surface)) 86%, rgb(var(--v-theme-primary)) 14%);
 }
