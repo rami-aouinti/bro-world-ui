@@ -196,7 +196,7 @@ watch(locale, loadPageContent)
       <v-card class="contact-panel contact-panel--primary mb-6 transition-elevation" elevation="4" rounded="xl" hover>
         <v-chip class="contact-badge" color="primary" variant="tonal">{{ contactPagePayload.hero.badge }}</v-chip>
         <h1 class="text-h4 text-md-h3 font-weight-bold mb-2">{{ contactPagePayload.hero.title }}</h1>
-        <p class="text-body-1 text-medium-emphasis mb-6">{{ contactPagePayload.hero.subtitle }}</p>
+        <p class="text-body-1 text-high-emphasis mb-6">{{ contactPagePayload.hero.subtitle }}</p>
 
         <div class="d-flex flex-wrap ga-3">
           <v-btn color="primary">{{ contactPagePayload.hero.primaryCta }}</v-btn>
@@ -227,7 +227,7 @@ watch(locale, loadPageContent)
 
         <v-card class="contact-availability mb-4" rounded="xl" variant="tonal">
           <h2 class="text-h6 mb-2">{{ contactPagePayload.availability.title }}</h2>
-          <p class="text-body-2 text-medium-emphasis mb-3">{{ contactPagePayload.availability.description }}</p>
+          <p class="text-body-2 text-high-emphasis mb-3">{{ contactPagePayload.availability.description }}</p>
           <p v-for="window in contactPagePayload.availability.windows" :key="window.label" class="text-body-2 mb-2">
             <strong>{{ window.label }}:</strong> {{ window.value }}
           </p>
@@ -241,7 +241,7 @@ watch(locale, loadPageContent)
       <v-col cols="12" md="7">
         <v-card class="contact-form-wrapper" rounded="xl">
           <h2 class="text-h6 mb-2">{{ contactPagePayload.form.title }}</h2>
-          <p class="text-body-2 text-medium-emphasis mb-4">{{ contactPagePayload.form.description }}</p>
+          <p class="text-body-2 text-high-emphasis mb-4">{{ contactPagePayload.form.description }}</p>
           <v-row density="comfortable">
             <v-col cols="12" sm="6">
               <v-text-field :label="contactPagePayload.form.fields.firstName" variant="outlined" hide-details="auto" />
@@ -270,7 +270,7 @@ watch(locale, loadPageContent)
               />
             </v-col>
           </v-row>
-          <p class="text-caption text-medium-emphasis mt-4 mb-0">{{ contactPagePayload.form.privacyNote }}</p>
+          <p class="text-caption text-high-emphasis mt-4 mb-0">{{ contactPagePayload.form.privacyNote }}</p>
           <div class="d-flex flex-wrap ga-3 mt-4">
             <v-btn color="primary">{{ contactPagePayload.form.submit }}</v-btn>
             <v-btn variant="text">{{ contactPagePayload.form.reset }}</v-btn>
@@ -294,5 +294,9 @@ watch(locale, loadPageContent)
 }
 .contact-page {
   padding: 3.5rem;
+}
+
+.contact-page :deep(.v-field-label) {
+  color: rgba(0, 0, 0, 0.82);
 }
 </style>
