@@ -17,28 +17,24 @@ useHead({
 
 const publicPagesStore = usePublicPagesStore()
 const { locale } = useI18n()
-const { data, pending, error, refresh } = await useAsyncData(
-  'home-page',
-  () => publicPagesStore.loadHome(locale.value),
-  { watch: [locale] },
-)
-const homePagePayload = computed(() => data.value)
-const showNavigationSkeleton = computed(() => pending.value && !Boolean(data.value))
-const showSecondarySections = ref(false)
 
-onMounted(async () => {
-  await nextTick()
-  if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-    window.requestIdleCallback(() => {
-      showSecondarySections.value = true
-    })
-    return
+const homePagePayload = ref<Any>(null)
+const showNavigationSkeleton = ref(true)
+const showSecondarySections = ref(true)
+
+const loadPageContent = async () => {
+  showNavigationSkeleton.value = true
+  try {
+    homePagePayload.value = await publicPagesStore.loadHome(locale.value)
   }
+  finally {
+    showNavigationSkeleton.value = false
+  }
+}
 
-  showSecondarySections.value = true
-})
 
-defineExpose({ refresh })
+onMounted(loadPageContent)
+watch(locale, loadPageContent)
 </script>
 
 <template>
