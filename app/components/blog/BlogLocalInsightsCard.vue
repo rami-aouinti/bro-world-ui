@@ -33,6 +33,7 @@ type LocalBriefingResponse = {
 }
 
 const isLoading = ref(false)
+const isLocating = ref(false)
 const errorMessage = ref('')
 const briefing = ref<LocalBriefingResponse | null>(null)
 
@@ -87,17 +88,20 @@ const loadBriefing = async (position?: GeolocationPosition) => {
   }
 }
 
-onMounted(async () => {
+const requestLocationBriefing = () => {
   if (!navigator.geolocation) {
-    await loadBriefing()
+    void loadBriefing()
     return
   }
 
+  isLocating.value = true
   navigator.geolocation.getCurrentPosition(
-    position => {
+    (position) => {
+      isLocating.value = false
       void loadBriefing(position)
     },
     () => {
+      isLocating.value = false
       void loadBriefing()
     },
     {
@@ -106,12 +110,16 @@ onMounted(async () => {
       maximumAge: 10 * 60 * 1000,
     },
   )
+}
+
+onMounted(async () => {
+  await loadBriefing()
 })
 </script>
 
 <template>
   <div class="d-flex align-center justify-space-between ga-2 mb-2">
-    <p class="text-overline text-primary mb-0">IA Briefing</p>
+    <p class="text-overline text-high-emphasis mb-0">IA Briefing</p>
     <v-chip v-if="briefing" size="x-small" :color="briefing.source === 'ai' ? 'primary' : 'warning'" variant="tonal">
       {{ briefing.source === 'ai' ? 'Vercel AI Gateway' : 'Mode fallback' }}
     </v-chip>
@@ -132,9 +140,20 @@ onMounted(async () => {
       <v-chip size="small" color="info" variant="tonal">{{ temperatureLabel }}</v-chip>
       <v-chip size="small" color="secondary" variant="tonal">{{ briefing.weather.weatherLabel }}</v-chip>
     </div>
+    <v-btn
+      size="small"
+      variant="tonal"
+      color="primary"
+      class="mb-3"
+      :loading="isLocating"
+      prepend-icon="mdi-crosshairs-gps"
+      @click="requestLocationBriefing"
+    >
+      Use my location
+    </v-btn>
 
     <v-list density="comfortable" class="bg-transparent pa-0 mb-2">
-      <v-list-subheader class="px-0 text-caption">Events</v-list-subheader>
+      <v-list-subheader class="px-0 text-caption text-high-emphasis">Events</v-list-subheader>
       <v-list-item v-for="event in briefing.events" :key="event.title" class="px-0">
         <template #prepend>
           <v-icon size="18" icon="mdi-star-four-points-outline" class="me-2" />

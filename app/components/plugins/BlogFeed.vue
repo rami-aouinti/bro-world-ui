@@ -801,6 +801,8 @@ const submitSharePost = async () => {
   sharePostDialog.value = false
   shareDraftContent.value = ''
 }
+
+const withMenuActivatorProps = (menuProps: Record<string, unknown>) => (props.canInteract ? menuProps : {})
 </script>
 
 <template>
@@ -836,11 +838,17 @@ const submitSharePost = async () => {
       >
         Was machst du gerade, {{ currentUserName }}?
       </button>
-      <v-btn icon="mdi-video-outline" variant="text" :disabled="!canInteract" @click="openVideoChoiceDialog" />
-      <v-btn icon="mdi-image-outline" variant="text" :disabled="!canInteract" @click="triggerPhotoPicker" />
+      <v-btn icon="mdi-video-outline" variant="text" :disabled="!canInteract" aria-label="Add a video" @click="openVideoChoiceDialog" />
+      <v-btn icon="mdi-image-outline" variant="text" :disabled="!canInteract" aria-label="Add photos" @click="triggerPhotoPicker" />
       <v-menu v-model="showEmojiMenu" location="bottom end">
         <template #activator="{ props: menuProps }">
-          <v-btn icon="mdi-emoticon-happy-outline" variant="text" :disabled="!canInteract" v-bind="menuProps" />
+          <v-btn
+            icon="mdi-emoticon-happy-outline"
+            variant="text"
+            :disabled="!canInteract"
+            aria-label="Choose an emoji"
+            v-bind="withMenuActivatorProps(menuProps)"
+          />
         </template>
         <v-list density="compact" class="emoji-menu-list">
           <v-list-item
@@ -926,19 +934,21 @@ const submitSharePost = async () => {
               <div class="text-caption text-medium-emphasis">{{ formatRelativeTime(activeStoryItem.createdAt) }}</div>
             </div>
             <v-spacer />
-            <v-btn icon="mdi-close" variant="text" color="white" @click="closeStoryViewer" />
+            <v-btn icon="mdi-close" variant="text" color="white" aria-label="Close story viewer" @click="closeStoryViewer" />
           </div>
 
           <v-img :src="activeStoryItem.imageUrl" class="story-viewer-image" cover />
 
-          <v-btn
+            <v-btn
             icon="mdi-chevron-left"
             class="story-viewer-nav story-viewer-nav--left"
+            aria-label="Previous story"
             @click="goToPreviousStory"
           />
           <v-btn
             icon="mdi-chevron-right"
             class="story-viewer-nav story-viewer-nav--right"
+            aria-label="Next story"
             @click="goToNextStory"
           />
         </template>
@@ -952,7 +962,7 @@ const submitSharePost = async () => {
     <v-card rounded="xl" class="pa-2">
       <v-card-title class="text-h5 text-center font-weight-bold position-relative pr-12">
         Beitrag erstellen
-        <v-btn icon="mdi-close" variant="text" class="close-dialog-btn" @click="createPostDialog = false" />
+        <v-btn icon="mdi-close" variant="text" class="close-dialog-btn" aria-label="Close create post dialog" @click="createPostDialog = false" />
       </v-card-title>
       <v-card-text>
         <input
@@ -1025,6 +1035,7 @@ const submitSharePost = async () => {
                 icon
                 variant="text"
                 :disabled="!canInteract"
+                :aria-label="action.label"
                 @click="handleQuickAction(action.key)"
               >
                 <v-icon :icon="action.icon" :color="action.color" />
@@ -1041,7 +1052,7 @@ const submitSharePost = async () => {
   <v-dialog v-model="showVideoChoiceDialog" max-width="520">
     <v-card rounded="xl">
       <v-card-title class="d-flex align-center justify-space-between">Video
-        <v-btn icon="mdi-close" variant="text" @click="cancelVideoFlow" />
+        <v-btn icon="mdi-close" variant="text" aria-label="Close video dialog" @click="cancelVideoFlow" />
       </v-card-title>
       <v-card-text class="d-flex flex-column ga-3">
         <v-btn variant="outlined" prepend-icon="mdi-video-plus" @click="triggerVideoPicker">Add a video</v-btn>
@@ -1053,7 +1064,7 @@ const submitSharePost = async () => {
   <v-dialog v-model="showVideoRecorderDialog" max-width="760" persistent>
     <v-card rounded="xl">
       <v-card-title class="d-flex align-center justify-space-between">Video recording
-        <v-btn icon="mdi-close" variant="text" @click="cancelVideoFlow" />
+        <v-btn icon="mdi-close" variant="text" aria-label="Close recorder dialog" @click="cancelVideoFlow" />
       </v-card-title>
       <v-card-text>
         <video ref="recorderPreview" autoplay muted playsinline class="w-100 rounded-lg mb-3" />
@@ -1068,7 +1079,7 @@ const submitSharePost = async () => {
   <v-dialog v-model="showVideoReviewDialog" max-width="760">
     <v-card rounded="xl">
       <v-card-title class="d-flex align-center justify-space-between">Upload video now?
-        <v-btn icon="mdi-close" variant="text" @click="cancelVideoFlow" />
+        <v-btn icon="mdi-close" variant="text" aria-label="Close video upload review" @click="cancelVideoFlow" />
       </v-card-title>
       <v-card-text>
         <video v-if="capturedVideo" :src="capturedVideo" controls class="w-100 rounded-lg" />
@@ -1083,7 +1094,7 @@ const submitSharePost = async () => {
   <v-dialog v-model="showPostOptionsDialog" max-width="760">
     <v-card rounded="xl">
       <v-card-title class="d-flex align-center ga-3 py-4">
-        <v-btn icon="mdi-arrow-left" variant="text" @click="showPostOptionsDialog = false" />
+        <v-btn icon="mdi-arrow-left" variant="text" aria-label="Back to create post" @click="showPostOptionsDialog = false" />
         <span>Füge noch etwas zu deinem Beitrag hinzu</span>
       </v-card-title>
       <v-divider />
@@ -1118,7 +1129,7 @@ const submitSharePost = async () => {
               <NuxtLink
                 v-if="postAuthorProfilePath(post)"
                 :to="postAuthorProfilePath(post)"
-                class="text-subtitle-1 font-weight-bold text-decoration-none text-primary"
+                class="text-subtitle-1 font-weight-bold text-decoration-none text-high-emphasis"
               >
                 {{ postAuthorName(post) }}
               </NuxtLink>
@@ -1129,7 +1140,7 @@ const submitSharePost = async () => {
 
           <v-menu v-if="post.isAuthor" location="bottom end">
             <template #activator="{ props: menuProps }">
-              <v-btn icon="mdi-dots-vertical" size="small" variant="text" v-bind="menuProps" />
+              <v-btn icon="mdi-dots-vertical" size="small" variant="text" aria-label="Post actions" v-bind="menuProps" />
             </template>
             <v-list density="compact" nav>
               <v-list-item prepend-icon="mdi-pencil" title="Edit" @click="openEditPostDialog(post)" />
@@ -1139,7 +1150,7 @@ const submitSharePost = async () => {
         </v-card-title>
 
         <v-card-text>
-          <h3 v-if="post.title" class="text-h6 mb-2">{{ post.title }}</h3>
+          <h2 v-if="post.title" class="text-h6 mb-2">{{ post.title }}</h2>
           <p v-if="post.content" class="mb-4 text-body-1" v-html="formatPostContentAsHtml(post.content)" />
 
           <div v-if="post.filePath" class="mb-4">
@@ -1207,6 +1218,7 @@ const submitSharePost = async () => {
                   v-model="postReactionPicker[post.id]"
                   open-on-hover
                   location="top"
+                  :disabled="!canInteract"
                   :close-on-content-click="false"
                   content-class="reaction-hover-menu"
               >
@@ -1215,7 +1227,8 @@ const submitSharePost = async () => {
                       variant="text"
                       type="button"
                       :disabled="!canInteract"
-                      v-bind="menuProps"
+                      aria-label="React to post"
+                      v-bind="withMenuActivatorProps(menuProps)"
                       @click.stop.prevent="handlePostReactionButtonClick(post)"
                   >
                     <span class="reaction-action-icon">{{ reactionMeta[currentUserPostReaction(post)?.type ?? 'like']?.icon ?? '👍' }}</span>
@@ -1265,7 +1278,13 @@ const submitSharePost = async () => {
 
             <div class="d-flex align-center ga-3">
               <span v-if="countComments(post.comments) > 0" class="d-inline-flex align-center ga-1">{{ countComments(post.comments) }}
-                <v-icon icon="mdi-comment-outline" @click="toggleComments(post.id)" size="18" />
+                <v-btn
+                  icon="mdi-comment-outline"
+                  size="x-small"
+                  variant="text"
+                  aria-label="Toggle comments"
+                  @click="toggleComments(post.id)"
+                />
               </span>
               <span class="d-inline-flex align-center ga-1">
                 <v-btn
@@ -1273,6 +1292,7 @@ const submitSharePost = async () => {
                   size="x-small"
                   variant="text"
                   :disabled="!canInteract"
+                  aria-label="Share post"
                   @click="openSharePostDialog(post)"
                 />
                 <v-btn
@@ -1345,6 +1365,7 @@ const submitSharePost = async () => {
                   color="grey"
                   :disabled="!canInteract"
                   title="Mit Avatar-Sticker kommentieren"
+                  aria-label="Comment with avatar sticker"
                 />
                 <v-menu location="top start">
                   <template #activator="{ props: menuProps }">
@@ -1355,7 +1376,8 @@ const submitSharePost = async () => {
                       color="grey"
                       :disabled="!canInteract"
                       title="Emoji hinzufügen"
-                      v-bind="menuProps"
+                      aria-label="Add emoji to comment"
+                      v-bind="withMenuActivatorProps(menuProps)"
                     />
                   </template>
                   <v-card rounded="lg" class="pa-2">
@@ -1379,6 +1401,7 @@ const submitSharePost = async () => {
                   color="grey"
                   :disabled="!canInteract"
                   title="Foto oder Video anhängen"
+                  aria-label="Attach photo or video"
                   @click="triggerCommentPhotoPicker(post.id)"
                 />
                 <input
@@ -1396,6 +1419,7 @@ const submitSharePost = async () => {
                   color="grey"
                   :disabled="!canInteract"
                   title="GIF hinzufügen"
+                  aria-label="Add GIF"
                 />
                 <v-btn
                   icon="mdi-palette-outline"
@@ -1404,6 +1428,7 @@ const submitSharePost = async () => {
                   color="grey"
                   :disabled="!canInteract"
                   title="Effekte"
+                  aria-label="Add effects"
                 />
                 <v-spacer />
                 <v-btn
@@ -1413,6 +1438,7 @@ const submitSharePost = async () => {
                   color="primary"
                   :disabled="!canInteract || !(commentDrafts[post.id] ?? '').trim()"
                   title="Envoyer"
+                  aria-label="Send comment"
                   @click="createRootComment(post.id)"
                 />
               </div>

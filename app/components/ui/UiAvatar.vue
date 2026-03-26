@@ -91,7 +91,7 @@ const onImageError = () => {
       />
       <span
         v-else
-        class="font-weight-bold"
+        class="font-weight-bold text-white"
         :class="sizeToken.textClass"
       >
         {{ initials }}
