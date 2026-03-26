@@ -21,6 +21,10 @@ interface StoredAuthSessionRecord extends StoredAuthCookie {
   expiresAt: string
 }
 
+interface StoredAuthFallbackRecord extends StoredAuthCookie {
+  expiresAt: string
+}
+
 interface LegacyStoredAuthCookie {
   token: string
   expiresAt?: string
@@ -173,6 +177,9 @@ const getAuthConfig = () => {
 
 const AUTH_SESSION_STORAGE_BASE_KEY = 'auth:session:'
 const buildSessionStorageKey = (sessionId: string) => `${AUTH_SESSION_STORAGE_BASE_KEY}${sessionId}`
+const AUTH_FALLBACK_STORAGE_BASE_KEY = 'auth:fallback:'
+const AUTH_FALLBACK_TTL_SECONDS = 60 * 60 * 24 * 30
+const buildFallbackStorageKey = (fallbackId: string) => `${AUTH_FALLBACK_STORAGE_BASE_KEY}${fallbackId}`
 
 const createSessionCookieSignature = (sessionId: string, secret: string) => createHmac('sha256', secret)
   .update(sessionId)
@@ -255,11 +262,39 @@ const setClientCookie = (event: H3Event, cookieValue: string, ttlSeconds: number
   })
 }
 
+const buildFallbackCookieName = () => `${getAuthConfig().cookieName}_fallback`
+
+const setFallbackCookie = (event: H3Event, fallbackId: string, ttlSeconds: number) => {
+  const { cookieSecure, cookieSameSite } = getAuthConfig()
+  const secure = shouldUseSecureCookie(event, cookieSecure)
+
+  setCookie(event, buildFallbackCookieName(), fallbackId, {
+    path: '/',
+    maxAge: ttlSeconds,
+    httpOnly: true,
+    secure,
+    sameSite: cookieSameSite,
+  })
+}
+
 const clearAuthCookieClientValue = (event: H3Event) => {
   const { cookieName, cookieSecure, cookieSameSite } = getAuthConfig()
   const secure = shouldUseSecureCookie(event, cookieSecure)
 
   setCookie(event, cookieName, '', {
+    path: '/',
+    maxAge: 0,
+    httpOnly: true,
+    secure,
+    sameSite: cookieSameSite,
+  })
+}
+
+const clearFallbackCookieClientValue = (event: H3Event) => {
+  const { cookieSecure, cookieSameSite } = getAuthConfig()
+  const secure = shouldUseSecureCookie(event, cookieSecure)
+
+  setCookie(event, buildFallbackCookieName(), '', {
     path: '/',
     maxAge: 0,
     httpOnly: true,
@@ -327,21 +362,100 @@ const persistSession = async (
   return sessionRecord
 }
 
-export const setAuthCookie = async (event: H3Event, payload: AuthCookiePayload) => persistSession(event, payload)
+const persistFallbackSession = async (event: H3Event, payload: AuthCookiePayload): Promise<StoredAuthFallbackRecord> => {
+  const storage = await getSessionStorage()
+  const existingFallbackId = getCookie(event, buildFallbackCookieName())
+  const fallbackId = existingFallbackId || randomUUID()
+  const fallbackRecord: StoredAuthFallbackRecord = {
+    token: payload.token,
+    sessionVersion: payload.sessionVersion ?? 1,
+    userSnapshot: payload.userSnapshot ?? payload.profileSnapshot,
+    expiresAt: new Date(Date.now() + AUTH_FALLBACK_TTL_SECONDS * 1000).toISOString(),
+  }
+
+  await storage.setItem(buildFallbackStorageKey(fallbackId), fallbackRecord, AUTH_FALLBACK_TTL_SECONDS)
+  setFallbackCookie(event, fallbackId, AUTH_FALLBACK_TTL_SECONDS)
+
+  return fallbackRecord
+}
+
+const readAuthCookieFallback = async (event: H3Event): Promise<StoredAuthCookie | null> => {
+  const fallbackId = getCookie(event, buildFallbackCookieName())
+
+  if (!fallbackId) {
+    return null
+  }
+
+  const storage = await getSessionStorage()
+  const fallbackStorageKey = buildFallbackStorageKey(fallbackId)
+  const storedFallback = await storage.getItem<StoredAuthFallbackRecord>(fallbackStorageKey)
+
+  if (!storedFallback || !storedFallback.token || !storedFallback.token.trim()) {
+    await storage.removeItem(fallbackStorageKey)
+    clearFallbackCookieClientValue(event)
+    return null
+  }
+
+  if (isExpired(storedFallback.expiresAt)) {
+    await storage.removeItem(fallbackStorageKey)
+    clearFallbackCookieClientValue(event)
+    return null
+  }
+
+  await storage.setItem(fallbackStorageKey, {
+    ...storedFallback,
+    expiresAt: new Date(Date.now() + AUTH_FALLBACK_TTL_SECONDS * 1000).toISOString(),
+  }, AUTH_FALLBACK_TTL_SECONDS)
+  setFallbackCookie(event, fallbackId, AUTH_FALLBACK_TTL_SECONDS)
+
+  return {
+    token: storedFallback.token,
+    sessionVersion: storedFallback.sessionVersion,
+    userSnapshot: storedFallback.userSnapshot,
+  }
+}
+
+const restoreFromFallbackSession = async (event: H3Event): Promise<StoredAuthCookie | null> => {
+  const fallbackCookie = await readAuthCookieFallback(event)
+
+  if (!fallbackCookie) {
+    return null
+  }
+
+  const restoredSession = await setAuthCookie(event, {
+    token: fallbackCookie.token,
+    sessionVersion: fallbackCookie.sessionVersion,
+    userSnapshot: fallbackCookie.userSnapshot,
+  })
+
+  return {
+    token: restoredSession.token,
+    sessionVersion: restoredSession.sessionVersion,
+    userSnapshot: restoredSession.userSnapshot,
+  }
+}
+
+export const getFallbackAuthCookie = async (event: H3Event) => readAuthCookieFallback(event)
+
+export const setAuthCookie = async (event: H3Event, payload: AuthCookiePayload) => {
+  const session = await persistSession(event, payload)
+  await persistFallbackSession(event, payload)
+  return session
+}
 
 export const readAuthCookie = async (event: H3Event): Promise<StoredAuthCookie | null> => {
   const { cookieName, ttlSeconds, sessionSecrets } = getAuthConfig()
   const rawCookie = getCookie(event, cookieName)
 
   if (!rawCookie) {
-    return null
+    return restoreFromFallbackSession(event)
   }
 
   const parsedSessionCookie = parseSessionIdFromCookie(decodeURIComponent(rawCookie))
 
   if (!parsedSessionCookie) {
     clearAuthCookieClientValue(event)
-    return null
+    return restoreFromFallbackSession(event)
   }
 
   const keyIndex = Number.parseInt(parsedSessionCookie.keyId.replace(/^k/, ''), 10)
@@ -349,7 +463,7 @@ export const readAuthCookie = async (event: H3Event): Promise<StoredAuthCookie |
 
   if (!secretForVerification || !verifySessionCookieSignature(parsedSessionCookie.sessionId, parsedSessionCookie.signature, secretForVerification)) {
     clearAuthCookieClientValue(event)
-    return null
+    return restoreFromFallbackSession(event)
   }
 
   const storage = await getSessionStorage()
@@ -359,7 +473,7 @@ export const readAuthCookie = async (event: H3Event): Promise<StoredAuthCookie |
   if (!storedSession) {
     await storage.removeItem(storageKey)
     clearAuthCookieClientValue(event)
-    return null
+    return restoreFromFallbackSession(event)
   }
 
   const normalizedSession = normalizeStoredSession(storedSession, ttlSeconds)
@@ -367,7 +481,7 @@ export const readAuthCookie = async (event: H3Event): Promise<StoredAuthCookie |
   if (!normalizedSession || isExpired(normalizedSession.expiresAt)) {
     await storage.removeItem(storageKey)
     clearAuthCookieClientValue(event)
-    return null
+    return restoreFromFallbackSession(event)
   }
 
   const refreshedSession: StoredAuthSessionRecord = {
@@ -407,6 +521,7 @@ export const requireAuthCookie = async (event: H3Event) => {
 export const clearAuthCookie = async (event: H3Event) => {
   const { cookieName } = getAuthConfig()
   const rawCookie = getCookie(event, cookieName)
+  const rawFallbackCookie = getCookie(event, buildFallbackCookieName())
 
   if (rawCookie) {
     const parsedSessionCookie = parseSessionIdFromCookie(decodeURIComponent(rawCookie))
@@ -417,5 +532,11 @@ export const clearAuthCookie = async (event: H3Event) => {
     }
   }
 
+  if (rawFallbackCookie) {
+    const storage = await getSessionStorage()
+    await storage.removeItem(buildFallbackStorageKey(rawFallbackCookie))
+  }
+
   clearAuthCookieClientValue(event)
+  clearFallbackCookieClientValue(event)
 }
