@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import UiStateAlert from '~/components/ui/state/UiStateAlert.vue'
 import AppSplitShell from '~/components/layout/AppSplitShell.vue'
+import HomeAppBarLite from "~/components/layout/HomeAppBarLite.vue";
 
 withDefaults(defineProps<{
   showPageSkeleton?: boolean
