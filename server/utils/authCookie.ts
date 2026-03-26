@@ -74,6 +74,60 @@ const normalizeStoredSession = (parsed: LegacyStoredAuthCookie, ttlSeconds: numb
   }
 }
 
+
+const parseRuntimeBoolean = (value: unknown, fallback: boolean, fieldName: string): boolean => {
+  if (typeof value === 'boolean') {
+    return value
+  }
+
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase()
+
+    if (normalized === 'true') {
+      return true
+    }
+
+    if (normalized === 'false') {
+      return false
+    }
+  }
+
+  if (value === undefined || value === null || value === '') {
+    return fallback
+  }
+
+  throw createError({
+    statusCode: 500,
+    statusMessage: `[session-config] ${fieldName} must be either "true" or "false".`,
+  })
+}
+
+const resolveRuntimeSameSite = (value: unknown): 'lax' | 'strict' | 'none' => {
+  const fallback = 'strict'
+
+  if (value === undefined || value === null || value === '') {
+    return fallback
+  }
+
+  if (typeof value !== 'string') {
+    throw createError({
+      statusCode: 500,
+      statusMessage: '[session-config] session.cookieSameSite must be one of: lax, strict, none.',
+    })
+  }
+
+  const normalized = value.trim().toLowerCase()
+
+  if (normalized === 'lax' || normalized === 'strict' || normalized === 'none') {
+    return normalized
+  }
+
+  throw createError({
+    statusCode: 500,
+    statusMessage: '[session-config] session.cookieSameSite must be one of: lax, strict, none.',
+  })
+}
+
 const isExpired = (expiresAt: string) => {
   const expiresAtValue = new Date(expiresAt).getTime()
 
@@ -98,11 +152,21 @@ const getAuthConfig = () => {
     })
   }
 
+  const cookieSecure = parseRuntimeBoolean(config.session.cookieSecure, true, 'session.cookieSecure')
+  const cookieSameSite = resolveRuntimeSameSite(config.session.cookieSameSite)
+
+  if (cookieSameSite === 'none' && !cookieSecure) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: '[session-config] SESSION_COOKIE_SAME_SITE="none" requires SESSION_COOKIE_SECURE="true".',
+    })
+  }
+
   return {
     ttlSeconds: Math.max(900, Number(config.session.ttlSeconds || 60 * 60 * 8)),
     cookieName: config.session.cookieName,
-    cookieSecure: Boolean(config.session.cookieSecure),
-    cookieSameSite: config.session.cookieSameSite,
+    cookieSecure,
+    cookieSameSite,
     sessionSecrets: secretChain,
   }
 }
