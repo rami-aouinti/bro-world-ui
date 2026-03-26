@@ -142,6 +142,23 @@ export const useThemePreferences = () => {
     })
   }
 
+  const loadRemoteThemePreferenceIfAuthenticated = async () => {
+    if (!canSyncTheme.value) {
+      applyThemePreference(ensureValidTheme())
+      return
+    }
+
+    const remotePreference = await apiFetch<{ configurationValue?: unknown }>(`/api/v1/profile/configuration/${THEME_CONFIGURATION_KEY}`, {
+      method: 'GET',
+    })
+    if (remotePreference.configurationValue && import.meta.client) {
+      window.sessionStorage.setItem(THEME_SESSION_STORAGE_KEY, JSON.stringify(remotePreference.configurationValue))
+    }
+
+    const loadedPreference = readThemePreferenceFromSession()
+    applyThemePreference(loadedPreference ?? defaultThemePreference)
+  }
+
   onMounted(() => {
     ;(async () => {
       const sessionPreference = readThemePreferenceFromSession()
@@ -150,14 +167,7 @@ export const useThemePreferences = () => {
       }
       else {
         try {
-          const remotePreference = await apiFetch<{ configurationValue?: unknown }>(`/api/v1/profile/configuration/${THEME_CONFIGURATION_KEY}`, {
-            method: 'GET',
-          })
-          if (remotePreference.configurationValue && import.meta.client) {
-            window.sessionStorage.setItem(THEME_SESSION_STORAGE_KEY, JSON.stringify(remotePreference.configurationValue))
-          }
-          const loadedPreference = readThemePreferenceFromSession()
-          applyThemePreference(loadedPreference ?? defaultThemePreference)
+          await loadRemoteThemePreferenceIfAuthenticated()
         }
         catch {
           applyThemePreference(ensureValidTheme())
