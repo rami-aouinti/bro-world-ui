@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import UiPageSkeletonHost from '~/components/ui/state/UiPageSkeletonHost.vue'
 import { useThemePreferences } from '~/composables/useThemePreferences'
 import { useRealtimeBootstrap } from '~/composables/useRealtimeBootstrap'
@@ -10,6 +10,15 @@ import SpeedInsightsPlaceholder from '~/components/layout/analytics/SpeedInsight
 
 const isPageLoading = ref(false)
 const pageSkeletonKey = ref('')
+const { locale } = useI18n({ useScope: 'global' })
+const isRtl = computed(() => locale.value === 'ar')
+
+useHead(() => ({
+  htmlAttrs: {
+    lang: locale.value,
+    dir: isRtl.value ? 'rtl' : 'ltr',
+  },
+}))
 
 const LazyAnalytics = defineAsyncComponent({
   loader: async () => {
