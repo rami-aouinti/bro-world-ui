@@ -7,7 +7,7 @@ import { platformPageSections } from '~/data/platform-demo'
 import { recruitAdminSections } from '~/data/platform-enhanced'
 import { getRecruitNav } from '~/data/platform-nav'
 
-definePageMeta({ public: true, requiresAuth: false })
+definePageMeta({ public: true, requiresAuth: false, requiresPlatformAdmin: true, platformDomain: 'recruit' })
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const platformPermissions = usePlatformPermissions(slug)

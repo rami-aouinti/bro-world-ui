@@ -3,7 +3,7 @@ import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import { getCrmNav } from '~/data/platform-nav'
 
-definePageMeta({ public: false, requiresAuth: true })
+definePageMeta({ public: false, requiresAuth: true, requiresPlatformAdmin: true, platformDomain: 'crm' })
 const route = useRoute()
 const router = useRouter()
 const slug = computed(() => String(route.params.slug ?? ''))
