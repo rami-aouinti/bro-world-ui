@@ -165,9 +165,15 @@ const signOut = async () => {
 
             <v-menu location="bottom end" :close-on-content-click="false">
               <template #activator="{ props }">
-                <span class="px-2 app-bar__locale-flag" v-bind="props">
+                <v-btn
+                  variant="text"
+                  size="small"
+                  class="px-2 app-bar__locale-flag app-bar__icon-btn"
+                  v-bind="props"
+                  :aria-label="`Select language, current ${getFlag(locale).alt}`"
+                >
                   <img class="app-bar__locale-flag-image" :src="getFlag(locale).src" :alt="getFlag(locale).alt" width="20" height="14">
-                </span>
+                </v-btn>
               </template>
 
               <v-list class="py-1 app-bar__menu" min-width="180">
@@ -194,7 +200,15 @@ const signOut = async () => {
 
             <v-menu location="bottom end" :close-on-content-click="false">
               <template #activator="{ props }">
-                <v-icon class="mx-2" v-bind="props" :icon="isDark ? 'mdi-weather-night' : 'mdi-white-balance-sunny'" />
+                <v-btn
+                  icon
+                  variant="text"
+                  class="mx-2 app-bar__icon-btn"
+                  v-bind="props"
+                  :aria-label="t('app.navigation.toggleTheme')"
+                >
+                  <v-icon :icon="isDark ? 'mdi-weather-night' : 'mdi-white-balance-sunny'" />
+                </v-btn>
               </template>
 
               <v-list class="py-2 px-2 app-bar__menu" min-width="280">
