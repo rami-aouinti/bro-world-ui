@@ -1,13 +1,6 @@
 <script setup lang="ts">
-import UiAvatar from '~/components/ui/UiAvatar.vue'
-import ConversationAvatarGroup from '~/components/inbox/ConversationAvatarGroup.vue'
-import { computed, ref, watch } from 'vue'
+import { computed, defineAsyncComponent } from 'vue'
 import { useDisplay } from 'vuetify'
-import type { NotificationRead } from '~/types/api/notification'
-import { useNotificationTarget } from '~/composables/useNotificationTarget'
-import { buildConversationPreview } from '~/utils/inboxConversationPreview'
-import { useInboxStore } from '~/stores/inbox'
-import { useNotificationsStore } from '~/stores/notifications'
 
 interface NavItem {
   key: string
@@ -19,37 +12,15 @@ interface ActionNavItem extends NavItem {
   to: string
 }
 
-interface InboxConversationPreview {
-  id: string
-  name: string
-  excerpt: string
-  participants: Array<{ id: string, photo: string | null, label: string }>
-  unread: number
-  route: string
-  latestMessageAt: string
-}
-
 const router = useRouter()
 const route = useRoute()
 const { t, te, locale, locales, setLocale } = useI18n({ useScope: 'global' })
-const authSession = useAuthSessionStore()
-const { can, canPermission } = useAccessControl()
+const { canPermission } = useAccessControl()
 const { logout, isAuthenticated } = useAuth()
 
-const isProfileMenuOpen = ref(false)
-const isNotificationsMenuOpen = ref(false)
-const isInboxMenuOpen = ref(false)
-const inboxStore = useInboxStore()
-const notificationsStore = useNotificationsStore()
-const { getNotificationTarget } = useNotificationTarget()
-const inboxConversationsSummary = computed(() => inboxStore.conversationsSummary)
-
-const inboxConversationsPreview = computed<InboxConversationPreview[]>(() => (inboxConversationsSummary.value?.items ?? [])
-  .map(buildConversationPreview)
-  .sort((a, b) => new Date(b.latestMessageAt).getTime() - new Date(a.latestMessageAt).getTime())
-  .slice(0, 3))
-
-const inboxUnreadCount = computed(() => inboxConversationsPreview.value.reduce((total, item) => total + item.unread, 0))
+const AppBarInboxMenu = defineAsyncComponent(() => import('~/components/layout/app-bar/AppBarInboxMenu.vue'))
+const AppBarNotificationsMenu = defineAsyncComponent(() => import('~/components/layout/app-bar/AppBarNotificationsMenu.vue'))
+const AppBarProfileMenu = defineAsyncComponent(() => import('~/components/layout/app-bar/AppBarProfileMenu.vue'))
 
 const mainHeaderItems = computed<NavItem[]>(() => [
   { key: 'app.navigation.platform', to: '/platform', icon: 'mdi-view-grid-outline' },
@@ -73,63 +44,6 @@ const actionItems = computed<ActionNavItem[]>(() => {
   ]
 })
 
-const notificationsSummary = computed(() => notificationsStore.notifications)
-const notificationPreviewItems = computed(() => notificationsSummary.value.items.slice(0, 3))
-const unreadNotificationsCount = computed(() => notificationsSummary.value.unreadCount)
-
-watch(isNotificationsMenuOpen, async (isOpen) => {
-  if (!isOpen || unreadNotificationsCount.value === 0) {
-    return
-  }
-
-  notificationsStore.markAllAsReadLocally()
-})
-
-const getNotificationAvatarLabel = (notification: NotificationRead) => {
-  if (!notification.from) {
-    return notification.type
-  }
-
-  return `${notification.from.firstName} ${notification.from.lastName}`.trim()
-}
-
-const truncateText = (value: string | null | undefined, maxLength = 20) => {
-  if (!value) {
-    return ''
-  }
-
-  return value.length > maxLength ? `${value.slice(0, maxLength).trimEnd()}...` : value
-}
-
-const formatRelativeTime = (value: string | null | undefined) => {
-  if (!value) {
-    return ''
-  }
-
-  const date = new Date(value)
-
-  if (Number.isNaN(date.getTime())) {
-    return ''
-  }
-
-  const diffMs = date.getTime() - Date.now()
-  const absDiffMs = Math.abs(diffMs)
-  const minute = 60 * 1000
-  const hour = 60 * minute
-  const day = 24 * hour
-  const rtf = new Intl.RelativeTimeFormat(locale.value, { numeric: 'auto' })
-
-  if (absDiffMs < hour) {
-    return rtf.format(Math.round(diffMs / minute), 'minute')
-  }
-
-  if (absDiffMs < day) {
-    return rtf.format(Math.round(diffMs / hour), 'hour')
-  }
-
-  return rtf.format(Math.round(diffMs / day), 'day')
-}
-
 const {
   isDark,
   preference: themePreference,
@@ -144,16 +58,6 @@ const {
 
 const { mdAndUp } = useDisplay()
 const isDesktop = computed(() => mdAndUp.value)
-const profileName = computed(() => {
-  const profile = authSession.profile
-  if (!profile) {
-    return ''
-  }
-
-  return `${profile.firstName} ${profile.lastName}`.trim() || profile.username
-})
-const profilePhoto = computed(() => authSession.profile?.photo || authSession.userSnapshot?.photo || undefined)
-
 const availableLocales = computed(() => locales.value
   .map((item) => {
     if (typeof item === 'string') {
@@ -253,154 +157,9 @@ const signOut = async () => {
 
         <ClientOnly>
           <div class="d-flex align-center ga-1 ga-sm-2">
-            <v-menu v-if="isAuthenticated" location="bottom end" v-model="isInboxMenuOpen">
-              <template #activator="{ props }">
-                <v-btn
-                  icon
-                  variant="text"
-                  class="app-bar__icon-btn"
-                  v-bind="props"
-                  :aria-label="t('app.navigation.inbox')"
-                >
-                  <v-badge :model-value="inboxUnreadCount > 0" :content="inboxUnreadCount" color="primary" offset-x="2" offset-y="2">
-                    <v-icon icon="mdi-message-processing-outline" />
-                  </v-badge>
-                </v-btn>
-              </template>
-
-              <v-list class="py-1 app-bar__menu" min-width="320">
-                <v-list-item
-                  v-for="conversation in inboxConversationsPreview"
-                  :key="conversation.id"
-                  :to="conversation.route"
-                  rounded="lg"
-                  class="mx-2 my-1 app-bar__message-item"
-                >
-                  <template #prepend>
-                    <div class="d-flex align-center mt-6">
-                      <ConversationAvatarGroup :participants="conversation.participants" :size="72" />
-                    </div>
-                  </template>
-
-                  <div class="app-bar__message-content">
-                    <v-list-item-title class="font-weight-medium text-truncate">{{ truncateText(conversation.name) }}</v-list-item-title>
-                    <v-list-item-subtitle class="text-truncate">{{ truncateText(conversation.excerpt) }}</v-list-item-subtitle>
-                  </div>
-
-                  <template #append>
-                    <div class="app-bar__message-meta text-caption text-medium-emphasis">
-                      <span class="mx-auto">{{ formatRelativeTime(conversation.latestMessageAt) }}</span>
-                      <v-badge
-                        v-if="conversation.unread"
-                        :content="conversation.unread"
-                        color="primary"
-                        inline
-                      />
-                    </div>
-                  </template>
-                </v-list-item>
-
-                <v-list-item
-                  to="/inbox"
-                  rounded="lg"
-                  class="mx-2 my-1 text-primary"
-                  :title="t('app.common.showAll')"
-                  prepend-icon="mdi-arrow-right"
-                />
-              </v-list>
-            </v-menu>
-
-            <v-menu v-if="isAuthenticated" location="bottom end" v-model="isNotificationsMenuOpen">
-              <template #activator="{ props }">
-                <v-btn
-                  icon
-                  variant="text"
-                  class="app-bar__icon-btn"
-                  v-bind="props"
-                  :aria-label="t('app.navigation.notifications')"
-                >
-                  <v-badge :model-value="unreadNotificationsCount > 0" :content="unreadNotificationsCount" color="error" offset-x="2" offset-y="2">
-                    <v-icon icon="mdi-bell-outline" />
-                  </v-badge>
-                </v-btn>
-              </template>
-
-              <v-list class="py-1 app-bar__menu" min-width="320">
-                <v-list-item
-                  v-for="notification in notificationPreviewItems"
-                  :key="notification.id"
-                  :to="getNotificationTarget(notification) ?? `/notifications/${notification.id}`"
-                  rounded="lg"
-                  class="mx-2 my-1 app-bar__message-item"
-                >
-                  <template #prepend>
-                    <v-avatar v-if="notification.from?.photo" size="34" class="me-3">
-                      <v-img :src="notification.from.photo" :alt="getNotificationAvatarLabel(notification)" cover />
-                    </v-avatar>
-                    <v-avatar v-else size="34" color="primary" variant="tonal" class="me-3">
-                      <v-icon icon="mdi-earth" size="18" />
-                    </v-avatar>
-                  </template>
-
-                  <div class="app-bar__message-content">
-                    <v-list-item-title class="font-weight-medium text-truncate">{{ truncateText(notification.title) }}</v-list-item-title>
-                    <v-list-item-subtitle class="text-truncate">{{ truncateText(notification.description) }}</v-list-item-subtitle>
-                  </div>
-
-                  <template #append>
-                    <span class="app-bar__message-time text-caption text-medium-emphasis">{{ formatRelativeTime(notification.createdAt) }}</span>
-                  </template>
-                </v-list-item>
-
-                <v-list-item
-                  to="/notifications"
-                  rounded="lg"
-                  class="mx-2 my-1 text-primary"
-                  :title="t('app.common.showAll')"
-                  prepend-icon="mdi-arrow-right"
-                />
-              </v-list>
-            </v-menu>
-
-            <v-menu location="bottom end" v-model="isProfileMenuOpen">
-              <template #activator="{ props }">
-                <UiAvatar :aria-label="t('app.navigation.profile')"
-                          v-bind="props" :src="profilePhoto" size="xs" :name="profileName" status="online" class="me-1" />
-              </template>
-
-              <v-list class="py-1 app-bar__menu" min-width="220">
-                <template v-if="isAuthenticated">
-                  <v-list-item to="/profile" :title="t('app.navigation.profile')" prepend-icon="mdi-account-outline" rounded="lg" class="mx-2 my-1" />
-                  <v-list-item to="/settings" :title="t('app.navigation.settings')" prepend-icon="mdi-cog-outline" rounded="lg" class="mx-2 my-1" />
-                  <v-list-item to="/about" :title="t('app.navigation.about')" prepend-icon="mdi-information-outline" rounded="lg" class="mx-2 my-1" />
-                  <v-list-item to="/contact" :title="t('app.navigation.contact')" prepend-icon="mdi-email-outline" rounded="lg" class="mx-2 my-1" />
-                  <v-list-item to="/faq" :title="t('app.navigation.faq')" prepend-icon="mdi-frequently-asked-questions" rounded="lg" class="mx-2 my-1" />
-                  <v-list-item
-                    v-if="canPermission('admin.access')"
-                    to="/admin"
-                    :title="t('app.navigation.admin')"
-                    prepend-icon="mdi-shield-account-outline"
-                    rounded="lg"
-                    class="mx-2 my-1"
-                  />
-                  <v-list-item
-                    v-if="canPermission('profile.logout')"
-                    :title="t('profile.logout')"
-                    prepend-icon="mdi-logout"
-                    rounded="lg"
-                    class="mx-2 my-1"
-                    @click="signOut"
-                  />
-                </template>
-                <template v-else>
-                  <v-list-item to="/login" :title="t('app.navigation.login')" prepend-icon="mdi-login" rounded="lg" class="mx-2 my-1" />
-                  <v-list-item to="/register" :title="t('app.navigation.register')" prepend-icon="mdi-account-plus-outline" rounded="lg" class="mx-2 my-1" />
-                  <v-list-item to="/about" :title="t('app.navigation.about')" prepend-icon="mdi-information-outline" rounded="lg" class="mx-2 my-1" />
-                  <v-list-item to="/contact" :title="t('app.navigation.contact')" prepend-icon="mdi-email-outline" rounded="lg" class="mx-2 my-1" />
-                  <v-list-item to="/faq" :title="t('app.navigation.faq')" prepend-icon="mdi-frequently-asked-questions" rounded="lg" class="mx-2 my-1" />
-                </template>
-              </v-list>
-            </v-menu>
+            <AppBarInboxMenu v-if="isAuthenticated" />
+            <AppBarNotificationsMenu v-if="isAuthenticated" />
+            <AppBarProfileMenu :can-access-admin="canPermission('admin.access')" :can-logout="canPermission('profile.logout')" @logout="signOut" />
 
             <v-menu location="bottom end" :close-on-content-click="false">
               <template #activator="{ props }">

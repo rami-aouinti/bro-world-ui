@@ -14,6 +14,7 @@ withDefaults(defineProps<{
 const route = useRoute()
 const { t } = useI18n()
 
+const isHomeRoute = computed(() => route.path === '/')
 
 
 const excludedSplitShellPaths = new Set(['/', '/login', '/about', '/faq', '/contact'])
@@ -43,7 +44,8 @@ const routeMessage = computed(() => {
 
 <template>
   <v-app>
-    <AppBar />
+    <HomeAppBarLite v-if="isHomeRoute" />
+    <AppBar v-else />
 
     <v-main>
       <template v-if="showPageSkeleton">
