@@ -23,6 +23,7 @@ body {
     Arial,
     sans-serif
   );
+  font-size-adjust: 0.52;
   --ui-radius: var(--radius, var(--ui-radius-md));
   --v-radius-md: var(--radius, var(--v-radius-md));
   --v-btn-border-radius: var(--radius, var(--ui-radius));
