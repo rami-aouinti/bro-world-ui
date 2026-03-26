@@ -26,6 +26,7 @@ Au démarrage, l'application valide la configuration session/cookie et échoue s
 - `SESSION_COOKIE_NAME` doit respecter `[A-Za-z0-9_-]`,
 - `SESSION_COOKIE_SAME_SITE` doit être `strict`, `lax` ou `none`,
 - `SESSION_COOKIE_SECURE` doit être explicitement `true|false`, et obligatoire à `true` hors dev (et avec `sameSite=none`).
+- En déploiement, privilégier les variables runtime `NUXT_SESSION_COOKIE_SECURE` et `NUXT_SESSION_COOKIE_SAME_SITE` pour garantir l'injection au démarrage Nuxt (pas uniquement au build).
 
 ## Scripts utiles
 
