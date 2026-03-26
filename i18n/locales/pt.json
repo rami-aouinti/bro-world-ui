@@ -1532,7 +1532,15 @@
     "submit": "Create account"
   },
   "validation": {
-    "requiredField": "{field} é obrigatório."
+    "summaryTitle": "Corrija os seguintes erros:",
+    "requiredField": "{field} é obrigatório.",
+    "minLength": "{field} deve conter pelo menos {count} caracteres.",
+    "maxLength": "{field} não pode exceder {count} caracteres.",
+    "invalidEmail": "{field} deve ser um endereço de e-mail válido.",
+    "passwordUppercase": "A palavra-passe deve conter pelo menos uma letra maiúscula.",
+    "passwordLowercase": "A palavra-passe deve conter pelo menos uma letra minúscula.",
+    "passwordNumber": "A palavra-passe deve conter pelo menos um número.",
+    "passwordsDoNotMatch": "As palavras-passe não coincidem."
   },
   "calendar": {
     "range": {
