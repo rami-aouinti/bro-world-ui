@@ -4,6 +4,7 @@ import {
   normalizeUnknownErrorResponse,
   type ApiResponseEnvelope,
 } from './api/responseNormalizer'
+import { shouldLogTelemetry } from './telemetry'
 
 const SERVER_SESSION_PLACEHOLDER = '__server_session__'
 const CRITICAL_API_PATTERNS = [
@@ -234,6 +235,30 @@ const isRetryableNetworkError = (error: unknown) => {
     || networkError.message?.toLowerCase().includes('failed to fetch')
 }
 
+const logConsoleTelemetry = (
+  level: 'info' | 'warn',
+  label: string,
+  payload: Record<string, unknown>,
+  options: { critical?: boolean } = {},
+) => {
+  if (!shouldLogTelemetry() && !(level === 'warn' && options.critical)) {
+    return
+  }
+
+  const logger = level === 'warn' ? console.warn : console.info
+  logger(label, payload)
+}
+
+const logApiEvent = (
+  payload: {
+    event: string
+    [key: string]: unknown
+  },
+  options: { critical?: boolean } = {},
+) => {
+  logConsoleTelemetry('info', '[auth-correlation]', payload, options)
+}
+
 const logApiTelemetry = (
   level: 'info' | 'warn',
   payload: {
@@ -248,9 +273,9 @@ const logApiTelemetry = (
     event?: string
     [key: string]: unknown
   },
+  options: { critical?: boolean } = {},
 ) => {
-  const logger = level === 'warn' ? console.warn : console.info
-  logger('[api-telemetry]', payload)
+  logConsoleTelemetry(level, '[api-telemetry]', payload, options)
 }
 
 const recordTop401Endpoint = (
@@ -273,11 +298,11 @@ const recordTop401Endpoint = (
     .slice(0, 5)
     .map(([endpointKey, count]) => ({ endpointKey, count }))
 
-  console.warn('[api-telemetry][401-top-endpoints]', {
+  logConsoleTelemetry('warn', '[api-telemetry][401-top-endpoints]', {
     total401,
     topEndpoints,
     sessionCorrelationId,
-  })
+  }, { critical: true })
 }
 
 const ensurePrivateAuthReady = async (auth: ReturnType<typeof useAuth>) => {
@@ -371,7 +396,7 @@ export const useApiClient = () => {
         errorSource: 'client_auth_guard',
         method,
         sessionCorrelationId,
-      })
+      }, { critical: true })
       auth.lastAuthFailureAt.value = now()
       const unauthorizedError = createError({
         statusCode: 403,
@@ -403,7 +428,7 @@ export const useApiClient = () => {
         errorSource: 'local_auth_missing',
         method,
         sessionCorrelationId,
-      })
+      }, { critical: true })
       track401Burst(tracker, normalizedUrl, method)
       recordTop401Endpoint(normalizedUrl, method, 'local_401_missing_cookie', auth.sessionCorrelationId.value)
       auth.lastAuthFailureAt.value = now()
@@ -484,7 +509,7 @@ export const useApiClient = () => {
             })
 
             if (auth.isAuthenticated.value) {
-              console.info('[auth-correlation]', {
+              logApiEvent({
                 event: 'private.api.success',
                 requestCorrelationId,
                 sessionCorrelationId: auth.sessionCorrelationId.value,

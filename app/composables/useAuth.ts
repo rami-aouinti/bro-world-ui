@@ -1,6 +1,7 @@
 import { computed } from 'vue'
 import { useAuthSessionStore } from '~/stores/authSession'
 import { FALLBACK_LOCALE, getProfilePreferredLocale, normalizeLocaleCodes, resolveLocale } from '~/utils/locale'
+import { shouldLogTelemetry } from './telemetry'
 
 import type { LoginPayload, RegisterPayload } from '~/types/api/common'
 import type { SessionResponse, UserProfile } from '~/types/api/user'
@@ -8,6 +9,20 @@ import type { AuthState, UserProfileSnapshot } from '~/stores/authSession'
 
 let activeSessionInitPromise: Promise<void> | null = null
 let activeSessionInitCorrelationId: string | null = null
+
+const logAuthTelemetry = (
+  level: 'info' | 'warn',
+  message: string,
+  payload?: unknown,
+  options: { critical?: boolean } = {},
+) => {
+  if (!shouldLogTelemetry() && !(level === 'warn' && options.critical)) {
+    return
+  }
+
+  const logger = level === 'warn' ? console.warn : console.info
+  logger(message, payload)
+}
 
 export const useAuth = () => {
   const authSession = useAuthSessionStore()
@@ -132,7 +147,7 @@ export const useAuth = () => {
         }
         catch (error) {
           if ((error as { name?: string })?.name !== 'AbortError') {
-            console.warn('Auth warmup cache failed', error)
+            logAuthTelemetry('warn', 'Auth warmup cache failed', error)
           }
         }
         finally {
@@ -281,7 +296,7 @@ export const useAuth = () => {
   }
 
   const logSessionFlow = (event: string, details: Record<string, unknown> = {}) => {
-    console.info('[auth-correlation]', {
+    logAuthTelemetry('info', '[auth-correlation]', {
       event,
       sessionCorrelationId: sessionCorrelationId.value,
       ...details,
