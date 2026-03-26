@@ -133,11 +133,77 @@ const hashValue = (value: string): string => {
   return Math.abs(hash).toString(36)
 }
 
-const buildRequestDedupeKey = (method: string, normalizedUrl: string, options: ApiFetchOptions<unknown>) => {
-  const query = stableSerialize(options.query)
-  const bodyHash = hashValue(stableSerialize(options.body))
+const serializeRequestBodyForDedupe = (body: unknown): string | null => {
+  if (body === null || body === undefined) {
+    return ''
+  }
 
-  return `${method}|${normalizedUrl}|${query}|${bodyHash}`
+  if (typeof URLSearchParams !== 'undefined' && body instanceof URLSearchParams) {
+    const entries = Array.from(body.entries())
+      .sort(([firstKey, firstValue], [secondKey, secondValue]) => `${firstKey}:${firstValue}`.localeCompare(`${secondKey}:${secondValue}`))
+
+    return `urlsearchparams:${stableSerialize(entries)}`
+  }
+
+  if (typeof FormData !== 'undefined' && body instanceof FormData) {
+    const entries = Array.from(body.entries())
+      .map(([key, value]) => {
+        if (typeof File !== 'undefined' && value instanceof File) {
+          return [key, `file:${value.name}:${value.size}:${value.type}:${value.lastModified}`] as const
+        }
+
+        if (typeof Blob !== 'undefined' && value instanceof Blob) {
+          return [key, `blob:${value.size}:${value.type}`] as const
+        }
+
+        return [key, `text:${String(value)}`] as const
+      })
+      .sort(([firstKey, firstValue], [secondKey, secondValue]) => `${firstKey}:${firstValue}`.localeCompare(`${secondKey}:${secondValue}`))
+
+    return `formdata:${stableSerialize(entries)}`
+  }
+
+  if (typeof File !== 'undefined' && body instanceof File) {
+    return `file:${body.name}:${body.size}:${body.type}:${body.lastModified}`
+  }
+
+  if (typeof Blob !== 'undefined' && body instanceof Blob) {
+    return `blob:${body.size}:${body.type}`
+  }
+
+  if (typeof body === 'object') {
+    const objectTag = Object.prototype.toString.call(body)
+    const isPlainObject = objectTag === '[object Object]'
+    const isArray = Array.isArray(body)
+    const isDate = body instanceof Date
+
+    if (!isPlainObject && !isArray && !isDate) {
+      return null
+    }
+  }
+
+  return stableSerialize(body)
+}
+
+const buildRequestDedupeKey = (method: string, normalizedUrl: string, options: ApiFetchOptions<unknown>) => {
+  const isMutation = MUTATION_METHODS.has(method)
+  const hasExplicitIdempotencyKey = Boolean(options.idempotencyKey)
+
+  if (isMutation && !hasExplicitIdempotencyKey) {
+    return null
+  }
+
+  const query = stableSerialize(options.query)
+  const serializedBody = serializeRequestBodyForDedupe(options.body)
+
+  if (serializedBody === null) {
+    return null
+  }
+
+  const bodyHash = hashValue(serializedBody)
+  const idempotencyPart = hasExplicitIdempotencyKey ? `|${options.idempotencyKey}` : ''
+
+  return `${method}|${normalizedUrl}|${query}|${bodyHash}${idempotencyPart}`
 }
 
 const isRetryableNetworkError = (error: unknown) => {
@@ -277,7 +343,9 @@ export const useApiClient = () => {
     const method = resolveMethod(options.method)
     const requestCorrelationId = `${method.toLowerCase()}-${Date.now()}-${hashValue(`${normalizedUrl}:${Math.random()}`)}`
     const dedupeKey = buildRequestDedupeKey(method, normalizedUrl, options as ApiFetchOptions<unknown>)
-    const existingRequest = inFlightRequests.get(dedupeKey) as Promise<T> | undefined
+    const existingRequest = dedupeKey
+      ? (inFlightRequests.get(dedupeKey) as Promise<T> | undefined)
+      : undefined
     const isAuthRequiredEndpoint = isPrivateAuthRequiredEndpoint(normalizedUrl)
     const isPublicQuizEndpoint = normalizedUrl.toLowerCase().startsWith(PUBLIC_QUIZ_ENDPOINT_PREFIX)
     const canUsePrivateSession = auth.authState.value === 'authenticated' || auth.authState.value === 'degraded'
@@ -524,13 +592,17 @@ export const useApiClient = () => {
       }
     })()
 
-    inFlightRequests.set(dedupeKey, requestPromise as Promise<unknown>)
+    if (dedupeKey) {
+      inFlightRequests.set(dedupeKey, requestPromise as Promise<unknown>)
+    }
 
     try {
       return await requestPromise
     }
     finally {
-      inFlightRequests.delete(dedupeKey)
+      if (dedupeKey) {
+        inFlightRequests.delete(dedupeKey)
+      }
     }
   }
 
