@@ -112,7 +112,7 @@ export default defineNuxtConfig({
       ],
     },
   },
-  modules: ['vuetify-nuxt-module', '@nuxtjs/i18n', '@pinia/nuxt', 'nuxt-auth-utils'],
+  modules: ['vuetify-nuxt-module', '@nuxtjs/i18n', '@pinia/nuxt', 'nuxt-auth-utils', '@vercel/analytics', '@vercel/speed-insights'],
   vuetify: {
     vuetifyOptions: {
       defaults: {
