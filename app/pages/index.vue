@@ -17,13 +17,13 @@ useHead({
 
 const publicPagesStore = usePublicPagesStore()
 const { locale } = useI18n()
-const { data, pending, refresh } = await useAsyncData(
+const { data, pending, error, refresh } = await useAsyncData(
   'home-page',
   () => publicPagesStore.loadHome(locale.value),
   { watch: [locale] },
 )
 const homePagePayload = computed(() => data.value)
-const showNavigationSkeleton = computed(() => pending.value && Boolean(data.value))
+const showNavigationSkeleton = computed(() => pending.value && !Boolean(data.value))
 const showSecondarySections = ref(false)
 
 onMounted(async () => {
@@ -63,7 +63,7 @@ defineExpose({ refresh })
     </template>
 
     <template v-else-if="homePagePayload">
-      <UiCard class="home-hero mb-6" kind="hero">
+      <UiCard class="home-hero mb-6" kind="hero" theme="light-pink">
         <v-chip class="home-hero__badge mb-4" color="primary" variant="tonal">
           {{ homePagePayload?.hero?.badge }}
         </v-chip>
@@ -87,13 +87,13 @@ defineExpose({ refresh })
     </template>
 
     <template v-else>
-      <v-card class="home-hero mb-6">
-        <v-skeleton-loader type="chip" class="mb-4" />
-        <v-skeleton-loader type="heading" class="mb-2" />
-        <v-skeleton-loader type="text@2" class="mb-4" />
-        <v-skeleton-loader type="button@2" class="mb-4" />
-        <v-skeleton-loader type="list-item-two-line@3" />
-      </v-card>
+      <UiCard class="home-hero mb-6" kind="hero" theme="light-pink">
+        <h1 class="home-hero__title text-h4 text-md-h3 font-weight-bold mb-2">BroWorld</h1>
+        <p class="home-hero__subtitle text-body-1 text-medium-emphasis mb-5">
+          {{ error ? "La page d'accueil n'a pas pu être chargée." : 'Chargement en cours…' }}
+        </p>
+        <v-btn class="home-hero__btn" color="primary" size="large" @click="refresh">Réessayer</v-btn>
+      </UiCard>
     </template>
   </main>
 </template>
