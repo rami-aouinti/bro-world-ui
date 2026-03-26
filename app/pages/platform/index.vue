@@ -340,10 +340,11 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
     </template>
 
     <template #aside>
-      <h3> Filter </h3>
+      <h3 class="platform-page__aside-title"> Filter </h3>
       <v-text-field
           v-model="search"
           :label="t('platform.filters.search')"
+          class="platform-page__search-field"
           variant="outlined"
           density="compact"
           rounded="xl"
@@ -590,6 +591,14 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
 
 .platform-page__filters-actions {
   flex-direction: column;
+}
+
+.platform-page__aside-title {
+  color: rgba(var(--v-theme-on-surface), 0.92);
+}
+
+.platform-page__search-field :deep(.v-field-label) {
+  color: rgba(var(--v-theme-on-surface), 0.92) !important;
 }
 
 .platform-page__content {
