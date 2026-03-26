@@ -12,7 +12,7 @@ const publicationHealthTone = computed(() => {
 </script>
 
 <template>
-  <p class="text-overline text-primary mb-2">{{ blog?.type?.toUpperCase() }}</p>
+  <p class="text-overline text-high-emphasis mb-2">{{ blog?.type?.toUpperCase() }}</p>
   <h1 class="text-h6 font-weight-bold mb-3">{{ blog?.title }}</h1>
 
   <div class="d-flex flex-wrap ga-2 mb-4">
