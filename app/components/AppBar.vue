@@ -166,13 +166,13 @@ const signOut = async () => {
             <v-menu location="bottom end" :close-on-content-click="false">
               <template #activator="{ props }">
                 <v-btn
+                  icon
                   variant="text"
-                  size="small"
-                  class="px-2 app-bar__locale-flag app-bar__icon-btn"
+                  class="app-bar__locale-flag app-bar__icon-btn app-bar__control-btn"
                   v-bind="props"
                   :aria-label="`Select language, current ${getFlag(locale).alt}`"
                 >
-                  <img class="app-bar__locale-flag-image" :src="getFlag(locale).src" :alt="getFlag(locale).alt" width="20" height="14">
+                  <img class="app-bar__locale-flag-image" :src="getFlag(locale).src" :alt="getFlag(locale).alt" width="22" height="16">
                 </v-btn>
               </template>
 
@@ -203,7 +203,7 @@ const signOut = async () => {
                 <v-btn
                   icon
                   variant="text"
-                  class="mx-2 app-bar__icon-btn"
+                  class="app-bar__icon-btn app-bar__control-btn"
                   v-bind="props"
                   :aria-label="t('app.navigation.toggleTheme')"
                 >
@@ -487,6 +487,11 @@ const signOut = async () => {
   border-radius: var(--ui-radius-pill);
 }
 
+.app-bar__control-btn {
+  width: 40px;
+  height: 40px;
+}
+
 .app-bar__icon-btn:hover {
   color: rgb(var(--v-theme-primary));
   background-color: rgba(var(--v-theme-primary), 0.08);
@@ -582,6 +587,7 @@ const signOut = async () => {
   display: block;
   border-radius: 2px;
   object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(var(--v-theme-on-surface), 0.14);
 }
 
 .app-bar__message-item :deep(.v-list-item__content) {

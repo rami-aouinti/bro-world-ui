@@ -35,11 +35,11 @@ const profilePhoto = computed(() => authSession.profile?.photo || authSession.us
       <v-btn
         v-bind="menuProps"
         variant="text"
-        class="me-1 pa-0"
+        class="app-bar-profile-menu__trigger"
         min-width="0"
         :aria-label="t('app.navigation.profile')"
       >
-        <UiAvatar :src="profilePhoto" size="xs" :name="profileName" status="online" />
+        <UiAvatar :src="profilePhoto" size="sm" :name="profileName" status="online" />
       </v-btn>
     </template>
 
@@ -77,3 +77,12 @@ const profilePhoto = computed(() => authSession.profile?.photo || authSession.us
     </v-list>
   </v-menu>
 </template>
+
+<style scoped>
+.app-bar-profile-menu__trigger {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 999px;
+}
+</style>
