@@ -2,7 +2,6 @@
 import { computed } from 'vue'
 import UiStateAlert from '~/components/ui/state/UiStateAlert.vue'
 import AppSplitShell from '~/components/layout/AppSplitShell.vue'
-import HomeAppBarLite from "~/components/layout/HomeAppBarLite.vue";
 
 withDefaults(defineProps<{
   showPageSkeleton?: boolean
@@ -14,8 +13,6 @@ withDefaults(defineProps<{
 
 const route = useRoute()
 const { t } = useI18n()
-
-const isHomeRoute = computed(() => route.path === '/')
 
 
 const excludedSplitShellPaths = new Set(['/', '/login', '/about', '/faq', '/contact'])
@@ -45,8 +42,7 @@ const routeMessage = computed(() => {
 
 <template>
   <v-app>
-    <HomeAppBarLite v-if="isHomeRoute" />
-    <AppBar v-else />
+    <AppBar />
 
     <v-main>
       <template v-if="showPageSkeleton">
