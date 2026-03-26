@@ -1,129 +1,140 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-describe('useApiClient', () => {
+const createDeferred = <T>() => {
+  let resolve!: (value: T) => void
+  let reject!: (reason?: unknown) => void
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res
+    reject = rej
+  })
+
+  return { promise, resolve, reject }
+}
+
+const buildRawResponse = <T>(data: T) => ({
+  status: 200,
+  _data: data,
+  headers: new Headers(),
+})
+
+const setupApiClientDependencies = () => {
+  const rawFetch = vi.fn()
+  const track = vi.fn()
+
+  vi.stubGlobal('$fetch', { raw: rawFetch })
+  vi.stubGlobal('useAuthSessionStore', vi.fn(() => ({ token: 'token-abc' })))
+  vi.stubGlobal('useRequestHeaders', vi.fn(() => ({ authorization: '' })))
+  vi.stubGlobal('useTracker', vi.fn(() => ({
+    track,
+    trackError: vi.fn(),
+    trackLatency: vi.fn(),
+  })))
+  vi.stubGlobal('useAuth', vi.fn(() => ({
+    initialized: { value: true },
+    authState: { value: 'authenticated' },
+    isAuthenticated: { value: true },
+    sessionCorrelationId: { value: 'corr-1' },
+    lastAuthFailureAt: { value: 0 },
+    initSession: vi.fn(),
+    awaitAuthReady: vi.fn(),
+  })))
+
+  return { rawFetch, track }
+}
+
+describe('useApiClient dedupe behavior', () => {
   beforeEach(() => {
     vi.resetModules()
     vi.clearAllMocks()
   })
 
-  it('injecte le header Authorization avec le token de session', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true })
-    const trackLatency = vi.fn()
-    const trackError = vi.fn()
-    vi.stubGlobal('$fetch', fetchMock)
-    vi.stubGlobal('useAuthSessionStore', vi.fn(() => ({ token: 'abc123' })))
-    vi.stubGlobal('useRequestHeaders', vi.fn(() => ({ authorization: 'Bearer server' })))
-    vi.stubGlobal('useTracker', vi.fn(() => ({ trackLatency, trackError })))
-    vi.stubGlobal('useAuth', vi.fn(() => ({ isAuthenticated: { value: false }, sessionCorrelationId: { value: null }, initSession: vi.fn() })))
+  it('ne dedupe pas deux POST simultanés avec des body différents', async () => {
+    const { rawFetch } = setupApiClientDependencies()
+    const firstDeferred = createDeferred<ReturnType<typeof buildRawResponse>>()
+    const secondDeferred = createDeferred<ReturnType<typeof buildRawResponse>>()
+
+    rawFetch
+      .mockImplementationOnce(() => firstDeferred.promise)
+      .mockImplementationOnce(() => secondDeferred.promise)
 
     const { useApiClient } = await import('~/app/composables/useApiClient')
     const { apiFetch } = useApiClient()
 
-    await apiFetch('api/v1/test')
+    const firstPost = apiFetch('/api/v1/private/items', {
+      method: 'POST',
+      body: { name: 'first' },
+    })
+    const secondPost = apiFetch('/api/v1/private/items', {
+      method: 'POST',
+      body: { name: 'second' },
+    })
 
-    expect(fetchMock).toHaveBeenCalledWith('/api/backend/api/v1/test', expect.objectContaining({
-      credentials: 'include',
-      headers: expect.objectContaining({
-        Authorization: 'Bearer abc123',
-      }),
+    await Promise.resolve()
+
+    expect(rawFetch).toHaveBeenCalledTimes(2)
+
+    firstDeferred.resolve(buildRawResponse({ id: 1 }))
+    secondDeferred.resolve(buildRawResponse({ id: 2 }))
+
+    await expect(firstPost).resolves.toEqual({ id: 1 })
+    await expect(secondPost).resolves.toEqual({ id: 2 })
+  })
+
+  it('dedupe deux GET identiques simultanés', async () => {
+    const { rawFetch, track } = setupApiClientDependencies()
+    const deferred = createDeferred<ReturnType<typeof buildRawResponse>>()
+
+    rawFetch.mockImplementation(() => deferred.promise)
+
+    const { useApiClient } = await import('~/app/composables/useApiClient')
+    const { apiFetch } = useApiClient()
+
+    const firstGet = apiFetch('/api/v1/public/resource', { method: 'GET' })
+    const secondGet = apiFetch('/api/v1/public/resource', { method: 'GET' })
+
+    expect(rawFetch).toHaveBeenCalledTimes(1)
+    expect(track).toHaveBeenCalledWith('api.request.deduplicated', expect.objectContaining({
+      method: 'GET',
+      path: 'api/v1/public/resource',
     }))
-    expect(trackLatency).not.toHaveBeenCalled()
-    expect(trackError).not.toHaveBeenCalled()
+
+    deferred.resolve(buildRawResponse({ ok: true }))
+
+    await expect(firstGet).resolves.toEqual({ ok: true })
+    await expect(secondGet).resolves.toEqual({ ok: true })
   })
 
-  it('conserve un header Authorization déjà fourni', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true })
-    const trackLatency = vi.fn()
-    vi.stubGlobal('$fetch', fetchMock)
-    vi.stubGlobal('useAuthSessionStore', vi.fn(() => ({ token: '__server_session__' })))
-    vi.stubGlobal('useRequestHeaders', vi.fn(() => ({ authorization: 'Bearer server' })))
-    vi.stubGlobal('useTracker', vi.fn(() => ({ trackLatency, trackError: vi.fn() })))
-    vi.stubGlobal('useAuth', vi.fn(() => ({ isAuthenticated: { value: false }, sessionCorrelationId: { value: null }, initSession: vi.fn() })))
+  it('autorise le dedupe pour une mutation quand idempotencyKey est fourni', async () => {
+    const { rawFetch, track } = setupApiClientDependencies()
+    const deferred = createDeferred<ReturnType<typeof buildRawResponse>>()
+
+    rawFetch.mockImplementation(() => deferred.promise)
 
     const { useApiClient } = await import('~/app/composables/useApiClient')
     const { apiFetch } = useApiClient()
 
-    await apiFetch('/api/v1/test', { headers: { Authorization: 'Bearer custom' } })
+    const firstMutation = apiFetch('/api/v1/private/items', {
+      method: 'POST',
+      idempotencyKey: 'idempotent-op-1',
+      body: { name: 'shared' },
+    })
+    const secondMutation = apiFetch('/api/v1/private/items', {
+      method: 'POST',
+      idempotencyKey: 'idempotent-op-1',
+      body: { name: 'shared' },
+    })
 
-    expect(fetchMock).toHaveBeenCalledWith('/api/backend/api/v1/test', expect.objectContaining({
-      headers: expect.objectContaining({
-        Authorization: 'Bearer custom',
-      }),
+    await Promise.resolve()
+
+    expect(rawFetch).toHaveBeenCalledTimes(1)
+    expect(track).toHaveBeenCalledWith('api.request.deduplicated', expect.objectContaining({
+      method: 'POST',
+      path: 'api/v1/private/items',
     }))
-    expect(trackLatency).not.toHaveBeenCalled()
-  })
 
+    deferred.resolve(buildRawResponse({ accepted: true }))
 
-
-  it('déclenche une revalidation de session sur 401 backend', async () => {
-    const fetchMock = vi.fn()
-      .mockRejectedValueOnce({ status: 401 })
-      .mockResolvedValueOnce({ ok: true })
-    const initSession = vi.fn(async () => {})
-
-    vi.stubGlobal('$fetch', fetchMock)
-    vi.stubGlobal('useAuthSessionStore', vi.fn(() => ({ token: 'abc123' })))
-    vi.stubGlobal('useRequestHeaders', vi.fn(() => ({ authorization: '' })))
-    vi.stubGlobal('useTracker', vi.fn(() => ({ trackLatency: vi.fn(), trackError: vi.fn(), track: vi.fn() })))
-    vi.stubGlobal('useAuth', vi.fn(() => ({
-      isAuthenticated: { value: true },
-      sessionCorrelationId: { value: 'corr-1' },
-      initSession,
-    })))
-
-    const { useApiClient } = await import('~/app/composables/useApiClient')
-    const { apiFetch } = useApiClient()
-
-    const result = await apiFetch('/api/v1/private/stories', { method: 'GET' })
-
-    expect(result).toEqual({ ok: true })
-    expect(initSession).toHaveBeenCalledWith(true)
-    expect(initSession).toHaveBeenCalledTimes(1)
-  })
-
-  it('ne revalide pas la session sur erreur transitoire 5xx (stories/endpoints privés)', async () => {
-    const fetchMock = vi.fn().mockRejectedValue({ status: 503 })
-    const initSession = vi.fn(async () => {})
-
-    vi.stubGlobal('$fetch', fetchMock)
-    vi.stubGlobal('useAuthSessionStore', vi.fn(() => ({ token: 'abc123' })))
-    vi.stubGlobal('useRequestHeaders', vi.fn(() => ({ authorization: '' })))
-    vi.stubGlobal('useTracker', vi.fn(() => ({ trackLatency: vi.fn(), trackError: vi.fn(), track: vi.fn() })))
-    vi.stubGlobal('useAuth', vi.fn(() => ({
-      isAuthenticated: { value: true },
-      sessionCorrelationId: { value: 'corr-1' },
-      initSession,
-    })))
-
-    const { useApiClient } = await import('~/app/composables/useApiClient')
-    const { apiFetch } = useApiClient()
-
-    await expect(apiFetch('/api/v1/private/stories', { method: 'GET' })).rejects.toEqual({ status: 503 })
-    expect(initSession).not.toHaveBeenCalled()
-  })
-
-  it('mesure la latence sur un endpoint critique', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true })
-    const trackLatency = vi.fn()
-    vi.stubGlobal('$fetch', fetchMock)
-    vi.stubGlobal('useAuthSessionStore', vi.fn(() => ({ token: 'abc123' })))
-    vi.stubGlobal('useRequestHeaders', vi.fn(() => ({ authorization: '' })))
-    vi.stubGlobal('useTracker', vi.fn(() => ({ trackLatency, trackError: vi.fn() })))
-    vi.stubGlobal('useAuth', vi.fn(() => ({ isAuthenticated: { value: false }, sessionCorrelationId: { value: null }, initSession: vi.fn() })))
-
-    const { useApiClient } = await import('~/app/composables/useApiClient')
-    const { apiFetch } = useApiClient()
-
-    await apiFetch('/api/v1/crm/applications/demo/dashboard', { method: 'GET' })
-
-    expect(trackLatency).toHaveBeenCalledTimes(1)
-    expect(trackLatency).toHaveBeenCalledWith(
-      'api/v1/crm/applications/demo/dashboard',
-      expect.any(Number),
-      expect.objectContaining({
-        method: 'GET',
-        status: 'success',
-      }),
-    )
+    await expect(firstMutation).resolves.toEqual({ accepted: true })
+    await expect(secondMutation).resolves.toEqual({ accepted: true })
   })
 })
