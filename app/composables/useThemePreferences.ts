@@ -34,9 +34,9 @@ export const useThemePreferences = () => {
     return defaultThemePreference
   }
 
-  ensureValidTheme()
-
-  const preference = ref<ThemePreference>(parseThemeName(theme.global.name.value) ?? defaultThemePreference)
+  const bootstrapPreference = defaultThemePreference
+  theme.change(buildThemeName(bootstrapPreference))
+  const preference = ref<ThemePreference>(bootstrapPreference)
 
   const ensureThemeIsRegistered = (next: ThemePreference) => {
     const themeName = buildThemeName(next)
