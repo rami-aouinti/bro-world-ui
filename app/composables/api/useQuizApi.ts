@@ -52,10 +52,16 @@ export const useQuizApi = () => {
       return apiFetch<QuizRead>(buildGeneralQuizUrl(isPrivate, filters), { method: 'GET' })
     },
     getGeneralQuizCategories() {
-      return apiFetch<{ items: QuizCategoryRead[] }>(`/api/v1/public/quiz/general/categories`, { method: 'GET' })
+      return apiFetch<{ items: QuizCategoryRead[] }>(`/api/v1/public/quiz/general/categories`, {
+        method: 'GET',
+        skipAuthHeader: true,
+      })
     },
     getGeneralQuizLevels() {
-      return apiFetch<{ items: QuizLevelRead[] }>(`/api/v1/public/quiz/general/levels`, { method: 'GET' })
+      return apiFetch<{ items: QuizLevelRead[] }>(`/api/v1/public/quiz/general/levels`, {
+        method: 'GET',
+        skipAuthHeader: true,
+      })
     },
     getGeneralQuizLeaderboard() {
       return apiFetch<{ items: QuizLeaderboardEntry[] }>(`/api/v1/public/quiz/general/leaderboard`, { method: 'GET' })

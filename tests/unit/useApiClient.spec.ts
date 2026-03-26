@@ -137,4 +137,26 @@ describe('useApiClient dedupe behavior', () => {
     await expect(firstMutation).resolves.toEqual({ accepted: true })
     await expect(secondMutation).resolves.toEqual({ accepted: true })
   })
+
+  it('n’ajoute pas de header Authorization quand skipAuthHeader est activé', async () => {
+    const { rawFetch } = setupApiClientDependencies()
+    rawFetch.mockResolvedValue(buildRawResponse({ ok: true }))
+
+    const { useApiClient } = await import('~/app/composables/useApiClient')
+    const { apiFetch } = useApiClient()
+
+    await apiFetch('/api/v1/public/quiz/general/categories', {
+      method: 'GET',
+      skipAuthHeader: true,
+    })
+
+    expect(rawFetch).toHaveBeenCalledWith(
+      '/api/backend/api/v1/public/quiz/general/categories',
+      expect.objectContaining({
+        headers: expect.not.objectContaining({
+          Authorization: expect.any(String),
+        }),
+      }),
+    )
+  })
 })
