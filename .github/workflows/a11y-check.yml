@@ -9,6 +9,8 @@ on:
 jobs:
   a11y:
     runs-on: ubuntu-latest
+    env:
+      NUXT_SESSION_PASSWORD: ci-session-password-at-least-32-chars-long
     steps:
       - name: Checkout
         uses: actions/checkout@v4

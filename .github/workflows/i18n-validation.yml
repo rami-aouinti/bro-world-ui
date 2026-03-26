@@ -9,6 +9,8 @@ on:
 jobs:
   validate-i18n:
     runs-on: ubuntu-latest
+    env:
+      NUXT_SESSION_PASSWORD: ci-session-password-at-least-32-chars-long
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
