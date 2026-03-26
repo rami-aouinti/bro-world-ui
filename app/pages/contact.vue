@@ -8,6 +8,10 @@ definePageMeta({
   splitShell: false,
 })
 
+useHead({
+  title: 'Contact',
+})
+
 interface ContactChannel {
   label: string
   value: string

@@ -7,6 +7,10 @@ definePageMeta({
   splitShell: false,
 })
 
+useHead({
+  title: 'About',
+})
+
 interface AboutHero {
   badge: string
   title: string

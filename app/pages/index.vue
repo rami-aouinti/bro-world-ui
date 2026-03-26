@@ -10,6 +10,10 @@ definePageMeta({
   splitShell: false,
 })
 
+useHead({
+  title: 'Landing',
+})
+
 const publicPagesStore = usePublicPagesStore()
 const { locale } = useI18n()
 const { data, pending, refresh } = await useAsyncData(
