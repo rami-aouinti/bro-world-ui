@@ -66,7 +66,7 @@ const contacts = computed(() => reports.value?.contacts ?? [])
       </teleport>
     </client-only>
     <template #sidebar>
-      <PlatformSidebarNav title="platform.crm.sidebar.reports" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems" />
+      <PlatformSidebarNav title="platform.crm.sidebar.reports" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems"  />
     </template>
     <template #aside>
       <v-row class="mb-2">

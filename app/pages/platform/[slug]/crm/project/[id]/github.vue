@@ -555,7 +555,8 @@ onMounted(async () => {
                   variant="text"
                   :href="item.issue.url"
                   target="_blank"
-                />
+                  aria-label="Icon action"
+                 />
               </template>
             </v-list-item>
           </v-list>
@@ -784,7 +785,8 @@ onMounted(async () => {
                         :disabled="branch.protected"
                         :loading="isLoading.deleteBranch"
                         @click="deleteBranch(branch.name)"
-                      />
+                        aria-label="Icon action"
+                       />
                     </div>
                   </template>
                 </v-list-item>
@@ -871,7 +873,7 @@ onMounted(async () => {
                     </td>
                     <td>{{ formatDate(project.updatedAt) }}</td>
                     <td>
-                      <v-btn icon="mdi-open-in-new" size="small" variant="text" :href="project.url" target="_blank" @click.stop />
+                      <v-btn icon="mdi-open-in-new" size="small" variant="text" :href="project.url" target="_blank" @click.stop  aria-label="Icon action" />
                     </td>
                   </tr>
                 </tbody>

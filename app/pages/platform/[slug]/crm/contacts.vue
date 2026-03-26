@@ -204,7 +204,8 @@ onMounted(async () => {
         :loading="isPageLoading"
         @click="loadContacts(true)"
         icon="mdi-refresh"
-      />
+        aria-label="Icon action"
+       />
     </template>
 
     <template #app-bar-right>
@@ -290,7 +291,7 @@ onMounted(async () => {
     </template>
 
     <template #dialogs>
-      <v-dialog v-model="showCreateDialog" max-width="560">
+      <v-dialog v-model="showCreateDialog" max-width="560" retain-focus>
         <v-card>
           <v-card-title>Ajouter un contact</v-card-title>
           <v-card-text>
@@ -312,7 +313,7 @@ onMounted(async () => {
         </v-card>
       </v-dialog>
 
-      <v-dialog v-model="showEditDialog" max-width="560">
+      <v-dialog v-model="showEditDialog" max-width="560" retain-focus>
         <v-card>
           <v-card-title>Modifier le contact</v-card-title>
           <v-card-text>
@@ -334,7 +335,7 @@ onMounted(async () => {
         </v-card>
       </v-dialog>
 
-      <v-dialog v-model="showViewDialog" max-width="520">
+      <v-dialog v-model="showViewDialog" max-width="520" retain-focus>
         <v-card>
           <v-card-title>View contact</v-card-title>
           <v-card-text>

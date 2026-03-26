@@ -160,7 +160,8 @@ onMounted(async () => {
         :loading="isPageLoading"
         @click="loadEmployees"
         icon="mdi-refresh"
-      />
+        aria-label="Icon action"
+       />
     </template>
 
     <template #app-bar-right>
@@ -242,7 +243,7 @@ onMounted(async () => {
     </template>
 
     <template #dialogs>
-      <v-dialog v-model="showCreateDialog" max-width="560">
+      <v-dialog v-model="showCreateDialog" max-width="560" retain-focus>
         <v-card>
           <v-card-title>Add employee</v-card-title>
           <v-card-text>

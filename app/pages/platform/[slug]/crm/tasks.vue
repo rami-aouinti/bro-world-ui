@@ -257,7 +257,7 @@ onMounted(async () => {
       </teleport>
     </client-only>
     <template #sidebar>
-      <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
+      <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav"  />
     </template>
     <template #aside>
       <div class="d-flex flex-column ga-4">
@@ -358,7 +358,7 @@ onMounted(async () => {
       <div v-if="shouldShowPagination" class="tasks-page__footer d-flex justify-center">
         <v-pagination v-model="page" :length="pageLength" total-visible="4" />
       </div>
-      <v-dialog v-model="showCreateDialog" max-width="560">
+      <v-dialog v-model="showCreateDialog" max-width="560" retain-focus>
         <v-card>
           <v-card-title>Create task</v-card-title>
           <v-card-text>
@@ -383,7 +383,7 @@ onMounted(async () => {
         </v-card>
       </v-dialog>
 
-      <v-dialog v-model="showEditDialog" max-width="560">
+      <v-dialog v-model="showEditDialog" max-width="560" retain-focus>
         <v-card>
           <v-card-title>Update task</v-card-title>
           <v-card-text>

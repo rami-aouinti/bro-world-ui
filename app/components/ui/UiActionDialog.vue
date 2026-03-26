@@ -29,7 +29,7 @@ watch(model, (isOpen, wasOpen) => {
 </script>
 
 <template>
-  <v-dialog v-model="model" :max-width="maxWidth" :persistent="persistent">
+  <v-dialog v-model="model" :max-width="maxWidth" :persistent="persistent" retain-focus>
     <v-card rounded="xl">
       <v-card-title>{{ title }}</v-card-title>
       <v-card-text>

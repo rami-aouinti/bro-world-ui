@@ -498,7 +498,7 @@ watch(pullRequestState, async () => {
       </teleport>
     </client-only>
     <template #sidebar>
-      <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
+      <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav"  />
     </template>
     <template #aside>
       <div class="text-center">
@@ -559,7 +559,7 @@ watch(pullRequestState, async () => {
         <div class="d-flex ga-2 flex-wrap">
           <v-menu location="bottom end">
             <template #activator="{ props }">
-              <v-btn v-bind="props" icon="mdi-cog" variant="text" size="sm"  />
+              <v-btn v-bind="props" icon="mdi-cog" variant="text" size="sm"   aria-label="Icon action" />
             </template>
             <v-list density="compact">
               <v-list-item prepend-icon="mdi-pencil" title="Edit" @click="editProject" />
@@ -635,8 +635,8 @@ watch(pullRequestState, async () => {
                 <v-list-item-subtitle>Default branch: {{ repository.defaultBranch }}</v-list-item-subtitle>
                 <template #append>
                   <div class="d-flex ga-1">
-                    <v-btn icon="mdi-open-in-new" variant="text" @click.stop="openGithubRepository(repository.fullName)" />
-                    <v-btn icon="mdi-chevron-right" variant="text" />
+                    <v-btn icon="mdi-open-in-new" variant="text" @click.stop="openGithubRepository(repository.fullName)"  aria-label="Icon action" />
+                    <v-btn icon="mdi-chevron-right" variant="text"  aria-label="Icon action" />
                   </div>
                 </template>
               </v-list-item>
@@ -702,7 +702,7 @@ watch(pullRequestState, async () => {
                   <p class="text-subtitle-2 font-weight-bold mb-1">{{ getTaskTitle(item) }}</p>
                   <v-menu location="bottom end">
                     <template #activator="{ props }">
-                      <v-btn v-bind="props" icon="mdi-cog" size="x-small" variant="text" @click.stop />
+                      <v-btn v-bind="props" icon="mdi-cog" size="x-small" variant="text" @click.stop  aria-label="Icon action" />
                     </template>
                     <v-list density="compact">
                       <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="editProjectTask(item.id)" />
@@ -720,7 +720,7 @@ watch(pullRequestState, async () => {
         </v-row>
         <p v-else class="text-body-2 text-medium-emphasis">No tasks available.</p>
       </div>
-      <v-dialog v-model="showCreateTaskDialog" max-width="560">
+      <v-dialog v-model="showCreateTaskDialog" max-width="560" retain-focus>
         <v-card>
           <v-card-title>Ajouter un task au projet</v-card-title>
           <v-card-text>

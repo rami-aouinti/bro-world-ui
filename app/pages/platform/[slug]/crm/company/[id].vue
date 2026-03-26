@@ -114,7 +114,7 @@ onMounted(loadCompany)
       </teleport>
     </client-only>
     <template #sidebar>
-      <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
+      <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav"  />
     </template>
     <template #aside>
       <div class="text-center">
@@ -126,7 +126,7 @@ onMounted(loadCompany)
                   <p class="text-subtitle-2 font-weight-bold mb-1">{{ project?.name }}</p>
                   <v-menu location="bottom end">
                     <template #activator="{ props }">
-                      <v-btn v-bind="props" icon="mdi-cog" size="x-small" variant="text" @click.stop />
+                      <v-btn v-bind="props" icon="mdi-cog" size="x-small" variant="text" @click.stop  aria-label="Icon action" />
                     </template>
                     <v-list density="compact">
                       <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="editCompanyProject(project.id)" />
@@ -148,7 +148,7 @@ onMounted(loadCompany)
 
           <v-menu location="bottom end">
             <template #activator="{ props }">
-              <v-btn v-bind="props" icon="mdi-cog" size="sm" variant="text" />
+              <v-btn v-bind="props" icon="mdi-cog" size="sm" variant="text"  aria-label="Icon action" />
             </template>
             <v-list density="compact">
               <v-list-item prepend-icon="mdi-pencil" title="Edit" @click="editCompany" />
@@ -172,7 +172,7 @@ onMounted(loadCompany)
         </v-card-text>
       </v-card>
 
-      <v-dialog v-model="showCreateProjectDialog" max-width="560">
+      <v-dialog v-model="showCreateProjectDialog" max-width="560" retain-focus>
         <v-card>
           <v-card-title>Ajouter un projet à la company</v-card-title>
           <v-card-text>

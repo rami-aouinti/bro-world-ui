@@ -258,7 +258,7 @@ onMounted(async () => {
       <template v-if="isLoading">
         <v-row>
           <v-col cols="12" sm="6" md="3" v-for="index in 4" :key="`stat-skeleton-${index}`">
-            <v-skeleton-loader type="card" />
+            <v-skeleton-loader type="card"  />
           </v-col>
         </v-row>
         <v-skeleton-loader type="list-item-three-line@6" />

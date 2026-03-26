@@ -242,7 +242,8 @@ onMounted(async () => {
         :loading="isPageLoading"
         @click="loadBillings"
         icon="mdi-refresh"
-      />
+        aria-label="Icon action"
+       />
     </template>
 
     <template #app-bar-right>
@@ -322,7 +323,7 @@ onMounted(async () => {
     </template>
 
     <template #dialogs>
-      <v-dialog v-model="showCreateDialog" max-width="580">
+      <v-dialog v-model="showCreateDialog" max-width="580" retain-focus>
         <v-card>
           <v-card-title>Create billing</v-card-title>
           <v-card-text>
@@ -342,7 +343,7 @@ onMounted(async () => {
         </v-card>
       </v-dialog>
 
-      <v-dialog v-model="showEditDialog" max-width="580">
+      <v-dialog v-model="showEditDialog" max-width="580" retain-focus>
         <v-card>
           <v-card-title>Edit billing</v-card-title>
           <v-card-text>

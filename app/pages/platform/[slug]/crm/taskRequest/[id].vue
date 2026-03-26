@@ -186,7 +186,7 @@ onMounted(loadTaskRequest)
         <div class="d-flex ga-2">
           <v-menu location="bottom end">
             <template #activator="{ props }">
-              <v-btn v-bind="props" icon="mdi-cog" variant="text" />
+              <v-btn v-bind="props" icon="mdi-cog" variant="text"  aria-label="Icon action" />
             </template>
             <v-list density="compact">
               <v-list-item prepend-icon="mdi-pencil" title="Edit" @click="openPatchDialog" />
@@ -263,7 +263,7 @@ onMounted(loadTaskRequest)
         </v-card-text>
       </v-card>
 
-      <v-dialog v-model="showEditDialog" max-width="560">
+      <v-dialog v-model="showEditDialog" max-width="560" retain-focus>
         <v-card>
           <v-card-title>Patch task request</v-card-title>
           <v-card-text>

@@ -47,7 +47,7 @@ const confirmAction = () => {
 </script>
 
 <template>
-  <v-dialog v-model="model" :max-width="maxWidth">
+  <v-dialog v-model="model" :max-width="maxWidth" retain-focus>
     <v-card rounded="xl">
       <v-card-title>{{ title }}</v-card-title>
       <v-card-text>{{ message }}</v-card-text>
