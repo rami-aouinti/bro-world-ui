@@ -15,6 +15,7 @@ interface ActionNavItem extends NavItem {
 const router = useRouter()
 const route = useRoute()
 const { t, te, locale, locales, setLocale } = useI18n({ useScope: 'global' })
+const isRtl = computed(() => locale.value === 'ar')
 const { canPermission } = useAccessControl()
 const { logout, isAuthenticated } = useAuth()
 
@@ -105,7 +106,7 @@ const signOut = async () => {
 
 <template>
   <v-app-bar
-    :class="{ 'blur shadow-blur': !isDark }"
+    :class="{ 'blur shadow-blur': !isDark, 'app-bar--rtl': isRtl }"
     class="app-bar app-bar--kind-glass px-0 border-radius-xl toolbar-content-padding-y-none v-sheet v-toolbar v-toolbar--flat v-app-bar bg-transparent position-sticky top-1 z-index-sticky"
   >
     <v-toolbar-title class="app-bar__brand d-flex align-center ga-3 text-truncate">
@@ -464,6 +465,16 @@ const signOut = async () => {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+}
+
+.app-bar--rtl :deep(.v-toolbar__content) {
+  flex-direction: row-reverse;
+}
+
+.app-bar--rtl .app-bar__center-links {
+  left: auto;
+  right: 50%;
+  transform: translateX(50%);
 }
 
 .app-bar__link-btn {
