@@ -164,7 +164,7 @@ watch(locale, loadPageContent)
     </v-fade-transition>
 
     <v-card class="faq-filters mb-4" rounded="xl">
-      <v-row dense>
+      <v-row density="comfortable">
         <v-col cols="12" md="8">
           <v-text-field
             v-model="search"
