@@ -99,6 +99,27 @@ defineExpose({ refresh })
 </template>
 
 <style scoped>
+.home-page :deep(.v-card),
+.home-page :deep(.ui-card),
+.home-page :deep(.v-badge),
+.home-page :deep(.v-progress-linear) {
+  transition-property: transform, opacity, background-color, border-color, color !important;
+}
+
+.home-page :deep(.v-card),
+.home-page :deep(.ui-card) {
+  will-change: transform, opacity;
+}
+
+.home-page :deep(.v-badge),
+.home-page :deep(.online-badge),
+.home-page :deep(.offline-badge),
+.home-page :deep(.v-progress-linear),
+.home-page :deep(.v-progress-linear__background),
+.home-page :deep(.v-progress-linear__determinate) {
+  animation: none !important;
+}
+
 .home-hero__title,
 .home-hero__title-skeleton {
   min-height: 3.25rem;
@@ -123,6 +144,17 @@ defineExpose({ refresh })
   .home-hero__title,
   .home-hero__title-skeleton {
     min-height: 2.65rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-page :deep(.v-card),
+  .home-page :deep(.ui-card),
+  .home-page :deep(.v-badge),
+  .home-page :deep(.v-progress-linear) {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
   }
 }
 </style>
