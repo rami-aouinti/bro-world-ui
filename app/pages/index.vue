@@ -63,7 +63,7 @@ defineExpose({ refresh })
     </template>
 
     <template v-else-if="homePagePayload">
-      <UiCard class="home-hero mb-6" kind="hero">
+      <UiCard class="home-hero mb-6" kind="hero" theme="light-pink">
         <v-chip class="home-hero__badge mb-4" color="primary" variant="tonal">
           {{ homePagePayload?.hero?.badge }}
         </v-chip>
@@ -87,7 +87,7 @@ defineExpose({ refresh })
     </template>
 
     <template v-else>
-      <UiCard class="home-hero mb-6" kind="hero">
+      <UiCard class="home-hero mb-6" kind="hero" theme="light-pink">
         <h1 class="home-hero__title text-h4 text-md-h3 font-weight-bold mb-2">BroWorld</h1>
         <p class="home-hero__subtitle text-body-1 text-medium-emphasis mb-5">
           {{ error ? "La page d'accueil n'a pas pu être chargée." : 'Chargement en cours…' }}
