@@ -130,6 +130,19 @@ export default defineNuxtConfig({
           retainFocus: false,
         },
       },
+      icons: {
+        defaultSet: 'mdi',
+        aliases: {
+          homeNavAbout: 'mdi-information-outline',
+          homeNavContact: 'mdi-email-outline',
+          homeNavFaq: 'mdi-frequently-asked-questions',
+          homeNavPlatform: 'mdi-view-grid-outline',
+          homeNavLogin: 'mdi-login',
+          homeNavRegister: 'mdi-account-plus-outline',
+          homeBrand: 'mdi-earth',
+          homeMenu: 'mdi-menu',
+        },
+      },
       ssr: true,
       theme: {
         defaultTheme: buildThemeName(defaultThemePreference),

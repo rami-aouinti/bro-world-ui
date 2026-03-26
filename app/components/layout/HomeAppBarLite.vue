@@ -2,10 +2,18 @@
 import { computed } from 'vue'
 import { useDisplay } from 'vuetify'
 
+type HomeIconAlias =
+  | '$homeNavAbout'
+  | '$homeNavContact'
+  | '$homeNavFaq'
+  | '$homeNavPlatform'
+  | '$homeNavLogin'
+  | '$homeNavRegister'
+
 interface HomeNavItem {
   key: string
   to: string
-  icon: string
+  icon: HomeIconAlias
 }
 
 const { t, te } = useI18n({ useScope: 'global' })
@@ -15,19 +23,19 @@ const { mdAndUp } = useDisplay()
 const isDesktop = computed(() => mdAndUp.value)
 
 const homeLinks = computed<HomeNavItem[]>(() => [
-  { key: 'app.navigation.about', to: '/about', icon: 'mdi-information-outline' },
-  { key: 'app.navigation.contact', to: '/contact', icon: 'mdi-email-outline' },
-  { key: 'app.navigation.faq', to: '/faq', icon: 'mdi-frequently-asked-questions' },
+  { key: 'app.navigation.about', to: '/about', icon: '$homeNavAbout' },
+  { key: 'app.navigation.contact', to: '/contact', icon: '$homeNavContact' },
+  { key: 'app.navigation.faq', to: '/faq', icon: '$homeNavFaq' },
 ])
 
 const ctaLinks = computed<HomeNavItem[]>(() => {
   if (isAuthenticated.value) {
-    return [{ key: 'app.navigation.platform', to: '/platform', icon: 'mdi-view-grid-outline' }]
+    return [{ key: 'app.navigation.platform', to: '/platform', icon: '$homeNavPlatform' }]
   }
 
   return [
-    { key: 'app.navigation.login', to: '/login', icon: 'mdi-login' },
-    { key: 'app.navigation.register', to: '/register', icon: 'mdi-account-plus-outline' },
+    { key: 'app.navigation.login', to: '/login', icon: '$homeNavLogin' },
+    { key: 'app.navigation.register', to: '/register', icon: '$homeNavRegister' },
   ]
 })
 </script>
@@ -38,7 +46,7 @@ const ctaLinks = computed<HomeNavItem[]>(() => {
   >
     <v-toolbar-title class="app-bar-lite__brand d-flex align-center ga-3 text-truncate">
       <NuxtLink to="/" class="app-bar-lite__title-link d-flex align-center ga-2">
-        <v-icon icon="mdi-earth" size="30" class="app-bar-lite__brand-icon" />
+        <v-icon icon="$homeBrand" size="30" class="app-bar-lite__brand-icon" />
         <span class="text-truncate">
           <span class="app-bar-lite__brand-bro">Bro</span><span class="app-bar-lite__brand-world">World</span>
         </span>
@@ -77,7 +85,7 @@ const ctaLinks = computed<HomeNavItem[]>(() => {
     <ClientOnly v-else>
       <v-menu location="bottom end">
         <template #activator="{ props }">
-          <v-btn icon="mdi-menu" variant="text" v-bind="props" :aria-label="t('app.navigation.openMenu')" />
+          <v-btn icon="$homeMenu" variant="text" v-bind="props" :aria-label="t('app.navigation.openMenu')" />
         </template>
 
         <v-list class="py-1">
