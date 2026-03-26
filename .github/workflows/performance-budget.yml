@@ -24,13 +24,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
+          cache: pnpm
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
 
       - name: Install dependencies
-        run: npm install
+        run: pnpm install --frozen-lockfile
 
       - name: Build app
-        run: npm run build
+        run: pnpm run build
 
       - name: Check JS/CSS bundle budgets
         run: |
@@ -38,15 +41,15 @@ jobs:
           node scripts/check-bundle-budget.mjs --enforce --output .perf/head-bundle.json
 
       - name: Check LCP/TBT budgets (Lighthouse)
-        run: npx @lhci/cli@0.13.x autorun --config=perf/lighthouserc.json
+        run: pnpm dlx @lhci/cli@0.13.x autorun --config=perf/lighthouserc.json
 
       - name: Build and measure base branch (PR only)
         if: github.event_name == 'pull_request'
         run: |
           git worktree add /tmp/base "${{ github.event.pull_request.base.sha }}"
           cd /tmp/base
-          npm install
-          npm run build
+          pnpm install --frozen-lockfile
+          pnpm run build
           node scripts/check-bundle-budget.mjs --output /tmp/base-bundle.json
 
       - name: Create bundle diff report (PR only)
