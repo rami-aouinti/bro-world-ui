@@ -42,7 +42,7 @@ const platformFeatureFlags: Record<PlatformName, Record<string, boolean>> = {
     workflowBranches: true,
     workflowSync: true,
     tasks: true,
-    kanaban: true,
+    kanban: true,
     contacts: true,
     reports: true,
     automation: true,
@@ -115,7 +115,7 @@ export const getCrmNav = (slug: string, isOwner = false): PlatformNavItem[] => {
   return resolveNav('crm', [
     { title: 'platform.crm.nav.home', icon: 'mdi-view-dashboard-outline', to: `${base}/home`, section: 'overview', featureFlag: 'dashboard' },
     { title: 'platform.crm.nav.projects', icon: 'mdi-briefcase-outline', to: `${base}/projects`, section: 'operations', featureFlag: 'projects' },
-    { title: 'Kanaban', icon: 'mdi-robot-outline', to: `${base}/kanaban`, section: 'operations', featureFlag: 'kanaban' },
+    { title: 'Kanban', icon: 'mdi-robot-outline', to: `${base}/kanban`, section: 'operations', featureFlag: 'kanban' },
     { title: 'platform.crm.nav.tasks', icon: 'mdi-format-list-bulleted-square', to: `${base}/tasks`, section: 'operations', featureFlag: 'tasks' },
     { title: 'platform.crm.nav.sprint', icon: 'mdi-run-fast', to: `${base}/sprint`, section: 'operations', featureFlag: 'sprint' },
     {
