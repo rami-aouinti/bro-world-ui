@@ -251,354 +251,366 @@ const signOut = async () => {
           <v-icon :icon="action.icon" />
         </v-btn>
 
-        <v-menu v-if="isAuthenticated" location="bottom end" v-model="isInboxMenuOpen">
-          <template #activator="{ props }">
-            <v-btn
-              icon
-              variant="text"
-              class="app-bar__icon-btn"
-              v-bind="props"
-              :aria-label="t('app.navigation.inbox')"
-            >
-              <v-badge :model-value="inboxUnreadCount > 0" :content="inboxUnreadCount" color="primary" offset-x="2" offset-y="2">
-                <v-icon icon="mdi-message-processing-outline" />
-              </v-badge>
-            </v-btn>
-          </template>
-
-          <v-list class="py-1 app-bar__menu" min-width="320">
-            <v-list-item
-              v-for="conversation in inboxConversationsPreview"
-              :key="conversation.id"
-              :to="conversation.route"
-              rounded="lg"
-              class="mx-2 my-1 app-bar__message-item"
-            >
-              <template #prepend>
-                <div class="d-flex align-center mt-6">
-                  <ConversationAvatarGroup :participants="conversation.participants" :size="72" />
-                </div>
+        <ClientOnly>
+          <div class="d-flex align-center ga-1 ga-sm-2">
+            <v-menu v-if="isAuthenticated" location="bottom end" v-model="isInboxMenuOpen">
+              <template #activator="{ props }">
+                <v-btn
+                  icon
+                  variant="text"
+                  class="app-bar__icon-btn"
+                  v-bind="props"
+                  :aria-label="t('app.navigation.inbox')"
+                >
+                  <v-badge :model-value="inboxUnreadCount > 0" :content="inboxUnreadCount" color="primary" offset-x="2" offset-y="2">
+                    <v-icon icon="mdi-message-processing-outline" />
+                  </v-badge>
+                </v-btn>
               </template>
 
-              <div class="app-bar__message-content">
-                <v-list-item-title class="font-weight-medium text-truncate">{{ truncateText(conversation.name) }}</v-list-item-title>
-                <v-list-item-subtitle class="text-truncate">{{ truncateText(conversation.excerpt) }}</v-list-item-subtitle>
-              </div>
+              <v-list class="py-1 app-bar__menu" min-width="320">
+                <v-list-item
+                  v-for="conversation in inboxConversationsPreview"
+                  :key="conversation.id"
+                  :to="conversation.route"
+                  rounded="lg"
+                  class="mx-2 my-1 app-bar__message-item"
+                >
+                  <template #prepend>
+                    <div class="d-flex align-center mt-6">
+                      <ConversationAvatarGroup :participants="conversation.participants" :size="72" />
+                    </div>
+                  </template>
 
-              <template #append>
-                <div class="app-bar__message-meta text-caption text-medium-emphasis">
-                  <span class="mx-auto">{{ formatRelativeTime(conversation.latestMessageAt) }}</span>
-                  <v-badge
-                    v-if="conversation.unread"
-                    :content="conversation.unread"
-                    color="primary"
-                    inline
+                  <div class="app-bar__message-content">
+                    <v-list-item-title class="font-weight-medium text-truncate">{{ truncateText(conversation.name) }}</v-list-item-title>
+                    <v-list-item-subtitle class="text-truncate">{{ truncateText(conversation.excerpt) }}</v-list-item-subtitle>
+                  </div>
+
+                  <template #append>
+                    <div class="app-bar__message-meta text-caption text-medium-emphasis">
+                      <span class="mx-auto">{{ formatRelativeTime(conversation.latestMessageAt) }}</span>
+                      <v-badge
+                        v-if="conversation.unread"
+                        :content="conversation.unread"
+                        color="primary"
+                        inline
+                      />
+                    </div>
+                  </template>
+                </v-list-item>
+
+                <v-list-item
+                  to="/inbox"
+                  rounded="lg"
+                  class="mx-2 my-1 text-primary"
+                  :title="t('app.common.showAll')"
+                  prepend-icon="mdi-arrow-right"
+                />
+              </v-list>
+            </v-menu>
+
+            <v-menu v-if="isAuthenticated" location="bottom end" v-model="isNotificationsMenuOpen">
+              <template #activator="{ props }">
+                <v-btn
+                  icon
+                  variant="text"
+                  class="app-bar__icon-btn"
+                  v-bind="props"
+                  :aria-label="t('app.navigation.notifications')"
+                >
+                  <v-badge :model-value="unreadNotificationsCount > 0" :content="unreadNotificationsCount" color="error" offset-x="2" offset-y="2">
+                    <v-icon icon="mdi-bell-outline" />
+                  </v-badge>
+                </v-btn>
+              </template>
+
+              <v-list class="py-1 app-bar__menu" min-width="320">
+                <v-list-item
+                  v-for="notification in notificationPreviewItems"
+                  :key="notification.id"
+                  :to="getNotificationTarget(notification) ?? `/notifications/${notification.id}`"
+                  rounded="lg"
+                  class="mx-2 my-1 app-bar__message-item"
+                >
+                  <template #prepend>
+                    <v-avatar v-if="notification.from?.photo" size="34" class="me-3">
+                      <v-img :src="notification.from.photo" :alt="getNotificationAvatarLabel(notification)" cover />
+                    </v-avatar>
+                    <v-avatar v-else size="34" color="primary" variant="tonal" class="me-3">
+                      <v-icon icon="mdi-earth" size="18" />
+                    </v-avatar>
+                  </template>
+
+                  <div class="app-bar__message-content">
+                    <v-list-item-title class="font-weight-medium text-truncate">{{ truncateText(notification.title) }}</v-list-item-title>
+                    <v-list-item-subtitle class="text-truncate">{{ truncateText(notification.description) }}</v-list-item-subtitle>
+                  </div>
+
+                  <template #append>
+                    <span class="app-bar__message-time text-caption text-medium-emphasis">{{ formatRelativeTime(notification.createdAt) }}</span>
+                  </template>
+                </v-list-item>
+
+                <v-list-item
+                  to="/notifications"
+                  rounded="lg"
+                  class="mx-2 my-1 text-primary"
+                  :title="t('app.common.showAll')"
+                  prepend-icon="mdi-arrow-right"
+                />
+              </v-list>
+            </v-menu>
+
+            <v-menu location="bottom end" v-model="isProfileMenuOpen">
+              <template #activator="{ props }">
+                <UiAvatar :aria-label="t('app.navigation.profile')"
+                          v-bind="props" :src="profilePhoto" size="xs" :name="profileName" status="online" class="me-1" />
+              </template>
+
+              <v-list class="py-1 app-bar__menu" min-width="220">
+                <template v-if="isAuthenticated">
+                  <v-list-item to="/profile" :title="t('app.navigation.profile')" prepend-icon="mdi-account-outline" rounded="lg" class="mx-2 my-1" />
+                  <v-list-item to="/settings" :title="t('app.navigation.settings')" prepend-icon="mdi-cog-outline" rounded="lg" class="mx-2 my-1" />
+                  <v-list-item to="/about" :title="t('app.navigation.about')" prepend-icon="mdi-information-outline" rounded="lg" class="mx-2 my-1" />
+                  <v-list-item to="/contact" :title="t('app.navigation.contact')" prepend-icon="mdi-email-outline" rounded="lg" class="mx-2 my-1" />
+                  <v-list-item to="/faq" :title="t('app.navigation.faq')" prepend-icon="mdi-frequently-asked-questions" rounded="lg" class="mx-2 my-1" />
+                  <v-list-item
+                    v-if="canPermission('admin.access')"
+                    to="/admin"
+                    :title="t('app.navigation.admin')"
+                    prepend-icon="mdi-shield-account-outline"
+                    rounded="lg"
+                    class="mx-2 my-1"
                   />
-                </div>
-              </template>
-            </v-list-item>
+                  <v-list-item
+                    v-if="canPermission('profile.logout')"
+                    :title="t('profile.logout')"
+                    prepend-icon="mdi-logout"
+                    rounded="lg"
+                    class="mx-2 my-1"
+                    @click="signOut"
+                  />
+                </template>
+                <template v-else>
+                  <v-list-item to="/login" :title="t('app.navigation.login')" prepend-icon="mdi-login" rounded="lg" class="mx-2 my-1" />
+                  <v-list-item to="/register" :title="t('app.navigation.register')" prepend-icon="mdi-account-plus-outline" rounded="lg" class="mx-2 my-1" />
+                  <v-list-item to="/about" :title="t('app.navigation.about')" prepend-icon="mdi-information-outline" rounded="lg" class="mx-2 my-1" />
+                  <v-list-item to="/contact" :title="t('app.navigation.contact')" prepend-icon="mdi-email-outline" rounded="lg" class="mx-2 my-1" />
+                  <v-list-item to="/faq" :title="t('app.navigation.faq')" prepend-icon="mdi-frequently-asked-questions" rounded="lg" class="mx-2 my-1" />
+                </template>
+              </v-list>
+            </v-menu>
 
-            <v-list-item
-              to="/inbox"
-              rounded="lg"
-              class="mx-2 my-1 text-primary"
-              :title="t('app.common.showAll')"
-              prepend-icon="mdi-arrow-right"
-            />
-          </v-list>
-        </v-menu>
-
-        <v-menu v-if="isAuthenticated" location="bottom end" v-model="isNotificationsMenuOpen">
-          <template #activator="{ props }">
-            <v-btn
-              icon
-              variant="text"
-              class="app-bar__icon-btn"
-              v-bind="props"
-              :aria-label="t('app.navigation.notifications')"
-            >
-              <v-badge :model-value="unreadNotificationsCount > 0" :content="unreadNotificationsCount" color="error" offset-x="2" offset-y="2">
-                <v-icon icon="mdi-bell-outline" />
-              </v-badge>
-            </v-btn>
-          </template>
-
-          <v-list class="py-1 app-bar__menu" min-width="320">
-            <v-list-item
-              v-for="notification in notificationPreviewItems"
-              :key="notification.id"
-              :to="getNotificationTarget(notification) ?? `/notifications/${notification.id}`"
-              rounded="lg"
-              class="mx-2 my-1 app-bar__message-item"
-            >
-              <template #prepend>
-                <v-avatar v-if="notification.from?.photo" size="34" class="me-3">
-                  <v-img :src="notification.from.photo" :alt="getNotificationAvatarLabel(notification)" cover />
-                </v-avatar>
-                <v-avatar v-else size="34" color="primary" variant="tonal" class="me-3">
-                  <v-icon icon="mdi-earth" size="18" />
-                </v-avatar>
-              </template>
-
-              <div class="app-bar__message-content">
-                <v-list-item-title class="font-weight-medium text-truncate">{{ truncateText(notification.title) }}</v-list-item-title>
-                <v-list-item-subtitle class="text-truncate">{{ truncateText(notification.description) }}</v-list-item-subtitle>
-              </div>
-
-              <template #append>
-                <span class="app-bar__message-time text-caption text-medium-emphasis">{{ formatRelativeTime(notification.createdAt) }}</span>
-              </template>
-            </v-list-item>
-
-            <v-list-item
-              to="/notifications"
-              rounded="lg"
-              class="mx-2 my-1 text-primary"
-              :title="t('app.common.showAll')"
-              prepend-icon="mdi-arrow-right"
-            />
-          </v-list>
-        </v-menu>
-
-        <v-menu location="bottom end" v-model="isProfileMenuOpen">
-          <template #activator="{ props }">
-            <UiAvatar :aria-label="t('app.navigation.profile')"
-                      v-bind="props" :src="profilePhoto" size="xs" :name="profileName" status="online" class="me-1" />
-          </template>
-
-          <v-list class="py-1 app-bar__menu" min-width="220">
-            <template v-if="isAuthenticated">
-              <v-list-item to="/profile" :title="t('app.navigation.profile')" prepend-icon="mdi-account-outline" rounded="lg" class="mx-2 my-1" />
-              <v-list-item to="/settings" :title="t('app.navigation.settings')" prepend-icon="mdi-cog-outline" rounded="lg" class="mx-2 my-1" />
-              <v-list-item to="/about" :title="t('app.navigation.about')" prepend-icon="mdi-information-outline" rounded="lg" class="mx-2 my-1" />
-              <v-list-item to="/contact" :title="t('app.navigation.contact')" prepend-icon="mdi-email-outline" rounded="lg" class="mx-2 my-1" />
-              <v-list-item to="/faq" :title="t('app.navigation.faq')" prepend-icon="mdi-frequently-asked-questions" rounded="lg" class="mx-2 my-1" />
-              <v-list-item
-                v-if="canPermission('admin.access')"
-                to="/admin"
-                :title="t('app.navigation.admin')"
-                prepend-icon="mdi-shield-account-outline"
-                rounded="lg"
-                class="mx-2 my-1"
-              />
-              <v-list-item
-                v-if="canPermission('profile.logout')"
-                :title="t('profile.logout')"
-                prepend-icon="mdi-logout"
-                rounded="lg"
-                class="mx-2 my-1"
-                @click="signOut"
-              />
-            </template>
-            <template v-else>
-              <v-list-item to="/login" :title="t('app.navigation.login')" prepend-icon="mdi-login" rounded="lg" class="mx-2 my-1" />
-              <v-list-item to="/register" :title="t('app.navigation.register')" prepend-icon="mdi-account-plus-outline" rounded="lg" class="mx-2 my-1" />
-              <v-list-item to="/about" :title="t('app.navigation.about')" prepend-icon="mdi-information-outline" rounded="lg" class="mx-2 my-1" />
-              <v-list-item to="/contact" :title="t('app.navigation.contact')" prepend-icon="mdi-email-outline" rounded="lg" class="mx-2 my-1" />
-              <v-list-item to="/faq" :title="t('app.navigation.faq')" prepend-icon="mdi-frequently-asked-questions" rounded="lg" class="mx-2 my-1" />
-            </template>
-          </v-list>
-        </v-menu>
-
-        <v-menu location="bottom end" :close-on-content-click="false">
-          <template #activator="{ props }">
-            <span class="px-2 app-bar__locale-flag" v-bind="props">
-              <img class="app-bar__locale-flag-image" :src="getFlag(locale).src" :alt="getFlag(locale).alt" width="20" height="14">
-            </span>
-          </template>
-
-          <v-list class="py-1 app-bar__menu" min-width="180">
-            <v-list-item
-              v-for="item in availableLocales"
-              :key="item.code"
-              rounded="lg"
-              class="mx-2 my-1"
-              :active="locale === item.code"
-              @click="setLocale(item.code)"
-            >
-              <template #prepend>
-                <span class="text-body-1 app-bar__locale-flag">
-                  <img class="app-bar__locale-flag-image mx-4" :src="getFlag(item.code).src" :alt="getFlag(item.code).alt" width="20" height="14">
-                  {{ getFlag(item.code).alt }}
+            <v-menu location="bottom end" :close-on-content-click="false">
+              <template #activator="{ props }">
+                <span class="px-2 app-bar__locale-flag" v-bind="props">
+                  <img class="app-bar__locale-flag-image" :src="getFlag(locale).src" :alt="getFlag(locale).alt" width="20" height="14">
                 </span>
               </template>
-              <template #append>
-                <v-icon v-if="locale === item.code" icon="mdi-check" size="16" />
-              </template>
-            </v-list-item>
-          </v-list>
-        </v-menu>
 
-        <v-menu location="bottom end" :close-on-content-click="false">
-          <template #activator="{ props }">
-            <v-icon class="mx-2" v-bind="props" :icon="isDark ? 'mdi-weather-night' : 'mdi-white-balance-sunny'" />
-          </template>
-
-          <v-list class="py-2 px-2 app-bar__menu" min-width="280">
-            <v-list-item
-              :title="t('app.navigation.toggleTheme')"
-              prepend-icon="mdi-theme-light-dark"
-              rounded="lg"
-              class="mx-2 my-1"
-              @click="toggleThemeMode"
-            >
-              <template #append>
-                <v-chip size="x-small" variant="tonal">{{ themePreference.mode }}</v-chip>
-              </template>
-            </v-list-item>
-            <v-divider class="my-1" />
-            <div class="app-bar__setting-block">
-              <v-list-subheader class="app-bar__setting-title">Primary</v-list-subheader>
-              <div class="app-bar__option-row app-bar__option-row--primary">
-                <v-btn
-                  v-for="option in primaryOptions"
-                  :key="`primary-${option.value}`"
-                  size="sm"
-                  variant="text"
-                  class="app-bar__swatch-btn"
-                  :class="{ 'app-bar__swatch-btn--active': themePreference.primary === option.value }"
-                  :title="`Primary: ${option.label}`"
-                  @click="setPrimaryTheme(option.value)"
+              <v-list class="py-1 app-bar__menu" min-width="180">
+                <v-list-item
+                  v-for="item in availableLocales"
+                  :key="item.code"
+                  rounded="lg"
+                  class="mx-2 my-1"
+                  :active="locale === item.code"
+                  @click="setLocale(item.code)"
                 >
-                  <v-avatar size="20" :style="{ backgroundColor: option.color }" />
-                  <v-icon v-if="themePreference.primary === option.value" size="14" icon="mdi-check" class="app-bar__swatch-check" />
-                </v-btn>
-              </div>
-            </div>
-            <v-divider class="my-1" />
-            <v-list-subheader>Radius</v-list-subheader>
-            <div class="app-bar__option-row">
-              <v-btn
-                v-for="option in radiusOptions"
-                :key="`radius-${option.value}`"
-                size="small"
-                variant="tonal"
-                class="app-bar__option-pill"
-                :class="{ 'app-bar__option-pill--active': themePreference.radius === option.value }"
-                @click="setThemeRadius(option.value)"
-              >
-                {{ option.label }}
-              </v-btn>
-            </div>
-            <v-divider class="my-1" />
-            <v-list-subheader>Shadow</v-list-subheader>
-            <div class="app-bar__option-row">
-              <v-btn
-                v-for="option in shadowOptions"
-                :key="`shadow-${option.value}`"
-                size="small"
-                variant="tonal"
-                class="app-bar__option-pill"
-                :class="{ 'app-bar__option-pill--active': themePreference.shadow === option.value }"
-                @click="setThemeShadow(option.value)"
-              >
-                {{ option.label }}
-              </v-btn>
-            </div>
-          </v-list>
-        </v-menu>
+                  <template #prepend>
+                    <span class="text-body-1 app-bar__locale-flag">
+                      <img class="app-bar__locale-flag-image mx-4" :src="getFlag(item.code).src" :alt="getFlag(item.code).alt" width="20" height="14">
+                      {{ getFlag(item.code).alt }}
+                    </span>
+                  </template>
+                  <template #append>
+                    <v-icon v-if="locale === item.code" icon="mdi-check" size="16" />
+                  </template>
+                </v-list-item>
+              </v-list>
+            </v-menu>
+
+            <v-menu location="bottom end" :close-on-content-click="false">
+              <template #activator="{ props }">
+                <v-icon class="mx-2" v-bind="props" :icon="isDark ? 'mdi-weather-night' : 'mdi-white-balance-sunny'" />
+              </template>
+
+              <v-list class="py-2 px-2 app-bar__menu" min-width="280">
+                <v-list-item
+                  :title="t('app.navigation.toggleTheme')"
+                  prepend-icon="mdi-theme-light-dark"
+                  rounded="lg"
+                  class="mx-2 my-1"
+                  @click="toggleThemeMode"
+                >
+                  <template #append>
+                    <v-chip size="x-small" variant="tonal">{{ themePreference.mode }}</v-chip>
+                  </template>
+                </v-list-item>
+                <v-divider class="my-1" />
+                <div class="app-bar__setting-block">
+                  <v-list-subheader class="app-bar__setting-title">Primary</v-list-subheader>
+                  <div class="app-bar__option-row app-bar__option-row--primary">
+                    <v-btn
+                      v-for="option in primaryOptions"
+                      :key="`primary-${option.value}`"
+                      size="sm"
+                      variant="text"
+                      class="app-bar__swatch-btn"
+                      :class="{ 'app-bar__swatch-btn--active': themePreference.primary === option.value }"
+                      :title="`Primary: ${option.label}`"
+                      @click="setPrimaryTheme(option.value)"
+                    >
+                      <v-avatar size="20" :style="{ backgroundColor: option.color }" />
+                      <v-icon v-if="themePreference.primary === option.value" size="14" icon="mdi-check" class="app-bar__swatch-check" />
+                    </v-btn>
+                  </div>
+                </div>
+                <v-divider class="my-1" />
+                <v-list-subheader>Radius</v-list-subheader>
+                <div class="app-bar__option-row">
+                  <v-btn
+                    v-for="option in radiusOptions"
+                    :key="`radius-${option.value}`"
+                    size="small"
+                    variant="tonal"
+                    class="app-bar__option-pill"
+                    :class="{ 'app-bar__option-pill--active': themePreference.radius === option.value }"
+                    @click="setThemeRadius(option.value)"
+                  >
+                    {{ option.label }}
+                  </v-btn>
+                </div>
+                <v-divider class="my-1" />
+                <v-list-subheader>Shadow</v-list-subheader>
+                <div class="app-bar__option-row">
+                  <v-btn
+                    v-for="option in shadowOptions"
+                    :key="`shadow-${option.value}`"
+                    size="small"
+                    variant="tonal"
+                    class="app-bar__option-pill"
+                    :class="{ 'app-bar__option-pill--active': themePreference.shadow === option.value }"
+                    @click="setThemeShadow(option.value)"
+                  >
+                    {{ option.label }}
+                  </v-btn>
+                </div>
+              </v-list>
+            </v-menu>
+          </div>
+          <template #fallback>
+            <div class="app-bar__menus-fallback" aria-hidden="true" />
+          </template>
+        </ClientOnly>
       </div>
     </template>
 
-    <v-menu v-else location="bottom end" :close-on-content-click="false">
-      <template #activator="{ props }">
-        <v-btn icon="mdi-menu" variant="text" v-bind="props" :aria-label="t('app.navigation.openMenu')" />
-      </template>
+    <ClientOnly v-else>
+      <v-menu location="bottom end" :close-on-content-click="false">
+        <template #activator="{ props }">
+          <v-btn icon="mdi-menu" variant="text" v-bind="props" :aria-label="t('app.navigation.openMenu')" />
+        </template>
 
-      <v-list class="py-1">
-        <v-list-item
-          v-for="item in headerItems"
-          :key="item.key"
-          :to="item.to"
-          :title="te(item.key) ? t(item.key) : item.key"
-          :prepend-icon="item.icon"
-          rounded="lg"
-          class="mx-2 my-1"
-        />
-        <v-list-item
-          v-for="action in actionItems"
-          :key="`mobile-${action.key}`"
-          :to="action.to"
-          :title="t(action.key)"
-          :prepend-icon="action.icon"
-          rounded="lg"
-          class="mx-2 my-1"
-        />
-        <v-list-item
-          v-if="isAuthenticated"
-          to="/settings"
-          :title="t('app.navigation.settings')"
-          prepend-icon="mdi-cog-outline"
-          rounded="lg"
-          class="mx-2 my-1"
-        />
-        <v-list-item
-          v-else
-          to="/login"
-          :title="t('app.navigation.login')"
-          prepend-icon="mdi-login"
-          rounded="lg"
-          class="mx-2 my-1"
-        />
-        <v-list-item
-          v-if="!isAuthenticated"
-          to="/register"
-          :title="t('app.navigation.register')"
-          prepend-icon="mdi-account-plus-outline"
-          rounded="lg"
-          class="mx-2 my-1"
-        />
-        <v-divider class="my-1" />
-        <v-list-item
-          v-for="item in availableLocales"
-          :key="`mobile-${item.code}`"
-          rounded="lg"
-          class="mx-2 my-1"
-          :title="`${getFlag(item.code)} ${item.name}`"
-          @click="setLocale(item.code)"
-        />
-        <v-list-item :title="t('app.navigation.toggleTheme')" prepend-icon="mdi-theme-light-dark" rounded="lg" class="mx-2 my-1" @click="toggleThemeMode" />
-        <v-list-item
-          v-for="option in primaryOptions"
-          :key="`mobile-primary-${option.value}`"
-          rounded="lg"
-          class="mx-2 my-1"
-          :title="`Primary: ${option.label}`"
-          :prepend-icon="themePreference.primary === option.value ? 'mdi-check-circle' : 'mdi-circle-outline'"
-          @click="setPrimaryTheme(option.value)"
-        >
-          <template #append>
-            <v-avatar size="16" :style="{ backgroundColor: option.color }" />
-          </template>
-        </v-list-item>
-        <v-list-item
-          v-for="option in radiusOptions"
-          :key="`mobile-radius-${option.value}`"
-          rounded="lg"
-          class="mx-2 my-1"
-          :title="`Radius: ${option.label}`"
-          :prepend-icon="themePreference.radius === option.value ? 'mdi-check-circle' : 'mdi-circle-outline'"
-          @click="setThemeRadius(option.value)"
-        />
-        <v-list-item
-          v-for="option in shadowOptions"
-          :key="`mobile-shadow-${option.value}`"
-          rounded="lg"
-          class="mx-2 my-1"
-          :title="`Shadow: ${option.label}`"
-          :prepend-icon="themePreference.shadow === option.value ? 'mdi-check-circle' : 'mdi-circle-outline'"
-          @click="setThemeShadow(option.value)"
-        />
-        <v-list-item
-          v-if="canPermission('profile.logout')"
-          :title="t('profile.logout')"
-          prepend-icon="mdi-logout"
-          rounded="lg"
-          class="mx-2 my-1"
-          @click="signOut"
-        />
-      </v-list>
-    </v-menu>
+        <v-list class="py-1">
+          <v-list-item
+            v-for="item in headerItems"
+            :key="item.key"
+            :to="item.to"
+            :title="te(item.key) ? t(item.key) : item.key"
+            :prepend-icon="item.icon"
+            rounded="lg"
+            class="mx-2 my-1"
+          />
+          <v-list-item
+            v-for="action in actionItems"
+            :key="`mobile-${action.key}`"
+            :to="action.to"
+            :title="t(action.key)"
+            :prepend-icon="action.icon"
+            rounded="lg"
+            class="mx-2 my-1"
+          />
+          <v-list-item
+            v-if="isAuthenticated"
+            to="/settings"
+            :title="t('app.navigation.settings')"
+            prepend-icon="mdi-cog-outline"
+            rounded="lg"
+            class="mx-2 my-1"
+          />
+          <v-list-item
+            v-else
+            to="/login"
+            :title="t('app.navigation.login')"
+            prepend-icon="mdi-login"
+            rounded="lg"
+            class="mx-2 my-1"
+          />
+          <v-list-item
+            v-if="!isAuthenticated"
+            to="/register"
+            :title="t('app.navigation.register')"
+            prepend-icon="mdi-account-plus-outline"
+            rounded="lg"
+            class="mx-2 my-1"
+          />
+          <v-divider class="my-1" />
+          <v-list-item
+            v-for="item in availableLocales"
+            :key="`mobile-${item.code}`"
+            rounded="lg"
+            class="mx-2 my-1"
+            :title="`${getFlag(item.code)} ${item.name}`"
+            @click="setLocale(item.code)"
+          />
+          <v-list-item :title="t('app.navigation.toggleTheme')" prepend-icon="mdi-theme-light-dark" rounded="lg" class="mx-2 my-1" @click="toggleThemeMode" />
+          <v-list-item
+            v-for="option in primaryOptions"
+            :key="`mobile-primary-${option.value}`"
+            rounded="lg"
+            class="mx-2 my-1"
+            :title="`Primary: ${option.label}`"
+            :prepend-icon="themePreference.primary === option.value ? 'mdi-check-circle' : 'mdi-circle-outline'"
+            @click="setPrimaryTheme(option.value)"
+          >
+            <template #append>
+              <v-avatar size="16" :style="{ backgroundColor: option.color }" />
+            </template>
+          </v-list-item>
+          <v-list-item
+            v-for="option in radiusOptions"
+            :key="`mobile-radius-${option.value}`"
+            rounded="lg"
+            class="mx-2 my-1"
+            :title="`Radius: ${option.label}`"
+            :prepend-icon="themePreference.radius === option.value ? 'mdi-check-circle' : 'mdi-circle-outline'"
+            @click="setThemeRadius(option.value)"
+          />
+          <v-list-item
+            v-for="option in shadowOptions"
+            :key="`mobile-shadow-${option.value}`"
+            rounded="lg"
+            class="mx-2 my-1"
+            :title="`Shadow: ${option.label}`"
+            :prepend-icon="themePreference.shadow === option.value ? 'mdi-check-circle' : 'mdi-circle-outline'"
+            @click="setThemeShadow(option.value)"
+          />
+          <v-list-item
+            v-if="canPermission('profile.logout')"
+            :title="t('profile.logout')"
+            prepend-icon="mdi-logout"
+            rounded="lg"
+            class="mx-2 my-1"
+            @click="signOut"
+          />
+        </v-list>
+      </v-menu>
+      <template #fallback>
+        <v-btn icon="mdi-menu" variant="text" :aria-label="t('app.navigation.openMenu')" />
+      </template>
+    </ClientOnly>
   </v-app-bar>
 </template>
 
@@ -617,6 +629,11 @@ const signOut = async () => {
 
 .app-bar--dark {
   background: color-mix(in srgb, rgb(var(--v-theme-surface)) 88%, #000 12%);
+}
+
+.app-bar__menus-fallback {
+  width: 184px;
+  min-height: 40px;
 }
 
 .app-bar__brand {
