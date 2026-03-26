@@ -140,7 +140,8 @@ onMounted(loadData)
           icon="mdi-refresh"
           :loading="pageLoading"
           @click="loadData"
-        />
+          aria-label="Icon action"
+         />
       </teleport>
     </client-only>
 

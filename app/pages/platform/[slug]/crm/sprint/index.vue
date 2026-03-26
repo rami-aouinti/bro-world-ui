@@ -205,7 +205,7 @@ onMounted(async () => {
       </teleport>
     </client-only>
     <template #sidebar>
-      <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
+      <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav"  />
     </template>
     <template #aside>
       <div class="d-flex flex-column ga-4">
@@ -292,7 +292,7 @@ onMounted(async () => {
         <v-pagination v-model="page" :length="pageLength" total-visible="4" />
       </div>
 
-      <v-dialog v-model="showCreateDialog" max-width="620">
+      <v-dialog v-model="showCreateDialog" max-width="620" retain-focus>
         <v-card>
           <v-card-title>Add sprint</v-card-title>
           <v-card-text>

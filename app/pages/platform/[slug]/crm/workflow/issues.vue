@@ -151,7 +151,8 @@ onMounted(loadData)
           icon="mdi-refresh"
           :loading="pageLoading"
           @click="loadData"
-        />
+          aria-label="Icon action"
+         />
       </teleport>
       <teleport to="#app-bar-teleport-target-right">
         <v-btn rounded="xl" variant="text" prepend-icon="mdi-plus" :disabled="!selectedProjectId || !selectedRepo" @click="openCreateDialog">New Issue</v-btn>
@@ -232,7 +233,7 @@ onMounted(loadData)
       </v-card>
     </section>
 
-    <v-dialog v-model="isCreateDialogOpen" max-width="520">
+    <v-dialog v-model="isCreateDialogOpen" max-width="520" retain-focus>
       <v-card rounded="xl" variant="text">
         <v-card-title>Create an issue</v-card-title>
         <v-card-text class="d-flex flex-column ga-3">

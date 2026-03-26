@@ -182,7 +182,7 @@ onMounted(loadSprint)
       </teleport>
     </client-only>
     <template #sidebar>
-      <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
+      <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav"  />
     </template>
     <template #aside>
       <v-card v-if="sprint" rounded="xl" class="mb-4">
@@ -196,7 +196,7 @@ onMounted(loadSprint)
                     <p class="text-subtitle-2 font-weight-bold mb-1">{{ getTaskTitle(item) }}</p>
                     <v-menu location="bottom end">
                       <template #activator="{ props }">
-                        <v-btn v-bind="props" icon="mdi-cog" size="x-small" variant="text" @click.stop />
+                        <v-btn v-bind="props" icon="mdi-cog" size="x-small" variant="text" @click.stop  aria-label="Icon action" />
                       </template>
                       <v-list density="compact">
                         <v-list-item prepend-icon="mdi-pencil" title="Edit" @click.stop="editSprintTask(item.id)" />
@@ -217,7 +217,7 @@ onMounted(loadSprint)
         <div class="d-flex ga-2 flex-wrap">
           <v-menu location="bottom end">
             <template #activator="{ props }">
-              <v-btn v-bind="props" icon="mdi-cog" variant="text" />
+              <v-btn v-bind="props" icon="mdi-cog" variant="text"  aria-label="Icon action" />
             </template>
             <v-list density="compact">
               <v-list-item prepend-icon="mdi-pencil" title="Edit" @click="editSprint" />
@@ -269,7 +269,7 @@ onMounted(loadSprint)
         </v-card-text>
       </v-card>
     
-      <v-dialog v-model="showCreateTaskDialog" max-width="560">
+      <v-dialog v-model="showCreateTaskDialog" max-width="560" retain-focus>
         <v-card>
           <v-card-title>Adsd task to this sprint</v-card-title>
           <v-card-text>
