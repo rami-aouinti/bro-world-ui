@@ -1025,14 +1025,17 @@ export default defineEventHandler(async (event) => {
     || PUBLIC_BACKEND_PATH_PREFIXES.some(prefix => targetPath.startsWith(prefix))
   const isPrivate = !isPublicRoute
 
+  const sessionCookieName = config.session?.cookieName || 'bro_world_auth_session'
+  const rawSessionCookie = !isPublicRoute ? getCookie(event, sessionCookieName) : undefined
   const tokenFromAuthorizationHeader = normalizeBearerToken(getHeader(event, 'authorization'))
   let bearerToken: string | undefined = tokenFromAuthorizationHeader
   let authCookiePayload = !isPublicRoute
     ? await readAuthCookie(event) || undefined
     : undefined
+  const hasUnreadableSessionCookie = !isPublicRoute && Boolean(rawSessionCookie) && !authCookiePayload
   const authState = bearerToken
     ? 'authorization_header'
-    : (authCookiePayload ? 'cookie' : 'missing')
+    : (authCookiePayload ? 'cookie' : (hasUnreadableSessionCookie ? 'cookie_unreadable' : 'missing'))
 
   if (!isPublicRoute && !bearerToken && !authCookiePayload) {
     recordTop401Endpoints(targetPath, getMethod(event), 'local_401', sessionCorrelationId)
@@ -1048,16 +1051,18 @@ export default defineEventHandler(async (event) => {
       hasAuthCookie: false,
       hasBearerToken: false,
       errorType: 'gateway_auth_not_ready',
+      hasUnreadableSessionCookie,
       sessionCorrelationId,
     })
     throw createError({
       statusCode: 401,
       statusMessage: 'AUTH_NOT_READY',
       data: {
-        code: 'SESSION_MISSING',
+        code: hasUnreadableSessionCookie ? 'SESSION_INVALID' : 'SESSION_MISSING',
         errorSource: 'local',
         source: 'gateway',
         telemetryCategory: 'gateway_auth_not_ready',
+        hasUnreadableSessionCookie,
         sessionCorrelationId,
       },
     })
