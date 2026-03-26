@@ -1,4 +1,4 @@
-import { en, fr } from 'vuetify/locale'
+import { ar, en, fr } from 'vuetify/locale'
 
 export default defineNuxtPlugin((nuxtApp) => {
   const i18n = nuxtApp.$i18n
@@ -8,6 +8,7 @@ export default defineNuxtPlugin((nuxtApp) => {
   }
 
   const vuetifyLocaleMessages = {
+    ar,
     en,
     fr,
   } as const

@@ -147,6 +147,13 @@ export default defineNuxtConfig({
         },
       },
       ssr: true,
+      locale: {
+        locale: 'en',
+        fallback: 'en',
+        rtl: {
+          ar: true,
+        },
+      },
       theme: {
         defaultTheme: buildThemeName(defaultThemePreference),
         themes: buildVuetifyThemes(),

@@ -12,11 +12,16 @@ const isPageLoading = ref(false)
 const pageSkeletonKey = ref('')
 const { locale } = useI18n({ useScope: 'global' })
 const isRtl = computed(() => locale.value === 'ar')
+const direction = computed(() => isRtl.value ? 'rtl' : 'ltr')
+const bodyClass = computed(() => isRtl.value ? 'rtl' : 'ltr')
 
 useHead(() => ({
   htmlAttrs: {
     lang: locale.value,
-    dir: isRtl.value ? 'rtl' : 'ltr',
+    dir: direction.value,
+  },
+  bodyAttrs: {
+    class: bodyClass.value,
   },
 }))
 
