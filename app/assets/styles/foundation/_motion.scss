@@ -43,6 +43,18 @@
   box-shadow: var(--ui-focus);
 }
 
+.home-page :where(.v-card, .v-badge, .v-progress-linear) {
+  transition-property: transform, opacity, border-color, background-color, color !important;
+}
+
+.home-page :where(.v-card) {
+  will-change: transform, opacity;
+}
+
+.home-page :where(.v-badge, .v-progress-linear) {
+  animation: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root {
     --motion-fast: 1ms;
@@ -59,5 +71,10 @@
 
   :where(.hover-lift:hover, .hover-lift:focus-visible, .press:active) {
     transform: none;
+  }
+
+  .home-page :where(.v-card, .v-badge, .v-progress-linear) {
+    transition: none !important;
+    animation: none !important;
   }
 }
