@@ -154,7 +154,7 @@ watch(locale, loadPageContent)
         <v-skeleton-loader type="button@2" />
       </v-card>
 
-      <v-row class="mb-4" dense>
+      <v-row class="mb-4" density="comfortable">
         <v-col v-for="index in 2" :key="`mission-skeleton-${index}`" cols="12" md="6">
           <v-card rounded="xl" class="pa-4 h-100">
             <v-skeleton-loader type="heading" class="mb-2" />
@@ -194,7 +194,7 @@ watch(locale, loadPageContent)
       </v-card>
     </v-fade-transition>
 
-    <v-row class="about-section about-section--cards mb-4" dense>
+    <v-row class="about-section about-section--cards mb-4" density="comfortable">
       <v-col v-for="card in aboutPagePayload.missionCards" :key="card.title" cols="12" md="6">
         <v-card class="about-mission-card h-100" rounded="xl" hover>
           <div class="d-flex align-center ga-2 mb-2">
@@ -214,7 +214,7 @@ watch(locale, loadPageContent)
 
     <v-card class="about-section mb-6" rounded="xl">
       <h2 class="text-h6 mb-4">{{ aboutPagePayload.metricsTitle }}</h2>
-      <v-row class="about-values-grid" dense>
+      <v-row class="about-values-grid" density="comfortable">
         <v-col v-for="metric in aboutPagePayload.metrics" :key="metric.label" cols="12" sm="4">
           <div class="about-metric-card rounded-lg">
             <div class="d-flex align-center ga-3">
