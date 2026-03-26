@@ -370,16 +370,24 @@ export const readAuthCookie = async (event: H3Event): Promise<StoredAuthCookie |
     return null
   }
 
-  const rotatedSession = await persistSession(event, {
+  const refreshedSession: StoredAuthSessionRecord = {
     token: normalizedSession.token,
     sessionVersion: normalizedSession.sessionVersion,
     userSnapshot: normalizedSession.userSnapshot,
-  }, parsedSessionCookie.sessionId)
+    expiresAt: new Date(Date.now() + ttlSeconds * 1000).toISOString(),
+  }
+
+  await storage.setItem(storageKey, refreshedSession, ttlSeconds)
+  setClientCookie(
+    event,
+    encodeSessionIdCookie(parsedSessionCookie.sessionId, parsedSessionCookie.keyId, secretForVerification),
+    ttlSeconds,
+  )
 
   return {
-    token: rotatedSession.token,
-    sessionVersion: rotatedSession.sessionVersion,
-    userSnapshot: rotatedSession.userSnapshot,
+    token: refreshedSession.token,
+    sessionVersion: refreshedSession.sessionVersion,
+    userSnapshot: refreshedSession.userSnapshot,
   }
 }
 
