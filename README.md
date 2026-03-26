@@ -198,3 +198,10 @@ Le proxy backend `server/api/backend/[...path].ts` applique une stratégie de ca
 - Alerting:
   - alerte `*.hit_rate_drop` si le taux de hit passe sous le seuil configuré en runtime.
   - alerte `redis.unavailable` si lecture/écriture cache échoue.
+
+## Observabilité (télémétrie front)
+
+- Les événements structurés restent collectés via `useTracker()` en dev **et** en prod.
+- Les logs console de télémétrie sont activés automatiquement en dev (`import.meta.dev`).
+- En production, vous pouvez réactiver ces logs avec `NUXT_PUBLIC_DEBUG_TELEMETRY=true` (ou `1`, `yes`, `on`).
+- Les warnings critiques restent visibles même sans flag de debug.
