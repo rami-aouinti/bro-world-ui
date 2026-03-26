@@ -110,8 +110,10 @@ const signOut = async () => {
   >
     <v-toolbar-title class="app-bar__brand d-flex align-center ga-3 text-truncate">
       <NuxtLink to="/" class="app-bar__title-link d-flex align-center ga-2">
-        <v-icon icon="mdi-earth" size="32" class="app-bar__brand-icon" />
-        <span class="text-truncate">
+        <span class="app-bar__brand-icon-slot" aria-hidden="true">
+          <v-icon icon="mdi-earth" size="32" class="app-bar__brand-icon" />
+        </span>
+        <span class="app-bar__brand-title text-truncate">
           <span class="app-bar__brand-bro">Bro</span><span class="app-bar__brand-world">World</span>
         </span>
       </NuxtLink>
@@ -400,11 +402,27 @@ const signOut = async () => {
 }
 
 .app-bar__title-link {
+  min-height: 40px;
   color: rgb(var(--v-theme-on-surface));
   text-decoration: none;
   font-weight: 700;
   border-radius: var(--ui-radius-sm);
   transition: color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.app-bar__brand-title {
+  display: inline-block;
+  min-width: 8ch;
+  line-height: 1.2;
+}
+
+.app-bar__brand-icon-slot {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .app-bar__title-link:hover {
