@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import UiCard from '~/components/ui/UiCard.vue'
 import HomeSecondarySections from '~/components/marketing/home/HomeSecondarySections.server.vue'
-import type { HomePagePayload } from '~/types/api/page'
 import { usePublicPagesStore } from '~/stores/publicPages'
-import {ref} from "vue";
+import { computed } from 'vue'
 
 definePageMeta({
   public: true,
@@ -13,27 +12,19 @@ definePageMeta({
 
 const publicPagesStore = usePublicPagesStore()
 const { locale } = useI18n()
-const homePagePayload = ref<HomePagePayload>({})
-
-const isLoading = ref(true)
-
-const loadPageHome = async () => {
-  isLoading.value = true
-  try {
-    homePagePayload.value = await publicPagesStore.loadHome(locale.value)
-  }
-  finally {
-    isLoading.value = false
-  }
-}
-
-onMounted(loadPageHome)
-watch(locale, loadPageHome)
+const { data, pending, refresh } = await useAsyncData(
+  'home-page',
+  () => publicPagesStore.loadHome(locale.value),
+  { watch: [locale] },
+)
+const homePagePayload = computed(() => data.value)
+const showNavigationSkeleton = computed(() => pending.value && Boolean(data.value))
+defineExpose({ refresh })
 </script>
 
 <template>
   <main class="home-page">
-    <template v-if="isLoading || !homePagePayload">
+    <template v-if="showNavigationSkeleton">
       <v-card class="home-hero mb-6">
         <v-skeleton-loader type="chip" class="mb-4" />
         <v-skeleton-loader type="heading" class="mb-2" />
@@ -52,7 +43,7 @@ watch(locale, loadPageHome)
       </v-card>
     </template>
 
-    <template v-else>
+    <template v-else-if="homePagePayload">
       <v-fade-transition appear>
         <UiCard class="home-hero mb-6" kind="hero">
           <v-chip class="home-hero__badge mb-4" color="primary" variant="tonal">
@@ -74,6 +65,16 @@ watch(locale, loadPageHome)
       </v-fade-transition>
 
       <HomeSecondarySections :payload="homePagePayload" />
+    </template>
+
+    <template v-else>
+      <v-card class="home-hero mb-6">
+        <v-skeleton-loader type="chip" class="mb-4" />
+        <v-skeleton-loader type="heading" class="mb-2" />
+        <v-skeleton-loader type="text@2" class="mb-4" />
+        <v-skeleton-loader type="button@2" class="mb-4" />
+        <v-skeleton-loader type="list-item-two-line@3" />
+      </v-card>
     </template>
   </main>
 </template>
