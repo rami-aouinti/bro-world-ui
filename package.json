@@ -1,5 +1,6 @@
 {
   "name": "bro-world-ui",
+  "packageManager": "pnpm@9.15.9",
   "type": "module",
   "private": true,
   "scripts": {
