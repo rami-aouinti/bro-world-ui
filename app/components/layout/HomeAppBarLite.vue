@@ -113,36 +113,3 @@ const ctaLinks = computed<HomeNavItem[]>(() => {
     </ClientOnly>
   </v-app-bar>
 </template>
-
-<style scoped>
-.app-bar-lite {
-  margin: var(--ui-spacing-sm) var(--ui-spacing-md);
-  padding-inline: var(--ui-spacing-lg);
-}
-
-.app-bar--kind-glass {
-  background: color-mix(in srgb, rgb(var(--v-theme-surface)) 82%, transparent);
-  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  box-shadow: 0 12px 24px rgba(var(--v-theme-on-surface), 0.08);
-  backdrop-filter: blur(12px);
-}
-
-.app-bar-lite__brand {
-  min-width: 0;
-}
-
-.app-bar-lite__title-link {
-  color: inherit;
-  text-decoration: none;
-  min-width: 0;
-}
-
-.app-bar-lite__brand-bro {
-  font-weight: 700;
-}
-
-.app-bar-lite__brand-world {
-  font-weight: 600;
-  color: rgb(var(--v-theme-primary));
-}
-</style>

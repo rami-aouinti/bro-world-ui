@@ -154,7 +154,13 @@ export default defineNuxtConfig({
     'vuetify/styles',
     '~/assets/styles/material-dashboard.scss',
     '~/assets/styles/index.css',
+    '~/assets/styles/critical-home.css',
   ],
+  vite: {
+    build: {
+      cssCodeSplit: false,
+    },
+  },
   i18n: {
     defaultLocale: 'en',
     fallbackLocale: 'en',
