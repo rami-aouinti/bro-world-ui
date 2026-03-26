@@ -106,6 +106,9 @@ export default defineNuxtConfig({
     head: {
       title: 'Bro World',
       titleTemplate: '%s · Bro World',
+      htmlAttrs: {
+        lang: 'en',
+      },
       meta: [
         {
           name: 'description',
