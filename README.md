@@ -82,6 +82,12 @@ node --test scripts/private-cache-security.test.mjs
 - **Types** (`app/types`): types métier regroupés par domaine API et suffixes explicites (`*Payload`, `*Response`, etc.).
 - **Clés i18n**: namespaces stables par domaine/page (`home.*`, `platform.shop.*`, `errors.auth.*`) et structure identique dans toutes les locales.
 
+## Convention SEO / titre de page
+
+- Un titre global est défini dans `nuxt.config.ts` (`app.head.title` + `titleTemplate`).
+- **Chaque page routée** dans `app/pages/**` doit définir un `title` explicite via `useHead({ title: '...' })` (ou `useSeoMeta`) pour éviter les titres de document vides (Lighthouse/A11y).
+- Conserver des titres courts, orientés utilisateur, et cohérents avec la navigation.
+
 ## Flux auth/session
 
 1. `useAuth().initSession()` appelle `GET /api/auth/session` pour hydrater l'état client au chargement.

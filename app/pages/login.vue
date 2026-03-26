@@ -16,6 +16,10 @@ const { t } = useI18n()
 const { login, fetchProfile } = useAuth()
 const tracker = useTracker()
 
+useHead({
+  title: 'Login',
+})
+
 const usernameOrEmail = ref('')
 const password = ref('')
 const loading = ref(false)

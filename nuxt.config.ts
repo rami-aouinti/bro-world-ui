@@ -104,6 +104,8 @@ if (sessionCookieSameSite === 'none' && !sessionCookieSecure) {
 export default defineNuxtConfig({
   app: {
     head: {
+      title: 'Bro World',
+      titleTemplate: '%s · Bro World',
       meta: [
         {
           name: 'description',
