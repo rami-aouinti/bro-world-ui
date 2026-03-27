@@ -12,7 +12,7 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Landing',
+  title: 'Home',
 })
 
 const publicPagesStore = usePublicPagesStore()

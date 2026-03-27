@@ -9,6 +9,10 @@ definePageMeta({
   splitShell: false,
 });
 
+useHead({
+  title: 'Faq',
+})
+
 interface FaqCategory {
   key: string;
   label: string;
