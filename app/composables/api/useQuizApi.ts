@@ -66,7 +66,7 @@ export const useQuizApi = () => {
     getGeneralQuizLeaderboard() {
       return apiFetch<{ items: QuizLeaderboardEntry[] }>(`/api/v1/public/quiz/general/leaderboard`, { method: 'GET' })
     },
-    submitGeneralQuiz(payload: SubmitQuizPayload) {
+      submitGeneralQuiz(payload: { answers: { questionId: string; answerId: unknown }[] }) {
       return apiFetch<SubmitQuizResult>(`/api/v1/quiz/general/submit`, {
         method: 'POST',
         body: payload,

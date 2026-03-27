@@ -106,15 +106,6 @@ const currentTimerProgress = computed(() => {
 })
 const isCurrentQuestionLocked = computed(() => hasStarted.value && !isFinished.value && currentQuestionTimer.value <= 0)
 
-const answeredCount = computed(() => questionList.value.filter(question => Boolean(selectedAnswers.value[question.id])).length)
-const progressValue = computed(() => {
-  if (questionsCount.value === 0) {
-    return 0
-  }
-
-  return Math.round((answeredCount.value / questionsCount.value) * 100)
-})
-
 const resolveQuestionPoints = (question: QuizQuestion) => question.points && question.points > 0 ? question.points : 1
 
 const isAnswerCorrect = (question: QuizQuestion, answerId: string) => {

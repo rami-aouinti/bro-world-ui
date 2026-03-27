@@ -11,50 +11,6 @@ definePageMeta({
   layout: false,
 })
 
-type MockEditorialInsight = {
-  title: string
-  excerpt: string
-  category: string
-  readTime: string
-  trend: string
-}
-
-type MockAnnouncement = {
-  title: string
-  date: string
-  tag: string
-}
-
-const editorialInsights: MockEditorialInsight[] = [
-  {
-    title: 'Recrutement 2026: ce que les talents attendent vraiment des entreprises',
-    excerpt: 'Flexibility, impact, and rapid growth: three strong signals reshaping HR strategy.',
-    category: 'Talent & RH',
-    readTime: '6 min',
-    trend: '+18% engagement',
-  },
-  {
-    title: 'Product design: 5 team rituals to reduce churn from month one',
-    excerpt: 'Short onboarding-focused workshops help fix friction before it becomes costly.',
-    category: 'Product Design',
-    readTime: '8 min',
-    trend: '-12% churn',
-  },
-  {
-    title: 'Comment industrialiser le contenu de marque sans perdre votre voix',
-    excerpt: 'A clear editorial architecture helps speed up production without sacrificing quality.',
-    category: 'Brand & Content',
-    readTime: '5 min',
-    trend: '+2.4x production',
-  },
-]
-
-const roadmapAnnouncements: MockAnnouncement[] = [
-  { title: 'Launch of the “Guest Authors” module', date: 'Week 14', tag: 'Roadmap' },
-  { title: 'New “Case Study video” format', date: 'Week 16', tag: 'Content' },
-  { title: 'Advanced analytics connection (beta)', date: 'Week 19', tag: 'Data' },
-]
-
 const isLoading = ref(false)
 const errorMessage = ref('')
 const errorRequestId = ref<string | null>(null)
@@ -113,18 +69,6 @@ const setupInfiniteObserver = () => {
 
   infiniteObserver.observe(infiniteSentinel.value)
 }
-
-const keyTopics = computed(() => {
-  const extractedTopics = blog.value?.posts
-    ?.flatMap(post => post.content.split(/\s+/).slice(0, 8))
-    .map(token => token.toLowerCase().replace(/[^\p{L}\p{N}-]/gu, ''))
-    .filter(token => token.length > 4)
-
-  const uniqueTopics = Array.from(new Set(extractedTopics)).slice(0, 6)
-  return uniqueTopics.length
-    ? uniqueTopics
-    : ['innovation', 'produit', 'leadership', 'culture', 'croissance', 'design']
-})
 
 const isPrivateSessionReady = () => authState.value === 'authenticated' || authState.value === 'degraded'
 
