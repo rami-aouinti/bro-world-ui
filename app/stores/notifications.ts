@@ -13,6 +13,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
   const notifications = useState<NotificationListResponse>('notifications-shared', () => ({ ...DEFAULT_NOTIFICATIONS }))
   const cachedAt = useState<number>('notifications-shared-cached-at', () => 0)
   const inFlightFetch = useState<Promise<NotificationListResponse> | null>('notifications-shared-inflight', () => null)
+  const inFlightMarkAllAsRead = useState<Promise<void> | null>('notifications-shared-mark-all-read-inflight', () => null)
 
   const setNotifications = (payload: NotificationListResponse) => {
     notifications.value = {
@@ -74,10 +75,39 @@ export const useNotificationsStore = defineStore('notifications', () => {
     }
   }
 
+  const markAllAsRead = async () => {
+    if (notifications.value.unreadCount === 0) {
+      return
+    }
+
+    if (inFlightMarkAllAsRead.value) {
+      return inFlightMarkAllAsRead.value
+    }
+
+    const previousNotifications = {
+      unreadCount: notifications.value.unreadCount,
+      items: notifications.value.items.map(item => ({ ...item })),
+    }
+
+    markAllAsReadLocally()
+    inFlightMarkAllAsRead.value = notificationsApi
+      .markAllAsRead()
+      .catch((error) => {
+        notifications.value = previousNotifications
+        throw error
+      })
+      .finally(() => {
+        inFlightMarkAllAsRead.value = null
+      })
+
+    return inFlightMarkAllAsRead.value
+  }
+
   const clear = () => {
     notifications.value = { ...DEFAULT_NOTIFICATIONS }
     cachedAt.value = 0
     inFlightFetch.value = null
+    inFlightMarkAllAsRead.value = null
   }
 
   return {
@@ -86,6 +116,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
     setNotifications,
     fetchNotifications,
     prependNotification,
+    markAllAsRead,
     markAllAsReadLocally,
     clear,
   }

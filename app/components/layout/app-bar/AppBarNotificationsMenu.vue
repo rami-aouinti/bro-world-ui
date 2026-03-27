@@ -18,7 +18,12 @@ watch(isNotificationsMenuOpen, async (isOpen) => {
     return
   }
 
-  notificationsStore.markAllAsReadLocally()
+  try {
+    await notificationsStore.markAllAsRead()
+  }
+  catch {
+    // no-op: local state is restored in store on request failure
+  }
 })
 
 const getNotificationAvatarLabel = (notification: NotificationRead) => {
