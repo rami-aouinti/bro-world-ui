@@ -36,8 +36,13 @@ export interface PrivateChatMessage {
 export interface PrivateChatConversation {
   id: string
   chatId: string
+  type?: string | null
+  title?: string | null
   participants: PrivateChatParticipant[]
-  messages: PrivateChatMessage[]
+  messages?: PrivateChatMessage[]
+  lastMessage?: PrivateChatMessage | null
+  lastMessageAt?: string | null
+  archivedAt?: string | null
   unreadMessagesCount: number
   createdAt: string
 }

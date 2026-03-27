@@ -118,13 +118,16 @@ export const useInboxStore = defineStore('inbox', () => {
       data: {
         ...conversationsCache.value.data,
         items: conversationsCache.value.data.items.map((conversation) => {
-          if (conversation.id !== conversationId || conversation.messages.some(item => item.id === message.id)) {
+          const existingMessages = conversation.messages ?? []
+          if (conversation.id !== conversationId || existingMessages.some(item => item.id === message.id)) {
             return conversation
           }
 
           return {
             ...conversation,
-            messages: [...conversation.messages, message],
+            messages: [...existingMessages, message],
+            lastMessage: message,
+            lastMessageAt: message.createdAt,
             unreadMessagesCount: message.sender.id === currentUserId
               ? conversation.unreadMessagesCount
               : conversation.unreadMessagesCount + 1,
