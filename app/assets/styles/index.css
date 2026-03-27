@@ -227,10 +227,18 @@ html.dark {
   box-shadow: var(--ui-theme-shadow);
 }
 
-.v-btn:not(.v-btn--flat):not(.v-btn--variant-text):not(.v-btn--variant-plain):not(.v-btn--variant-tonal),
+.v-btn:not(.v-btn--disabled),
 .v-list,
-.v-badge__badge {
+.v-badge__badge,
+.v-menu > .v-overlay__content,
+.v-overlay--menu > .v-overlay__content {
   box-shadow: var(--ui-theme-shadow);
+}
+
+.v-menu > .v-overlay__content,
+.v-overlay--menu > .v-overlay__content,
+.v-overlay__content > .v-list {
+  border-radius: var(--radius, var(--ui-card-radius));
 }
 
 .v-theme--light.v-icon--clickable,
