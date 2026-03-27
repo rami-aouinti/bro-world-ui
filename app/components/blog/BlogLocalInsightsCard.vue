@@ -164,3 +164,10 @@ onMounted(async () => {
     </v-list>
   </template>
 </template>
+
+<style scoped>
+:deep(.v-list-item-subtitle.text-high-emphasis) {
+  color: rgb(var(--v-theme-on-surface)) !important;
+  opacity: 1 !important;
+}
+</style>

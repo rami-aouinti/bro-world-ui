@@ -59,6 +59,7 @@ const showImage = computed(() => Boolean(props.src) && !hasImageError.value)
 const badgeColor = computed(() => props.status !== 'none' ? STATUS_COLOR_TOKENS[props.status] : undefined)
 const showStatusBadge = computed(() => props.status !== 'none')
 const roundedValue = computed(() => props.rounded ? 'pill' : 'lg')
+const fallbackClass = computed(() => showImage.value ? '' : 'ui-avatar--fallback')
 
 const onImageError = () => {
   hasImageError.value = true
@@ -80,6 +81,7 @@ const onImageError = () => {
       :rounded="roundedValue"
       color="primary"
       class="ui-avatar"
+      :class="fallbackClass"
       :aria-label="props.name || 'Avatar'"
     >
       <v-img
@@ -91,7 +93,7 @@ const onImageError = () => {
       />
       <span
         v-else
-        class="font-weight-bold text-on-primary"
+        class="font-weight-bold"
         :class="sizeToken.textClass"
       >
         {{ initials }}
@@ -103,5 +105,10 @@ const onImageError = () => {
 <style scoped>
 .ui-avatar {
   user-select: none;
+}
+
+.ui-avatar--fallback {
+  background-color: rgb(var(--v-theme-on-surface)) !important;
+  color: rgb(var(--v-theme-surface)) !important;
 }
 </style>
