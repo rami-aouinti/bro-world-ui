@@ -96,3 +96,15 @@ test('buildConversationPreview handles empty messages exactly like legacy', () =
 
   assert.deepEqual(buildConversationPreview(conversation), legacyBuildConversationPreview(conversation))
 })
+
+test('getLatestMessage uses API lastMessage when messages list is missing', () => {
+  const conversation = {
+    id: 'conv-4',
+    createdAt: '2024-03-01T00:00:00.000Z',
+    unreadMessagesCount: 1,
+    participants: [],
+    lastMessage: { id: 'm-last', content: 'preview from api', createdAt: '2024-03-03T12:00:00.000Z' },
+  }
+
+  assert.deepEqual(getLatestMessage(conversation), conversation.lastMessage)
+})

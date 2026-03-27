@@ -7,7 +7,7 @@
  * @param {PrivateChatConversation} conversation
  * @returns {PrivateChatMessage | null}
  */
-export const getLatestMessage = (conversation) => conversation.messages.reduce(
+export const getLatestMessage = (conversation) => (conversation.messages ?? []).reduce(
   (latest, message) => {
     if (!latest) {
       return message
@@ -15,7 +15,7 @@ export const getLatestMessage = (conversation) => conversation.messages.reduce(
 
     return new Date(message.createdAt).getTime() > new Date(latest.createdAt).getTime() ? message : latest
   },
-  null,
+  conversation.lastMessage ?? null,
 )
 
 /**
@@ -31,7 +31,10 @@ export const buildConversationPreview = (conversation) => {
     }))
 
   const title = participants[0]?.label ?? 'Conversation'
-  const latest = getLatestMessage(conversation)
+  const latest = getLatestMessage({
+    ...conversation,
+    messages: conversation.messages ?? [],
+  })
 
   return {
     id: conversation.id,
@@ -40,6 +43,6 @@ export const buildConversationPreview = (conversation) => {
     participants,
     unread: conversation.unreadMessagesCount,
     route: `/inbox/${conversation.id}`,
-    latestMessageAt: latest?.createdAt ?? conversation.createdAt,
+    latestMessageAt: latest?.createdAt ?? conversation.lastMessageAt ?? conversation.createdAt,
   }
 }

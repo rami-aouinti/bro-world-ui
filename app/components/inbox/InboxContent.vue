@@ -94,7 +94,11 @@ const availableReactions = [
 const inboxConversationsSummary = computed(() => inboxStore.conversationsSummary)
 
 const getLatestMessage = (conversation: PrivateChatConversation): PrivateChatMessage | null => {
-  if (!conversation.messages.length) {
+  if (conversation.lastMessage) {
+    return conversation.lastMessage
+  }
+
+  if (!conversation.messages?.length) {
     return null
   }
 
@@ -117,8 +121,8 @@ const mapConversation = (conversation: PrivateChatConversation) => {
     title: participants[0]?.label ?? 'Conversation',
     excerpt: lastMessage?.content ?? 'No message',
     unread: conversation.unreadMessagesCount,
-    lastMessageAt: lastMessage?.createdAt ?? conversation.createdAt,
-    messages: [...conversation.messages].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
+    lastMessageAt: lastMessage?.createdAt ?? conversation.lastMessageAt ?? conversation.createdAt,
+    messages: [...(conversation.messages ?? [])].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
   }
 }
 
@@ -147,102 +151,8 @@ const formatRelativeTime = (value: string) => {
   return `il y a ${Math.round(diffMinutes / 1440)} j`
 }
 
-const demoConversations = computed<InboxConversation[]>(() => {
-  const now = Date.now()
-
-  return [
-    {
-      id: 'demo-customer-success',
-      title: 'Support Premium · Claire Martin',
-      excerpt: 'The client confirms receiving the quote and wants a call tomorrow.',
-      unread: 3,
-      channel: 'Support',
-      sla: 'Response expected within 45 min',
-      participants: [
-        { id: 'demo-c1', label: 'Claire Martin', photo: null },
-        { id: 'demo-c2', label: 'Adrien Lopez', photo: null },
-      ],
-      lastMessageAt: new Date(now - 12 * 60000).toISOString(),
-      messages: [
-        {
-          id: 'demo-msg-1',
-          content: 'Hello, I have just sent the sales proposal to the client.',
-          sender: { id: 'demo-c2', firstName: 'Adrien', lastName: 'Lopez', photo: null, owner: false },
-          attachments: [],
-          read: true,
-          readAt: new Date(now - 34 * 60000).toISOString(),
-          createdAt: new Date(now - 35 * 60000).toISOString(),
-          reactions: [],
-        },
-        {
-          id: 'demo-msg-2',
-          content: 'Merci, le client souhaite aussi une projection trimestrielle par produit.',
-          sender: { id: 'demo-c1', firstName: 'Claire', lastName: 'Martin', photo: null, owner: false },
-          attachments: [],
-          read: false,
-          readAt: null,
-          createdAt: new Date(now - 20 * 60000).toISOString(),
-          reactions: [{ id: 'demo-react-1', userId: 'demo-c2', reaction: 'like' }],
-        },
-      ],
-    },
-    {
-      id: 'demo-sales-onboarding',
-      title: 'Equipe Sales · Onboarding',
-      excerpt: 'Onboarding checklist updated, legal validation remains.',
-      unread: 1,
-      channel: 'Interne',
-      sla: 'Follow-up scheduled for today',
-      participants: [
-        { id: 'demo-c3', label: 'Nina Park', photo: null },
-        { id: 'demo-c4', label: 'Julien Perez', photo: null },
-      ],
-      lastMessageAt: new Date(now - 72 * 60000).toISOString(),
-      messages: [
-        {
-          id: 'demo-msg-3',
-          content: 'Onboarding documentation is published in Notion.',
-          sender: { id: 'demo-c3', firstName: 'Nina', lastName: 'Park', photo: null, owner: false },
-          attachments: [],
-          read: true,
-          readAt: new Date(now - 91 * 60000).toISOString(),
-          createdAt: new Date(now - 92 * 60000).toISOString(),
-          reactions: [],
-        },
-      ],
-    },
-    {
-      id: 'demo-ops-billing',
-      title: 'Ops · Facturation EU',
-      excerpt: 'Correction TVA en attente du retour finance (ticket #FIN-342).',
-      unread: 0,
-      channel: 'Finance',
-      sla: '80% resolved',
-      participants: [
-        { id: 'demo-c5', label: 'Maël Roche', photo: null },
-        { id: 'demo-c6', label: 'Lucia Vento', photo: null },
-      ],
-      lastMessageAt: new Date(now - 5 * 3600 * 1000).toISOString(),
-      messages: [
-        {
-          id: 'demo-msg-4',
-          content: 'VAT correction batch started, monitoring in progress.',
-          sender: { id: 'demo-c6', firstName: 'Lucia', lastName: 'Vento', photo: null, owner: false },
-          attachments: [],
-          read: true,
-          readAt: new Date(now - 4 * 3600 * 1000).toISOString(),
-          createdAt: new Date(now - 5 * 3600 * 1000).toISOString(),
-          reactions: [{ id: 'demo-react-2', userId: 'demo-c5', reaction: 'wow' }],
-        },
-      ],
-    },
-  ]
-})
-
-const visibleConversations = computed<InboxConversation[]>(() => conversations.value.length
-  ? conversations.value
-  : demoConversations.value)
-const isUsingDemoData = computed(() => conversations.value.length === 0)
+const visibleConversations = computed<InboxConversation[]>(() => conversations.value)
+const isUsingDemoData = computed(() => false)
 
 const inboxInsights = computed(() => {
   const total = visibleConversations.value.length
@@ -340,11 +250,33 @@ watch(
 )
 
 const refreshConversationData = async () => {
-  if (props.selectedConversationId) {
-    const messages = await inboxStore.fetchConversationMessages(props.selectedConversationId, true)
+  const targetConversationId = props.selectedConversationId ?? activeConversation.value?.id
+  if (targetConversationId) {
+    const messages = await inboxStore.fetchConversationMessages(targetConversationId, true)
     conversationMessages.value = sortMessages(messages.map(item => normalizeMessage(item)))
   }
 }
+
+watch(
+  () => [activeConversation.value?.id, props.selectedConversationId],
+  async ([activeConversationId, selectedConversationId], [previousActiveConversationId, previousSelectedConversationId]) => {
+    const targetConversationId = selectedConversationId ?? activeConversationId
+
+    if (!targetConversationId) {
+      conversationMessages.value = []
+      return
+    }
+
+    const targetChanged = targetConversationId !== (previousSelectedConversationId ?? previousActiveConversationId)
+    if (!targetChanged && conversationMessages.value.length) {
+      return
+    }
+
+    const messages = await inboxStore.fetchConversationMessages(targetConversationId)
+    conversationMessages.value = sortMessages(messages.map(item => normalizeMessage(item)))
+  },
+  { immediate: true },
+)
 
 
 const applyReactionToMessageCaches = (messageId: string, reaction: { id: string, reaction: string }) => {
@@ -379,7 +311,7 @@ const applyReactionToMessageCaches = (messageId: string, reaction: { id: string,
 
     return {
       ...conversation,
-      messages: conversation.messages.map(message =>
+      messages: (conversation.messages ?? []).map(message =>
         message.id === messageId
           ? addReactionToMessage(message)
           : message,
@@ -434,7 +366,7 @@ const sendMessage = async () => {
 
         return {
           ...conversation,
-          messages: conversation.messages.map(message =>
+          messages: (conversation.messages ?? []).map(message =>
             message.id === optimisticMessage.id
               ? normalizedCreatedMessage
               : message,
@@ -531,17 +463,6 @@ const deleteMessage = async () => {
         title="Inbox"
         subtitle="Centre de conversations"
       />
-
-      <v-alert
-        v-if="isUsingDemoData"
-        type="info"
-        variant="tonal"
-        density="compact"
-        icon="mdi-flask-outline"
-        class="mb-3"
-      >
-        Enhanced demo data active (while waiting for backend).
-      </v-alert>
 
       <div class="inbox-page__insights mb-4">
         <article v-for="insight in inboxInsights" :key="insight.label" class="inbox-page__insight-card">
