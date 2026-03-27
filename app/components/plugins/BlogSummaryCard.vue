@@ -21,7 +21,7 @@ const publicationHealthTone = computed(() => {
     <v-chip size="small" :color="publicationHealthTone" variant="tonal">Commentaires: {{ blog?.commentStatus }}</v-chip>
   </div>
 
-  <p class="text-body-2 text-medium-emphasis mb-0">
+  <p class="text-body-2 text-high-emphasis mb-0">
     Overview of published content, community activity, and editorial cadence.
   </p>
 </template>
