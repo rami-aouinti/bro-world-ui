@@ -22,6 +22,7 @@ describe('useThemePreferences', () => {
     vi.resetModules()
     vi.clearAllMocks()
     window.sessionStorage.clear()
+    vi.stubGlobal('useCookie', vi.fn(() => ref<string | null>(null)))
   })
 
   it('n’appelle pas l’endpoint de configuration distant sans token', async () => {

@@ -3,6 +3,7 @@ import { useTheme } from 'vuetify'
 import {
   buildThemeName,
   defaultThemePreference,
+  isThemePreference,
   parseThemeName,
   readThemePreferenceFromSession,
   THEME_SESSION_STORAGE_KEY,
@@ -18,11 +19,31 @@ import {
 
 const THEME_CONFIGURATION_KEY = 'user.dashboard.theme'
 const SERVER_SESSION_PLACEHOLDER = '__server_session__'
+const THEME_PREFERENCE_COOKIE_KEY = 'bro-world-theme-preference'
 
 export const useThemePreferences = () => {
   const theme = useTheme()
+  const themePreferenceCookie = useCookie<string | null>(THEME_PREFERENCE_COOKIE_KEY, {
+    sameSite: 'lax',
+    default: () => null,
+  })
   const authSession = useAuthSessionStore()
   const { apiFetch } = useApiClient()
+
+  const readThemePreferenceFromCookie = (): ThemePreference | null => {
+    const rawValue = themePreferenceCookie.value
+    if (!rawValue) {
+      return null
+    }
+
+    try {
+      const parsed = JSON.parse(rawValue)
+      return isThemePreference(parsed) ? parsed : null
+    }
+    catch {
+      return null
+    }
+  }
 
   const ensureValidTheme = () => {
     const parsed = parseThemeName(theme.global.name.value)
@@ -34,7 +55,7 @@ export const useThemePreferences = () => {
     return defaultThemePreference
   }
 
-  const bootstrapPreference = defaultThemePreference
+  const bootstrapPreference = readThemePreferenceFromCookie() ?? defaultThemePreference
   const bootstrapThemeName = buildThemeName(bootstrapPreference)
   if (theme.global.name.value !== bootstrapThemeName) {
     theme.change(bootstrapThemeName)
@@ -122,6 +143,8 @@ export const useThemePreferences = () => {
   }
 
   const persistThemePreference = (next: ThemePreference) => {
+    themePreferenceCookie.value = JSON.stringify(next)
+
     if (!import.meta.client) {
       return
     }
