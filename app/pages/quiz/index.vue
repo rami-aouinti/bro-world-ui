@@ -390,7 +390,7 @@ onBeforeUnmount(() => {
       <div v-if="quiz">
         <div class="d-flex flex-wrap justify-space-between align-start ga-4">
           <div>
-            <v-chip color="primary" variant="flat" class="mb-4" prepend-icon="mdi-star-four-points-outline">
+            <v-chip variant="outlined" class="mb-4 quiz-title-chip" prepend-icon="mdi-star-four-points-outline">
               {{ t('quizPage.title') }}
             </v-chip>
             <h3 class="text-h5 font-weight-bold mb-2">{{ quiz.title }}</h3>
@@ -672,6 +672,12 @@ onBeforeUnmount(() => {
 
 .leaderboard-score {
   color: rgba(var(--v-theme-on-surface), 0.9);
+}
+
+.quiz-title-chip {
+  color: rgba(var(--v-theme-on-surface), 0.95) !important;
+  border-color: rgba(var(--v-theme-on-surface), 0.28) !important;
+  background-color: rgba(var(--v-theme-surface), 0.9) !important;
 }
 
 .quiz-description {
