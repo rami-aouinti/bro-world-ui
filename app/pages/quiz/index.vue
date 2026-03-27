@@ -3,6 +3,10 @@ import type { QuizQuestion, SubmitQuizResult } from '~/types/api/quiz'
 import { useQuizApi } from '~/composables/api/useQuizApi'
 import { useQuizCatalogStore } from '~/stores/quizCatalog'
 
+defineRouteRules({
+  ssr: false,
+})
+
 definePageMeta({
   public: true,
   requiresAuth: false,
