@@ -188,6 +188,16 @@ export default defineNuxtConfig({
     langDir: 'locales',
   },
   runtimeConfig: {
+    github: {
+      clientId: process.env.NUXT_GITHUB_CLIENT_ID || '',
+      clientSecret: process.env.NUXT_GITHUB_CLIENT_SECRET || '',
+    },
+    oauth: {
+      github: {
+        clientId: process.env.NUXT_GITHUB_CLIENT_ID || '',
+        clientSecret: process.env.NUXT_GITHUB_CLIENT_SECRET || '',
+      },
+    },
     redisUrl: process.env.REDIS_URL || process.env.NUXT_REDIS_URL || '',
     cacheEnv: process.env.CACHE_ENV || process.env.NODE_ENV || 'dev',
     cacheApp: process.env.CACHE_APP || 'bro-ui',
