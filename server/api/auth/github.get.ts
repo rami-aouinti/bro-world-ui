@@ -20,13 +20,10 @@ const createSocialLoginError = () => createError({
 export default defineOAuthGitHubEventHandler({
   async onSuccess(event, { user }) {
     const config = useRuntimeConfig()
+    console.log('user', user)
     const githubUser = user as GithubOAuthUser
     const email = githubUser.email?.trim()
     const providerId = String(githubUser.id ?? '').trim()
-
-    if (!email || !providerId) {
-      throw createSocialLoginError()
-    }
 
     let socialLoginResponse: SocialLoginResponse
 
