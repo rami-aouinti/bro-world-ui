@@ -390,20 +390,20 @@ onBeforeUnmount(() => {
       <div v-if="quiz">
         <div class="d-flex flex-wrap justify-space-between align-start ga-4">
           <div>
-            <v-chip color="primary" variant="flat" class="mb-4" prepend-icon="mdi-star-four-points-outline">
+            <v-chip variant="outlined" class="mb-4 quiz-title-chip" prepend-icon="mdi-star-four-points-outline">
               {{ t('quizPage.title') }}
             </v-chip>
             <h3 class="text-h5 font-weight-bold mb-2">{{ quiz.title }}</h3>
-            <p class="text-body-1 text-medium-emphasis mb-0">{{ quiz.description }}</p>
+            <p class="text-body-1 quiz-description mb-0">{{ quiz.description }}</p>
           </div>
         </div>
 
         <v-divider class="my-5" />
 
         <div class="d-flex flex-wrap align-center ga-4 mb-3">
-          <v-chip variant="tonal" prepend-icon="mdi-help-circle-outline">{{ t('quizPage.questionsCount', { count: questionsCount }) }}</v-chip>
-          <v-chip variant="tonal" prepend-icon="mdi-timer-outline">{{ t('quizPage.timerPerQuestion', { seconds: timerPerQuestion }) }}</v-chip>
-          <v-chip variant="tonal" prepend-icon="mdi-flag-checkered">{{ t('quizPage.passScore', { score: quiz.passScore }) }}</v-chip>
+          <v-chip variant="outlined" prepend-icon="mdi-help-circle-outline">{{ t('quizPage.questionsCount', { count: questionsCount }) }}</v-chip>
+          <v-chip variant="outlined" prepend-icon="mdi-timer-outline">{{ t('quizPage.timerPerQuestion', { seconds: timerPerQuestion }) }}</v-chip>
+          <v-chip variant="outlined" prepend-icon="mdi-flag-checkered">{{ t('quizPage.passScore', { score: quiz.passScore }) }}</v-chip>
         </div>
 
         <template v-if="selectedLevelLabel || selectedCategoryLabel">
@@ -485,7 +485,7 @@ onBeforeUnmount(() => {
               <v-icon start :icon="resolveRankIcon(index + 1)" />
               #{{ index + 1 }}
             </v-chip>
-            <v-avatar :image="entry.photo || undefined" size="24" />
+            <UiAvatar :name="`${entry.firstName} ${entry.lastName}`" size="xs" />
             <p class="text-body-2 font-weight-medium text-truncate">{{ entry.firstName }} {{ entry.lastName }}</p>
 
             <p class="text-caption leaderboard-score text-end">{{ entry.averageWeightedScore.toFixed(2) }} pts</p>
@@ -518,10 +518,10 @@ onBeforeUnmount(() => {
                 class="font-weight-medium category-card"
                 :class="{ 'category-card--selected': selectedCategory === category.slug }"
                 min-width="165px"
-                :style="{ color: category.color }"
+                :style="{ '--category-accent': category.color }"
                 @click="toggleCategory(category.slug)"
               >
-                <v-card-text class="text-center">
+                <v-card-text class="text-center category-card__text">
                   {{ category.name }}
                 </v-card-text>
               </v-card>
@@ -674,6 +674,16 @@ onBeforeUnmount(() => {
   color: rgba(var(--v-theme-on-surface), 0.9);
 }
 
+.quiz-title-chip {
+  color: rgba(var(--v-theme-on-surface), 0.95) !important;
+  border-color: rgba(var(--v-theme-on-surface), 0.28) !important;
+  background-color: rgba(var(--v-theme-surface), 0.9) !important;
+}
+
+.quiz-description {
+  color: rgba(var(--v-theme-on-surface), 0.9);
+}
+
 .answer-card {
   cursor: pointer;
   transition: all 0.25s ease;
@@ -707,6 +717,7 @@ onBeforeUnmount(() => {
 
 .category-card {
   cursor: pointer;
+  border-color: rgba(var(--v-theme-on-surface), 0.25);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -714,8 +725,13 @@ onBeforeUnmount(() => {
   transform: translateY(-1px);
 }
 
+.category-card__text {
+  color: rgba(var(--v-theme-on-surface), 0.92);
+}
+
 .category-card--selected {
   box-shadow: 0 0 0 3px rgba(var(--v-theme-primary), 0.55) inset;
+  border-color: var(--category-accent, rgba(var(--v-theme-primary), 1));
 }
 
 .start-cta-btn {
