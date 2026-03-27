@@ -9,7 +9,7 @@
       "admin": "Administration",
       "platform": "Plateforme",
       "about": "À propos",
-      "contact": "Contact",
+      "contact": "Nous contacter",
       "faq": "FAQ",
       "calendar": "Calendrier",
       "inbox": "Boîte de réception",
@@ -45,12 +45,12 @@
     "logout": "Déconnexion",
     "notAuthenticated": "Vous n'êtes pas connecté. Passez par la page de connexion.",
     "tokenHint": "Le token de session sera automatiquement utilisé dans l'en-tête",
-    "tokenHeader": "Authorization: Bearer ...",
+    "tokenHeader": "Autorisation : Bearer ...",
     "tokenHintSuffix": "pour appeler l'API profil.",
     "firstName": "Prénom",
     "lastName": "Nom",
     "timezone": "Fuseau horaire",
-    "photo": "Photo",
+    "photo": "Photo de profil",
     "saveChanges": "Enregistrer les modifications",
     "updateSuccess": "Profil mis à jour avec succès.",
     "photoUpdateSuccess": "Photo de profil mise à jour avec succès."
@@ -168,9 +168,9 @@
     },
     "users": {
       "headers": {
-        "username": "Username",
+        "username": "Nom d'utilisateur",
         "name": "Nom",
-        "email": "Email",
+        "email": "E-mail",
         "relations": "Relations",
         "actions": "Actions"
       },
@@ -178,15 +178,15 @@
         "createTitle": "Créer un utilisateur",
         "editTitle": "Éditer un utilisateur",
         "patchTitle": "Patch utilisateur",
-        "username": "Username",
-        "email": "Email",
+        "username": "Nom d'utilisateur",
+        "email": "E-mail",
         "firstName": "Prénom",
         "lastName": "Nom",
         "password": "Mot de passe",
         "passwordHint": "Laisser vide pour ne pas changer",
         "timezone": "Fuseau horaire",
         "language": "Langue",
-        "locale": "Locale",
+        "locale": "Langue",
         "photoUrl": "URL de photo",
         "groupIdToAttach": "ID du groupe à attacher"
       },
@@ -202,7 +202,7 @@
       },
       "aria": {
         "show": "Voir {name}",
-        "patch": "Patch {name}",
+        "patch": "Modifier {name}",
         "delete": "Supprimer {name}"
       },
       "dialogs": {
@@ -233,7 +233,7 @@
       "empty": "Aucun groupe utilisateur trouvé.",
       "aria": {
         "show": "Voir {id}",
-        "patch": "Patch {id}",
+        "patch": "Modifier {id}",
         "delete": "Supprimer {id}"
       },
       "dialogs": {
@@ -244,7 +244,7 @@
       "headers": {
         "id": "ID",
         "description": "Description",
-        "token": "Token",
+        "token": "Jeton",
         "actions": "Actions"
       },
       "form": {
@@ -252,7 +252,7 @@
         "editTitle": "Éditer une clé API",
         "patchTitle": "Patch clé API",
         "description": "Description",
-        "token": "Token"
+        "token": "Jeton"
       },
       "errors": {
         "load": "Impossible de charger les clés API depuis /api/{version}/api_key."
@@ -261,7 +261,7 @@
       "empty": "Aucune clé API trouvée.",
       "aria": {
         "show": "Voir {id}",
-        "patch": "Patch {id}",
+        "patch": "Modifier {id}",
         "delete": "Supprimer {id}"
       },
       "dialogs": {
@@ -290,7 +290,7 @@
       "aria": {
         "show": "Voir {id}",
         "edit": "Éditer {id}",
-        "patch": "Patch {id}",
+        "patch": "Modifier {id}",
         "delete": "Supprimer {id}"
       },
       "dialogs": {
@@ -322,7 +322,7 @@
         "description": "Consulter et gérer les plateformes et leurs métadonnées."
       },
       "plugins": {
-        "title": "Plugins",
+        "title": "Extensions",
         "description": "Gérer le catalogue des plugins, leurs états et intégrations."
       },
       "configurations": {
@@ -330,15 +330,15 @@
         "description": "Visualiser et maintenir les jeux de configuration disponibles."
       },
       "pages": {
-        "home": "Home",
-        "about": "About",
+        "home": "Accueil",
+        "about": "À propos",
         "contact": "Contact",
         "faq": "FAQ"
       }
     },
     "navigation": {
       "dashboard": {
-        "title": "Dashboard",
+        "title": "Tableau de bord",
         "description": "Consulter les statistiques clés et les indicateurs d’activité."
       },
       "settings": {
@@ -424,28 +424,28 @@
   },
   "$vuetify": {
     "dataFooter": {
-      "itemsPerPageText": "Items per page:",
-      "itemsPerPageAll": "All",
-      "nextPage": "Next page",
-      "prevPage": "Previous page",
-      "firstPage": "First page",
-      "lastPage": "Last page",
-      "pageText": "{0}-{1} of {2}"
+      "itemsPerPageText": "Éléments par page :",
+      "itemsPerPageAll": "Tous",
+      "nextPage": "Page suivante",
+      "prevPage": "Page précédente",
+      "firstPage": "Première page",
+      "lastPage": "Dernière page",
+      "pageText": "{0}-{1} sur {2}"
     },
     "pagination": {
       "ariaLabel": {
-        "root": "Pagination Navigation",
-        "next": "Next page",
-        "previous": "Previous page",
-        "page": "Go to page {0}",
-        "currentPage": "Page {0}, Current page",
-        "first": "First page",
-        "last": "Last page"
+        "root": "Navigation de pagination",
+        "next": "Page suivante",
+        "previous": "Page précédente",
+        "page": "Aller à la page {0}",
+        "currentPage": "Page {0}, page actuelle",
+        "first": "Première page",
+        "last": "Dernière page"
       }
     },
     "badge": "Badge",
     "input": {
-      "clear": "Clear {0}"
+      "clear": "Effacer {0}"
     }
   },
   "errorPage": {
@@ -475,7 +475,7 @@
       "sidebar": {
         "application": "Application {slug}",
         "admin": "Admin {slug}",
-        "roadmap": "Roadmap {slug}"
+        "roadmap": "Feuille de route {slug}"
       },
       "nav": {
         "admin": "Admin"
@@ -488,12 +488,12 @@
     "crm": {
       "sidebar": {
         "title": "CRM",
-        "reports": "CRM Reports",
-        "tickets": "CRM Tickets",
-        "automation": "CRM Automation"
+        "reports": "Rapports CRM",
+        "tickets": "Tickets CRM",
+        "automation": "Automatisation CRM"
       },
       "nav": {
-        "home": "Dashboard",
+        "home": "Tableau de bord",
         "companies": "Entreprises",
         "projects": "Projets",
         "contacts": "Contacts",
@@ -514,12 +514,12 @@
       },
       "hero": {
         "home": {
-          "title": "CRM Dashboard",
+          "title": "Tableau de bord CRM",
           "subtitle": "Pilotage commercial complet avec vues actionnables et backlog tickets.",
           "cta": "Nouveau lead"
         },
         "automation": {
-          "title": "Automation Center",
+          "title": "Centre d'automatisation",
           "subtitle": "Orchestrez workflows et scoring automatiques",
           "cta": "Créer workflow"
         },
@@ -548,9 +548,9 @@
     "shop": {
       "sidebar": {
         "title": "Shop",
-        "reviews": "Shop Reviews",
-        "customers": "Shop Customers",
-        "tickets": "Shop Tickets",
+        "reviews": "Avis boutique",
+        "customers": "Clients boutique",
+        "tickets": "Tickets boutique",
         "productDetail": "Détail produit",
         "category": "Catégorie {category}"
       },
@@ -567,7 +567,7 @@
         "promotions": "Promotions",
         "customers": "Clients",
         "reviews": "Avis",
-        "checkout": "Checkout",
+        "checkout": "Paiement",
         "orders": "Commandes",
         "payment": "Paiement",
         "tickets": "Tickets",
@@ -575,17 +575,17 @@
       },
       "hero": {
         "home": {
-          "title": "Shop Highlights",
+          "title": "Temps forts de la boutique",
           "subtitle": "Catalogue enrichi, pages produits détaillées, conversion et design premium.",
           "cta": "Ajouter produit"
         },
         "promotions": {
-          "title": "Promotions & Campaigns",
+          "title": "Promotions et campagnes",
           "subtitle": "Collections, offres limitées, bundles et optimisation conversion",
           "cta": "Créer campagne"
         },
         "customers": {
-          "title": "Customer Intelligence",
+          "title": "Connaissance client",
           "subtitle": "Segmentation, fidélité, lifetime value et recommandations",
           "cta": "Exporter CRM"
         },
@@ -689,7 +689,7 @@
             "items": "Articles",
             "revenue": "Revenu",
             "actions": "Actions",
-            "email": "Email"
+            "email": "E-mail"
           },
           "selectedSummary": "{selected} sélectionnés · {total} commandes"
         },
@@ -835,18 +835,18 @@
     "recruit": {
       "sidebar": {
         "title": "Recruit",
-        "interviews": "Recruit Interviews",
-        "tickets": "Recruit Tickets",
+        "interviews": "Entretiens recrutement",
+        "tickets": "Tickets recrutement",
         "jobDetail": "Détail offre",
         "jobDetailSubtitle": "Détail du poste"
       },
       "nav": {
-        "home": "Jobs",
+        "home": "Offres",
         "candidates": "Candidats",
-        "interviews": "Interviews",
+        "interviews": "Entretiens",
         "tickets": "Tickets",
-        "myJobs": "My Jobs",
-        "myApplications": "My Applications"
+        "myJobs": "Mes offres",
+        "myApplications": "Mes candidatures"
       },
       "hero": {
         "home": {
@@ -855,12 +855,12 @@
           "cta": "Créer offre"
         },
         "candidates": {
-          "title": "Candidate Hub",
+          "title": "Espace candidats",
           "subtitle": "Shortlist, scoring, portfolio et matching compétences",
           "cta": "Ajouter candidat"
         },
         "interviews": {
-          "title": "Interview Planner",
+          "title": "Planificateur d'entretiens",
           "subtitle": "Planning, feedback loop et time-to-hire",
           "cta": "Planifier"
         },
@@ -882,7 +882,7 @@
       },
       "job": {
         "published": "Publication : {value}",
-        "remote": "Remote possible",
+        "remote": "Télétravail possible",
         "onsite": "Sur site",
         "badges": {
           "applied": "Candidature envoyée"
@@ -1039,7 +1039,7 @@
         },
         "badges": {
           "strongMatch": "Excellent matching",
-          "applied": "Applied"
+          "applied": "Candidature envoyée"
         }
       },
       "applyDialog": {
@@ -1049,7 +1049,7 @@
         "fields": {
           "firstName": "Prénom",
           "lastName": "Nom",
-          "email": "Email",
+          "email": "E-mail",
           "coverLetter": "Lettre de motivation",
           "myResumes": "Mes CV",
           "experienceTitle": "Titre de l’expérience",
@@ -1076,9 +1076,9 @@
     "school": {
       "sidebar": {
         "title": "School",
-        "timetable": "School Timetable",
-        "teachers": "School Teachers",
-        "tickets": "School Tickets"
+        "timetable": "Emploi du temps scolaire",
+        "teachers": "Enseignants",
+        "tickets": "Tickets école"
       },
       "nav": {
         "home": "Classes",
@@ -1096,17 +1096,17 @@
           "cta": "Nouvelle classe"
         },
         "students": {
-          "title": "Student Experience",
+          "title": "Expérience étudiante",
           "subtitle": "Engagement, progression académique et vie campus",
           "cta": "Ajouter étudiant"
         },
         "teachers": {
-          "title": "Teacher Hub",
+          "title": "Espace enseignants",
           "subtitle": "Charge pédagogique, performance et satisfaction élèves",
           "cta": "Affecter classe"
         },
         "timetable": {
-          "title": "Timetable Planner",
+          "title": "Planificateur d'emploi du temps",
           "subtitle": "Créneaux, salles, enseignants et charge hebdomadaire",
           "cta": "Optimiser planning"
         },
@@ -1127,61 +1127,61 @@
         "Exécuter `node scripts/validate-i18n.mjs` avant merge."
       ]
     },
-    "title": "Platforms",
-    "assistant": "Open platform assistant",
+    "title": "Plateformes",
+    "assistant": "Ouvrir l'assistant de plateforme",
     "filters": {
-      "title": "Filters",
-      "search": "Search a platform",
-      "platformKey": "Platform type",
-      "apply": "Apply filters",
-      "clear": "Clear filters"
+      "title": "Filtres",
+      "search": "Rechercher une plateforme",
+      "platformKey": "Type de plateforme",
+      "apply": "Appliquer les filtres",
+      "clear": "Effacer les filtres"
     },
     "actions": {
-      "edit": "Edit",
-      "delete": "Delete",
-      "editTitle": "Edit platform",
-      "deleteTitle": "Delete platform",
-      "deleteMessage": "Are you sure you want to delete \"{title}\"?"
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "editTitle": "Modifier la plateforme",
+      "deleteTitle": "Supprimer la plateforme",
+      "deleteMessage": "Voulez-vous vraiment supprimer « {title} » ?"
     },
     "status": {
-      "active": "Active",
-      "inactive": "Inactive"
+      "active": "Actif",
+      "inactive": "Inactif"
     },
     "table": {
-      "owner": "Owner",
-      "updatedAt": "Updated",
+      "owner": "Propriétaire",
+      "updatedAt": "Mis à jour",
       "actions": "Actions"
     },
     "newPlatform": {
-      "title": "Create a new platform",
-      "description": "Start from scratch and configure your workspace in a few steps.",
-      "worldTitle": "Create a platform"
+      "title": "Créer une nouvelle plateforme",
+      "description": "Partez de zéro et configurez votre espace en quelques étapes.",
+      "worldTitle": "Créer une plateforme"
     },
     "wizard": {
       "errors": {
-        "load": "Unable to load platform templates.",
-        "create": "Unable to create platform. Please try again."
+        "load": "Impossible de charger les modèles de plateforme.",
+        "create": "Impossible de créer la plateforme. Veuillez réessayer."
       },
       "steps": {
-        "title": "Basics",
-        "platform": "Platform",
-        "plugins": "Plugins"
+        "title": "Bases",
+        "platform": "Plateforme",
+        "plugins": "Extensions"
       },
-      "titleStepTitle": "Platform details",
-      "platformTitle": "Platform settings",
-      "pluginTitle": "Plugins and integrations",
-      "next": "Next",
-      "prev": "Previous",
-      "create": "Create platform",
+      "titleStepTitle": "Détails de la plateforme",
+      "platformTitle": "Paramètres de la plateforme",
+      "pluginTitle": "Extensions et intégrations",
+      "next": "Suivant",
+      "prev": "Précédent",
+      "create": "Créer la plateforme",
       "fields": {
-        "title": "Title",
+        "title": "Titre",
         "description": "Description",
-        "photo": "Logo URL",
-        "private": "Private platform",
-        "active": "Active status",
-        "theme": "Theme",
-        "configuration": "Configuration JSON",
-        "cacheSeconds": "Cache duration (seconds)"
+        "photo": "URL du logo",
+        "private": "Plateforme privée",
+        "active": "Statut actif",
+        "theme": "Thème",
+        "configuration": "JSON de configuration",
+        "cacheSeconds": "Durée du cache (secondes)"
       }
     },
     "chat": {
@@ -1526,7 +1526,7 @@
   },
   "register": {
     "title": "Inscription",
-    "email": "Email",
+    "email": "E-mail",
     "password": "Mot de passe",
     "repeatPassword": "Confirmer le mot de passe",
     "submit": "Créer un compte"
@@ -1551,7 +1551,7 @@
     "status": {
       "all": "Tous les statuts",
       "confirmed": "Confirmé",
-      "tentative": "Tentative",
+      "tentative": "Provisoire",
       "cancelled": "Annulé"
     },
     "errors": {

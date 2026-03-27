@@ -9,7 +9,7 @@
       "admin": "Admin",
       "platform": "Platform",
       "about": "About",
-      "contact": "Contact",
+      "contact": "Contato",
       "faq": "FAQ",
       "calendar": "Calendar",
       "messages": "Messages",
@@ -45,12 +45,12 @@
     "logout": "Logout",
     "notAuthenticated": "You are not signed in. Please use the login page.",
     "tokenHint": "The session token is automatically sent in the",
-    "tokenHeader": "Authorization: Bearer ...",
+    "tokenHeader": "Autorização: Bearer ...",
     "tokenHintSuffix": "header when calling the profile API.",
     "firstName": "First name",
     "lastName": "Last name",
     "timezone": "Timezone",
-    "photo": "Photo",
+    "photo": "Foto de perfil",
     "saveChanges": "Save changes",
     "updateSuccess": "Profile updated successfully.",
     "photoUpdateSuccess": "Profile photo updated successfully."
@@ -424,28 +424,28 @@
   },
   "$vuetify": {
     "dataFooter": {
-      "itemsPerPageText": "Items per page:",
-      "itemsPerPageAll": "All",
-      "nextPage": "Next page",
-      "prevPage": "Previous page",
-      "firstPage": "First page",
-      "lastPage": "Last page",
-      "pageText": "{0}-{1} of {2}"
+      "itemsPerPageText": "Itens por página:",
+      "itemsPerPageAll": "Todos",
+      "nextPage": "Próxima página",
+      "prevPage": "Página anterior",
+      "firstPage": "Primeira página",
+      "lastPage": "Última página",
+      "pageText": "{0}-{1} de {2}"
     },
     "pagination": {
       "ariaLabel": {
-        "root": "Pagination Navigation",
-        "next": "Next page",
-        "previous": "Previous page",
-        "page": "Go to page {0}",
-        "currentPage": "Page {0}, Current page",
-        "first": "First page",
-        "last": "Last page"
+        "root": "Navegação de paginação",
+        "next": "Próxima página",
+        "previous": "Página anterior",
+        "page": "Ir para a página {0}",
+        "currentPage": "Página {0}, página atual",
+        "first": "Primeira página",
+        "last": "Última página"
       }
     },
     "badge": "Badge",
     "input": {
-      "clear": "Clear {0}"
+      "clear": "Limpar {0}"
     }
   },
   "errorPage": {
@@ -1127,25 +1127,25 @@
         "Run `node scripts/validate-i18n.mjs` before merging."
       ]
     },
-    "title": "Platforms",
-    "assistant": "Open platform assistant",
+    "title": "Plataformas",
+    "assistant": "Abrir assistente da plataforma",
     "filters": {
-      "title": "Filters",
-      "search": "Search a platform",
-      "platformKey": "Platform type",
-      "apply": "Apply filters",
-      "clear": "Clear filters"
+      "title": "Filtros",
+      "search": "Buscar uma plataforma",
+      "platformKey": "Tipo de plataforma",
+      "apply": "Aplicar filtros",
+      "clear": "Limpar filtros"
     },
     "actions": {
-      "edit": "Edit",
-      "delete": "Delete",
-      "editTitle": "Edit platform",
-      "deleteTitle": "Delete platform",
-      "deleteMessage": "Are you sure you want to delete \"{title}\"?"
+      "edit": "Editar",
+      "delete": "Excluir",
+      "editTitle": "Editar plataforma",
+      "deleteTitle": "Excluir plataforma",
+      "deleteMessage": "Tem certeza de que deseja excluir \"{title}\"?"
     },
     "status": {
-      "active": "Active",
-      "inactive": "Inactive"
+      "active": "Ativa",
+      "inactive": "Inativa"
     },
     "table": {
       "owner": "Owner",
@@ -1153,35 +1153,35 @@
       "actions": "Actions"
     },
     "newPlatform": {
-      "title": "Create a new platform",
-      "description": "Start from scratch and configure your workspace in a few steps.",
-      "worldTitle": "Create a platform"
+      "title": "Criar uma nova plataforma",
+      "description": "Comece do zero e configure seu workspace em poucos passos.",
+      "worldTitle": "Criar uma plataforma"
     },
     "wizard": {
       "errors": {
-        "load": "Unable to load platform templates.",
-        "create": "Unable to create platform. Please try again."
+        "load": "Não foi possível carregar os modelos de plataforma.",
+        "create": "Não foi possível criar a plataforma. Tente novamente."
       },
       "steps": {
-        "title": "Basics",
-        "platform": "Platform",
+        "title": "Básico",
+        "platform": "Plataforma",
         "plugins": "Plugins"
       },
-      "titleStepTitle": "Platform details",
-      "platformTitle": "Platform settings",
-      "pluginTitle": "Plugins and integrations",
-      "next": "Next",
-      "prev": "Previous",
-      "create": "Create platform",
+      "titleStepTitle": "Detalhes da plataforma",
+      "platformTitle": "Configurações da plataforma",
+      "pluginTitle": "Plugins e integrações",
+      "next": "Próximo",
+      "prev": "Anterior",
+      "create": "Criar plataforma",
       "fields": {
-        "title": "Title",
-        "description": "Description",
-        "photo": "Logo URL",
-        "private": "Private platform",
-        "active": "Active status",
-        "theme": "Theme",
-        "configuration": "Configuration JSON",
-        "cacheSeconds": "Cache duration (seconds)"
+        "title": "Título",
+        "description": "Descrição",
+        "photo": "URL do logotipo",
+        "private": "Plataforma privada",
+        "active": "Status ativo",
+        "theme": "Tema",
+        "configuration": "JSON de configuração",
+        "cacheSeconds": "Duração do cache (segundos)"
       }
     },
     "chat": {
