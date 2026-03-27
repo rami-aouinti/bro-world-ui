@@ -2,28 +2,28 @@
   "app": {
     "name": "Bro World",
     "navigation": {
-      "home": "Home",
-      "login": "Login",
-      "profile": "Profile",
-      "openMenu": "Open menu",
-      "admin": "Admin",
-      "platform": "Platform",
-      "about": "About",
-      "contact": "Contact",
-      "faq": "FAQ",
-      "calendar": "Calendar",
+      "home": "Inicio",
+      "login": "Iniciar sesión",
+      "profile": "Perfil",
+      "openMenu": "Abrir menú",
+      "admin": "Administración",
+      "platform": "Plataforma",
+      "about": "Acerca de",
+      "contact": "Contacto",
+      "faq": "Preguntas frecuentes",
+      "calendar": "Calendario",
       "messages": "Messages",
-      "notifications": "Notifications",
-      "language": "Language",
-      "toggleTheme": "Toggle theme",
-      "adminOverview": "Admin dashboard",
-      "adminUsers": "Users",
+      "notifications": "Notificaciones",
+      "language": "Idioma",
+      "toggleTheme": "Cambiar tema",
+      "adminOverview": "Panel de administración",
+      "adminUsers": "Usuarios",
       "adminRoles": "Roles",
-      "adminGroups": "Groups",
-      "adminApiKeys": "API keys",
-      "settings": "Settings",
+      "adminGroups": "Grupos",
+      "adminApiKeys": "Claves API",
+      "settings": "Configuración",
       "inbox": "Messages",
-      "register": "Register",
+      "register": "Registro",
       "blog": "Blog",
       "quiz": "Quiz"
     },
@@ -32,50 +32,50 @@
     }
   },
   "login": {
-    "title": "Login",
-    "description": "Use your username or email to get a token.",
-    "usernameOrEmail": "Username or email",
+    "title": "Iniciar sesión",
+    "description": "Usa tu nombre de usuario o correo para obtener un token.",
+    "usernameOrEmail": "Nombre de usuario o correo",
     "usernameOrEmailPlaceholder": "john-root",
-    "password": "Password",
-    "submit": "Sign in"
+    "password": "Contraseña",
+    "submit": "Entrar"
   },
   "profile": {
-    "title": "Profile",
-    "load": "Load profile",
-    "logout": "Logout",
-    "notAuthenticated": "You are not signed in. Please use the login page.",
-    "tokenHint": "The session token is automatically sent in the",
-    "tokenHeader": "Authorization: Bearer ...",
-    "tokenHintSuffix": "header when calling the profile API.",
-    "firstName": "First name",
-    "lastName": "Last name",
-    "timezone": "Timezone",
-    "photo": "Photo",
-    "saveChanges": "Save changes",
-    "updateSuccess": "Profile updated successfully.",
-    "photoUpdateSuccess": "Profile photo updated successfully."
+    "title": "Perfil",
+    "load": "Cargar perfil",
+    "logout": "Cerrar sesión",
+    "notAuthenticated": "No has iniciado sesión. Usa la página de acceso.",
+    "tokenHint": "El token de sesión se envía automáticamente en el",
+    "tokenHeader": "Autorización: Bearer ...",
+    "tokenHintSuffix": "encabezado al llamar a la API de perfil.",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "timezone": "Zona horaria",
+    "photo": "Foto de perfil",
+    "saveChanges": "Guardar cambios",
+    "updateSuccess": "Perfil actualizado correctamente.",
+    "photoUpdateSuccess": "Foto de perfil actualizada correctamente."
   },
   "errors": {
     "auth": {
-      "loginFailed": "Login failed. Please check your credentials.",
-      "authRequired": "You must be signed in to access this page.",
-      "accessDenied": "Access denied: you do not have the required permissions.",
-      "registerFailed": "Registration failed. Please check the provided details.",
-      "registerPasswordMismatch": "Passwords do not match."
+      "loginFailed": "Error de inicio de sesión. Verifica tus credenciales.",
+      "authRequired": "Debes iniciar sesión para acceder a esta página.",
+      "accessDenied": "Acceso denegado: no tienes los permisos requeridos.",
+      "registerFailed": "Error de registro. Revisa los datos proporcionados.",
+      "registerPasswordMismatch": "Las contraseñas no coinciden."
     },
     "profile": {
-      "noToken": "No active token found. Please sign in.",
-      "loadFailed": "Unable to load profile. Please try again.",
-      "updateFailed": "Unable to update profile. Please try again.",
-      "photoUploadFailed": "Unable to upload profile photo. Please try again."
+      "noToken": "No se encontró un token activo. Inicia sesión.",
+      "loadFailed": "No se pudo cargar el perfil. Inténtalo de nuevo.",
+      "updateFailed": "No se pudo actualizar el perfil. Inténtalo de nuevo.",
+      "photoUploadFailed": "No se pudo subir la foto de perfil. Inténtalo de nuevo."
     },
-    "network": "Network error. Please check your connection and try again.",
-    "unauthorized": "Your session has expired. Please sign in again.",
-    "forbidden": "You do not have permission to perform this action.",
-    "notFound": "The requested resource could not be found.",
-    "server": "A server error occurred. Please try again later.",
-    "unknown": "An unexpected error occurred.",
-    "actionUnavailable": "Action currently unavailable."
+    "network": "Error de red. Verifica tu conexión e inténtalo de nuevo.",
+    "unauthorized": "Tu sesión ha expirado. Inicia sesión de nuevo.",
+    "forbidden": "No tienes permiso para realizar esta acción.",
+    "notFound": "No se encontró el recurso solicitado.",
+    "server": "Ocurrió un error del servidor. Inténtalo más tarde.",
+    "unknown": "Ocurrió un error inesperado.",
+    "actionUnavailable": "Acción no disponible actualmente."
   },
   "home": {
     "hero": {
@@ -156,321 +156,321 @@
     "stepLabel": "Paso {index}"
   },
   "admin": {
-    "title": "Administration area",
-    "description": "This page is restricted to users with the administrator role.",
+    "title": "Área de administración",
+    "description": "Esta página está reservada para usuarios con rol administrador.",
     "common": {
-      "search": "Search",
-      "create": "Create",
-      "refresh": "Refresh",
-      "cancel": "Cancel",
-      "save": "Save",
-      "delete": "Delete"
+      "search": "Buscar",
+      "create": "Crear",
+      "refresh": "Actualizar",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "delete": "Eliminar"
     },
     "users": {
       "headers": {
-        "username": "Username",
-        "name": "Name",
-        "email": "Email",
-        "relations": "Relations",
-        "actions": "Actions"
+        "username": "Nombre de usuario",
+        "name": "Nombre",
+        "email": "Correo electrónico",
+        "relations": "Relaciones",
+        "actions": "Acciones"
       },
       "form": {
-        "createTitle": "Create user",
-        "editTitle": "Edit user",
-        "patchTitle": "Patch user",
-        "username": "Username",
-        "email": "Email",
-        "firstName": "First name",
-        "lastName": "Last name",
-        "password": "Password",
-        "passwordHint": "Leave blank to keep current value",
-        "timezone": "Timezone",
-        "language": "Language",
-        "locale": "Locale",
-        "photoUrl": "Photo URL",
-        "groupIdToAttach": "Group ID to attach"
+        "createTitle": "Crear usuario",
+        "editTitle": "Editar usuario",
+        "patchTitle": "Parchear usuario",
+        "username": "Nombre de usuario",
+        "email": "Correo electrónico",
+        "firstName": "Nombre",
+        "lastName": "Apellido",
+        "password": "Contraseña",
+        "passwordHint": "Déjalo en blanco para conservar el valor actual",
+        "timezone": "Zona horaria",
+        "language": "Idioma",
+        "locale": "Configuración regional",
+        "photoUrl": "URL de la foto",
+        "groupIdToAttach": "ID de grupo para asociar"
       },
       "errors": {
-        "load": "Unable to load users from /api/v1/user."
+        "load": "No se pudieron cargar los usuarios desde /api/v1/user."
       },
-      "confirmDelete": "Delete user {id}?",
-      "empty": "No users found.",
+      "confirmDelete": "¿Eliminar usuario {id}?",
+      "empty": "No se encontraron usuarios.",
       "buttons": {
         "roles": "Roles",
-        "groups": "Groups",
-        "detach": "Detach"
+        "groups": "Grupos",
+        "detach": "Desvincular"
       },
       "aria": {
-        "show": "Show {name}",
-        "patch": "Patch {name}",
-        "delete": "Delete {name}"
+        "show": "Mostrar {name}",
+        "patch": "Parchear {name}",
+        "delete": "Eliminar {name}"
       },
       "dialogs": {
-        "userDetails": "User details",
-        "userRoles": "User roles",
-        "userGroups": "User groups"
+        "userDetails": "Detalles del usuario",
+        "userRoles": "Roles del usuario",
+        "userGroups": "Grupos de usuarios"
       }
     },
     "userGroups": {
       "headers": {
         "id": "ID",
-        "name": "Name",
-        "role": "Role",
-        "roleDescription": "Role description",
-        "actions": "Actions"
+        "name": "Nombre",
+        "role": "Rol",
+        "roleDescription": "Descripción del rol",
+        "actions": "Acciones"
       },
       "form": {
-        "createTitle": "Create group",
-        "editTitle": "Edit group",
-        "patchTitle": "Patch group",
-        "groupName": "Group name",
-        "roleId": "Role ID"
+        "createTitle": "Crear grupo",
+        "editTitle": "Editar grupo",
+        "patchTitle": "Parchear grupo",
+        "groupName": "Nombre del grupo",
+        "roleId": "ID de rol"
       },
       "errors": {
-        "load": "Unable to load groups from /api/v1/user_group."
+        "load": "No se pudieron cargar los grupos desde /api/v1/user_group."
       },
-      "confirmDelete": "Delete group {id}?",
-      "empty": "No user groups found.",
+      "confirmDelete": "¿Eliminar grupo {id}?",
+      "empty": "No se encontraron grupos de usuarios.",
       "aria": {
-        "show": "Show {id}",
-        "patch": "Patch {id}",
-        "delete": "Delete {id}"
+        "show": "Mostrar {id}",
+        "patch": "Parchear {id}",
+        "delete": "Eliminar {id}"
       },
       "dialogs": {
-        "groupDetails": "Group details"
+        "groupDetails": "Detalles del grupo"
       }
     },
     "apiKeys": {
       "headers": {
         "id": "ID",
-        "description": "Description",
+        "description": "Descripción",
         "token": "Token",
-        "actions": "Actions"
+        "actions": "Acciones"
       },
       "form": {
-        "createTitle": "Create API key",
-        "editTitle": "Edit API key",
-        "patchTitle": "Patch API key",
-        "description": "Description",
+        "createTitle": "Crear clave API",
+        "editTitle": "Editar clave API",
+        "patchTitle": "Parchear clave API",
+        "description": "Descripción",
         "token": "Token"
       },
       "errors": {
-        "load": "Unable to load API keys from /api/{version}/api_key."
+        "load": "No se pudieron cargar las claves API desde /api/{version}/api_key."
       },
-      "confirmDelete": "Delete API key {id}?",
-      "empty": "No API keys found.",
+      "confirmDelete": "¿Eliminar clave API {id}?",
+      "empty": "No se encontraron claves API.",
       "aria": {
-        "show": "Show {id}",
-        "patch": "Patch {id}",
-        "delete": "Delete {id}"
+        "show": "Mostrar {id}",
+        "patch": "Parchear {id}",
+        "delete": "Eliminar {id}"
       },
       "dialogs": {
-        "details": "API key details"
+        "details": "Detalles de clave API"
       }
     },
     "roles": {
       "headers": {
-        "id": "Identifier",
-        "description": "Description",
-        "actions": "Actions"
+        "id": "Identificador",
+        "description": "Descripción",
+        "actions": "Acciones"
       },
       "form": {
-        "createTitle": "Create role",
-        "editTitle": "Edit role",
-        "patchTitle": "Patch role",
-        "id": "Identifier",
-        "description": "Description"
+        "createTitle": "Crear rol",
+        "editTitle": "Editar rol",
+        "patchTitle": "Parchear rol",
+        "id": "Identificador",
+        "description": "Descripción"
       },
       "errors": {
-        "load": "Unable to load roles from /api/v1/role.",
-        "loadDetails": "Unable to load role details for {id}."
+        "load": "No se pudieron cargar los roles desde /api/v1/role.",
+        "loadDetails": "No se pudieron cargar los detalles del rol {id}."
       },
-      "confirmDelete": "Delete role {id}?",
-      "empty": "No roles found.",
+      "confirmDelete": "¿Eliminar rol {id}?",
+      "empty": "No se encontraron roles.",
       "aria": {
-        "show": "Show {id}",
-        "edit": "Edit {id}",
-        "patch": "Patch {id}",
-        "delete": "Delete {id}"
+        "show": "Mostrar {id}",
+        "edit": "Editar {id}",
+        "patch": "Parchear {id}",
+        "delete": "Eliminar {id}"
       },
       "dialogs": {
-        "details": "Role details",
-        "inheritedRoles": "Inherited roles",
-        "noInheritedRoles": "No inherited roles."
+        "details": "Detalles del rol",
+        "inheritedRoles": "Roles heredados",
+        "noInheritedRoles": "No hay roles heredados."
       }
     },
     "modules": {
       "users": {
-        "title": "Users",
-        "description": "Manage user accounts (read, search, and API actions)."
+        "title": "Usuarios",
+        "description": "Gestiona cuentas de usuario (lectura, búsqueda y acciones API)."
       },
       "roles": {
         "title": "Roles",
-        "description": "Browse and manage roles exposed by /api/v1/role."
+        "description": "Explora y gestiona roles expuestos por /api/v1/role."
       },
       "groups": {
-        "title": "User groups",
-        "description": "Monitor user groups and their associated roles."
+        "title": "Grupos de usuarios",
+        "description": "Supervisa grupos de usuarios y sus roles asociados."
       },
       "apiKeys": {
-        "title": "API keys",
-        "description": "List and manage API keys available on /api/v1/api_key."
+        "title": "Claves API",
+        "description": "Lista y gestiona claves API disponibles en /api/v1/api_key."
       },
-      "open": "Open",
+      "open": "Abrir",
       "platforms": {
-        "title": "Platforms",
-        "description": "Browse and manage platform entries and metadata."
+        "title": "Plataformas",
+        "description": "Explora y gestiona entradas de plataforma y metadatos."
       },
       "plugins": {
         "title": "Plugins",
-        "description": "Manage plugin catalog, states and integrations."
+        "description": "Gestiona catálogo de plugins, estados e integraciones."
       },
       "configurations": {
-        "title": "Configurations",
-        "description": "View and maintain available configuration sets."
+        "title": "Configuraciones",
+        "description": "Consulta y mantén los conjuntos de configuración disponibles."
       },
       "pages": {
-        "home": "Home",
-        "about": "About",
-        "contact": "Contact",
-        "faq": "FAQ"
+        "home": "Inicio",
+        "about": "Acerca de",
+        "contact": "Contacto",
+        "faq": "Preguntas frecuentes"
       }
     },
     "navigation": {
       "dashboard": {
-        "title": "Dashboard",
-        "description": "View key statistics and activity indicators."
+        "title": "Panel",
+        "description": "Ver estadísticas clave e indicadores de actividad."
       },
       "settings": {
-        "title": "Settings",
-        "description": "Configure global platform information and options."
+        "title": "Configuración",
+        "description": "Configura información y opciones globales de la plataforma."
       },
       "userManagement": {
-        "title": "User Management",
-        "description": "Access users, roles, groups and API key administration."
+        "title": "Gestión de usuarios",
+        "description": "Accede a usuarios, roles, grupos y administración de claves API."
       },
       "platformManagement": {
-        "title": "Platform Management",
-        "description": "Manage platforms and plugins used by the application."
+        "title": "Gestión de plataformas",
+        "description": "Gestiona plataformas y plugins usados por la aplicación."
       },
       "configurationManagement": {
-        "title": "Configuration Management",
-        "description": "Access global configuration modules and settings lists."
+        "title": "Gestión de configuración",
+        "description": "Accede a módulos globales de configuración y listas de ajustes."
       },
       "pageManagement": {
-        "title": "Page Management",
-        "description": "Manage Home, About, Contact and FAQ page contents."
+        "title": "Gestión de páginas",
+        "description": "Gestiona contenidos de Inicio, Acerca de, Contacto y FAQ."
       }
     },
     "dashboard": {
-      "title": "Admin dashboard",
-      "description": "Overview of platform activity and usage metrics.",
+      "title": "Panel de administración",
+      "description": "Resumen de actividad de plataforma y métricas de uso.",
       "stats": {
-        "usersTotal": "Total users",
-        "applicationsTotal": "Total applications",
-        "pluginsTotal": "Total plugins",
-        "postsTotal": "Total posts",
-        "usersThisWeek": "Users this week",
-        "usersThisMonth": "Users this month",
-        "postsLast7Days": "Posts (last 7 days)",
-        "postsThisMonth": "Posts this month"
+        "usersTotal": "Usuarios totales",
+        "applicationsTotal": "Aplicaciones totales",
+        "pluginsTotal": "Plugins totales",
+        "postsTotal": "Publicaciones totales",
+        "usersThisWeek": "Usuarios esta semana",
+        "usersThisMonth": "Usuarios este mes",
+        "postsLast7Days": "Publicaciones (últimos 7 días)",
+        "postsThisMonth": "Publicaciones este mes"
       },
       "charts": {
-        "title": "Applications and plugins usage",
-        "applicationsByPlatform": "Applications by platform",
-        "pluginsUsage": "Plugin usage",
-        "countLabel": "Count"
+        "title": "Uso de aplicaciones y plugins",
+        "applicationsByPlatform": "Aplicaciones por plataforma",
+        "pluginsUsage": "Uso de plugins",
+        "countLabel": "Cantidad"
       },
-      "refresh": "Refresh",
+      "refresh": "Actualizar",
       "errors": {
-        "load": "Unable to load dashboard statistics."
+        "load": "No se pudieron cargar las estadísticas del panel."
       },
       "recent": {
-        "title": "Recent activity",
-        "newPlugin": "New plugin “SMS Campaign” published",
-        "rolesUpdated": "Administrator roles updated",
-        "trafficSpike": "Traffic spike detected on the School portal",
-        "backupDone": "Weekly backup completed"
+        "title": "Actividad reciente",
+        "newPlugin": "Nuevo plugin “SMS Campaign” publicado",
+        "rolesUpdated": "Roles de administrador actualizados",
+        "trafficSpike": "Pico de tráfico detectado en el portal School",
+        "backupDone": "Copia de seguridad semanal completada"
       },
       "highlights": {
-        "openCriticalTickets": "Open critical tickets"
+        "openCriticalTickets": "Tickets críticos abiertos"
       },
       "operational": {
-        "title": "Operational view",
-        "subtitle": "Key admin activity indicators in real time."
+        "title": "Vista operativa",
+        "subtitle": "Indicadores clave de actividad de administración en tiempo real."
       }
     },
     "settings": {
-      "title": "Settings",
-      "description": "Manage your site configuration from this form.",
+      "title": "Configuración",
+      "description": "Gestiona la configuración del sitio desde este formulario.",
       "form": {
-        "siteName": "Site name",
-        "description": "Description",
-        "saved": "Settings saved."
+        "siteName": "Nombre del sitio",
+        "description": "Descripción",
+        "saved": "Configuración guardada."
       }
     },
     "userManagement": {
-      "title": "User management",
-      "description": "Choose a section to administer users and access rights."
+      "title": "Gestión de usuarios",
+      "description": "Elige una sección para administrar usuarios y derechos de acceso."
     },
     "platformManagement": {
-      "title": "Platform management",
-      "description": "Choose a section to administer platforms and plugins."
+      "title": "Gestión de plataformas",
+      "description": "Elige una sección para administrar plataformas y plugins."
     },
     "configurationManagement": {
-      "title": "Configuration management",
-      "description": "Choose a section to administer configuration resources."
+      "title": "Gestión de configuración",
+      "description": "Elige una sección para administrar recursos de configuración."
     }
   },
   "$vuetify": {
     "dataFooter": {
-      "itemsPerPageText": "Items per page:",
-      "itemsPerPageAll": "All",
-      "nextPage": "Next page",
-      "prevPage": "Previous page",
-      "firstPage": "First page",
-      "lastPage": "Last page",
-      "pageText": "{0}-{1} of {2}"
+      "itemsPerPageText": "Elementos por página:",
+      "itemsPerPageAll": "Todos",
+      "nextPage": "Página siguiente",
+      "prevPage": "Página anterior",
+      "firstPage": "Primera página",
+      "lastPage": "Última página",
+      "pageText": "{0}-{1} de {2}"
     },
     "pagination": {
       "ariaLabel": {
-        "root": "Pagination Navigation",
-        "next": "Next page",
-        "previous": "Previous page",
-        "page": "Go to page {0}",
-        "currentPage": "Page {0}, Current page",
-        "first": "First page",
-        "last": "Last page"
+        "root": "Navegación de paginación",
+        "next": "Página siguiente",
+        "previous": "Página anterior",
+        "page": "Ir a la página {0}",
+        "currentPage": "Página {0}, página actual",
+        "first": "Primera página",
+        "last": "Última página"
       }
     },
-    "badge": "Badge",
+    "badge": "Insignia",
     "input": {
-      "clear": "Clear {0}"
+      "clear": "Borrar {0}"
     }
   },
   "errorPage": {
     "badge": "Error",
     "notFound": {
-      "title": "Page not found",
-      "subtitle": "Oops… this address does not exist (or no longer does).",
-      "description": "Check the URL or return to the homepage to continue exploring Bro World."
+      "title": "Página no encontrada",
+      "subtitle": "Vaya… esta dirección no existe (o ya no existe).",
+      "description": "Verifica la URL o vuelve al inicio para seguir explorando Bro World."
     },
     "generic": {
-      "title": "Something went wrong",
-      "subtitle": "Our team has been notified automatically.",
-      "description": "Please try again in a few moments."
+      "title": "Algo salió mal",
+      "subtitle": "Nuestro equipo ha sido notificado automáticamente.",
+      "description": "Inténtalo de nuevo en unos momentos."
     },
     "actions": {
-      "home": "Back to home",
-      "back": "Previous page"
+      "home": "Volver al inicio",
+      "back": "Página anterior"
     },
-    "localeHint": "Active language: {locale}"
+    "localeHint": "Idioma activo: {locale}"
   },
   "platform": {
     "common": {
       "backToList": "Back to list",
       "alert": {
-        "adminDenied": "Admin access denied: insufficient permissions for this application."
+        "adminDenied": "Acceso de administrador denegado: permisos insuficientes para esta aplicación."
       },
       "sidebar": {
         "application": "Application {slug}",
@@ -478,7 +478,7 @@
         "roadmap": "Roadmap {slug}"
       },
       "nav": {
-        "admin": "Admin"
+        "admin": "Administración"
       },
       "time": {
         "daysAgo": "{count}d ago",
@@ -489,19 +489,19 @@
       "sidebar": {
         "title": "CRM",
         "reports": "CRM Reports",
-        "tickets": "CRM Tickets",
+        "tickets": "Tickets CRM",
         "automation": "CRM Automation"
       },
       "nav": {
-        "home": "Dashboard",
+        "home": "Panel",
         "companies": "Companies",
         "projects": "Projects",
         "contacts": "Contacts",
         "reports": "Reports",
         "automation": "Automation",
         "sprint": "Sprint",
-        "calendar": "Calendar",
-        "settings": "Settings",
+        "calendar": "Calendario",
+        "settings": "Configuración",
         "billing": "Billing",
         "tickets": "Tickets",
         "tasks": "Tareas",
@@ -534,9 +534,9 @@
           "cta": "Export"
         },
         "tickets": {
-          "title": "CRM Tickets",
+          "title": "Tickets CRM",
           "subtitle": "Prioritized backlog with owners, ETA and impact",
-          "cta": "New ticket"
+          "cta": "Nuevo ticket"
         }
       },
       "companies": {
@@ -550,14 +550,14 @@
         "title": "Shop",
         "reviews": "Shop Reviews",
         "customers": "Shop Customers",
-        "tickets": "Shop Tickets",
+        "tickets": "Tickets de tienda",
         "productDetail": "Product detail",
         "category": "Category {category}"
       },
       "categories": {
         "tech": "Tech",
         "fashion": "Fashion",
-        "home": "Home",
+        "home": "Inicio",
         "sport": "Sport",
         "beauty": "Beauty",
         "kids": "Kids"
@@ -568,7 +568,7 @@
         "customers": "Customers",
         "reviews": "Reviews",
         "checkout": "Checkout",
-        "orders": "Orders",
+        "orders": "Pedidos",
         "payment": "Payment",
         "tickets": "Tickets",
         "newProduct": "New Product"
@@ -595,9 +595,9 @@
           "cta": "Publish widget"
         },
         "tickets": {
-          "title": "Shop Tickets",
+          "title": "Tickets de tienda",
           "subtitle": "Design, data, conversion and loyalty improvement proposals",
-          "cta": "New ticket"
+          "cta": "Nuevo ticket"
         }
       },
       "products": {
@@ -616,21 +616,21 @@
         "steps": {
           "productInfo": "Product Info",
           "media": "Media",
-          "socials": "Socials",
-          "pricing": "Pricing"
+          "socials": "Redes sociales",
+          "pricing": "Precios"
         },
         "form": {
-          "name": "Product name",
-          "weight": "Weight (kg)",
-          "description": "Description",
+          "name": "Nombre del producto",
+          "weight": "Peso (kg)",
+          "description": "Descripción",
           "descriptionTodo": "TODO: replace this field with a Nuxt 4 compatible rich text editor.",
-          "category": "Category",
+          "category": "Categoría",
           "sizes": "Sizes",
           "shopifyHandle": "Shopify handle",
           "facebook": "Facebook",
           "instagram": "Instagram",
-          "price": "Price",
-          "currency": "Currency",
+          "price": "Precio",
+          "currency": "Moneda",
           "sku": "SKU",
           "tags": "Tags"
         },
@@ -640,9 +640,9 @@
           "previewAlt": "Vista previa de {title}"
         },
         "actions": {
-          "prev": "Prev",
-          "next": "Next",
-          "send": "Send",
+          "prev": "Anterior",
+          "next": "Siguiente",
+          "send": "Enviar",
           "showEmptyState": "Mostrar estado vacío"
         },
         "validation": {
@@ -658,14 +658,14 @@
           "canceled": "Canceled"
         },
         "buttons": {
-          "save": "Save",
-          "next": "Next",
-          "prev": "Prev",
-          "send": "Send",
+          "save": "Guardar",
+          "next": "Siguiente",
+          "prev": "Anterior",
+          "send": "Enviar",
           "addToCart": "Add to cart",
           "exportCsv": "Export CSV",
           "newOrder": "New order",
-          "filters": "Filters",
+          "filters": "Filtros",
           "invoice": "Invoice",
           "backToOrders": "Back to orders",
           "viewDetails": "View details",
@@ -674,22 +674,22 @@
         }
       },
       "orders": {
-        "title": "Orders",
+        "title": "Pedidos",
         "subtitle": "Manage orders, refunds and cancellations.",
         "searchLabel": "Search orders",
         "filters": {
-          "statusTitle": "Status"
+          "statusTitle": "Estado"
         },
         "table": {
           "headers": {
-            "order": "Order",
-            "customer": "Customer",
-            "status": "Status",
+            "order": "Pedido",
+            "customer": "Cliente",
+            "status": "Estado",
             "date": "Date",
-            "items": "Items",
-            "revenue": "Revenue",
-            "actions": "Actions",
-            "email": "Email"
+            "items": "Artículos",
+            "revenue": "Ingresos",
+            "actions": "Acciones",
+            "email": "Correo electrónico"
           },
           "selectedSummary": "{selected} selected · {total} orders"
         },
@@ -698,16 +698,16 @@
           "title": "Order detail",
           "subtitle": "Track customer, status and payment info.",
           "labels": {
-            "order": "Order",
-            "customer": "Customer",
-            "items": "Items",
-            "revenue": "Revenue",
+            "order": "Pedido",
+            "customer": "Cliente",
+            "items": "Artículos",
+            "revenue": "Ingresos",
             "createdAt": "Created at"
           },
           "notFound": "Order not found."
         },
         "tracking": {
-          "pageLabel": "Order",
+          "pageLabel": "Pedido",
           "pageTitle": "Order details #{orderId}",
           "orderedProduct": "Ordered product",
           "deliveryInProgress": "Delivery in progress",
@@ -764,7 +764,7 @@
           "title": "Other products",
           "headers": {
             "product": "Product",
-            "price": "Price",
+            "price": "Precio",
             "rating": "Rating",
             "availability": "Availability"
           },
@@ -777,24 +777,24 @@
         "sections": {
           "productImage": "Product image",
           "productInformation": "Product information",
-          "socials": "Socials",
-          "pricing": "Pricing"
+          "socials": "Redes sociales",
+          "pricing": "Precios"
         },
         "form": {
           "imageAltText": "Image alt text",
-          "productName": "Product name",
+          "productName": "Nombre del producto",
           "subtitle": "Subtitle",
-          "description": "Description",
-          "category": "Category",
+          "description": "Descripción",
+          "category": "Categoría",
           "size": "Size",
-          "weight": "Weight (kg)",
+          "weight": "Peso (kg)",
           "sku": "SKU",
           "website": "Website",
           "instagram": "Instagram",
           "facebook": "Facebook",
           "tiktok": "TikTok",
-          "price": "Price",
-          "currency": "Currency",
+          "price": "Precio",
+          "currency": "Moneda",
           "compareAtPrice": "Compare-at price",
           "costPerItem": "Cost per item",
           "taxRate": "Tax rate (%)",
@@ -836,7 +836,7 @@
       "sidebar": {
         "title": "Recruit",
         "interviews": "Recruit Interviews",
-        "tickets": "Recruit Tickets",
+        "tickets": "Tickets de reclutamiento",
         "jobDetail": "Job detail",
         "jobDetailSubtitle": "Job details"
       },
@@ -862,12 +862,12 @@
         "interviews": {
           "title": "Interview Planner",
           "subtitle": "Planning, feedback loop and time-to-hire",
-          "cta": "Schedule"
+          "cta": "Horario"
         },
         "tickets": {
-          "title": "Recruit Tickets",
+          "title": "Tickets de reclutamiento",
           "subtitle": "Talent pipeline, candidate experience and recruiting analytics",
-          "cta": "New ticket"
+          "cta": "Nuevo ticket"
         },
         "myJobs": {
           "title": "Mis ofertas creadas",
@@ -883,23 +883,23 @@
       "job": {
         "published": "Published: {value}",
         "remote": "Remote possible",
-        "onsite": "On-site",
+        "onsite": "Presencial",
         "badges": {
-          "applied": "Applied"
+          "applied": "Aplicado"
         },
         "estimatedFullTimeSalary": "{salary} (estimated full-time)",
         "grossSalaryPerYear": "{salary} gross/year (estimated full-time)",
         "match": {
-          "title": "Strong match",
+          "title": "Coincidencia alta",
           "description": "Your profile matches the main expectations for this role.",
           "score": "Match: {score}%"
         },
         "sections": {
           "introduction": "Introduction",
           "responsibilities": "Responsibilities",
-          "profile": "Profile",
+          "profile": "Perfil",
           "benefits": "What we offer",
-          "salary": "Salary"
+          "salary": "Salario"
         },
         "alerts": {
           "loadError": "Unable to load job details.",
@@ -909,7 +909,7 @@
           "title": "Received applications",
           "coverLetter": "Cover letter:",
           "meta": "Application ID: {id} · Resume: {resumeId}",
-          "statusLabel": "Status",
+          "statusLabel": "Estado",
           "empty": "No applications for this job."
         },
         "related": {
@@ -934,11 +934,11 @@
       "home": {
         "actions": {
           "createJob": "Create new job",
-          "cancel": "Cancel",
-          "delete": "Delete"
+          "cancel": "Cancelar",
+          "delete": "Eliminar"
         },
         "alerts": {
-          "accessDenied": "Admin access denied: insufficient permissions for this application.",
+          "accessDenied": "Acceso de administrador denegado: permisos insuficientes para esta aplicación.",
           "jobsLoadError": "Unable to load job offers right now.",
           "emptyJobs": "No jobs found. Try adjusting filters to broaden your search."
         },
@@ -989,20 +989,20 @@
         "redirecting": "Redirecting to the new URL..."
       },
       "filters": {
-        "title": "Filters",
+        "title": "Filtros",
         "actions": {
-          "reset": "Reset"
+          "reset": "Restablecer"
         },
         "sections": {
           "text": "Text",
           "contractAndMode": "Contract & work mode",
-          "salary": "Salary"
+          "salary": "Salario"
         },
         "fields": {
-          "search": "Search",
+          "search": "Buscar",
           "company": "Company",
-          "location": "Location",
-          "schedule": "Schedule",
+          "location": "Ubicación",
+          "schedule": "Horario",
           "posted": "Posted",
           "contractType": "Contract type",
           "workMode": "Work mode",
@@ -1018,7 +1018,7 @@
             "Internship": "Internship"
           },
           "workMode": {
-            "Onsite": "On-site",
+            "Onsite": "Presencial",
             "Hybrid": "Hybrid",
             "Remote": "Remote"
           }
@@ -1033,13 +1033,13 @@
       },
       "jobList": {
         "actions": {
-          "edit": "Edit",
-          "delete": "Delete",
+          "edit": "Editar",
+          "delete": "Eliminar",
           "apply": "Apply"
         },
         "badges": {
-          "strongMatch": "Strong match",
-          "applied": "Applied"
+          "strongMatch": "Coincidencia alta",
+          "applied": "Aplicado"
         }
       },
       "applyDialog": {
@@ -1078,14 +1078,14 @@
         "title": "School",
         "timetable": "School Timetable",
         "teachers": "School Teachers",
-        "tickets": "School Tickets"
+        "tickets": "Tickets escolares"
       },
       "nav": {
         "home": "Classes",
         "students": "Students",
         "teachers": "Teachers",
         "timetable": "Timetable",
-        "settings": "Settings",
+        "settings": "Configuración",
         "certificates": "Certificates",
         "tickets": "Tickets"
       },
@@ -1111,9 +1111,9 @@
           "cta": "Optimize planning"
         },
         "tickets": {
-          "title": "School Tickets",
+          "title": "Tickets escolares",
           "subtitle": "Academic priorities, pedagogy, scheduling and communication",
-          "cta": "New ticket"
+          "cta": "Nuevo ticket"
         }
       }
     },
@@ -1127,61 +1127,61 @@
         "Run `node scripts/validate-i18n.mjs` before merging."
       ]
     },
-    "title": "Platforms",
-    "assistant": "Open platform assistant",
+    "title": "Plataformas",
+    "assistant": "Abrir asistente de plataforma",
     "filters": {
-      "title": "Filters",
-      "search": "Search a platform",
-      "platformKey": "Platform type",
-      "apply": "Apply filters",
-      "clear": "Clear filters"
+      "title": "Filtros",
+      "search": "Buscar una plataforma",
+      "platformKey": "Tipo de plataforma",
+      "apply": "Aplicar filtros",
+      "clear": "Limpiar filtros"
     },
     "actions": {
-      "edit": "Edit",
-      "delete": "Delete",
-      "editTitle": "Edit platform",
-      "deleteTitle": "Delete platform",
-      "deleteMessage": "Are you sure you want to delete \"{title}\"?"
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "editTitle": "Editar plataforma",
+      "deleteTitle": "Eliminar plataforma",
+      "deleteMessage": "¿Seguro que quieres eliminar \"{title}\"?"
     },
     "status": {
-      "active": "Active",
-      "inactive": "Inactive"
+      "active": "Activa",
+      "inactive": "Inactiva"
     },
     "table": {
       "owner": "Owner",
       "updatedAt": "Updated",
-      "actions": "Actions"
+      "actions": "Acciones"
     },
     "newPlatform": {
-      "title": "Create a new platform",
-      "description": "Start from scratch and configure your workspace in a few steps.",
-      "worldTitle": "Create a platform"
+      "title": "Crear una nueva plataforma",
+      "description": "Empieza desde cero y configura tu espacio de trabajo en pocos pasos.",
+      "worldTitle": "Crear una plataforma"
     },
     "wizard": {
       "errors": {
-        "load": "Unable to load platform templates.",
-        "create": "Unable to create platform. Please try again."
+        "load": "No se pudieron cargar las plantillas de plataforma.",
+        "create": "No se pudo crear la plataforma. Inténtalo de nuevo."
       },
       "steps": {
-        "title": "Basics",
-        "platform": "Platform",
+        "title": "Básicos",
+        "platform": "Plataforma",
         "plugins": "Plugins"
       },
-      "titleStepTitle": "Platform details",
-      "platformTitle": "Platform settings",
-      "pluginTitle": "Plugins and integrations",
-      "next": "Next",
-      "prev": "Previous",
-      "create": "Create platform",
+      "titleStepTitle": "Detalles de la plataforma",
+      "platformTitle": "Configuración de la plataforma",
+      "pluginTitle": "Plugins e integraciones",
+      "next": "Siguiente",
+      "prev": "Anterior",
+      "create": "Crear plataforma",
       "fields": {
-        "title": "Title",
-        "description": "Description",
-        "photo": "Logo URL",
-        "private": "Private platform",
-        "active": "Active status",
-        "theme": "Theme",
-        "configuration": "Configuration JSON",
-        "cacheSeconds": "Cache duration (seconds)"
+        "title": "Título",
+        "description": "Descripción",
+        "photo": "URL del logo",
+        "private": "Plataforma privada",
+        "active": "Estado activo",
+        "theme": "Tema",
+        "configuration": "JSON de configuración",
+        "cacheSeconds": "Duración de caché (segundos)"
       }
     },
     "chat": {
@@ -1198,7 +1198,7 @@
     }
   },
   "about": {
-    "title": "About",
+    "title": "Acerca de",
     "description": "Discover Bro World, our mission, our vision, and the measurable commitments that shape each release.",
     "hero": {
       "badge": "Collaborative platform",
@@ -1308,7 +1308,7 @@
     "timelineTitle": "Timeline"
   },
   "faq": {
-    "title": "FAQ",
+    "title": "Preguntas frecuentes",
     "description": "Find quick and practical answers to the most frequent questions about Bro World.",
     "hero": {
       "badge": "Help center",
@@ -1410,7 +1410,7 @@
     }
   },
   "contact": {
-    "title": "Contact",
+    "title": "Contacto",
     "description": "Need guidance, technical support, or strategic advice? Reach out through the channel that fits your context.",
     "hero": {
       "badge": "Support & guidance",
@@ -1463,8 +1463,8 @@
       "title": "Contact form",
       "description": "Share enough context so we can route your request to the right team and reply with actionable guidance.",
       "fields": {
-        "firstName": "First name",
-        "lastName": "Last name",
+        "firstName": "Nombre",
+        "lastName": "Apellido",
         "email": "Business email",
         "topic": "Topic",
         "message": "Message",
@@ -1485,8 +1485,8 @@
         }
       ],
       "privacyNote": "By submitting this form, you agree that we process your information to respond to your request and improve service quality.",
-      "submit": "Send",
-      "reset": "Reset"
+      "submit": "Enviar",
+      "reset": "Restablecer"
     },
     "cta": {
       "title": "Prefer a guided onboarding conversation?",
@@ -1525,9 +1525,9 @@
     }
   },
   "register": {
-    "title": "Register",
-    "email": "Email",
-    "password": "Password",
+    "title": "Registro",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
     "repeatPassword": "Repeat password",
     "submit": "Create account"
   },
@@ -1564,12 +1564,12 @@
     "actions": {
       "createEvent": "Create an event",
       "editEvent": "Edit event",
-      "cancel": "Cancel",
+      "cancel": "Cancelar",
       "update": "Update",
-      "save": "Save",
+      "save": "Guardar",
       "close": "Close",
-      "edit": "Edit",
-      "delete": "Delete"
+      "edit": "Editar",
+      "delete": "Eliminar"
     },
     "empty": {
       "title": "No upcoming events",
@@ -1577,10 +1577,10 @@
     },
     "common": {
       "title": "Title",
-      "description": "Description",
-      "start": "Start",
+      "description": "Descripción",
+      "start": "Inicio",
       "end": "End",
-      "location": "Location",
+      "location": "Ubicación",
       "period": "Period",
       "noDescription": "No description",
       "notSpecified": "Not specified",
