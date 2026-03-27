@@ -9,7 +9,7 @@
       "admin": "Admin",
       "platform": "Platform",
       "about": "About",
-      "contact": "Contact",
+      "contact": "Contacto",
       "faq": "FAQ",
       "calendar": "Calendar",
       "messages": "Messages",
@@ -45,12 +45,12 @@
     "logout": "Logout",
     "notAuthenticated": "You are not signed in. Please use the login page.",
     "tokenHint": "The session token is automatically sent in the",
-    "tokenHeader": "Authorization: Bearer ...",
+    "tokenHeader": "Autorización: Bearer ...",
     "tokenHintSuffix": "header when calling the profile API.",
     "firstName": "First name",
     "lastName": "Last name",
     "timezone": "Timezone",
-    "photo": "Photo",
+    "photo": "Foto de perfil",
     "saveChanges": "Save changes",
     "updateSuccess": "Profile updated successfully.",
     "photoUpdateSuccess": "Profile photo updated successfully."
@@ -424,28 +424,28 @@
   },
   "$vuetify": {
     "dataFooter": {
-      "itemsPerPageText": "Items per page:",
-      "itemsPerPageAll": "All",
-      "nextPage": "Next page",
-      "prevPage": "Previous page",
-      "firstPage": "First page",
-      "lastPage": "Last page",
-      "pageText": "{0}-{1} of {2}"
+      "itemsPerPageText": "Elementos por página:",
+      "itemsPerPageAll": "Todos",
+      "nextPage": "Página siguiente",
+      "prevPage": "Página anterior",
+      "firstPage": "Primera página",
+      "lastPage": "Última página",
+      "pageText": "{0}-{1} de {2}"
     },
     "pagination": {
       "ariaLabel": {
-        "root": "Pagination Navigation",
-        "next": "Next page",
-        "previous": "Previous page",
-        "page": "Go to page {0}",
-        "currentPage": "Page {0}, Current page",
-        "first": "First page",
-        "last": "Last page"
+        "root": "Navegación de paginación",
+        "next": "Página siguiente",
+        "previous": "Página anterior",
+        "page": "Ir a la página {0}",
+        "currentPage": "Página {0}, página actual",
+        "first": "Primera página",
+        "last": "Última página"
       }
     },
     "badge": "Badge",
     "input": {
-      "clear": "Clear {0}"
+      "clear": "Borrar {0}"
     }
   },
   "errorPage": {
@@ -1127,25 +1127,25 @@
         "Run `node scripts/validate-i18n.mjs` before merging."
       ]
     },
-    "title": "Platforms",
-    "assistant": "Open platform assistant",
+    "title": "Plataformas",
+    "assistant": "Abrir asistente de plataforma",
     "filters": {
-      "title": "Filters",
-      "search": "Search a platform",
-      "platformKey": "Platform type",
-      "apply": "Apply filters",
-      "clear": "Clear filters"
+      "title": "Filtros",
+      "search": "Buscar una plataforma",
+      "platformKey": "Tipo de plataforma",
+      "apply": "Aplicar filtros",
+      "clear": "Limpiar filtros"
     },
     "actions": {
-      "edit": "Edit",
-      "delete": "Delete",
-      "editTitle": "Edit platform",
-      "deleteTitle": "Delete platform",
-      "deleteMessage": "Are you sure you want to delete \"{title}\"?"
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "editTitle": "Editar plataforma",
+      "deleteTitle": "Eliminar plataforma",
+      "deleteMessage": "¿Seguro que quieres eliminar \"{title}\"?"
     },
     "status": {
-      "active": "Active",
-      "inactive": "Inactive"
+      "active": "Activa",
+      "inactive": "Inactiva"
     },
     "table": {
       "owner": "Owner",
@@ -1153,35 +1153,35 @@
       "actions": "Actions"
     },
     "newPlatform": {
-      "title": "Create a new platform",
-      "description": "Start from scratch and configure your workspace in a few steps.",
-      "worldTitle": "Create a platform"
+      "title": "Crear una nueva plataforma",
+      "description": "Empieza desde cero y configura tu espacio de trabajo en pocos pasos.",
+      "worldTitle": "Crear una plataforma"
     },
     "wizard": {
       "errors": {
-        "load": "Unable to load platform templates.",
-        "create": "Unable to create platform. Please try again."
+        "load": "No se pudieron cargar las plantillas de plataforma.",
+        "create": "No se pudo crear la plataforma. Inténtalo de nuevo."
       },
       "steps": {
-        "title": "Basics",
-        "platform": "Platform",
+        "title": "Básicos",
+        "platform": "Plataforma",
         "plugins": "Plugins"
       },
-      "titleStepTitle": "Platform details",
-      "platformTitle": "Platform settings",
-      "pluginTitle": "Plugins and integrations",
-      "next": "Next",
-      "prev": "Previous",
-      "create": "Create platform",
+      "titleStepTitle": "Detalles de la plataforma",
+      "platformTitle": "Configuración de la plataforma",
+      "pluginTitle": "Plugins e integraciones",
+      "next": "Siguiente",
+      "prev": "Anterior",
+      "create": "Crear plataforma",
       "fields": {
-        "title": "Title",
-        "description": "Description",
-        "photo": "Logo URL",
-        "private": "Private platform",
-        "active": "Active status",
-        "theme": "Theme",
-        "configuration": "Configuration JSON",
-        "cacheSeconds": "Cache duration (seconds)"
+        "title": "Título",
+        "description": "Descripción",
+        "photo": "URL del logo",
+        "private": "Plataforma privada",
+        "active": "Estado activo",
+        "theme": "Tema",
+        "configuration": "JSON de configuración",
+        "cacheSeconds": "Duración de caché (segundos)"
       }
     },
     "chat": {

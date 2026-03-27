@@ -2,28 +2,28 @@
   "app": {
     "name": "Bro World",
     "navigation": {
-      "home": "Home",
-      "login": "Login",
-      "profile": "Profile",
-      "openMenu": "Open menu",
-      "admin": "Admin",
-      "platform": "Platform",
-      "about": "About",
-      "contact": "Contact",
-      "faq": "FAQ",
-      "calendar": "Calendar",
+      "home": "الرئيسية",
+      "login": "تسجيل الدخول",
+      "profile": "الملف الشخصي",
+      "openMenu": "فتح القائمة",
+      "admin": "الإدارة",
+      "platform": "المنصة",
+      "about": "حول",
+      "contact": "اتصل بنا",
+      "faq": "الأسئلة الشائعة",
+      "calendar": "التقويم",
       "messages": "Messages",
-      "notifications": "Notifications",
-      "language": "Language",
-      "toggleTheme": "Toggle theme",
-      "adminOverview": "Admin dashboard",
-      "adminUsers": "Users",
-      "adminRoles": "Roles",
-      "adminGroups": "Groups",
-      "adminApiKeys": "API keys",
-      "settings": "Settings",
+      "notifications": "الإشعارات",
+      "language": "اللغة",
+      "toggleTheme": "تبديل السمة",
+      "adminOverview": "لوحة تحكم الإدارة",
+      "adminUsers": "المستخدمون",
+      "adminRoles": "الأدوار",
+      "adminGroups": "المجموعات",
+      "adminApiKeys": "مفاتيح API",
+      "settings": "الإعدادات",
       "inbox": "Messages",
-      "register": "Register",
+      "register": "إنشاء حساب",
       "blog": "المدونة",
       "quiz": "اختبار"
     },
@@ -32,50 +32,50 @@
     }
   },
   "login": {
-    "title": "Login",
-    "description": "Use your username or email to get a token.",
-    "usernameOrEmail": "Username or email",
+    "title": "تسجيل الدخول",
+    "description": "استخدم اسم المستخدم أو البريد الإلكتروني للحصول على رمز.",
+    "usernameOrEmail": "اسم المستخدم أو البريد الإلكتروني",
     "usernameOrEmailPlaceholder": "john-root",
-    "password": "Password",
-    "submit": "Sign in"
+    "password": "كلمة المرور",
+    "submit": "تسجيل الدخول"
   },
   "profile": {
-    "title": "Profile",
-    "load": "Load profile",
-    "logout": "Logout",
-    "notAuthenticated": "You are not signed in. Please use the login page.",
-    "tokenHint": "The session token is automatically sent in the",
-    "tokenHeader": "Authorization: Bearer ...",
-    "tokenHintSuffix": "header when calling the profile API.",
-    "firstName": "First name",
-    "lastName": "Last name",
-    "timezone": "Timezone",
-    "photo": "Photo",
-    "saveChanges": "Save changes",
-    "updateSuccess": "Profile updated successfully.",
-    "photoUpdateSuccess": "Profile photo updated successfully."
+    "title": "الملف الشخصي",
+    "load": "تحميل الملف الشخصي",
+    "logout": "تسجيل الخروج",
+    "notAuthenticated": "أنت غير مسجل الدخول. يرجى استخدام صفحة تسجيل الدخول.",
+    "tokenHint": "يتم إرسال رمز الجلسة تلقائيًا في",
+    "tokenHeader": "التخويل: Bearer ...",
+    "tokenHintSuffix": "الرأس عند استدعاء واجهة ملف التعريف.",
+    "firstName": "الاسم الأول",
+    "lastName": "اسم العائلة",
+    "timezone": "المنطقة الزمنية",
+    "photo": "صورة الملف الشخصي",
+    "saveChanges": "حفظ التغييرات",
+    "updateSuccess": "تم تحديث الملف الشخصي بنجاح.",
+    "photoUpdateSuccess": "تم تحديث صورة الملف الشخصي بنجاح."
   },
   "errors": {
     "auth": {
-      "loginFailed": "Login failed. Please check your credentials.",
-      "authRequired": "You must be signed in to access this page.",
-      "accessDenied": "Access denied: you do not have the required permissions.",
-      "registerFailed": "Registration failed. Please check the provided details.",
-      "registerPasswordMismatch": "Passwords do not match."
+      "loginFailed": "فشل تسجيل الدخول. يرجى التحقق من بياناتك.",
+      "authRequired": "يجب تسجيل الدخول للوصول إلى هذه الصفحة.",
+      "accessDenied": "تم رفض الوصول: لا تملك الأذونات المطلوبة.",
+      "registerFailed": "فشل التسجيل. يرجى التحقق من البيانات المدخلة.",
+      "registerPasswordMismatch": "كلمتا المرور غير متطابقتين."
     },
     "profile": {
-      "noToken": "No active token found. Please sign in.",
-      "loadFailed": "Unable to load profile. Please try again.",
-      "updateFailed": "Unable to update profile. Please try again.",
-      "photoUploadFailed": "Unable to upload profile photo. Please try again."
+      "noToken": "لم يتم العثور على رمز نشط. يرجى تسجيل الدخول.",
+      "loadFailed": "تعذر تحميل الملف الشخصي. يرجى المحاولة مرة أخرى.",
+      "updateFailed": "تعذر تحديث الملف الشخصي. يرجى المحاولة مرة أخرى.",
+      "photoUploadFailed": "تعذر رفع صورة الملف الشخصي. يرجى المحاولة مرة أخرى."
     },
-    "network": "Network error. Please check your connection and try again.",
-    "unauthorized": "Your session has expired. Please sign in again.",
-    "forbidden": "You do not have permission to perform this action.",
-    "notFound": "The requested resource could not be found.",
-    "server": "A server error occurred. Please try again later.",
-    "unknown": "An unexpected error occurred.",
-    "actionUnavailable": "Action currently unavailable."
+    "network": "خطأ في الشبكة. يرجى التحقق من الاتصال والمحاولة مرة أخرى.",
+    "unauthorized": "انتهت صلاحية جلستك. يرجى تسجيل الدخول مرة أخرى.",
+    "forbidden": "لا تملك الصلاحية لتنفيذ هذا الإجراء.",
+    "notFound": "تعذر العثور على المورد المطلوب.",
+    "server": "حدث خطأ في الخادم. يرجى المحاولة لاحقًا.",
+    "unknown": "حدث خطأ غير متوقع.",
+    "actionUnavailable": "الإجراء غير متاح حاليًا."
   },
   "home": {
     "hero": {
@@ -159,217 +159,217 @@
     "title": "Administration area",
     "description": "This page is restricted to users with the administrator role.",
     "common": {
-      "search": "Search",
-      "create": "Create",
-      "refresh": "Refresh",
-      "cancel": "Cancel",
-      "save": "Save",
-      "delete": "Delete"
+      "search": "بحث",
+      "create": "إنشاء",
+      "refresh": "تحديث",
+      "cancel": "إلغاء",
+      "save": "حفظ",
+      "delete": "حذف"
     },
     "users": {
       "headers": {
-        "username": "Username",
-        "name": "Name",
-        "email": "Email",
-        "relations": "Relations",
-        "actions": "Actions"
+        "username": "اسم المستخدم",
+        "name": "الاسم",
+        "email": "البريد الإلكتروني",
+        "relations": "العلاقات",
+        "actions": "إجراءات"
       },
       "form": {
-        "createTitle": "Create user",
-        "editTitle": "Edit user",
-        "patchTitle": "Patch user",
-        "username": "Username",
-        "email": "Email",
-        "firstName": "First name",
-        "lastName": "Last name",
-        "password": "Password",
-        "passwordHint": "Leave blank to keep current value",
-        "timezone": "Timezone",
-        "language": "Language",
-        "locale": "Locale",
-        "photoUrl": "Photo URL",
-        "groupIdToAttach": "Group ID to attach"
+        "createTitle": "إنشاء مستخدم",
+        "editTitle": "تعديل مستخدم",
+        "patchTitle": "تعديل مستخدم",
+        "username": "اسم المستخدم",
+        "email": "البريد الإلكتروني",
+        "firstName": "الاسم الأول",
+        "lastName": "اسم العائلة",
+        "password": "كلمة المرور",
+        "passwordHint": "اتركه فارغًا للاحتفاظ بالقيمة الحالية",
+        "timezone": "المنطقة الزمنية",
+        "language": "اللغة",
+        "locale": "اللغة المحلية",
+        "photoUrl": "رابط الصورة",
+        "groupIdToAttach": "معرف المجموعة للإرفاق"
       },
       "errors": {
         "load": "Unable to load users from /api/v1/user."
       },
       "confirmDelete": "Delete user {id}?",
-      "empty": "No users found.",
+      "empty": "لم يتم العثور على مستخدمين.",
       "buttons": {
-        "roles": "Roles",
-        "groups": "Groups",
-        "detach": "Detach"
+        "roles": "الأدوار",
+        "groups": "المجموعات",
+        "detach": "فصل"
       },
       "aria": {
-        "show": "Show {name}",
-        "patch": "Patch {name}",
-        "delete": "Delete {name}"
+        "show": "عرض {name}",
+        "patch": "تعديل {name}",
+        "delete": "حذف {name}"
       },
       "dialogs": {
-        "userDetails": "User details",
-        "userRoles": "User roles",
-        "userGroups": "User groups"
+        "userDetails": "تفاصيل المستخدم",
+        "userRoles": "أدوار المستخدم",
+        "userGroups": "مجموعات المستخدمين"
       }
     },
     "userGroups": {
       "headers": {
-        "id": "ID",
-        "name": "Name",
-        "role": "Role",
-        "roleDescription": "Role description",
-        "actions": "Actions"
+        "id": "المعرف",
+        "name": "الاسم",
+        "role": "دور",
+        "roleDescription": "وصف الدور",
+        "actions": "إجراءات"
       },
       "form": {
-        "createTitle": "Create group",
-        "editTitle": "Edit group",
-        "patchTitle": "Patch group",
-        "groupName": "Group name",
-        "roleId": "Role ID"
+        "createTitle": "إنشاء مجموعة",
+        "editTitle": "تعديل مجموعة",
+        "patchTitle": "تعديل مجموعة",
+        "groupName": "اسم المجموعة",
+        "roleId": "معرف الدور"
       },
       "errors": {
         "load": "Unable to load groups from /api/v1/user_group."
       },
       "confirmDelete": "Delete group {id}?",
-      "empty": "No user groups found.",
+      "empty": "لم يتم العثور على مجموعات مستخدمين.",
       "aria": {
-        "show": "Show {id}",
-        "patch": "Patch {id}",
-        "delete": "Delete {id}"
+        "show": "عرض {id}",
+        "patch": "تعديل {id}",
+        "delete": "حذف {id}"
       },
       "dialogs": {
-        "groupDetails": "Group details"
+        "groupDetails": "تفاصيل المجموعة"
       }
     },
     "apiKeys": {
       "headers": {
-        "id": "ID",
-        "description": "Description",
-        "token": "Token",
-        "actions": "Actions"
+        "id": "المعرف",
+        "description": "الوصف",
+        "token": "الرمز",
+        "actions": "إجراءات"
       },
       "form": {
-        "createTitle": "Create API key",
-        "editTitle": "Edit API key",
-        "patchTitle": "Patch API key",
-        "description": "Description",
-        "token": "Token"
+        "createTitle": "إنشاء مفتاح API",
+        "editTitle": "تعديل مفتاح API",
+        "patchTitle": "تعديل مفتاح API",
+        "description": "الوصف",
+        "token": "الرمز"
       },
       "errors": {
         "load": "Unable to load API keys from /api/{version}/api_key."
       },
       "confirmDelete": "Delete API key {id}?",
-      "empty": "No API keys found.",
+      "empty": "لم يتم العثور على مفاتيح API.",
       "aria": {
-        "show": "Show {id}",
-        "patch": "Patch {id}",
-        "delete": "Delete {id}"
+        "show": "عرض {id}",
+        "patch": "تعديل {id}",
+        "delete": "حذف {id}"
       },
       "dialogs": {
-        "details": "API key details"
+        "details": "تفاصيل مفتاح API"
       }
     },
     "roles": {
       "headers": {
-        "id": "Identifier",
-        "description": "Description",
-        "actions": "Actions"
+        "id": "المعرّف",
+        "description": "الوصف",
+        "actions": "إجراءات"
       },
       "form": {
-        "createTitle": "Create role",
-        "editTitle": "Edit role",
-        "patchTitle": "Patch role",
-        "id": "Identifier",
-        "description": "Description"
+        "createTitle": "إنشاء دور",
+        "editTitle": "تعديل دور",
+        "patchTitle": "تعديل دور",
+        "id": "المعرّف",
+        "description": "الوصف"
       },
       "errors": {
         "load": "Unable to load roles from /api/v1/role.",
         "loadDetails": "Unable to load role details for {id}."
       },
       "confirmDelete": "Delete role {id}?",
-      "empty": "No roles found.",
+      "empty": "لم يتم العثور على أدوار.",
       "aria": {
-        "show": "Show {id}",
-        "edit": "Edit {id}",
-        "patch": "Patch {id}",
-        "delete": "Delete {id}"
+        "show": "عرض {id}",
+        "edit": "تعديل {id}",
+        "patch": "تعديل {id}",
+        "delete": "حذف {id}"
       },
       "dialogs": {
-        "details": "Role details",
-        "inheritedRoles": "Inherited roles",
-        "noInheritedRoles": "No inherited roles."
+        "details": "تفاصيل الدور",
+        "inheritedRoles": "الأدوار الموروثة",
+        "noInheritedRoles": "لا توجد أدوار موروثة."
       }
     },
     "modules": {
       "users": {
-        "title": "Users",
+        "title": "المستخدمون",
         "description": "Manage user accounts (read, search, and API actions)."
       },
       "roles": {
-        "title": "Roles",
+        "title": "الأدوار",
         "description": "Browse and manage roles exposed by /api/v1/role."
       },
       "groups": {
-        "title": "User groups",
+        "title": "مجموعات المستخدمين",
         "description": "Monitor user groups and their associated roles."
       },
       "apiKeys": {
-        "title": "API keys",
+        "title": "مفاتيح API",
         "description": "List and manage API keys available on /api/v1/api_key."
       },
-      "open": "Open",
+      "open": "فتح",
       "platforms": {
-        "title": "Platforms",
+        "title": "المنصات",
         "description": "Browse and manage platform entries and metadata."
       },
       "plugins": {
-        "title": "Plugins",
+        "title": "الإضافات",
         "description": "Manage plugin catalog, states and integrations."
       },
       "configurations": {
-        "title": "Configurations",
+        "title": "الإعدادات",
         "description": "View and maintain available configuration sets."
       },
       "pages": {
-        "home": "Home",
-        "about": "About",
-        "contact": "Contact",
-        "faq": "FAQ"
+        "home": "الرئيسية",
+        "about": "حول",
+        "contact": "اتصال",
+        "faq": "الأسئلة الشائعة"
       }
     },
     "navigation": {
       "dashboard": {
-        "title": "Dashboard",
+        "title": "لوحة التحكم",
         "description": "View key statistics and activity indicators."
       },
       "settings": {
-        "title": "Settings",
+        "title": "الإعدادات",
         "description": "Configure global platform information and options."
       },
       "userManagement": {
-        "title": "User Management",
+        "title": "إدارة المستخدمين",
         "description": "Access users, roles, groups and API key administration."
       },
       "platformManagement": {
-        "title": "Platform Management",
+        "title": "إدارة المنصات",
         "description": "Manage platforms and plugins used by the application."
       },
       "configurationManagement": {
-        "title": "Configuration Management",
+        "title": "إدارة الإعدادات",
         "description": "Access global configuration modules and settings lists."
       },
       "pageManagement": {
-        "title": "Page Management",
+        "title": "إدارة الصفحات",
         "description": "Manage Home, About, Contact and FAQ page contents."
       }
     },
     "dashboard": {
-      "title": "Admin dashboard",
+      "title": "لوحة تحكم الإدارة",
       "description": "Overview of platform activity and usage metrics.",
       "stats": {
-        "usersTotal": "Total users",
-        "applicationsTotal": "Total applications",
-        "pluginsTotal": "Total plugins",
-        "postsTotal": "Total posts",
+        "usersTotal": "إجمالي المستخدمين",
+        "applicationsTotal": "إجمالي التطبيقات",
+        "pluginsTotal": "إجمالي الإضافات",
+        "postsTotal": "إجمالي المنشورات",
         "usersThisWeek": "Users this week",
         "usersThisMonth": "Users this month",
         "postsLast7Days": "Posts (last 7 days)",
@@ -379,33 +379,33 @@
         "title": "Applications and plugins usage",
         "applicationsByPlatform": "Applications by platform",
         "pluginsUsage": "Plugin usage",
-        "countLabel": "Count"
+        "countLabel": "العدد"
       },
-      "refresh": "Refresh",
+      "refresh": "تحديث",
       "errors": {
         "load": "Unable to load dashboard statistics."
       },
       "recent": {
-        "title": "Recent activity",
+        "title": "النشاط الأخير",
         "newPlugin": "New plugin “SMS Campaign” published",
         "rolesUpdated": "Administrator roles updated",
         "trafficSpike": "Traffic spike detected on the School portal",
         "backupDone": "Weekly backup completed"
       },
       "highlights": {
-        "openCriticalTickets": "Open critical tickets"
+        "openCriticalTickets": "التذاكر الحرجة المفتوحة"
       },
       "operational": {
-        "title": "Operational view",
+        "title": "عرض تشغيلي",
         "subtitle": "Key admin activity indicators in real time."
       }
     },
     "settings": {
-      "title": "Settings",
+      "title": "الإعدادات",
       "description": "Manage your site configuration from this form.",
       "form": {
-        "siteName": "Site name",
-        "description": "Description",
+        "siteName": "اسم الموقع",
+        "description": "الوصف",
         "saved": "Settings saved."
       }
     },
@@ -424,28 +424,28 @@
   },
   "$vuetify": {
     "dataFooter": {
-      "itemsPerPageText": "Items per page:",
-      "itemsPerPageAll": "All",
-      "nextPage": "Next page",
-      "prevPage": "Previous page",
-      "firstPage": "First page",
-      "lastPage": "Last page",
-      "pageText": "{0}-{1} of {2}"
+      "itemsPerPageText": "العناصر لكل صفحة:",
+      "itemsPerPageAll": "الكل",
+      "nextPage": "الصفحة التالية",
+      "prevPage": "الصفحة السابقة",
+      "firstPage": "الصفحة الأولى",
+      "lastPage": "الصفحة الأخيرة",
+      "pageText": "{0}-{1} من {2}"
     },
     "pagination": {
       "ariaLabel": {
-        "root": "Pagination Navigation",
-        "next": "Next page",
-        "previous": "Previous page",
-        "page": "Go to page {0}",
-        "currentPage": "Page {0}, Current page",
-        "first": "First page",
-        "last": "Last page"
+        "root": "تنقل الصفحات",
+        "next": "الصفحة التالية",
+        "previous": "الصفحة السابقة",
+        "page": "الانتقال إلى الصفحة {0}",
+        "currentPage": "الصفحة {0}، الصفحة الحالية",
+        "first": "الصفحة الأولى",
+        "last": "الصفحة الأخيرة"
       }
     },
     "badge": "Badge",
     "input": {
-      "clear": "Clear {0}"
+      "clear": "مسح {0}"
     }
   },
   "errorPage": {
@@ -470,7 +470,7 @@
     "common": {
       "backToList": "Back to list",
       "alert": {
-        "adminDenied": "Admin access denied: insufficient permissions for this application."
+        "adminDenied": "تم رفض وصول الإدارة: الأذونات غير كافية لهذا التطبيق."
       },
       "sidebar": {
         "application": "Application {slug}",
@@ -478,7 +478,7 @@
         "roadmap": "Roadmap {slug}"
       },
       "nav": {
-        "admin": "Admin"
+        "admin": "الإدارة"
       },
       "time": {
         "daysAgo": "{count}d ago",
@@ -489,21 +489,21 @@
       "sidebar": {
         "title": "CRM",
         "reports": "CRM Reports",
-        "tickets": "CRM Tickets",
+        "tickets": "تذاكر CRM",
         "automation": "CRM Automation"
       },
       "nav": {
-        "home": "Dashboard",
+        "home": "لوحة التحكم",
         "companies": "Companies",
         "projects": "Projects",
         "contacts": "Contacts",
         "reports": "Reports",
         "automation": "Automation",
         "sprint": "Sprint",
-        "calendar": "Calendar",
-        "settings": "Settings",
+        "calendar": "التقويم",
+        "settings": "الإعدادات",
         "billing": "Billing",
-        "tickets": "Tickets",
+        "tickets": "التذاكر",
         "tasks": "المهام",
         "workflow": "سير العمل",
         "workflowProjects": "مشاريع سير العمل",
@@ -534,9 +534,9 @@
           "cta": "Export"
         },
         "tickets": {
-          "title": "CRM Tickets",
+          "title": "تذاكر CRM",
           "subtitle": "Prioritized backlog with owners, ETA and impact",
-          "cta": "New ticket"
+          "cta": "تذكرة جديدة"
         }
       },
       "companies": {
@@ -550,14 +550,14 @@
         "title": "Shop",
         "reviews": "Shop Reviews",
         "customers": "Shop Customers",
-        "tickets": "Shop Tickets",
+        "tickets": "تذاكر المتجر",
         "productDetail": "Product detail",
         "category": "Category {category}"
       },
       "categories": {
         "tech": "Tech",
         "fashion": "Fashion",
-        "home": "Home",
+        "home": "الرئيسية",
         "sport": "Sport",
         "beauty": "Beauty",
         "kids": "Kids"
@@ -568,9 +568,9 @@
         "customers": "Customers",
         "reviews": "Reviews",
         "checkout": "Checkout",
-        "orders": "Orders",
+        "orders": "الطلبات",
         "payment": "Payment",
-        "tickets": "Tickets",
+        "tickets": "التذاكر",
         "newProduct": "New Product"
       },
       "hero": {
@@ -595,9 +595,9 @@
           "cta": "Publish widget"
         },
         "tickets": {
-          "title": "Shop Tickets",
+          "title": "تذاكر المتجر",
           "subtitle": "Design, data, conversion and loyalty improvement proposals",
-          "cta": "New ticket"
+          "cta": "تذكرة جديدة"
         }
       },
       "products": {
@@ -616,22 +616,22 @@
         "steps": {
           "productInfo": "Product Info",
           "media": "Media",
-          "socials": "Socials",
-          "pricing": "Pricing"
+          "socials": "الشبكات الاجتماعية",
+          "pricing": "التسعير"
         },
         "form": {
-          "name": "Product name",
-          "weight": "Weight (kg)",
-          "description": "Description",
+          "name": "اسم المنتج",
+          "weight": "الوزن (كغ)",
+          "description": "الوصف",
           "descriptionTodo": "TODO: replace this field with a Nuxt 4 compatible rich text editor.",
-          "category": "Category",
+          "category": "الفئة",
           "sizes": "Sizes",
           "shopifyHandle": "Shopify handle",
-          "facebook": "Facebook",
-          "instagram": "Instagram",
-          "price": "Price",
-          "currency": "Currency",
-          "sku": "SKU",
+          "facebook": "فيسبوك",
+          "instagram": "إنستغرام",
+          "price": "السعر",
+          "currency": "العملة",
+          "sku": "رمز SKU",
           "tags": "Tags"
         },
         "media": {
@@ -640,9 +640,9 @@
           "previewAlt": "معاينة {title}"
         },
         "actions": {
-          "prev": "Prev",
-          "next": "Next",
-          "send": "Send",
+          "prev": "السابق",
+          "next": "التالي",
+          "send": "إرسال",
           "showEmptyState": "إظهار الحالة الفارغة"
         },
         "validation": {
@@ -658,14 +658,14 @@
           "canceled": "Canceled"
         },
         "buttons": {
-          "save": "Save",
-          "next": "Next",
-          "prev": "Prev",
-          "send": "Send",
+          "save": "حفظ",
+          "next": "التالي",
+          "prev": "السابق",
+          "send": "إرسال",
           "addToCart": "Add to cart",
           "exportCsv": "Export CSV",
           "newOrder": "New order",
-          "filters": "Filters",
+          "filters": "الفلاتر",
           "invoice": "Invoice",
           "backToOrders": "Back to orders",
           "viewDetails": "View details",
@@ -674,22 +674,22 @@
         }
       },
       "orders": {
-        "title": "Orders",
+        "title": "الطلبات",
         "subtitle": "Manage orders, refunds and cancellations.",
         "searchLabel": "Search orders",
         "filters": {
-          "statusTitle": "Status"
+          "statusTitle": "الحالة"
         },
         "table": {
           "headers": {
-            "order": "Order",
-            "customer": "Customer",
-            "status": "Status",
+            "order": "الطلب",
+            "customer": "العميل",
+            "status": "الحالة",
             "date": "Date",
-            "items": "Items",
-            "revenue": "Revenue",
-            "actions": "Actions",
-            "email": "Email"
+            "items": "العناصر",
+            "revenue": "الإيراد",
+            "actions": "إجراءات",
+            "email": "البريد الإلكتروني"
           },
           "selectedSummary": "{selected} selected · {total} orders"
         },
@@ -698,16 +698,16 @@
           "title": "Order detail",
           "subtitle": "Track customer, status and payment info.",
           "labels": {
-            "order": "Order",
-            "customer": "Customer",
-            "items": "Items",
-            "revenue": "Revenue",
+            "order": "الطلب",
+            "customer": "العميل",
+            "items": "العناصر",
+            "revenue": "الإيراد",
             "createdAt": "Created at"
           },
           "notFound": "Order not found."
         },
         "tracking": {
-          "pageLabel": "Order",
+          "pageLabel": "الطلب",
           "pageTitle": "Order details #{orderId}",
           "orderedProduct": "Ordered product",
           "deliveryInProgress": "Delivery in progress",
@@ -764,7 +764,7 @@
           "title": "Other products",
           "headers": {
             "product": "Product",
-            "price": "Price",
+            "price": "السعر",
             "rating": "Rating",
             "availability": "Availability"
           },
@@ -777,24 +777,24 @@
         "sections": {
           "productImage": "Product image",
           "productInformation": "Product information",
-          "socials": "Socials",
-          "pricing": "Pricing"
+          "socials": "الشبكات الاجتماعية",
+          "pricing": "التسعير"
         },
         "form": {
           "imageAltText": "Image alt text",
-          "productName": "Product name",
+          "productName": "اسم المنتج",
           "subtitle": "Subtitle",
-          "description": "Description",
-          "category": "Category",
+          "description": "الوصف",
+          "category": "الفئة",
           "size": "Size",
-          "weight": "Weight (kg)",
-          "sku": "SKU",
+          "weight": "الوزن (كغ)",
+          "sku": "رمز SKU",
           "website": "Website",
-          "instagram": "Instagram",
-          "facebook": "Facebook",
+          "instagram": "إنستغرام",
+          "facebook": "فيسبوك",
           "tiktok": "TikTok",
-          "price": "Price",
-          "currency": "Currency",
+          "price": "السعر",
+          "currency": "العملة",
           "compareAtPrice": "Compare-at price",
           "costPerItem": "Cost per item",
           "taxRate": "Tax rate (%)",
@@ -836,7 +836,7 @@
       "sidebar": {
         "title": "Recruit",
         "interviews": "Recruit Interviews",
-        "tickets": "Recruit Tickets",
+        "tickets": "تذاكر التوظيف",
         "jobDetail": "Job detail",
         "jobDetailSubtitle": "Job details"
       },
@@ -844,7 +844,7 @@
         "home": "Jobs",
         "candidates": "Candidates",
         "interviews": "Interviews",
-        "tickets": "Tickets",
+        "tickets": "التذاكر",
         "myJobs": "My Jobs",
         "myApplications": "My Applications"
       },
@@ -862,12 +862,12 @@
         "interviews": {
           "title": "Interview Planner",
           "subtitle": "Planning, feedback loop and time-to-hire",
-          "cta": "Schedule"
+          "cta": "الجدول"
         },
         "tickets": {
-          "title": "Recruit Tickets",
+          "title": "تذاكر التوظيف",
           "subtitle": "Talent pipeline, candidate experience and recruiting analytics",
-          "cta": "New ticket"
+          "cta": "تذكرة جديدة"
         },
         "myJobs": {
           "title": "وظائفي المنشأة",
@@ -883,23 +883,23 @@
       "job": {
         "published": "Published: {value}",
         "remote": "Remote possible",
-        "onsite": "On-site",
+        "onsite": "في الموقع",
         "badges": {
-          "applied": "Applied"
+          "applied": "تم التقديم"
         },
         "estimatedFullTimeSalary": "{salary} (estimated full-time)",
         "grossSalaryPerYear": "{salary} gross/year (estimated full-time)",
         "match": {
-          "title": "Strong match",
+          "title": "تطابق قوي",
           "description": "Your profile matches the main expectations for this role.",
           "score": "Match: {score}%"
         },
         "sections": {
           "introduction": "Introduction",
           "responsibilities": "Responsibilities",
-          "profile": "Profile",
+          "profile": "الملف الشخصي",
           "benefits": "What we offer",
-          "salary": "Salary"
+          "salary": "الراتب"
         },
         "alerts": {
           "loadError": "Unable to load job details.",
@@ -909,7 +909,7 @@
           "title": "Received applications",
           "coverLetter": "Cover letter:",
           "meta": "Application ID: {id} · Resume: {resumeId}",
-          "statusLabel": "Status",
+          "statusLabel": "الحالة",
           "empty": "No applications for this job."
         },
         "related": {
@@ -934,11 +934,11 @@
       "home": {
         "actions": {
           "createJob": "Create new job",
-          "cancel": "Cancel",
-          "delete": "Delete"
+          "cancel": "إلغاء",
+          "delete": "حذف"
         },
         "alerts": {
-          "accessDenied": "Admin access denied: insufficient permissions for this application.",
+          "accessDenied": "تم رفض وصول الإدارة: الأذونات غير كافية لهذا التطبيق.",
           "jobsLoadError": "Unable to load job offers right now.",
           "emptyJobs": "No jobs found. Try adjusting filters to broaden your search."
         },
@@ -989,20 +989,20 @@
         "redirecting": "Redirecting to the new URL..."
       },
       "filters": {
-        "title": "Filters",
+        "title": "الفلاتر",
         "actions": {
-          "reset": "Reset"
+          "reset": "إعادة تعيين"
         },
         "sections": {
           "text": "Text",
           "contractAndMode": "Contract & work mode",
-          "salary": "Salary"
+          "salary": "الراتب"
         },
         "fields": {
-          "search": "Search",
+          "search": "بحث",
           "company": "Company",
-          "location": "Location",
-          "schedule": "Schedule",
+          "location": "الموقع",
+          "schedule": "الجدول",
           "posted": "Posted",
           "contractType": "Contract type",
           "workMode": "Work mode",
@@ -1018,7 +1018,7 @@
             "Internship": "Internship"
           },
           "workMode": {
-            "Onsite": "On-site",
+            "Onsite": "في الموقع",
             "Hybrid": "Hybrid",
             "Remote": "Remote"
           }
@@ -1033,13 +1033,13 @@
       },
       "jobList": {
         "actions": {
-          "edit": "Edit",
-          "delete": "Delete",
+          "edit": "تعديل",
+          "delete": "حذف",
           "apply": "Apply"
         },
         "badges": {
-          "strongMatch": "Strong match",
-          "applied": "Applied"
+          "strongMatch": "تطابق قوي",
+          "applied": "تم التقديم"
         }
       },
       "applyDialog": {
@@ -1078,16 +1078,16 @@
         "title": "School",
         "timetable": "School Timetable",
         "teachers": "School Teachers",
-        "tickets": "School Tickets"
+        "tickets": "تذاكر المدرسة"
       },
       "nav": {
         "home": "Classes",
         "students": "Students",
         "teachers": "Teachers",
         "timetable": "Timetable",
-        "settings": "Settings",
+        "settings": "الإعدادات",
         "certificates": "Certificates",
-        "tickets": "Tickets"
+        "tickets": "التذاكر"
       },
       "hero": {
         "home": {
@@ -1111,9 +1111,9 @@
           "cta": "Optimize planning"
         },
         "tickets": {
-          "title": "School Tickets",
+          "title": "تذاكر المدرسة",
           "subtitle": "Academic priorities, pedagogy, scheduling and communication",
-          "cta": "New ticket"
+          "cta": "تذكرة جديدة"
         }
       }
     },
@@ -1127,61 +1127,61 @@
         "Run `node scripts/validate-i18n.mjs` before merging."
       ]
     },
-    "title": "Platforms",
-    "assistant": "Open platform assistant",
+    "title": "المنصات",
+    "assistant": "فتح مساعد المنصة",
     "filters": {
-      "title": "Filters",
-      "search": "Search a platform",
-      "platformKey": "Platform type",
-      "apply": "Apply filters",
-      "clear": "Clear filters"
+      "title": "الفلاتر",
+      "search": "ابحث عن منصة",
+      "platformKey": "نوع المنصة",
+      "apply": "تطبيق الفلاتر",
+      "clear": "مسح الفلاتر"
     },
     "actions": {
-      "edit": "Edit",
-      "delete": "Delete",
-      "editTitle": "Edit platform",
-      "deleteTitle": "Delete platform",
-      "deleteMessage": "Are you sure you want to delete \"{title}\"?"
+      "edit": "تعديل",
+      "delete": "حذف",
+      "editTitle": "تعديل المنصة",
+      "deleteTitle": "حذف المنصة",
+      "deleteMessage": "هل أنت متأكد أنك تريد حذف \"{title}\"؟"
     },
     "status": {
-      "active": "Active",
-      "inactive": "Inactive"
+      "active": "نشط",
+      "inactive": "غير نشط"
     },
     "table": {
       "owner": "Owner",
       "updatedAt": "Updated",
-      "actions": "Actions"
+      "actions": "إجراءات"
     },
     "newPlatform": {
-      "title": "Create a new platform",
-      "description": "Start from scratch and configure your workspace in a few steps.",
-      "worldTitle": "Create a platform"
+      "title": "إنشاء منصة جديدة",
+      "description": "ابدأ من الصفر واضبط مساحة العمل خلال بضع خطوات.",
+      "worldTitle": "إنشاء منصة"
     },
     "wizard": {
       "errors": {
-        "load": "Unable to load platform templates.",
-        "create": "Unable to create platform. Please try again."
+        "load": "تعذر تحميل قوالب المنصة.",
+        "create": "تعذر إنشاء المنصة. يرجى المحاولة مرة أخرى."
       },
       "steps": {
-        "title": "Basics",
-        "platform": "Platform",
-        "plugins": "Plugins"
+        "title": "الأساسيات",
+        "platform": "المنصة",
+        "plugins": "الإضافات"
       },
-      "titleStepTitle": "Platform details",
-      "platformTitle": "Platform settings",
-      "pluginTitle": "Plugins and integrations",
-      "next": "Next",
-      "prev": "Previous",
-      "create": "Create platform",
+      "titleStepTitle": "تفاصيل المنصة",
+      "platformTitle": "إعدادات المنصة",
+      "pluginTitle": "الإضافات والتكاملات",
+      "next": "التالي",
+      "prev": "السابق",
+      "create": "إنشاء المنصة",
       "fields": {
-        "title": "Title",
-        "description": "Description",
-        "photo": "Logo URL",
-        "private": "Private platform",
-        "active": "Active status",
-        "theme": "Theme",
-        "configuration": "Configuration JSON",
-        "cacheSeconds": "Cache duration (seconds)"
+        "title": "العنوان",
+        "description": "الوصف",
+        "photo": "رابط الشعار",
+        "private": "منصة خاصة",
+        "active": "حالة التفعيل",
+        "theme": "السمة",
+        "configuration": "JSON الإعدادات",
+        "cacheSeconds": "مدة التخزين المؤقت (بالثواني)"
       }
     },
     "chat": {
@@ -1198,7 +1198,7 @@
     }
   },
   "about": {
-    "title": "About",
+    "title": "حول",
     "description": "Discover Bro World, our mission, our vision, and the measurable commitments that shape each release.",
     "hero": {
       "badge": "Collaborative platform",
@@ -1308,7 +1308,7 @@
     "timelineTitle": "Timeline"
   },
   "faq": {
-    "title": "FAQ",
+    "title": "الأسئلة الشائعة",
     "description": "Find quick and practical answers to the most frequent questions about Bro World.",
     "hero": {
       "badge": "Help center",
@@ -1410,7 +1410,7 @@
     }
   },
   "contact": {
-    "title": "Contact",
+    "title": "اتصال",
     "description": "Need guidance, technical support, or strategic advice? Reach out through the channel that fits your context.",
     "hero": {
       "badge": "Support & guidance",
@@ -1463,8 +1463,8 @@
       "title": "Contact form",
       "description": "Share enough context so we can route your request to the right team and reply with actionable guidance.",
       "fields": {
-        "firstName": "First name",
-        "lastName": "Last name",
+        "firstName": "الاسم الأول",
+        "lastName": "اسم العائلة",
         "email": "Business email",
         "topic": "Topic",
         "message": "Message",
@@ -1485,8 +1485,8 @@
         }
       ],
       "privacyNote": "By submitting this form, you agree that we process your information to respond to your request and improve service quality.",
-      "submit": "Send",
-      "reset": "Reset"
+      "submit": "إرسال",
+      "reset": "إعادة تعيين"
     },
     "cta": {
       "title": "Prefer a guided onboarding conversation?",
@@ -1525,9 +1525,9 @@
     }
   },
   "register": {
-    "title": "Register",
-    "email": "Email",
-    "password": "Password",
+    "title": "إنشاء حساب",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
     "repeatPassword": "Repeat password",
     "submit": "Create account"
   },
@@ -1564,12 +1564,12 @@
     "actions": {
       "createEvent": "Create an event",
       "editEvent": "Edit event",
-      "cancel": "Cancel",
+      "cancel": "إلغاء",
       "update": "Update",
-      "save": "Save",
+      "save": "حفظ",
       "close": "Close",
-      "edit": "Edit",
-      "delete": "Delete"
+      "edit": "تعديل",
+      "delete": "حذف"
     },
     "empty": {
       "title": "No upcoming events",
@@ -1577,10 +1577,10 @@
     },
     "common": {
       "title": "Title",
-      "description": "Description",
+      "description": "الوصف",
       "start": "Start",
       "end": "End",
-      "location": "Location",
+      "location": "الموقع",
       "period": "Period",
       "noDescription": "No description",
       "notSpecified": "Not specified",
