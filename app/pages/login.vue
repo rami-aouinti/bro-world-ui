@@ -74,6 +74,15 @@ const submit = async () => {
     loading.value = false
   }
 }
+
+const loginWithGithub = () => {
+  const redirect = resolveRedirectTarget()
+  const query = redirect && redirect !== '/'
+    ? `?redirect=${encodeURIComponent(redirect)}`
+    : ''
+
+  window.location.href = `/api/auth/github${query}`
+}
 </script>
 
 <template>
@@ -86,7 +95,14 @@ const submit = async () => {
           <v-btn icon variant="text" color="white" aria-label="Login with Facebook" class="login-social-btn">
             <v-icon icon="mdi-facebook" size="28" />
           </v-btn>
-          <v-btn icon variant="text" color="white" aria-label="Login with Github" class="login-social-btn">
+          <v-btn
+            icon
+            variant="text"
+            color="white"
+            aria-label="Login with Github"
+            class="login-social-btn"
+            @click="loginWithGithub"
+          >
             <v-icon icon="mdi-github" size="28" />
           </v-btn>
           <v-btn icon variant="text" color="white" aria-label="Login with Google" class="login-social-btn">
