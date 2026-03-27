@@ -133,7 +133,7 @@ onMounted(async () => {
 
   <template v-else-if="briefing">
     <h2 class="text-subtitle-1 font-weight-bold mb-1">{{ briefing.headline }}</h2>
-    <p class="text-body-2 text-medium-emphasis mb-3">{{ briefing.summary }}</p>
+    <p class="text-body-2 text-high-emphasis mb-3">{{ briefing.summary }}</p>
 
     <div class="d-flex flex-wrap ga-2 mb-3">
       <v-chip size="small" color="primary" variant="tonal">{{ locationLabel }}</v-chip>
@@ -159,7 +159,7 @@ onMounted(async () => {
           <v-icon size="18" icon="mdi-star-four-points-outline" class="me-2" />
         </template>
         <v-list-item-title class="text-body-2 font-weight-medium">{{ event.title }}</v-list-item-title>
-        <v-list-item-subtitle class="text-caption">{{ event.whyItMatters }}</v-list-item-subtitle>
+        <v-list-item-subtitle class="text-caption text-high-emphasis">{{ event.whyItMatters }}</v-list-item-subtitle>
       </v-list-item>
     </v-list>
   </template>
