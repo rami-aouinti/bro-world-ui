@@ -194,8 +194,16 @@ export default defineNuxtConfig({
     },
     oauth: {
       github: {
-        clientId: process.env.NUXT_GITHUB_CLIENT_ID || '',
-        clientSecret: process.env.NUXT_GITHUB_CLIENT_SECRET || '',
+        clientId: process.env.NUXT_GITHUB_CLIENT_ID || process.env.NUXT_OAUTH_GITHUB_CLIENT_ID || '',
+        clientSecret: process.env.NUXT_GITHUB_CLIENT_SECRET || process.env.NUXT_OAUTH_GITHUB_CLIENT_SECRET || '',
+      },
+      google: {
+        clientId: process.env.NUXT_GOOGLE_CLIENT_ID || process.env.NUXT_OAUTH_GOOGLE_CLIENT_ID || '',
+        clientSecret: process.env.NUXT_GOOGLE_CLIENT_SECRET || process.env.NUXT_OAUTH_GOOGLE_CLIENT_SECRET || '',
+      },
+      facebook: {
+        clientId: process.env.NUXT_FACEBOOK_CLIENT_ID || process.env.NUXT_OAUTH_FACEBOOK_CLIENT_ID || '',
+        clientSecret: process.env.NUXT_FACEBOOK_CLIENT_SECRET || process.env.NUXT_OAUTH_FACEBOOK_CLIENT_SECRET || '',
       },
     },
     redisUrl: process.env.REDIS_URL || process.env.NUXT_REDIS_URL || '',
