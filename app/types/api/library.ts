@@ -47,3 +47,13 @@ export interface UploadLibraryFileResponse {
   extension?: string
   fileType?: string
 }
+
+export interface PatchLibraryFolderPayload {
+  name?: string
+  parentId?: string | null
+}
+
+export interface PatchLibraryFilePayload {
+  name?: string
+  folderId?: string | null
+}
