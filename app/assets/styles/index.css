@@ -24,15 +24,6 @@ body {
           sans-serif
   ), serif;
   font-size-adjust: 0.52;
-  --ui-radius: var(--radius, var(--ui-radius-md));
-  --v-radius-md: var(--radius, var(--v-radius-md));
-  --v-btn-border-radius: var(--radius, var(--ui-radius));
-  --v-field-border-radius: var(--radius, var(--ui-radius));
-  --v-list-border-radius: var(--radius, var(--ui-radius));
-  --v-chip-border-radius: var(--radius, var(--ui-radius));
-  --v-card-border-radius: var(--radius, var(--ui-card-radius));
-  --v-sheet-border-radius: var(--radius, var(--ui-radius));
-  --v-navigation-drawer-border-radius: var(--radius, var(--ui-card-radius));
 }
 
 body.ltr {
