@@ -253,6 +253,8 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: repeat(4, minmax(260px, 1fr));
   gap: 18px;
+  overflow-x: auto;
+  align-items: start;
 }
 
 .kanban-column {
@@ -298,15 +300,4 @@ onMounted(async () => {
   font-size: 0.95rem;
 }
 
-@media (max-width: 1280px) {
-  .kanban-board {
-    grid-template-columns: repeat(2, minmax(260px, 1fr));
-  }
-}
-
-@media (max-width: 760px) {
-  .kanban-board {
-    grid-template-columns: 1fr;
-  }
-}
 </style>
