@@ -507,8 +507,7 @@ const deleteMessage = async () => {
       <section class="inbox-page__content">
         <div class="d-flex align-center justify-space-between mb-2 flex-wrap ga-2">
           <div>
-            <h2 class="text-subtitle-1 font-weight-bold mb-1">{{ activeConversation.title }}</h2>
-            <p class="text-body-2 text-medium-emphasis mb-0">{{ activeConversation.sla ?? 'Conversation active' }}</p>
+            <h4 class="text-subtitle-1 font-weight-bold mb-1">{{ activeConversation.title }}</h4>
           </div>
           <UiStatChip :value="`${activeConversation.messages.length} messages`" color="primary" />
         </div>
@@ -528,19 +527,20 @@ const deleteMessage = async () => {
             class="inbox-page__bubble"
             :class="message.sender?.id === me ? 'inbox-page__bubble--me' : 'inbox-page__bubble--other'"
           >
-            <UiAvatar
-              :name="`${message.sender?.firstName ?? 'Utilisateur'} ${message.sender?.lastName ?? ''}`"
-              :src="message.sender?.photo ?? undefined"
-              size="sm"
-              class="inbox-page__bubble-avatar"
-            />
-
             <div class="inbox-page__bubble-main">
               <div class="d-flex justify-space-between align-start ga-2">
-              <p class="text-caption text-medium-emphasis mb-1">
-                {{ message.sender?.firstName ?? 'Utilisateur' }} {{ message.sender?.lastName ?? '' }} • {{ formatMessageDate(message.createdAt) }}
-              </p>
 
+              <div class="d-flex align-center" v-if="message.sender?.id != me">
+                <UiAvatar
+                    :name="`${message.sender?.firstName ?? 'User'} ${message.sender?.lastName ?? ''}`"
+                    :src="message.sender?.photo ?? undefined"
+                    size="sm"
+                    class="inbox-page__bubble-avatar"
+                />
+                <p class="text-caption text-medium-emphasis mx-4">
+                  {{ message.sender?.firstName ?? 'User' }} {{ message.sender?.lastName ?? '' }}
+                </p>
+              </div>
               <div class="d-flex align-center ga-1">
                 <v-menu location="bottom end">
                   <template #activator="{ props: menuProps }">
@@ -579,10 +579,23 @@ const deleteMessage = async () => {
                   </v-list>
                 </v-menu>
               </div>
+                <div class="d-flex align-center" v-if="message.sender?.id === me">
+                  <p class="text-caption text-medium-emphasis mx-4">
+                    {{ message.sender?.firstName ?? 'User' }} {{ message.sender?.lastName ?? '' }}
+                  </p>
+                  <UiAvatar
+                      :name="`${message.sender?.firstName ?? 'User'} ${message.sender?.lastName ?? ''}`"
+                      :src="message.sender?.photo ?? undefined"
+                      size="sm"
+                      class="inbox-page__bubble-avatar"
+                  />
+                </div>
             </div>
 
               <p class="text-body-2 mb-0">{{ message.content }}</p>
-
+              <p class="text-caption text-medium-emphasis text-end text-sm">
+                {{ formatMessageDate(message.createdAt) }}
+              </p>
               <div v-if="getMessageReactionPreview(message)" class="inbox-page__reaction-preview">
                 {{ getMessageReactionPreview(message) }}
               </div>
@@ -591,26 +604,25 @@ const deleteMessage = async () => {
         </div>
 
         <div class="inbox-page__composer pt-2">
-          <v-textarea
-            v-model="draftMessage"
-            label="Votre message"
-            placeholder="Write a message..."
-            rows="2"
-            auto-grow
-            max-rows="5"
-            variant="outlined"
-            hide-details
-            density="comfortable"
-          />
           <div class="d-flex justify-end mt-2">
+            <v-textarea
+                v-model="draftMessage"
+                label="Votre message"
+                placeholder="Write a message..."
+                rows="1"
+                auto-grow
+                max-rows="5"
+                variant="outlined"
+                hide-details
+                density="comfortable"
+            />
             <v-btn
               color="primary"
-              prepend-icon="mdi-send"
+              icon="mdi-send"
               :loading="isSendingMessage"
               :disabled="!draftMessage.trim() || isUsingDemoData"
               @click="sendMessage"
             >
-              Envoyer
             </v-btn>
           </div>
         </div>
@@ -678,13 +690,13 @@ const deleteMessage = async () => {
 
 .inbox-page__content {
   height: 100%;
-  max-height: calc(100vh - var(--app-split-shell-appbar-height) - var(--app-split-shell-margin) * 2);
+  max-height: calc(100vh - var(--app-split-shell-appbar-height) - var(--app-split-shell-margin) * 5);
   display: flex;
   flex-direction: column;
 }
 
 .inbox-page__messages {
-  min-height: 260px;
+  min-height: 240px;
   flex: 1;
   overflow-y: auto;
   display: flex;
