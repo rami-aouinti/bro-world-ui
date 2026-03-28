@@ -74,13 +74,13 @@ const submit = async () => {
   }
 }
 
-const loginWithGithub = () => {
+const loginWithSocial = (provider: 'github' | 'google' | 'facebook') => {
   const redirect = resolveRedirectTarget()
   const query = redirect && redirect !== '/'
     ? `?redirect=${encodeURIComponent(redirect)}`
     : ''
 
-  window.location.href = `/api/auth/github${query}`
+  window.location.href = `/api/auth/${provider}${query}`
 }
 </script>
 
@@ -94,7 +94,7 @@ const loginWithGithub = () => {
           </NuxtLink>
         </div>
         <div class="d-flex justify-center ga-6 mb-1">
-          <v-btn icon variant="text" aria-label="Login with Facebook" class="login-social-btn">
+          <v-btn icon variant="text" aria-label="Login with Facebook" class="login-social-btn" @click="loginWithSocial('facebook')">
             <v-icon icon="mdi-facebook" size="28" />
           </v-btn>
           <v-btn
@@ -102,11 +102,11 @@ const loginWithGithub = () => {
             variant="text"
             aria-label="Login with Github"
             class="login-social-btn"
-            @click="loginWithGithub"
+            @click="loginWithSocial('github')"
           >
             <v-icon icon="mdi-github" size="28" />
           </v-btn>
-          <v-btn icon variant="text" aria-label="Login with Google" class="login-social-btn">
+          <v-btn icon variant="text" aria-label="Login with Google" class="login-social-btn" @click="loginWithSocial('google')">
             <v-icon icon="mdi-google" size="28" />
           </v-btn>
         </div>
