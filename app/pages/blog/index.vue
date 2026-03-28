@@ -117,7 +117,8 @@ watch([infiniteSentinel, hasMorePosts], async () => {
 <template>
   <NuxtLayout name="default">
     <template #layout-sidebar>
-      <BlogSummaryCard v-if="!isLoading && blog" :blog="blog" />
+      <v-skeleton-loader v-if="isLoading" type="list-item-two-line, list-item-three-line" />
+      <BlogSummaryCard v-else :blog="blog" />
     </template>
 
     <template #layout-aside>
