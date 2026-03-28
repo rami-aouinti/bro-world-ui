@@ -405,7 +405,7 @@ onBeforeUnmount(() => {
           <v-chip variant="outlined" prepend-icon="mdi-timer-outline">{{ t('quizPage.timerPerQuestion', { seconds: timerPerQuestion }) }}</v-chip>
           <v-chip variant="outlined" prepend-icon="mdi-flag-checkered">{{ t('quizPage.passScore', { score: quiz.passScore }) }}</v-chip>
         </div>
-
+        <v-divider class="my-5" />
         <template v-if="selectedLevelLabel || selectedCategoryLabel">
           <div class="d-flex flex-wrap ga-2">
             <v-chip v-if="selectedLevelLabel" color="primary" size="small" variant="tonal" prepend-icon="mdi-speedometer">
@@ -420,58 +420,10 @@ onBeforeUnmount(() => {
     </template>
 
     <template #layout-aside>
-      <template v-if="!hasStarted">
-        <div class="d-flex flex-column ga-2 mb-4">
-          <p class="text-subtitle-2 font-weight-bold mb-3">{{ t('quizPage.level') }}</p>
-          <v-btn v-for="level in levels"
-                 rounded="xl"
-                  :key="level.value"
-                  class="justify-center text-uppercase font-weight-medium"
-                  :variant="selectedLevel === level.value ? 'flat' : 'outlined'"
-                  :style="{ backgroundColor: selectedLevel === level.value ? level.color : 'transparent', color: selectedLevel === level.value ? '#fff' : level.color, borderColor: level.color }"
-                  @click="toggleLevel(level.value)">
-              {{ level.value }}
-          </v-btn>
-        </div>
-      </template>
 
-      <template v-else-if="!isFinished">
-        <div class="d-flex justify-space-between align-center mb-4">
-          <p class="text-subtitle-1 font-weight-bold mb-0">{{ t('quizPage.timer') }}</p>
-          <v-chip size="small" color="primary" variant="tonal">Q{{ currentQuestionIndex + 1 }}/{{ questionsCount }}</v-chip>
-        </div>
-
-        <div class="d-flex justify-center mb-4">
-          <v-progress-circular
-              :model-value="currentTimerProgress"
-              :size="128"
-              :width="12"
-              :color="isCurrentQuestionLocked ? 'error' : 'primary'"
-          >
-              <div class="text-center">
-              <div class="text-h4 font-weight-bold">{{ currentQuestionTimer }}s</div>
-              <div class="text-caption text-medium-emphasis">{{ t('quizPage.remaining') }}</div>
-            </div>
-          </v-progress-circular>
-        </div>
-
-        <v-alert v-if="isCurrentQuestionLocked" type="warning" variant="tonal" density="comfortable" class="mb-4">
-          {{ t('quizPage.timeUpLocked') }}
-        </v-alert>
-      </template>
-
-      <template v-else>
-        <p class="text-body-2 mb-1">{{ t('quizPage.score') }}: <strong>{{ submitResult?.score ?? scorePercent }}%</strong></p>
-        <p class="text-body-2 mb-1">{{ t('quizPage.points') }}: <strong>{{ submitResult?.earnedPoints ?? score }} / {{ submitResult?.totalPoints ?? maxScore }}</strong></p>
-        <p class="text-body-2 mb-1">{{ t('quizPage.correctAnswers') }}: <strong>{{ submitResult?.correctAnswers ?? 0 }} / {{ submitResult?.totalQuestions ?? questionsCount }}</strong></p>
-        <p class="text-body-2 mb-4" :class="(submitResult?.passed ?? hasPassed) ? 'text-success' : 'text-warning'">
-          {{ (submitResult?.passed ?? hasPassed) ? t('quizPage.validated') : t('quizPage.notValidated') }}
-        </p>
-      </template>
-
-      <v-divider class="my-3" />
-
-      <p class="text-subtitle-2 font-weight-bold mb-3">{{ t('quizPage.topLeaderboard') }}</p>
+      <v-chip variant="outlined" class="mb-4 quiz-title-chip" prepend-icon="mdi-trophy-outline">
+        {{ t('quizPage.topLeaderboard') }}
+      </v-chip>
       <TransitionGroup name="leaderboard-fade" tag="div" class="d-flex flex-column ga-2">
         <v-sheet
             v-for="(entry, index) in topLeaderboard"
@@ -496,6 +448,46 @@ onBeforeUnmount(() => {
           {{ t('quizPage.noScores') }}
         </p>
       </TransitionGroup>
+      <template v-if="!hasStarted">
+        <div class="d-flex flex-column ga-2 mb-4">
+
+        </div>
+      </template>
+
+      <template v-else-if="!isFinished">
+        <v-divider class="my-3" />
+        <div class="d-flex justify-space-between align-center mb-4">
+          <p class="text-subtitle-1 font-weight-bold mb-0">{{ t('quizPage.timer') }}</p>
+          <v-chip size="small" color="primary" variant="tonal">Q{{ currentQuestionIndex + 1 }}/{{ questionsCount }}</v-chip>
+        </div>
+
+        <div class="d-flex justify-center mb-4">
+          <v-progress-circular
+              :model-value="currentTimerProgress"
+              :size="128"
+              :width="12"
+              :color="isCurrentQuestionLocked ? 'error' : 'primary'"
+          >
+              <div class="text-center">
+              <div class="text-h4 font-weight-bold">{{ currentQuestionTimer }}s</div>
+              <div class="text-caption text-medium-emphasis">{{ t('quizPage.remaining') }}</div>
+            </div>
+          </v-progress-circular>
+        </div>
+
+        <v-alert v-if="isCurrentQuestionLocked" type="warning" variant="tonal" density="compact" class="mb-4">
+          {{ t('quizPage.timeUpLocked') }}
+        </v-alert>
+      </template>
+
+      <template v-else>
+        <p class="text-body-2 mb-1">{{ t('quizPage.score') }}: <strong>{{ submitResult?.score ?? scorePercent }}%</strong></p>
+        <p class="text-body-2 mb-1">{{ t('quizPage.points') }}: <strong>{{ submitResult?.earnedPoints ?? score }} / {{ submitResult?.totalPoints ?? maxScore }}</strong></p>
+        <p class="text-body-2 mb-1">{{ t('quizPage.correctAnswers') }}: <strong>{{ submitResult?.correctAnswers ?? 0 }} / {{ submitResult?.totalQuestions ?? questionsCount }}</strong></p>
+        <p class="text-body-2 mb-4" :class="(submitResult?.passed ?? hasPassed) ? 'text-success' : 'text-warning'">
+          {{ (submitResult?.passed ?? hasPassed) ? t('quizPage.validated') : t('quizPage.notValidated') }}
+        </p>
+      </template>
     </template>
 
     <section>
@@ -508,10 +500,11 @@ onBeforeUnmount(() => {
 
       <div v-else-if="quiz">
         <template v-if="!hasStarted">
-          <v-card variant="text" class="mb-8">
-            <p class="text-subtitle-1 font-weight-medium mb-3">{{ t('quizPage.categories') }}</p>
-            <div class="d-flex flex-wrap ga-2">
-              <v-card
+          <v-chip variant="outlined" class="mb-4 quiz-title-chip" prepend-icon="mdi-shape-plus">
+            {{ t('quizPage.categories') }}
+          </v-chip>
+          <div class="d-flex flex-wrap ga-2">
+            <v-card
                 v-for="category in categories"
                 :key="category.slug"
                 variant="outlined"
@@ -520,14 +513,31 @@ onBeforeUnmount(() => {
                 min-width="165px"
                 :style="{ '--category-accent': category.color }"
                 @click="toggleCategory(category.slug)"
-              >
-                <v-card-text class="text-center category-card__text">
-                  {{ category.name }}
-                </v-card-text>
-              </v-card>
-            </div>
-          </v-card>
-
+            >
+              <v-card-text class="text-center category-card__text">
+                {{ category.name }}
+              </v-card-text>
+            </v-card>
+          </div>
+          <v-chip variant="outlined" class="mb-4 quiz-title-chip my-4" prepend-icon="mdi-webhook">
+            {{ t('quizPage.level') }}
+          </v-chip>
+          <div class="d-flex flex-wrap ga-2 my-4 d-flex justify-center align-items-center text-center">
+            <v-card
+                v-for="level in levels"
+                :key="level.value"
+                variant="outlined"
+                class="font-weight-medium category-card"
+                :class="{ 'category-card--selected': selectedLevel === level.value }"
+                min-width="165px"
+                :style="{ '--category-accent': level.color }"
+                @click="toggleLevel(level.value)"
+            >
+              <v-card-text class="text-center category-card__text">
+                {{ level.value }}
+              </v-card-text>
+            </v-card>
+          </div>
           <div class="d-flex justify-center align-center">
             <v-btn color="primary" size="x-large" prepend-icon="mdi-play" class="start-cta-btn" @click="startQuiz">{{ t('quizPage.startQuiz') }}</v-btn>
           </div>
@@ -535,11 +545,7 @@ onBeforeUnmount(() => {
 
         <v-card-text v-else>
           <template v-if="!isFinished && currentQuestion">
-            <p class="text-overline mb-2">{{ t('quizPage.questionProgress', { current: currentQuestionIndex + 1, total: questionsCount }) }}</p>
-            <h2 class="text-h5 font-weight-bold mb-2">{{ currentQuestion.title }}</h2>
-            <p class="text-body-2 text-medium-emphasis mb-5">
-              {{ t('quizPage.levelLabel', { value: currentQuestion.level }) }} · {{ t('quizPage.categoryLabel', { value: currentQuestion.category }) }}
-            </p>
+            <h2 class="text-h5 font-weight-bold mb-2 my-4">{{ currentQuestion.title }}</h2>
 
             <v-alert v-if="isCurrentQuestionLocked" type="warning" variant="tonal" class="mb-4">
               {{ t('quizPage.timeUpNavigationOnly') }}
