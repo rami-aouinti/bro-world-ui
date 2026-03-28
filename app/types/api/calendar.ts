@@ -56,3 +56,13 @@ export interface CalendarEventCancelResponse extends CalendarEventMutationRespon
   status: EventStatus
   isCancelled: boolean
 }
+
+export interface GoogleCalendarSyncPayload {
+  accessToken: string
+  calendarId?: string
+}
+
+export interface GoogleCalendarSyncResponse {
+  pulledFromGoogle: number
+  pushedToGoogle: number
+}

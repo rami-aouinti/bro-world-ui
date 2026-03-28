@@ -226,6 +226,9 @@ export default defineNuxtConfig({
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'https://bro-world.org',
       mercurePublicUrl: process.env.NUXT_PUBLIC_MERCURE_PUBLIC_URL || 'http://bro-world.org:3000/.well-known/mercure',
+      oauth: {
+        googleClientId: process.env.NUXT_GOOGLE_CLIENT_ID || process.env.NUXT_OAUTH_GOOGLE_CLIENT_ID || '',
+      },
       useMockData,
     },
   },

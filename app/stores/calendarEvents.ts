@@ -3,6 +3,7 @@ import { useCalendarEventsApi } from '~/composables/api/useCalendarEventsApi'
 import type {
   CalendarEventRead,
   CreateCalendarEventPayload,
+  GoogleCalendarSyncResponse,
   PatchCalendarEventPayload,
 } from '~/types/api/calendar'
 import type { UUID } from '~/types/api/common'
@@ -73,6 +74,15 @@ export const useCalendarEventsStore = defineStore('calendar-events', () => {
     invalidateCache(applicationSlug)
   }
 
+  const syncGoogle = async (accessToken: string, calendarId = 'primary'): Promise<GoogleCalendarSyncResponse> => {
+    const response = await calendarApi.syncGoogle({
+      accessToken,
+      calendarId,
+    })
+    invalidateCache()
+    return response
+  }
+
   return {
     cache,
     inFlight,
@@ -82,5 +92,6 @@ export const useCalendarEventsStore = defineStore('calendar-events', () => {
     patch,
     cancel,
     deleteEvent,
+    syncGoogle,
   }
 })
