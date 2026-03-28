@@ -360,163 +360,144 @@ onMounted(fetchTree)
     <template #sidebar>
       <ProfileSidebarCard />
     </template>
-
+    <template #aside>
+      <h2 class="text-subtitle-1 font-weight-bold mb-3">Folders</h2>
+      <v-skeleton-loader v-if="isLoading" type="list-item-two-line@5" />
+      <div v-else>
+        <v-list class="bg-transparent library-tree" density="compact" nav>
+          <v-list-item
+              v-for="item in folderFlatItems"
+              :key="item.id ?? 'root'"
+              rounded="lg"
+              :class="{ 'drop-target': dragOverFolderId === (item.id ?? null) }"
+              :active="(item.id ?? null) === currentFolderId"
+              @click="openFolder(item.id ?? null)"
+              @dragover="onDragOverFolder($event, item.id ?? null)"
+              @dragleave="dragOverFolderId = null"
+              @drop.prevent="moveNodeToFolder(item.id ?? null)"
+          >
+            <template #prepend>
+              <v-icon icon="mdi-folder-outline" color="warning" />
+            </template>
+            <v-list-item-title :style="{ paddingLeft: `${item.depth * 10}px` }">{{ item.name }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+        <div class="d-flex ga-2 flex-wrap justify-center">
+          <v-btn color="primary" prepend-icon="mdi-folder-plus-outline" :loading="isSubmitting" @click="showCreateFolderDialog = true">
+            New folder
+          </v-btn>
+          <v-btn color="secondary" prepend-icon="mdi-upload" :loading="isSubmitting" @click="triggerUpload">
+            Upload file
+          </v-btn>
+        </div>
+      </div>
+    </template>
     <section class="library-page">
-      <v-row>
-        <v-col cols="12" md="4" lg="3">
-          <v-card rounded="xl" class="pa-3 library-pane h-100" elevation="0">
-            <h2 class="text-subtitle-1 font-weight-bold mb-3">Folders</h2>
-            <v-skeleton-loader v-if="isLoading" type="list-item-two-line@5" />
-            <v-list v-else class="bg-transparent py-0 library-tree" density="compact" nav>
-              <v-list-item
-                v-for="item in folderFlatItems"
-                :key="item.id ?? 'root'"
-                rounded="lg"
-                :class="{ 'drop-target': dragOverFolderId === (item.id ?? null) }"
-                :active="(item.id ?? null) === currentFolderId"
-                @click="openFolder(item.id ?? null)"
-                @dragover="onDragOverFolder($event, item.id ?? null)"
-                @dragleave="dragOverFolderId = null"
-                @drop.prevent="moveNodeToFolder(item.id ?? null)"
+      <input ref="fileInput" type="file" class="d-none" multiple @change="onFileSelected">
+      <v-card rounded="xl" class="pa-4 library-pane" elevation="0">
+        <div class="d-flex flex-wrap align-center justify-space-between ga-3 mb-4">
+          <div>
+            <div class="d-flex flex-wrap align-center ga-2 mb-1">
+              <v-chip
+                  v-for="(folder, index) in breadcrumb"
+                  :key="folder.id"
+                  size="small"
+                  variant="tonal"
+                  color="primary"
+                  @click="openFolder(index === 0 ? null : folder.id)"
               >
-                <template #prepend>
-                  <v-icon icon="mdi-folder-outline" color="warning" />
-                </template>
-                <v-list-item-title :style="{ paddingLeft: `${item.depth * 10}px` }">{{ item.name }}</v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </v-card>
-        </v-col>
-
-        <v-col cols="12" md="8" lg="9">
-          <v-card class="pa-4 mb-4 library-hero" rounded="xl" elevation="0">
-            <div class="d-flex flex-wrap align-center justify-space-between ga-3">
-              <div>
-                <p class="text-overline mb-1 text-medium-emphasis">Media workspace</p>
-                <h1 class="text-h4 font-weight-bold mb-2">Library</h1>
-                <p class="text-body-1 text-medium-emphasis mb-0">
-                  Gérez vos dossiers et vos fichiers dans une interface inspirée de l\'explorateur Windows.
-                </p>
-              </div>
-              <div class="d-flex ga-2 flex-wrap justify-end">
-                <v-btn color="primary" prepend-icon="mdi-folder-plus-outline" :loading="isSubmitting" @click="showCreateFolderDialog = true">
-                  New folder
-                </v-btn>
-                <v-btn color="secondary" prepend-icon="mdi-upload" :loading="isSubmitting" @click="triggerUpload">
-                  Upload file
-                </v-btn>
-              </div>
+                {{ folder.name }}
+              </v-chip>
             </div>
-            <input ref="fileInput" type="file" class="d-none" multiple @change="onFileSelected">
-          </v-card>
+            <h3 class="text-h6 font-weight-bold mb-0">{{ currentFolder.name }}</h3>
+          </div>
 
-          <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
-          <v-alert v-if="successMessage" type="success" variant="tonal" class="mb-4">{{ successMessage }}</v-alert>
+          <div class="d-flex ga-2 align-center">
+            <v-btn variant="text" prepend-icon="mdi-arrow-up" :disabled="breadcrumb.length <= 1" @click="openParent">Parent</v-btn>
+            <v-text-field
+                v-model="search"
+                prepend-inner-icon="mdi-magnify"
+                label="Search"
+                hide-details
+                density="compact"
+                variant="outlined"
+                style="max-width: 260px"
+            />
+          </div>
+        </div>
 
-          <v-card rounded="xl" class="pa-4 library-pane" elevation="0">
-            <div class="d-flex flex-wrap align-center justify-space-between ga-3 mb-4">
-              <div>
-                <div class="d-flex flex-wrap align-center ga-2 mb-1">
-                  <v-chip
-                    v-for="(folder, index) in breadcrumb"
-                    :key="folder.id"
-                    size="small"
-                    variant="tonal"
-                    color="primary"
-                    @click="openFolder(index === 0 ? null : folder.id)"
-                  >
-                    {{ folder.name }}
-                  </v-chip>
-                </div>
-                <h2 class="text-h6 font-weight-bold mb-0">{{ currentFolder.name }} — {{ displayedItems.length }} item(s)</h2>
-              </div>
+        <v-skeleton-loader v-if="isLoading" type="table-heading, table-row-divider@6" />
 
-              <div class="d-flex ga-2 align-center">
-                <v-btn variant="text" prepend-icon="mdi-arrow-up" :disabled="breadcrumb.length <= 1" @click="openParent">Parent</v-btn>
-                <v-text-field
-                  v-model="search"
-                  prepend-inner-icon="mdi-magnify"
-                  label="Search"
-                  hide-details
-                  density="compact"
-                  variant="outlined"
-                  style="max-width: 260px"
+        <v-table v-else class="library-table">
+          <thead>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Size</th>
+            <th class="text-right">Actions</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr
+              v-for="item in displayedItems"
+              :key="item.id"
+              class="library-row"
+              :class="{ 'drop-target': item.type === 'folder' && dragOverFolderId === item.id }"
+              draggable="true"
+              @dragstart="onDragStart(item)"
+              @dragend="onDragEnd"
+              @dragover="item.type === 'folder' ? onDragOverFolder($event, item.id) : null"
+              @dragleave="item.type === 'folder' ? (dragOverFolderId = null) : null"
+              @drop.prevent="item.type === 'folder' ? moveNodeToFolder(item.id) : null"
+              @dblclick="enterItem(item)"
+          >
+            <td>
+              <button class="library-item-btn" type="button" @click="enterItem(item)">
+                <v-icon
+                    :icon="item.type === 'folder' ? 'mdi-folder-outline' : (iconByFileType[item.fileType || ''] || 'mdi-file-outline')"
+                    class="mr-2"
+                    :color="item.type === 'folder' ? 'warning' : 'primary'"
                 />
-              </div>
-            </div>
+                {{ item.name }}
+              </button>
+            </td>
+            <td>{{ item.type === 'folder' ? 'Folder' : (item.mimeType || item.fileType || 'File') }}</td>
+            <td>{{ item.type === 'folder' ? '—' : formatBytes(item.size) }}</td>
+            <td class="text-right">
+              <v-menu location="bottom end">
+                <template #activator="{ props }">
+                  <v-btn icon="mdi-dots-vertical" size="small" variant="text" v-bind="props" />
+                </template>
+                <v-list density="compact">
+                  <v-list-item prepend-icon="mdi-pencil-outline" title="Rename" @click="openRenameDialog(item)" />
+                  <v-list-item prepend-icon="mdi-delete-outline" title="Delete" @click="requestDelete(item)" />
+                </v-list>
+              </v-menu>
+            </td>
+          </tr>
+          <tr v-if="!displayedItems.length">
+            <td colspan="4" class="text-medium-emphasis py-8 text-center">
+              Ce dossier est vide. Ajoutez un dossier ou un fichier pour commencer.
+            </td>
+          </tr>
+          </tbody>
+        </v-table>
 
-            <v-skeleton-loader v-if="isLoading" type="table-heading, table-row-divider@6" />
-
-            <v-table v-else class="library-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Type</th>
-                  <th>Size</th>
-                  <th class="text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="item in displayedItems"
-                  :key="item.id"
-                  class="library-row"
-                  :class="{ 'drop-target': item.type === 'folder' && dragOverFolderId === item.id }"
-                  draggable="true"
-                  @dragstart="onDragStart(item)"
-                  @dragend="onDragEnd"
-                  @dragover="item.type === 'folder' ? onDragOverFolder($event, item.id) : null"
-                  @dragleave="item.type === 'folder' ? (dragOverFolderId = null) : null"
-                  @drop.prevent="item.type === 'folder' ? moveNodeToFolder(item.id) : null"
-                  @dblclick="enterItem(item)"
-                >
-                  <td>
-                    <button class="library-item-btn" type="button" @click="enterItem(item)">
-                      <v-icon
-                        :icon="item.type === 'folder' ? 'mdi-folder-outline' : (iconByFileType[item.fileType || ''] || 'mdi-file-outline')"
-                        class="mr-2"
-                        :color="item.type === 'folder' ? 'warning' : 'primary'"
-                      />
-                      {{ item.name }}
-                    </button>
-                  </td>
-                  <td>{{ item.type === 'folder' ? 'Folder' : (item.mimeType || item.fileType || 'File') }}</td>
-                  <td>{{ item.type === 'folder' ? '—' : formatBytes(item.size) }}</td>
-                  <td class="text-right">
-                    <v-menu location="bottom end">
-                      <template #activator="{ props }">
-                        <v-btn icon="mdi-dots-vertical" size="small" variant="text" v-bind="props" />
-                      </template>
-                      <v-list density="compact">
-                        <v-list-item prepend-icon="mdi-pencil-outline" title="Rename" @click="openRenameDialog(item)" />
-                        <v-list-item prepend-icon="mdi-delete-outline" title="Delete" @click="requestDelete(item)" />
-                      </v-list>
-                    </v-menu>
-                  </td>
-                </tr>
-                <tr v-if="!displayedItems.length">
-                  <td colspan="4" class="text-medium-emphasis py-8 text-center">
-                    Ce dossier est vide. Ajoutez un dossier ou un fichier pour commencer.
-                  </td>
-                </tr>
-              </tbody>
-            </v-table>
-
-            <div class="d-flex justify-end mt-3">
-              <v-btn
-                variant="tonal"
-                color="primary"
-                prepend-icon="mdi-arrow-up-bold"
-                :disabled="!draggingNodeId"
-                @dragover.prevent="onDragOverFolder($event, null)"
-                @drop.prevent="moveNodeToFolder(null)"
-              >
-                Drop to root
-              </v-btn>
-            </div>
-          </v-card>
-        </v-col>
-      </v-row>
+        <div class="d-flex justify-end mt-3">
+          <v-btn
+              variant="tonal"
+              color="primary"
+              prepend-icon="mdi-arrow-up-bold"
+              :disabled="!draggingNodeId"
+              @dragover.prevent="onDragOverFolder($event, null)"
+              @drop.prevent="moveNodeToFolder(null)"
+          >
+            Drop to root
+          </v-btn>
+        </div>
+      </v-card>
+      <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
+      <v-alert v-if="successMessage" type="success" variant="tonal" class="mb-4">{{ successMessage }}</v-alert>
 
       <v-dialog v-model="showCreateFolderDialog" max-width="460">
         <v-card rounded="xl" class="pa-2">
