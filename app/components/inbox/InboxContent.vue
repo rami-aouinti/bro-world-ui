@@ -462,10 +462,9 @@ const deleteMessage = async () => {
 <template>
   <PlatformSplitLayout>
     <template #sidebar>
-      <UiSectionHeader
-        title="Inbox"
-        subtitle="Centre de conversations"
-      />
+      <v-chip variant="outlined" class="mb-4 quiz-title-chip" prepend-icon="mdi-chat-outline">
+        Inbox
+      </v-chip>
       <v-list class="bg-transparent pa-0" nav>
         <v-list-item
           v-for="conversation in visibleConversations"
