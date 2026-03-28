@@ -342,8 +342,8 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
     </template>
 
     <template #aside>
-      <v-chip variant="outlined" class="mb-4 title-chip">
-        Filter
+      <v-chip variant="outlined" class="mb-4 title-chip" prepend-icon="mdi-filter-outline">
+        Filters
       </v-chip>
       <v-text-field
           v-model="search"
