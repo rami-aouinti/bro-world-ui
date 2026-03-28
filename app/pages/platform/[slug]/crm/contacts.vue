@@ -213,12 +213,17 @@ onMounted(async () => {
     </template>
 
     <template #sidebar>
+      <v-chip variant="outlined" class="mb-4 quiz-title-chip">
+        {{ slug }}
+      </v-chip>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
 
     <template #filters>
+      <v-chip variant="outlined" class="mb-4 title-chip" prepend-icon="mdi-filter-outline">
+        Filters
+      </v-chip>
       <v-card rounded="xl" variant="text">
-        <v-card-title class="text-subtitle-2">Filters</v-card-title>
         <v-card-text class="d-flex flex-column ga-3">
           <v-text-field v-model="searchQuery" label="Search" rounded="xl" density="comfortable" variant="outlined" hide-details prepend-inner-icon="mdi-magnify" />
           <v-text-field v-model="cityFilter" label="City" rounded="xl" density="comfortable" variant="outlined" hide-details prepend-inner-icon="mdi-magnify" />

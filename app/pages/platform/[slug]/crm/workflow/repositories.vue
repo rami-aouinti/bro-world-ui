@@ -174,8 +174,10 @@ onMounted(loadData)
     </template>
 
     <template #aside>
+      <v-chip variant="outlined" class="mb-4 title-chip" prepend-icon="mdi-filter-outline">
+        Filters
+      </v-chip>
       <v-card v-if="showFilters" rounded="xl" variant="text">
-        <v-card-title class="text-subtitle-1">Workflow filters</v-card-title>
         <v-card-text class="d-flex flex-column ga-3">
           <v-select
             v-model="selectedProjectId"

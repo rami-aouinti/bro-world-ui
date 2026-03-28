@@ -160,6 +160,9 @@ onMounted(async () => {
 <template>
   <PlatformSplitLayout>
     <template #sidebar>
+      <v-chip variant="outlined" class="mb-4 quiz-title-chip">
+        {{ slug }}
+      </v-chip>
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" />
     </template>
 

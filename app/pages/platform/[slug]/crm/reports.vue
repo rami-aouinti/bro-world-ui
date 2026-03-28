@@ -66,6 +66,9 @@ const contacts = computed(() => reports.value?.contacts ?? [])
       </teleport>
     </client-only>
     <template #sidebar>
+      <v-chip variant="outlined" class="mb-4 quiz-title-chip">
+        {{ slug }}
+      </v-chip>
       <PlatformSidebarNav title="platform.crm.sidebar.reports" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="navItems"  />
     </template>
     <template #aside>

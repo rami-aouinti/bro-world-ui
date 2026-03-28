@@ -255,8 +255,10 @@ onMounted(async () => {
     </template>
 
     <template #filters>
+      <v-chip variant="outlined" class="mb-4 title-chip" prepend-icon="mdi-filter-outline">
+        Filters
+      </v-chip>
       <v-card rounded="xl" variant="text">
-        <v-card-title class="text-subtitle-2">Filters</v-card-title>
         <v-card-text class="d-flex flex-column ga-3">
           <v-text-field v-model="searchQuery" label="Search" rounded="xl" density="comfortable" variant="outlined" hide-details prepend-inner-icon="mdi-magnify" />
           <v-select v-model="statusFilter" label="Status" rounded="xl" density="comfortable" variant="outlined" hide-details prepend-inner-icon="mdi-magnify" :items="[{ title: 'All', value: 'all' }, ...statusOptions]" item-title="title" item-value="value" />

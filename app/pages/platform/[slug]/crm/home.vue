@@ -18,7 +18,17 @@ const crmNav = computed(() => getCrmNav(slug.value, isOwner.value))
 
 <template>
   <PlatformSplitLayout>
-    <template #sidebar><PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav" /></template>
+    <template #sidebar>
+      <v-chip variant="outlined" class="mb-4 quiz-title-chip">
+        {{ slug }}
+      </v-chip>
+      <PlatformSidebarNav
+          title="platform.crm.sidebar.title"
+          subtitle="platform.common.sidebar.application"
+          :subtitle-values="{ slug }"
+          :items="crmNav"
+      />
+    </template>
     <template #aside>
       <v-row class="mb-2">
         <v-col v-for="stat in crmStats" :key="stat.label" cols="12" sm="6">

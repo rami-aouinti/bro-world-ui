@@ -208,10 +208,12 @@ onMounted(async () => {
       <PlatformSidebarNav title="platform.crm.sidebar.title" subtitle="platform.common.sidebar.application" :subtitle-values="{ slug }" :items="crmNav"  />
     </template>
     <template #aside>
+      <v-chip variant="outlined" class="mb-4 title-chip" prepend-icon="mdi-filter-outline">
+        Filters
+      </v-chip>
       <div class="d-flex flex-column ga-4">
         <template v-if="showFilters">
           <v-card rounded="xl" variant="text">
-            <v-card-title class="text-subtitle-2">Filters</v-card-title>
             <v-card-text class="d-flex flex-column ga-3">
               <v-text-field
                 v-model="searchQuery"
@@ -237,7 +239,9 @@ onMounted(async () => {
           </v-card>
         </template>
         <v-card v-else-if="selectedItem" rounded="xl" variant="text">
-          <v-btn size="small" variant="tonal" prepend-icon="mdi-filter-outline" @click="showFiltersPanel">Filter</v-btn>
+          <v-chip @click="showFiltersPanel" variant="outlined" class="mb-4 title-chip" prepend-icon="mdi-filter-outline">
+            Filters
+          </v-chip>
           <h4 class="text-truncate">{{ selectedItem.name }}</h4>
           <v-card-text class="d-flex flex-column ga-2">
             <p class="text-body-2 mb-0">{{ selectedItem.goal || 'No goal' }}</p>
