@@ -96,7 +96,7 @@ const formatDayLabel = (isoDate: string) => {
 }
 
 const statusToChipColor = (status: EventStatus) => {
-  if (status === 'confirmed') return 'success'
+  if (status === 'confirmed') return 'primary'
   if (status === 'tentative') return 'warning'
   return 'error'
 }
@@ -439,49 +439,45 @@ watch(() => props.applicationSlug, loadEvents)
 <template>
   <PlatformSplitLayout>
     <template #sidebar>
-      <PlatformSidebarNav :items="items" title="Calendar">
-        <v-card-title class="d-flex align-center justify-space-between">
-          <span class="text-subtitle-2">Calendar</span>
-          <UiStatChip :value="filteredEvents.length" icon="mdi-calendar-clock-outline" class="calendar-icon" />
-        </v-card-title>
+      <v-chip variant="outlined" class="mb-4 quiz-title-chip" prepend-icon="mdi-calendar-clock-outline">
+        Calendar
+      </v-chip>
+      <v-select
+          v-model="selectedRange"
+          :items="rangeOptions"
+          label="Period"
+          variant="outlined"
+          hide-details
+          density="compact"
+          class="mt-3"
+      />
 
-        <v-card-text>
-          <v-select
-            v-model="selectedRange"
-            :items="rangeOptions"
-            label="Period"
-            variant="outlined"
-            hide-details
-            density="compact"
-            class="mt-3"
-          />
+      <v-select
+          v-model="selectedStatus"
+          :items="statusOptions"
+          label="Statut"
+          variant="outlined"
+          hide-details
+          density="compact"
+          class="mt-4"
+      />
 
-          <v-select
-            v-model="selectedStatus"
-            :items="statusOptions"
-            label="Statut"
-            variant="outlined"
-            hide-details
-            density="compact"
-            class="mt-4"
-          />
-
-          <v-btn
-            v-if="canMutate"
-            prepend-icon="mdi-plus"
-            block
-            class="mt-4 create-event"
-            @click="openCreateDialog"
-          >
-            {{ t('calendar.actions.createEvent') }}
-          </v-btn>
-        </v-card-text>
-      </PlatformSidebarNav>
+      <v-btn
+          v-if="canMutate"
+          prepend-icon="mdi-plus"
+          block
+          class="mt-4 create-event"
+          @click="openCreateDialog"
+      >
+        {{ t('calendar.actions.createEvent') }}
+      </v-btn>
     </template>
     <template #aside>
       <div v-if="upcomingEventsByDay.length" class="d-flex flex-column ga-4">
         <div v-for="group in upcomingEventsByDay" :key="group.day">
-          <p class="text-overline mb-1 text-medium-emphasis">{{ group.day }}</p>
+          <v-chip variant="outlined" class="mb-4 quiz-title-chip" prepend-icon="mdi-calendar-clock-outline">
+            {{ group.day }}
+          </v-chip>
           <v-list class="bg-transparent pa-0" lines="two">
             <v-list-item
                 v-for="event in group.events"

@@ -118,12 +118,9 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="d-flex align-center justify-space-between ga-2 mb-2">
-    <p class="text-overline text-high-emphasis mb-0">IA Briefing</p>
-    <v-chip v-if="briefing" size="x-small" :color="briefing.source === 'ai' ? 'primary' : 'warning'" variant="tonal">
-      {{ briefing.source === 'ai' ? 'Vercel AI Gateway' : 'Mode fallback' }}
-    </v-chip>
-  </div>
+  <v-chip variant="outlined" class="mb-4 title-chip">
+    IA Briefing
+  </v-chip>
 
   <v-skeleton-loader v-if="isLoading" type="list-item-two-line, list-item-three-line" />
 
@@ -132,7 +129,7 @@ onMounted(async () => {
   </v-alert>
 
   <template v-else-if="briefing">
-    <h2 class="text-subtitle-1 font-weight-bold mb-1">{{ briefing.headline }}</h2>
+    <h4 class="font-weight-bold">{{ briefing.headline }}</h4>
     <p class="text-body-2 text-high-emphasis mb-3">{{ briefing.summary }}</p>
 
     <div class="d-flex flex-wrap ga-2 mb-3">

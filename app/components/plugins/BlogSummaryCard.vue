@@ -12,16 +12,15 @@ const publicationHealthTone = computed(() => {
 </script>
 
 <template>
-  <p class="text-overline text-high-emphasis mb-2">{{ blog?.type?.toUpperCase() }}</p>
-  <h1 class="text-h6 font-weight-bold mb-3">{{ blog?.title }}</h1>
-
+  <v-chip variant="outlined" class="mb-4 title-chip">
+    {{ blog?.title }}
+  </v-chip>
+  <p class="text-body-2 text-high-emphasis mb-3">
+    Overview of published content, community activity, and editorial cadence.
+  </p>
   <div class="d-flex flex-wrap ga-2 mb-4">
     <v-chip size="small" color="primary" variant="tonal">{{ blog?.posts?.length }} posts</v-chip>
     <v-chip size="small" :color="publicationHealthTone" variant="tonal">Posts: {{ blog?.postStatus }}</v-chip>
     <v-chip size="small" :color="publicationHealthTone" variant="tonal">Commentaires: {{ blog?.commentStatus }}</v-chip>
   </div>
-
-  <p class="text-body-2 text-high-emphasis mb-0">
-    Overview of published content, community activity, and editorial cadence.
-  </p>
 </template>

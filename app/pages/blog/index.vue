@@ -117,9 +117,7 @@ watch([infiniteSentinel, hasMorePosts], async () => {
 <template>
   <NuxtLayout name="default">
     <template #layout-sidebar>
-      <div class="d-flex flex-column ga-4">
-        <BlogSummaryCard v-if="!isLoading && blog" :blog="blog" />
-      </div>
+      <BlogSummaryCard v-if="!isLoading && blog" :blog="blog" />
     </template>
 
     <template #layout-aside>
