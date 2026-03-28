@@ -107,7 +107,7 @@ const parseRuntimeBoolean = (value: unknown, fallback: boolean, fieldName: strin
 }
 
 const resolveRuntimeSameSite = (value: unknown): 'lax' | 'strict' | 'none' => {
-  const fallback = 'strict'
+  const fallback = 'lax'
 
   if (value === undefined || value === null || value === '') {
     return fallback
@@ -324,7 +324,22 @@ const getSessionStorage = async () => {
       },
     }
   }
-  catch {
+  catch (error) {
+    const isProduction = process.env.NODE_ENV === 'production'
+
+    if (isProduction) {
+      console.error('[auth-session-storage] Redis is required in production for stable auth sessions.', error)
+      throw createError({
+        statusCode: 503,
+        statusMessage: 'AUTH_SESSION_STORAGE_UNAVAILABLE',
+        data: {
+          code: 'AUTH_SESSION_STORAGE_UNAVAILABLE',
+          source: 'auth_cookie_storage',
+        },
+      })
+    }
+
+    console.warn('[auth-session-storage] Redis unavailable; using local Nitro storage fallback (non-production only).')
     const fallbackStorage = useStorage('data')
 
     return {
