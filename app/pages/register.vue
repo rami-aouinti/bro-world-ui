@@ -8,7 +8,6 @@ definePageMeta({
   public: true,
   requiresAuth: false,
   splitShell: false,
-  middleware: ['guest-only'],
   skeleton: 'form',
 })
 
