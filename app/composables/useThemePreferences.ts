@@ -103,6 +103,7 @@ export const useThemePreferences = () => {
       ?? themeShadowOptions[0]?.shadow
       ?? '0 8px 22px rgba(15, 23, 42, 0.14)'
 
+    root.style.setProperty('--radius', radius)
     root.style.setProperty('--ui-radius', radius)
     root.style.setProperty('--ui-theme-shadow', shadow)
   }
