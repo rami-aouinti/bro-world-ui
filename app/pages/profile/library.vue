@@ -466,7 +466,13 @@ onMounted(fetchTree)
             <td class="text-right">
               <v-menu location="bottom end">
                 <template #activator="{ props }">
-                  <v-btn icon="mdi-dots-vertical" size="small" variant="text" v-bind="props" />
+                  <v-btn
+                    icon="mdi-dots-vertical"
+                    size="small"
+                    variant="text"
+                    :aria-label="`Open actions for ${item.name}`"
+                    v-bind="props"
+                  />
                 </template>
                 <v-list density="compact">
                   <v-list-item prepend-icon="mdi-pencil-outline" title="Rename" @click="openRenameDialog(item)" />
@@ -499,7 +505,7 @@ onMounted(fetchTree)
       <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4">{{ errorMessage }}</v-alert>
       <v-alert v-if="successMessage" type="success" variant="tonal" class="mb-4">{{ successMessage }}</v-alert>
 
-      <v-dialog v-model="showCreateFolderDialog" max-width="460">
+      <v-dialog v-model="showCreateFolderDialog" max-width="460" retain-focus>
         <v-card rounded="xl" class="pa-2">
           <v-card-title class="text-h6">Create a folder</v-card-title>
           <v-card-text>
@@ -522,7 +528,7 @@ onMounted(fetchTree)
         </v-card>
       </v-dialog>
 
-      <v-dialog v-model="showRenameDialog" max-width="460">
+      <v-dialog v-model="showRenameDialog" max-width="460" retain-focus>
         <v-card rounded="xl" class="pa-2">
           <v-card-title class="text-h6">Rename</v-card-title>
           <v-card-text>
