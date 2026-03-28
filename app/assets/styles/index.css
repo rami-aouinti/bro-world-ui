@@ -29,6 +29,7 @@ body {
   --v-btn-border-radius: var(--radius, var(--ui-radius));
   --v-field-border-radius: var(--radius, var(--ui-radius));
   --v-list-border-radius: var(--radius, var(--ui-radius));
+  --v-chip-border-radius: var(--radius, var(--ui-radius));
   --v-card-border-radius: var(--radius, var(--ui-card-radius));
   --v-sheet-border-radius: var(--radius, var(--ui-radius));
   --v-navigation-drawer-border-radius: var(--radius, var(--ui-card-radius));
@@ -82,6 +83,7 @@ body.rtl .text-right {
   --v-btn-border-radius: var(--ui-radius);
   --v-field-border-radius: var(--ui-radius);
   --v-list-border-radius: var(--ui-radius);
+  --v-chip-border-radius: var(--ui-radius);
   --v-card-border-radius: var(--ui-card-radius);
   --v-sheet-border-radius: var(--ui-radius);
   --v-navigation-drawer-border-radius: var(--ui-card-radius);
@@ -195,6 +197,12 @@ label.btn {
 
 .v-list {
   border-radius: var(--v-list-border-radius);
+}
+
+.v-chip,
+.v-chip .v-chip__overlay,
+.v-chip .v-chip__underlay {
+  border-radius: var(--v-chip-border-radius);
 }
 
 .v-list-item {
