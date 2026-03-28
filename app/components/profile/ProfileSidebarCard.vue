@@ -36,6 +36,7 @@ const memberSince = computed(() => {
     <v-list-item class="px-2l" to="/settings/basic-info" prepend-icon="mdi-cog-outline" title="Settings" rounded="lg" />
     <v-list-item class="px-2" to="/profile/blogs" prepend-icon="mdi-post-outline" title="My posts" rounded="lg" />
     <v-list-item class="px-2" to="/profile/applications" prepend-icon="mdi-apps" title="My applications" rounded="lg" />
+    <v-list-item class="px-2" to="/profile/library" prepend-icon="mdi-folder-multiple-image" title="Library" rounded="lg" />
   </v-list>
 
   <v-divider class="mb-4" />
