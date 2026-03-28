@@ -550,12 +550,6 @@ onMounted(fetchTree)
   min-height: 100%;
 }
 
-.library-hero {
-  border: 1px solid rgba(var(--v-theme-primary), 0.2);
-  background: linear-gradient(140deg, rgba(16, 24, 48, 0.96) 0%, rgba(33, 41, 70, 0.95) 55%, rgba(42, 55, 98, 0.92) 100%);
-  color: rgb(var(--v-theme-on-primary));
-}
-
 .library-pane {
   border: 1px solid rgba(var(--v-theme-primary), 0.14);
   background: linear-gradient(180deg, rgba(var(--v-theme-surface), 1) 0%, rgba(var(--v-theme-primary), 0.03) 100%);
