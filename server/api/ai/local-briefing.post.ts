@@ -33,35 +33,69 @@ type AiResult = {
   tips: Array<{ title: string, action: string }>
 }
 
-const WEATHER_CODE_MAP: Record<number, string> = {
-  0: 'Ciel dégagé',
-  1: 'Globalement ensoleillé',
-  2: 'Partiellement nuageux',
-  3: 'Couvert',
-  45: 'Brume',
-  48: 'Brouillard givrant',
-  51: 'Bruine légère',
-  53: 'Bruine modérée',
-  55: 'Bruine forte',
-  56: 'Bruine verglaçante légère',
-  57: 'Bruine verglaçante forte',
-  61: 'Pluie faible',
-  63: 'Pluie modérée',
-  65: 'Pluie forte',
-  66: 'Pluie verglaçante légère',
-  67: 'Pluie verglaçante forte',
-  71: 'Neige faible',
-  73: 'Neige modérée',
-  75: 'Neige forte',
-  77: 'Grains de neige',
-  80: 'Averses légères',
-  81: 'Averses modérées',
-  82: 'Averses violentes',
-  85: 'Averses de neige légères',
-  86: 'Averses de neige fortes',
-  95: 'Orage',
-  96: 'Orage avec grêle légère',
-  99: 'Orage avec grêle forte',
+const normalizeLanguage = (locale: string) => locale.toLowerCase().startsWith('fr') ? 'fr' : 'en'
+
+const WEATHER_CODE_MAP: Record<'fr' | 'en', Record<number, string>> = {
+  fr: {
+    0: 'Ciel dégagé',
+    1: 'Globalement ensoleillé',
+    2: 'Partiellement nuageux',
+    3: 'Couvert',
+    45: 'Brume',
+    48: 'Brouillard givrant',
+    51: 'Bruine légère',
+    53: 'Bruine modérée',
+    55: 'Bruine forte',
+    56: 'Bruine verglaçante légère',
+    57: 'Bruine verglaçante forte',
+    61: 'Pluie faible',
+    63: 'Pluie modérée',
+    65: 'Pluie forte',
+    66: 'Pluie verglaçante légère',
+    67: 'Pluie verglaçante forte',
+    71: 'Neige faible',
+    73: 'Neige modérée',
+    75: 'Neige forte',
+    77: 'Grains de neige',
+    80: 'Averses légères',
+    81: 'Averses modérées',
+    82: 'Averses violentes',
+    85: 'Averses de neige légères',
+    86: 'Averses de neige fortes',
+    95: 'Orage',
+    96: 'Orage avec grêle légère',
+    99: 'Orage avec grêle forte',
+  },
+  en: {
+    0: 'Clear sky',
+    1: 'Mostly sunny',
+    2: 'Partly cloudy',
+    3: 'Overcast',
+    45: 'Fog',
+    48: 'Rime fog',
+    51: 'Light drizzle',
+    53: 'Moderate drizzle',
+    55: 'Dense drizzle',
+    56: 'Light freezing drizzle',
+    57: 'Dense freezing drizzle',
+    61: 'Light rain',
+    63: 'Moderate rain',
+    65: 'Heavy rain',
+    66: 'Light freezing rain',
+    67: 'Heavy freezing rain',
+    71: 'Light snow',
+    73: 'Moderate snow',
+    75: 'Heavy snow',
+    77: 'Snow grains',
+    80: 'Light showers',
+    81: 'Moderate showers',
+    82: 'Violent showers',
+    85: 'Light snow showers',
+    86: 'Heavy snow showers',
+    95: 'Thunderstorm',
+    96: 'Thunderstorm with light hail',
+    99: 'Thunderstorm with heavy hail',
+  },
 }
 
 const DEFAULT_WEATHER: WeatherContext = {
@@ -72,9 +106,48 @@ const DEFAULT_WEATHER: WeatherContext = {
   weatherLabel: 'Weather not available',
 }
 
-const fallbackByWeather = (weatherLabel: string, hasWeather: boolean) => {
-  const isRainy = /pluie|averse|orage|bruine/i.test(weatherLabel)
-  const isCold = /neige|givre/i.test(weatherLabel)
+const fallbackByWeather = (weatherLabel: string, hasWeather: boolean, language: 'fr' | 'en') => {
+  const isRainy = /rain|drizzle|shower|thunderstorm|pluie|averse|orage|bruine/i.test(weatherLabel)
+  const isCold = /snow|freezing|rime|neige|givre/i.test(weatherLabel)
+
+  if (language === 'en') {
+    return {
+      headline: hasWeather ? `Local snapshot: ${weatherLabel.toLowerCase()}` : 'Local snapshot: partial data',
+      summary: hasWeather
+        ? (isRainy
+            ? 'Weather may affect mobility and traffic around outdoor areas.'
+            : 'Conditions are generally favorable for outdoor activities.')
+        : 'Exact location could not be detected, so this briefing is less precise.',
+      events: [
+        {
+          title: 'Mobility flow to monitor',
+          whyItMatters: isRainy
+            ? 'Traffic may be denser around major roads and public transit.'
+            : 'Local peak-hour windows remain important to plan around.',
+        },
+        {
+          title: isCold ? 'Potential cold-weather alert' : 'Local weekend agenda',
+          whyItMatters: isCold
+            ? 'Check local safety guidance and weather-ready equipment.'
+            : 'Local cultural and sports events may increase foot traffic.',
+        },
+        {
+          title: 'Public places activity',
+          whyItMatters: 'Crowd levels vary based on weather and time of day.',
+        },
+      ],
+      tips: [
+        {
+          title: 'Plan your trip',
+          action: isRainy ? 'Allow extra travel time and bring rain protection.' : 'Use off-peak windows when possible.',
+        },
+        {
+          title: 'Check official updates',
+          action: 'Confirm schedules and disruptions before heading out.',
+        },
+      ],
+    }
+  }
 
   return {
     headline: hasWeather ? `Point local: ${weatherLabel.toLowerCase()}` : 'Point local: informations partielles',
@@ -160,7 +233,7 @@ const resolveCoordinatesFromCity = async (city: string, country: string, locale:
       query: {
         name: query,
         count: 1,
-        language: locale.startsWith('fr') ? 'fr' : 'en',
+        language: normalizeLanguage(locale),
       },
     })
 
@@ -212,7 +285,7 @@ const fetchLocationFromCoordinates = async (
         format: 'jsonv2',
         lat: coordinates.latitude,
         lon: coordinates.longitude,
-        'accept-language': locale.startsWith('fr') ? 'fr' : 'en',
+        'accept-language': normalizeLanguage(locale),
       },
       headers: {
         'User-Agent': 'bro-world-ui/1.0 (local-briefing)',
@@ -242,7 +315,7 @@ const fetchLocationFromCoordinates = async (
   }
 }
 
-const fetchWeatherContext = async (coordinates: Coordinates, timezone?: string): Promise<WeatherContext> => {
+const fetchWeatherContext = async (coordinates: Coordinates, locale: string, timezone?: string): Promise<WeatherContext> => {
   try {
     const weather = await $fetch<{
       current?: {
@@ -266,7 +339,8 @@ const fetchWeatherContext = async (coordinates: Coordinates, timezone?: string):
       return DEFAULT_WEATHER
     }
 
-    const weatherLabel = WEATHER_CODE_MAP[current.weather_code] || 'Conditions variables'
+    const language = normalizeLanguage(locale)
+    const weatherLabel = WEATHER_CODE_MAP[language][current.weather_code] || (language === 'fr' ? 'Conditions variables' : 'Variable conditions')
 
     return {
       temperatureC: current.temperature_2m,
@@ -304,7 +378,8 @@ const fetchAiBriefing = async (location: LocalContext, weather: WeatherContext, 
     return null
   }
 
-  const today = new Date().toLocaleDateString(locale.startsWith('fr') ? 'fr-FR' : 'en-US', {
+  const language = normalizeLanguage(locale)
+  const today = new Date().toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
     dateStyle: 'full',
   })
 
@@ -327,7 +402,9 @@ const fetchAiBriefing = async (location: LocalContext, weather: WeatherContext, 
         {
           role: 'system',
           content:
-            'Tu es un assistant local. Réponds uniquement en JSON valide. Donne des infos prudentes, sans inventer de faits précis non vérifiables. Format strict: {"headline":string,"summary":string,"events":[{"title":string,"whyItMatters":string}],"tips":[{"title":string,"action":string}]}. 3 events max et 2 tips max.',
+            language === 'fr'
+              ? 'Tu es un assistant local. Réponds uniquement en français et en JSON valide. Donne des infos prudentes, sans inventer de faits précis non vérifiables. Format strict: {"headline":string,"summary":string,"events":[{"title":string,"whyItMatters":string}],"tips":[{"title":string,"action":string}]}. 3 events max et 2 tips max.'
+              : 'You are a local assistant. Reply only in English and valid JSON. Be cautious and do not invent specific unverifiable facts. Strict format: {"headline":string,"summary":string,"events":[{"title":string,"whyItMatters":string}],"tips":[{"title":string,"action":string}]}. Max 3 events and max 2 tips.',
         },
         {
           role: 'user',
@@ -359,25 +436,26 @@ const fetchAiBriefing = async (location: LocalContext, weather: WeatherContext, 
 
 export default defineEventHandler(async (event) => {
   const body = parseBody(await readBody(event))
-  const locale = body.locale || 'fr-FR'
+  const locale = body.locale || 'en-US'
+  const language = normalizeLanguage(locale)
   const headerLocation = extractHeaderLocation(event)
   const coordinates = await resolveCoordinates(event, body, headerLocation, locale)
 
   const location = coordinates
     ? await fetchLocationFromCoordinates(coordinates, locale, headerLocation)
     : {
-        city: headerLocation.city || 'Votre zone',
+        city: headerLocation.city || (language === 'fr' ? 'Votre zone' : 'Your zone'),
         region: headerLocation.region,
         country: headerLocation.country,
         latitude: null,
         longitude: null,
       }
 
-  const weather = coordinates ? await fetchWeatherContext(coordinates, body.timezone) : DEFAULT_WEATHER
+  const weather = coordinates ? await fetchWeatherContext(coordinates, locale, body.timezone) : DEFAULT_WEATHER
 
   let source: 'ai' | 'fallback' = 'fallback'
   const hasWeather = weather.temperatureC !== null
-  let generated = fallbackByWeather(weather.weatherLabel, hasWeather)
+  let generated = fallbackByWeather(weather.weatherLabel, hasWeather, language)
 
   try {
     const aiResult = await fetchAiBriefing(location, weather, locale)

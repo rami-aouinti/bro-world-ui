@@ -36,6 +36,7 @@ const isLoading = ref(false)
 const isLocating = ref(false)
 const errorMessage = ref('')
 const briefing = ref<LocalBriefingResponse | null>(null)
+const { locale } = useI18n()
 
 const temperatureLabel = computed(() => {
   if (!briefing.value) {
@@ -71,7 +72,7 @@ const loadBriefing = async (position?: GeolocationPosition) => {
       latitude: position?.coords.latitude,
       longitude: position?.coords.longitude,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      locale: navigator.language || 'en-US',
+      locale: locale.value || navigator.language || 'en-US',
     }
 
     briefing.value = await $fetch<LocalBriefingResponse>('/api/ai/local-briefing', {
