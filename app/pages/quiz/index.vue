@@ -434,13 +434,12 @@ onBeforeUnmount(() => {
         >
           <div class="d-flex align-center ga-2">
             <v-chip size="small" variant="tonal" :color="resolveRankColor(index + 1)" class="leaderboard-rank-chip">
-              <v-icon start :icon="resolveRankIcon(index + 1)" />
-              #{{ index + 1 }}
+              <v-icon :icon="resolveRankIcon(index + 1)" />
             </v-chip>
             <UiAvatar :name="`${entry.firstName} ${entry.lastName}`" size="xs" />
             <p class="text-body-2 font-weight-medium text-truncate">{{ entry.firstName }} {{ entry.lastName }}</p>
-
-            <p class="text-caption leaderboard-score text-end">{{ entry.averageWeightedScore.toFixed(2) }} pts</p>
+            <v-spacer></v-spacer>
+            <p class="text-caption leaderboard-score d-flex justify-end">{{ entry.averageWeightedScore.toFixed(2) }} pts</p>
 
           </div>
         </v-sheet>
@@ -452,32 +451,6 @@ onBeforeUnmount(() => {
         <div class="d-flex flex-column ga-2 mb-4">
 
         </div>
-      </template>
-
-      <template v-else-if="!isFinished">
-        <v-divider class="my-3" />
-        <div class="d-flex justify-space-between align-center mb-4">
-          <p class="text-subtitle-1 font-weight-bold mb-0">{{ t('quizPage.timer') }}</p>
-          <v-chip size="small" color="primary" variant="tonal">Q{{ currentQuestionIndex + 1 }}/{{ questionsCount }}</v-chip>
-        </div>
-
-        <div class="d-flex justify-center mb-4">
-          <v-progress-circular
-              :model-value="currentTimerProgress"
-              :size="128"
-              :width="12"
-              :color="isCurrentQuestionLocked ? 'error' : 'primary'"
-          >
-              <div class="text-center">
-              <div class="text-h4 font-weight-bold">{{ currentQuestionTimer }}s</div>
-              <div class="text-caption text-medium-emphasis">{{ t('quizPage.remaining') }}</div>
-            </div>
-          </v-progress-circular>
-        </div>
-
-        <v-alert v-if="isCurrentQuestionLocked" type="warning" variant="tonal" density="compact" class="mb-4">
-          {{ t('quizPage.timeUpLocked') }}
-        </v-alert>
       </template>
 
       <template v-else>
@@ -545,6 +518,19 @@ onBeforeUnmount(() => {
 
         <v-card-text v-else>
           <template v-if="!isFinished && currentQuestion">
+            <div class="d-flex justify-center mb-2">
+              <v-progress-circular
+                  :model-value="currentTimerProgress"
+                  :size="96"
+                  :width="10"
+                  :color="isCurrentQuestionLocked ? 'error' : 'primary'"
+              >
+                <div class="text-center">
+                  <div class="text-h4 font-weight-bold">{{ currentQuestionTimer }}s</div>
+                  <div class="text-caption text-medium-emphasis">{{ t('quizPage.remaining') }}</div>
+                </div>
+              </v-progress-circular>
+            </div>
             <h2 class="text-h5 font-weight-bold mb-2 my-4">{{ currentQuestion.title }}</h2>
 
             <v-alert v-if="isCurrentQuestionLocked" type="warning" variant="tonal" class="mb-4">
@@ -662,7 +648,7 @@ onBeforeUnmount(() => {
 
 .leaderboard-item {
   border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
-  background: rgba(var(--v-theme-surface), 0.7);
+  background: transparent;
   backdrop-filter: blur(4px);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
