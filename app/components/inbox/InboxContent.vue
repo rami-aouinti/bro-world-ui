@@ -463,17 +463,6 @@ const deleteMessage = async () => {
         title="Inbox"
         subtitle="Centre de conversations"
       />
-
-      <div class="inbox-page__insights mb-4">
-        <article v-for="insight in inboxInsights" :key="insight.label" class="inbox-page__insight-card">
-          <v-icon :icon="insight.icon" :color="insight.color" size="20" />
-          <div>
-            <p class="text-caption text-medium-emphasis mb-0">{{ insight.label }}</p>
-            <p class="text-subtitle-2 font-weight-bold mb-0">{{ insight.value }}</p>
-          </div>
-        </article>
-      </div>
-
       <v-list class="bg-transparent pa-0" nav>
         <v-list-item
           v-for="conversation in visibleConversations"
@@ -505,7 +494,13 @@ const deleteMessage = async () => {
         </v-list-item>
       </v-list>
     </template>
-
+    <template #aside>
+      <div v-for="insight in inboxInsights" :key="insight.label" class="mb-2 d-flex align-center text ga-2">
+        <v-icon :icon="insight.icon" :color="insight.color" size="20" />
+        <p class="text-caption text-medium-emphasis">{{ insight.label }}</p>
+        <p class="text-subtitle-2 font-weight-bold">{{ insight.value }}</p>
+      </div>
+    </template>
     <template v-if="activeConversation">
       <section class="inbox-page__content">
         <div class="d-flex align-center justify-space-between mb-2 flex-wrap ga-2">
