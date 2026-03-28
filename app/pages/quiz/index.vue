@@ -387,7 +387,8 @@ onBeforeUnmount(() => {
 <template>
   <NuxtLayout name="default">
     <template #layout-sidebar>
-      <div v-if="quiz">
+      <v-skeleton-loader v-if="!quiz" type="list-item-two-line, list-item-three-line" />
+      <div v-else>
         <div class="d-flex flex-wrap justify-space-between align-start ga-4">
           <div>
             <v-chip variant="outlined" class="mb-4 quiz-title-chip" prepend-icon="mdi-star-four-points-outline">
