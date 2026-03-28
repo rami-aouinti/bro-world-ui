@@ -1,4 +1,4 @@
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useAuthSessionStore } from '~/stores/authSession'
 import { FALLBACK_LOCALE, getProfilePreferredLocale, normalizeLocaleCodes, resolveLocale } from '~/utils/locale'
 import { shouldLogTelemetry } from './telemetry'
@@ -9,6 +9,7 @@ import type { AuthState, UserProfileSnapshot } from '~/stores/authSession'
 
 let activeSessionInitPromise: Promise<void> | null = null
 let activeSessionInitCorrelationId: string | null = null
+const AUTH_TOKEN_STORAGE_KEY = 'bro_world_auth_token'
 
 const logAuthTelemetry = (
   level: 'info' | 'warn',
@@ -38,6 +39,52 @@ export const useAuth = () => {
   const sessionCorrelationId = useState<string | null>('auth-session-correlation-id', () => null)
   const authRevalidateInFlight = useState<Promise<void> | null>('auth-revalidate-in-flight', () => null)
   const lastAuthFailureAt = useState<number>('auth-last-auth-failure-at', () => 0)
+  const tokenPersistenceHydrated = useState<boolean>('auth-token-persistence-hydrated', () => false)
+  const tokenPersistenceWatchRegistered = useState<boolean>('auth-token-persistence-watch-registered', () => false)
+
+  const restoreTokenFromSessionStorage = () => {
+    if (import.meta.server || tokenPersistenceHydrated.value) {
+      return
+    }
+
+    tokenPersistenceHydrated.value = true
+
+    try {
+      const persistedToken = window.sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY)
+
+      if (persistedToken?.trim()) {
+        token.value = persistedToken
+      }
+    }
+    catch (error) {
+      logAuthTelemetry('warn', '[auth-correlation] unable to restore token from sessionStorage', error)
+    }
+  }
+
+  const registerTokenPersistenceWatcher = () => {
+    if (import.meta.server || tokenPersistenceWatchRegistered.value) {
+      return
+    }
+
+    tokenPersistenceWatchRegistered.value = true
+
+    watch(token, (nextToken) => {
+      try {
+        if (nextToken?.trim()) {
+          window.sessionStorage.setItem(AUTH_TOKEN_STORAGE_KEY, nextToken)
+          return
+        }
+
+        window.sessionStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
+      }
+      catch (error) {
+        logAuthTelemetry('warn', '[auth-correlation] unable to persist token in sessionStorage', error)
+      }
+    }, { immediate: true })
+  }
+
+  restoreTokenFromSessionStorage()
+  registerTokenPersistenceWatcher()
 
   const authFetch = <T>(url: string, options: Parameters<typeof $fetch<T>>[1] = {}) => {
     if (import.meta.server) {
@@ -194,8 +241,9 @@ export const useAuth = () => {
   const applySessionState = async (session: SessionResponse) => {
     const incomingSnapshot = session.userSnapshot ?? null
     const existingToken = token.value || authSession.token || null
+    const incomingToken = session.authToken?.trim() || null
     token.value = session.authenticated
-      ? (existingToken || '__server_session__')
+      ? (incomingToken || existingToken || '__server_session__')
       : null
     const shouldKeepExistingProfile = session.authenticated
       && session.sessionStatus === 'degraded'

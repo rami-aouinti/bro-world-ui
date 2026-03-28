@@ -143,6 +143,7 @@ export interface SessionUserSnapshot {
 
 export interface SessionResponse {
   authenticated: boolean
+  authToken?: string | null
   profile: UserProfile | null
   userSnapshot?: SessionUserSnapshot | null
   roles: string[]

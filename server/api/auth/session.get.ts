@@ -3,6 +3,7 @@ import { readAuthCookie, setAuthCookie } from '../../../server/utils/authCookie'
 
 const unauthenticatedResponse = (): SessionResponse => ({
   authenticated: false,
+  authToken: null,
   profile: null,
   userSnapshot: null,
   roles: [],
@@ -41,6 +42,7 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
     if (statusCode === 401 || statusCode === 403) {
       return {
         authenticated: true,
+        authToken: authCookie.token,
         profile: null,
         userSnapshot: authCookie.userSnapshot ?? null,
         roles: [],
@@ -51,6 +53,7 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
 
     return {
       authenticated: true,
+      authToken: authCookie.token,
       profile: null,
       userSnapshot: authCookie.userSnapshot ?? null,
       roles: [],
@@ -67,6 +70,7 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
 
   return {
     authenticated: true,
+    authToken: nextAuthCookie.token,
     profile: null,
     userSnapshot: nextAuthCookie.userSnapshot ?? null,
     roles: [],
