@@ -23,7 +23,7 @@ const usernameOrEmail = ref('')
 const password = ref('')
 const loading = ref(false)
 const errorMessage = ref('')
-
+const checkbox = ref(false)
 
 const resolveRedirectTarget = () => {
   const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : ''
@@ -88,32 +88,34 @@ const loginWithGithub = () => {
   <div class="login-block">
     <v-card :loading="loading" class="login-card" max-width="520" min-width="400" elevation="10" rounded="xl">
       <div class="login-card__header">
-        <h1 class="text-h4 font-weight-bold mb-3 text-center">{{ t('app.name') }}</h1>
-
-        <div class="d-flex justify-center ga-6 mb-3">
-          <v-btn icon variant="text" color="white" aria-label="Login with Facebook" class="login-social-btn">
+        <div class="d-flex justify-center ga-2 mb-1">
+          <NuxtLink to="/" class="text-decoration-none">
+            <v-img src="/world-logo-primary.svg" alt="Bro World" width="72" height="72" class="d-inline-block" />
+          </NuxtLink>
+        </div>
+        <div class="d-flex justify-center ga-6 mb-1">
+          <v-btn icon variant="text" aria-label="Login with Facebook" class="login-social-btn">
             <v-icon icon="mdi-facebook" size="28" />
           </v-btn>
           <v-btn
             icon
             variant="text"
-            color="white"
             aria-label="Login with Github"
             class="login-social-btn"
             @click="loginWithGithub"
           >
             <v-icon icon="mdi-github" size="28" />
           </v-btn>
-          <v-btn icon variant="text" color="white" aria-label="Login with Google" class="login-social-btn">
+          <v-btn icon variant="text" aria-label="Login with Google" class="login-social-btn">
             <v-icon icon="mdi-google" size="28" />
           </v-btn>
         </div>
       </div>
 
       <v-card-text class="login-card__body">
-        <div class="login-divider mb-6">
+        <div class="login-divider">
           <v-divider class="flex-grow-1" />
-          <span class="mx-4 text-medium-emphasis font-weight-bold">or</span>
+          <span class="mx-4 text-medium-emphasis font-weight-bold">Login</span>
           <v-divider class="flex-grow-1" />
         </div>
 
@@ -126,32 +128,58 @@ const loginWithGithub = () => {
             :message="errorMessage"
         />
 
-        <v-form @submit.prevent="submit">
+        <v-form @submit.prevent="submit" class="text-center">
           <v-text-field
               v-model="usernameOrEmail"
               :label="t('login.usernameOrEmail')"
               :placeholder="t('login.usernameOrEmailPlaceholder')"
+              rounded="xl"
+              density="compact"
               required
-              class="mb-3"
+              class="font-size-input input-style"
           />
 
           <v-text-field
               v-model="password"
               :label="t('login.password')"
               type="password"
+              rounded="xl"
+              density="compact"
               required
-              class="mb-6"
+              class="font-size-input input-style"
           />
-
+          <v-checkbox
+              v-model="checkbox"
+              :ripple="false"
+              class="ma-0 checkbox-custom checkbox-thinner"
+              hide-details
+          >
+            <template v-slot:label>
+              <span class="text-sm ls-0"
+              >Remember Password </span>
+            </template>
+          </v-checkbox>
           <v-btn
               type="submit"
               color="primary"
-              class="login-submit"
+              class="
+            font-weight-bold
+            text-uppercase
+              btn-default
+              bg-gradient-primary login-submit"
               block
               :loading="loading"
           >
             {{ t('login.submit') }}
           </v-btn>
+          <p class="text-sm mt-3 mb-3">
+            Don't have an account?
+            <NuxtLink
+                to="/register"
+                class="text-decoration-none font-weight-bolder"
+            >Sign up</NuxtLink
+            >
+          </p>
         </v-form>
       </v-card-text>
     </v-card>
@@ -163,24 +191,30 @@ const loginWithGithub = () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-width: 500px;
   min-height: 100vh;
+  background: url('/background-world.png') center/cover no-repeat;
 }
+
+.login-block::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(var(--v-theme-primary), 0.05);
+}
+
 .login-card {
   position: relative;
   overflow: hidden;
   border-radius: 28px !important;
-  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.22) !important;
   animation: login-card-enter 450ms ease-out;
 }
 
 .login-card__header {
-  background: linear-gradient(135deg, rgba(var(--v-theme-on-surface), 0.98), rgba(var(--v-theme-on-surface), 0.08));
-  padding: 2rem 1.5rem 1.25rem;
+  padding: 1rem 1rem 0.5rem;
 }
 
 .login-card__body {
-  padding: 1.5rem;
+  padding: 0.5rem;
 }
 
 .login-divider {
@@ -222,3 +256,4 @@ const loginWithGithub = () => {
   }
 }
 </style>
+
