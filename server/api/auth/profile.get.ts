@@ -27,6 +27,7 @@ export default defineEventHandler(async (event): Promise<SessionResponse> => {
 
   return {
     authenticated: true,
+    authToken: nextAuthCookie.token,
     profile,
     userSnapshot: nextAuthCookie.userSnapshot ?? buildProfileSnapshot(profile),
     roles: profile.roles ?? [],

@@ -12,19 +12,39 @@ const CRITICAL_API_PATTERNS = [
   'api/v1/applications',
   'api/v1/crm',
 ]
-const PRIVATE_AUTH_REQUIRED_PATTERNS = [
-  'api/v1/blog',
-  'api/v1/quiz',
-]
 const PUBLIC_QUIZ_ENDPOINT_PREFIX = 'api/v1/public/quiz/'
+const PUBLIC_ENDPOINT_EXACT_MATCHES = new Set([
+  'api/health',
+  'api/version',
+  'api/v1/localization/language',
+  'api/v1/localization/locale',
+  'api/v1/localization/timezone',
+  'api/v1/auth/get_token',
+  'api/v1/application/public',
+  'api/v1/platform/public',
+  'api/v1/plugin/public',
+  'api/v1/public/users',
+  'api/v1/public/quiz/general',
+  'api/v1/public/quiz/general/categories',
+  'api/v1/public/quiz/general/levels',
+  'api/v1/public/quiz/general/leaderboard',
+])
+const PUBLIC_ENDPOINT_PREFIXES = [
+  'api/v1/public/',
+  'api/v1/recruit/public/',
+  'api/v1/page/public/',
+]
 const PRIVATE_ENDPOINT_PREFIXES = [
+  'api/v1/crm/',
   'api/v1/private/',
+  'api/v1/recruit/private/',
+  'api/v1/profile',
+  'api/v1/blogs/me',
+  'api/v1/events',
   'api/v1/users/me',
+  'api/v1/notifications',
   'api/v1/chat/private/',
 ]
-const PRIVATE_ENDPOINT_EXACT_MATCHES = new Set([
-  'api/v1/notifications',
-])
 const RETRYABLE_NETWORK_ERROR_CODES = new Set([
   'ECONNRESET',
   'ECONNREFUSED',
@@ -54,22 +74,17 @@ const normalizeApiPath = (url: string) => url.replace(/^\/+/, '')
 const isCriticalApiCall = (normalizedUrl: string) => CRITICAL_API_PATTERNS.some(pattern => normalizedUrl.includes(pattern))
 const isPrivateAuthRequiredEndpoint = (normalizedUrl: string) => {
   const lowerNormalizedUrl = normalizedUrl.toLowerCase()
-
-  if (lowerNormalizedUrl.startsWith(PUBLIC_QUIZ_ENDPOINT_PREFIX)) {
-    return false
-  }
-
-  return PRIVATE_AUTH_REQUIRED_PATTERNS.some(pattern => lowerNormalizedUrl.includes(pattern))
+  return isPrivateEndpoint(lowerNormalizedUrl)
 }
 const isPrivateEndpoint = (url: string) => {
   const normalizedUrl = normalizeApiPath(url).toLowerCase()
 
-  if (normalizedUrl.startsWith(PUBLIC_QUIZ_ENDPOINT_PREFIX)) {
+  if (PUBLIC_ENDPOINT_EXACT_MATCHES.has(normalizedUrl)) {
     return false
   }
 
-  if (PRIVATE_ENDPOINT_EXACT_MATCHES.has(normalizedUrl)) {
-    return true
+  if (PUBLIC_ENDPOINT_PREFIXES.some(prefix => normalizedUrl.startsWith(prefix))) {
+    return false
   }
 
   return PRIVATE_ENDPOINT_PREFIXES.some(pattern => normalizedUrl.startsWith(pattern))
