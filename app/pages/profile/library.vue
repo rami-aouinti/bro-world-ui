@@ -591,7 +591,7 @@ onMounted(fetchTree)
 }
 
 .drop-target {
-  background: rgba(var(--v-theme-success), 0.12) !important;
-  outline: 1px dashed rgba(var(--v-theme-success), 0.8);
+  background: rgba(var(--v-theme-primary), 0.12) !important;
+  outline: 1px dashed rgba(var(--v-theme-primary), 0.8);
 }
 </style>
