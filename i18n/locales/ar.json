@@ -1559,7 +1559,11 @@
       "edit": "Unable to edit this event.",
       "cancel": "Unable to cancel this event.",
       "delete": "Unable to delete this event.",
-      "moveResize": "Unable to move or resize this event."
+      "moveResize": "Unable to move or resize this event.",
+      "googleClientIdMissing": "معرّف عميل Google غير موجود. قم بإعداد NUXT_OAUTH_GOOGLE_CLIENT_ID.",
+      "googleOAuthFailed": "فشل تفويض Google.",
+      "googleTokenMissing": "لم يُرجع Google رمز وصول.",
+      "googleSync": "فشلت مزامنة Google."
     },
     "actions": {
       "createEvent": "Create an event",
@@ -1569,7 +1573,8 @@
       "save": "حفظ",
       "close": "Close",
       "edit": "تعديل",
-      "delete": "حذف"
+      "delete": "حذف",
+      "googleSync": "مزامنة Google"
     },
     "empty": {
       "title": "No upcoming events",
@@ -1584,7 +1589,14 @@
       "period": "Period",
       "noDescription": "No description",
       "notSpecified": "Not specified",
-      "demoReadonly": "Demo event (read-only)."
+      "demoReadonly": "Demo event (read-only).",
+      "googleSyncSuccess": "اكتملت مزامنة Google."
+    },
+    "googleSync": {
+      "title": "مزامنة Google Calendar",
+      "calendarId": "معرف تقويم Google",
+      "calendarIdHint": "استخدم \"primary\" للتقويم الافتراضي.",
+      "start": "بدء المزامنة"
     }
   },
   "profilePage": {

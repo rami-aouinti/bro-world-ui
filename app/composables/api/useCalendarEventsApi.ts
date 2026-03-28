@@ -4,6 +4,8 @@ import type {
   CalendarEventMutationResponse,
   CalendarEventRead,
   CreateCalendarEventPayload,
+  GoogleCalendarSyncPayload,
+  GoogleCalendarSyncResponse,
   PatchCalendarEventPayload,
 } from '~/types/api/calendar'
 import type { UUID } from '~/types/api/common'
@@ -60,6 +62,12 @@ export const useCalendarEventsApi = () => {
     cancel(id: UUID, applicationSlug?: string) {
       return apiFetch<CalendarEventCancelResponse>(`${resolvePath(applicationSlug, true)}/${id}/cancel`, {
         method: 'POST',
+      })
+    },
+    syncGoogle(payload: GoogleCalendarSyncPayload) {
+      return apiFetch<GoogleCalendarSyncResponse>('/api/v1/calendar/private/events/google/sync', {
+        method: 'POST',
+        body: payload,
       })
     },
   }

@@ -37,6 +37,7 @@ const selectedEventId = ref<string | null>(null)
 const isCreateDialogOpen = ref(false)
 const isEditDialogOpen = ref(false)
 const isShowDialogOpen = ref(false)
+const isGoogleSyncDialogOpen = ref(false)
 const fullCalendarRef = ref<{ getApi: () => { updateSize: () => void } } | null>(null)
 const calendarContainerRef = ref<HTMLElement | null>(null)
 const { loadFullCalendar, isLoading: isCalendarLibLoading } = useLazyExternalLibs()
@@ -54,6 +55,9 @@ const eventForm = reactive({
   startAt: '',
   endAt: '',
   location: '',
+})
+const googleSyncForm = reactive({
+  calendarId: 'primary',
 })
 
 const rangeOptions = [
@@ -133,6 +137,98 @@ const loadEvents = async () => {
     errorMessage.value = 'API unavailable: displaying demo data.'
   } finally {
     isLoading.value = false
+  }
+}
+
+const googleScopes = 'https://www.googleapis.com/auth/calendar.events'
+const { public: publicRuntimeConfig } = useRuntimeConfig()
+const googleClientId = computed(() => String(publicRuntimeConfig.oauth?.googleClientId || '').trim())
+
+const requestGoogleAccessToken = async () => {
+  if (!import.meta.client) return ''
+  if (!googleClientId.value) {
+    throw new Error(t('calendar.errors.googleClientIdMissing'))
+  }
+
+  const state = crypto.randomUUID()
+  const redirectUri = `${window.location.origin}/oauth/google-calendar`
+  const authorizationUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth')
+  authorizationUrl.searchParams.set('client_id', googleClientId.value)
+  authorizationUrl.searchParams.set('redirect_uri', redirectUri)
+  authorizationUrl.searchParams.set('response_type', 'token')
+  authorizationUrl.searchParams.set('scope', googleScopes)
+  authorizationUrl.searchParams.set('include_granted_scopes', 'true')
+  authorizationUrl.searchParams.set('prompt', 'consent')
+  authorizationUrl.searchParams.set('state', state)
+
+  const popup = window.open(authorizationUrl.toString(), 'google-calendar-auth', 'width=540,height=720')
+  if (!popup) {
+    throw new Error(t('calendar.errors.googleOAuthFailed'))
+  }
+
+  return await new Promise<string>((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      cleanup()
+      reject(new Error(t('calendar.errors.googleOAuthFailed')))
+    }, 120_000)
+
+    const timerId = window.setInterval(() => {
+      if (popup.closed) {
+        cleanup()
+        reject(new Error(t('calendar.errors.googleOAuthFailed')))
+      }
+    }, 500)
+
+    const handleMessage = (event: MessageEvent<{ source?: string, state?: string, accessToken?: string, error?: string }>) => {
+      if (event.origin !== window.location.origin) return
+      if (event.data?.source !== 'google-calendar-oauth') return
+      if (event.data.state !== state) return
+
+      cleanup()
+      if (event.data.error) {
+        reject(new Error(t('calendar.errors.googleOAuthFailed')))
+        return
+      }
+
+      const token = String(event.data.accessToken || '').trim()
+      if (!token) {
+        reject(new Error(t('calendar.errors.googleTokenMissing')))
+        return
+      }
+
+      resolve(token)
+    }
+
+    const cleanup = () => {
+      window.clearTimeout(timeoutId)
+      window.clearInterval(timerId)
+      window.removeEventListener('message', handleMessage)
+      if (!popup.closed) popup.close()
+    }
+
+    window.addEventListener('message', handleMessage)
+  })
+}
+
+const startGoogleSync = async () => {
+  if (!canMutate.value) return
+
+  try {
+    isSaving.value = true
+    errorMessage.value = ''
+    const accessToken = await requestGoogleAccessToken()
+    const calendarId = googleSyncForm.calendarId.trim() || 'primary'
+    await calendarStore.syncGoogle(accessToken, calendarId)
+    isGoogleSyncDialogOpen.value = false
+    errorMessage.value = t('calendar.common.googleSyncSuccess')
+    await loadEvents()
+  } catch (error) {
+    console.error(error)
+    errorMessage.value = error instanceof Error && error.message
+      ? error.message
+      : t('calendar.errors.googleSync')
+  } finally {
+    isSaving.value = false
   }
 }
 
@@ -471,6 +567,16 @@ watch(() => props.applicationSlug, loadEvents)
       >
         {{ t('calendar.actions.createEvent') }}
       </v-btn>
+      <v-btn
+          v-if="canMutate"
+          prepend-icon="mdi-google"
+          block
+          class="mt-2"
+          variant="outlined"
+          @click="isGoogleSyncDialogOpen = true"
+      >
+        {{ t('calendar.actions.googleSync') }}
+      </v-btn>
     </template>
     <template #aside>
       <div v-if="upcomingEventsByDay.length" class="d-flex flex-column ga-4">
@@ -594,6 +700,30 @@ watch(() => props.applicationSlug, loadEvents)
           <v-btn v-if="canMutate && !isDemoEvent(selectedEvent)" color="primary" variant="text" @click="openEditDialog(selectedEvent)">{{ t('calendar.actions.edit') }}</v-btn>
           <v-btn v-if="canMutate && !isDemoEvent(selectedEvent)" color="warning" variant="text" @click="cancelEvent(selectedEvent)">{{ t('calendar.actions.cancel') }}</v-btn>
           <v-btn v-if="canMutate && !isDemoEvent(selectedEvent)" color="error" variant="text" @click="deleteEvent(selectedEvent)">{{ t('calendar.actions.delete') }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="isGoogleSyncDialogOpen" max-width="520">
+      <v-card>
+        <v-card-title>{{ t('calendar.googleSync.title') }}</v-card-title>
+        <v-card-text>
+          <v-text-field
+            v-model="googleSyncForm.calendarId"
+            :label="t('calendar.googleSync.calendarId')"
+            placeholder="primary"
+            class="mb-2"
+          />
+          <div class="text-caption text-medium-emphasis">
+            {{ t('calendar.googleSync.calendarIdHint') }}
+          </div>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="isGoogleSyncDialogOpen = false">{{ t('calendar.actions.cancel') }}</v-btn>
+          <v-btn color="primary" :loading="isSaving" @click="startGoogleSync">
+            {{ t('calendar.googleSync.start') }}
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

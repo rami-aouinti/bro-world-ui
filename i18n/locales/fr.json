@@ -1559,7 +1559,11 @@
       "edit": "Impossible de modifier cet événement.",
       "cancel": "Impossible d'annuler cet événement.",
       "delete": "Impossible de supprimer cet événement.",
-      "moveResize": "Impossible de déplacer ou redimensionner cet événement."
+      "moveResize": "Impossible de déplacer ou redimensionner cet événement.",
+      "googleClientIdMissing": "Le client ID Google est manquant. Configurez NUXT_OAUTH_GOOGLE_CLIENT_ID.",
+      "googleOAuthFailed": "L'autorisation Google a échoué.",
+      "googleTokenMissing": "Google n'a pas renvoyé de token d'accès.",
+      "googleSync": "La synchronisation Google a échoué."
     },
     "actions": {
       "createEvent": "Créer un événement",
@@ -1569,7 +1573,8 @@
       "save": "Enregistrer",
       "close": "Fermer",
       "edit": "Modifier",
-      "delete": "Supprimer"
+      "delete": "Supprimer",
+      "googleSync": "Synchronisation Google"
     },
     "empty": {
       "title": "Aucun événement à venir",
@@ -1584,7 +1589,14 @@
       "period": "Période",
       "noDescription": "Sans description",
       "notSpecified": "Non renseigné",
-      "demoReadonly": "Événement de démonstration (lecture seule)."
+      "demoReadonly": "Événement de démonstration (lecture seule).",
+      "googleSyncSuccess": "Synchronisation Google terminée."
+    },
+    "googleSync": {
+      "title": "Synchronisation Google Calendar",
+      "calendarId": "ID du calendrier Google",
+      "calendarIdHint": "Utilisez \"primary\" pour votre calendrier par défaut.",
+      "start": "Démarrer la synchronisation"
     }
   },
   "profilePage": {
