@@ -24,13 +24,9 @@ const memberSince = computed(() => {
 
 <template>
   <NuxtLink to="/profile" class="text-decoration-none">
-  <div class="d-flex align-center ga-3 mb-2">
-      <UiAvatar :src="currentUser.me?.photo || '/images/placeholders/platform-media-fallback.svg'" :name="fullName" size="lg" />
-      <div>
-        <h4 class="text-h4 font-weight-bold mb-1">{{ fullName }}</h4>
-        <p class="mb-0 text-body-2 text-medium-emphasis">Member since {{ memberSince }}</p>
-      </div>
-  </div>
+    <v-chip variant="outlined" class="mb-4 title-chip" prepend-icon="mdi-account-outline">
+      Profile
+    </v-chip>
   </NuxtLink>
   <v-list class="bg-transparent mb-2" nav>
     <v-list-item class="px-2l" to="/settings/basic-info" prepend-icon="mdi-cog-outline" title="Settings" rounded="lg" />

@@ -307,8 +307,10 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
   <PlatformSplitLayout>
 
     <template #sidebar>
+      <v-chip variant="outlined" class="mb-4 title-chip">
+        Platform
+      </v-chip>
       <div class="ga-3 d-flex flex-column">
-        <h3> Platform </h3>
         <UiCard
             @click="goToNewPlatform"
             class="home-hero platform-page__application-card"
@@ -340,7 +342,9 @@ const shouldRenderDeleteDialog = computed(() => deleteDialog.value || submitting
     </template>
 
     <template #aside>
-      <h3 class="platform-page__aside-title"> Filter </h3>
+      <v-chip variant="outlined" class="mb-4 title-chip">
+        Filter
+      </v-chip>
       <v-text-field
           v-model="search"
           :label="t('platform.filters.search')"

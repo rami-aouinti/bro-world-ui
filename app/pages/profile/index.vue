@@ -195,7 +195,9 @@ onMounted(async () => {
       <ProfileSidebarCard v-else />
     </template>
     <template #aside>
-      <h4 class="text-h4 font-weight-bold mb-2">Friends ({{ friendsStore.friends.length }})</h4>
+      <v-chip variant="outlined" class="mb-4 title-chip">
+        Friends ({{ friendsStore.friends.length }})
+      </v-chip>
       <v-list v-if="friendsStore.friends.length" class="pa-0 px-2 bg-transparent">
         <v-list-item v-for="friend in friendsStore.friends" :key="friend.id">
           <template #prepend>
@@ -212,8 +214,9 @@ onMounted(async () => {
         </v-list-item>
       </v-list>
       <p v-else class="text-body-2 text-medium-emphasis mb-0">No friends.</p>
-
-      <h4 class="text-h4 font-weight-bold mb-2">Received requests ({{ friendsStore.incomingRequests.length }})</h4>
+      <v-chip variant="outlined" class="mb-4 title-chip">
+        Received requests ({{ friendsStore.incomingRequests.length }})
+      </v-chip>
       <v-list v-if="friendsStore.incomingRequests.length" class="pa-0 px-2 bg-transparent">
         <v-list-item v-for="user in friendsStore.incomingRequests" :key="user.id" class="px-0">
           <v-list-item-title>{{ friendDisplayName(user) }}</v-list-item-title>
@@ -227,8 +230,9 @@ onMounted(async () => {
         </v-list-item>
       </v-list>
       <p v-else class="text-body-2 text-medium-emphasis mb-0">No requests received.</p>
-
-      <h4 class="text-h4 font-weight-bold mb-2">Sent requests ({{ friendsStore.sentRequests.length }})</h4>
+      <v-chip variant="outlined" class="mb-4 title-chip">
+        Sent requests ({{ friendsStore.sentRequests.length }})
+      </v-chip>
       <v-list v-if="friendsStore.sentRequests.length" class="pa-0 px-2 bg-transparent">
         <v-list-item v-for="user in friendsStore.sentRequests" :key="user.id" class="px-0">
           <v-list-item-title>{{ friendDisplayName(user) }}</v-list-item-title>
@@ -241,8 +245,9 @@ onMounted(async () => {
         </v-list-item>
       </v-list>
       <p v-else class="text-body-2 text-medium-emphasis mb-0">No requests sent.</p>
-
-      <h4 class="text-h4 font-weight-bold mb-2">Blocked users ({{ friendsStore.blockedUsers.length }})</h4>
+      <v-chip variant="outlined" class="mb-4 title-chip">
+        Blocked users ({{ friendsStore.blockedUsers.length }})
+      </v-chip>
       <v-list v-if="friendsStore.blockedUsers.length" class="pa-0 px-2 bg-transparent">
         <v-list-item v-for="user in friendsStore.blockedUsers" :key="user.id" class="px-0">
           <v-list-item-title>{{ friendDisplayName(user) }}</v-list-item-title>
