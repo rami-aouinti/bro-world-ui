@@ -259,7 +259,10 @@ const refreshConversationData = async () => {
 
 watch(
   () => [activeConversation.value?.id, props.selectedConversationId],
-  async ([activeConversationId, selectedConversationId], [previousActiveConversationId, previousSelectedConversationId]) => {
+  async (
+    [activeConversationId, selectedConversationId],
+    [previousActiveConversationId, previousSelectedConversationId] = [],
+  ) => {
     const targetConversationId = selectedConversationId ?? activeConversationId
 
     if (!targetConversationId) {
