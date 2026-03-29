@@ -5,6 +5,8 @@ defineProps<{
   selectedPlayMode: 'ai' | 'pvp'
 }>()
 
+const { t } = useI18n()
+
 type Suit = '♠' | '♥' | '♦' | '♣'
 
 interface Card {
@@ -46,7 +48,7 @@ const hand = ref<Card[]>([])
 const selectedCardIds = ref<string[]>([])
 const melds = ref<Card[][]>([])
 const score = ref(0)
-const message = ref('Créez des combinaisons de 3 cartes ou plus (suite ou brelan).')
+const message = ref(t('gameComponents.rami.messages.createCombinations'))
 
 const formatRank = (rank: number) => rankLabels[rank] ?? String(rank)
 
@@ -56,7 +58,7 @@ const reset = () => {
   selectedCardIds.value = []
   melds.value = []
   score.value = 0
-  message.value = 'Nouvelle partie. Faites des suites ou des brelans.'
+  message.value = t('gameComponents.rami.messages.newGame')
 }
 
 const isSelected = (cardId: string) => selectedCardIds.value.includes(cardId)
@@ -106,7 +108,7 @@ const canCreateMeld = computed(() => isSet(selectedCards.value) || isRun(selecte
 
 const createMeld = () => {
   if (!canCreateMeld.value) {
-    message.value = 'Combinaison invalide. Essayez une suite de même couleur ou un brelan.'
+    message.value = t('gameComponents.rami.messages.invalidCombination')
     return
   }
 
@@ -117,8 +119,8 @@ const createMeld = () => {
   selectedCardIds.value = []
   score.value += cardsToMove.length * 10
   message.value = hand.value.length === 0
-    ? 'Bravo ! Vous avez posé toutes vos cartes.'
-    : 'Bonne combinaison. Continuez !'
+    ? t('gameComponents.rami.messages.allCardsPlayed')
+    : t('gameComponents.rami.messages.goodCombination')
 }
 
 const drawCard = () => {
@@ -126,12 +128,12 @@ const drawCard = () => {
   const remaining = shuffle(deck().filter(card => !usedIds.has(card.id)))
 
   if (!remaining.length) {
-    message.value = 'Le paquet est vide.'
+    message.value = t('gameComponents.rami.messages.deckEmpty')
     return
   }
 
   hand.value.push(remaining[0])
-  message.value = 'Carte piochée.'
+  message.value = t('gameComponents.rami.messages.cardDrawn')
 }
 
 reset()
@@ -140,18 +142,18 @@ reset()
 <template>
   <div class="d-flex flex-wrap align-center justify-space-between ga-3 mb-4">
     <div>
-      <h3 class="game-title mb-1">Rami</h3>
-      <p class="game-subtitle mb-0">Score: <strong>{{ score }}</strong></p>
+      <h3 class="game-title mb-1">{{ t("gameComponents.rami.title") }}</h3>
+      <p class="game-subtitle mb-0">{{ t("gameComponents.rami.score") }}: <strong>{{ score }}</strong></p>
     </div>
     <div class="d-flex ga-2">
-      <v-btn variant="outlined" prepend-icon="mdi-cards" @click="drawCard">Piocher</v-btn>
-      <v-btn color="primary" prepend-icon="mdi-refresh" @click="reset">Rejouer</v-btn>
+      <v-btn variant="outlined" prepend-icon="mdi-cards" @click="drawCard">{{ t("gameComponents.rami.actions.draw") }}</v-btn>
+      <v-btn color="primary" prepend-icon="mdi-refresh" @click="reset">{{ t("gameComponents.rami.actions.playAgain") }}</v-btn>
     </div>
   </div>
 
   <p class="game-description mb-3">{{ message }}</p>
 
-  <h4 class="text-subtitle-1 mb-2 font-weight-bold">Main</h4>
+  <h4 class="text-subtitle-1 mb-2 font-weight-bold">{{ t("gameComponents.rami.hand") }}</h4>
   <div class="game-card-grid mb-4">
     <button
         v-for="card in hand"
@@ -167,10 +169,10 @@ reset()
   </div>
 
   <v-btn :disabled="!selectedCards.length" color="secondary" variant="outlined" class="mb-4" @click="createMeld">
-    Poser la combinaison ({{ selectedCards.length }})
+    {{ t("gameComponents.rami.actions.playCombination", { count: selectedCards.length }) }}
   </v-btn>
 
-  <h4 class="text-subtitle-1 mb-2 font-weight-bold">Combinaisons posées</h4>
+  <h4 class="text-subtitle-1 mb-2 font-weight-bold">{{ t("gameComponents.rami.melds") }}</h4>
   <div v-if="melds.length" class="d-flex flex-column ga-2">
     <div v-for="(meld, index) in melds" :key="`meld-${index}`" class="d-flex ga-2 flex-wrap">
       <v-chip v-for="card in meld" :key="card.id" size="small" variant="outlined">
@@ -178,7 +180,7 @@ reset()
       </v-chip>
     </div>
   </div>
-  <p v-else class="game-subtitle mb-0">Aucune combinaison pour le moment.</p>
+  <p v-else class="game-subtitle mb-0">{{ t("gameComponents.rami.noMeld") }}</p>
 </template>
 
 <style scoped>

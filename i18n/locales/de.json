@@ -1664,5 +1664,160 @@
     "noAnswer": "Keine Antwort",
     "submitError": "Das Quiz kann momentan nicht abgeschickt werden.",
     "questionShort": "Frage {index}"
+  },
+  "gamePage": {
+    "sidebar": {
+      "badge": "Spielezentrum",
+      "title": "Spielebereich",
+      "description": "Wähle eine Kategorie, dann eine Unterkategorie und starte dein Spiel."
+    },
+    "navigation": {
+      "backToCategories": "Zurück zu Kategorien",
+      "backToGames": "Zurück zu Spielen",
+      "backToSubCategories": "Zurück zu Unterkategorien"
+    },
+    "info": {
+      "title": "Spielinfo",
+      "category": "Kategorie",
+      "subCategory": "Unterkategorie",
+      "game": "Spiel",
+      "mode": "Modus",
+      "status": "Status"
+    },
+    "modes": {
+      "vsComputer": "Gegen Computer",
+      "vsPlayer": "Gegen einen Spieler"
+    },
+    "status": {
+      "none": "Kein Spiel ausgewählt",
+      "inProgress": "Spiel läuft",
+      "ready": "Bereit zum Starten",
+      "selecting": "Auswahl läuft",
+      "comingSoon": "Demnächst verfügbar",
+      "soonHint": "Dieses Spiel ist bald verfügbar. Schau bald wieder vorbei!"
+    },
+    "steps": {
+      "categories": {
+        "title": "1) Kategorien",
+        "description": "Wähle eine Spielfamilie, um fortzufahren."
+      },
+      "subCategories": {
+        "title": "2) Unterkategorien · {category}",
+        "description": "Verfeinere deine Spielauswahl."
+      },
+      "games": {
+        "title": "3) Spiele · {subCategory}",
+        "description": "Wähle ein Spiel und den Modus."
+      },
+      "mode": {
+        "title": "4) Spielmodus · {game}",
+        "description": "Wähle einen Modus und starte dann dein Spiel."
+      }
+    },
+    "actions": {
+      "viewSubCategories": "Unterkategorien ansehen",
+      "viewGames": "Spiele ansehen",
+      "chooseGame": "Dieses Spiel wählen",
+      "launchGame": "Spiel starten"
+    },
+    "catalog": {
+      "categories": {
+        "cards": {
+          "name": "Kartenspiele",
+          "description": "Wähle ein traditionelles Kartenspiel und spiele sofort los."
+        },
+        "board": {
+          "name": "Brettspiele",
+          "description": "Einfache und gesellige Brettspiel-Klassiker."
+        }
+      },
+      "subCategories": {
+        "classicCards": {
+          "name": "Klassische Karten",
+          "description": "Rummy, Belote und andere beliebte Kartenspiele."
+        },
+        "tableClassic": {
+          "name": "Tischklassiker",
+          "description": "Starte mit einem vollständigen Damespiel."
+        }
+      },
+      "games": {
+        "rami": {
+          "name": "Rummy",
+          "description": "Bilde Folgen oder Sätze, um deine Hand zu leeren."
+        },
+        "belote": {
+          "name": "Belote",
+          "description": "Schnelle Version mit 8 Stichen gegen KI."
+        },
+        "poker": {
+          "name": "Poker (bald)",
+          "description": "Texas Hold'em-Modus kommt bald."
+        },
+        "checkers": {
+          "name": "Dame",
+          "description": "Lokales Dame-Spiel für 2 Spieler am selben Bildschirm."
+        }
+      }
+    }
+  },
+  "gameComponents": {
+    "belote": {
+      "title": "Belote (Schnellversion)",
+      "actions": {
+        "newDeal": "Neu geben",
+        "nextTrick": "Nächster Stich"
+      },
+      "trump": "Trumpf",
+      "tricksPlayed": "Gespielte Stiche: {count} / 8",
+      "score": "Punkte du {playerScore} - KI {aiScore}",
+      "currentTrick": "Aktueller Stich",
+      "instruction": "Anweisung",
+      "you": "Du",
+      "ai": "KI",
+      "yourHand": "Deine Hand",
+      "messages": {
+        "chooseCard": "Wähle eine Karte für den Stich.",
+        "playerWonTrick": "Du gewinnst diesen Stich (+{points}).",
+        "aiWonTrick": "Die KI gewinnt diesen Stich (+{points}).",
+        "playerWonGame": "Spiel beendet: du gewinnst {playerScore} zu {aiScore}.",
+        "aiWonGame": "Spiel beendet: KI gewinnt {aiScore} zu {playerScore}.",
+        "drawGame": "Spiel beendet: Unentschieden {playerScore}-{aiScore}.",
+        "newRound": "Neue Belote-Runde. Du bist dran!"
+      }
+    },
+    "checkers": {
+      "title": "Dame",
+      "actions": {
+        "restart": "Neu starten"
+      },
+      "players": {
+        "redTurn": "Zug des roten Spielers.",
+        "blackTurn": "Zug des schwarzen Spielers.",
+        "redWin": "Der rote Spieler gewinnt!",
+        "blackWin": "Der schwarze Spieler gewinnt!"
+      }
+    },
+    "rami": {
+      "title": "Rummy",
+      "score": "Punktestand",
+      "actions": {
+        "draw": "Karte ziehen",
+        "playAgain": "Erneut spielen",
+        "playCombination": "Kombination auslegen ({count})"
+      },
+      "hand": "Hand",
+      "melds": "Ausgelegte Kombinationen",
+      "noMeld": "Noch keine Kombinationen.",
+      "messages": {
+        "createCombinations": "Erstelle Kombinationen aus 3 oder mehr Karten (Folge oder Satz).",
+        "newGame": "Neues Spiel. Bilde Folgen oder Sätze.",
+        "invalidCombination": "Ungültige Kombination. Versuche eine Folge gleicher Farbe oder einen Satz.",
+        "allCardsPlayed": "Super! Du hast alle Karten abgelegt.",
+        "goodCombination": "Gute Kombination. Weiter so!",
+        "deckEmpty": "Der Stapel ist leer.",
+        "cardDrawn": "Karte gezogen."
+      }
+    }
   }
 }

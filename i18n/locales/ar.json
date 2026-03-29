@@ -1664,5 +1664,160 @@
     "noAnswer": "بدون إجابة",
     "submitError": "تعذر إرسال الاختبار حالياً.",
     "questionShort": "السؤال {index}"
+  },
+  "gamePage": {
+    "sidebar": {
+      "badge": "مركز الألعاب",
+      "title": "مساحة الألعاب",
+      "description": "اختر فئة ثم فئة فرعية ثم ابدأ لعبتك."
+    },
+    "navigation": {
+      "backToCategories": "العودة إلى الفئات",
+      "backToGames": "العودة إلى الألعاب",
+      "backToSubCategories": "العودة إلى الفئات الفرعية"
+    },
+    "info": {
+      "title": "معلومات المباراة",
+      "category": "الفئة",
+      "subCategory": "الفئة الفرعية",
+      "game": "اللعبة",
+      "mode": "الوضع",
+      "status": "الحالة"
+    },
+    "modes": {
+      "vsComputer": "ضد الكمبيوتر",
+      "vsPlayer": "ضد لاعب"
+    },
+    "status": {
+      "none": "لا توجد لعبة محددة",
+      "inProgress": "اللعبة قيد التشغيل",
+      "ready": "جاهز للبدء",
+      "selecting": "جاري الاختيار",
+      "comingSoon": "قريبًا",
+      "soonHint": "ستتوفر هذه اللعبة قريبًا. عُد لاحقًا!"
+    },
+    "steps": {
+      "categories": {
+        "title": "1) الفئات",
+        "description": "اختر عائلة ألعاب للمتابعة."
+      },
+      "subCategories": {
+        "title": "2) الفئات الفرعية · {category}",
+        "description": "حدّد اختيارك من الألعاب."
+      },
+      "games": {
+        "title": "3) الألعاب · {subCategory}",
+        "description": "اختر لعبة ووضع اللعب."
+      },
+      "mode": {
+        "title": "4) وضع المباراة · {game}",
+        "description": "اختر وضعًا ثم ابدأ لعبتك."
+      }
+    },
+    "actions": {
+      "viewSubCategories": "عرض الفئات الفرعية",
+      "viewGames": "عرض الألعاب",
+      "chooseGame": "اختر هذه اللعبة",
+      "launchGame": "ابدأ اللعبة"
+    },
+    "catalog": {
+      "categories": {
+        "cards": {
+          "name": "ألعاب الورق",
+          "description": "اختر لعبة ورق تقليدية وابدأ اللعب مباشرة."
+        },
+        "board": {
+          "name": "ألعاب الطاولة",
+          "description": "ألعاب لوحية بسيطة وممتعة."
+        }
+      },
+      "subCategories": {
+        "classicCards": {
+          "name": "ورق كلاسيكي",
+          "description": "رامي وبلوت وألعاب شائعة أخرى."
+        },
+        "tableClassic": {
+          "name": "كلاسيكيات الطاولة",
+          "description": "ابدأ بلعبة الداما الكاملة."
+        }
+      },
+      "games": {
+        "rami": {
+          "name": "رامي",
+          "description": "كوّن تسلسلات أو مجموعات لتفريغ يدك."
+        },
+        "belote": {
+          "name": "بلوت",
+          "description": "نسخة سريعة من 8 أدوار ضد الذكاء الاصطناعي."
+        },
+        "poker": {
+          "name": "بوكر (قريبًا)",
+          "description": "وضع تكساس هولدم قادم قريبًا."
+        },
+        "checkers": {
+          "name": "داما",
+          "description": "لعبة داما محلية للاعبين على نفس الشاشة."
+        }
+      }
+    }
+  },
+  "gameComponents": {
+    "belote": {
+      "title": "بلوت (نسخة سريعة)",
+      "actions": {
+        "newDeal": "توزيع جديد",
+        "nextTrick": "الدور التالي"
+      },
+      "trump": "الترامب",
+      "tricksPlayed": "الأدوار الملعوبة: {count} / 8",
+      "score": "النتيجة أنت {playerScore} - الذكاء الاصطناعي {aiScore}",
+      "currentTrick": "الدور الحالي",
+      "instruction": "تعليمات",
+      "you": "أنت",
+      "ai": "ذكاء اصطناعي",
+      "yourHand": "يدك",
+      "messages": {
+        "chooseCard": "اختر بطاقة للعب هذا الدور.",
+        "playerWonTrick": "فزت بهذا الدور (+{points}).",
+        "aiWonTrick": "فاز الذكاء الاصطناعي بهذا الدور (+{points}).",
+        "playerWonGame": "انتهت اللعبة: فزت {playerScore} مقابل {aiScore}.",
+        "aiWonGame": "انتهت اللعبة: فاز الذكاء الاصطناعي {aiScore} مقابل {playerScore}.",
+        "drawGame": "انتهت اللعبة: تعادل {playerScore}-{aiScore}.",
+        "newRound": "جولة بلوت جديدة. دورك الآن!"
+      }
+    },
+    "checkers": {
+      "title": "الداما",
+      "actions": {
+        "restart": "إعادة البدء"
+      },
+      "players": {
+        "redTurn": "دور اللاعب الأحمر.",
+        "blackTurn": "دور اللاعب الأسود.",
+        "redWin": "فاز اللاعب الأحمر!",
+        "blackWin": "فاز اللاعب الأسود!"
+      }
+    },
+    "rami": {
+      "title": "رامي",
+      "score": "النقاط",
+      "actions": {
+        "draw": "سحب بطاقة",
+        "playAgain": "العب مجددًا",
+        "playCombination": "أنزل التشكيلة ({count})"
+      },
+      "hand": "اليد",
+      "melds": "التشكيلات المنزلة",
+      "noMeld": "لا توجد تشكيلات حتى الآن.",
+      "messages": {
+        "createCombinations": "كوّن تشكيلات من 3 بطاقات أو أكثر (تسلسل أو مجموعة).",
+        "newGame": "لعبة جديدة. كوّن تسلسلات أو مجموعات.",
+        "invalidCombination": "تشكيلة غير صالحة. جرّب تسلسلًا من نفس النوع أو مجموعة.",
+        "allCardsPlayed": "رائع! لقد أنزلت كل بطاقاتك.",
+        "goodCombination": "تشكيلة جيدة. واصل!",
+        "deckEmpty": "الرزمة فارغة.",
+        "cardDrawn": "تم سحب بطاقة."
+      }
+    }
   }
 }

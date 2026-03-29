@@ -1664,5 +1664,160 @@
     "noAnswer": "Aucune réponse",
     "submitError": "Impossible de soumettre le quiz pour le moment.",
     "questionShort": "Question {index}"
+  },
+  "gamePage": {
+    "sidebar": {
+      "badge": "Centre de jeux",
+      "title": "Espace jeux",
+      "description": "Choisissez une catégorie, puis une sous-catégorie, puis lancez votre jeu."
+    },
+    "navigation": {
+      "backToCategories": "Retour catégories",
+      "backToGames": "Retour jeux",
+      "backToSubCategories": "Retour sous-catégories"
+    },
+    "info": {
+      "title": "Infos partie",
+      "category": "Catégorie",
+      "subCategory": "Sous-catégorie",
+      "game": "Jeu",
+      "mode": "Mode",
+      "status": "État"
+    },
+    "modes": {
+      "vsComputer": "Contre ordinateur",
+      "vsPlayer": "Contre un joueur"
+    },
+    "status": {
+      "none": "Aucun jeu sélectionné",
+      "inProgress": "Partie en cours",
+      "ready": "Prêt à lancer",
+      "selecting": "Sélection en cours",
+      "comingSoon": "Bientôt disponible",
+      "soonHint": "Ce jeu sera disponible prochainement. Revenez bientôt !"
+    },
+    "steps": {
+      "categories": {
+        "title": "1) Catégories",
+        "description": "Choisissez une famille de jeux pour continuer."
+      },
+      "subCategories": {
+        "title": "2) Sous-catégories · {category}",
+        "description": "Affinez votre choix de jeux."
+      },
+      "games": {
+        "title": "3) Jeux · {subCategory}",
+        "description": "Sélectionnez un jeu et son mode."
+      },
+      "mode": {
+        "title": "4) Mode de partie · {game}",
+        "description": "Choisissez un mode puis lancez votre partie."
+      }
+    },
+    "actions": {
+      "viewSubCategories": "Voir sous-catégories",
+      "viewGames": "Voir les jeux",
+      "chooseGame": "Choisir ce jeu",
+      "launchGame": "Lancer le jeu"
+    },
+    "catalog": {
+      "categories": {
+        "cards": {
+          "name": "Jeux de cartes",
+          "description": "Sélectionnez un jeu de cartes traditionnel puis jouez directement."
+        },
+        "board": {
+          "name": "Jeux de table",
+          "description": "Des jeux de plateau simples et conviviaux."
+        }
+      },
+      "subCategories": {
+        "classicCards": {
+          "name": "Cartes classiques",
+          "description": "Rami, Belote, et d'autres jeux populaires."
+        },
+        "tableClassic": {
+          "name": "Classiques de table",
+          "description": "Commencez avec le jeu de dames complet."
+        }
+      },
+      "games": {
+        "rami": {
+          "name": "Rami",
+          "description": "Créez des suites ou brelans pour vider votre main."
+        },
+        "belote": {
+          "name": "Belote",
+          "description": "Version rapide en 8 plis contre une IA."
+        },
+        "poker": {
+          "name": "Poker (bientôt)",
+          "description": "Mode Texas Hold'em à venir prochainement."
+        },
+        "checkers": {
+          "name": "Dames",
+          "description": "Jeu de dames local 2 joueurs sur le même écran."
+        }
+      }
+    }
+  },
+  "gameComponents": {
+    "belote": {
+      "title": "Belote (version rapide)",
+      "actions": {
+        "newDeal": "Nouvelle donne",
+        "nextTrick": "Pli suivant"
+      },
+      "trump": "Atout",
+      "tricksPlayed": "Plis joués: {count} / 8",
+      "score": "Score vous {playerScore} - IA {aiScore}",
+      "currentTrick": "Pli en cours",
+      "instruction": "Instruction",
+      "you": "Vous",
+      "ai": "IA",
+      "yourHand": "Votre main",
+      "messages": {
+        "chooseCard": "Choisissez une carte pour jouer un pli.",
+        "playerWonTrick": "Vous gagnez ce pli (+{points}).",
+        "aiWonTrick": "Belote IA gagne ce pli (+{points}).",
+        "playerWonGame": "Partie terminée: vous gagnez {playerScore} à {aiScore}.",
+        "aiWonGame": "Partie terminée: l'IA gagne {aiScore} à {playerScore}.",
+        "drawGame": "Partie terminée: égalité {playerScore}-{aiScore}.",
+        "newRound": "Nouvelle manche de belote. À vous de jouer !"
+      }
+    },
+    "checkers": {
+      "title": "Jeu de dames",
+      "actions": {
+        "restart": "Recommencer"
+      },
+      "players": {
+        "redTurn": "Tour du joueur rouge.",
+        "blackTurn": "Tour du joueur noir.",
+        "redWin": "Le joueur rouge gagne !",
+        "blackWin": "Le joueur noir gagne !"
+      }
+    },
+    "rami": {
+      "title": "Rami",
+      "score": "Score",
+      "actions": {
+        "draw": "Piocher",
+        "playAgain": "Rejouer",
+        "playCombination": "Poser la combinaison ({count})"
+      },
+      "hand": "Main",
+      "melds": "Combinaisons posées",
+      "noMeld": "Aucune combinaison pour le moment.",
+      "messages": {
+        "createCombinations": "Créez des combinaisons de 3 cartes ou plus (suite ou brelan).",
+        "newGame": "Nouvelle partie. Faites des suites ou des brelans.",
+        "invalidCombination": "Combinaison invalide. Essayez une suite de même couleur ou un brelan.",
+        "allCardsPlayed": "Bravo ! Vous avez posé toutes vos cartes.",
+        "goodCombination": "Bonne combinaison. Continuez !",
+        "deckEmpty": "Le paquet est vide.",
+        "cardDrawn": "Carte piochée."
+      }
+    }
   }
 }

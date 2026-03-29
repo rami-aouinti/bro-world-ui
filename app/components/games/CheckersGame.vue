@@ -5,6 +5,8 @@ defineProps<{
   selectedPlayMode: 'ai' | 'pvp'
 }>()
 
+const { t } = useI18n()
+
 type Player = 'red' | 'black'
 
 interface Piece {
@@ -42,10 +44,18 @@ const createInitialBoard = (): Board => {
   return board
 }
 
+const currentPlayerLabel = (player: Player) => player === 'red'
+  ? t('gameComponents.checkers.players.redTurn')
+  : t('gameComponents.checkers.players.blackTurn')
+
+const winnerLabel = (player: Player) => player === 'red'
+  ? t('gameComponents.checkers.players.redWin')
+  : t('gameComponents.checkers.players.blackWin')
+
 const board = ref<Board>(createInitialBoard())
 const currentPlayer = ref<Player>('red')
 const selected = ref<Position | null>(null)
-const message = ref('Tour du joueur rouge.')
+const message = ref(currentPlayerLabel('red'))
 
 const hasInside = (row: number, col: number) => row >= 0 && row < 8 && col >= 0 && col < 8
 
@@ -108,7 +118,7 @@ const isHighlighted = (row: number, col: number) => highlightedMoves.value.some(
 
 const switchTurn = () => {
   currentPlayer.value = currentPlayer.value === 'red' ? 'black' : 'red'
-  message.value = currentPlayer.value === 'red' ? 'Tour du joueur rouge.' : 'Tour du joueur noir.'
+  message.value = currentPlayerLabel(currentPlayer.value)
 }
 
 const winner = computed(() => {
@@ -171,7 +181,7 @@ const clickCell = (row: number, col: number) => {
   selected.value = null
 
   if (winner.value) {
-    message.value = winner.value === 'red' ? 'Le joueur rouge gagne !' : 'Le joueur noir gagne !'
+    message.value = winnerLabel(winner.value)
     return
   }
 
@@ -182,15 +192,15 @@ const reset = () => {
   board.value = createInitialBoard()
   currentPlayer.value = 'red'
   selected.value = null
-  message.value = 'Tour du joueur rouge.'
+  message.value = currentPlayerLabel('red')
 }
 </script>
 
 <template>
   <v-card class="pa-4 rounded-xl game-card-shell" variant="tonal">
     <div class="d-flex align-center justify-space-between mb-3">
-      <h3 class="game-title mb-0">Jeu de dames</h3>
-      <v-btn color="primary" prepend-icon="mdi-refresh" @click="reset">Recommencer</v-btn>
+      <h3 class="game-title mb-0">{{ t("gameComponents.checkers.title") }}</h3>
+      <v-btn color="primary" prepend-icon="mdi-refresh" @click="reset">{{ t("gameComponents.checkers.actions.restart") }}</v-btn>
     </div>
 
     <p class="game-subtitle mb-4">{{ message }}</p>

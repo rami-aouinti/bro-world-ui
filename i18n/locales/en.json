@@ -1664,5 +1664,160 @@
     "noAnswer": "No answer",
     "submitError": "Unable to submit the quiz at the moment.",
     "questionShort": "Question {index}"
+  },
+  "gamePage": {
+    "sidebar": {
+      "badge": "Game Center",
+      "title": "Games Hub",
+      "description": "Choose a category, then a sub-category, then launch your game."
+    },
+    "navigation": {
+      "backToCategories": "Back to categories",
+      "backToGames": "Back to games",
+      "backToSubCategories": "Back to sub-categories"
+    },
+    "info": {
+      "title": "Match info",
+      "category": "Category",
+      "subCategory": "Sub-category",
+      "game": "Game",
+      "mode": "Mode",
+      "status": "Status"
+    },
+    "modes": {
+      "vsComputer": "Vs computer",
+      "vsPlayer": "Vs player"
+    },
+    "status": {
+      "none": "No game selected",
+      "inProgress": "Game in progress",
+      "ready": "Ready to launch",
+      "selecting": "Selection in progress",
+      "comingSoon": "Coming soon",
+      "soonHint": "This game will be available soon. Check back shortly!"
+    },
+    "steps": {
+      "categories": {
+        "title": "1) Categories",
+        "description": "Choose a game family to continue."
+      },
+      "subCategories": {
+        "title": "2) Sub-categories · {category}",
+        "description": "Refine your game selection."
+      },
+      "games": {
+        "title": "3) Games · {subCategory}",
+        "description": "Select a game and choose a mode."
+      },
+      "mode": {
+        "title": "4) Match mode · {game}",
+        "description": "Choose a mode, then launch your game."
+      }
+    },
+    "actions": {
+      "viewSubCategories": "View sub-categories",
+      "viewGames": "View games",
+      "chooseGame": "Choose this game",
+      "launchGame": "Launch game"
+    },
+    "catalog": {
+      "categories": {
+        "cards": {
+          "name": "Card games",
+          "description": "Pick a traditional card game and start playing right away."
+        },
+        "board": {
+          "name": "Board games",
+          "description": "Simple and friendly tabletop classics."
+        }
+      },
+      "subCategories": {
+        "classicCards": {
+          "name": "Classic cards",
+          "description": "Rummy, Belote, and other popular card games."
+        },
+        "tableClassic": {
+          "name": "Classic board games",
+          "description": "Start with full checkers gameplay."
+        }
+      },
+      "games": {
+        "rami": {
+          "name": "Rummy",
+          "description": "Build runs or sets to empty your hand."
+        },
+        "belote": {
+          "name": "Belote",
+          "description": "Fast 8-trick format against AI."
+        },
+        "poker": {
+          "name": "Poker (soon)",
+          "description": "Texas Hold'em mode coming soon."
+        },
+        "checkers": {
+          "name": "Checkers",
+          "description": "Local 2-player checkers on the same screen."
+        }
+      }
+    }
+  },
+  "gameComponents": {
+    "belote": {
+      "title": "Belote (quick mode)",
+      "actions": {
+        "newDeal": "New deal",
+        "nextTrick": "Next trick"
+      },
+      "trump": "Trump",
+      "tricksPlayed": "Tricks played: {count} / 8",
+      "score": "Score you {playerScore} - AI {aiScore}",
+      "currentTrick": "Current trick",
+      "instruction": "Instruction",
+      "you": "You",
+      "ai": "AI",
+      "yourHand": "Your hand",
+      "messages": {
+        "chooseCard": "Choose a card to play a trick.",
+        "playerWonTrick": "You win this trick (+{points}).",
+        "aiWonTrick": "AI wins this trick (+{points}).",
+        "playerWonGame": "Game over: you win {playerScore} to {aiScore}.",
+        "aiWonGame": "Game over: AI wins {aiScore} to {playerScore}.",
+        "drawGame": "Game over: draw {playerScore}-{aiScore}.",
+        "newRound": "New Belote round. Your turn!"
+      }
+    },
+    "checkers": {
+      "title": "Checkers",
+      "actions": {
+        "restart": "Restart"
+      },
+      "players": {
+        "redTurn": "Red player turn.",
+        "blackTurn": "Black player turn.",
+        "redWin": "Red player wins!",
+        "blackWin": "Black player wins!"
+      }
+    },
+    "rami": {
+      "title": "Rummy",
+      "score": "Score",
+      "actions": {
+        "draw": "Draw card",
+        "playAgain": "Play again",
+        "playCombination": "Play combination ({count})"
+      },
+      "hand": "Hand",
+      "melds": "Played combinations",
+      "noMeld": "No combinations yet.",
+      "messages": {
+        "createCombinations": "Create combinations of 3+ cards (run or set).",
+        "newGame": "New game. Build runs or sets.",
+        "invalidCombination": "Invalid combination. Try a same-suit run or a set.",
+        "allCardsPlayed": "Great job! You played all your cards.",
+        "goodCombination": "Nice combination. Keep going!",
+        "deckEmpty": "The deck is empty.",
+        "cardDrawn": "Card drawn."
+      }
+    }
   }
 }
