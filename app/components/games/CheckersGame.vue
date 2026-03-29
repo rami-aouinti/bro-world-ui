@@ -45,12 +45,13 @@ const createInitialBoard = (): Board => {
 }
 
 const currentPlayerLabel = (player: Player) => player === 'red'
-  ? 'Tour du joueur blanc.'
-  : 'Tour du joueur noir.'
+  ? t('gameComponents.checkers.players.redTurn')
+  : t('gameComponents.checkers.players.blackTurn')
 
 const winnerLabel = (player: Player) => player === 'red'
-  ? 'Victoire du joueur blanc !'
-  : 'Victoire du joueur noir !'
+  ? t('gameComponents.checkers.players.redWin')
+  : t('gameComponents.checkers.players.blackWin')
+
 
 const TURN_SECONDS = 60
 
@@ -395,23 +396,21 @@ onBeforeUnmount(() => {
 
 .checkers-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  gap: 1rem;
   align-items: start;
 }
 
 .board-column {
   display: grid;
   justify-items: center;
-  align-content: start;
 }
 
 .info-aside {
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 16px;
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.14);
+  border-radius: 12px;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(2px);
+  background: rgba(var(--v-theme-surface), 0.8);
 }
 
 .timer-progress {
@@ -419,14 +418,12 @@ onBeforeUnmount(() => {
 }
 
 .checkers-board {
-  --cell-size: clamp(44px, 6vw, 68px);
+  width: min(560px, 100%);
   display: grid;
-  grid-template-columns: repeat(8, var(--cell-size));
-  width: fit-content;
-  border: 3px solid #6b5a44;
-  border-radius: 8px;
+  grid-template-columns: repeat(8, 1fr);
+  border: 1px solid rgba(0, 0, 0, 0.22);
+  border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
 }
 
 .checkers-board--thinking {
@@ -437,14 +434,14 @@ onBeforeUnmount(() => {
 .checkers-cell {
   aspect-ratio: 1;
   border: none;
-  background: #e8dcc6;
+  background: #f5f5f5;
   display: grid;
   place-items: center;
   transition: box-shadow 180ms ease, transform 180ms ease;
 }
 
 .checkers-cell--dark {
-  background: #6e5b43;
+  background: #1c1c1c;
 }
 
 .checkers-cell:hover {
@@ -472,32 +469,26 @@ onBeforeUnmount(() => {
   display: grid;
   place-items: center;
   color: white;
-  box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.28), 0 1px 2px rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.22);
 }
 
 .piece--white {
-  background: linear-gradient(145deg, #fefefe, #d8d8d8);
-  color: #111;
-  border: 1px solid rgba(0, 0, 0, 0.25);
+  background: linear-gradient(145deg, #ffffff, #d7d7d7);
+  color: #1a1a1a;
+  border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 .piece--black {
-  background: linear-gradient(145deg, #4e4e4e, #111111);
+  background: linear-gradient(145deg, #4f4f4f, #0b0b0b);
 }
 
 .piece--king {
   border: 2px solid #9e9e9e;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 960px) {
   .checkers-layout {
     grid-template-columns: 1fr;
-  }
-
-  .info-aside {
-    max-width: 640px;
-    width: 100%;
-    justify-self: center;
   }
 }
 </style>
