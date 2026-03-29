@@ -25,7 +25,8 @@
       "inbox": "Messages",
       "register": "Registrieren",
       "blog": "Blog",
-      "quiz": "Quiz"
+      "quiz": "Quiz",
+      "game": "Spiel"
     },
     "common": {
       "showAll": "Alle anzeigen"
