@@ -150,36 +150,36 @@ restart()
 </script>
 
 <template>
-  <v-card class="pa-4 rounded-xl" variant="tonal">
+  <v-card class="pa-4 rounded-xl game-card-shell" variant="tonal">
     <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-3">
-      <h3 class="text-h6 mb-0">Belote (version rapide)</h3>
+      <h3 class="game-title mb-0">Belote (version rapide)</h3>
       <v-btn color="primary" prepend-icon="mdi-refresh" @click="restart">Nouvelle donne</v-btn>
     </div>
 
-    <p class="text-body-2 mb-1">Atout: <strong>{{ trumpSuit }}</strong></p>
-    <p class="text-body-2 mb-4">Plis joués: {{ trickCount }} / 8 · Score vous {{ playerScore }} - IA {{ aiScore }}</p>
+    <p class="game-description mb-1">Atout: <strong>{{ trumpSuit }}</strong></p>
+    <p class="game-subtitle mb-4">Plis joués: {{ trickCount }} / 8 · Score vous {{ playerScore }} - IA {{ aiScore }}</p>
 
     <div class="d-flex flex-wrap ga-3 mb-4">
-      <v-card class="pa-3 flex-grow-1" min-width="220" variant="outlined">
-        <p class="text-subtitle-2 mb-2">Pli en cours</p>
+      <v-card class="pa-3 flex-grow-1 game-info-card" min-width="220" variant="outlined">
+        <p class="text-subtitle-2 font-weight-bold mb-2">Pli en cours</p>
         <p class="mb-1">Vous: <strong>{{ playerCard ? `${playerCard.rank}${playerCard.suit}` : '—' }}</strong></p>
         <p class="mb-2">IA: <strong>{{ aiCard ? `${aiCard.rank}${aiCard.suit}` : '—' }}</strong></p>
         <v-btn :disabled="!playerCard || !aiCard || trickCount >= 8" size="small" variant="text" @click="nextTrick">Pli suivant</v-btn>
       </v-card>
 
-      <v-card class="pa-3 flex-grow-1" min-width="220" variant="outlined">
-        <p class="text-subtitle-2 mb-2">Instruction</p>
-        <p class="text-body-2 mb-0">{{ message }}</p>
+      <v-card class="pa-3 flex-grow-1 game-info-card" min-width="220" variant="outlined">
+        <p class="text-subtitle-2 font-weight-bold mb-2">Instruction</p>
+        <p class="game-subtitle mb-0">{{ message }}</p>
       </v-card>
     </div>
 
-    <p class="text-subtitle-2 mb-2">Votre main</p>
+    <p class="text-subtitle-2 font-weight-bold mb-2">Votre main</p>
     <div class="belote-card-grid">
       <button
         v-for="card in playerHand"
         :key="card.id"
         type="button"
-        class="belote-card"
+        class="play-card"
         :disabled="!canPlay"
         @click="playCard(card)"
       >
@@ -191,25 +191,63 @@ restart()
 </template>
 
 <style scoped>
+.game-card-shell {
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 20%, transparent);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.09);
+}
+
+.game-info-card {
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, rgb(var(--v-theme-info)) 22%, transparent);
+  background: color-mix(in srgb, rgb(var(--v-theme-surface)) 95%, rgb(var(--v-theme-info)) 5%);
+}
+
+.game-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.game-description {
+  color: rgba(var(--v-theme-on-surface), 0.9);
+}
+
+.game-subtitle {
+  color: rgba(var(--v-theme-on-surface), 0.76);
+  font-size: 0.93rem;
+}
+
 .belote-card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
   gap: 8px;
 }
 
-.belote-card {
+.play-card {
   min-height: 82px;
   border-radius: 12px;
-  border: 1px solid rgba(128, 128, 128, 0.5);
-  background: white;
+  border: 1px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 26%, transparent);
+  background: color-mix(in srgb, rgb(var(--v-theme-surface)) 92%, rgb(var(--v-theme-primary)) 8%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
   padding: 8px;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
-.belote-card:disabled {
+.play-card:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
+}
+
+.play-card:focus-visible {
+  outline: 3px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 40%, transparent);
+  outline-offset: 2px;
+}
+
+.play-card:disabled {
   opacity: 0.5;
 }
 </style>

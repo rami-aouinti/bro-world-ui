@@ -187,13 +187,13 @@ const reset = () => {
 </script>
 
 <template>
-  <v-card class="pa-4 rounded-xl" variant="tonal">
+  <v-card class="pa-4 rounded-xl game-card-shell" variant="tonal">
     <div class="d-flex align-center justify-space-between mb-3">
-      <h3 class="text-h6 mb-0">Jeu de dames</h3>
+      <h3 class="game-title mb-0">Jeu de dames</h3>
       <v-btn color="primary" prepend-icon="mdi-refresh" @click="reset">Recommencer</v-btn>
     </div>
 
-    <p class="text-body-2 mb-4">{{ message }}</p>
+    <p class="game-subtitle mb-4">{{ message }}</p>
 
     <div class="checkers-board mx-auto">
       <button
@@ -202,7 +202,7 @@ const reset = () => {
         type="button"
         class="checkers-cell"
         :class="{
-          'checkers-cell--dark': Math.floor(index / 8) % 2 !== index % 2,
+          'checkers-cell--dark': Math.floor(index / 8) % 2 !== index % 8,
           'checkers-cell--selected': selected && selected.row === Math.floor(index / 8) && selected.col === index % 8,
           'checkers-cell--highlight': isHighlighted(Math.floor(index / 8), index % 8),
         }"
@@ -225,23 +225,51 @@ const reset = () => {
 </template>
 
 <style scoped>
+.game-card-shell {
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 20%, transparent);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.09);
+}
+
+.game-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.game-subtitle {
+  color: rgba(var(--v-theme-on-surface), 0.78);
+}
+
 .checkers-board {
   width: min(520px, 100%);
   display: grid;
   grid-template-columns: repeat(8, 1fr);
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  border: 1px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 20%, transparent);
+  border-radius: 10px;
+  overflow: hidden;
 }
 
 .checkers-cell {
   aspect-ratio: 1;
   border: none;
-  background: #f3e7d3;
+  background: color-mix(in srgb, rgb(var(--v-theme-surface)) 84%, #f3e7d3 16%);
   display: grid;
   place-items: center;
+  transition: box-shadow 180ms ease, transform 180ms ease;
 }
 
 .checkers-cell--dark {
-  background: #7f6546;
+  background: color-mix(in srgb, rgb(var(--v-theme-surface)) 45%, #7f6546 55%);
+}
+
+.checkers-cell:hover {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, rgb(var(--v-theme-primary)) 24%, transparent);
+}
+
+.checkers-cell:focus-visible {
+  outline: 3px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 40%, transparent);
+  outline-offset: -3px;
 }
 
 .checkers-cell--selected {
@@ -260,17 +288,18 @@ const reset = () => {
   display: grid;
   place-items: center;
   color: white;
+  box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.22);
 }
 
 .piece--red {
-  background: #d32f2f;
+  background: linear-gradient(145deg, #ff7f7f, #c0392b);
 }
 
 .piece--black {
-  background: #212121;
+  background: linear-gradient(145deg, #595959, #161616);
 }
 
 .piece--king {
-  box-shadow: 0 0 0 3px #ffca28 inset;
+  border: 2px solid #ffd54f;
 }
 </style>

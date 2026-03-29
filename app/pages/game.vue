@@ -108,6 +108,30 @@ const selectedCategory = computed(() => categories.find(category => category.id 
 const selectedSubCategory = computed(() => selectedCategory.value?.subCategories.find(sub => sub.id === selectedSubCategoryId.value) ?? null)
 const selectedGame = computed(() => selectedSubCategory.value?.games.find(game => game.id === selectedGameId.value) ?? null)
 const canLaunchSelectedGame = computed(() => Boolean(selectedGame.value?.component) && Boolean(selectedPlayMode.value && selectedGame.value?.supportedModes.includes(selectedPlayMode.value)))
+const gameStatusLabel = computed(() => {
+  if (!selectedGame.value)
+    return 'Aucun jeu sélectionné'
+
+  if (isGameStarted.value)
+    return 'Partie en cours'
+
+  if (canLaunchSelectedGame.value)
+    return 'Prêt à lancer'
+
+  return 'Sélection en cours'
+})
+
+const getLevelColor = (level: 'category' | 'subCategory' | 'game' | 'mode' | 'info') => {
+  if (level === 'category')
+    return 'primary'
+  if (level === 'subCategory')
+    return 'secondary'
+  if (level === 'game')
+    return 'success'
+  if (level === 'mode')
+    return 'info'
+  return 'indigo'
+}
 
 const openCategory = (categoryId: string) => {
   selectedCategoryId.value = categoryId
@@ -160,18 +184,19 @@ const launchGame = () => {
   <v-container class="py-6 py-md-8">
     <v-row class="ga-0 ga-md-2">
       <v-col cols="12" lg="8" class="mb-4 mb-lg-0">
-        <v-card class="pa-4 pa-md-6 rounded-xl game-main-card" variant="tonal">
+        <v-card class="pa-4 pa-md-6 rounded-xl game-main-card unified-shell" variant="tonal">
           <section v-if="!selectedCategory" class="mb-4">
-            <h2 class="text-h6 mb-3">1) Catégories</h2>
+            <h2 class="section-title mb-1">1) Catégories</h2>
+            <p class="section-subtitle mb-4">Choisissez une famille de jeux pour continuer.</p>
             <v-row class="ga-0 ga-md-1">
               <v-col v-for="category in categories" :key="category.id" cols="12" md="6">
-                <v-card class="pa-4 h-100" variant="outlined">
+                <v-card class="pa-4 h-100 unified-card interactive-card" variant="outlined">
                   <div class="d-flex align-start ga-3">
-                    <v-avatar color="primary" variant="tonal"><v-icon :icon="category.icon" /></v-avatar>
+                    <v-avatar :color="getLevelColor('category')" variant="tonal"><v-icon :icon="category.icon" /></v-avatar>
                     <div>
-                      <h3 class="text-h6 mb-1">{{ category.name }}</h3>
-                      <p class="text-body-2 text-medium-emphasis mb-3">{{ category.description }}</p>
-                      <v-btn color="primary" variant="flat" @click="openCategory(category.id)">Voir sous-catégories</v-btn>
+                      <h3 class="card-title mb-1">{{ category.name }}</h3>
+                      <p class="card-description mb-3">{{ category.description }}</p>
+                      <v-btn :color="getLevelColor('category')" variant="flat" @click="openCategory(category.id)">Voir sous-catégories</v-btn>
                     </div>
                   </div>
                 </v-card>
@@ -180,16 +205,17 @@ const launchGame = () => {
           </section>
 
           <section v-else-if="selectedCategory && !selectedSubCategory" class="mb-4">
-            <h2 class="text-h6 mb-3">2) Sous-catégories · {{ selectedCategory.name }}</h2>
+            <h2 class="section-title mb-1">2) Sous-catégories · {{ selectedCategory.name }}</h2>
+            <p class="section-subtitle mb-4">Affinez votre choix de jeux.</p>
             <v-row class="ga-0 ga-md-1">
               <v-col v-for="subCategory in selectedCategory.subCategories" :key="subCategory.id" cols="12" md="6">
-                <v-card class="pa-4 h-100" variant="outlined">
+                <v-card class="pa-4 h-100 unified-card interactive-card" variant="outlined">
                   <div class="d-flex align-start ga-3">
-                    <v-avatar color="secondary" variant="tonal"><v-icon :icon="subCategory.icon" /></v-avatar>
+                    <v-avatar :color="getLevelColor('subCategory')" variant="tonal"><v-icon :icon="subCategory.icon" /></v-avatar>
                     <div>
-                      <h3 class="text-h6 mb-1">{{ subCategory.name }}</h3>
-                      <p class="text-body-2 text-medium-emphasis mb-3">{{ subCategory.description }}</p>
-                      <v-btn color="secondary" variant="flat" @click="openSubCategory(subCategory.id)">Voir les jeux</v-btn>
+                      <h3 class="card-title mb-1">{{ subCategory.name }}</h3>
+                      <p class="card-description mb-3">{{ subCategory.description }}</p>
+                      <v-btn :color="getLevelColor('subCategory')" variant="flat" @click="openSubCategory(subCategory.id)">Voir les jeux</v-btn>
                     </div>
                   </div>
                 </v-card>
@@ -198,21 +224,22 @@ const launchGame = () => {
           </section>
 
           <section v-else-if="selectedSubCategory && !selectedGame" class="mb-4">
-            <h2 class="text-h6 mb-3">3) Jeux · {{ selectedSubCategory.name }}</h2>
+            <h2 class="section-title mb-1">3) Jeux · {{ selectedSubCategory.name }}</h2>
+            <p class="section-subtitle mb-4">Sélectionnez un jeu et son mode.</p>
             <v-row class="ga-0 ga-md-1">
               <v-col v-for="game in selectedSubCategory.games" :key="game.id" cols="12" md="6" xl="4">
-                <v-card class="pa-4 h-100" variant="outlined">
+                <v-card class="pa-4 h-100 unified-card interactive-card" variant="outlined">
                   <div class="d-flex flex-column ga-2 h-100">
-                    <v-avatar color="success" variant="tonal"><v-icon :icon="game.icon" /></v-avatar>
-                    <h3 class="text-h6 mb-0">{{ game.name }}</h3>
-                    <p class="text-body-2 text-medium-emphasis">{{ game.description }}</p>
+                    <v-avatar :color="getLevelColor('game')" variant="tonal"><v-icon :icon="game.icon" /></v-avatar>
+                    <h3 class="card-title mb-0">{{ game.name }}</h3>
+                    <p class="card-description">{{ game.description }}</p>
                     <div class="d-flex flex-wrap ga-1">
                       <v-chip
                         v-for="mode in game.supportedModes"
                         :key="`${game.id}-${mode}`"
                         size="small"
                         variant="tonal"
-                        color="info"
+                        :color="getLevelColor('mode')"
                       >
                         {{ mode === 'ai' ? 'Contre ordinateur' : 'Contre un joueur' }}
                       </v-chip>
@@ -222,7 +249,7 @@ const launchGame = () => {
                     </div>
                     <v-spacer />
                     <v-btn
-                      color="success"
+                      :color="getLevelColor('game')"
                       variant="flat"
                       :disabled="!game.component || !game.supportedModes.length"
                       @click="openGame(game.id)"
@@ -236,15 +263,12 @@ const launchGame = () => {
           </section>
 
           <section v-else-if="selectedGame && !isGameStarted" class="mb-1">
-            <h2 class="text-h6 mb-3">4) Mode de partie · {{ selectedGame.name }}</h2>
-            <v-card class="pa-4" variant="outlined">
-              <p class="text-body-2 text-medium-emphasis mb-4">
-                Sélectionnez un mode avant de lancer le jeu.
-              </p>
-
+            <h2 class="section-title mb-1">4) Mode de partie · {{ selectedGame.name }}</h2>
+            <p class="section-subtitle mb-4">Choisissez un mode puis lancez votre partie.</p>
+            <v-card class="pa-4 unified-card" variant="outlined">
               <div class="d-flex flex-wrap ga-2 mb-4">
                 <v-btn
-                  color="primary"
+                  :color="getLevelColor('mode')"
                   :variant="selectedPlayMode === 'ai' ? 'flat' : 'outlined'"
                   :disabled="!selectedGame.supportedModes.includes('ai')"
                   @click="selectPlayMode('ai')"
@@ -252,7 +276,7 @@ const launchGame = () => {
                   Contre ordinateur
                 </v-btn>
                 <v-btn
-                  color="secondary"
+                  :color="getLevelColor('subCategory')"
                   :variant="selectedPlayMode === 'pvp' ? 'flat' : 'outlined'"
                   :disabled="!selectedGame.supportedModes.includes('pvp')"
                   @click="selectPlayMode('pvp')"
@@ -270,7 +294,7 @@ const launchGame = () => {
                 Ce jeu sera disponible prochainement. Revenez bientôt !
               </v-alert>
 
-              <v-btn color="success" :disabled="!canLaunchSelectedGame" @click="launchGame">
+              <v-btn :color="getLevelColor('game')" :disabled="!canLaunchSelectedGame" @click="launchGame">
                 Lancer le jeu
               </v-btn>
             </v-card>
@@ -285,11 +309,11 @@ const launchGame = () => {
       </v-col>
 
       <v-col cols="12" lg="4">
-        <v-card class="pa-4 pa-md-5 rounded-xl game-page-hero" variant="tonal">
+        <v-card class="pa-4 pa-md-5 rounded-xl game-page-hero unified-shell" variant="tonal">
           <div class="mb-4">
             <v-chip variant="outlined" prepend-icon="mdi-controller" class="mb-2">Game Center</v-chip>
-            <h1 class="text-h4 font-weight-bold mb-2">Espace Jeux</h1>
-            <p class="text-body-1 text-medium-emphasis mb-0">Choisissez une catégorie, puis une sous-catégorie, puis lancez votre jeu.</p>
+            <h1 class="page-title mb-2">Espace Jeux</h1>
+            <p class="section-subtitle mb-0">Choisissez une catégorie, une sous-catégorie puis lancez votre jeu.</p>
           </div>
 
           <div class="d-flex flex-column ga-2 mb-4">
@@ -312,10 +336,26 @@ const launchGame = () => {
             </v-btn>
           </div>
 
+          <v-card class="pa-4 unified-card mb-4" variant="outlined">
+            <div class="d-flex align-center ga-2 mb-2">
+              <v-avatar :color="getLevelColor('info')" size="28" variant="tonal">
+                <v-icon icon="mdi-information-outline" size="18" />
+              </v-avatar>
+              <h2 class="text-subtitle-1 font-weight-bold mb-0">Infos partie</h2>
+            </div>
+            <ul class="info-list text-body-2">
+              <li><strong>Catégorie :</strong> {{ selectedCategory?.name ?? '—' }}</li>
+              <li><strong>Sous-catégorie :</strong> {{ selectedSubCategory?.name ?? '—' }}</li>
+              <li><strong>Jeu :</strong> {{ selectedGame?.name ?? '—' }}</li>
+              <li><strong>Mode :</strong> {{ selectedPlayMode === 'ai' ? 'Contre ordinateur' : selectedPlayMode === 'pvp' ? 'Contre un joueur' : '—' }}</li>
+              <li><strong>État :</strong> {{ gameStatusLabel }}</li>
+            </ul>
+          </v-card>
+
           <div class="d-flex align-center flex-wrap ga-2 mb-0">
-            <v-chip v-if="selectedCategory" prepend-icon="mdi-folder-open-outline" color="primary">{{ selectedCategory.name }}</v-chip>
-            <v-chip v-if="selectedSubCategory" prepend-icon="mdi-shape-outline" color="secondary">{{ selectedSubCategory.name }}</v-chip>
-            <v-chip v-if="selectedGame" prepend-icon="mdi-play-circle-outline" color="success">{{ selectedGame.name }}</v-chip>
+            <v-chip v-if="selectedCategory" prepend-icon="mdi-folder-open-outline" :color="getLevelColor('category')">{{ selectedCategory.name }}</v-chip>
+            <v-chip v-if="selectedSubCategory" prepend-icon="mdi-shape-outline" :color="getLevelColor('subCategory')">{{ selectedSubCategory.name }}</v-chip>
+            <v-chip v-if="selectedGame" prepend-icon="mdi-play-circle-outline" :color="getLevelColor('game')">{{ selectedGame.name }}</v-chip>
           </div>
         </v-card>
       </v-col>
@@ -324,8 +364,67 @@ const launchGame = () => {
 </template>
 
 <style scoped>
-.game-main-card,
-.game-page-hero {
-  border: 1px solid rgba(var(--v-theme-primary), 0.2);
+.unified-shell,
+.unified-card {
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 20%, transparent);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+.interactive-card {
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.interactive-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.12);
+}
+
+.interactive-card:focus-within {
+  border-color: rgb(var(--v-theme-primary));
+  box-shadow: 0 0 0 3px color-mix(in srgb, rgb(var(--v-theme-primary)) 30%, transparent);
+}
+
+.page-title {
+  font-size: clamp(1.6rem, 1.2rem + 1vw, 2.1rem);
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.section-title {
+  font-size: clamp(1.1rem, 1rem + 0.4vw, 1.35rem);
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.section-subtitle {
+  font-size: 0.95rem;
+  color: rgba(var(--v-theme-on-surface), 0.76);
+}
+
+.card-title {
+  font-size: 1.05rem;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.card-description {
+  font-size: 0.93rem;
+  color: rgba(var(--v-theme-on-surface), 0.74);
+}
+
+.info-list {
+  margin: 0;
+  padding-left: 1rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+@media (max-width: 959px) {
+  .unified-shell,
+  .unified-card {
+    border-radius: 14px;
+  }
 }
 </style>

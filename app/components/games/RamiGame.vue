@@ -138,11 +138,11 @@ reset()
 </script>
 
 <template>
-  <v-card class="pa-4 rounded-xl" variant="tonal">
+  <v-card class="pa-4 rounded-xl game-card-shell" variant="tonal">
     <div class="d-flex flex-wrap align-center justify-space-between ga-3 mb-4">
       <div>
-        <h3 class="text-h6 mb-1">Rami</h3>
-        <p class="text-body-2 text-medium-emphasis mb-0">Score: <strong>{{ score }}</strong></p>
+        <h3 class="game-title mb-1">Rami</h3>
+        <p class="game-subtitle mb-0">Score: <strong>{{ score }}</strong></p>
       </div>
       <div class="d-flex ga-2">
         <v-btn variant="outlined" prepend-icon="mdi-cards" @click="drawCard">Piocher</v-btn>
@@ -150,16 +150,16 @@ reset()
       </div>
     </div>
 
-    <p class="text-body-2 mb-3">{{ message }}</p>
+    <p class="game-description mb-3">{{ message }}</p>
 
-    <h4 class="text-subtitle-1 mb-2">Main</h4>
+    <h4 class="text-subtitle-1 mb-2 font-weight-bold">Main</h4>
     <div class="game-card-grid mb-4">
       <button
         v-for="card in hand"
         :key="card.id"
         type="button"
-        class="rami-card"
-        :class="{ 'rami-card--selected': isSelected(card.id) }"
+        class="play-card"
+        :class="{ 'play-card--selected': isSelected(card.id) }"
         @click="toggleCard(card.id)"
       >
         <span class="text-h6">{{ formatRank(card.rank) }}</span>
@@ -171,7 +171,7 @@ reset()
       Poser la combinaison ({{ selectedCards.length }})
     </v-btn>
 
-    <h4 class="text-subtitle-1 mb-2">Combinaisons posées</h4>
+    <h4 class="text-subtitle-1 mb-2 font-weight-bold">Combinaisons posées</h4>
     <div v-if="melds.length" class="d-flex flex-column ga-2">
       <div v-for="(meld, index) in melds" :key="`meld-${index}`" class="d-flex ga-2 flex-wrap">
         <v-chip v-for="card in meld" :key="card.id" size="small" variant="outlined">
@@ -179,33 +179,66 @@ reset()
         </v-chip>
       </div>
     </div>
-    <p v-else class="text-body-2 text-medium-emphasis mb-0">Aucune combinaison pour le moment.</p>
+    <p v-else class="game-subtitle mb-0">Aucune combinaison pour le moment.</p>
   </v-card>
 </template>
 
 <style scoped>
+.game-card-shell {
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 20%, transparent);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.09);
+}
+
+.game-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.game-subtitle {
+  color: rgba(var(--v-theme-on-surface), 0.76);
+  font-size: 0.92rem;
+}
+
+.game-description {
+  color: rgba(var(--v-theme-on-surface), 0.88);
+  font-size: 0.94rem;
+}
+
 .game-card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
   gap: 8px;
 }
 
-.rami-card {
-  border: 1px solid rgba(128, 128, 128, 0.5);
+.play-card {
+  border: 1px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 26%, transparent);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.9);
+  background: color-mix(in srgb, rgb(var(--v-theme-surface)) 92%, rgb(var(--v-theme-primary)) 8%);
   min-height: 92px;
   padding: 8px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  transition: transform 0.15s ease;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
-.rami-card--selected {
+.play-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
+}
+
+.play-card:focus-visible {
+  outline: 3px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 40%, transparent);
+  outline-offset: 2px;
+}
+
+.play-card--selected {
   border-color: rgb(var(--v-theme-primary));
   transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 20px rgba(15, 23, 42, 0.14);
 }
 </style>
