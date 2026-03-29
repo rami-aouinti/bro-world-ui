@@ -321,7 +321,7 @@ onBeforeUnmount(() => {
             type="button"
             class="checkers-cell"
             :class="{
-              'checkers-cell--dark': Math.floor(index / 8) % 2 !== index % 8,
+              'checkers-cell--dark': (Math.floor(index / 8) + (index % 8)) % 2 === 1,
               'checkers-cell--selected': selected && selected.row === Math.floor(index / 8) && selected.col === index % 8,
               'checkers-cell--highlight': isHighlighted(Math.floor(index / 8), index % 8),
             }"
