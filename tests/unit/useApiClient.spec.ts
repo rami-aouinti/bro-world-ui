@@ -20,9 +20,17 @@ const buildRawResponse = <T>(data: T) => ({
 const setupApiClientDependencies = () => {
   const rawFetch = vi.fn()
   const track = vi.fn()
+  const initSession = vi.fn()
+  const authState = { value: 'authenticated' }
+  const authSessionStore = { token: 'token-abc' }
 
   vi.stubGlobal('$fetch', { raw: rawFetch })
-  vi.stubGlobal('useAuthSessionStore', vi.fn(() => ({ token: 'token-abc' })))
+  vi.stubGlobal('useRuntimeConfig', vi.fn(() => ({
+    public: {
+      debugTelemetry: false,
+    },
+  })))
+  vi.stubGlobal('useAuthSessionStore', vi.fn(() => authSessionStore))
   vi.stubGlobal('useRequestHeaders', vi.fn(() => ({ authorization: '' })))
   vi.stubGlobal('useTracker', vi.fn(() => ({
     track,
@@ -31,15 +39,15 @@ const setupApiClientDependencies = () => {
   })))
   vi.stubGlobal('useAuth', vi.fn(() => ({
     initialized: { value: true },
-    authState: { value: 'authenticated' },
+    authState,
     isAuthenticated: { value: true },
     sessionCorrelationId: { value: 'corr-1' },
     lastAuthFailureAt: { value: 0 },
-    initSession: vi.fn(),
+    initSession,
     awaitAuthReady: vi.fn(),
   })))
 
-  return { rawFetch, track }
+  return { rawFetch, track, initSession, authState, authSessionStore }
 }
 
 describe('useApiClient dedupe behavior', () => {
@@ -158,5 +166,29 @@ describe('useApiClient dedupe behavior', () => {
         }),
       }),
     )
+  })
+
+  it('revalide la session puis relance une route privée après un 401 backend', async () => {
+    const { rawFetch, initSession, authSessionStore } = setupApiClientDependencies()
+    rawFetch
+      .mockRejectedValueOnce({ status: 401 })
+      .mockResolvedValueOnce(buildRawResponse({ ok: true }))
+    initSession.mockImplementation(async () => {
+      authSessionStore.token = 'token-refreshed'
+    })
+
+    const { useApiClient } = await import('~/app/composables/useApiClient')
+    const { apiFetch } = useApiClient()
+
+    await expect(apiFetch('/api/v1/private/items', {
+      method: 'GET',
+    })).resolves.toEqual({ ok: true })
+
+    expect(initSession).toHaveBeenCalledWith(true)
+    expect(rawFetch).toHaveBeenNthCalledWith(2, '/api/backend/api/v1/private/items', expect.objectContaining({
+      headers: expect.objectContaining({
+        Authorization: 'Bearer token-refreshed',
+      }),
+    }))
   })
 })
