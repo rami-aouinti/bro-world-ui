@@ -348,6 +348,41 @@ const track401Burst = (tracker: ReturnType<typeof useTracker>, path: string, met
   })
 }
 
+const tryRecoverPrivateRequestAfter401 = async (
+  auth: ReturnType<typeof useAuth>,
+  authSession: ReturnType<typeof useAuthSessionStore>,
+  normalizedUrl: string,
+  isPrivateRoute: boolean,
+  authFailureType: 'backend_401' | 'local_401_missing_cookie',
+  attempt: number,
+  maxAttempts: number,
+): Promise<{ recovered: boolean, nextToken: string | null }> => {
+  if (!isPrivateRoute || authFailureType !== 'backend_401' || attempt >= maxAttempts) {
+    return {
+      recovered: false,
+      nextToken: authSession.token,
+    }
+  }
+
+  await auth.initSession(true)
+
+  const canRetryWithFreshSession = auth.authState.value === 'authenticated' || auth.authState.value === 'degraded'
+  const recoveredToken = authSession.token
+
+  logConsoleTelemetry('info', '[auth-correlation]', {
+    event: 'api.401.recovery.revalidate',
+    path: normalizedUrl,
+    attempt,
+    canRetryWithFreshSession,
+    authState: auth.authState.value,
+  })
+
+  return {
+    recovered: canRetryWithFreshSession,
+    nextToken: recoveredToken,
+  }
+}
+
 export const useApiClient = () => {
   const authSession = useAuthSessionStore()
   const tracker = useTracker()
@@ -513,6 +548,32 @@ export const useApiClient = () => {
 
               if (isPublicQuizEndpoint) {
                 break
+              }
+
+              const recovery = await tryRecoverPrivateRequestAfter401(
+                auth,
+                authSession,
+                normalizedUrl,
+                isPrivateRoute,
+                authFailureType,
+                attempt,
+                maxRetries + 1,
+              )
+
+              if (recovery.recovered) {
+                const freshToken = recovery.nextToken
+                const hasFreshBearerToken = Boolean(freshToken && freshToken !== SERVER_SESSION_PLACEHOLDER)
+
+                if (!options.skipAuthHeader) {
+                  if (hasFreshBearerToken) {
+                    nextHeaders.Authorization = `Bearer ${freshToken}`
+                  }
+                  else if (!requestAuthorization) {
+                    delete nextHeaders.Authorization
+                  }
+                }
+
+                continue
               }
 
               auth.lastAuthFailureAt.value = now()
