@@ -297,7 +297,7 @@ watch(locale, loadPageContent)
 }
 
 .contact-form-wrapper {
-  background-color: rgb(255, 255, 255);
+  background-color: transparent;
 }
 
 .contact-page :deep(.v-field-label) {
