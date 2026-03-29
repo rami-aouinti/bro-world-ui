@@ -78,58 +78,13 @@ const movementDirections = (piece: Piece) => {
   return piece.player === 'red' ? [-1] : [1]
 }
 
-const availableMoves = (position: Position, options?: { captureOnly?: boolean }) => {
+const availableMoves = (position: Position) => {
   const piece = pieceAt(position)
   if (!piece) {
     return [] as Array<{ to: Position, capture?: Position }>
   }
 
   const moves: Array<{ to: Position, capture?: Position }> = []
-  const captureOnly = options?.captureOnly ?? false
-
-  if (piece.king) {
-    for (const rowDir of movementDirections(piece)) {
-      for (const colDir of [-1, 1]) {
-        let nextRow = position.row + rowDir
-        let nextCol = position.col + colDir
-        let encounteredOpponent: Position | null = null
-
-        while (hasInside(nextRow, nextCol)) {
-          const nextCell = board.value[nextRow][nextCol]
-
-          if (!nextCell) {
-            if (!captureOnly && !encounteredOpponent) {
-              moves.push({ to: { row: nextRow, col: nextCol } })
-            }
-            else if (encounteredOpponent) {
-              moves.push({
-                to: { row: nextRow, col: nextCol },
-                capture: encounteredOpponent,
-              })
-            }
-
-            nextRow += rowDir
-            nextCol += colDir
-            continue
-          }
-
-          if (nextCell.player === piece.player) {
-            break
-          }
-
-          if (encounteredOpponent) {
-            break
-          }
-
-          encounteredOpponent = { row: nextRow, col: nextCol }
-          nextRow += rowDir
-          nextCol += colDir
-        }
-      }
-    }
-
-    return moves
-  }
 
   for (const rowDir of movementDirections(piece)) {
     for (const colDir of [-1, 1]) {
@@ -141,7 +96,7 @@ const availableMoves = (position: Position, options?: { captureOnly?: boolean })
       }
 
       const nextCell = board.value[nextRow][nextCol]
-      if (!nextCell && !captureOnly) {
+      if (!nextCell) {
         moves.push({ to: { row: nextRow, col: nextCol } })
         continue
       }
@@ -225,23 +180,12 @@ const executeMove = (from: Position, move: { to: Position, capture?: Position })
     movingPiece.king = true
   }
 
+  selected.value = null
+
   if (winner.value) {
     message.value = winnerLabel(winner.value)
-    stopTurnTimer()
-    selected.value = null
     return true
   }
-
-  if (move.capture) {
-    const captureContinuationMoves = availableMoves(move.to, { captureOnly: true }).filter(item => item.capture)
-    if (captureContinuationMoves.length) {
-      selected.value = { ...move.to }
-      message.value = currentPlayerLabel(currentPlayer.value)
-      return true
-    }
-  }
-
-  selected.value = null
 
   switchTurn()
   return true
@@ -269,30 +213,19 @@ const allMovesFor = (player: Player) => {
 }
 
 const autoMoveFor = (player: Player) => {
-  let moveFrom: Position | null = null
-
-  while (currentPlayer.value === player && !winner.value) {
-    const moves = moveFrom
-      ? availableMoves(moveFrom, { captureOnly: true })
-        .filter(move => move.capture)
-        .map(move => ({ from: moveFrom as Position, move }))
-      : allMovesFor(player)
-
-    if (!moves.length) {
-      const opponent: Player = player === 'red' ? 'black' : 'red'
-      forcedWinner.value = opponent
-      message.value = winnerLabel(opponent)
-      stopTurnTimer()
-      return
-    }
-
-    const captureMoves = moves.filter(({ move }) => move.capture)
-    const candidateMoves = captureMoves.length ? captureMoves : moves
-    const randomMove = candidateMoves[Math.floor(Math.random() * candidateMoves.length)]
-    executeMove(randomMove.from, randomMove.move)
-
-    moveFrom = selected.value ? { ...selected.value } : null
+  const moves = allMovesFor(player)
+  if (!moves.length) {
+    const opponent: Player = player === 'red' ? 'black' : 'red'
+    forcedWinner.value = opponent
+    message.value = winnerLabel(opponent)
+    stopTurnTimer()
+    return
   }
+
+  const captureMoves = moves.filter(({ move }) => move.capture)
+  const candidateMoves = captureMoves.length ? captureMoves : moves
+  const randomMove = candidateMoves[Math.floor(Math.random() * candidateMoves.length)]
+  executeMove(randomMove.from, randomMove.move)
 }
 
 const playAiTurn = async () => {
