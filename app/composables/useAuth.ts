@@ -410,7 +410,23 @@ export const useAuth = () => {
           }
           catch (profileError) {
             const profileStatus = getErrorStatus(profileError)
-            logSessionFlow('profile.endpoint.error', { status: profileStatus })
+            const tokenRejected = profileStatus === 401
+
+            logSessionFlow('profile.endpoint.error', {
+              status: profileStatus,
+              tokenRejected,
+            })
+
+            if (tokenRejected) {
+              await applySessionState({
+                authenticated: false,
+                profile: null,
+                roles: [],
+                locale: null,
+                sessionStatus: 'invalid',
+              })
+              return
+            }
 
             await applySessionState({
               authenticated: true,
