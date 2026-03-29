@@ -20,9 +20,18 @@ const buildRawResponse = <T>(data: T) => ({
 const setupApiClientDependencies = () => {
   const rawFetch = vi.fn()
   const track = vi.fn()
+  const initSession = vi.fn()
+  const authState = { value: 'authenticated' }
+  const authSessionStore = { token: 'token-abc' }
+  const authTokenState = { value: 'token-abc' }
 
   vi.stubGlobal('$fetch', { raw: rawFetch })
-  vi.stubGlobal('useAuthSessionStore', vi.fn(() => ({ token: 'token-abc' })))
+  vi.stubGlobal('useRuntimeConfig', vi.fn(() => ({
+    public: {
+      debugTelemetry: false,
+    },
+  })))
+  vi.stubGlobal('useAuthSessionStore', vi.fn(() => authSessionStore))
   vi.stubGlobal('useRequestHeaders', vi.fn(() => ({ authorization: '' })))
   vi.stubGlobal('useTracker', vi.fn(() => ({
     track,
@@ -30,22 +39,24 @@ const setupApiClientDependencies = () => {
     trackLatency: vi.fn(),
   })))
   vi.stubGlobal('useAuth', vi.fn(() => ({
+    token: authTokenState,
     initialized: { value: true },
-    authState: { value: 'authenticated' },
+    authState,
     isAuthenticated: { value: true },
     sessionCorrelationId: { value: 'corr-1' },
     lastAuthFailureAt: { value: 0 },
-    initSession: vi.fn(),
+    initSession,
     awaitAuthReady: vi.fn(),
   })))
 
-  return { rawFetch, track }
+  return { rawFetch, track, initSession, authState, authSessionStore, authTokenState }
 }
 
 describe('useApiClient dedupe behavior', () => {
   beforeEach(() => {
     vi.resetModules()
     vi.clearAllMocks()
+    window.sessionStorage.clear()
   })
 
   it('ne dedupe pas deux POST simultanés avec des body différents', async () => {
@@ -158,5 +169,25 @@ describe('useApiClient dedupe behavior', () => {
         }),
       }),
     )
+  })
+
+  it('utilise le token de session pour les endpoints privés', async () => {
+    const { rawFetch, authSessionStore, authTokenState } = setupApiClientDependencies()
+    authSessionStore.token = null
+    authTokenState.value = 'session-token-123'
+    rawFetch.mockResolvedValue(buildRawResponse({ ok: true }))
+
+    const { useApiClient } = await import('~/app/composables/useApiClient')
+    const { apiFetch } = useApiClient()
+
+    await expect(apiFetch('/api/v1/private/items', {
+      method: 'GET',
+    })).resolves.toEqual({ ok: true })
+
+    expect(rawFetch).toHaveBeenCalledWith('/api/backend/api/v1/private/items', expect.objectContaining({
+      headers: expect.objectContaining({
+        Authorization: 'Bearer session-token-123',
+      }),
+    }))
   })
 })
