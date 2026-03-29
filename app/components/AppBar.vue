@@ -26,7 +26,8 @@ const AppBarProfileMenu = defineAsyncComponent(() => import('~/components/layout
 const mainHeaderItems = computed<NavItem[]>(() => [
   { key: 'app.navigation.platform', to: '/platform', icon: 'mdi-view-grid-outline' },
   { key: 'app.navigation.blog', to: '/blog', icon: 'mdi-post-outline' },
-  { key: 'app.navigation.quiz', to: '/quiz', icon: 'mdi-help-circle-outline' }
+  { key: 'app.navigation.quiz', to: '/quiz', icon: 'mdi-help-circle-outline' },
+  { key: 'app.navigation.game', to: '/game', icon: 'mdi-controller-classic-outline' }
 ])
 
 const adminHeaderItems = computed<NavItem[]>(() => [])

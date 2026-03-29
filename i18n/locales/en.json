@@ -25,7 +25,8 @@
       "settings": "Settings",
       "register": "Register",
       "blog": "Blog",
-      "quiz": "Quiz"
+      "quiz": "Quiz",
+      "game": "Game"
     },
     "common": {
       "showAll": "View all"
