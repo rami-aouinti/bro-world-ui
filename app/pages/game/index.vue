@@ -235,16 +235,12 @@ const launchGame = () => {
     </template>
     <template #default>
       <section v-if="!selectedCategory" class="mb-4">
-        <h2 class="section-title mb-1">{{ t("gamePage.steps.categories.title") }}</h2>
-        <p class="section-subtitle mb-4">
-          {{ t("gamePage.steps.categories.description") }}
-        </p>
         <v-row class="ga-0 ga-md-1">
           <v-col
             v-for="category in categories"
             :key="category.id"
             cols="12"
-            md="6"
+            md="4"
           >
             <v-card
               class="pa-4 h-100 unified-card interactive-card"
@@ -274,16 +270,12 @@ const launchGame = () => {
         v-else-if="selectedCategory && !selectedSubCategory"
         class="mb-4"
       >
-        <h2 class="section-title mb-1">
-          {{ t("gamePage.steps.subCategories.title", { category: t(selectedCategory.nameKey) }) }}
-        </h2>
-        <p class="section-subtitle mb-4">{{ t("gamePage.steps.subCategories.description") }}</p>
         <v-row class="ga-0 ga-md-1">
           <v-col
             v-for="subCategory in selectedCategory.subCategories"
             :key="subCategory.id"
             cols="12"
-            md="6"
+            md="4"
           >
             <v-card
               class="pa-4 h-100 unified-card interactive-card"
@@ -310,16 +302,12 @@ const launchGame = () => {
       </section>
 
       <section v-else-if="selectedSubCategory && !selectedGame" class="mb-4">
-        <h2 class="section-title mb-1">
-          {{ t("gamePage.steps.games.title", { subCategory: t(selectedSubCategory.nameKey) }) }}
-        </h2>
-        <p class="section-subtitle mb-4">{{ t("gamePage.steps.games.description") }}</p>
         <v-row class="ga-0 ga-md-1">
           <v-col
             v-for="game in selectedSubCategory.games"
             :key="game.id"
             cols="12"
-            md="6"
+            md="4"
             xl="4"
           >
             <v-card
@@ -365,12 +353,6 @@ const launchGame = () => {
       </section>
 
       <section v-else-if="selectedGame && !isGameStarted" class="mb-1">
-        <h2 class="section-title mb-1">
-          {{ t("gamePage.steps.mode.title", { game: t(selectedGame.nameKey) }) }}
-        </h2>
-        <p class="section-subtitle mb-4">
-          {{ t("gamePage.steps.mode.description") }}
-        </p>
         <v-card class="pa-4 unified-card" variant="outlined">
           <div class="d-flex flex-wrap ga-2 mb-4">
             <v-btn
