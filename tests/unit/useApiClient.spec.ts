@@ -23,6 +23,7 @@ const setupApiClientDependencies = () => {
   const initSession = vi.fn()
   const authState = { value: 'authenticated' }
   const authSessionStore = { token: 'token-abc' }
+  const authTokenState = { value: 'token-abc' }
 
   vi.stubGlobal('$fetch', { raw: rawFetch })
   vi.stubGlobal('useRuntimeConfig', vi.fn(() => ({
@@ -38,6 +39,7 @@ const setupApiClientDependencies = () => {
     trackLatency: vi.fn(),
   })))
   vi.stubGlobal('useAuth', vi.fn(() => ({
+    token: authTokenState,
     initialized: { value: true },
     authState,
     isAuthenticated: { value: true },
@@ -47,13 +49,14 @@ const setupApiClientDependencies = () => {
     awaitAuthReady: vi.fn(),
   })))
 
-  return { rawFetch, track, initSession, authState, authSessionStore }
+  return { rawFetch, track, initSession, authState, authSessionStore, authTokenState }
 }
 
 describe('useApiClient dedupe behavior', () => {
   beforeEach(() => {
     vi.resetModules()
     vi.clearAllMocks()
+    window.sessionStorage.clear()
   })
 
   it('ne dedupe pas deux POST simultanés avec des body différents', async () => {
@@ -168,14 +171,11 @@ describe('useApiClient dedupe behavior', () => {
     )
   })
 
-  it('revalide la session puis relance une route privée après un 401 backend', async () => {
-    const { rawFetch, initSession, authSessionStore } = setupApiClientDependencies()
-    rawFetch
-      .mockRejectedValueOnce({ status: 401 })
-      .mockResolvedValueOnce(buildRawResponse({ ok: true }))
-    initSession.mockImplementation(async () => {
-      authSessionStore.token = 'token-refreshed'
-    })
+  it('utilise le token de session pour les endpoints privés', async () => {
+    const { rawFetch, authSessionStore, authTokenState } = setupApiClientDependencies()
+    authSessionStore.token = null
+    authTokenState.value = 'session-token-123'
+    rawFetch.mockResolvedValue(buildRawResponse({ ok: true }))
 
     const { useApiClient } = await import('~/app/composables/useApiClient')
     const { apiFetch } = useApiClient()
@@ -184,10 +184,9 @@ describe('useApiClient dedupe behavior', () => {
       method: 'GET',
     })).resolves.toEqual({ ok: true })
 
-    expect(initSession).toHaveBeenCalledWith(true)
-    expect(rawFetch).toHaveBeenNthCalledWith(2, '/api/backend/api/v1/private/items', expect.objectContaining({
+    expect(rawFetch).toHaveBeenCalledWith('/api/backend/api/v1/private/items', expect.objectContaining({
       headers: expect.objectContaining({
-        Authorization: 'Bearer token-refreshed',
+        Authorization: 'Bearer session-token-123',
       }),
     }))
   })

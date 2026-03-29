@@ -67,15 +67,10 @@ const inFlightRequests = new Map<string, Promise<unknown>>()
 const endpoint401Counts = new Map<string, number>()
 let burstWindowStartedAt = 0
 let burstCount = 0
-let sharedPrivateAuthInitPromise: Promise<void> | null = null
 
 const normalizeApiPath = (url: string) => url.replace(/^\/+/, '')
 
 const isCriticalApiCall = (normalizedUrl: string) => CRITICAL_API_PATTERNS.some(pattern => normalizedUrl.includes(pattern))
-const isPrivateAuthRequiredEndpoint = (normalizedUrl: string) => {
-  const lowerNormalizedUrl = normalizedUrl.toLowerCase()
-  return isPrivateEndpoint(lowerNormalizedUrl)
-}
 const isPrivateEndpoint = (url: string) => {
   const normalizedUrl = normalizeApiPath(url).toLowerCase()
 
@@ -321,26 +316,17 @@ const recordTop401Endpoint = (
   }, { critical: true })
 }
 
-const ensurePrivateAuthReady = async (auth: ReturnType<typeof useAuth>) => {
-  const isSessionReady = auth.initialized.value && auth.authState.value !== 'initializing'
-
-  if (!isSessionReady) {
-    if (!sharedPrivateAuthInitPromise) {
-      sharedPrivateAuthInitPromise = (async () => {
-        try {
-          await auth.initSession()
-        }
-        finally {
-          sharedPrivateAuthInitPromise = null
-        }
-      })()
-    }
-
-    await sharedPrivateAuthInitPromise
+const readTokenFromSessionStorage = () => {
+  if (!import.meta.client) {
+    return null
   }
 
-  if (auth.authState.value === 'initializing') {
-    await auth.awaitAuthReady()
+  try {
+    const token = window.sessionStorage.getItem('bro_world_auth_token')
+    return token?.trim() ? token : null
+  }
+  catch {
+    return null
   }
 }
 
@@ -409,11 +395,7 @@ export const useApiClient = () => {
     const isPrivateRoute = isPrivateEndpoint(normalizedUrl)
     const sessionCorrelationId = auth.sessionCorrelationId.value
 
-    if (isPrivateRoute) {
-      await ensurePrivateAuthReady(auth)
-    }
-
-    const token = authSession.token
+    const token = authSession.token || auth.token.value || readTokenFromSessionStorage()
     const hasBearerToken = Boolean(token && token !== SERVER_SESSION_PLACEHOLDER)
     const startedAt = now()
     const method = resolveMethod(options.method)
@@ -422,10 +404,7 @@ export const useApiClient = () => {
     const existingRequest = dedupeKey
       ? (inFlightRequests.get(dedupeKey) as Promise<T> | undefined)
       : undefined
-    const isAuthRequiredEndpoint = isPrivateAuthRequiredEndpoint(normalizedUrl)
     const isPublicQuizEndpoint = normalizedUrl.toLowerCase().startsWith(PUBLIC_QUIZ_ENDPOINT_PREFIX)
-    const canUsePrivateSession = auth.authState.value === 'authenticated' || auth.authState.value === 'degraded'
-    const hasAuthenticatedSession = canUsePrivateSession || Boolean(requestAuthorization)
 
     if (existingRequest) {
       tracker.track('api.request.deduplicated', {
@@ -436,67 +415,6 @@ export const useApiClient = () => {
       return existingRequest
     }
 
-    if (isPrivateRoute && !hasAuthenticatedSession) {
-      logApiTelemetry('warn', {
-        event: 'api.blocked.auth_not_ready',
-        path: normalizedUrl,
-        isPrivate: isPrivateRoute,
-        authState: auth.authState.value,
-        attempt: 1,
-        responseStatus: 403,
-        errorSource: 'client_auth_guard',
-        method,
-        sessionCorrelationId,
-      }, { critical: true })
-      auth.lastAuthFailureAt.value = now()
-      const unauthorizedError = createError({
-        statusCode: 403,
-        statusMessage: 'Authentication required',
-        data: { telemetryCategory: 'private_endpoint_blocked_client_side' },
-      })
-
-      tracker.trackError('api.request.failed', unauthorizedError, {
-        path: normalizedUrl,
-        method,
-        dedupeKey,
-      })
-
-      throw new NormalizedApiClientError(normalizeErrorResponse(unauthorizedError, 403))
-    }
-    if (isAuthRequiredEndpoint && !hasAuthenticatedSession) {
-      tracker.track('api.error.auth_missing_local', {
-        path: normalizedUrl,
-        method,
-        sessionCorrelationId,
-      })
-      logApiTelemetry('warn', {
-        event: 'api.error.auth_missing_local',
-        path: normalizedUrl,
-        isPrivate: isPrivateRoute,
-        authState: auth.authState.value,
-        attempt: 1,
-        responseStatus: 401,
-        errorSource: 'local_auth_missing',
-        method,
-        sessionCorrelationId,
-      }, { critical: true })
-      track401Burst(tracker, normalizedUrl, method)
-      recordTop401Endpoint(normalizedUrl, method, 'local_401_missing_cookie', auth.sessionCorrelationId.value)
-      auth.lastAuthFailureAt.value = now()
-      const unauthorizedError = createError({
-        statusCode: 401,
-        statusMessage: 'Unauthorized',
-        data: { telemetryCategory: 'local_401_missing_cookie' },
-      })
-
-      tracker.trackError('api.request.failed', unauthorizedError, {
-        path: normalizedUrl,
-        method,
-        dedupeKey,
-      })
-
-      throw new NormalizedApiClientError(normalizeErrorResponse(unauthorizedError, 401))
-    }
     const isMutation = MUTATION_METHODS.has(method)
     const canRetryMutation = Boolean(options.idempotencyKey || options.retryUnsafeMutations)
     const canRetry = !isMutation || canRetryMutation
