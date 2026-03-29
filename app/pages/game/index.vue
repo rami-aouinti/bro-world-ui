@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import BeloteGame from '~/components/games/BeloteGame.vue'
 import CheckersGame from '~/components/games/CheckersGame.vue'
 import RamiGame from '~/components/games/RamiGame.vue'
-import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
+import AppSplitShell from '~/components/layout/AppSplitShell.vue'
 
 type PlayMode = 'ai' | 'pvp'
 
@@ -182,55 +182,57 @@ const launchGame = () => {
 </script>
 
 <template>
-  <PlatformSplitLayout>
-    <template #sidebar>
-      <div class="mb-4">
-        <v-chip variant="outlined" prepend-icon="mdi-controller" class="mb-2">Game Center</v-chip>
-        <h1 class="page-title mb-2">Espace Jeux</h1>
-        <p class="section-subtitle mb-0">Choisissez une catégorie, une sous-catégorie puis lancez votre jeu.</p>
-      </div>
-
-      <div class="d-flex flex-column ga-2 mb-4">
-        <v-btn variant="outlined" prepend-icon="mdi-home" @click="resetToCategories">Retour catégories</v-btn>
-        <v-btn
-            v-if="selectedGame"
-            variant="tonal"
-            prepend-icon="mdi-arrow-left"
-            @click="selectedGameId = null"
-        >
-          Retour jeux
-        </v-btn>
-        <v-btn
-            v-if="selectedSubCategory"
-            variant="tonal"
-            prepend-icon="mdi-arrow-left"
-            @click="selectedSubCategoryId = null"
-        >
-          Retour sous-catégories
-        </v-btn>
-      </div>
-
-      <v-card class="pa-4 unified-card mb-4" variant="outlined">
-        <div class="d-flex align-center ga-2 mb-2">
-          <v-avatar :color="getLevelColor('info')" size="28" variant="tonal">
-            <v-icon icon="mdi-information-outline" size="18" />
-          </v-avatar>
-          <h2 class="text-subtitle-1 font-weight-bold mb-0">Infos partie</h2>
+  <AppSplitShell>
+    <template #left>
+      <v-card class="pa-4 unified-card" variant="outlined">
+        <div class="mb-4">
+          <v-chip variant="outlined" prepend-icon="mdi-controller" class="mb-2">Game Center</v-chip>
+          <h1 class="page-title mb-2">Espace Jeux</h1>
+          <p class="section-subtitle mb-0">Choisissez une catégorie, une sous-catégorie puis lancez votre jeu.</p>
         </div>
-        <ul class="info-list text-body-2">
-          <li><strong>Catégorie :</strong> {{ selectedCategory?.name ?? '—' }}</li>
-          <li><strong>Sous-catégorie :</strong> {{ selectedSubCategory?.name ?? '—' }}</li>
-          <li><strong>Jeu :</strong> {{ selectedGame?.name ?? '—' }}</li>
-          <li><strong>Mode :</strong> {{ selectedPlayMode === 'ai' ? 'Contre ordinateur' : selectedPlayMode === 'pvp' ? 'Contre un joueur' : '—' }}</li>
-          <li><strong>État :</strong> {{ gameStatusLabel }}</li>
-        </ul>
-      </v-card>
 
-      <div class="d-flex align-center flex-wrap ga-2 mb-0">
-        <v-chip v-if="selectedCategory" prepend-icon="mdi-folder-open-outline" :color="getLevelColor('category')">{{ selectedCategory.name }}</v-chip>
-        <v-chip v-if="selectedSubCategory" prepend-icon="mdi-shape-outline" :color="getLevelColor('subCategory')">{{ selectedSubCategory.name }}</v-chip>
-        <v-chip v-if="selectedGame" prepend-icon="mdi-play-circle-outline" :color="getLevelColor('game')">{{ selectedGame.name }}</v-chip>
-      </div>
+        <div class="d-flex flex-column ga-2 mb-4">
+          <v-btn variant="outlined" prepend-icon="mdi-home" @click="resetToCategories">Retour catégories</v-btn>
+          <v-btn
+              v-if="selectedGame"
+              variant="tonal"
+              prepend-icon="mdi-arrow-left"
+              @click="selectedGameId = null"
+          >
+            Retour jeux
+          </v-btn>
+          <v-btn
+              v-if="selectedSubCategory"
+              variant="tonal"
+              prepend-icon="mdi-arrow-left"
+              @click="selectedSubCategoryId = null"
+          >
+            Retour sous-catégories
+          </v-btn>
+        </div>
+
+        <v-card class="pa-4 unified-card mb-4" variant="outlined">
+          <div class="d-flex align-center ga-2 mb-2">
+            <v-avatar :color="getLevelColor('info')" size="28" variant="tonal">
+              <v-icon icon="mdi-information-outline" size="18" />
+            </v-avatar>
+            <h2 class="text-subtitle-1 font-weight-bold mb-0">Infos partie</h2>
+          </div>
+          <ul class="info-list text-body-2">
+            <li><strong>Catégorie :</strong> {{ selectedCategory?.name ?? '—' }}</li>
+            <li><strong>Sous-catégorie :</strong> {{ selectedSubCategory?.name ?? '—' }}</li>
+            <li><strong>Jeu :</strong> {{ selectedGame?.name ?? '—' }}</li>
+            <li><strong>Mode :</strong> {{ selectedPlayMode === 'ai' ? 'Contre ordinateur' : selectedPlayMode === 'pvp' ? 'Contre un joueur' : '—' }}</li>
+            <li><strong>État :</strong> {{ gameStatusLabel }}</li>
+          </ul>
+        </v-card>
+
+        <div class="d-flex align-center flex-wrap ga-2 mb-0">
+          <v-chip v-if="selectedCategory" prepend-icon="mdi-folder-open-outline" :color="getLevelColor('category')">{{ selectedCategory.name }}</v-chip>
+          <v-chip v-if="selectedSubCategory" prepend-icon="mdi-shape-outline" :color="getLevelColor('subCategory')">{{ selectedSubCategory.name }}</v-chip>
+          <v-chip v-if="selectedGame" prepend-icon="mdi-play-circle-outline" :color="getLevelColor('game')">{{ selectedGame.name }}</v-chip>
+        </div>
+      </v-card>
     </template>
     <section v-if="!selectedCategory" class="mb-4">
       <h2 class="section-title mb-1">1) Catégories</h2>
@@ -352,7 +354,7 @@ const launchGame = () => {
       <BeloteGame v-else-if="selectedGame.component === 'belote'" :selected-play-mode="selectedPlayMode" />
       <CheckersGame v-else-if="selectedGame.component === 'checkers'" :selected-play-mode="selectedPlayMode" />
     </section>
-  </PlatformSplitLayout>
+  </AppSplitShell>
 </template>
 
 <style scoped>
