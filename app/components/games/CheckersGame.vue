@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 
+defineProps<{
+  selectedPlayMode: 'ai' | 'pvp'
+}>()
+
 type Player = 'red' | 'black'
 
 interface Piece {

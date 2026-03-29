@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 
+defineProps<{
+  selectedPlayMode: 'ai' | 'pvp'
+}>()
+
 type Suit = '♠' | '♥' | '♦' | '♣'
 type Rank = '7' | '8' | '9' | 'J' | 'Q' | 'K' | '10' | 'A'
 
