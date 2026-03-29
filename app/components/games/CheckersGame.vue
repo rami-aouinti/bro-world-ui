@@ -64,6 +64,8 @@ const remainingSeconds = ref(TURN_SECONDS)
 const intervalId = ref<ReturnType<typeof setInterval> | null>(null)
 const forcedWinner = ref<Player | null>(null)
 
+const timerProgress = computed(() => Math.max(0, (remainingSeconds.value / TURN_SECONDS) * 100))
+
 const hasInside = (row: number, col: number) => row >= 0 && row < 8 && col >= 0 && col < 8
 
 const pieceAt = (position: Position) => board.value[position.row][position.col]
@@ -311,41 +313,54 @@ onBeforeUnmount(() => {
 
 <template>
   <v-card class="pa-4 rounded-xl game-card-shell" variant="tonal">
-    <div class="d-flex align-center justify-space-between mb-3">
-      <h3 class="game-title mb-0">{{ t("gameComponents.checkers.title") }}</h3>
-      <v-btn color="primary" prepend-icon="mdi-refresh" @click="reset">{{ t("gameComponents.checkers.actions.restart") }}</v-btn>
-    </div>
+    <div class="checkers-layout">
+      <div class="board-column">
+        <h3 class="game-title mb-3 text-center">{{ t("gameComponents.checkers.title") }}</h3>
+        <div class="checkers-board" :class="{ 'checkers-board--thinking': isThinking }">
+          <button
+            v-for="(cell, index) in board.flat()"
+            :key="index"
+            type="button"
+            class="checkers-cell"
+            :class="{
+              'checkers-cell--dark': Math.floor(index / 8) % 2 !== index % 8,
+              'checkers-cell--selected': selected && selected.row === Math.floor(index / 8) && selected.col === index % 8,
+              'checkers-cell--highlight': isHighlighted(Math.floor(index / 8), index % 8),
+            }"
+            @click="clickCell(Math.floor(index / 8), index % 8)"
+          >
+            <span
+              v-if="cell"
+              class="piece"
+              :class="{
+                'piece--white': cell.player === 'red',
+                'piece--black': cell.player === 'black',
+                'piece--king': cell.king,
+              }"
+            >
+              <v-icon v-if="cell.king" icon="mdi-crown" size="16" />
+            </span>
+          </button>
+        </div>
+      </div>
 
-    <p class="game-subtitle mb-2">{{ message }}</p>
-    <p class="game-meta mb-1">Joueur actif: <strong>{{ currentPlayer }}</strong></p>
-    <p class="game-meta mb-4">Temps restant: <strong>{{ remainingSeconds }}s</strong></p>
-    <p v-if="isThinking" class="game-thinking mb-4">IA en réflexion…</p>
+      <aside class="info-aside">
+        <v-btn block color="primary" prepend-icon="mdi-refresh" @click="reset">{{ t("gameComponents.checkers.actions.restart") }}</v-btn>
+        <p class="game-subtitle mt-4 mb-2">{{ message }}</p>
+        <p class="game-meta mb-1">Joueur actif: <strong>{{ currentPlayer === 'red' ? 'blanc' : 'noir' }}</strong></p>
+        <p class="game-meta mb-2">Temps restant: <strong>{{ remainingSeconds }}s</strong></p>
 
-    <div class="checkers-board mx-auto" :class="{ 'checkers-board--thinking': isThinking }">
-      <button
-        v-for="(cell, index) in board.flat()"
-        :key="index"
-        type="button"
-        class="checkers-cell"
-        :class="{
-          'checkers-cell--dark': Math.floor(index / 8) % 2 !== index % 8,
-          'checkers-cell--selected': selected && selected.row === Math.floor(index / 8) && selected.col === index % 8,
-          'checkers-cell--highlight': isHighlighted(Math.floor(index / 8), index % 8),
-        }"
-        @click="clickCell(Math.floor(index / 8), index % 8)"
-      >
-        <span
-          v-if="cell"
-          class="piece"
-          :class="{
-            'piece--red': cell.player === 'red',
-            'piece--black': cell.player === 'black',
-            'piece--king': cell.king,
-          }"
-        >
-          <v-icon v-if="cell.king" icon="mdi-crown" size="16" />
-        </span>
-      </button>
+        <v-progress-linear
+          class="timer-progress"
+          :model-value="timerProgress"
+          height="10"
+          rounded
+          color="primary"
+          bg-color="grey-lighten-1"
+        />
+
+        <p v-if="isThinking" class="game-thinking mt-4 mb-0">IA en réflexion…</p>
+      </aside>
     </div>
   </v-card>
 </template>
@@ -379,11 +394,34 @@ onBeforeUnmount(() => {
   font-weight: 600;
 }
 
+.checkers-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  gap: 1rem;
+  align-items: start;
+}
+
+.board-column {
+  display: grid;
+  justify-items: center;
+}
+
+.info-aside {
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.14);
+  border-radius: 12px;
+  padding: 1rem;
+  background: rgba(var(--v-theme-surface), 0.8);
+}
+
+.timer-progress {
+  max-width: 100%;
+}
+
 .checkers-board {
-  width: min(520px, 100%);
+  width: min(560px, 100%);
   display: grid;
   grid-template-columns: repeat(8, 1fr);
-  border: 1px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 20%, transparent);
+  border: 1px solid rgba(0, 0, 0, 0.22);
   border-radius: 10px;
   overflow: hidden;
 }
@@ -396,14 +434,14 @@ onBeforeUnmount(() => {
 .checkers-cell {
   aspect-ratio: 1;
   border: none;
-  background: color-mix(in srgb, rgb(var(--v-theme-surface)) 84%, #f3e7d3 16%);
+  background: #f5f5f5;
   display: grid;
   place-items: center;
   transition: box-shadow 180ms ease, transform 180ms ease;
 }
 
 .checkers-cell--dark {
-  background: color-mix(in srgb, rgb(var(--v-theme-surface)) 45%, #7f6546 55%);
+  background: #1c1c1c;
 }
 
 .checkers-cell:hover {
@@ -434,15 +472,23 @@ onBeforeUnmount(() => {
   box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.22);
 }
 
-.piece--red {
-  background: linear-gradient(145deg, #ff7f7f, #c0392b);
+.piece--white {
+  background: linear-gradient(145deg, #ffffff, #d7d7d7);
+  color: #1a1a1a;
+  border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 .piece--black {
-  background: linear-gradient(145deg, #595959, #161616);
+  background: linear-gradient(145deg, #4f4f4f, #0b0b0b);
 }
 
 .piece--king {
-  border: 2px solid #ffd54f;
+  border: 2px solid #9e9e9e;
+}
+
+@media (max-width: 960px) {
+  .checkers-layout {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
