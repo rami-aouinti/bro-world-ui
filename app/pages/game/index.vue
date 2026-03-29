@@ -358,7 +358,7 @@ const launchGame = () => {
       <BeloteGame v-else-if="selectedGame.component === 'belote'" :selected-play-mode="selectedPlayMode" />
       <CheckersGame v-else-if="selectedGame.component === 'checkers'" :selected-play-mode="selectedPlayMode" />
     </section>
-  </PlatformSplitLayout>
+  </AppSplitShell>
 </template>
 
 <style scoped>
