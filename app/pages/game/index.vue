@@ -5,6 +5,8 @@ import CheckersGame from "~/components/games/CheckersGame.vue";
 import RamiGame from "~/components/games/RamiGame.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
 
+const { t } = useI18n();
+
 definePageMeta({
   splitShell: false,
 });
@@ -13,8 +15,8 @@ type PlayMode = "ai" | "pvp";
 
 interface GameEntry {
   id: string;
-  name: string;
-  description: string;
+  nameKey: string;
+  descriptionKey: string;
   icon: string;
   component: "rami" | "belote" | "checkers" | null;
   supportedModes: PlayMode[];
@@ -22,16 +24,16 @@ interface GameEntry {
 
 interface GameSubCategory {
   id: string;
-  name: string;
-  description: string;
+  nameKey: string;
+  descriptionKey: string;
   icon: string;
   games: GameEntry[];
 }
 
 interface GameCategory {
   id: string;
-  name: string;
-  description: string;
+  nameKey: string;
+  descriptionKey: string;
   icon: string;
   subCategories: GameSubCategory[];
 }
@@ -39,37 +41,36 @@ interface GameCategory {
 const categories: GameCategory[] = [
   {
     id: "cards",
-    name: "Jeux de cartes",
-    description:
-      "Sélectionnez un jeu de cartes traditionnel puis jouez directement.",
+    nameKey: "gamePage.catalog.categories.cards.name",
+    descriptionKey: "gamePage.catalog.categories.cards.description",
     icon: "mdi-cards-playing-outline",
     subCategories: [
       {
         id: "classic-cards",
-        name: "Cartes classiques",
-        description: "Rami, Belote, et d'autres jeux populaires.",
+        nameKey: "gamePage.catalog.subCategories.classicCards.name",
+        descriptionKey: "gamePage.catalog.subCategories.classicCards.description",
         icon: "mdi-cards-outline",
         games: [
           {
             id: "rami",
-            name: "Rami",
-            description: "Créez des suites ou brelans pour vider votre main.",
+            nameKey: "gamePage.catalog.games.rami.name",
+            descriptionKey: "gamePage.catalog.games.rami.description",
             icon: "mdi-cards-diamond-outline",
             component: "rami",
             supportedModes: ["ai", "pvp"],
           },
           {
             id: "belote",
-            name: "Belote",
-            description: "Version rapide en 8 plis contre une IA.",
+            nameKey: "gamePage.catalog.games.belote.name",
+            descriptionKey: "gamePage.catalog.games.belote.description",
             icon: "mdi-cards-club-outline",
             component: "belote",
             supportedModes: ["ai"],
           },
           {
             id: "poker",
-            name: "Poker (bientôt)",
-            description: "Mode Texas Hold'em à venir prochainement.",
+            nameKey: "gamePage.catalog.games.poker.name",
+            descriptionKey: "gamePage.catalog.games.poker.description",
             icon: "mdi-cards-spade-outline",
             component: null,
             supportedModes: [],
@@ -80,20 +81,20 @@ const categories: GameCategory[] = [
   },
   {
     id: "board",
-    name: "Jeux de table",
-    description: "Des jeux de plateau simples et conviviaux.",
+    nameKey: "gamePage.catalog.categories.board.name",
+    descriptionKey: "gamePage.catalog.categories.board.description",
     icon: "mdi-checkerboard",
     subCategories: [
       {
         id: "table-classic",
-        name: "Classiques de table",
-        description: "Commencez avec le jeu de dames complet.",
+        nameKey: "gamePage.catalog.subCategories.tableClassic.name",
+        descriptionKey: "gamePage.catalog.subCategories.tableClassic.description",
         icon: "mdi-gamepad-round-outline",
         games: [
           {
             id: "checkers",
-            name: "Dames",
-            description: "Jeu de dames local 2 joueurs sur le même écran.",
+            nameKey: "gamePage.catalog.games.checkers.name",
+            descriptionKey: "gamePage.catalog.games.checkers.description",
             icon: "mdi-circle-multiple-outline",
             component: "checkers",
             supportedModes: ["pvp"],
@@ -135,14 +136,20 @@ const canLaunchSelectedGame = computed(
       selectedGame.value?.supportedModes.includes(selectedPlayMode.value),
     ),
 );
+
+const modeLabel = (mode: PlayMode) =>
+  mode === "ai"
+    ? t("gamePage.modes.vsComputer")
+    : t("gamePage.modes.vsPlayer");
+
 const gameStatusLabel = computed(() => {
-  if (!selectedGame.value) return "Aucun jeu sélectionné";
+  if (!selectedGame.value) return t("gamePage.status.none");
 
-  if (isGameStarted.value) return "Partie en cours";
+  if (isGameStarted.value) return t("gamePage.status.inProgress");
 
-  if (canLaunchSelectedGame.value) return "Prêt à lancer";
+  if (canLaunchSelectedGame.value) return t("gamePage.status.ready");
 
-  return "Sélection en cours";
+  return t("gamePage.status.selecting");
 });
 
 const getLevelColor = (
@@ -206,36 +213,19 @@ const launchGame = () => {
   <PlatformSplitLayout>
     <template #sidebar>
       <div class="mb-4">
-        <v-chip variant="outlined" prepend-icon="mdi-controller" class="mb-2"
-        >Game Center</v-chip
-        >
-        <h1 class="page-title mb-2">Espace Jeux</h1>
+        <v-chip variant="outlined" prepend-icon="mdi-controller" class="mb-2">{{ t("gamePage.sidebar.badge") }}</v-chip>
+        <h1 class="page-title mb-2">{{ t("gamePage.sidebar.title") }}</h1>
         <p class="section-subtitle mb-0">
-          Choisissez une catégorie, une sous-catégorie puis lancez votre jeu.
+          {{ t("gamePage.sidebar.description") }}
         </p>
       </div>
       <div class="d-flex flex-column ga-2 mb-4">
-        <v-btn
-            variant="outlined"
-            prepend-icon="mdi-home"
-            @click="resetToCategories"
-        >Retour catégories</v-btn
-        >
-        <v-btn
-            v-if="selectedGame"
-            variant="tonal"
-            prepend-icon="mdi-arrow-left"
-            @click="selectedGameId = null"
-        >
-          Retour jeux
+        <v-btn variant="outlined" prepend-icon="mdi-home" @click="resetToCategories">{{ t("gamePage.navigation.backToCategories") }}</v-btn>
+        <v-btn v-if="selectedGame" variant="tonal" prepend-icon="mdi-arrow-left" @click="selectedGameId = null">
+          {{ t("gamePage.navigation.backToGames") }}
         </v-btn>
-        <v-btn
-            v-if="selectedSubCategory"
-            variant="tonal"
-            prepend-icon="mdi-arrow-left"
-            @click="selectedSubCategoryId = null"
-        >
-          Retour sous-catégories
+        <v-btn v-if="selectedSubCategory" variant="tonal" prepend-icon="mdi-arrow-left" @click="selectedSubCategoryId = null">
+          {{ t("gamePage.navigation.backToSubCategories") }}
         </v-btn>
       </div>
     </template>
@@ -244,55 +234,34 @@ const launchGame = () => {
         <v-avatar :color="getLevelColor('info')" size="28" variant="tonal">
           <v-icon icon="mdi-information-outline" size="18" />
         </v-avatar>
-        <h2 class="text-subtitle-1 font-weight-bold mb-0">Infos partie</h2>
+        <h2 class="text-subtitle-1 font-weight-bold mb-0">{{ t("gamePage.info.title") }}</h2>
       </div>
       <ul class="info-list text-body-2">
         <li>
-          <strong>Catégorie :</strong> {{ selectedCategory?.name ?? "—" }}
+          <strong>{{ t("gamePage.info.category") }}:</strong> {{ selectedCategory ? t(selectedCategory.nameKey) : "—" }}
         </li>
         <li>
-          <strong>Sous-catégorie :</strong>
-          {{ selectedSubCategory?.name ?? "—" }}
+          <strong>{{ t("gamePage.info.subCategory") }}:</strong>
+          {{ selectedSubCategory ? t(selectedSubCategory.nameKey) : "—" }}
         </li>
-        <li><strong>Jeu :</strong> {{ selectedGame?.name ?? "—" }}</li>
+        <li><strong>{{ t("gamePage.info.game") }}:</strong> {{ selectedGame ? t(selectedGame.nameKey) : "—" }}</li>
         <li>
-          <strong>Mode :</strong>
-          {{
-            selectedPlayMode === "ai"
-                ? "Contre ordinateur"
-                : selectedPlayMode === "pvp"
-                    ? "Contre un joueur"
-                    : "—"
-          }}
+          <strong>{{ t("gamePage.info.mode") }}:</strong>
+          {{ selectedPlayMode ? modeLabel(selectedPlayMode) : "—" }}
         </li>
-        <li><strong>État :</strong> {{ gameStatusLabel }}</li>
+        <li><strong>{{ t("gamePage.info.status") }}:</strong> {{ gameStatusLabel }}</li>
       </ul>
       <div class="d-flex align-center flex-wrap ga-2 mb-0">
-        <v-chip
-            v-if="selectedCategory"
-            prepend-icon="mdi-folder-open-outline"
-            :color="getLevelColor('category')"
-        >{{ selectedCategory.name }}</v-chip
-        >
-        <v-chip
-            v-if="selectedSubCategory"
-            prepend-icon="mdi-shape-outline"
-            :color="getLevelColor('subCategory')"
-        >{{ selectedSubCategory.name }}</v-chip
-        >
-        <v-chip
-            v-if="selectedGame"
-            prepend-icon="mdi-play-circle-outline"
-            :color="getLevelColor('game')"
-        >{{ selectedGame.name }}</v-chip
-        >
+        <v-chip v-if="selectedCategory" prepend-icon="mdi-folder-open-outline" :color="getLevelColor('category')">{{ t(selectedCategory.nameKey) }}</v-chip>
+        <v-chip v-if="selectedSubCategory" prepend-icon="mdi-shape-outline" :color="getLevelColor('subCategory')">{{ t(selectedSubCategory.nameKey) }}</v-chip>
+        <v-chip v-if="selectedGame" prepend-icon="mdi-play-circle-outline" :color="getLevelColor('game')">{{ t(selectedGame.nameKey) }}</v-chip>
       </div>
     </template>
     <template #default>
       <section v-if="!selectedCategory" class="mb-4">
-        <h2 class="section-title mb-1">1) Catégories</h2>
+        <h2 class="section-title mb-1">{{ t("gamePage.steps.categories.title") }}</h2>
         <p class="section-subtitle mb-4">
-          Choisissez une famille de jeux pour continuer.
+          {{ t("gamePage.steps.categories.description") }}
         </p>
         <v-row class="ga-0 ga-md-1">
           <v-col
@@ -306,19 +275,17 @@ const launchGame = () => {
               variant="outlined"
             >
               <div class="d-flex align-start ga-3">
-                <v-avatar :color="getLevelColor('category')" variant="tonal"
-                  ><v-icon :icon="category.icon"
-                /></v-avatar>
+                <v-avatar :color="getLevelColor('category')" variant="tonal"><v-icon :icon="category.icon" /></v-avatar>
                 <div>
-                  <h3 class="card-title mb-1">{{ category.name }}</h3>
+                  <h3 class="card-title mb-1">{{ t(category.nameKey) }}</h3>
                   <p class="card-description mb-3">
-                    {{ category.description }}
+                    {{ t(category.descriptionKey) }}
                   </p>
                   <v-btn
                     :color="getLevelColor('category')"
                     variant="flat"
                     @click="openCategory(category.id)"
-                    >Voir sous-catégories</v-btn
+                    >{{ t("gamePage.actions.viewSubCategories") }}</v-btn
                   >
                 </div>
               </div>
@@ -332,9 +299,9 @@ const launchGame = () => {
         class="mb-4"
       >
         <h2 class="section-title mb-1">
-          2) Sous-catégories · {{ selectedCategory.name }}
+          {{ t("gamePage.steps.subCategories.title", { category: t(selectedCategory.nameKey) }) }}
         </h2>
-        <p class="section-subtitle mb-4">Affinez votre choix de jeux.</p>
+        <p class="section-subtitle mb-4">{{ t("gamePage.steps.subCategories.description") }}</p>
         <v-row class="ga-0 ga-md-1">
           <v-col
             v-for="subCategory in selectedCategory.subCategories"
@@ -347,19 +314,17 @@ const launchGame = () => {
               variant="outlined"
             >
               <div class="d-flex align-start ga-3">
-                <v-avatar :color="getLevelColor('subCategory')" variant="tonal"
-                  ><v-icon :icon="subCategory.icon"
-                /></v-avatar>
+                <v-avatar :color="getLevelColor('subCategory')" variant="tonal"><v-icon :icon="subCategory.icon" /></v-avatar>
                 <div>
-                  <h3 class="card-title mb-1">{{ subCategory.name }}</h3>
+                  <h3 class="card-title mb-1">{{ t(subCategory.nameKey) }}</h3>
                   <p class="card-description mb-3">
-                    {{ subCategory.description }}
+                    {{ t(subCategory.descriptionKey) }}
                   </p>
                   <v-btn
                     :color="getLevelColor('subCategory')"
                     variant="flat"
                     @click="openSubCategory(subCategory.id)"
-                    >Voir les jeux</v-btn
+                    >{{ t("gamePage.actions.viewGames") }}</v-btn
                   >
                 </div>
               </div>
@@ -370,9 +335,9 @@ const launchGame = () => {
 
       <section v-else-if="selectedSubCategory && !selectedGame" class="mb-4">
         <h2 class="section-title mb-1">
-          3) Jeux · {{ selectedSubCategory.name }}
+          {{ t("gamePage.steps.games.title", { subCategory: t(selectedSubCategory.nameKey) }) }}
         </h2>
-        <p class="section-subtitle mb-4">Sélectionnez un jeu et son mode.</p>
+        <p class="section-subtitle mb-4">{{ t("gamePage.steps.games.description") }}</p>
         <v-row class="ga-0 ga-md-1">
           <v-col
             v-for="game in selectedSubCategory.games"
@@ -386,11 +351,9 @@ const launchGame = () => {
               variant="outlined"
             >
               <div class="d-flex flex-column ga-2 h-100">
-                <v-avatar :color="getLevelColor('game')" variant="tonal"
-                  ><v-icon :icon="game.icon"
-                /></v-avatar>
-                <h3 class="card-title mb-0">{{ game.name }}</h3>
-                <p class="card-description">{{ game.description }}</p>
+                <v-avatar :color="getLevelColor('game')" variant="tonal"><v-icon :icon="game.icon" /></v-avatar>
+                <h3 class="card-title mb-0">{{ t(game.nameKey) }}</h3>
+                <p class="card-description">{{ t(game.descriptionKey) }}</p>
                 <div class="d-flex flex-wrap ga-1">
                   <v-chip
                     v-for="mode in game.supportedModes"
@@ -399,9 +362,7 @@ const launchGame = () => {
                     variant="tonal"
                     :color="getLevelColor('mode')"
                   >
-                    {{
-                      mode === "ai" ? "Contre ordinateur" : "Contre un joueur"
-                    }}
+                    {{ modeLabel(mode) }}
                   </v-chip>
                   <v-chip
                     v-if="!game.supportedModes.length"
@@ -409,7 +370,7 @@ const launchGame = () => {
                     variant="outlined"
                     color="warning"
                   >
-                    Bientôt disponible
+                    {{ t("gamePage.status.comingSoon") }}
                   </v-chip>
                 </div>
                 <v-spacer />
@@ -419,7 +380,7 @@ const launchGame = () => {
                   :disabled="!game.component || !game.supportedModes.length"
                   @click="openGame(game.id)"
                 >
-                  {{ game.component ? "Choisir ce jeu" : "Bientôt disponible" }}
+                  {{ game.component ? t("gamePage.actions.chooseGame") : t("gamePage.status.comingSoon") }}
                 </v-btn>
               </div>
             </v-card>
@@ -429,10 +390,10 @@ const launchGame = () => {
 
       <section v-else-if="selectedGame && !isGameStarted" class="mb-1">
         <h2 class="section-title mb-1">
-          4) Mode de partie · {{ selectedGame.name }}
+          {{ t("gamePage.steps.mode.title", { game: t(selectedGame.nameKey) }) }}
         </h2>
         <p class="section-subtitle mb-4">
-          Choisissez un mode puis lancez votre partie.
+          {{ t("gamePage.steps.mode.description") }}
         </p>
         <v-card class="pa-4 unified-card" variant="outlined">
           <div class="d-flex flex-wrap ga-2 mb-4">
@@ -442,7 +403,7 @@ const launchGame = () => {
               :disabled="!selectedGame.supportedModes.includes('ai')"
               @click="selectPlayMode('ai')"
             >
-              Contre ordinateur
+              {{ modeLabel("ai") }}
             </v-btn>
             <v-btn
               :color="getLevelColor('subCategory')"
@@ -450,7 +411,7 @@ const launchGame = () => {
               :disabled="!selectedGame.supportedModes.includes('pvp')"
               @click="selectPlayMode('pvp')"
             >
-              Contre un joueur
+              {{ modeLabel("pvp") }}
             </v-btn>
           </div>
 
@@ -462,7 +423,7 @@ const launchGame = () => {
             variant="tonal"
             class="mb-4"
           >
-            Ce jeu sera disponible prochainement. Revenez bientôt !
+            {{ t("gamePage.status.soonHint") }}
           </v-alert>
 
           <v-btn
@@ -470,7 +431,7 @@ const launchGame = () => {
             :disabled="!canLaunchSelectedGame"
             @click="launchGame"
           >
-            Lancer le jeu
+            {{ t("gamePage.actions.launchGame") }}
           </v-btn>
         </v-card>
       </section>

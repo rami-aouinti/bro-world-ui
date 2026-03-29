@@ -1664,5 +1664,160 @@
     "noAnswer": "Sin respuesta",
     "submitError": "No se puede enviar el quiz en este momento.",
     "questionShort": "Pregunta {index}"
+  },
+  "gamePage": {
+    "sidebar": {
+      "badge": "Centro de juegos",
+      "title": "Zona de juegos",
+      "description": "Elige una categoría, luego una subcategoría y lanza tu juego."
+    },
+    "navigation": {
+      "backToCategories": "Volver a categorías",
+      "backToGames": "Volver a juegos",
+      "backToSubCategories": "Volver a subcategorías"
+    },
+    "info": {
+      "title": "Información de la partida",
+      "category": "Categoría",
+      "subCategory": "Subcategoría",
+      "game": "Juego",
+      "mode": "Modo",
+      "status": "Estado"
+    },
+    "modes": {
+      "vsComputer": "Contra la computadora",
+      "vsPlayer": "Contra un jugador"
+    },
+    "status": {
+      "none": "Ningún juego seleccionado",
+      "inProgress": "Partida en curso",
+      "ready": "Listo para iniciar",
+      "selecting": "Selección en curso",
+      "comingSoon": "Próximamente",
+      "soonHint": "Este juego estará disponible pronto. ¡Vuelve en breve!"
+    },
+    "steps": {
+      "categories": {
+        "title": "1) Categorías",
+        "description": "Elige una familia de juegos para continuar."
+      },
+      "subCategories": {
+        "title": "2) Subcategorías · {category}",
+        "description": "Refina tu selección de juegos."
+      },
+      "games": {
+        "title": "3) Juegos · {subCategory}",
+        "description": "Selecciona un juego y su modo."
+      },
+      "mode": {
+        "title": "4) Modo de partida · {game}",
+        "description": "Elige un modo y luego inicia tu partida."
+      }
+    },
+    "actions": {
+      "viewSubCategories": "Ver subcategorías",
+      "viewGames": "Ver juegos",
+      "chooseGame": "Elegir este juego",
+      "launchGame": "Iniciar juego"
+    },
+    "catalog": {
+      "categories": {
+        "cards": {
+          "name": "Juegos de cartas",
+          "description": "Selecciona un juego de cartas tradicional y juega de inmediato."
+        },
+        "board": {
+          "name": "Juegos de mesa",
+          "description": "Juegos de tablero simples y amigables."
+        }
+      },
+      "subCategories": {
+        "classicCards": {
+          "name": "Cartas clásicas",
+          "description": "Rummy, Belote y otros juegos populares."
+        },
+        "tableClassic": {
+          "name": "Clásicos de mesa",
+          "description": "Empieza con una partida completa de damas."
+        }
+      },
+      "games": {
+        "rami": {
+          "name": "Rummy",
+          "description": "Crea escaleras o tríos para vaciar tu mano."
+        },
+        "belote": {
+          "name": "Belote",
+          "description": "Versión rápida de 8 bazas contra IA."
+        },
+        "poker": {
+          "name": "Póker (pronto)",
+          "description": "Modo Texas Hold'em disponible próximamente."
+        },
+        "checkers": {
+          "name": "Damas",
+          "description": "Partida local de damas para 2 jugadores en la misma pantalla."
+        }
+      }
+    }
+  },
+  "gameComponents": {
+    "belote": {
+      "title": "Belote (versión rápida)",
+      "actions": {
+        "newDeal": "Nuevo reparto",
+        "nextTrick": "Siguiente baza"
+      },
+      "trump": "Triunfo",
+      "tricksPlayed": "Bazas jugadas: {count} / 8",
+      "score": "Puntuación tú {playerScore} - IA {aiScore}",
+      "currentTrick": "Baza actual",
+      "instruction": "Instrucción",
+      "you": "Tú",
+      "ai": "IA",
+      "yourHand": "Tu mano",
+      "messages": {
+        "chooseCard": "Elige una carta para jugar una baza.",
+        "playerWonTrick": "Ganaste esta baza (+{points}).",
+        "aiWonTrick": "La IA gana esta baza (+{points}).",
+        "playerWonGame": "Partida terminada: ganaste {playerScore} a {aiScore}.",
+        "aiWonGame": "Partida terminada: la IA gana {aiScore} a {playerScore}.",
+        "drawGame": "Partida terminada: empate {playerScore}-{aiScore}.",
+        "newRound": "Nueva ronda de Belote. ¡Te toca!"
+      }
+    },
+    "checkers": {
+      "title": "Damas",
+      "actions": {
+        "restart": "Reiniciar"
+      },
+      "players": {
+        "redTurn": "Turno del jugador rojo.",
+        "blackTurn": "Turno del jugador negro.",
+        "redWin": "¡Gana el jugador rojo!",
+        "blackWin": "¡Gana el jugador negro!"
+      }
+    },
+    "rami": {
+      "title": "Rummy",
+      "score": "Puntuación",
+      "actions": {
+        "draw": "Robar carta",
+        "playAgain": "Jugar de nuevo",
+        "playCombination": "Bajar combinación ({count})"
+      },
+      "hand": "Mano",
+      "melds": "Combinaciones bajadas",
+      "noMeld": "Sin combinaciones por ahora.",
+      "messages": {
+        "createCombinations": "Crea combinaciones de 3 cartas o más (escalera o trío).",
+        "newGame": "Nueva partida. Haz escaleras o tríos.",
+        "invalidCombination": "Combinación inválida. Prueba una escalera del mismo palo o un trío.",
+        "allCardsPlayed": "¡Excelente! Jugaste todas tus cartas.",
+        "goodCombination": "Buena combinación. ¡Sigue así!",
+        "deckEmpty": "La baraja está vacía.",
+        "cardDrawn": "Carta robada."
+      }
+    }
   }
 }

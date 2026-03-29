@@ -5,6 +5,8 @@ defineProps<{
   selectedPlayMode: 'ai' | 'pvp'
 }>()
 
+const { t } = useI18n()
+
 type Suit = '♠' | '♥' | '♦' | '♣'
 type Rank = '7' | '8' | '9' | 'J' | 'Q' | 'K' | '10' | 'A'
 
@@ -71,7 +73,7 @@ const aiCard = ref<Card | null>(null)
 const playerScore = ref(0)
 const aiScore = ref(0)
 const trickCount = ref(0)
-const message = ref('Choisissez une carte pour jouer un pli.')
+const message = ref(t('gameComponents.belote.messages.chooseCard'))
 
 const trickWinner = (lead: Card, follow: Card) => {
   if (lead.suit === follow.suit) {
@@ -106,24 +108,24 @@ const playCard = (card: Card) => {
 
   if (winner === 'lead') {
     playerScore.value += points
-    message.value = `Vous gagnez ce pli (+${points}).`
+    message.value = t('gameComponents.belote.messages.playerWonTrick', { points })
   }
   else {
     aiScore.value += points
-    message.value = `Belote IA gagne ce pli (+${points}).`
+    message.value = t('gameComponents.belote.messages.aiWonTrick', { points })
   }
 
   trickCount.value += 1
 
   if (trickCount.value >= 8) {
     if (playerScore.value > aiScore.value) {
-      message.value = `Partie terminée: vous gagnez ${playerScore.value} à ${aiScore.value}.`
+      message.value = t('gameComponents.belote.messages.playerWonGame', { playerScore: playerScore.value, aiScore: aiScore.value })
     }
     else if (playerScore.value < aiScore.value) {
-      message.value = `Partie terminée: l'IA gagne ${aiScore.value} à ${playerScore.value}.`
+      message.value = t('gameComponents.belote.messages.aiWonGame', { aiScore: aiScore.value, playerScore: playerScore.value })
     }
     else {
-      message.value = `Partie terminée: égalité ${playerScore.value}-${aiScore.value}.`
+      message.value = t('gameComponents.belote.messages.drawGame', { playerScore: playerScore.value, aiScore: aiScore.value })
     }
   }
 }
@@ -143,7 +145,7 @@ const restart = () => {
   playerScore.value = 0
   aiScore.value = 0
   trickCount.value = 0
-  message.value = 'Nouvelle manche de belote. À vous de jouer !'
+  message.value = t('gameComponents.belote.messages.newRound')
 }
 
 restart()
@@ -152,28 +154,28 @@ restart()
 <template>
   <v-card class="pa-4 rounded-xl game-card-shell" variant="tonal">
     <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-3">
-      <h3 class="game-title mb-0">Belote (version rapide)</h3>
-      <v-btn color="primary" prepend-icon="mdi-refresh" @click="restart">Nouvelle donne</v-btn>
+      <h3 class="game-title mb-0">{{ t("gameComponents.belote.title") }}</h3>
+      <v-btn color="primary" prepend-icon="mdi-refresh" @click="restart">{{ t("gameComponents.belote.actions.newDeal") }}</v-btn>
     </div>
 
-    <p class="game-description mb-1">Atout: <strong>{{ trumpSuit }}</strong></p>
-    <p class="game-subtitle mb-4">Plis joués: {{ trickCount }} / 8 · Score vous {{ playerScore }} - IA {{ aiScore }}</p>
+    <p class="game-description mb-1">{{ t("gameComponents.belote.trump") }}: <strong>{{ trumpSuit }}</strong></p>
+    <p class="game-subtitle mb-4">{{ t("gameComponents.belote.tricksPlayed", { count: trickCount }) }} · {{ t("gameComponents.belote.score", { playerScore, aiScore }) }}</p>
 
     <div class="d-flex flex-wrap ga-3 mb-4">
       <v-card class="pa-3 flex-grow-1 game-info-card" min-width="220" variant="outlined">
-        <p class="text-subtitle-2 font-weight-bold mb-2">Pli en cours</p>
-        <p class="mb-1">Vous: <strong>{{ playerCard ? `${playerCard.rank}${playerCard.suit}` : '—' }}</strong></p>
-        <p class="mb-2">IA: <strong>{{ aiCard ? `${aiCard.rank}${aiCard.suit}` : '—' }}</strong></p>
-        <v-btn :disabled="!playerCard || !aiCard || trickCount >= 8" size="small" variant="text" @click="nextTrick">Pli suivant</v-btn>
+        <p class="text-subtitle-2 font-weight-bold mb-2">{{ t("gameComponents.belote.currentTrick") }}</p>
+        <p class="mb-1">{{ t("gameComponents.belote.you") }}: <strong>{{ playerCard ? `${playerCard.rank}${playerCard.suit}` : '—' }}</strong></p>
+        <p class="mb-2">{{ t("gameComponents.belote.ai") }}: <strong>{{ aiCard ? `${aiCard.rank}${aiCard.suit}` : '—' }}</strong></p>
+        <v-btn :disabled="!playerCard || !aiCard || trickCount >= 8" size="small" variant="text" @click="nextTrick">{{ t("gameComponents.belote.actions.nextTrick") }}</v-btn>
       </v-card>
 
       <v-card class="pa-3 flex-grow-1 game-info-card" min-width="220" variant="outlined">
-        <p class="text-subtitle-2 font-weight-bold mb-2">Instruction</p>
+        <p class="text-subtitle-2 font-weight-bold mb-2">{{ t("gameComponents.belote.instruction") }}</p>
         <p class="game-subtitle mb-0">{{ message }}</p>
       </v-card>
     </div>
 
-    <p class="text-subtitle-2 font-weight-bold mb-2">Votre main</p>
+    <p class="text-subtitle-2 font-weight-bold mb-2">{{ t("gameComponents.belote.yourHand") }}</p>
     <div class="belote-card-grid">
       <button
         v-for="card in playerHand"
