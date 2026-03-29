@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const props = defineProps<{
   selectedPlayMode: 'ai' | 'pvp'
@@ -52,11 +52,16 @@ const winnerLabel = (player: Player) => player === 'red'
   ? t('gameComponents.checkers.players.redWin')
   : t('gameComponents.checkers.players.blackWin')
 
+
+const TURN_SECONDS = 60
+
 const board = ref<Board>(createInitialBoard())
 const currentPlayer = ref<Player>('red')
 const selected = ref<Position | null>(null)
 const message = ref(currentPlayerLabel('red'))
 const isThinking = ref(false)
+const remainingSeconds = ref(TURN_SECONDS)
+const intervalId = ref<ReturnType<typeof setInterval> | null>(null)
 
 const hasInside = (row: number, col: number) => row >= 0 && row < 8 && col >= 0 && col < 8
 
@@ -117,9 +122,38 @@ const highlightedMoves = computed(() => selected.value ? availableMoves(selected
 
 const isHighlighted = (row: number, col: number) => highlightedMoves.value.some(move => move.to.row === row && move.to.col === col)
 
+const startTurnTimer = () => {
+  remainingSeconds.value = TURN_SECONDS
+
+  if (intervalId.value) {
+    clearInterval(intervalId.value)
+  }
+
+  intervalId.value = setInterval(() => {
+    if (remainingSeconds.value <= 1) {
+      remainingSeconds.value = 0
+      stopTurnTimer()
+      autoMoveFor(currentPlayer.value)
+      return
+    }
+
+    remainingSeconds.value -= 1
+  }, 1000)
+}
+
+const stopTurnTimer = () => {
+  if (!intervalId.value) {
+    return
+  }
+
+  clearInterval(intervalId.value)
+  intervalId.value = null
+}
+
 const switchTurn = () => {
   currentPlayer.value = currentPlayer.value === 'red' ? 'black' : 'red'
   message.value = currentPlayerLabel(currentPlayer.value)
+  startTurnTimer()
 }
 
 const executeMove = (from: Position, move: { to: Position, capture?: Position }) => {
@@ -253,7 +287,16 @@ const reset = () => {
   selected.value = null
   message.value = currentPlayerLabel('red')
   isThinking.value = false
+  startTurnTimer()
 }
+
+onMounted(() => {
+  startTurnTimer()
+})
+
+onBeforeUnmount(() => {
+  stopTurnTimer()
+})
 </script>
 
 <template>
