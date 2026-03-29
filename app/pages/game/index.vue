@@ -233,8 +233,6 @@ const launchGame = () => {
         <v-chip v-if="selectedGame" prepend-icon="mdi-play-circle-outline" :color="getLevelColor('game')">{{ t(selectedGame.nameKey) }}</v-chip>
       </div>
     </template>
-    <template #aside>
-    </template>
     <template #default>
       <section v-if="!selectedCategory" class="mb-4">
         <h2 class="section-title mb-1">{{ t("gamePage.steps.categories.title") }}</h2>

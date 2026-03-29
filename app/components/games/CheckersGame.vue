@@ -312,12 +312,10 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <v-card class="pa-4 rounded-xl game-card-shell" variant="tonal">
-    <div class="checkers-layout">
-      <div class="board-column">
-        <h3 class="game-title mb-3 text-center">{{ t("gameComponents.checkers.title") }}</h3>
-        <div class="checkers-board" :class="{ 'checkers-board--thinking': isThinking }">
-          <button
+  <div class="checkers-layout">
+    <div class="board-column">
+      <div class="checkers-board" :class="{ 'checkers-board--thinking': isThinking }">
+        <button
             v-for="(cell, index) in board.flat()"
             :key="index"
             type="button"
@@ -328,11 +326,11 @@ onBeforeUnmount(() => {
               'checkers-cell--highlight': isHighlighted(Math.floor(index / 8), index % 8),
             }"
             @click="clickCell(Math.floor(index / 8), index % 8)"
-          >
+        >
             <span
-              v-if="cell"
-              class="piece"
-              :class="{
+                v-if="cell"
+                class="piece"
+                :class="{
                 'piece--white': cell.player === 'red',
                 'piece--black': cell.player === 'black',
                 'piece--king': cell.king,
@@ -340,29 +338,28 @@ onBeforeUnmount(() => {
             >
               <v-icon v-if="cell.king" icon="mdi-crown" size="16" />
             </span>
-          </button>
-        </div>
+        </button>
       </div>
+    </div>
 
-      <aside class="info-aside">
-        <v-btn block color="primary" prepend-icon="mdi-refresh" @click="reset">{{ t("gameComponents.checkers.actions.restart") }}</v-btn>
-        <p class="game-subtitle mt-4 mb-2">{{ message }}</p>
-        <p class="game-meta mb-1">Joueur actif: <strong>{{ currentPlayer === 'red' ? 'blanc' : 'noir' }}</strong></p>
-        <p class="game-meta mb-2">Temps restant: <strong>{{ remainingSeconds }}s</strong></p>
+    <aside class="info-aside">
+      <v-btn block color="primary" prepend-icon="mdi-refresh" @click="reset">{{ t("gameComponents.checkers.actions.restart") }}</v-btn>
+      <p class="game-subtitle mt-4 mb-2">{{ message }}</p>
+      <p class="game-meta mb-1">Joueur actif: <strong>{{ currentPlayer === 'red' ? 'blanc' : 'noir' }}</strong></p>
+      <p class="game-meta mb-2">Temps restant: <strong>{{ remainingSeconds }}s</strong></p>
 
-        <v-progress-linear
+      <v-progress-linear
           class="timer-progress"
           :model-value="timerProgress"
           height="10"
           rounded
           color="primary"
           bg-color="grey-lighten-1"
-        />
+      />
 
-        <p v-if="isThinking" class="game-thinking mt-4 mb-0">IA en réflexion…</p>
-      </aside>
-    </div>
-  </v-card>
+      <p v-if="isThinking" class="game-thinking mt-4 mb-0">IA en réflexion…</p>
+    </aside>
+  </div>
 </template>
 
 <style scoped>
@@ -418,7 +415,7 @@ onBeforeUnmount(() => {
 }
 
 .checkers-board {
-  width: min(560px, 100%);
+  width: min(500px, 100%);
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   border: 1px solid rgba(0, 0, 0, 0.22);
