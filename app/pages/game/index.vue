@@ -97,7 +97,7 @@ const categories: GameCategory[] = [
             descriptionKey: "gamePage.catalog.games.checkers.description",
             icon: "mdi-circle-multiple-outline",
             component: "checkers",
-            supportedModes: ["pvp"],
+            supportedModes: ["ai", "pvp"],
           },
         ],
       },
