@@ -148,6 +148,13 @@ const loginWithSocial = (provider: 'github' | 'google' | 'facebook') => {
               required
               class="font-size-input input-style"
           />
+
+          <div class="d-flex justify-end mb-2">
+            <NuxtLink to="/forgot-password" class="text-decoration-none font-weight-medium">
+              Forgot password?
+            </NuxtLink>
+          </div>
+
           <v-checkbox
               v-model="checkbox"
               :ripple="false"
