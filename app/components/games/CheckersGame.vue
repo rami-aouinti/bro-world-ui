@@ -62,6 +62,7 @@ const message = ref(currentPlayerLabel('red'))
 const isThinking = ref(false)
 const remainingSeconds = ref(TURN_SECONDS)
 const intervalId = ref<ReturnType<typeof setInterval> | null>(null)
+const forcedWinner = ref<Player | null>(null)
 
 const hasInside = (row: number, col: number) => row >= 0 && row < 8 && col >= 0 && col < 8
 
@@ -212,6 +213,10 @@ const allMovesFor = (player: Player) => {
 const autoMoveFor = (player: Player) => {
   const moves = allMovesFor(player)
   if (!moves.length) {
+    const opponent: Player = player === 'red' ? 'black' : 'red'
+    forcedWinner.value = opponent
+    message.value = winnerLabel(opponent)
+    stopTurnTimer()
     return
   }
 
@@ -229,6 +234,10 @@ const playAiTurn = async () => {
 }
 
 const winner = computed(() => {
+  if (forcedWinner.value) {
+    return forcedWinner.value
+  }
+
   const pieces = board.value.flat().filter(Boolean) as Piece[]
   const redCount = pieces.filter(piece => piece.player === 'red').length
   const blackCount = pieces.filter(piece => piece.player === 'black').length
@@ -287,6 +296,7 @@ const reset = () => {
   selected.value = null
   message.value = currentPlayerLabel('red')
   isThinking.value = false
+  forcedWinner.value = null
   startTurnTimer()
 }
 
