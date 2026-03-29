@@ -157,28 +157,13 @@ const launchGame = () => {
 </script>
 
 <template>
-  <v-container class="py-8">
-    <v-row justify="center">
-      <v-col cols="12" lg="10">
-        <v-card class="pa-5 pa-md-7 rounded-xl game-page-hero" variant="tonal">
-          <div class="d-flex flex-wrap align-center justify-space-between ga-3 mb-4">
-            <div>
-              <v-chip variant="outlined" prepend-icon="mdi-controller" class="mb-2">Game Center</v-chip>
-              <h1 class="text-h4 font-weight-bold mb-2">Espace Jeux</h1>
-              <p class="text-body-1 text-medium-emphasis mb-0">Choisissez une catégorie, puis une sous-catégorie, puis lancez votre jeu.</p>
-            </div>
-            <v-btn variant="outlined" prepend-icon="mdi-home" @click="resetToCategories">Retour catégories</v-btn>
-          </div>
-
-          <div class="d-flex align-center flex-wrap ga-2 mb-6">
-            <v-chip v-if="selectedCategory" prepend-icon="mdi-folder-open-outline" color="primary">{{ selectedCategory.name }}</v-chip>
-            <v-chip v-if="selectedSubCategory" prepend-icon="mdi-shape-outline" color="secondary">{{ selectedSubCategory.name }}</v-chip>
-            <v-chip v-if="selectedGame" prepend-icon="mdi-play-circle-outline" color="success">{{ selectedGame.name }}</v-chip>
-          </div>
-
+  <v-container class="py-6 py-md-8">
+    <v-row class="ga-0 ga-md-2">
+      <v-col cols="12" lg="8" class="mb-4 mb-lg-0">
+        <v-card class="pa-4 pa-md-6 rounded-xl game-main-card" variant="tonal">
           <section v-if="!selectedCategory" class="mb-4">
             <h2 class="text-h6 mb-3">1) Catégories</h2>
-            <v-row>
+            <v-row class="ga-0 ga-md-1">
               <v-col v-for="category in categories" :key="category.id" cols="12" md="6">
                 <v-card class="pa-4 h-100" variant="outlined">
                   <div class="d-flex align-start ga-3">
@@ -196,7 +181,7 @@ const launchGame = () => {
 
           <section v-else-if="selectedCategory && !selectedSubCategory" class="mb-4">
             <h2 class="text-h6 mb-3">2) Sous-catégories · {{ selectedCategory.name }}</h2>
-            <v-row>
+            <v-row class="ga-0 ga-md-1">
               <v-col v-for="subCategory in selectedCategory.subCategories" :key="subCategory.id" cols="12" md="6">
                 <v-card class="pa-4 h-100" variant="outlined">
                   <div class="d-flex align-start ga-3">
@@ -214,8 +199,8 @@ const launchGame = () => {
 
           <section v-else-if="selectedSubCategory && !selectedGame" class="mb-4">
             <h2 class="text-h6 mb-3">3) Jeux · {{ selectedSubCategory.name }}</h2>
-            <v-row>
-              <v-col v-for="game in selectedSubCategory.games" :key="game.id" cols="12" md="6" lg="4">
+            <v-row class="ga-0 ga-md-1">
+              <v-col v-for="game in selectedSubCategory.games" :key="game.id" cols="12" md="6" xl="4">
                 <v-card class="pa-4 h-100" variant="outlined">
                   <div class="d-flex flex-column ga-2 h-100">
                     <v-avatar color="success" variant="tonal"><v-icon :icon="game.icon" /></v-avatar>
@@ -250,14 +235,9 @@ const launchGame = () => {
             </v-row>
           </section>
 
-          <section v-else-if="selectedGame && !isGameStarted">
-            <div class="d-flex flex-wrap ga-2 mb-4">
-              <v-btn size="small" variant="tonal" prepend-icon="mdi-arrow-left" @click="selectedGameId = null">Retour jeux</v-btn>
-              <v-btn size="small" variant="tonal" prepend-icon="mdi-arrow-left" @click="selectedSubCategoryId = null">Retour sous-catégories</v-btn>
-            </div>
-
+          <section v-else-if="selectedGame && !isGameStarted" class="mb-1">
             <h2 class="text-h6 mb-3">4) Mode de partie · {{ selectedGame.name }}</h2>
-            <v-card class="pa-4 mb-4" variant="outlined">
+            <v-card class="pa-4" variant="outlined">
               <p class="text-body-2 text-medium-emphasis mb-4">
                 Sélectionnez un mode avant de lancer le jeu.
               </p>
@@ -297,16 +277,46 @@ const launchGame = () => {
           </section>
 
           <section v-else-if="selectedGame && selectedPlayMode && isGameStarted">
-            <div class="d-flex flex-wrap ga-2 mb-4">
-              <v-btn size="small" variant="tonal" prepend-icon="mdi-arrow-left" @click="isGameStarted = false">Retour mode</v-btn>
-              <v-btn size="small" variant="tonal" prepend-icon="mdi-arrow-left" @click="selectedGameId = null">Retour jeux</v-btn>
-              <v-btn size="small" variant="tonal" prepend-icon="mdi-arrow-left" @click="selectedSubCategoryId = null">Retour sous-catégories</v-btn>
-            </div>
-
             <RamiGame v-if="selectedGame.component === 'rami'" :selected-play-mode="selectedPlayMode" />
             <BeloteGame v-else-if="selectedGame.component === 'belote'" :selected-play-mode="selectedPlayMode" />
             <CheckersGame v-else-if="selectedGame.component === 'checkers'" :selected-play-mode="selectedPlayMode" />
           </section>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" lg="4">
+        <v-card class="pa-4 pa-md-5 rounded-xl game-page-hero" variant="tonal">
+          <div class="mb-4">
+            <v-chip variant="outlined" prepend-icon="mdi-controller" class="mb-2">Game Center</v-chip>
+            <h1 class="text-h4 font-weight-bold mb-2">Espace Jeux</h1>
+            <p class="text-body-1 text-medium-emphasis mb-0">Choisissez une catégorie, puis une sous-catégorie, puis lancez votre jeu.</p>
+          </div>
+
+          <div class="d-flex flex-column ga-2 mb-4">
+            <v-btn variant="outlined" prepend-icon="mdi-home" @click="resetToCategories">Retour catégories</v-btn>
+            <v-btn
+              v-if="selectedGame"
+              variant="tonal"
+              prepend-icon="mdi-arrow-left"
+              @click="selectedGameId = null"
+            >
+              Retour jeux
+            </v-btn>
+            <v-btn
+              v-if="selectedSubCategory"
+              variant="tonal"
+              prepend-icon="mdi-arrow-left"
+              @click="selectedSubCategoryId = null"
+            >
+              Retour sous-catégories
+            </v-btn>
+          </div>
+
+          <div class="d-flex align-center flex-wrap ga-2 mb-0">
+            <v-chip v-if="selectedCategory" prepend-icon="mdi-folder-open-outline" color="primary">{{ selectedCategory.name }}</v-chip>
+            <v-chip v-if="selectedSubCategory" prepend-icon="mdi-shape-outline" color="secondary">{{ selectedSubCategory.name }}</v-chip>
+            <v-chip v-if="selectedGame" prepend-icon="mdi-play-circle-outline" color="success">{{ selectedGame.name }}</v-chip>
+          </div>
         </v-card>
       </v-col>
     </v-row>
@@ -314,6 +324,7 @@ const launchGame = () => {
 </template>
 
 <style scoped>
+.game-main-card,
 .game-page-hero {
   border: 1px solid rgba(var(--v-theme-primary), 0.2);
 }
