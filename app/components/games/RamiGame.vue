@@ -138,49 +138,47 @@ reset()
 </script>
 
 <template>
-  <v-card class="pa-4 rounded-xl game-card-shell" variant="tonal">
-    <div class="d-flex flex-wrap align-center justify-space-between ga-3 mb-4">
-      <div>
-        <h3 class="game-title mb-1">Rami</h3>
-        <p class="game-subtitle mb-0">Score: <strong>{{ score }}</strong></p>
-      </div>
-      <div class="d-flex ga-2">
-        <v-btn variant="outlined" prepend-icon="mdi-cards" @click="drawCard">Piocher</v-btn>
-        <v-btn color="primary" prepend-icon="mdi-refresh" @click="reset">Rejouer</v-btn>
-      </div>
+  <div class="d-flex flex-wrap align-center justify-space-between ga-3 mb-4">
+    <div>
+      <h3 class="game-title mb-1">Rami</h3>
+      <p class="game-subtitle mb-0">Score: <strong>{{ score }}</strong></p>
     </div>
+    <div class="d-flex ga-2">
+      <v-btn variant="outlined" prepend-icon="mdi-cards" @click="drawCard">Piocher</v-btn>
+      <v-btn color="primary" prepend-icon="mdi-refresh" @click="reset">Rejouer</v-btn>
+    </div>
+  </div>
 
-    <p class="game-description mb-3">{{ message }}</p>
+  <p class="game-description mb-3">{{ message }}</p>
 
-    <h4 class="text-subtitle-1 mb-2 font-weight-bold">Main</h4>
-    <div class="game-card-grid mb-4">
-      <button
+  <h4 class="text-subtitle-1 mb-2 font-weight-bold">Main</h4>
+  <div class="game-card-grid mb-4">
+    <button
         v-for="card in hand"
         :key="card.id"
         type="button"
         class="play-card"
         :class="{ 'play-card--selected': isSelected(card.id) }"
         @click="toggleCard(card.id)"
-      >
-        <span class="text-h6">{{ formatRank(card.rank) }}</span>
-        <span :class="card.suit === '♥' || card.suit === '♦' ? 'text-red' : 'text-black'">{{ card.suit }}</span>
-      </button>
-    </div>
+    >
+      <span class="text-h6">{{ formatRank(card.rank) }}</span>
+      <span :class="card.suit === '♥' || card.suit === '♦' ? 'text-red' : 'text-black'">{{ card.suit }}</span>
+    </button>
+  </div>
 
-    <v-btn :disabled="!selectedCards.length" color="secondary" variant="outlined" class="mb-4" @click="createMeld">
-      Poser la combinaison ({{ selectedCards.length }})
-    </v-btn>
+  <v-btn :disabled="!selectedCards.length" color="secondary" variant="outlined" class="mb-4" @click="createMeld">
+    Poser la combinaison ({{ selectedCards.length }})
+  </v-btn>
 
-    <h4 class="text-subtitle-1 mb-2 font-weight-bold">Combinaisons posées</h4>
-    <div v-if="melds.length" class="d-flex flex-column ga-2">
-      <div v-for="(meld, index) in melds" :key="`meld-${index}`" class="d-flex ga-2 flex-wrap">
-        <v-chip v-for="card in meld" :key="card.id" size="small" variant="outlined">
-          {{ formatRank(card.rank) }}{{ card.suit }}
-        </v-chip>
-      </div>
+  <h4 class="text-subtitle-1 mb-2 font-weight-bold">Combinaisons posées</h4>
+  <div v-if="melds.length" class="d-flex flex-column ga-2">
+    <div v-for="(meld, index) in melds" :key="`meld-${index}`" class="d-flex ga-2 flex-wrap">
+      <v-chip v-for="card in meld" :key="card.id" size="small" variant="outlined">
+        {{ formatRank(card.rank) }}{{ card.suit }}
+      </v-chip>
     </div>
-    <p v-else class="game-subtitle mb-0">Aucune combinaison pour le moment.</p>
-  </v-card>
+  </div>
+  <p v-else class="game-subtitle mb-0">Aucune combinaison pour le moment.</p>
 </template>
 
 <style scoped>

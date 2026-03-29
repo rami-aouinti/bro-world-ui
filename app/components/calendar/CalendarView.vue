@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import type { Component } from 'vue'
-import UiStatChip from '~/components/ui/UiStatChip.vue'
 import UiStateEmptyState from '~/components/ui/state/UiEmptyState.vue'
 import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
-import PlatformSidebarNav from '~/components/platform/PlatformSidebarNav.vue'
 import { useCalendarEventsStore } from '~/stores/calendarEvents'
 import { useLazyExternalLibs } from '~/composables/useLazyExternalLibs'
 import { getCalendarNav } from '~/data/platform-nav'
