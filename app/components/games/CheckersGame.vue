@@ -431,7 +431,7 @@ onBeforeUnmount(() => {
 .checkers-cell {
   aspect-ratio: 1;
   border: none;
-  background: #f5f5f5;
+  background: var(--v-theme-surface);
   display: grid;
   place-items: center;
   transition: box-shadow 180ms ease, transform 180ms ease;
