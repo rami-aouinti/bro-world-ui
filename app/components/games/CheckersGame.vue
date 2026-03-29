@@ -306,9 +306,12 @@ onBeforeUnmount(() => {
       <v-btn color="primary" prepend-icon="mdi-refresh" @click="reset">{{ t("gameComponents.checkers.actions.restart") }}</v-btn>
     </div>
 
-    <p class="game-subtitle mb-4">{{ message }}</p>
+    <p class="game-subtitle mb-2">{{ message }}</p>
+    <p class="game-meta mb-1">Joueur actif: <strong>{{ currentPlayer }}</strong></p>
+    <p class="game-meta mb-4">Temps restant: <strong>{{ remainingSeconds }}s</strong></p>
+    <p v-if="isThinking" class="game-thinking mb-4">IA en réflexion…</p>
 
-    <div class="checkers-board mx-auto">
+    <div class="checkers-board mx-auto" :class="{ 'checkers-board--thinking': isThinking }">
       <button
         v-for="(cell, index) in board.flat()"
         :key="index"
@@ -354,6 +357,18 @@ onBeforeUnmount(() => {
   color: rgba(var(--v-theme-on-surface), 0.78);
 }
 
+.game-meta {
+  margin: 0;
+  color: rgba(var(--v-theme-on-surface), 0.75);
+  font-size: 0.95rem;
+}
+
+.game-thinking {
+  margin: 0;
+  color: rgb(var(--v-theme-primary));
+  font-weight: 600;
+}
+
 .checkers-board {
   width: min(520px, 100%);
   display: grid;
@@ -361,6 +376,11 @@ onBeforeUnmount(() => {
   border: 1px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 20%, transparent);
   border-radius: 10px;
   overflow: hidden;
+}
+
+.checkers-board--thinking {
+  pointer-events: none;
+  opacity: 0.85;
 }
 
 .checkers-cell {
