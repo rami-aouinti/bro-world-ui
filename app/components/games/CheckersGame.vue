@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 
-defineProps<{
+const props = defineProps<{
   selectedPlayMode: 'ai' | 'pvp'
 }>()
 
@@ -56,6 +56,7 @@ const board = ref<Board>(createInitialBoard())
 const currentPlayer = ref<Player>('red')
 const selected = ref<Position | null>(null)
 const message = ref(currentPlayerLabel('red'))
+const isThinking = ref(false)
 
 const hasInside = (row: number, col: number) => row >= 0 && row < 8 && col >= 0 && col < 8
 
@@ -138,11 +139,19 @@ const winner = computed(() => {
 })
 
 const clickCell = (row: number, col: number) => {
-  if (winner.value) {
+  if (
+    winner.value
+    || isThinking.value
+    || (props.selectedPlayMode === 'ai' && currentPlayer.value === 'black')
+  ) {
     return
   }
 
   const clickedPiece = board.value[row][col]
+  if (clickedPiece && clickedPiece.player !== currentPlayer.value) {
+    return
+  }
+
   if (clickedPiece && clickedPiece.player === currentPlayer.value) {
     selected.value = { row, col }
     return
