@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import BeloteGame from '~/components/games/BeloteGame.vue'
 import CheckersGame from '~/components/games/CheckersGame.vue'
 import RamiGame from '~/components/games/RamiGame.vue'
-import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
+import AppSplitShell from '~/components/layout/AppSplitShell.vue'
 
 type PlayMode = 'ai' | 'pvp'
 
@@ -182,8 +182,8 @@ const launchGame = () => {
 </script>
 
 <template>
-  <PlatformSplitLayout>
-    <template #sidebar>
+  <AppSplitShell>
+    <template #left>
       <v-card class="pa-4 unified-card" variant="outlined">
         <div class="mb-4">
           <v-chip variant="outlined" prepend-icon="mdi-controller" class="mb-2">Game Center</v-chip>
@@ -354,7 +354,7 @@ const launchGame = () => {
       <BeloteGame v-else-if="selectedGame.component === 'belote'" :selected-play-mode="selectedPlayMode" />
       <CheckersGame v-else-if="selectedGame.component === 'checkers'" :selected-play-mode="selectedPlayMode" />
     </section>
-  </PlatformSplitLayout>
+  </AppSplitShell>
 </template>
 
 <style scoped>
