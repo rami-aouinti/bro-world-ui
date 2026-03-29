@@ -215,9 +215,6 @@ const launchGame = () => {
       <div class="mb-4">
         <v-chip variant="outlined" prepend-icon="mdi-controller" class="mb-2">{{ t("gamePage.sidebar.badge") }}</v-chip>
         <h1 class="page-title mb-2">{{ t("gamePage.sidebar.title") }}</h1>
-        <p class="section-subtitle mb-0">
-          {{ t("gamePage.sidebar.description") }}
-        </p>
       </div>
       <div class="d-flex flex-column ga-2 mb-4">
         <v-btn variant="outlined" prepend-icon="mdi-home" @click="resetToCategories">{{ t("gamePage.navigation.backToCategories") }}</v-btn>
@@ -228,34 +225,15 @@ const launchGame = () => {
           {{ t("gamePage.navigation.backToSubCategories") }}
         </v-btn>
       </div>
-    </template>
-    <template #aside>
-      <div class="d-flex align-center ga-2 mb-2">
-        <v-avatar :color="getLevelColor('info')" size="28" variant="tonal">
-          <v-icon icon="mdi-information-outline" size="18" />
-        </v-avatar>
-        <h2 class="text-subtitle-1 font-weight-bold mb-0">{{ t("gamePage.info.title") }}</h2>
-      </div>
-      <ul class="info-list text-body-2">
-        <li>
-          <strong>{{ t("gamePage.info.category") }}:</strong> {{ selectedCategory ? t(selectedCategory.nameKey) : "—" }}
-        </li>
-        <li>
-          <strong>{{ t("gamePage.info.subCategory") }}:</strong>
-          {{ selectedSubCategory ? t(selectedSubCategory.nameKey) : "—" }}
-        </li>
-        <li><strong>{{ t("gamePage.info.game") }}:</strong> {{ selectedGame ? t(selectedGame.nameKey) : "—" }}</li>
-        <li>
-          <strong>{{ t("gamePage.info.mode") }}:</strong>
-          {{ selectedPlayMode ? modeLabel(selectedPlayMode) : "—" }}
-        </li>
-        <li><strong>{{ t("gamePage.info.status") }}:</strong> {{ gameStatusLabel }}</li>
-      </ul>
       <div class="d-flex align-center flex-wrap ga-2 mb-0">
+        <v-chip>{{ selectedPlayMode ? modeLabel(selectedPlayMode) : "—" }}</v-chip>
+        <v-chip>{{ gameStatusLabel }}</v-chip>
         <v-chip v-if="selectedCategory" prepend-icon="mdi-folder-open-outline" :color="getLevelColor('category')">{{ t(selectedCategory.nameKey) }}</v-chip>
         <v-chip v-if="selectedSubCategory" prepend-icon="mdi-shape-outline" :color="getLevelColor('subCategory')">{{ t(selectedSubCategory.nameKey) }}</v-chip>
         <v-chip v-if="selectedGame" prepend-icon="mdi-play-circle-outline" :color="getLevelColor('game')">{{ t(selectedGame.nameKey) }}</v-chip>
       </div>
+    </template>
+    <template #aside>
     </template>
     <template #default>
       <section v-if="!selectedCategory" class="mb-4">
