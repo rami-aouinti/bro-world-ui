@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps<{
   selectedPlayMode: 'ai' | 'pvp'
@@ -122,6 +122,78 @@ const switchTurn = () => {
   message.value = currentPlayerLabel(currentPlayer.value)
 }
 
+const executeMove = (from: Position, move: { to: Position, capture?: Position }) => {
+  const movingPiece = board.value[from.row][from.col]
+  if (!movingPiece) {
+    selected.value = null
+    return false
+  }
+
+  board.value[from.row][from.col] = null
+  board.value[move.to.row][move.to.col] = movingPiece
+
+  if (move.capture) {
+    board.value[move.capture.row][move.capture.col] = null
+  }
+
+  if (movingPiece.player === 'red' && move.to.row === 0) {
+    movingPiece.king = true
+  }
+  if (movingPiece.player === 'black' && move.to.row === 7) {
+    movingPiece.king = true
+  }
+
+  selected.value = null
+
+  if (winner.value) {
+    message.value = winnerLabel(winner.value)
+    return true
+  }
+
+  switchTurn()
+  return true
+}
+
+const allMovesFor = (player: Player) => {
+  const moves: Array<{ from: Position, move: { to: Position, capture?: Position } }> = []
+
+  for (let row = 0; row < 8; row += 1) {
+    for (let col = 0; col < 8; col += 1) {
+      const piece = board.value[row][col]
+      if (!piece || piece.player !== player) {
+        continue
+      }
+
+      const from = { row, col }
+      const available = availableMoves(from)
+      for (const move of available) {
+        moves.push({ from, move })
+      }
+    }
+  }
+
+  return moves
+}
+
+const autoMoveFor = (player: Player) => {
+  const moves = allMovesFor(player)
+  if (!moves.length) {
+    return
+  }
+
+  const captureMoves = moves.filter(({ move }) => move.capture)
+  const candidateMoves = captureMoves.length ? captureMoves : moves
+  const randomMove = candidateMoves[Math.floor(Math.random() * candidateMoves.length)]
+  executeMove(randomMove.from, randomMove.move)
+}
+
+const playAiTurn = async () => {
+  isThinking.value = true
+  await new Promise(resolve => setTimeout(resolve, 300))
+  autoMoveFor('black')
+  isThinking.value = false
+}
+
 const winner = computed(() => {
   const pieces = board.value.flat().filter(Boolean) as Piece[]
   const redCount = pieces.filter(piece => piece.player === 'red').length
@@ -166,42 +238,21 @@ const clickCell = (row: number, col: number) => {
     return
   }
 
-  const from = selected.value
-  const movingPiece = board.value[from.row][from.col]
-  if (!movingPiece) {
-    selected.value = null
-    return
-  }
-
-  board.value[from.row][from.col] = null
-  board.value[row][col] = movingPiece
-
-  if (move.capture) {
-    board.value[move.capture.row][move.capture.col] = null
-  }
-
-  if (movingPiece.player === 'red' && row === 0) {
-    movingPiece.king = true
-  }
-  if (movingPiece.player === 'black' && row === 7) {
-    movingPiece.king = true
-  }
-
-  selected.value = null
-
-  if (winner.value) {
-    message.value = winnerLabel(winner.value)
-    return
-  }
-
-  switchTurn()
+  executeMove(selected.value, move)
 }
+
+watch(currentPlayer, async (player) => {
+  if (props.selectedPlayMode === 'ai' && player === 'black' && !winner.value) {
+    await playAiTurn()
+  }
+})
 
 const reset = () => {
   board.value = createInitialBoard()
   currentPlayer.value = 'red'
   selected.value = null
   message.value = currentPlayerLabel('red')
+  isThinking.value = false
 }
 </script>
 
