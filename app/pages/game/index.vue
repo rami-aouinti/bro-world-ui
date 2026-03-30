@@ -296,6 +296,9 @@ const ramiGameRef = ref<{
 const unoGameRef = ref<{
   handleAsideAction: (actionId: string) => void;
 } | null>(null);
+type AsideActionHandler = {
+  handleAsideAction: (actionId: string) => void;
+};
 const allGameEntries = computed(() =>
   categories.flatMap((category) =>
     category.subCategories.flatMap((subCategory) => subCategory.games),
@@ -420,14 +423,17 @@ const onGamePanelState = (payload: GameAsidePanelState) => {
 };
 
 const onAsideAction = (actionId: string) => {
-  if (selectedGame.value?.component === "rami") {
-    ramiGameRef.value?.handleAsideAction(actionId);
-    return;
-  }
+  const component = selectedGame.value?.component;
+  if (!component) return;
 
-  if (selectedGame.value?.component === "uno") {
-    unoGameRef.value?.handleAsideAction(actionId);
-  }
+  const asideHandlersByComponent: Partial<
+    Record<NonNullable<GameEntry["component"]>, AsideActionHandler | null>
+  > = {
+    rami: ramiGameRef.value,
+    uno: unoGameRef.value,
+  };
+
+  asideHandlersByComponent[component]?.handleAsideAction(actionId);
 };
 
 watch([selectedGameId, isGameStarted], () => {
