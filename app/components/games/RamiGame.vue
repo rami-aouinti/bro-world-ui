@@ -906,18 +906,19 @@ reset()
 
 .hand-fan {
   display: flex;
+  justify-content: center;
   align-items: flex-end;
   width: 100%;
   overflow-x: auto;
   overflow-y: visible;
-  padding: 8px 10px 10px;
+  padding: 8px 16px 10px;
   scrollbar-width: thin;
 }
 
 .hand-fan__card {
   position: relative;
   z-index: calc(var(--card-index) + 1);
-  margin-left: calc(-20px - (var(--card-index) * 0.35px));
+  margin-left: calc(-16px - (var(--card-index) * 0.35px));
   transform-origin: center 130%;
   transform:
     rotate(calc((var(--card-index) - 7) * 1deg))
@@ -952,6 +953,8 @@ reset()
 
 .seat-hand--south {
   position: relative;
+  display: flex;
+  justify-content: center;
 }
 
 .hand-meta {
@@ -1106,11 +1109,11 @@ reset()
 
 @media (max-width: 600px) {
   .hand-fan {
-    padding: 6px 8px 8px;
+    padding: 6px 16px 8px;
   }
 
   .hand-fan__card {
-    margin-left: -24px;
+    margin-left: -20px;
   }
 
   .play-card {
