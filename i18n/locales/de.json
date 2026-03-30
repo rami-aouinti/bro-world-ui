@@ -1729,6 +1729,10 @@
         "board": {
           "name": "Brettspiele",
           "description": "Einfache und gesellige Brettspiel-Klassiker."
+        },
+        "smartGames": {
+          "name": "Intelligente Spiele",
+          "description": "Trainiere dein Denken mit Logik-, Strategie- und Rätselspielen."
         }
       },
       "subCategories": {
@@ -1739,6 +1743,22 @@
         "tableClassic": {
           "name": "Tischklassiker",
           "description": "Starte mit einem vollständigen Damespiel."
+        },
+        "logic": {
+          "name": "Logik",
+          "description": "Spiele für Mustererkennung und Schlussfolgerung."
+        },
+        "strategy": {
+          "name": "Strategie",
+          "description": "Plane voraus und überliste deinen Gegner."
+        },
+        "wordsLanguage": {
+          "name": "Wörter & Sprache",
+          "description": "Wortschatz- und Sprachrätsel."
+        },
+        "gridsPuzzles": {
+          "name": "Gitter & Puzzles",
+          "description": "Rasterbasierte Denkaufgaben und Rätsel."
         }
       },
       "games": {
@@ -1757,6 +1777,26 @@
         "checkers": {
           "name": "Dame",
           "description": "Lokales Dame-Spiel für 2 Spieler am selben Bildschirm."
+        },
+        "sudoku": {
+          "name": "Sudoku",
+          "description": "Fülle das Raster von 1 bis 9 ohne Wiederholungen."
+        },
+        "chess": {
+          "name": "Schach",
+          "description": "Klassisches Strategiespiel mit taktischer Tiefe."
+        },
+        "game2048": {
+          "name": "2048",
+          "description": "Kombiniere Kacheln, um 2048 zu erreichen."
+        },
+        "hiddenWord": {
+          "name": "Verstecktes Wort (Wordle-ähnlich)",
+          "description": "Errate das geheime Wort in wenigen Versuchen."
+        },
+        "nonogram": {
+          "name": "Nonogram/Picross",
+          "description": "Löse Zahlenhinweise im Raster und decke ein Bild auf."
         }
       }
     }

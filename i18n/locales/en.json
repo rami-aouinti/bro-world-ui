@@ -1729,6 +1729,10 @@
         "board": {
           "name": "Board games",
           "description": "Simple and friendly tabletop classics."
+        },
+        "smartGames": {
+          "name": "Smart games",
+          "description": "Sharpen your mind with logic, strategy, and puzzle challenges."
         }
       },
       "subCategories": {
@@ -1739,6 +1743,22 @@
         "tableClassic": {
           "name": "Classic board games",
           "description": "Start with full checkers gameplay."
+        },
+        "logic": {
+          "name": "Logic",
+          "description": "Pattern-based games to train deduction skills."
+        },
+        "strategy": {
+          "name": "Strategy",
+          "description": "Plan ahead and outsmart your opponent."
+        },
+        "wordsLanguage": {
+          "name": "Words & Language",
+          "description": "Vocabulary and word-discovery challenges."
+        },
+        "gridsPuzzles": {
+          "name": "Grids & Puzzles",
+          "description": "Grid-based brain teasers and visual puzzles."
         }
       },
       "games": {
@@ -1757,6 +1777,26 @@
         "checkers": {
           "name": "Checkers",
           "description": "Local 2-player checkers on the same screen."
+        },
+        "sudoku": {
+          "name": "Sudoku",
+          "description": "Fill each grid with numbers from 1 to 9 without repetition."
+        },
+        "chess": {
+          "name": "Chess",
+          "description": "Classic tactical duel based on foresight and strategy."
+        },
+        "game2048": {
+          "name": "2048",
+          "description": "Merge tiles to reach 2048 and beyond."
+        },
+        "hiddenWord": {
+          "name": "Hidden word (Wordle-like)",
+          "description": "Guess the secret word in a limited number of attempts."
+        },
+        "nonogram": {
+          "name": "Nonogram / Picross",
+          "description": "Reveal pixel art by solving number clues on a grid."
         }
       }
     }

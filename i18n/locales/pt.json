@@ -1729,6 +1729,10 @@
         "board": {
           "name": "Jogos de tabuleiro",
           "description": "Jogos de tabuleiro simples e amigáveis."
+        },
+        "smartGames": {
+          "name": "Jogos inteligentes",
+          "description": "Treine sua mente com desafios de lógica, estratégia e puzzles."
         }
       },
       "subCategories": {
@@ -1739,6 +1743,22 @@
         "tableClassic": {
           "name": "Clássicos de mesa",
           "description": "Comece com um jogo completo de damas."
+        },
+        "logic": {
+          "name": "Lógica",
+          "description": "Jogos de padrões e dedução."
+        },
+        "strategy": {
+          "name": "Estratégia",
+          "description": "Planeje seus movimentos e antecipe o adversário."
+        },
+        "wordsLanguage": {
+          "name": "Palavras e linguagem",
+          "description": "Desafios de letras, vocabulário e linguagem."
+        },
+        "gridsPuzzles": {
+          "name": "Grades e puzzles",
+          "description": "Quebra-cabeças visuais baseados em grade."
         }
       },
       "games": {
@@ -1757,6 +1777,26 @@
         "checkers": {
           "name": "Damas",
           "description": "Jogo local de damas para 2 jogadores na mesma tela."
+        },
+        "sudoku": {
+          "name": "Sudoku",
+          "description": "Preencha a grade de 1 a 9 sem repetir números."
+        },
+        "chess": {
+          "name": "Xadrez",
+          "description": "Duelo clássico de estratégia e antecipação."
+        },
+        "game2048": {
+          "name": "2048",
+          "description": "Combine peças para chegar a 2048."
+        },
+        "hiddenWord": {
+          "name": "Palavra oculta (estilo Wordle)",
+          "description": "Descubra a palavra secreta em tentativas limitadas."
+        },
+        "nonogram": {
+          "name": "Nonogram/Picross",
+          "description": "Resolva pistas numéricas e revele a imagem escondida."
         }
       }
     }
