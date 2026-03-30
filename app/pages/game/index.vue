@@ -281,9 +281,14 @@ const loginLoading = ref(false);
 const loginError = ref("");
 const liveGamePanel = ref<GameAsidePanelState | null>(null);
 const coinOffers = [
-  { id: "offer-1", coins: 1000, priceEuro: 1 },
-  { id: "offer-2", coins: 5000, priceEuro: 4 },
-  { id: "offer-3", coins: 100000, priceLabel: "À définir (ex: 49 €)" },
+  { id: "offer-1", coins: 1000, priceEuro: 1, labelKey: "gamePage.auth.offers.offer1Label" },
+  { id: "offer-2", coins: 5000, priceEuro: 4, labelKey: "gamePage.auth.offers.offer2Label" },
+  {
+    id: "offer-3",
+    coins: 100000,
+    priceLabelKey: "gamePage.auth.offers.offer3PriceLabel",
+    labelKey: "gamePage.auth.offers.offer3Label",
+  },
 ] as const;
 const ramiGameRef = ref<{
   handleAsideAction: (actionId: string) => void;
@@ -445,17 +450,19 @@ const sidebarUserDisplayName = computed(() => {
   const lastName = authSession.profile?.lastName?.trim() ?? "";
   const fullName = `${firstName} ${lastName}`.trim();
 
-  return fullName || authSession.profile?.username || "Player";
+  return fullName || authSession.profile?.username || t("gamePage.auth.defaultPlayerName");
 });
 
 const formatCoinsAmount = (coins: number) => new Intl.NumberFormat("fr-FR").format(coins);
 
 const formatOfferPrice = (offer: (typeof coinOffers)[number]) =>
-  typeof offer.priceEuro === "number" ? `${offer.priceEuro} €` : offer.priceLabel;
+  typeof offer.priceEuro === "number"
+    ? `${offer.priceEuro} €`
+    : t(offer.priceLabelKey ?? "gamePage.auth.offers.offer3PriceLabel");
 
 const chooseCoinOffer = (offerId: string) => {
   isCoinsDialogOpen.value = false;
-  paymentSoonSnackbarText.value = `Fonction de paiement bientôt disponible (${offerId})`;
+  paymentSoonSnackbarText.value = t("gamePage.auth.paymentSoon", { offerId });
   isPaymentSoonSnackbarOpen.value = true;
 
   // TODO(payment): brancher ici l'appel API réel (create checkout session / payment intent)
@@ -464,7 +471,7 @@ const chooseCoinOffer = (offerId: string) => {
 
 const handleLogin = async () => {
   if (!usernameOrEmail.value.trim() || !password.value.trim()) {
-    loginError.value = "Veuillez renseigner vos identifiants.";
+    loginError.value = t("gamePage.auth.loginMissingCredentials");
     return;
   }
 
@@ -477,7 +484,7 @@ const handleLogin = async () => {
     usernameOrEmail.value = "";
     password.value = "";
   } catch {
-    loginError.value = "Connexion impossible. Réessayez.";
+    loginError.value = t("gamePage.auth.loginFailed");
   } finally {
     loginLoading.value = false;
   }
@@ -500,7 +507,7 @@ const handleLogin = async () => {
           prepend-icon="mdi-login"
           @click="isLoginDialogOpen = true"
         >
-          Connect
+          {{ t("gamePage.auth.connect") }}
         </v-btn>
         <div v-else class="d-flex align-center ga-2">
           <UiAvatar
@@ -510,16 +517,18 @@ const handleLogin = async () => {
           />
           <div class="d-flex flex-column ga-1">
             <p class="text-body-2 font-weight-medium mb-0">
-              {{ sidebarUserDisplayName }}
+              {{ t("gamePage.auth.connectedAs", { name: sidebarUserDisplayName }) }}
             </p>
-            <p class="text-caption mb-0">{{ userCoins }} coins</p>
+            <p class="text-caption mb-0">
+              {{ t("gamePage.auth.coinsBalance", { count: userCoins }) }}
+            </p>
             <v-btn
               size="x-small"
               variant="outlined"
               prepend-icon="mdi-cash-plus"
               @click="isCoinsDialogOpen = true"
             >
-              Acheter des coins
+              {{ t("gamePage.auth.buyCoins") }}
             </v-btn>
           </div>
         </div>
@@ -575,17 +584,17 @@ const handleLogin = async () => {
 
       <v-dialog v-model="isLoginDialogOpen" max-width="520">
         <v-card>
-          <v-card-title>Connexion</v-card-title>
+          <v-card-title>{{ t("gamePage.auth.loginModalTitle") }}</v-card-title>
           <v-card-text class="d-flex flex-column ga-3">
             <v-text-field
               v-model="usernameOrEmail"
-              label="Email ou username"
+              :label="t('gamePage.auth.loginEmailOrUsername')"
               variant="outlined"
               density="comfortable"
             />
             <v-text-field
               v-model="password"
-              label="Mot de passe"
+              :label="t('gamePage.auth.loginPassword')"
               type="password"
               variant="outlined"
               density="comfortable"
@@ -606,16 +615,16 @@ const handleLogin = async () => {
               :loading="loginLoading"
               @click="handleLogin"
             >
-              Se connecter
+              {{ t("gamePage.auth.loginSubmit") }}
             </v-btn>
-            <v-btn variant="text" to="/login">Aller vers /login</v-btn>
+            <v-btn variant="text" to="/login">{{ t("gamePage.auth.goToLoginPage") }}</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
 
       <v-dialog v-model="isCoinsDialogOpen" max-width="760">
         <v-card>
-          <v-card-title>Acheter des coins</v-card-title>
+          <v-card-title>{{ t("gamePage.auth.buyCoinsModalTitle") }}</v-card-title>
           <v-card-text class="pt-2">
             <v-row>
               <v-col
@@ -626,7 +635,7 @@ const handleLogin = async () => {
               >
                 <v-card variant="outlined" class="h-100 d-flex flex-column">
                   <v-card-title class="text-h6">
-                    {{ formatCoinsAmount(offer.coins) }} coins
+                    {{ t(offer.labelKey, { count: formatCoinsAmount(offer.coins) }) }}
                   </v-card-title>
                   <v-card-subtitle class="text-body-1">
                     {{ formatOfferPrice(offer) }}
@@ -638,7 +647,7 @@ const handleLogin = async () => {
                       block
                       @click="chooseCoinOffer(offer.id)"
                     >
-                      Choisir
+                      {{ t("gamePage.auth.chooseOffer") }}
                     </v-btn>
                   </v-card-actions>
                 </v-card>
@@ -648,7 +657,7 @@ const handleLogin = async () => {
           <v-card-actions>
             <v-spacer />
             <v-btn color="primary" variant="text" @click="isCoinsDialogOpen = false"
-              >Fermer</v-btn
+              >{{ t("gamePage.auth.closeModal") }}</v-btn
             >
           </v-card-actions>
         </v-card>
@@ -838,7 +847,7 @@ const handleLogin = async () => {
               :variant="selectedBeloteMode === 'teams' ? 'flat' : 'outlined'"
               @click="selectBeloteMode('teams')"
             >
-              Belote 2v2
+              {{ t("gamePage.labels.beloteTeams") }}
             </v-btn>
             <v-btn
               color="deep-purple"
@@ -847,7 +856,7 @@ const handleLogin = async () => {
               "
               @click="selectBeloteMode('free-for-all')"
             >
-              Belote free-for-all
+              {{ t("gamePage.labels.beloteFreeForAll") }}
             </v-btn>
           </div>
 
