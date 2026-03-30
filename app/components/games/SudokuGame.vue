@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from "vue";
+import type { GameAsidePanelState } from "./types";
 const { t } = useI18n();
 
 const props = defineProps<{
   selectedPlayMode: "ai" | "pvp";
+}>();
+const emit = defineEmits<{
+  (event: "panel-state", payload: GameAsidePanelState): void;
 }>();
 
 type Difficulty = "easy" | "medium" | "hard";
@@ -46,11 +50,18 @@ const shuffle = <T,>(values: T[]) => {
 };
 
 const createEmptyGrid = (): Grid =>
-  Array.from({ length: GRID_SIZE }, () => Array.from({ length: GRID_SIZE }, () => 0));
+  Array.from({ length: GRID_SIZE }, () =>
+    Array.from({ length: GRID_SIZE }, () => 0),
+  );
 
 const cloneGrid = (grid: Grid): Grid => grid.map((row) => [...row]);
 
-const canPlaceNumber = (grid: Grid, row: number, col: number, value: number) => {
+const canPlaceNumber = (
+  grid: Grid,
+  row: number,
+  col: number,
+  value: number,
+) => {
   for (let idx = 0; idx < GRID_SIZE; idx += 1) {
     if (idx !== col && grid[row][idx] === value) return false;
     if (idx !== row && grid[idx][col] === value) return false;
@@ -99,9 +110,14 @@ const generateSolvedGrid = (): Grid => {
   return grid;
 };
 
-const generatePlayableGrid = (solved: Grid, prefilledCount: number): { grid: Grid; fixed: boolean[][] } => {
+const generatePlayableGrid = (
+  solved: Grid,
+  prefilledCount: number,
+): { grid: Grid; fixed: boolean[][] } => {
   const puzzle = cloneGrid(solved);
-  const fixed = Array.from({ length: GRID_SIZE }, () => Array.from({ length: GRID_SIZE }, () => true));
+  const fixed = Array.from({ length: GRID_SIZE }, () =>
+    Array.from({ length: GRID_SIZE }, () => true),
+  );
 
   const positions = shuffle(
     Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, idx) => ({
@@ -135,7 +151,8 @@ const isCellConflicting = (row: number, col: number) => {
 
   for (let r = blockRowStart; r < blockRowStart + BLOCK_SIZE; r += 1) {
     for (let c = blockColStart; c < blockColStart + BLOCK_SIZE; c += 1) {
-      if ((r !== row || c !== col) && playerGrid.value[r][c] === value) return true;
+      if ((r !== row || c !== col) && playerGrid.value[r][c] === value)
+        return true;
     }
   }
 
@@ -156,9 +173,12 @@ const totalConflicts = computed(() => {
   return count;
 });
 
-const isComplete = computed(() =>
-  playerGrid.value.length > 0 &&
-  playerGrid.value.every((row) => row.every((value) => value >= 1 && value <= 9)),
+const isComplete = computed(
+  () =>
+    playerGrid.value.length > 0 &&
+    playerGrid.value.every((row) =>
+      row.every((value) => value >= 1 && value <= 9),
+    ),
 );
 
 const formattedTime = computed(() => {
@@ -221,7 +241,11 @@ const updateCell = (row: number, col: number, rawValue: string) => {
 
   playerGrid.value[row][col] = nextValue;
 
-  if (nextValue && nextValue !== solutionGrid.value[row][col] && nextValue !== previousValue) {
+  if (
+    nextValue &&
+    nextValue !== solutionGrid.value[row][col] &&
+    nextValue !== previousValue
+  ) {
     mistakes.value += 1;
   }
 
@@ -229,7 +253,9 @@ const updateCell = (row: number, col: number, rawValue: string) => {
     isComplete.value &&
     totalConflicts.value === 0 &&
     playerGrid.value.every((gridRow, rowIdx) =>
-      gridRow.every((value, colIdx) => value === solutionGrid.value[rowIdx][colIdx]),
+      gridRow.every(
+        (value, colIdx) => value === solutionGrid.value[rowIdx][colIdx],
+      ),
     );
 
   if (won) {
@@ -245,15 +271,83 @@ onMounted(() => {
 onBeforeUnmount(() => {
   clearTimer();
 });
+
+const panelState = computed<GameAsidePanelState>(() => ({
+  gameKey: "sudoku",
+  title: t("gameComponents.sudoku.mode"),
+  phase: t(`common.difficulty.${difficulty.value}`),
+  turnLabel:
+    props.selectedPlayMode === "ai"
+      ? t("gameComponents.sudoku.modes.assistedSolo")
+      : t("gameComponents.sudoku.modes.local"),
+  status: hasWon.value
+    ? t("gameComponents.sudoku.win", {
+        time: formattedTime.value,
+        score: finalScore.value,
+      })
+    : `${t("gameComponents.sudoku.time")} : ${formattedTime.value}`,
+  highlights: [
+    `${t("gameComponents.sudoku.errors")} : ${mistakes.value}`,
+    `${t("gameComponents.sudoku.conflicts")} : ${totalConflicts.value}`,
+  ],
+  kpis: [
+    {
+      id: "time",
+      label: t("gameComponents.sudoku.time"),
+      value: formattedTime.value,
+      color: "primary",
+      variant: "tonal",
+    },
+    {
+      id: "errors",
+      label: t("gameComponents.sudoku.errors"),
+      value: mistakes.value,
+      color: "error",
+      variant: "outlined",
+    },
+    {
+      id: "conflicts",
+      label: t("gameComponents.sudoku.conflicts"),
+      value: totalConflicts.value,
+      color: totalConflicts.value ? "warning" : "success",
+      variant: "outlined",
+    },
+  ],
+  actions: [
+    { id: "new-grid", label: t("gameComponents.sudoku.actions.newGrid") },
+  ],
+}));
+
+watchEffect(() => {
+  emit("panel-state", panelState.value);
+});
 </script>
 
 <template>
   <v-card class="pa-4 unified-card" variant="outlined">
     <div class="d-flex flex-wrap align-center ga-2 mb-4">
-      <v-chip prepend-icon="mdi-robot">{{ t("gameComponents.sudoku.mode") }} : {{ props.selectedPlayMode === "ai" ? t("gameComponents.sudoku.modes.assistedSolo") : t("gameComponents.sudoku.modes.local") }}</v-chip>
-      <v-chip prepend-icon="mdi-timer-outline">{{ t("gameComponents.sudoku.time") }} : {{ formattedTime }}</v-chip>
-      <v-chip prepend-icon="mdi-close-circle-outline" color="error" variant="tonal">{{ t("gameComponents.sudoku.errors") }} : {{ mistakes }}</v-chip>
-      <v-chip prepend-icon="mdi-alert-circle-outline" :color="totalConflicts ? 'warning' : 'success'" variant="tonal">
+      <v-chip prepend-icon="mdi-robot"
+        >{{ t("gameComponents.sudoku.mode") }} :
+        {{
+          props.selectedPlayMode === "ai"
+            ? t("gameComponents.sudoku.modes.assistedSolo")
+            : t("gameComponents.sudoku.modes.local")
+        }}</v-chip
+      >
+      <v-chip prepend-icon="mdi-timer-outline"
+        >{{ t("gameComponents.sudoku.time") }} : {{ formattedTime }}</v-chip
+      >
+      <v-chip
+        prepend-icon="mdi-close-circle-outline"
+        color="error"
+        variant="tonal"
+        >{{ t("gameComponents.sudoku.errors") }} : {{ mistakes }}</v-chip
+      >
+      <v-chip
+        prepend-icon="mdi-alert-circle-outline"
+        :color="totalConflicts ? 'warning' : 'success'"
+        variant="tonal"
+      >
         {{ t("gameComponents.sudoku.conflicts") }} : {{ totalConflicts }}
       </v-chip>
     </div>
@@ -262,29 +356,43 @@ onBeforeUnmount(() => {
       <v-btn
         :variant="difficulty === 'easy' ? 'flat' : 'outlined'"
         color="success"
-        @click="difficulty = 'easy'; initGame()"
+        @click="
+          difficulty = 'easy';
+          initGame();
+        "
       >
         {{ t("common.difficulty.easy") }}
       </v-btn>
       <v-btn
         :variant="difficulty === 'medium' ? 'flat' : 'outlined'"
         color="info"
-        @click="difficulty = 'medium'; initGame()"
+        @click="
+          difficulty = 'medium';
+          initGame();
+        "
       >
         {{ t("common.difficulty.medium") }}
       </v-btn>
       <v-btn
         :variant="difficulty === 'hard' ? 'flat' : 'outlined'"
         color="deep-purple"
-        @click="difficulty = 'hard'; initGame()"
+        @click="
+          difficulty = 'hard';
+          initGame();
+        "
       >
         {{ t("common.difficulty.hard") }}
       </v-btn>
-      <v-btn variant="tonal" prepend-icon="mdi-refresh" @click="initGame">{{ t("gameComponents.sudoku.actions.newGrid") }}</v-btn>
+      <v-btn variant="tonal" prepend-icon="mdi-refresh" @click="initGame">{{
+        t("gameComponents.sudoku.actions.newGrid")
+      }}</v-btn>
     </div>
 
     <div class="sudoku-grid mb-4">
-      <template v-for="(rowValues, rowIndex) in playerGrid" :key="`row-${rowIndex}`">
+      <template
+        v-for="(rowValues, rowIndex) in playerGrid"
+        :key="`row-${rowIndex}`"
+      >
         <input
           v-for="(cell, colIndex) in rowValues"
           :key="`cell-${rowIndex}-${colIndex}`"
@@ -299,8 +407,14 @@ onBeforeUnmount(() => {
           :disabled="fixedCells[rowIndex]?.[colIndex] || hasWon"
           inputmode="numeric"
           maxlength="1"
-          @input="updateCell(rowIndex, colIndex, ($event.target as HTMLInputElement).value)"
-        >
+          @input="
+            updateCell(
+              rowIndex,
+              colIndex,
+              ($event.target as HTMLInputElement).value,
+            )
+          "
+        />
       </template>
     </div>
 
@@ -310,7 +424,12 @@ onBeforeUnmount(() => {
       variant="tonal"
       icon="mdi-trophy-outline"
     >
-      {{ t("gameComponents.sudoku.win", { time: formattedTime, score: finalScore }) }}
+      {{
+        t("gameComponents.sudoku.win", {
+          time: formattedTime,
+          score: finalScore,
+        })
+      }}
     </v-alert>
   </v-card>
 </template>

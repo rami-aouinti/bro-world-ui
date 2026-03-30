@@ -7,7 +7,7 @@ import type {
   GameSubCategory,
   PlayMode,
 } from "~/types/game";
-import type { GamePanelStatePayload } from "~/types/gamePanel";
+import type { GameAsidePanelState } from "./types";
 
 type PanelLevel = "category" | "subCategory" | "game" | "mode" | "info";
 
@@ -46,7 +46,7 @@ defineProps({
     required: true,
   },
   liveGamePanel: {
-    type: Object as PropType<GamePanelStatePayload | null>,
+    type: Object as PropType<GameAsidePanelState | null>,
     default: null,
   },
 });
@@ -67,19 +67,30 @@ const liveHintByGameId: Record<string, string> = {
 </script>
 
 <template>
-  <v-chip variant="outlined" class="mb-4 title-chip" prepend-icon="mdi-information-outline">
+  <v-chip
+    variant="outlined"
+    class="mb-4 title-chip"
+    prepend-icon="mdi-information-outline"
+  >
     {{ t("gamePage.info.title") }}
   </v-chip>
 
   <v-card class="pa-4 unified-card mb-4" variant="outlined">
-    <p class="text-caption text-medium-emphasis mb-2">{{ t("gamePage.info.status") }}</p>
-    <v-chip :color="isGameStarted ? 'warning' : gamePanelState.getLevelColor('info')" variant="tonal">
+    <p class="text-caption text-medium-emphasis mb-2">
+      {{ t("gamePage.info.status") }}
+    </p>
+    <v-chip
+      :color="isGameStarted ? 'warning' : gamePanelState.getLevelColor('info')"
+      variant="tonal"
+    >
       {{ gamePanelState.gameStatusLabel }}
     </v-chip>
   </v-card>
 
   <v-card class="pa-4 unified-card mb-4" variant="outlined">
-    <p class="text-caption text-medium-emphasis mb-2">{{ t("gamePage.info.category") }}</p>
+    <p class="text-caption text-medium-emphasis mb-2">
+      {{ t("gamePage.info.category") }}
+    </p>
     <v-chip
       v-if="selectedCategory"
       prepend-icon="mdi-folder-open-outline"
@@ -88,11 +99,15 @@ const liveHintByGameId: Record<string, string> = {
     >
       {{ t(selectedCategory.nameKey) }}
     </v-chip>
-    <p v-else class="section-subtitle mb-0">{{ t("gamePage.sidebar.description") }}</p>
+    <p v-else class="section-subtitle mb-0">
+      {{ t("gamePage.sidebar.description") }}
+    </p>
   </v-card>
 
   <v-card class="pa-4 unified-card mb-4" variant="outlined">
-    <p class="text-caption text-medium-emphasis mb-2">{{ t("gamePage.info.subCategory") }}</p>
+    <p class="text-caption text-medium-emphasis mb-2">
+      {{ t("gamePage.info.subCategory") }}
+    </p>
     <v-chip
       v-if="selectedSubCategory"
       prepend-icon="mdi-shape-outline"
@@ -103,7 +118,9 @@ const liveHintByGameId: Record<string, string> = {
     </v-chip>
     <p v-else class="section-subtitle mb-0">—</p>
 
-    <p class="text-caption text-medium-emphasis mt-4 mb-2">{{ t("gamePage.info.game") }}</p>
+    <p class="text-caption text-medium-emphasis mt-4 mb-2">
+      {{ t("gamePage.info.game") }}
+    </p>
     <v-chip
       v-if="selectedGame"
       prepend-icon="mdi-play-circle-outline"
@@ -118,15 +135,15 @@ const liveHintByGameId: Record<string, string> = {
   <v-card class="pa-4 unified-card mb-4" variant="outlined">
     <p class="text-caption text-medium-emphasis mb-3">Match info</p>
 
-    <v-alert
-      v-if="!selectedGame"
-      type="info"
-      variant="tonal"
-      class="mb-0"
-    >
+    <v-alert v-if="!selectedGame" type="info" variant="tonal" class="mb-0">
       <div class="d-flex flex-column ga-3">
         <span>{{ t("gamePage.sidebar.description") }}</span>
-        <v-btn variant="outlined" size="small" prepend-icon="mdi-home" @click="gamePanelState.resetToCategories()">
+        <v-btn
+          variant="outlined"
+          size="small"
+          prepend-icon="mdi-home"
+          @click="gamePanelState.resetToCategories()"
+        >
           {{ t("gamePage.navigation.backToCategories") }}
         </v-btn>
       </div>
@@ -134,22 +151,38 @@ const liveHintByGameId: Record<string, string> = {
 
     <div v-else-if="!isGameStarted" class="d-flex flex-column ga-3">
       <v-chip variant="outlined" :color="gamePanelState.getLevelColor('mode')">
-        {{ selectedPlayMode ? gamePanelState.modeLabel(selectedPlayMode) : "Mode non sélectionné" }}
+        {{
+          selectedPlayMode
+            ? gamePanelState.modeLabel(selectedPlayMode)
+            : "Mode non sélectionné"
+        }}
       </v-chip>
       <v-chip
         :color="gamePanelState.canLaunchSelectedGame ? 'success' : 'warning'"
         variant="tonal"
       >
-        {{ gamePanelState.canLaunchSelectedGame ? "Prêt à lancer" : "Configurer les options" }}
+        {{
+          gamePanelState.canLaunchSelectedGame
+            ? "Prêt à lancer"
+            : "Configurer les options"
+        }}
       </v-chip>
-      <p v-if="selectedGame.difficultyKey" class="text-caption text-medium-emphasis mb-0">
+      <p
+        v-if="selectedGame.difficultyKey"
+        class="text-caption text-medium-emphasis mb-0"
+      >
         {{ t(selectedGame.difficultyKey) }}
       </p>
       <p
         v-if="selectedGame.id === 'belote'"
         class="text-caption text-medium-emphasis mb-0"
       >
-        Variante: {{ gamePanelState.selectedBeloteMode === "free-for-all" ? "free-for-all" : "2v2" }}
+        Variante:
+        {{
+          gamePanelState.selectedBeloteMode === "free-for-all"
+            ? "free-for-all"
+            : "2v2"
+        }}
       </p>
     </div>
 
@@ -157,19 +190,26 @@ const liveHintByGameId: Record<string, string> = {
       <v-chip color="warning" variant="tonal" prepend-icon="mdi-timer-sand">
         Match en cours
       </v-chip>
-      <h3 class="text-subtitle-1 font-weight-bold mb-0">{{ liveGamePanel.title }}</h3>
+      <h3 class="text-subtitle-1 font-weight-bold mb-0">
+        {{ liveGamePanel.title }}
+      </h3>
+      <p class="text-body-2 mb-0">
+        {{ liveGamePanel.phase }} · {{ liveGamePanel.turnLabel }}
+      </p>
       <p
-        v-for="(line, lineIndex) in liveGamePanel.summaryLines"
+        v-for="(line, lineIndex) in liveGamePanel.highlights"
         :key="`panel-summary-${lineIndex}`"
         class="text-body-2 mb-0"
       >
         {{ line }}
       </p>
-      <p class="text-caption text-medium-emphasis mb-0">{{ liveGamePanel.statusMessage }}</p>
+      <p class="text-caption text-medium-emphasis mb-0">
+        {{ liveGamePanel.status }}
+      </p>
 
-      <div v-if="liveGamePanel.statsChips.length" class="d-flex flex-wrap ga-2">
+      <div v-if="liveGamePanel.kpis.length" class="d-flex flex-wrap ga-2">
         <v-chip
-          v-for="chip in liveGamePanel.statsChips"
+          v-for="chip in liveGamePanel.kpis"
           :key="`panel-chip-${chip.id}`"
           :color="chip.color"
           :variant="chip.variant ?? 'outlined'"
@@ -179,7 +219,7 @@ const liveHintByGameId: Record<string, string> = {
         </v-chip>
       </div>
 
-      <div v-if="liveGamePanel.actions.length" class="d-flex flex-wrap ga-2">
+      <div v-if="liveGamePanel.actions?.length" class="d-flex flex-wrap ga-2">
         <v-btn
           v-for="action in liveGamePanel.actions"
           :key="`panel-action-${action.id}`"
@@ -197,7 +237,10 @@ const liveHintByGameId: Record<string, string> = {
         Match en cours
       </v-chip>
       <p class="text-body-2 mb-0">
-        {{ liveHintByGameId[selectedGame.id] ?? "Suivi live de la partie en cours." }}
+        {{
+          liveHintByGameId[selectedGame.id] ??
+          "Suivi live de la partie en cours."
+        }}
       </p>
       <div v-if="selectedGame.tags?.length" class="d-flex flex-wrap ga-1">
         <v-chip

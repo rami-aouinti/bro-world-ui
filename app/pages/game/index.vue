@@ -17,7 +17,7 @@ import type {
   GameEntry,
   PlayMode,
 } from "~/types/game";
-import type { GamePanelStatePayload } from "~/types/gamePanel";
+import type { GameAsidePanelState } from "~/components/games/types";
 
 const { t } = useI18n();
 
@@ -35,7 +35,8 @@ const categories: GameCategory[] = [
       {
         id: "classic-cards",
         nameKey: "gamePage.catalog.subCategories.classicCards.name",
-        descriptionKey: "gamePage.catalog.subCategories.classicCards.description",
+        descriptionKey:
+          "gamePage.catalog.subCategories.classicCards.description",
         icon: "mdi-cards-outline",
         games: [
           {
@@ -75,7 +76,8 @@ const categories: GameCategory[] = [
       {
         id: "table-classic",
         nameKey: "gamePage.catalog.subCategories.tableClassic.name",
-        descriptionKey: "gamePage.catalog.subCategories.tableClassic.description",
+        descriptionKey:
+          "gamePage.catalog.subCategories.tableClassic.description",
         icon: "mdi-gamepad-round-outline",
         games: [
           {
@@ -186,7 +188,8 @@ const categories: GameCategory[] = [
       {
         id: "words-language",
         nameKey: "gamePage.catalog.subCategories.wordsLanguage.name",
-        descriptionKey: "gamePage.catalog.subCategories.wordsLanguage.description",
+        descriptionKey:
+          "gamePage.catalog.subCategories.wordsLanguage.description",
         icon: "mdi-alphabetical-variant",
         games: [
           {
@@ -218,7 +221,8 @@ const categories: GameCategory[] = [
       {
         id: "grids-puzzles",
         nameKey: "gamePage.catalog.subCategories.gridsPuzzles.name",
-        descriptionKey: "gamePage.catalog.subCategories.gridsPuzzles.description",
+        descriptionKey:
+          "gamePage.catalog.subCategories.gridsPuzzles.description",
         icon: "mdi-grid-large",
         games: [
           {
@@ -255,7 +259,7 @@ const selectedGameId = ref<string | null>(null);
 const selectedPlayMode = ref<PlayMode | null>(null);
 const selectedBeloteMode = ref<BeloteMode | null>(null);
 const isGameStarted = ref(false);
-const liveGamePanel = ref<GamePanelStatePayload | null>(null);
+const liveGamePanel = ref<GameAsidePanelState | null>(null);
 const allGameEntries = computed(() =>
   categories.flatMap((category) =>
     category.subCategories.flatMap((subCategory) => subCategory.games),
@@ -279,29 +283,25 @@ const selectedGame = computed(
       (game) => game.id === selectedGameId.value,
     ) ?? null,
 );
-const canLaunchSelectedGame = computed(
-  () => {
-    const hasPlayableMode =
-      Boolean(selectedPlayMode.value) &&
-      Boolean(
-        selectedPlayMode.value &&
-          selectedGame.value?.supportedModes.includes(selectedPlayMode.value),
-      );
+const canLaunchSelectedGame = computed(() => {
+  const hasPlayableMode =
+    Boolean(selectedPlayMode.value) &&
+    Boolean(
+      selectedPlayMode.value &&
+      selectedGame.value?.supportedModes.includes(selectedPlayMode.value),
+    );
 
-    if (!selectedGame.value?.component || !hasPlayableMode) return false;
+  if (!selectedGame.value?.component || !hasPlayableMode) return false;
 
-    if (selectedGame.value.id === "belote") {
-      return Boolean(selectedBeloteMode.value);
-    }
+  if (selectedGame.value.id === "belote") {
+    return Boolean(selectedBeloteMode.value);
+  }
 
-    return true;
-  },
-);
+  return true;
+});
 
 const modeLabel = (mode: PlayMode) =>
-  mode === "ai"
-    ? t("gamePage.modes.vsComputer")
-    : t("gamePage.modes.vsPlayer");
+  mode === "ai" ? t("gamePage.modes.vsComputer") : t("gamePage.modes.vsPlayer");
 
 const gameStatusLabel = computed(() => {
   if (!selectedGame.value) return t("gamePage.status.none");
@@ -379,12 +379,12 @@ const launchGame = () => {
   isGameStarted.value = true;
 };
 
-const onGamePanelState = (payload: GamePanelStatePayload) => {
+const onGamePanelState = (payload: GameAsidePanelState) => {
   liveGamePanel.value = payload;
 };
 
 watch([selectedGameId, isGameStarted], () => {
-  if (!isGameStarted.value || !["rami", "poker"].includes(selectedGame.value?.component ?? "")) {
+  if (!isGameStarted.value) {
     liveGamePanel.value = null;
   }
 });
@@ -403,24 +403,58 @@ const gamePanelState = computed(() => ({
   <PlatformSplitLayout>
     <template #sidebar>
       <div class="mb-4">
-        <v-chip variant="outlined" prepend-icon="mdi-controller" class="mb-2">{{ t("gamePage.sidebar.badge") }}</v-chip>
+        <v-chip variant="outlined" prepend-icon="mdi-controller" class="mb-2">{{
+          t("gamePage.sidebar.badge")
+        }}</v-chip>
         <h1 class="page-title mb-2">{{ t("gamePage.sidebar.title") }}</h1>
       </div>
       <div class="d-flex flex-column ga-2 mb-4">
-        <v-btn variant="outlined" prepend-icon="mdi-home" @click="resetToCategories">{{ t("gamePage.navigation.backToCategories") }}</v-btn>
-        <v-btn v-if="selectedGame" variant="tonal" prepend-icon="mdi-arrow-left" @click="selectedGameId = null">
+        <v-btn
+          variant="outlined"
+          prepend-icon="mdi-home"
+          @click="resetToCategories"
+          >{{ t("gamePage.navigation.backToCategories") }}</v-btn
+        >
+        <v-btn
+          v-if="selectedGame"
+          variant="tonal"
+          prepend-icon="mdi-arrow-left"
+          @click="selectedGameId = null"
+        >
           {{ t("gamePage.navigation.backToGames") }}
         </v-btn>
-        <v-btn v-if="selectedSubCategory" variant="tonal" prepend-icon="mdi-arrow-left" @click="selectedSubCategoryId = null">
+        <v-btn
+          v-if="selectedSubCategory"
+          variant="tonal"
+          prepend-icon="mdi-arrow-left"
+          @click="selectedSubCategoryId = null"
+        >
           {{ t("gamePage.navigation.backToSubCategories") }}
         </v-btn>
       </div>
       <div class="d-flex align-center flex-wrap ga-2 mb-0">
-        <v-chip>{{ selectedPlayMode ? modeLabel(selectedPlayMode) : "—" }}</v-chip>
+        <v-chip>{{
+          selectedPlayMode ? modeLabel(selectedPlayMode) : "—"
+        }}</v-chip>
         <v-chip>{{ gameStatusLabel }}</v-chip>
-        <v-chip v-if="selectedCategory" prepend-icon="mdi-folder-open-outline" :color="getLevelColor('category')">{{ t(selectedCategory.nameKey) }}</v-chip>
-        <v-chip v-if="selectedSubCategory" prepend-icon="mdi-shape-outline" :color="getLevelColor('subCategory')">{{ t(selectedSubCategory.nameKey) }}</v-chip>
-        <v-chip v-if="selectedGame" prepend-icon="mdi-play-circle-outline" :color="getLevelColor('game')">{{ t(selectedGame.nameKey) }}</v-chip>
+        <v-chip
+          v-if="selectedCategory"
+          prepend-icon="mdi-folder-open-outline"
+          :color="getLevelColor('category')"
+          >{{ t(selectedCategory.nameKey) }}</v-chip
+        >
+        <v-chip
+          v-if="selectedSubCategory"
+          prepend-icon="mdi-shape-outline"
+          :color="getLevelColor('subCategory')"
+          >{{ t(selectedSubCategory.nameKey) }}</v-chip
+        >
+        <v-chip
+          v-if="selectedGame"
+          prepend-icon="mdi-play-circle-outline"
+          :color="getLevelColor('game')"
+          >{{ t(selectedGame.nameKey) }}</v-chip
+        >
       </div>
     </template>
     <template #aside>
@@ -448,7 +482,9 @@ const gamePanelState = computed(() => ({
               variant="outlined"
             >
               <div class="d-flex align-start ga-3">
-                <v-avatar :color="getLevelColor('category')" variant="tonal"><v-icon :icon="category.icon" /></v-avatar>
+                <v-avatar :color="getLevelColor('category')" variant="tonal"
+                  ><v-icon :icon="category.icon"
+                /></v-avatar>
                 <div>
                   <h3 class="card-title mb-1">{{ t(category.nameKey) }}</h3>
                   <p class="card-description mb-3">
@@ -479,16 +515,40 @@ const gamePanelState = computed(() => ({
           >
             <v-card class="pa-4 h-100 unified-card" variant="outlined">
               <div class="d-flex flex-column ga-2 h-100">
-                <v-avatar :color="getLevelColor('game')" variant="tonal"><v-icon :icon="game.icon" /></v-avatar>
+                <v-avatar :color="getLevelColor('game')" variant="tonal"
+                  ><v-icon :icon="game.icon"
+                /></v-avatar>
                 <h3 class="card-title mb-0">{{ t(game.nameKey) }}</h3>
-                <p class="card-description mb-1">{{ t(game.descriptionKey) }}</p>
+                <p class="card-description mb-1">
+                  {{ t(game.descriptionKey) }}
+                </p>
                 <div class="d-flex flex-wrap ga-1">
-                  <v-chip v-if="game.categoryKey" size="x-small" variant="tonal" color="primary">{{ t(game.categoryKey) }}</v-chip>
-                  <v-chip v-if="game.subcategoryKey" size="x-small" variant="tonal" color="secondary">{{ t(game.subcategoryKey) }}</v-chip>
-                  <v-chip v-if="game.difficultyKey" size="x-small" variant="outlined" color="info">{{ t(game.difficultyKey) }}</v-chip>
+                  <v-chip
+                    v-if="game.categoryKey"
+                    size="x-small"
+                    variant="tonal"
+                    color="primary"
+                    >{{ t(game.categoryKey) }}</v-chip
+                  >
+                  <v-chip
+                    v-if="game.subcategoryKey"
+                    size="x-small"
+                    variant="tonal"
+                    color="secondary"
+                    >{{ t(game.subcategoryKey) }}</v-chip
+                  >
+                  <v-chip
+                    v-if="game.difficultyKey"
+                    size="x-small"
+                    variant="outlined"
+                    color="info"
+                    >{{ t(game.difficultyKey) }}</v-chip
+                  >
                 </div>
                 <div v-if="game.features?.length" class="mt-1">
-                  <p class="text-caption font-weight-bold mb-1">{{ t("gamePage.labels.features") }}</p>
+                  <p class="text-caption font-weight-bold mb-1">
+                    {{ t("gamePage.labels.features") }}
+                  </p>
                   <div class="d-flex flex-wrap ga-1">
                     <v-chip
                       v-for="feature in game.features"
@@ -523,7 +583,9 @@ const gamePanelState = computed(() => ({
               variant="outlined"
             >
               <div class="d-flex align-start ga-3">
-                <v-avatar :color="getLevelColor('subCategory')" variant="tonal"><v-icon :icon="subCategory.icon" /></v-avatar>
+                <v-avatar :color="getLevelColor('subCategory')" variant="tonal"
+                  ><v-icon :icon="subCategory.icon"
+                /></v-avatar>
                 <div>
                   <h3 class="card-title mb-1">{{ t(subCategory.nameKey) }}</h3>
                   <p class="card-description mb-3">
@@ -556,13 +618,33 @@ const gamePanelState = computed(() => ({
               variant="outlined"
             >
               <div class="d-flex flex-column ga-2 h-100">
-                <v-avatar :color="getLevelColor('game')" variant="tonal"><v-icon :icon="game.icon" /></v-avatar>
+                <v-avatar :color="getLevelColor('game')" variant="tonal"
+                  ><v-icon :icon="game.icon"
+                /></v-avatar>
                 <h3 class="card-title mb-0">{{ t(game.nameKey) }}</h3>
                 <p class="card-description">{{ t(game.descriptionKey) }}</p>
                 <div class="d-flex flex-wrap ga-1">
-                  <v-chip v-if="game.categoryKey" size="x-small" variant="tonal" color="primary">{{ t(game.categoryKey) }}</v-chip>
-                  <v-chip v-if="game.subcategoryKey" size="x-small" variant="tonal" color="secondary">{{ t(game.subcategoryKey) }}</v-chip>
-                  <v-chip v-if="game.difficultyKey" size="x-small" variant="outlined" color="info">{{ t(game.difficultyKey) }}</v-chip>
+                  <v-chip
+                    v-if="game.categoryKey"
+                    size="x-small"
+                    variant="tonal"
+                    color="primary"
+                    >{{ t(game.categoryKey) }}</v-chip
+                  >
+                  <v-chip
+                    v-if="game.subcategoryKey"
+                    size="x-small"
+                    variant="tonal"
+                    color="secondary"
+                    >{{ t(game.subcategoryKey) }}</v-chip
+                  >
+                  <v-chip
+                    v-if="game.difficultyKey"
+                    size="x-small"
+                    variant="outlined"
+                    color="info"
+                    >{{ t(game.difficultyKey) }}</v-chip
+                  >
                   <v-chip
                     v-for="tag in game.tags ?? []"
                     :key="`${game.id}-${tag}`"
@@ -573,9 +655,14 @@ const gamePanelState = computed(() => ({
                   </v-chip>
                 </div>
                 <div v-if="game.features?.length" class="mt-1">
-                  <p class="text-caption font-weight-bold mb-1">{{ t("gamePage.labels.bonus") }}</p>
+                  <p class="text-caption font-weight-bold mb-1">
+                    {{ t("gamePage.labels.bonus") }}
+                  </p>
                   <ul class="info-list">
-                    <li v-for="feature in game.features" :key="`${game.id}-bonus-${feature}`">
+                    <li
+                      v-for="feature in game.features"
+                      :key="`${game.id}-bonus-${feature}`"
+                    >
                       {{ t(feature) }}
                     </li>
                   </ul>
@@ -606,7 +693,11 @@ const gamePanelState = computed(() => ({
                   :disabled="!game.component || !game.supportedModes.length"
                   @click="openGame(game.id)"
                 >
-                  {{ game.component ? t("gamePage.actions.chooseGame") : t("gamePage.status.comingSoon") }}
+                  {{
+                    game.component
+                      ? t("gamePage.actions.chooseGame")
+                      : t("gamePage.status.comingSoon")
+                  }}
                 </v-btn>
               </div>
             </v-card>
@@ -617,9 +708,14 @@ const gamePanelState = computed(() => ({
       <section v-else-if="selectedGame && !isGameStarted" class="mb-1">
         <v-card class="pa-4 unified-card" variant="outlined">
           <div v-if="selectedGame.features?.length" class="mb-4">
-            <h3 class="section-title mb-2">{{ t("gamePage.labels.features") }}</h3>
+            <h3 class="section-title mb-2">
+              {{ t("gamePage.labels.features") }}
+            </h3>
             <ul class="info-list">
-              <li v-for="feature in selectedGame.features" :key="`selected-feature-${feature}`">
+              <li
+                v-for="feature in selectedGame.features"
+                :key="`selected-feature-${feature}`"
+              >
                 {{ t(feature) }}
               </li>
             </ul>
@@ -644,7 +740,10 @@ const gamePanelState = computed(() => ({
             </v-btn>
           </div>
 
-          <div v-if="selectedGame.id === 'belote'" class="d-flex flex-wrap ga-2 mb-4">
+          <div
+            v-if="selectedGame.id === 'belote'"
+            class="d-flex flex-wrap ga-2 mb-4"
+          >
             <v-btn
               color="deep-purple"
               :variant="selectedBeloteMode === 'teams' ? 'flat' : 'outlined'"
@@ -654,7 +753,9 @@ const gamePanelState = computed(() => ({
             </v-btn>
             <v-btn
               color="deep-purple"
-              :variant="selectedBeloteMode === 'free-for-all' ? 'flat' : 'outlined'"
+              :variant="
+                selectedBeloteMode === 'free-for-all' ? 'flat' : 'outlined'
+              "
               @click="selectBeloteMode('free-for-all')"
             >
               Belote free-for-all
@@ -692,10 +793,12 @@ const gamePanelState = computed(() => ({
           v-else-if="selectedGame.component === 'belote'"
           :selected-play-mode="selectedPlayMode"
           :belote-mode="selectedBeloteMode ?? 'teams'"
+          @panel-state="onGamePanelState"
         />
         <CheckersGame
           v-else-if="selectedGame.component === 'checkers'"
           :selected-play-mode="selectedPlayMode"
+          @panel-state="onGamePanelState"
         />
         <PokerGame
           v-else-if="selectedGame.component === 'poker'"
@@ -704,23 +807,28 @@ const gamePanelState = computed(() => ({
         />
         <NonogramGame
           v-else-if="selectedGame.component === 'nonogram'"
-         :selected-play-mode="selectedPlayMode"
-        />               
+          :selected-play-mode="selectedPlayMode"
+          @panel-state="onGamePanelState"
+        />
         <HiddenWordGame
           v-else-if="selectedGame.component === 'hidden-word'"
-         :selected-play-mode="selectedPlayMode"
-        />                  
+          :selected-play-mode="selectedPlayMode"
+          @panel-state="onGamePanelState"
+        />
         <ChessGame
           v-else-if="selectedGame.component === 'chess'"
-         :selected-play-mode="selectedPlayMode"
-        />            
+          :selected-play-mode="selectedPlayMode"
+          @panel-state="onGamePanelState"
+        />
         <SudokuGame
           v-else-if="selectedGame.component === 'sudoku'"
           :selected-play-mode="selectedPlayMode"
-        />            
+          @panel-state="onGamePanelState"
+        />
         <Game2048
           v-else-if="selectedGame.component === 'game2048'"
           :selected-play-mode="selectedPlayMode"
+          @panel-state="onGamePanelState"
         />
       </section>
     </template>
