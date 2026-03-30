@@ -272,12 +272,19 @@ const selectedBeloteMode = ref<BeloteMode | null>(null);
 const isGameStarted = ref(false);
 const isLoginDialogOpen = ref(false);
 const isCoinsDialogOpen = ref(false);
+const isPaymentSoonSnackbarOpen = ref(false);
+const paymentSoonSnackbarText = ref("");
 const userCoins = ref(0);
 const usernameOrEmail = ref("");
 const password = ref("");
 const loginLoading = ref(false);
 const loginError = ref("");
 const liveGamePanel = ref<GameAsidePanelState | null>(null);
+const coinOffers = [
+  { id: "offer-1", coins: 1000, priceEuro: 1 },
+  { id: "offer-2", coins: 5000, priceEuro: 4 },
+  { id: "offer-3", coins: 100000, priceLabel: "À définir (ex: 49 €)" },
+] as const;
 const ramiGameRef = ref<{
   handleAsideAction: (actionId: string) => void;
 } | null>(null);
@@ -432,6 +439,20 @@ const sidebarUserDisplayName = computed(() => {
   return fullName || authSession.profile?.username || "Player";
 });
 
+const formatCoinsAmount = (coins: number) => new Intl.NumberFormat("fr-FR").format(coins);
+
+const formatOfferPrice = (offer: (typeof coinOffers)[number]) =>
+  typeof offer.priceEuro === "number" ? `${offer.priceEuro} €` : offer.priceLabel;
+
+const chooseCoinOffer = (offerId: string) => {
+  isCoinsDialogOpen.value = false;
+  paymentSoonSnackbarText.value = `Fonction de paiement bientôt disponible (${offerId})`;
+  isPaymentSoonSnackbarOpen.value = true;
+
+  // TODO(payment): brancher ici l'appel API réel (create checkout session / payment intent)
+  // et gérer la mise à jour des coins utilisateur depuis la réponse backend.
+};
+
 const handleLogin = async () => {
   if (!usernameOrEmail.value.trim() || !password.value.trim()) {
     loginError.value = "Veuillez renseigner vos identifiants.";
@@ -583,11 +604,37 @@ const handleLogin = async () => {
         </v-card>
       </v-dialog>
 
-      <v-dialog v-model="isCoinsDialogOpen" max-width="420">
+      <v-dialog v-model="isCoinsDialogOpen" max-width="760">
         <v-card>
           <v-card-title>Acheter des coins</v-card-title>
-          <v-card-text>
-            Le parcours d&apos;achat des coins arrive bientôt.
+          <v-card-text class="pt-2">
+            <v-row>
+              <v-col
+                v-for="offer in coinOffers"
+                :key="offer.id"
+                cols="12"
+                md="4"
+              >
+                <v-card variant="outlined" class="h-100 d-flex flex-column">
+                  <v-card-title class="text-h6">
+                    {{ formatCoinsAmount(offer.coins) }} coins
+                  </v-card-title>
+                  <v-card-subtitle class="text-body-1">
+                    {{ formatOfferPrice(offer) }}
+                  </v-card-subtitle>
+                  <v-card-actions class="mt-auto">
+                    <v-btn
+                      color="primary"
+                      variant="flat"
+                      block
+                      @click="chooseCoinOffer(offer.id)"
+                    >
+                      Choisir
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-col>
+            </v-row>
           </v-card-text>
           <v-card-actions>
             <v-spacer />
@@ -597,6 +644,14 @@ const handleLogin = async () => {
           </v-card-actions>
         </v-card>
       </v-dialog>
+      <v-snackbar
+        v-model="isPaymentSoonSnackbarOpen"
+        timeout="2400"
+        color="info"
+        location="bottom right"
+      >
+        {{ paymentSoonSnackbarText }}
+      </v-snackbar>
     </template>
     <template #aside>
       <GameMatchAside
