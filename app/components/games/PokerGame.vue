@@ -35,6 +35,8 @@ const tablePlayers = computed(() => players.value.map((player, index) => ({
   isCurrentTurn: street.value !== 'hand-over' && currentTurnIndex.value === index,
 })))
 
+const opponents = computed(() => players.value.filter(player => player.id !== humanPlayer.value?.id))
+
 const revealedBoardCards = computed(() => {
   if (street.value === 'preflop' || street.value === 'hand-over') return 0
   if (street.value === 'flop') return 3
@@ -114,7 +116,7 @@ watch([() => engine.currentTurnIndex.value, () => engine.currentBet.value, () =>
   aiTimeout = setTimeout(() => {
     engine.runAiAction()
   }, 650)
-})
+}, { immediate: true })
 
 const perform = (action: 'fold' | 'check' | 'call' | 'raise') => {
   if (!isHumanTurn.value) return
@@ -175,7 +177,24 @@ onBeforeUnmount(() => {
 
       <div class="d-grid ga-3">
         <v-card class="pa-3" variant="outlined">
+          <p class="text-subtitle-2 font-weight-bold mb-2">Table (jetons / statut)</p>
+          <div class="opponent-grid">
+            <article v-for="player in opponents" :key="player.id" class="opponent-card" :class="{ 'opponent-card--active': currentPlayer?.id === player.id }">
+              <div class="d-flex align-center justify-space-between ga-2 mb-1">
+                <strong class="text-body-2">{{ player.name }}</strong>
+                <v-chip size="x-small" color="secondary" variant="tonal">{{ player.stack }} jetons</v-chip>
+              </div>
+              <p class="text-caption mb-1 text-medium-emphasis">Action: {{ player.lastAction ?? '—' }} · Mise: {{ player.currentBet }}</p>
+              <div class="card-back-row">
+                <span v-for="n in player.hand.length" :key="`${player.id}-${n}`" class="card-back">🂠</span>
+              </div>
+            </article>
+          </div>
+        </v-card>
+
+        <v-card class="pa-3" variant="outlined">
           <p class="text-subtitle-2 font-weight-bold mb-2">{{ t('gameComponents.poker.yourCards') }}</p>
+          <p class="text-caption text-medium-emphasis mb-2">Jetons: {{ humanPlayer?.stack ?? 0 }} · Votre mise: {{ humanPlayer?.currentBet ?? 0 }}</p>
           <div class="board-row mb-3">
             <span
               v-for="card in humanPlayer?.hand ?? []"
@@ -251,6 +270,41 @@ onBeforeUnmount(() => {
 
 .board-row--center {
   justify-content: center;
+}
+
+.opponent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.opponent-card {
+  border: 1px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 24%, transparent);
+  border-radius: 10px;
+  padding: 8px;
+  background: color-mix(in srgb, rgb(var(--v-theme-surface)) 94%, rgb(var(--v-theme-primary)) 6%);
+}
+
+.opponent-card--active {
+  border-color: color-mix(in srgb, rgb(var(--v-theme-warning)) 60%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, rgb(var(--v-theme-warning)) 25%, transparent);
+}
+
+.card-back-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.card-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 34px;
+  border-radius: 6px;
+  border: 1px solid rgba(30, 58, 138, 0.25);
+  background: rgba(30, 58, 138, 0.12);
 }
 
 .table-card {
