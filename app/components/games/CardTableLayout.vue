@@ -214,8 +214,6 @@ const isRedSuit = (suit: string) => suit === '♥' || suit === '♦'
 
 .table-seat {
   position: absolute;
-  width: 82px;
-  min-height: 88px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -405,7 +403,7 @@ const isRedSuit = (suit: string) => suit === '♥' || suit === '♦'
 
 .card-table-layout__center {
   position: absolute;
-  inset: 172px 224px 172px;
+  inset: 200px 150px 200px;
   border-radius: 999px;
   border: 1px dashed rgba(255, 255, 255, 0.32);
   background: rgba(3, 9, 6, 0.18);
@@ -469,7 +467,7 @@ const isRedSuit = (suit: string) => suit === '♥' || suit === '♦'
   }
 
   .card-table-layout__center {
-    inset: 220px 52px 188px;
+    inset: 200px 150px 200px;
   }
 
   .table-seat-hand--north {
@@ -539,7 +537,7 @@ const isRedSuit = (suit: string) => suit === '♥' || suit === '♦'
   }
 
   .card-table-layout__center {
-    inset: 248px 16px 236px;
+    inset: 200px 150px 200px;
   }
 
   .table-seat {

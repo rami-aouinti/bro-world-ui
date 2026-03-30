@@ -1189,7 +1189,6 @@ reset();
             @click="drawCard"
           >
             <v-icon icon="mdi-cards" size="18" />
-            Draw card
           </button>
           <div class="hand-fan hand-fan--player">
             <button
@@ -1431,8 +1430,6 @@ reset();
   min-width: 190px;
   min-height: 136px;
   border-radius: 14px;
-  border: 2px dashed rgba(255, 255, 255, 0.65);
-  background: rgba(3, 9, 6, 0.36);
   padding: 12px;
   text-align: center;
   color: #fff;
