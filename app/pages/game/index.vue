@@ -540,18 +540,21 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <PlatformSplitLayout>
-    <teleport v-if="isGameStarted && globalRestartAction" to="#app-bar-teleport-target-right">
-      <v-btn
+  <teleport
+      v-if="isGameStarted && globalRestartAction"
+      to="#app-bar-teleport-target-right"
+  >
+    <v-btn
         color="primary"
         variant="tonal"
         prepend-icon="mdi-refresh"
         :disabled="globalRestartAction.disabled"
         @click="onAsideAction(globalRestartAction.id)"
-      >
-        {{ globalRestartAction.label }}
-      </v-btn>
-    </teleport>
+    >
+      {{ globalRestartAction.label }}
+    </v-btn>
+  </teleport>
+  <PlatformSplitLayout>
     <template #sidebar>
       <div class="mb-4">
         <v-chip variant="outlined" prepend-icon="mdi-controller" class="mb-2">{{
@@ -568,21 +571,17 @@ const handleLogin = async () => {
         >
           {{ t("gamePage.auth.connect") }}
         </v-btn>
-        <div v-else class="d-flex align-center ga-2">
+        <div v-else class="d-flex align-center ga-1">
           <UiAvatar
             :src="authSession.profile?.photo"
             :name="sidebarUserDisplayName"
-            size="sm"
+            size="lg"
           />
-          <div class="d-flex flex-column ga-1">
-            <p class="text-body-2 font-weight-medium mb-0">
-              {{ t("gamePage.auth.connectedAs", { name: sidebarUserDisplayName }) }}
-            </p>
-            <p class="text-caption mb-0">
-              {{ t("gamePage.auth.coinsBalance", { count: userCoins }) }}
+          <div class="d-flex flex-column mx-3">
+            <p class="text-body-2 font-weight-medium">
+              {{ sidebarUserDisplayName }} -  {{ t("gamePage.auth.coinsBalance", { count: userCoins }) }}
             </p>
             <v-btn
-              size="x-small"
               variant="outlined"
               prepend-icon="mdi-cash-plus"
               @click="isCoinsDialogOpen = true"
@@ -600,20 +599,20 @@ const handleLogin = async () => {
           >{{ t("gamePage.navigation.backToCategories") }}</v-btn
         >
         <v-btn
-          v-if="selectedGame"
-          variant="tonal"
-          prepend-icon="mdi-arrow-left"
-          @click="selectedGameId = null"
-        >
-          {{ t("gamePage.navigation.backToGames") }}
-        </v-btn>
-        <v-btn
           v-if="selectedSubCategory"
-          variant="tonal"
+          variant="outlined"
           prepend-icon="mdi-arrow-left"
           @click="selectedSubCategoryId = null"
         >
           {{ t("gamePage.navigation.backToSubCategories") }}
+        </v-btn>
+        <v-btn
+            v-if="selectedGame"
+            variant="outlined"
+            prepend-icon="mdi-arrow-left"
+            @click="selectedGameId = null"
+        >
+          {{ t("gamePage.navigation.backToGames") }}
         </v-btn>
       </div>
       <div class="d-flex align-center flex-wrap ga-2 mb-0">

@@ -112,10 +112,6 @@ const getRingProgress = (secondsLeft: number) =>
           <slot name="player-hands" />
         </div>
       </div>
-
-      <section v-if="$slots.default" class="game-table-scaffold__content">
-        <slot />
-      </section>
     </div>
 
     <aside v-if="$slots.aside" class="game-table-scaffold__aside">
@@ -130,6 +126,7 @@ const getRingProgress = (secondsLeft: number) =>
 .game-table-scaffold__table {
   position: relative;
   min-height: 520px;
+  min-width: 520px;
   border-radius: 48% / 40%;
   background: radial-gradient(circle at center, #2f9d59 0%, #19663c 74%);
   border: 12px solid rgba(48, 24, 13, 0.72);
