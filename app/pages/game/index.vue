@@ -4,6 +4,7 @@ import BeloteGame from "~/components/games/BeloteGame.vue";
 import CheckersGame from "~/components/games/CheckersGame.vue";
 import RamiGame from "~/components/games/RamiGame.vue";
 import PokerGame from "~/components/games/PokerGame.vue";
+import HiddenWordGame from "~/components/games/HiddenWordGame.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
 import type {
   BeloteMode,
@@ -179,8 +180,8 @@ const categories: GameCategory[] = [
             nameKey: "gamePage.catalog.games.hiddenWord.name",
             descriptionKey: "gamePage.catalog.games.hiddenWord.description",
             icon: "mdi-text-search-variant",
-            component: null,
-            supportedModes: [],
+            component: "hidden-word",
+            supportedModes: ["ai"],
             features: ["mot du jour", "dictionnaire", "partage"],
           },
         ],
@@ -635,6 +636,9 @@ const launchGame = () => {
         <PokerGame
           v-else-if="selectedGame.component === 'poker'"
           :selected-play-mode="selectedPlayMode"
+        />
+        <HiddenWordGame
+          v-else-if="selectedGame.component === 'hidden-word'"
         />
       </section>
     </template>
