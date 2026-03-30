@@ -777,43 +777,45 @@ reset()
 
     <template #seat-south-hand>
       <section class="seat-hand seat-hand--south">
-        <div class="hand-fan hand-fan--player">
-          <button
-            v-for="(card, index) in playerHand"
-            :key="card.id"
-            :id="`rami-card-${card.id}`"
-            type="button"
-            class="play-card play-card--front hand-fan__card"
-            :class="{
-              'play-card--selected': isSelected(card.id),
-              'play-card--dragging': isDragging && draggedCardId === card.id,
-              'play-card--drag-target': isDragging && dragHoverCardId === card.id,
-              'play-card--suggested': suggestedCardIds.has(card.id),
-              'card-throwing': throwingCardId === card.id,
-            }"
-            :style="cardStyle(index, card.id)"
-            @click="onCardClick(card.id)"
-            @dblclick="discardCard(card.id)"
-            @pointerenter="onCardHover(card.id)"
-            @pointerdown="onCardPointerDown($event, card.id)"
-            @pointermove="onCardPointerMove($event)"
-            @pointerup="onCardPointerUp"
-            @pointercancel="onCardPointerUp"
-            @touchstart.capture="onCardHover(card.id)"
-            @touchstart.prevent="onTouchStart($event, card.id)"
-            @touchmove.prevent="onTouchMove"
-            @touchend="onTouchEnd"
-          >
-            <span class="card-corner" :class="{ 'text-red': isRedSuit(card.suit), 'text-black': !isRedSuit(card.suit) }">
-              {{ formatRank(card.rank) }}{{ card.suit }}
-            </span>
-            <span class="card-center" :class="{ 'text-red': isRedSuit(card.suit), 'text-black': !isRedSuit(card.suit) }">{{ card.suit }}</span>
-            <span class="card-corner card-corner--bottom" :class="{ 'text-red': isRedSuit(card.suit), 'text-black': !isRedSuit(card.suit) }">
-              {{ formatRank(card.rank) }}{{ card.suit }}
-            </span>
-          </button>
+        <div class="player-hand-cards">
+          <div class="hand-fan hand-fan--player">
+            <button
+              v-for="(card, index) in playerHand"
+              :key="card.id"
+              :id="`rami-card-${card.id}`"
+              type="button"
+              class="play-card play-card--front hand-fan__card"
+              :class="{
+                'play-card--selected': isSelected(card.id),
+                'play-card--dragging': isDragging && draggedCardId === card.id,
+                'play-card--drag-target': isDragging && dragHoverCardId === card.id,
+                'play-card--suggested': suggestedCardIds.has(card.id),
+                'card-throwing': throwingCardId === card.id,
+              }"
+              :style="cardStyle(index, card.id)"
+              @click="onCardClick(card.id)"
+              @dblclick="discardCard(card.id)"
+              @pointerenter="onCardHover(card.id)"
+              @pointerdown="onCardPointerDown($event, card.id)"
+              @pointermove="onCardPointerMove($event)"
+              @pointerup="onCardPointerUp"
+              @pointercancel="onCardPointerUp"
+              @touchstart.capture="onCardHover(card.id)"
+              @touchstart.prevent="onTouchStart($event, card.id)"
+              @touchmove.prevent="onTouchMove"
+              @touchend="onTouchEnd"
+            >
+              <span class="card-corner" :class="{ 'text-red': isRedSuit(card.suit), 'text-black': !isRedSuit(card.suit) }">
+                {{ formatRank(card.rank) }}{{ card.suit }}
+              </span>
+              <span class="card-center" :class="{ 'text-red': isRedSuit(card.suit), 'text-black': !isRedSuit(card.suit) }">{{ card.suit }}</span>
+              <span class="card-corner card-corner--bottom" :class="{ 'text-red': isRedSuit(card.suit), 'text-black': !isRedSuit(card.suit) }">
+                {{ formatRank(card.rank) }}{{ card.suit }}
+              </span>
+            </button>
+          </div>
         </div>
-        <div class="hand-meta">
+        <div class="player-hand-meta">
           <div class="d-flex flex-wrap justify-space-between align-center ga-2 mb-2">
             <h4 class="seat-hand__title text-subtitle-2 mb-0 font-weight-bold">{{ t('gameComponents.rami.hand') }} ({{ playerHand.length }})</h4>
             <div class="d-flex ga-1 flex-wrap">
@@ -957,10 +959,16 @@ reset()
   justify-content: center;
 }
 
-.hand-meta {
+.player-hand-cards {
+  width: 100%;
+  padding-bottom: 120px;
+}
+
+.player-hand-meta {
   position: absolute;
-  right: 12px;
-  bottom: 12px;
+  right: 10px;
+  bottom: 10px;
+  z-index: 5;
   max-width: 360px;
   text-align: left;
 }
@@ -1043,6 +1051,8 @@ reset()
 }
 
 .discard-drop-zone {
+  position: relative;
+  z-index: 1;
   min-width: 190px;
   border-radius: 14px;
   border: 2px dashed rgba(255, 255, 255, 0.65);
