@@ -5,6 +5,7 @@ import CheckersGame from "~/components/games/CheckersGame.vue";
 import ChessGame from "~/components/games/ChessGame.vue";
 import RamiGame from "~/components/games/RamiGame.vue";
 import PokerGame from "~/components/games/PokerGame.vue";
+import NonogramGame from "~/components/games/NonogramGame.vue";
 import HiddenWordGame from "~/components/games/HiddenWordGame.vue";
 import SudokuGame from "~/components/games/SudokuGame.vue";
 import Game2048 from "~/components/games/Game2048.vue";
@@ -207,8 +208,8 @@ const categories: GameCategory[] = [
             nameKey: "gamePage.catalog.games.nonogram.name",
             descriptionKey: "gamePage.catalog.games.nonogram.description",
             icon: "mdi-view-grid-plus-outline",
-            component: null,
-            supportedModes: [],
+            component: "nonogram",
+            supportedModes: ["ai"],
             features: [
               "indices de lignes/colonnes",
               "niveaux progressifs",
@@ -640,6 +641,10 @@ const launchGame = () => {
           v-else-if="selectedGame.component === 'poker'"
           :selected-play-mode="selectedPlayMode"
         />
+        <NonogramGame
+          v-else-if="selectedGame.component === 'nonogram'"
+         :selected-play-mode="selectedPlayMode"
+        />               
         <HiddenWordGame
           v-else-if="selectedGame.component === 'hidden-word'"
          :selected-play-mode="selectedPlayMode"
