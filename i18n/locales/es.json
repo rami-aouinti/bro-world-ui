@@ -2163,5 +2163,17 @@
       "victory": "Great! Puzzle solved.",
       "instructions": "Left click = fill, right click = mark empty."
     }
+  },
+  "common": {
+    "difficulty": {
+      "easy": "Fácil",
+      "medium": "Medio",
+      "hard": "Difícil"
+    },
+    "size": {
+      "small": "Pequeño",
+      "medium": "Mediano",
+      "large": "Grande"
+    }
   }
 }

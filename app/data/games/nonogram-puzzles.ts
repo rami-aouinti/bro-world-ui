@@ -1,4 +1,4 @@
-export type NonogramDifficulty = "petit" | "moyen" | "grand";
+export type NonogramDifficulty = "small" | "medium" | "large";
 
 export interface NonogramPuzzle {
   id: string;
@@ -8,11 +8,11 @@ export interface NonogramPuzzle {
 }
 
 export const NONOGRAM_PUZZLES: Record<NonogramDifficulty, NonogramPuzzle[]> = {
-  petit: [
+  small: [
     {
       id: "petit-coeur",
       name: "Cœur",
-      difficulty: "petit",
+      difficulty: "small",
       grid: [
         [0, 1, 0, 1, 0],
         [1, 1, 1, 1, 1],
@@ -24,7 +24,7 @@ export const NONOGRAM_PUZZLES: Record<NonogramDifficulty, NonogramPuzzle[]> = {
     {
       id: "petit-flocon",
       name: "Flocon",
-      difficulty: "petit",
+      difficulty: "small",
       grid: [
         [0, 0, 1, 0, 0],
         [0, 1, 1, 1, 0],
@@ -34,11 +34,11 @@ export const NONOGRAM_PUZZLES: Record<NonogramDifficulty, NonogramPuzzle[]> = {
       ],
     },
   ],
-  moyen: [
+  medium: [
     {
       id: "moyen-fusee",
       name: "Fusée",
-      difficulty: "moyen",
+      difficulty: "medium",
       grid: [
         [0, 0, 0, 1, 1, 0, 0, 0],
         [0, 0, 1, 1, 1, 1, 0, 0],
@@ -53,7 +53,7 @@ export const NONOGRAM_PUZZLES: Record<NonogramDifficulty, NonogramPuzzle[]> = {
     {
       id: "moyen-chat",
       name: "Tête de chat",
-      difficulty: "moyen",
+      difficulty: "medium",
       grid: [
         [1, 0, 0, 0, 0, 0, 0, 1],
         [1, 1, 0, 0, 0, 0, 1, 1],
@@ -66,11 +66,11 @@ export const NONOGRAM_PUZZLES: Record<NonogramDifficulty, NonogramPuzzle[]> = {
       ],
     },
   ],
-  grand: [
+  large: [
     {
       id: "grand-etoile",
       name: "Grande étoile",
-      difficulty: "grand",
+      difficulty: "large",
       grid: [
         [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
         [0, 0, 0, 1, 1, 1, 1, 0, 0, 0],
@@ -87,7 +87,7 @@ export const NONOGRAM_PUZZLES: Record<NonogramDifficulty, NonogramPuzzle[]> = {
     {
       id: "grand-maison",
       name: "Maison",
-      difficulty: "grand",
+      difficulty: "large",
       grid: [
         [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
         [0, 0, 0, 1, 1, 1, 1, 0, 0, 0],

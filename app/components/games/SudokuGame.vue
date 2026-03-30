@@ -6,7 +6,7 @@ const props = defineProps<{
   selectedPlayMode: "ai" | "pvp";
 }>();
 
-type Difficulty = "facile" | "moyen" | "difficile";
+type Difficulty = "easy" | "medium" | "hard";
 
 type Grid = number[][];
 
@@ -14,18 +14,18 @@ const GRID_SIZE = 9;
 const BLOCK_SIZE = 3;
 
 const PREFILLED_COUNT_BY_DIFFICULTY: Record<Difficulty, number> = {
-  facile: 46,
-  moyen: 36,
-  difficile: 28,
+  easy: 46,
+  medium: 36,
+  hard: 28,
 };
 
 const DIFFICULTY_MULTIPLIER: Record<Difficulty, number> = {
-  facile: 1,
-  moyen: 1.35,
-  difficile: 1.75,
+  easy: 1,
+  medium: 1.35,
+  hard: 1.75,
 };
 
-const difficulty = ref<Difficulty>("moyen");
+const difficulty = ref<Difficulty>("medium");
 const solutionGrid = ref<Grid>([]);
 const playerGrid = ref<Grid>([]);
 const fixedCells = ref<boolean[][]>([]);
@@ -260,25 +260,25 @@ onBeforeUnmount(() => {
 
     <div class="d-flex flex-wrap align-center ga-2 mb-4">
       <v-btn
-        :variant="difficulty === 'facile' ? 'flat' : 'outlined'"
+        :variant="difficulty === 'easy' ? 'flat' : 'outlined'"
         color="success"
-        @click="difficulty = 'facile'; initGame()"
+        @click="difficulty = 'easy'; initGame()"
       >
-        {{ t("gameComponents.sudoku.difficulties.easy") }}
+        {{ t("common.difficulty.easy") }}
       </v-btn>
       <v-btn
-        :variant="difficulty === 'moyen' ? 'flat' : 'outlined'"
+        :variant="difficulty === 'medium' ? 'flat' : 'outlined'"
         color="info"
-        @click="difficulty = 'moyen'; initGame()"
+        @click="difficulty = 'medium'; initGame()"
       >
-        {{ t("gameComponents.sudoku.difficulties.medium") }}
+        {{ t("common.difficulty.medium") }}
       </v-btn>
       <v-btn
-        :variant="difficulty === 'difficile' ? 'flat' : 'outlined'"
+        :variant="difficulty === 'hard' ? 'flat' : 'outlined'"
         color="deep-purple"
-        @click="difficulty = 'difficile'; initGame()"
+        @click="difficulty = 'hard'; initGame()"
       >
-        {{ t("gameComponents.sudoku.difficulties.hard") }}
+        {{ t("common.difficulty.hard") }}
       </v-btn>
       <v-btn variant="tonal" prepend-icon="mdi-refresh" @click="initGame">{{ t("gameComponents.sudoku.actions.newGrid") }}</v-btn>
     </div>
