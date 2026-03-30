@@ -126,16 +126,6 @@ const getCardTone = (cardLabel: string) => {
 
 const getCardRank = (cardLabel: string) => cardLabel.replace(/[♠♥♦♣]/g, '')
 const getCardSuit = (cardLabel: string) => cardLabel.match(/[♠♥♦♣]/)?.[0] ?? ''
-const getActionFeedback = (action?: string | null) => {
-  if (!action) return ''
-  const normalizedAction = action.toLowerCase()
-  if (normalizedAction === 'fold') return 'Fold'
-  if (normalizedAction === 'check') return 'Check'
-  if (normalizedAction === 'call') return 'Call'
-  if (normalizedAction === 'raise') return 'Raise'
-  return action
-}
-
 const getChipVisualCount = (amount: number) => {
   if (amount <= 0) return 0
   return Math.min(12, Math.max(1, Math.round(amount / 20)))
@@ -291,18 +281,6 @@ onBeforeUnmount(() => {
 
 <template>
   <v-card class="pa-4 rounded-xl poker-shell" variant="tonal">
-    <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-3">
-      <h3 class="game-title mb-0">{{ t('gameComponents.poker.title') }}</h3>
-      <v-chip color="primary" variant="flat">{{ t('gameComponents.poker.handNumber', { count: handNumber }) }}</v-chip>
-    </div>
-
-    <div class="d-flex flex-wrap ga-2 mb-3">
-      <v-chip>{{ t('gameComponents.poker.statesLabel') }}: {{ streetLabel }}</v-chip>
-      <v-chip>{{ t('gameComponents.poker.pot') }}: {{ pot }}</v-chip>
-      <v-chip>{{ t('gameComponents.poker.currentBet') }}: {{ currentBet }}</v-chip>
-      <v-chip>{{ t('gameComponents.poker.turn') }}: {{ currentPlayer?.name ?? '—' }}</v-chip>
-    </div>
-
     <CardTableLayout :players="tablePlayers" :center-cards="centerCards" class="poker-table-layout">
       <template #center>
         <div class="poker-table-surface">
@@ -315,6 +293,7 @@ onBeforeUnmount(() => {
                 </div>
                 <strong class="pot-stack__amount">{{ pot }}</strong>
               </div>
+
               <div class="board-row board-row--center">
                 <span
                   v-for="slot in boardSlots"
@@ -334,8 +313,13 @@ onBeforeUnmount(() => {
                   </template>
                 </span>
               </div>
+
+              <p class="active-turn-indicator mb-0">
+                {{ t('gameComponents.poker.turn') }}: {{ currentPlayer?.name ?? '—' }}
+              </p>
             </div>
           </div>
+
           <div class="flying-chips-layer" aria-hidden="true">
             <div
               v-for="chip in flyingChips"
@@ -349,39 +333,36 @@ onBeforeUnmount(() => {
         </div>
       </template>
 
-      <div class="d-grid ga-3">
-        <v-card class="pa-3" variant="outlined">
-          <p class="text-subtitle-2 font-weight-bold mb-2">Table (jetons / statut)</p>
-          <div class="opponent-grid">
-            <article v-for="player in opponents" :key="player.id" class="opponent-card" :class="{ 'opponent-card--active': currentPlayer?.id === player.id }">
-              <div class="d-flex align-center justify-space-between ga-2 mb-1">
-                <strong class="text-body-2">{{ player.name }}</strong>
-                <v-chip size="x-small" color="secondary" variant="tonal">{{ player.stack }} jetons</v-chip>
-              </div>
-              <div class="chip-stack mb-1" aria-hidden="true">
-                <span v-for="chipIndex in getChipVisualCount(player.stack)" :key="`${player.id}-stack-${chipIndex}`" class="chip-stack__chip" />
-              </div>
-              <p class="text-caption mb-1 text-medium-emphasis">Action: {{ player.lastAction ?? '—' }} · Mise: {{ player.currentBet }}</p>
-              <p v-if="currentPlayer?.id === player.id && player.lastAction" class="action-feedback mb-1">
-                {{ getActionFeedback(player.lastAction) }}
-              </p>
-              <div class="card-back-row">
-                <span v-for="n in player.hand.length" :key="`${player.id}-${n}`" class="card-back">🂠</span>
-              </div>
-            </article>
+      <template #seat-north-hand>
+        <section class="seat-hand seat-hand--opponent">
+          <div class="card-back-row">
+            <span
+              v-for="n in opponents[0]?.hand.length ?? 0"
+              :key="`north-${n}`"
+              class="card-back"
+            >🂠</span>
           </div>
-        </v-card>
+        </section>
+      </template>
 
-        <v-card class="pa-3" variant="outlined">
-          <p class="text-subtitle-2 font-weight-bold mb-2">{{ t('gameComponents.poker.yourCards') }}</p>
-          <p class="text-caption text-medium-emphasis mb-2">Jetons: {{ humanPlayer?.stack ?? 0 }} · Votre mise: {{ humanPlayer?.currentBet ?? 0 }}</p>
-          <div class="chip-stack mb-2" aria-hidden="true">
-            <span v-for="chipIndex in getChipVisualCount(humanPlayer?.stack ?? 0)" :key="`human-stack-${chipIndex}`" class="chip-stack__chip" />
+      <template #seat-east-hand>
+        <section class="seat-hand seat-hand--opponent seat-hand--side">
+          <div class="card-back-row card-back-row--side">
+            <span
+              v-for="n in opponents[1]?.hand.length ?? 0"
+              :key="`east-${n}`"
+              class="card-back"
+            >🂠</span>
           </div>
-          <p v-if="currentPlayer?.id === humanPlayer?.id && humanPlayer?.lastAction" class="action-feedback mb-2">
-            {{ getActionFeedback(humanPlayer.lastAction) }}
+        </section>
+      </template>
+
+      <template #seat-south-hand>
+        <section class="seat-hand seat-hand--player">
+          <p class="text-caption text-white mb-2">
+            {{ t('gameComponents.poker.yourCards') }} · {{ humanPlayer?.stack ?? 0 }}
           </p>
-          <div class="board-row mb-3">
+          <div class="board-row board-row--center">
             <span
               v-for="card in humanPlayer?.hand ?? []"
               :key="card.id"
@@ -391,6 +372,39 @@ onBeforeUnmount(() => {
               <span class="table-card__rank">{{ getCardRank(formatCard(card)) }}</span>
               <span class="table-card__suit">{{ getCardSuit(formatCard(card)) }}</span>
             </span>
+          </div>
+        </section>
+      </template>
+
+      <template #seat-west-hand>
+        <section class="seat-hand seat-hand--opponent seat-hand--side">
+          <div class="card-back-row card-back-row--side">
+            <span
+              v-for="n in opponents[2]?.hand.length ?? 0"
+              :key="`west-${n}`"
+              class="card-back"
+            >🂠</span>
+          </div>
+        </section>
+      </template>
+
+      <template #aside>
+        <v-card class="poker-aside pa-4" variant="outlined">
+          <h3 class="game-title mb-2">{{ t('gameComponents.poker.title') }}</h3>
+          <div class="d-flex flex-wrap ga-2 mb-3">
+            <v-chip color="primary" variant="flat">{{ t('gameComponents.poker.handNumber', { count: handNumber }) }}</v-chip>
+            <v-chip>{{ t('gameComponents.poker.statesLabel') }}: {{ streetLabel }}</v-chip>
+          </div>
+          <div class="d-grid ga-1 mb-3">
+            <p class="text-caption mb-0">{{ t('gameComponents.poker.pot') }}: <strong>{{ pot }}</strong></p>
+            <p class="text-caption mb-0">{{ t('gameComponents.poker.currentBet') }}: <strong>{{ currentBet }}</strong></p>
+            <p class="text-caption mb-0">{{ t('gameComponents.poker.turn') }}: <strong>{{ currentPlayer?.name ?? '—' }}</strong></p>
+          </div>
+
+          <p class="text-caption text-medium-emphasis mb-2">{{ actionMessage }}</p>
+          <div v-if="showdownSummary.length" class="mb-3 d-grid ga-1">
+            <p class="text-caption font-weight-bold mb-0">{{ t('gameComponents.poker.showdown') }}</p>
+            <p v-for="(line, index) in showdownSummary" :key="`show-${index}`" class="mb-0 text-caption">{{ line }}</p>
           </div>
 
           <div class="d-grid ga-2">
@@ -420,19 +434,11 @@ onBeforeUnmount(() => {
             </div>
           </div>
 
-          <v-btn v-if="street === 'hand-over'" color="primary" prepend-icon="mdi-refresh" class="mt-3" @click="startNextHand">
+          <v-btn v-if="street === 'hand-over'" color="primary" prepend-icon="mdi-refresh" class="mt-3" block @click="startNextHand">
             {{ t('gameComponents.poker.actions.nextHand') }}
           </v-btn>
         </v-card>
-
-        <v-card class="pa-3" variant="outlined">
-          <p class="text-caption text-medium-emphasis mb-0">{{ actionMessage }}</p>
-          <div v-if="showdownSummary.length" class="mt-3 d-grid ga-1">
-            <p class="text-caption font-weight-bold mb-0">{{ t('gameComponents.poker.showdown') }}</p>
-            <p v-for="(line, index) in showdownSummary" :key="`show-${index}`" class="mb-0 text-caption">{{ line }}</p>
-          </div>
-        </v-card>
-      </div>
+      </template>
     </CardTableLayout>
   </v-card>
 </template>
@@ -566,28 +572,30 @@ onBeforeUnmount(() => {
 .flying-chip--seat-4 { --chip-x: 50%; --chip-y: 12%; left: 50%; top: 12%; }
 .flying-chip--seat-5 { --chip-x: 50%; --chip-y: 88%; left: 50%; top: 88%; }
 
-.opponent-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 8px;
-}
-
-.opponent-card {
-  border: 1px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 24%, transparent);
+.seat-hand {
   border-radius: 10px;
-  padding: 8px;
-  background: color-mix(in srgb, rgb(var(--v-theme-surface)) 94%, rgb(var(--v-theme-primary)) 6%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(3, 9, 6, 0.2);
+  padding: 6px;
 }
 
-.opponent-card--active {
-  border-color: color-mix(in srgb, rgb(var(--v-theme-warning)) 60%, transparent);
-  box-shadow: 0 0 0 2px color-mix(in srgb, rgb(var(--v-theme-warning)) 25%, transparent);
+.seat-hand--player {
+  width: min(100%, 620px);
+}
+
+.seat-hand--side {
+  max-width: 180px;
 }
 
 .card-back-row {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
+  justify-content: center;
+}
+
+.card-back-row--side {
+  justify-content: flex-start;
 }
 
 .card-back {
@@ -717,5 +725,26 @@ onBeforeUnmount(() => {
 
 .poker-table-layout :deep(.table-seat--active .v-avatar) {
   box-shadow: 0 0 0 3px rgba(255, 241, 118, 0.38);
+}
+
+.active-turn-indicator {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.86);
+  text-transform: uppercase;
+}
+
+.poker-aside {
+  position: sticky;
+  top: 90px;
+}
+
+@media (max-width: 960px) {
+  .poker-aside {
+    position: static;
+  }
 }
 </style>
