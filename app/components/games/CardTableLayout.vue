@@ -266,17 +266,21 @@ const isRedSuit = (suit: string) => suit === '♥' || suit === '♦'
 }
 
 .seat-melds--east {
-  top: 50%;
-  right: 120px;
-  transform: translateY(-50%);
+  top: 52%;
+  right: 20px;
+  width: min(150px, 24%);
+  transform: translateY(-52%);
   align-items: flex-end;
+  z-index: 3;
 }
 
 .seat-melds--west {
-  top: 50%;
-  left: 120px;
-  transform: translateY(-50%);
+  top: 52%;
+  left: 20px;
+  width: min(150px, 24%);
+  transform: translateY(-52%);
   align-items: flex-start;
+  z-index: 3;
 }
 
 .seat-melds__group {
@@ -494,16 +498,18 @@ const isRedSuit = (suit: string) => suit === '♥' || suit === '♦'
   }
 
   .seat-melds--east {
-    right: 108px;
+    right: 12px;
+    width: calc(50% - 24px);
     top: auto;
-    bottom: 192px;
+    bottom: 184px;
     transform: none;
   }
 
   .seat-melds--west {
-    left: 108px;
+    left: 12px;
+    width: calc(50% - 24px);
     top: auto;
-    bottom: 192px;
+    bottom: 184px;
     transform: none;
   }
 }
@@ -559,13 +565,15 @@ const isRedSuit = (suit: string) => suit === '♥' || suit === '♦'
 
   .seat-melds--east {
     left: auto;
-    right: 100px;
-    bottom: 178px;
+    right: 12px;
+    width: calc(50% - 18px);
+    bottom: 170px;
   }
 
   .seat-melds--west {
-    left: 100px;
-    bottom: 178px;
+    left: 12px;
+    width: calc(50% - 18px);
+    bottom: 170px;
   }
 }
 </style>
