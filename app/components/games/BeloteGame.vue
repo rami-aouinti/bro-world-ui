@@ -1,233 +1,111 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import CardTableLayout from './CardTableLayout.vue'
+import { type BeloteMode, useBeloteEngine } from '~/composables/games/useBeloteEngine'
 
-defineProps<{
+const props = defineProps<{
   selectedPlayMode: 'ai' | 'pvp'
+  beloteMode: BeloteMode
 }>()
 
 const { t } = useI18n()
 
-type Suit = '♠' | '♥' | '♦' | '♣'
-type Rank = '7' | '8' | '9' | 'J' | 'Q' | 'K' | '10' | 'A'
+const engine = useBeloteEngine(() => props.beloteMode)
 
-interface Card {
-  id: string
-  suit: Suit
-  rank: Rank
-}
+const isHumanCardPlayable = (cardId: string) => engine.humanPlayableCards.value.some(card => card.id === cardId)
 
-const TURN_SECONDS = 120
+const tablePlayers = computed(() => engine.players.value.map((player, index) => ({
+  id: player.id,
+  name: player.name,
+  isAI: player.isAI,
+  handCount: player.hand.length,
+  isCurrentTurn: engine.turnIndex.value === index,
+  timerSeconds: engine.turnIndex.value === index ? engine.timerSeconds.value : undefined,
+})))
 
-const suits: Suit[] = ['♠', '♥', '♦', '♣']
-const ranks: Rank[] = ['7', '8', '9', 'J', 'Q', 'K', '10', 'A']
+const centerCards = computed(() => engine.trick.value.map(play => `${engine.players.value[play.playerIndex].name}: ${play.card.rank}${play.card.suit}`))
 
-const trumpStrength: Record<Rank, number> = {
-  J: 8,
-  '9': 7,
-  A: 6,
-  '10': 5,
-  K: 4,
-  Q: 3,
-  '8': 2,
-  '7': 1,
-}
-
-const normalStrength: Record<Rank, number> = {
-  A: 8,
-  '10': 7,
-  K: 6,
-  Q: 5,
-  J: 4,
-  '9': 3,
-  '8': 2,
-  '7': 1,
-}
-
-const cardPoints: Record<Rank, number> = {
-  A: 11,
-  '10': 10,
-  K: 4,
-  Q: 3,
-  J: 2,
-  '9': 0,
-  '8': 0,
-  '7': 0,
-}
-
-const createDeck = (): Card[] => suits.flatMap(suit => ranks.map(rank => ({ id: `${suit}-${rank}`, suit, rank })))
-
-const shuffle = <T,>(items: T[]) => {
-  const output = [...items]
-  for (let index = output.length - 1; index > 0; index -= 1) {
-    const randomIndex = Math.floor(Math.random() * (index + 1))
-    const current = output[index]
-    output[index] = output[randomIndex]
-    output[randomIndex] = current
+const scoreboardRows = computed(() => {
+  if (props.beloteMode === 'teams') {
+    return [
+      { id: 'team-a', label: 'Équipe A (Vous + IA Nord)', score: engine.teamScores.value.teamA },
+      { id: 'team-b', label: 'Équipe B (IA Est + IA Ouest)', score: engine.teamScores.value.teamB },
+    ]
   }
-  return output
-}
 
-const trumpSuit = ref<Suit>('♠')
-const playerHand = ref<Card[]>([])
-const aiHand = ref<Card[]>([])
-const playerCard = ref<Card | null>(null)
-const aiCard = ref<Card | null>(null)
-const playerScore = ref(0)
-const aiScore = ref(0)
-const trickCount = ref(0)
-const message = ref(t('gameComponents.belote.messages.chooseCard'))
-
-const tablePlayers = computed(() => [
-  {
-    id: 'ai',
-    name: 'Ordinateur',
-    isAI: true,
-    handCount: aiHand.value.length,
-    isCurrentTurn: canPlay.value,
-    timerSeconds: canPlay.value ? TURN_SECONDS : undefined,
-  },
-  {
-    id: 'player',
-    name: 'Vous',
-    isAI: false,
-    handCount: playerHand.value.length,
-    isCurrentTurn: canPlay.value,
-    timerSeconds: canPlay.value ? TURN_SECONDS : undefined,
-  },
-  {
-    id: 'seat-3',
-    name: 'Siège libre',
-    isAI: true,
-    handCount: 0,
-    isCurrentTurn: false,
-  },
-  {
-    id: 'seat-4',
-    name: 'Siège libre',
-    isAI: true,
-    handCount: 0,
-    isCurrentTurn: false,
-  },
-])
-
-const centerCards = computed(() => {
-  const cards: string[] = []
-  if (playerCard.value) cards.push(`Vous: ${playerCard.value.rank}${playerCard.value.suit}`)
-  if (aiCard.value) cards.push(`IA: ${aiCard.value.rank}${aiCard.value.suit}`)
-  return cards
+  return engine.players.value.map((player, index) => ({
+    id: player.id,
+    label: player.name,
+    score: engine.playerScores.value[index],
+  }))
 })
 
-const trickWinner = (lead: Card, follow: Card) => {
-  if (lead.suit === follow.suit) {
-    const leadPower = lead.suit === trumpSuit.value ? trumpStrength[lead.rank] : normalStrength[lead.rank]
-    const followPower = follow.suit === trumpSuit.value ? trumpStrength[follow.rank] : normalStrength[follow.rank]
-    return leadPower >= followPower ? 'lead' : 'follow'
-  }
-
-  if (follow.suit === trumpSuit.value && lead.suit !== trumpSuit.value) {
-    return 'follow'
-  }
-
-  return 'lead'
-}
-
-const canPlay = computed(() => trickCount.value < 8 && playerCard.value === null)
-
-const playCard = (card: Card) => {
-  if (!canPlay.value) {
-    return
-  }
-
-  playerCard.value = card
-  playerHand.value = playerHand.value.filter(item => item.id !== card.id)
-
-  const aiChoice = aiHand.value[Math.floor(Math.random() * aiHand.value.length)]
-  aiCard.value = aiChoice
-  aiHand.value = aiHand.value.filter(item => item.id !== aiChoice.id)
-
-  const winner = trickWinner(card, aiChoice)
-  const points = cardPoints[card.rank] + cardPoints[aiChoice.rank]
-
-  if (winner === 'lead') {
-    playerScore.value += points
-    message.value = t('gameComponents.belote.messages.playerWonTrick', { points })
-  }
-  else {
-    aiScore.value += points
-    message.value = t('gameComponents.belote.messages.aiWonTrick', { points })
-  }
-
-  trickCount.value += 1
-
-  if (trickCount.value >= 8) {
-    if (playerScore.value > aiScore.value) {
-      message.value = t('gameComponents.belote.messages.playerWonGame', { playerScore: playerScore.value, aiScore: aiScore.value })
-    }
-    else if (playerScore.value < aiScore.value) {
-      message.value = t('gameComponents.belote.messages.aiWonGame', { aiScore: aiScore.value, playerScore: playerScore.value })
-    }
-    else {
-      message.value = t('gameComponents.belote.messages.drawGame', { playerScore: playerScore.value, aiScore: aiScore.value })
-    }
-  }
-}
-
-const nextTrick = () => {
-  playerCard.value = null
-  aiCard.value = null
-}
-
-const restart = () => {
-  const freshDeck = shuffle(createDeck())
-  playerHand.value = freshDeck.slice(0, 8)
-  aiHand.value = freshDeck.slice(8, 16)
-  trumpSuit.value = suits[Math.floor(Math.random() * suits.length)]
-  playerCard.value = null
-  aiCard.value = null
-  playerScore.value = 0
-  aiScore.value = 0
-  trickCount.value = 0
-  message.value = t('gameComponents.belote.messages.newRound')
-}
-
-restart()
+const modeLabel = computed(() => (props.beloteMode === 'teams' ? '2v2' : 'Free-for-all'))
 </script>
 
 <template>
   <v-card class="pa-4 rounded-xl game-card-shell" variant="tonal">
     <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-3">
-      <h3 class="game-title mb-0">{{ t("gameComponents.belote.title") }}</h3>
-      <v-btn color="primary" prepend-icon="mdi-refresh" @click="restart">{{ t("gameComponents.belote.actions.newDeal") }}</v-btn>
+      <h3 class="game-title mb-0">{{ t("gameComponents.belote.title") }} · {{ modeLabel }}</h3>
+      <v-btn color="primary" prepend-icon="mdi-refresh" @click="engine.restartRound">{{ t("gameComponents.belote.actions.newDeal") }}</v-btn>
     </div>
 
-    <p class="game-description mb-1">{{ t("gameComponents.belote.trump") }}: <strong>{{ trumpSuit }}</strong></p>
-    <p class="game-subtitle mb-4">{{ t("gameComponents.belote.tricksPlayed", { count: trickCount }) }} · {{ t("gameComponents.belote.score", { playerScore, aiScore }) }}</p>
+    <p class="game-description mb-1">{{ t("gameComponents.belote.trump") }}: <strong>{{ engine.trumpSuit }}</strong></p>
+    <p class="game-subtitle mb-4">
+      {{ t("gameComponents.belote.tricksPlayed", { count: engine.trickCount }) }} · Tour: {{ engine.players[engine.turnIndex]?.name ?? '—' }} · Timer: {{ engine.timerSeconds }}s
+    </p>
 
-    <CardTableLayout :players="tablePlayers" :center-cards="centerCards" :turn-timer-seconds="TURN_SECONDS">
-      <div class="d-flex flex-wrap ga-3 mb-4">
-        <v-card class="pa-3 flex-grow-1 game-info-card" min-width="220" variant="outlined">
-          <p class="text-subtitle-2 font-weight-bold mb-2">{{ t("gameComponents.belote.currentTrick") }}</p>
-          <p class="mb-1">{{ t("gameComponents.belote.you") }}: <strong>{{ playerCard ? `${playerCard.rank}${playerCard.suit}` : '—' }}</strong></p>
-          <p class="mb-2">{{ t("gameComponents.belote.ai") }}: <strong>{{ aiCard ? `${aiCard.rank}${aiCard.suit}` : '—' }}</strong></p>
-          <v-btn :disabled="!playerCard || !aiCard || trickCount >= 8" size="small" variant="text" @click="nextTrick">{{ t("gameComponents.belote.actions.nextTrick") }}</v-btn>
-        </v-card>
+    <CardTableLayout :players="tablePlayers" :center-cards="centerCards" :turn-timer-seconds="engine.TURN_SECONDS">
+      <template #center>
+        <div class="trick-center">
+          <p class="text-caption text-medium-emphasis mb-2">Pli central</p>
+          <div class="trick-center__cards">
+            <div v-for="slot in [0, 1, 2, 3]" :key="`trick-slot-${slot}`" class="center-card">
+              <template v-if="engine.trick.find(play => play.playerIndex === slot)">
+                <span>{{ engine.trick.find(play => play.playerIndex === slot)?.card.rank }}</span>
+                <span :class="['card-suit', engine.trick.find(play => play.playerIndex === slot)?.card.suit === '♥' || engine.trick.find(play => play.playerIndex === slot)?.card.suit === '♦' ? 'text-red' : 'text-black']">{{ engine.trick.find(play => play.playerIndex === slot)?.card.suit }}</span>
+              </template>
+              <span v-else class="text-medium-emphasis">—</span>
+            </div>
+          </div>
+        </div>
+      </template>
 
-        <v-card class="pa-3 flex-grow-1 game-info-card" min-width="220" variant="outlined">
-          <p class="text-subtitle-2 font-weight-bold mb-2">{{ t("gameComponents.belote.instruction") }}</p>
-          <p class="game-subtitle mb-0">{{ message }}</p>
-        </v-card>
-      </div>
+      <v-row class="mb-4" dense>
+        <v-col cols="12" md="6">
+          <v-card class="pa-3 game-info-card h-100" variant="outlined">
+            <p class="text-subtitle-2 font-weight-bold mb-2">Scores</p>
+            <div class="d-flex flex-column ga-1">
+              <p v-for="entry in scoreboardRows" :key="entry.id" class="mb-0">{{ entry.label }}: <strong>{{ entry.score }}</strong></p>
+            </div>
+            <p class="mb-0 mt-2">{{ engine.roundOver ? engine.roundResult : engine.message }}</p>
+          </v-card>
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-card class="pa-3 game-info-card h-100" variant="outlined">
+            <p class="text-subtitle-2 font-weight-bold mb-2">Mains IA</p>
+            <div class="ai-hands">
+              <div v-for="(player, index) in engine.players.slice(1)" :key="player.id" class="ai-hand-row">
+                <span class="text-caption">{{ player.name }}</span>
+                <div class="card-backs">
+                  <span v-for="n in player.hand.length" :key="`${player.id}-${n}`" class="card-back">🂠</span>
+                </div>
+                <small class="text-medium-emphasis">{{ index === 1 ? 'Partenaire' : 'Adversaire' }}</small>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
+      </v-row>
 
       <p class="text-subtitle-2 font-weight-bold mb-2">{{ t("gameComponents.belote.yourHand") }}</p>
       <div class="belote-card-grid">
         <button
-          v-for="card in playerHand"
+          v-for="card in engine.players[0]?.hand ?? []"
           :key="card.id"
           type="button"
           class="play-card"
-          :disabled="!canPlay"
-          @click="playCard(card)"
+          :disabled="!engine.canHumanPlay || !isHumanCardPlayable(card.id)"
+          @click="engine.playCard(0, card.id)"
         >
           <span>{{ card.rank }}</span>
           <span :class="card.suit === '♥' || card.suit === '♦' ? 'text-red' : 'text-black'">{{ card.suit }}</span>
@@ -296,5 +174,55 @@ restart()
 
 .play-card:disabled {
   opacity: 0.5;
+}
+
+.ai-hands {
+  display: grid;
+  gap: 8px;
+}
+
+.ai-hand-row {
+  display: grid;
+  gap: 4px;
+}
+
+.card-backs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.card-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 30px;
+  border-radius: 6px;
+  background: rgba(30, 58, 138, 0.15);
+  border: 1px solid rgba(30, 58, 138, 0.28);
+}
+
+.trick-center {
+  width: 100%;
+}
+
+.trick-center__cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(40px, 1fr));
+  gap: 8px;
+}
+
+.center-card {
+  min-height: 52px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #111827;
+  border: 1px solid rgba(17, 24, 39, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
 }
 </style>
