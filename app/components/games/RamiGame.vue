@@ -894,6 +894,32 @@ const cardStyle = (index: number, cardId: string) => {
   };
 };
 
+const handleAsideAction = (actionId: string) => {
+  if (actionId === "draw") {
+    drawCard();
+    return;
+  }
+
+  if (actionId === "play-combination") {
+    createMeld();
+    return;
+  }
+
+  if (actionId === "discard-selected") {
+    const [selectedCardId] = selectedCardIds.value;
+    if (selectedCardId) discardCard(selectedCardId, true);
+    return;
+  }
+
+  if (actionId === "play-again") {
+    reset();
+  }
+};
+
+defineExpose({
+  handleAsideAction,
+});
+
 const reset = () => {
   const randomDeck = shuffle(deck(2));
   playerHand.value = randomDeck.slice(0, 14);

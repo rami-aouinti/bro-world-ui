@@ -260,6 +260,9 @@ const selectedPlayMode = ref<PlayMode | null>(null);
 const selectedBeloteMode = ref<BeloteMode | null>(null);
 const isGameStarted = ref(false);
 const liveGamePanel = ref<GameAsidePanelState | null>(null);
+const ramiGameRef = ref<{
+  handleAsideAction: (actionId: string) => void;
+} | null>(null);
 const allGameEntries = computed(() =>
   categories.flatMap((category) =>
     category.subCategories.flatMap((subCategory) => subCategory.games),
@@ -383,6 +386,11 @@ const onGamePanelState = (payload: GameAsidePanelState) => {
   liveGamePanel.value = payload;
 };
 
+const onAsideAction = (actionId: string) => {
+  if (selectedGame.value?.component !== "rami") return;
+  ramiGameRef.value?.handleAsideAction(actionId);
+};
+
 watch([selectedGameId, isGameStarted], () => {
   if (!isGameStarted.value) {
     liveGamePanel.value = null;
@@ -465,6 +473,7 @@ const gamePanelState = computed(() => ({
         :is-game-started="isGameStarted"
         :game-panel-state="gamePanelState"
         :live-game-panel="liveGamePanel"
+        @action="onAsideAction"
       />
     </template>
     <template #default>
@@ -669,6 +678,7 @@ const gamePanelState = computed(() => ({
 
       <section v-else-if="selectedGame && selectedPlayMode && isGameStarted">
         <RamiGame
+          ref="ramiGameRef"
           v-if="selectedGame.component === 'rami'"
           :selected-play-mode="selectedPlayMode"
           @panel-state="onGamePanelState"
