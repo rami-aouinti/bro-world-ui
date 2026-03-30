@@ -5,47 +5,18 @@ import CheckersGame from "~/components/games/CheckersGame.vue";
 import RamiGame from "~/components/games/RamiGame.vue";
 import PokerGame from "~/components/games/PokerGame.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
+import type {
+  BeloteMode,
+  GameCategory,
+  GameEntry,
+  PlayMode,
+} from "~/types/game";
 
 const { t } = useI18n();
 
 definePageMeta({
   splitShell: false,
 });
-
-type PlayMode = "ai" | "pvp";
-type BeloteMode = "teams" | "free-for-all";
-type GameDifficulty = "facile" | "moyen" | "difficile";
-
-interface GameEntry {
-  id: string;
-  title?: string;
-  description?: string;
-  category?: string;
-  subcategory?: string;
-  difficulty?: GameDifficulty;
-  tags?: string[];
-  nameKey: string;
-  descriptionKey: string;
-  icon: string;
-  component: "rami" | "belote" | "checkers" | "poker" | null;
-  supportedModes: PlayMode[];
-}
-
-interface GameSubCategory {
-  id: string;
-  nameKey: string;
-  descriptionKey: string;
-  icon: string;
-  games: GameEntry[];
-}
-
-interface GameCategory {
-  id: string;
-  nameKey: string;
-  descriptionKey: string;
-  icon: string;
-  subCategories: GameSubCategory[];
-}
 
 const categories: GameCategory[] = [
   {
@@ -138,6 +109,11 @@ const categories: GameCategory[] = [
             icon: "mdi-grid",
             component: null,
             supportedModes: [],
+            features: [
+              "génération de grilles",
+              "vérification auto",
+              "timer + score",
+            ],
           },
           {
             id: "game-2048",
@@ -153,6 +129,11 @@ const categories: GameCategory[] = [
             icon: "mdi-numeric-8-box-multiple-outline",
             component: null,
             supportedModes: [],
+            features: [
+              "animations fluides",
+              "score + best score",
+              "sauvegarde session",
+            ],
           },
         ],
       },
@@ -176,6 +157,7 @@ const categories: GameCategory[] = [
             icon: "mdi-chess-knight",
             component: null,
             supportedModes: [],
+            features: ["IA", "multijoueur", "replay"],
           },
         ],
       },
@@ -199,6 +181,7 @@ const categories: GameCategory[] = [
             icon: "mdi-text-search-variant",
             component: null,
             supportedModes: [],
+            features: ["mot du jour", "dictionnaire", "partage"],
           },
         ],
       },
@@ -222,6 +205,10 @@ const categories: GameCategory[] = [
             icon: "mdi-view-grid-plus-outline",
             component: null,
             supportedModes: [],
+            features: [
+              "indices de lignes/colonnes",
+              "niveaux progressifs",
+            ],
           },
         ],
       },
@@ -436,6 +423,20 @@ const launchGame = () => {
                   <v-chip v-if="game.subcategory" size="x-small" variant="tonal" color="secondary">{{ game.subcategory }}</v-chip>
                   <v-chip v-if="game.difficulty" size="x-small" variant="outlined" color="info">{{ game.difficulty }}</v-chip>
                 </div>
+                <div v-if="game.features?.length" class="mt-1">
+                  <p class="text-caption font-weight-bold mb-1">Fonctionnalités</p>
+                  <div class="d-flex flex-wrap ga-1">
+                    <v-chip
+                      v-for="feature in game.features"
+                      :key="`${game.id}-feature-${feature}`"
+                      size="x-small"
+                      variant="tonal"
+                      color="indigo"
+                    >
+                      {{ feature }}
+                    </v-chip>
+                  </div>
+                </div>
               </div>
             </v-card>
           </v-col>
@@ -507,6 +508,14 @@ const launchGame = () => {
                     {{ tag }}
                   </v-chip>
                 </div>
+                <div v-if="game.features?.length" class="mt-1">
+                  <p class="text-caption font-weight-bold mb-1">Bonus</p>
+                  <ul class="info-list">
+                    <li v-for="feature in game.features" :key="`${game.id}-bonus-${feature}`">
+                      {{ feature }}
+                    </li>
+                  </ul>
+                </div>
                 <div class="d-flex flex-wrap ga-1">
                   <v-chip
                     v-for="mode in game.supportedModes"
@@ -543,6 +552,15 @@ const launchGame = () => {
 
       <section v-else-if="selectedGame && !isGameStarted" class="mb-1">
         <v-card class="pa-4 unified-card" variant="outlined">
+          <div v-if="selectedGame.features?.length" class="mb-4">
+            <h3 class="section-title mb-2">Fonctionnalités</h3>
+            <ul class="info-list">
+              <li v-for="feature in selectedGame.features" :key="`selected-feature-${feature}`">
+                {{ feature }}
+              </li>
+            </ul>
+          </div>
+
           <div class="d-flex flex-wrap ga-2 mb-4">
             <v-btn
               :color="getLevelColor('mode')"
