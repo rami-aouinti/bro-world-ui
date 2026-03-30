@@ -487,8 +487,8 @@ defineExpose({
 }
 
 .belote-seat-hand__card {
-  width: 64px;
-  min-height: 86px;
+  width: 58px;
+  min-height: 78px;
   margin-left: -18px;
 }
 
@@ -497,15 +497,11 @@ defineExpose({
 }
 
 .play-card {
-  min-height: 82px;
+  min-height: 74px;
   border-radius: 12px;
   border: 1px solid
     color-mix(in srgb, rgb(var(--v-theme-primary)) 26%, transparent);
-  background: color-mix(
-    in srgb,
-    rgb(var(--v-theme-surface)) 92%,
-    rgb(var(--v-theme-primary)) 8%
-  );
+  background: #ffffff;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -604,8 +600,8 @@ defineExpose({
 
 @media (max-width: 700px) {
   .belote-seat-hand__card {
-    width: 54px;
-    min-height: 78px;
+    width: 50px;
+    min-height: 70px;
     margin-left: -22px;
     padding: 6px;
   }

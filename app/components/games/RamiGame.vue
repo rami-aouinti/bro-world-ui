@@ -1267,7 +1267,7 @@ reset();
 .hand-fan__card {
   position: relative;
   z-index: calc(var(--card-index) + 1);
-  margin-left: calc(-16px - (var(--card-index) * 0.35px));
+  margin-left: calc(-14px - (var(--card-index) * 0.3px));
   transform-origin: center 130%;
   transform: rotate(calc((var(--card-index) - 7) * 1deg))
     translateY(calc(6px - (var(--card-index) * 0.28px)));
@@ -1349,7 +1349,8 @@ reset();
 
 .play-card {
   border-radius: 10px;
-  min-height: 88px;
+  min-height: 80px;
+  min-width: 52px;
   border: 1px solid rgba(15, 23, 42, 0.15);
   transition:
     transform 180ms ease,
@@ -1360,7 +1361,7 @@ reset();
 .play-card--front {
   background: linear-gradient(160deg, #fff, #f6f7fb);
   box-shadow: 0 7px 18px rgba(15, 23, 42, 0.16);
-  padding: 7px;
+  padding: 6px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -1368,7 +1369,8 @@ reset();
 }
 
 .play-card--back {
-  min-height: 54px;
+  min-height: 48px;
+  min-width: 34px;
   border: 1px solid #1f3153;
   background: repeating-linear-gradient(
     45deg,
@@ -1496,7 +1498,7 @@ reset();
 
 .card-center {
   align-self: center;
-  font-size: 1.45rem;
+  font-size: 1.25rem;
   line-height: 1;
 }
 
@@ -1526,11 +1528,13 @@ reset();
   }
 
   .play-card {
-    min-height: 84px;
+    min-height: 74px;
+    min-width: 48px;
   }
 
   .play-card--back {
-    min-height: 46px;
+    min-height: 42px;
+    min-width: 30px;
   }
 
   .hand-fan__card--back {
