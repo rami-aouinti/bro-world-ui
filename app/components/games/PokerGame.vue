@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import type { PokerCard } from '~/composables/games/usePokerEngine'
 import { usePokerEngine } from '~/composables/games/usePokerEngine'
 
 defineProps<{
@@ -26,6 +27,34 @@ const actionMessage = computed(() => engine.actionMessage.value)
 const currentPlayer = computed(() => players.value[currentTurnIndex.value])
 const isHumanTurn = computed(() => currentPlayer.value?.id === humanPlayer.value?.id)
 
+const tablePlayers = computed(() => players.value.map((player, index) => ({
+  id: player.id,
+  name: player.name,
+  isAI: player.isAI,
+  handCount: player.hand.length,
+  isCurrentTurn: street.value !== 'hand-over' && currentTurnIndex.value === index,
+})))
+
+const revealedBoardCards = computed(() => {
+  if (street.value === 'preflop' || street.value === 'hand-over') return 0
+  if (street.value === 'flop') return 3
+  if (street.value === 'turn') return 4
+  return 5
+})
+
+const boardSlots = computed(() => Array.from({ length: 5 }, (_, index) => {
+  const card = engine.board.value[index]
+  return {
+    key: `board-${index}`,
+    card,
+    isVisible: index < revealedBoardCards.value && Boolean(card),
+  }
+}))
+
+const centerCards = computed(() => boardSlots.value
+  .filter(slot => slot.isVisible && slot.card)
+  .map(slot => engine.formatCard(slot.card as PokerCard)))
+
 const playerCallAmount = computed(() => {
   const player = humanPlayer.value
   if (!player) return 0
@@ -46,18 +75,21 @@ const canRaise = computed(() => {
 const minRaiseToTotal = computed(() => engine.getMinimumRaiseToTotal(0))
 const maxRaiseToTotal = computed(() => engine.getMaximumRaiseToTotal(0))
 
-const boardCards = computed(() => {
-  const slots = [0, 1, 2, 3, 4]
-  return slots.map((slot) => {
-    const card = engine.board.value[slot]
-    return card ? engine.formatCard(card) : '🂠'
-  })
-})
-
 const streetLabel = computed(() => {
   const key = street.value
   return t(`gameComponents.poker.states.${key}`)
 })
+
+const getCardTone = (cardLabel: string) => {
+  if (/♥|♦/.test(cardLabel)) return 'table-card--red'
+  if (/♣|♠/.test(cardLabel)) return 'table-card--black'
+  return 'table-card--back'
+}
+
+const getCardRank = (cardLabel: string) => cardLabel.replace(/[♠♥♦♣]/g, '')
+const getCardSuit = (cardLabel: string) => cardLabel.match(/[♠♥♦♣]/)?.[0] ?? ''
+
+const formatCard = (card: PokerCard) => engine.formatCard(card)
 
 const setRaiseWithinBounds = () => {
   if (!canRaise.value) {
@@ -121,25 +153,39 @@ onBeforeUnmount(() => {
       <v-chip>{{ t('gameComponents.poker.turn') }}: {{ currentPlayer?.name ?? '—' }}</v-chip>
     </div>
 
-    <v-row class="mb-2" dense>
-      <v-col cols="12" md="7">
-        <v-card class="pa-3 h-100" variant="outlined">
-          <p class="text-subtitle-2 font-weight-bold mb-2">{{ t('gameComponents.poker.board') }}</p>
-          <div class="board-row mb-2">
-            <span v-for="(card, index) in boardCards" :key="`board-${index}`" class="table-card">{{ card }}</span>
-          </div>
-          <p class="text-caption text-medium-emphasis mb-0">{{ actionMessage }}</p>
-          <div v-if="showdownSummary.length" class="mt-3 d-grid ga-1">
-            <p class="text-caption font-weight-bold mb-0">{{ t('gameComponents.poker.showdown') }}</p>
-            <p v-for="(line, index) in showdownSummary" :key="`show-${index}`" class="mb-0 text-caption">{{ line }}</p>
-          </div>
-        </v-card>
-      </v-col>
-      <v-col cols="12" md="5">
-        <v-card class="pa-3 h-100" variant="outlined">
+    <CardTableLayout :players="tablePlayers" :center-cards="centerCards">
+      <template #center>
+        <div class="board-row board-row--center">
+          <span
+            v-for="slot in boardSlots"
+            :key="slot.key"
+            class="table-card"
+            :class="slot.isVisible && slot.card ? getCardTone(formatCard(slot.card)) : 'table-card--back'"
+          >
+            <template v-if="slot.isVisible && slot.card">
+              <span class="table-card__rank">{{ getCardRank(formatCard(slot.card)) }}</span>
+              <span class="table-card__suit">{{ getCardSuit(formatCard(slot.card)) }}</span>
+            </template>
+            <template v-else>
+              <span class="table-card__back-pattern">🂠</span>
+            </template>
+          </span>
+        </div>
+      </template>
+
+      <div class="d-grid ga-3">
+        <v-card class="pa-3" variant="outlined">
           <p class="text-subtitle-2 font-weight-bold mb-2">{{ t('gameComponents.poker.yourCards') }}</p>
           <div class="board-row mb-3">
-            <span v-for="card in humanPlayer?.hand ?? []" :key="card.id" class="table-card">{{ engine.formatCard(card) }}</span>
+            <span
+              v-for="card in humanPlayer?.hand ?? []"
+              :key="card.id"
+              class="table-card"
+              :class="getCardTone(formatCard(card))"
+            >
+              <span class="table-card__rank">{{ getCardRank(formatCard(card)) }}</span>
+              <span class="table-card__suit">{{ getCardSuit(formatCard(card)) }}</span>
+            </span>
           </div>
 
           <div class="d-grid ga-2">
@@ -173,31 +219,16 @@ onBeforeUnmount(() => {
             {{ t('gameComponents.poker.actions.nextHand') }}
           </v-btn>
         </v-card>
-      </v-col>
-    </v-row>
 
-    <v-card class="pa-3" variant="outlined">
-      <p class="text-subtitle-2 font-weight-bold mb-2">{{ t('gameComponents.poker.players') }}</p>
-      <div class="players-grid">
-        <div
-          v-for="(player, index) in players"
-          :key="player.id"
-          class="player-chip"
-          :class="{ 'player-chip--active': currentTurnIndex === index }"
-        >
-          <div class="d-flex justify-space-between ga-2">
-            <strong>{{ player.name }}</strong>
-            <span>{{ t(player.isAI ? 'gameComponents.poker.aiStatus.ai' : 'gameComponents.poker.aiStatus.human') }}</span>
+        <v-card class="pa-3" variant="outlined">
+          <p class="text-caption text-medium-emphasis mb-0">{{ actionMessage }}</p>
+          <div v-if="showdownSummary.length" class="mt-3 d-grid ga-1">
+            <p class="text-caption font-weight-bold mb-0">{{ t('gameComponents.poker.showdown') }}</p>
+            <p v-for="(line, index) in showdownSummary" :key="`show-${index}`" class="mb-0 text-caption">{{ line }}</p>
           </div>
-          <div class="text-caption mt-1">
-            {{ t('gameComponents.poker.stack') }}: {{ player.stack }} · {{ t('gameComponents.poker.bet') }}: {{ player.currentBet }}
-          </div>
-          <div class="text-caption">
-            {{ player.folded ? t('gameComponents.poker.states.folded') : (player.allIn ? t('gameComponents.poker.states.allIn') : t('gameComponents.poker.states.active')) }}
-          </div>
-        </div>
+        </v-card>
       </div>
-    </v-card>
+    </CardTableLayout>
   </v-card>
 </template>
 
@@ -218,34 +249,51 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
 }
 
+.board-row--center {
+  justify-content: center;
+}
+
 .table-card {
-  min-width: 54px;
-  min-height: 76px;
-  border-radius: 10px;
-  border: 1px solid rgba(17, 24, 39, 0.2);
-  background: #fff;
-  color: #111827;
+  position: relative;
+  min-width: 58px;
+  min-height: 84px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.25);
+  background: linear-gradient(180deg, #ffffff 0%, #f5f7ff 100%);
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   font-weight: 800;
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18);
 }
 
-.players-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 10px;
+.table-card--red {
+  color: #b91c1c;
 }
 
-.player-chip {
-  border: 1px solid rgba(99, 102, 241, 0.25);
-  border-radius: 10px;
-  padding: 8px;
-  background: color-mix(in srgb, rgb(var(--v-theme-surface)) 94%, rgb(var(--v-theme-primary)) 6%);
+.table-card--black {
+  color: #111827;
 }
 
-.player-chip--active {
-  border-color: rgba(76, 175, 80, 0.7);
-  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+.table-card--back {
+  background: linear-gradient(150deg, #1e3a8a 0%, #172554 100%);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #e5edff;
+}
+
+.table-card__rank {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.table-card__suit {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.table-card__back-pattern {
+  font-size: 1.35rem;
+  opacity: 0.9;
 }
 </style>
