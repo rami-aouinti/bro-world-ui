@@ -38,9 +38,31 @@ const playersWithSeats = computed(() => props.players.slice(0, seatPositions.val
   displayedTimer: player.isCurrentTurn ? (player.timerSeconds ?? props.turnTimerSeconds) : null,
 })))
 
-const activePlayer = computed(() => playersWithSeats.value.find((player) => player.isCurrentTurn) ?? null)
-
 const hasCenterContent = computed(() => props.centerCards.length > 0 || props.centerMelds.length > 0)
+
+const TURN_RING_BASE_SECONDS = 30
+
+const getRingTimerSeconds = (displayedTimer: number | null) => {
+  if (displayedTimer === null || displayedTimer > TURN_RING_BASE_SECONDS) {
+    return null
+  }
+
+  return Math.max(0, displayedTimer)
+}
+
+const getRingColor = (secondsLeft: number) => {
+  if (secondsLeft <= 5) {
+    return 'error'
+  }
+
+  if (secondsLeft <= 15) {
+    return 'warning'
+  }
+
+  return 'success'
+}
+
+const getRingProgress = (secondsLeft: number) => Math.round((secondsLeft / TURN_RING_BASE_SECONDS) * 100)
 </script>
 
 <template>
@@ -53,18 +75,26 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
           class="table-seat"
           :class="[`table-seat--${player.seat}`, { 'table-seat--active': player.isCurrentTurn }]"
         >
-          <v-avatar :image="player.avatar" size="30" color="primary" variant="tonal">
-            <span class="text-caption font-weight-bold">{{ player.name.slice(0, 2).toUpperCase() }}</span>
-          </v-avatar>
+          <div class="table-seat__avatar-wrap">
+            <v-progress-circular
+              v-if="player.isCurrentTurn && getRingTimerSeconds(player.displayedTimer) !== null"
+              class="table-seat__turn-ring"
+              :model-value="getRingProgress(getRingTimerSeconds(player.displayedTimer)!)"
+              :color="getRingColor(getRingTimerSeconds(player.displayedTimer)!)"
+              :size="42"
+              :width="4"
+              aria-live="polite"
+              role="img"
+              :aria-label="`${getRingTimerSeconds(player.displayedTimer)} secondes restantes`"
+            />
+            <v-avatar :image="player.avatar" size="30" color="primary" variant="tonal">
+              <span class="text-caption font-weight-bold">{{ player.name.slice(0, 2).toUpperCase() }}</span>
+            </v-avatar>
+          </div>
           <div class="table-seat__meta">
             <p class="table-seat__name mb-0">{{ player.name }}</p>
           </div>
         </article>
-
-        <v-chip v-if="activePlayer" size="small" color="white" variant="flat" class="card-table-layout__global-timer">
-          <v-icon start icon="mdi-timer-outline" size="15" />
-          {{ `${activePlayer.displayedTimer ?? turnTimerSeconds}s` }}
-        </v-chip>
 
         <section class="card-table-layout__center">
           <slot name="center">
@@ -135,7 +165,7 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
 .table-seat {
   position: absolute;
   width: 82px;
-  min-height: 82px;
+  min-height: 88px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -149,7 +179,8 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
 
 .table-seat--active {
   border-color: rgba(255, 235, 59, 0.8);
-  box-shadow: 0 0 0 2px rgba(255, 235, 59, 0.25);
+  box-shadow: 0 0 0 1px rgba(255, 235, 59, 0.35);
+  padding-top: 8px;
 }
 
 .table-seat--north { top: 20px; left: 50%; transform: translateX(-50%); }
@@ -172,12 +203,17 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
   width: 100%;
 }
 
-.card-table-layout__global-timer {
+.table-seat__avatar-wrap {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+}
+
+.table-seat__turn-ring {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 3;
-  background: rgba(255, 255, 255, 0.96) !important;
+  inset: 0;
 }
 
 .table-seat-hand {
