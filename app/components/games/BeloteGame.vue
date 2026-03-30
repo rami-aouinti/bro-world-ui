@@ -278,6 +278,36 @@ defineExpose({
       :center-cards="centerCards"
       :turn-timer-seconds="TURN_SECONDS"
     >
+      <template #seat-south-hand>
+        <section v-if="displayHandPlayer" class="belote-seat-hand">
+          <p class="belote-seat-hand__title">
+            {{ t("gameComponents.belote.yourHand") }} · {{ displayHandPlayer.name }}
+          </p>
+          <div class="belote-seat-hand__cards">
+            <button
+              v-for="card in displayHandPlayer.hand"
+              :key="card.id"
+              type="button"
+              class="play-card belote-seat-hand__card"
+              :disabled="
+                !canHumanPlay ||
+                humanTurnPlayerIndex !== displayHandPlayerIndex ||
+                !isHumanCardPlayable(card.id)
+              "
+              @click="playCard(displayHandPlayerIndex, card.id)"
+            >
+              <span>{{ card.rank }}</span>
+              <span
+                :class="
+                  card.suit === '♥' || card.suit === '♦' ? 'text-red' : 'text-black'
+                "
+                >{{ card.suit }}</span
+              >
+            </button>
+          </div>
+        </section>
+      </template>
+
       <template #center>
         <div class="trick-center">
           <p class="text-caption text-medium-emphasis mb-2">
@@ -409,37 +439,7 @@ defineExpose({
           <li>{{ t("gameComponents.belote.quickRules.items.points") }}</li>
         </ul>
       </v-card>
-
-      <p class="text-subtitle-2 font-weight-bold mb-2">
-        {{ t("gameComponents.belote.yourHand") }}
-        <span v-if="displayHandPlayer" class="text-medium-emphasis">
-          · {{ displayHandPlayer.name }}</span
-        >
-      </p>
-
-      <div v-if="displayHandPlayer" class="belote-card-grid">
-        <button
-          v-for="card in displayHandPlayer.hand"
-          :key="card.id"
-          type="button"
-          class="play-card"
-          :disabled="
-            !canHumanPlay ||
-            humanTurnPlayerIndex !== displayHandPlayerIndex ||
-            !isHumanCardPlayable(card.id)
-          "
-          @click="playCard(displayHandPlayerIndex, card.id)"
-        >
-          <span>{{ card.rank }}</span>
-          <span
-            :class="
-              card.suit === '♥' || card.suit === '♦' ? 'text-red' : 'text-black'
-            "
-            >{{ card.suit }}</span
-          >
-        </button>
-      </div>
-      <p v-else class="text-medium-emphasis mb-0">
+      <p v-if="!displayHandPlayer" class="text-medium-emphasis mb-0">
         {{ t("gameComponents.belote.waitingLocalTurn") }}
       </p>
     </CardTableLayout>
@@ -493,10 +493,33 @@ defineExpose({
   font-size: 0.93rem;
 }
 
-.belote-card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
-  gap: 8px;
+.belote-seat-hand {
+  width: min(520px, calc(100% - 24px));
+  margin: 0 auto;
+}
+
+.belote-seat-hand__title {
+  margin: 0 0 8px;
+  text-align: center;
+  color: rgba(var(--v-theme-on-surface), 0.9);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.belote-seat-hand__cards {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.belote-seat-hand__card {
+  width: 64px;
+  min-height: 86px;
+  margin-left: -18px;
+}
+
+.belote-seat-hand__card:first-child {
+  margin-left: 0;
 }
 
 .play-card {
@@ -603,5 +626,14 @@ defineExpose({
   align-items: center;
   justify-content: center;
   font-weight: 700;
+}
+
+@media (max-width: 700px) {
+  .belote-seat-hand__card {
+    width: 54px;
+    min-height: 78px;
+    margin-left: -22px;
+    padding: 6px;
+  }
 }
 </style>
