@@ -110,9 +110,6 @@ const playerDisplayNames = {
   aiLeft: "Nora",
 } as const;
 
-const visibleTopOpponentCards = computed(() => aiTopHand.value.slice(0, 3));
-const visibleSideOpponentCards = (cards: Card[]) => cards.slice(0, 5);
-
 const tablePlayers = computed(() => [
   {
     id: "aiTop",
@@ -993,34 +990,6 @@ reset();
       </section>
     </template>
 
-    <template #seat-north-hand>
-      <section class="seat-hand seat-hand--north">
-        <h4 class="seat-hand__title text-subtitle-2 mb-1 font-weight-bold">Flix</h4>
-        <div class="hand-fan hand-fan--opponent">
-          <div
-            v-for="(card, index) in visibleTopOpponentCards"
-            :key="`ai-${card.id}`"
-            class="play-card play-card--back hand-fan__card hand-fan__card--back"
-            :style="cardStyle(index, card.id)"
-          />
-        </div>
-      </section>
-    </template>
-
-    <template #seat-east-hand>
-      <section class="seat-hand seat-hand--side">
-        <h4 class="seat-hand__title text-caption mb-1 font-weight-bold">John</h4>
-        <div class="hand-fan hand-fan--opponent hand-fan--side">
-          <div
-            v-for="(card, index) in visibleSideOpponentCards(aiRightHand)"
-            :key="`ai-right-${card.id}`"
-            class="play-card play-card--back hand-fan__card hand-fan__card--back"
-            :style="cardStyle(index, card.id)"
-          />
-        </div>
-      </section>
-    </template>
-
     <template #seat-south-hand>
       <section class="seat-hand seat-hand--south">
         <div class="player-hand-cards">
@@ -1089,20 +1058,6 @@ reset();
               </span>
             </button>
           </div>
-        </div>
-      </section>
-    </template>
-
-    <template #seat-west-hand>
-      <section class="seat-hand seat-hand--side">
-        <h4 class="seat-hand__title text-caption mb-1 font-weight-bold">Nora</h4>
-        <div class="hand-fan hand-fan--opponent hand-fan--side">
-          <div
-            v-for="(card, index) in visibleSideOpponentCards(aiLeftHand)"
-            :key="`ai-left-${card.id}`"
-            class="play-card play-card--back hand-fan__card hand-fan__card--back"
-            :style="cardStyle(index, card.id)"
-          />
         </div>
       </section>
     </template>
