@@ -70,9 +70,18 @@ const hasDrawn = ref(false)
 const winner = ref<Player | null>(null)
 const timer = ref(TURN_SECONDS)
 const message = ref('')
+const draggedCardId = ref<string | null>(null)
+const dragPosition = ref<{ x: number, y: number }>({ x: 0, y: 0 })
+const dragStartPosition = ref<{ x: number, y: number }>({ x: 0, y: 0 })
+const isDragging = ref(false)
+const dragOverDiscardZone = ref(false)
+const throwingCardId = ref<string | null>(null)
+const throwAnimationOffset = ref<{ x: number, y: number }>({ x: 0, y: 0 })
+const discardDropZone = ref<HTMLElement | null>(null)
 
 let timerInterval: ReturnType<typeof setInterval> | null = null
 let aiTimeout: ReturnType<typeof setTimeout> | null = null
+let throwTimeout: ReturnType<typeof setTimeout> | null = null
 
 const isRedSuit = (suit: Suit) => suit === '♥' || suit === '♦'
 
@@ -120,6 +129,7 @@ const selectedCards = computed(() => playerHand.value.filter(card => selectedCar
 const canDraw = computed(() => currentTurn.value === 'player' && !hasDrawn.value && !winner.value)
 const canDiscard = computed(() => currentTurn.value === 'player' && hasDrawn.value && !winner.value)
 const canCreateMeld = computed(() => currentTurn.value === 'player' && !winner.value)
+const topDiscardCard = computed(() => discardPile.value[0] ?? null)
 
 const score = computed(() => playerMelds.value.flat().reduce((total, card) => total + cardPoints(card), 0))
 
@@ -291,8 +301,7 @@ const drawCard = () => {
   drawCardFor('player')
 }
 
-const discardCard = (cardId: string) => {
-  if (!canDiscard.value) return
+const completeDiscard = (cardId: string) => {
   const card = playerHand.value.find(item => item.id === cardId)
   if (!card) return
 
@@ -304,6 +313,35 @@ const discardCard = (cardId: string) => {
 
   finishTurn('ai')
   scheduleAiTurn()
+}
+
+const discardCard = (cardId: string, withThrowAnimation = false) => {
+  if (!canDiscard.value) return
+  if (!withThrowAnimation) {
+    completeDiscard(cardId)
+    return
+  }
+
+  const cardElement = document.getElementById(`rami-card-${cardId}`)
+  const dropZoneElement = discardDropZone.value
+  if (!cardElement || !dropZoneElement) {
+    completeDiscard(cardId)
+    return
+  }
+
+  const cardRect = cardElement.getBoundingClientRect()
+  const dropRect = dropZoneElement.getBoundingClientRect()
+  throwAnimationOffset.value = {
+    x: (dropRect.left + (dropRect.width / 2)) - (cardRect.left + (cardRect.width / 2)),
+    y: (dropRect.top + (dropRect.height / 2)) - (cardRect.top + (cardRect.height / 2)),
+  }
+  throwingCardId.value = cardId
+
+  if (throwTimeout) clearTimeout(throwTimeout)
+  throwTimeout = setTimeout(() => {
+    throwingCardId.value = null
+    completeDiscard(cardId)
+  }, 260)
 }
 
 const autoDiscardForPlayer = () => {
@@ -386,6 +424,109 @@ const scheduleAiTurn = () => {
   aiTimeout = setTimeout(() => executeAiTurn(), 900)
 }
 
+const getDiscardZoneRect = () => discardDropZone.value?.getBoundingClientRect() ?? null
+
+const updateDragZoneState = (x: number, y: number) => {
+  const dropRect = getDiscardZoneRect()
+  if (!dropRect) {
+    dragOverDiscardZone.value = false
+    return
+  }
+
+  dragOverDiscardZone.value = (
+    x >= dropRect.left
+    && x <= dropRect.right
+    && y >= dropRect.top
+    && y <= dropRect.bottom
+  )
+}
+
+const onCardPointerDown = (event: PointerEvent, cardId: string) => {
+  if (!canDiscard.value || event.button !== 0) return
+  draggedCardId.value = cardId
+  dragPosition.value = { x: event.clientX, y: event.clientY }
+  dragStartPosition.value = { x: event.clientX, y: event.clientY }
+  isDragging.value = true
+  dragOverDiscardZone.value = false
+  startGlobalPointerListeners()
+}
+
+const onCardPointerMove = (event: PointerEvent) => {
+  if (!isDragging.value) return
+  dragPosition.value = { x: event.clientX, y: event.clientY }
+  updateDragZoneState(event.clientX, event.clientY)
+}
+
+const onCardPointerUp = () => {
+  if (!isDragging.value) return
+  const cardId = draggedCardId.value
+  const shouldDiscard = dragOverDiscardZone.value
+
+  draggedCardId.value = null
+  isDragging.value = false
+  dragOverDiscardZone.value = false
+  stopGlobalPointerListeners()
+
+  if (cardId && shouldDiscard) {
+    discardCard(cardId, true)
+  }
+}
+
+const onTouchStart = (event: TouchEvent, cardId: string) => {
+  if (!canDiscard.value) return
+  const touch = event.touches[0]
+  if (!touch) return
+
+  draggedCardId.value = cardId
+  dragPosition.value = { x: touch.clientX, y: touch.clientY }
+  dragStartPosition.value = { x: touch.clientX, y: touch.clientY }
+  isDragging.value = true
+  dragOverDiscardZone.value = false
+  startGlobalPointerListeners()
+}
+
+const onTouchMove = (event: TouchEvent) => {
+  if (!isDragging.value) return
+  const touch = event.touches[0]
+  if (!touch) return
+
+  dragPosition.value = { x: touch.clientX, y: touch.clientY }
+  updateDragZoneState(touch.clientX, touch.clientY)
+}
+
+const onTouchEnd = () => {
+  onCardPointerUp()
+}
+
+const stopGlobalPointerListeners = () => {
+  window.removeEventListener('pointermove', onCardPointerMove)
+  window.removeEventListener('pointerup', onCardPointerUp)
+  window.removeEventListener('pointercancel', onCardPointerUp)
+  window.removeEventListener('touchmove', onTouchMove)
+  window.removeEventListener('touchend', onTouchEnd)
+}
+
+const startGlobalPointerListeners = () => {
+  window.addEventListener('pointermove', onCardPointerMove)
+  window.addEventListener('pointerup', onCardPointerUp)
+  window.addEventListener('pointercancel', onCardPointerUp)
+  window.addEventListener('touchmove', onTouchMove, { passive: false })
+  window.addEventListener('touchend', onTouchEnd)
+}
+
+const cardStyle = (index: number, cardId: string) => {
+  const isDragged = isDragging.value && draggedCardId.value === cardId
+  const dragDeltaX = isDragged ? dragPosition.value.x - dragStartPosition.value.x : 0
+  const dragDeltaY = isDragged ? dragPosition.value.y - dragStartPosition.value.y : 0
+  return {
+    '--card-index': index,
+    '--drag-x': `${dragDeltaX}px`,
+    '--drag-y': `${dragDeltaY}px`,
+    '--throw-x': `${throwAnimationOffset.value.x}px`,
+    '--throw-y': `${throwAnimationOffset.value.y}px`,
+  }
+}
+
 const reset = () => {
   const randomDeck = shuffle(deck())
   playerHand.value = sortHand(randomDeck.slice(0, 14))
@@ -408,6 +549,8 @@ const reset = () => {
 onBeforeUnmount(() => {
   if (timerInterval) clearInterval(timerInterval)
   if (aiTimeout) clearTimeout(aiTimeout)
+  if (throwTimeout) clearTimeout(throwTimeout)
+  stopGlobalPointerListeners()
 })
 
 reset()
@@ -432,6 +575,21 @@ reset()
   <p class="game-description mb-3">{{ message }}</p>
 
   <CardTableLayout :players="tablePlayers" :center-cards="centerCards" :center-melds="centerMelds" :turn-timer-seconds="TURN_SECONDS">
+    <template #center>
+      <section
+        ref="discardDropZone"
+        class="discard-drop-zone"
+        :class="{ 'discard-drop-zone--active': dragOverDiscardZone }"
+        aria-label="Zone de défausse"
+      >
+        <p class="discard-drop-zone__title mb-1">Pile de défausse</p>
+        <p class="text-caption mb-2 text-white">Glissez une carte ici pour défausser.</p>
+        <span class="discard-drop-zone__card">
+          {{ topDiscardCard ? `${formatRank(topDiscardCard.rank)}${topDiscardCard.suit}` : '—' }}
+        </span>
+      </section>
+    </template>
+
     <template #seat-north-hand>
       <section class="seat-hand seat-hand--north">
         <h4 class="seat-hand__title text-subtitle-2 mb-1 font-weight-bold">Main adverse</h4>
@@ -440,7 +598,7 @@ reset()
             v-for="(card, index) in aiHand"
             :key="`ai-${card.id}`"
             class="play-card play-card--back hand-fan__card hand-fan__card--back"
-            :style="{ '--card-index': index }"
+            :style="cardStyle(index, card.id)"
           />
         </div>
       </section>
@@ -453,12 +611,24 @@ reset()
           <button
             v-for="(card, index) in playerHand"
             :key="card.id"
+            :id="`rami-card-${card.id}`"
             type="button"
             class="play-card play-card--front hand-fan__card"
-            :class="{ 'play-card--selected': isSelected(card.id) }"
-            :style="{ '--card-index': index }"
+            :class="{
+              'play-card--selected': isSelected(card.id),
+              'play-card--dragging': isDragging && draggedCardId === card.id,
+              'card-throwing': throwingCardId === card.id,
+            }"
+            :style="cardStyle(index, card.id)"
             @click="toggleCard(card.id)"
             @dblclick="discardCard(card.id)"
+            @pointerdown="onCardPointerDown($event, card.id)"
+            @pointermove="onCardPointerMove($event)"
+            @pointerup="onCardPointerUp"
+            @pointercancel="onCardPointerUp"
+            @touchstart.prevent="onTouchStart($event, card.id)"
+            @touchmove.prevent="onTouchMove"
+            @touchend="onTouchEnd"
           >
             <span class="card-corner" :class="{ 'text-red': isRedSuit(card.suit), 'text-black': !isRedSuit(card.suit) }">
               {{ formatRank(card.rank) }}{{ card.suit }}
@@ -601,6 +771,63 @@ reset()
     translateY(-12px)
     scale(1.03);
   box-shadow: 0 12px 20px rgba(15, 23, 42, 0.19);
+}
+
+.play-card--dragging {
+  z-index: 20;
+  cursor: grabbing;
+  transform:
+    rotate(calc((var(--card-index) - 7) * 1deg))
+    translate(var(--drag-x, 0), calc(var(--drag-y, 0px) - 18px))
+    scale(1.06);
+}
+
+.card-throwing {
+  pointer-events: none;
+  animation: card-throwing 250ms ease-in forwards;
+}
+
+@keyframes card-throwing {
+  to {
+    transform:
+      translate(var(--throw-x, 0), var(--throw-y, -40px))
+      scale(0.72)
+      rotate(10deg);
+    opacity: 0;
+  }
+}
+
+.discard-drop-zone {
+  min-width: 190px;
+  border-radius: 14px;
+  border: 2px dashed rgba(255, 255, 255, 0.65);
+  background: rgba(3, 9, 6, 0.36);
+  padding: 12px;
+  text-align: center;
+  color: #fff;
+  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+}
+
+.discard-drop-zone--active {
+  border-color: rgb(var(--v-theme-error));
+  background: rgba(171, 23, 47, 0.28);
+  transform: scale(1.03);
+}
+
+.discard-drop-zone__title {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.discard-drop-zone__card {
+  display: inline-flex;
+  min-width: 52px;
+  justify-content: center;
+  border-radius: 8px;
+  padding: 5px 10px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #111827;
+  font-weight: 800;
 }
 
 .card-corner {
