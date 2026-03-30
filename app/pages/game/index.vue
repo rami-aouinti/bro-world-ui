@@ -401,6 +401,91 @@ const launchGame = () => {
         <v-chip v-if="selectedGame" prepend-icon="mdi-play-circle-outline" :color="getLevelColor('game')">{{ t(selectedGame.nameKey) }}</v-chip>
       </div>
     </template>
+    <template #aside>
+      <v-chip variant="outlined" class="mb-4 title-chip" prepend-icon="mdi-information-outline">
+        {{ t("gamePage.info.title") }}
+      </v-chip>
+
+      <v-card class="pa-4 unified-card mb-4" variant="outlined">
+        <p class="text-caption text-medium-emphasis mb-2">{{ t("gamePage.info.status") }}</p>
+        <v-chip :color="isGameStarted ? 'warning' : getLevelColor('info')" variant="tonal">
+          {{ gameStatusLabel }}
+        </v-chip>
+      </v-card>
+
+      <v-card class="pa-4 unified-card mb-4" variant="outlined">
+        <p class="text-caption text-medium-emphasis mb-2">{{ t("gamePage.info.category") }}</p>
+        <v-chip
+          v-if="selectedCategory"
+          prepend-icon="mdi-folder-open-outline"
+          :color="getLevelColor('category')"
+          variant="tonal"
+        >
+          {{ t(selectedCategory.nameKey) }}
+        </v-chip>
+        <p v-else class="section-subtitle mb-0">{{ t("gamePage.sidebar.description") }}</p>
+      </v-card>
+
+      <v-card v-if="selectedSubCategory || selectedGame" class="pa-4 unified-card mb-4" variant="outlined">
+        <p class="text-caption text-medium-emphasis mb-2">{{ t("gamePage.info.subCategory") }}</p>
+        <v-chip
+          v-if="selectedSubCategory"
+          prepend-icon="mdi-shape-outline"
+          :color="getLevelColor('subCategory')"
+          variant="tonal"
+        >
+          {{ t(selectedSubCategory.nameKey) }}
+        </v-chip>
+
+        <p v-if="selectedGame" class="text-caption text-medium-emphasis mt-4 mb-2">{{ t("gamePage.info.game") }}</p>
+        <v-chip
+          v-if="selectedGame"
+          prepend-icon="mdi-play-circle-outline"
+          :color="getLevelColor('game')"
+          variant="tonal"
+        >
+          {{ t(selectedGame.nameKey) }}
+        </v-chip>
+      </v-card>
+
+      <v-card v-if="selectedGame" class="pa-4 unified-card mb-4" variant="outlined">
+        <p class="text-caption text-medium-emphasis mb-2">{{ t("gamePage.info.mode") }}</p>
+        <v-chip variant="outlined" :color="getLevelColor('mode')">
+          {{ selectedPlayMode ? modeLabel(selectedPlayMode) : "—" }}
+        </v-chip>
+
+        <div v-if="selectedGame.difficultyKey" class="mt-4">
+          <p class="text-caption text-medium-emphasis mb-2">{{ t(selectedGame.difficultyKey) }}</p>
+        </div>
+
+        <div v-if="selectedGame.tags?.length" class="mt-2">
+          <div class="d-flex flex-wrap ga-1">
+            <v-chip
+              v-for="tag in selectedGame.tags"
+              :key="`aside-${selectedGame.id}-${tag}`"
+              size="x-small"
+              variant="outlined"
+            >
+              {{ t(tag) }}
+            </v-chip>
+          </div>
+        </div>
+      </v-card>
+
+      <v-alert
+        v-if="!selectedCategory && !selectedSubCategory && !selectedGame"
+        type="info"
+        variant="tonal"
+        class="mb-4"
+      >
+        <div class="d-flex flex-column ga-3">
+          <span>{{ t("gamePage.sidebar.description") }}</span>
+          <v-btn variant="outlined" size="small" prepend-icon="mdi-home" @click="resetToCategories">
+            {{ t("gamePage.navigation.backToCategories") }}
+          </v-btn>
+        </div>
+      </v-alert>
+    </template>
     <template #default>
       <section v-if="!selectedCategory" class="mb-4">
         <v-row class="ga-0 ga-md-1">
