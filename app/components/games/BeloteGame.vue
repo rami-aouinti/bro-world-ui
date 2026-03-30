@@ -439,7 +439,7 @@ defineExpose({
           <li>{{ t("gameComponents.belote.quickRules.items.points") }}</li>
         </ul>
       </v-card>
-      <p v-else class="text-medium-emphasis mb-0">
+      <p v-if="!displayHandPlayer" class="text-medium-emphasis mb-0">
         {{ t("gameComponents.belote.waitingLocalTurn") }}
       </p>
     </CardTableLayout>
