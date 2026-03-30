@@ -118,6 +118,16 @@ const canCallUno = computed(
     localPlayer.value?.hand.length === 1 &&
     !localPlayer.value?.hasCalledUno,
 );
+const canRestartRound = computed(
+  () => roundWinnerIndex.value !== null || gameWinnerIndex.value !== null,
+);
+const canResolveColorChoice = computed(
+  () => isColorChoiceRequired.value && isLocalTurn.value,
+);
+const primaryRoundAction = computed(() => ({
+  id: gameWinnerIndex.value !== null ? "play-again" : "new-round",
+  label: gameWinnerIndex.value !== null ? "Rejouer" : "Nouvelle manche",
+}));
 
 const statusText = computed(() => {
   if (gameWinnerIndex.value !== null) {
@@ -163,9 +173,18 @@ const panelState = computed<GameAsidePanelState>(() => ({
     `Effet: ${activeEffectLabel.value}`,
   ],
   actions: [
-    { id: "uno-call", label: "UNO", disabled: !canCallUno.value },
-    { id: "uno-draw", label: "Piocher", disabled: !canLocalDraw.value },
-    { id: "uno-new-round", label: "Nouvelle manche" },
+    { id: "call-uno", label: "UNO", disabled: !canCallUno.value },
+    { id: "draw", label: "Piocher", disabled: !canLocalDraw.value },
+    {
+      id: primaryRoundAction.value.id,
+      label: primaryRoundAction.value.label,
+      disabled: !canRestartRound.value,
+    },
+    {
+      id: "choose-color-auto",
+      label: "Couleur auto",
+      disabled: !canResolveColorChoice.value,
+    },
   ],
 }));
 
@@ -329,18 +348,23 @@ const startTurnTimer = () => {
 };
 
 const handleAsideAction = (actionId: string) => {
-  if (actionId === "uno-call") {
+  if (actionId === "call-uno") {
     handleCallUno();
     return;
   }
 
-  if (actionId === "uno-draw") {
+  if (actionId === "draw") {
     handleDrawCard();
     return;
   }
 
-  if (actionId === "uno-new-round") {
+  if (actionId === "play-again" || actionId === "new-round") {
     restartRound();
+    return;
+  }
+
+  if (actionId === "choose-color-auto" && canResolveColorChoice.value) {
+    handleChooseColor(chooseRandomColor());
   }
 };
 
