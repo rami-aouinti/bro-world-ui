@@ -38,6 +38,8 @@ const playersWithSeats = computed(() => props.players.slice(0, seatPositions.val
   displayedTimer: player.isCurrentTurn ? (player.timerSeconds ?? props.turnTimerSeconds) : null,
 })))
 
+const activePlayer = computed(() => playersWithSeats.value.find((player) => player.isCurrentTurn) ?? null)
+
 const hasCenterContent = computed(() => props.centerCards.length > 0 || props.centerMelds.length > 0)
 </script>
 
@@ -51,17 +53,18 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
           class="table-seat"
           :class="[`table-seat--${player.seat}`, { 'table-seat--active': player.isCurrentTurn }]"
         >
-          <v-avatar :image="player.avatar" size="34" color="primary" variant="tonal">
+          <v-avatar :image="player.avatar" size="30" color="primary" variant="tonal">
             <span class="text-caption font-weight-bold">{{ player.name.slice(0, 2).toUpperCase() }}</span>
           </v-avatar>
           <div class="table-seat__meta">
             <p class="table-seat__name mb-0">{{ player.name }}</p>
           </div>
-          <v-chip size="x-small" color="white" variant="flat" class="table-seat__timer">
-            <v-icon start icon="mdi-timer-outline" size="14" />
-            {{ player.displayedTimer !== null ? `${player.displayedTimer}s` : '—' }}
-          </v-chip>
         </article>
+
+        <v-chip v-if="activePlayer" size="small" color="white" variant="flat" class="card-table-layout__global-timer">
+          <v-icon start icon="mdi-timer-outline" size="15" />
+          {{ `${activePlayer.displayedTimer ?? turnTimerSeconds}s` }}
+        </v-chip>
 
         <section class="card-table-layout__center">
           <slot name="center">
@@ -131,13 +134,13 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
 
 .table-seat {
   position: absolute;
-  width: 92px;
-  min-height: 96px;
+  width: 82px;
+  min-height: 82px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 8px 6px;
+  padding: 6px 5px;
   border-radius: 14px;
   background: rgba(8, 19, 12, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.22);
@@ -159,7 +162,7 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
 .table-seat--north-west { top: 54px; left: 26px; }
 
 .table-seat__name {
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   font-weight: 700;
   line-height: 1.1;
   text-align: center;
@@ -169,9 +172,12 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
   width: 100%;
 }
 
-.table-seat__timer {
-  justify-self: center;
-  background: rgba(255, 255, 255, 0.92) !important;
+.card-table-layout__global-timer {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 3;
+  background: rgba(255, 255, 255, 0.96) !important;
 }
 
 .table-seat-hand {
@@ -322,9 +328,9 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
   }
 
   .table-seat {
-    width: 90px;
-    min-height: 88px;
-    padding: 7px;
+    width: 80px;
+    min-height: 80px;
+    padding: 6px;
   }
 
   .table-seat-hand--north {
