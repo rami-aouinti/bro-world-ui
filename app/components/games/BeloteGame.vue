@@ -248,43 +248,18 @@ defineExpose({
 </script>
 
 <template>
-  <v-card class="pa-4 rounded-xl game-card-shell" variant="tonal">
-    <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-3">
-      <h3 class="game-title mb-0">
-        {{ t("gameComponents.belote.title") }} · {{ modeLabel }}
-      </h3>
-    </div>
-
-    <p class="game-description mb-1">
-      {{ t("gameComponents.belote.trump") }}: <strong>{{ trumpSuit }}</strong>
-    </p>
-    <p class="game-subtitle mb-4">
-      {{ t("gameComponents.belote.tricksPlayed", { count: trickCountValue }) }}
-      · {{ t("gameComponents.belote.phase") }}: {{ phaseLabel }} ·
-      {{ t("gameComponents.belote.expectedAction") }}:
-      {{ expectedActionLabel }} · {{ t("gameComponents.belote.turn") }}:
-      {{ players[turnIndex]?.name ?? "—" }} ·
-      {{ t("gameComponents.belote.timer") }}: {{ timerSeconds }}s
-    </p>
-    <p v-if="contract" class="game-subtitle mb-4">
-      {{ t("gameComponents.belote.contract") }}:
-      {{ players[contract.takerIndex]?.name }} ·
-      {{ t("gameComponents.belote.trump") }} {{ contract.trumpSuit }} ·
-      {{ t("gameComponents.belote.target") }} {{ contract.targetPoints }}
-    </p>
-
-    <CardTableLayout
+  <CardTableLayout
       :players="tablePlayers"
       :center-cards="centerCards"
       :turn-timer-seconds="TURN_SECONDS"
-    >
-      <template #seat-south-hand>
-        <section v-if="displayHandPlayer" class="belote-seat-hand">
-          <p class="belote-seat-hand__title">
-            {{ t("gameComponents.belote.yourHand") }} · {{ displayHandPlayer.name }}
-          </p>
-          <div class="belote-seat-hand__cards">
-            <button
+  >
+    <template #seat-south-hand>
+      <section v-if="displayHandPlayer" class="belote-seat-hand">
+        <p class="belote-seat-hand__title">
+          {{ t("gameComponents.belote.yourHand") }} · {{ displayHandPlayer.name }}
+        </p>
+        <div class="belote-seat-hand__cards">
+          <button
               v-for="card in displayHandPlayer.hand"
               :key="card.id"
               type="button"
@@ -295,34 +270,34 @@ defineExpose({
                 !isHumanCardPlayable(card.id)
               "
               @click="playCard(displayHandPlayerIndex, card.id)"
-            >
-              <span>{{ card.rank }}</span>
-              <span
+          >
+            <span>{{ card.rank }}</span>
+            <span
                 :class="
                   card.suit === '♥' || card.suit === '♦' ? 'text-red' : 'text-black'
                 "
-                >{{ card.suit }}</span
-              >
-            </button>
-          </div>
-        </section>
-      </template>
+            >{{ card.suit }}</span
+            >
+          </button>
+        </div>
+      </section>
+    </template>
 
-      <template #center>
-        <div class="trick-center">
-          <p class="text-caption text-medium-emphasis mb-2">
-            {{ t("gameComponents.belote.currentTrick") }}
-          </p>
-          <div class="trick-center__cards">
-            <div
+    <template #center>
+      <div class="trick-center">
+        <p class="text-caption text-medium-emphasis mb-2">
+          {{ t("gameComponents.belote.currentTrick") }}
+        </p>
+        <div class="trick-center__cards">
+          <div
               v-for="seat in tableSeatOrder"
               :key="`trick-slot-${seat}`"
               class="center-card"
               :class="`center-card--${seat}`"
-            >
-              <template v-if="trickBySeat[seat]">
-                <span>{{ trickBySeat[seat]?.card.rank }}</span>
-                <span
+          >
+            <template v-if="trickBySeat[seat]">
+              <span>{{ trickBySeat[seat]?.card.rank }}</span>
+              <span
                   :class="[
                     'card-suit',
                     trickBySeat[seat]?.card.suit === '♥' ||
@@ -330,120 +305,119 @@ defineExpose({
                       ? 'text-red'
                       : 'text-black',
                   ]"
-                >
+              >
                   {{ trickBySeat[seat]?.card.suit }}
                 </span>
-              </template>
-              <span v-else class="text-medium-emphasis">—</span>
-            </div>
+            </template>
+            <span v-else class="text-medium-emphasis">—</span>
           </div>
         </div>
-      </template>
+      </div>
+    </template>
 
-      <v-row class="mb-4" dense>
-        <v-col cols="12" md="6">
-          <v-card class="pa-3 game-info-card h-100" variant="outlined">
-            <p class="text-subtitle-2 font-weight-bold mb-2">
-              {{ t("gameComponents.belote.scoreboard.round") }}
-            </p>
-            <v-table
+    <v-row class="mb-4" dense>
+      <v-col cols="12" md="6">
+        <v-card class="pa-3 game-info-card h-100" variant="outlined">
+          <p class="text-subtitle-2 font-weight-bold mb-2">
+            {{ t("gameComponents.belote.scoreboard.round") }}
+          </p>
+          <v-table
               density="compact"
               class="belote-score-table"
               :aria-label="t('gameComponents.belote.aria.scoreTable')"
-            >
-              <thead>
-                <tr>
-                  <th class="text-left">
-                    {{ t("gameComponents.belote.scoreboard.side") }}
-                  </th>
-                  <th class="text-right">
-                    {{ t("gameComponents.belote.scoreboard.points") }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="entry in scoreboardRows" :key="entry.id">
-                  <td>{{ entry.label }}</td>
-                  <td class="text-right font-weight-bold">{{ entry.score }}</td>
-                </tr>
-              </tbody>
-            </v-table>
-            <p class="text-subtitle-2 font-weight-bold mt-3 mb-1">
-              {{ t("gameComponents.belote.scoreboard.global") }}
-            </p>
-            <p class="mb-1" v-if="props.beloteMode === 'teams'">
-              {{
-                t("gameComponents.belote.totalTeams", {
-                  scoreA: totalTeamScores.teamA,
-                  scoreB: totalTeamScores.teamB,
-                })
-              }}
-            </p>
-            <p class="mb-1" v-else>
+          >
+            <thead>
+            <tr>
+              <th class="text-left">
+                {{ t("gameComponents.belote.scoreboard.side") }}
+              </th>
+              <th class="text-right">
+                {{ t("gameComponents.belote.scoreboard.points") }}
+              </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="entry in scoreboardRows" :key="entry.id">
+              <td>{{ entry.label }}</td>
+              <td class="text-right font-weight-bold">{{ entry.score }}</td>
+            </tr>
+            </tbody>
+          </v-table>
+          <p class="text-subtitle-2 font-weight-bold mt-3 mb-1">
+            {{ t("gameComponents.belote.scoreboard.global") }}
+          </p>
+          <p class="mb-1" v-if="props.beloteMode === 'teams'">
+            {{
+              t("gameComponents.belote.totalTeams", {
+                scoreA: totalTeamScores.teamA,
+                scoreB: totalTeamScores.teamB,
+              })
+            }}
+          </p>
+          <p class="mb-1" v-else>
               <span
-                v-for="(player, index) in players"
-                :key="`${player.id}-global`"
-                class="mr-2"
-                >{{ player.name }}: {{ totalPlayerScores[index] }}</span
+                  v-for="(player, index) in players"
+                  :key="`${player.id}-global`"
+                  class="mr-2"
+              >{{ player.name }}: {{ totalPlayerScores[index] }}</span
               >
-            </p>
-            <p class="mb-0 mt-2">{{ roundOver ? roundResult : message }}</p>
-          </v-card>
-        </v-col>
-        <v-col cols="12" md="6">
-          <v-card class="pa-3 game-info-card h-100" variant="outlined">
-            <p class="text-subtitle-2 font-weight-bold mb-2">
-              {{ handsPanelTitle }}
-            </p>
-            <div class="ai-hands">
-              <div
+          </p>
+          <p class="mb-0 mt-2">{{ roundOver ? roundResult : message }}</p>
+        </v-card>
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-card class="pa-3 game-info-card h-100" variant="outlined">
+          <p class="text-subtitle-2 font-weight-bold mb-2">
+            {{ handsPanelTitle }}
+          </p>
+          <div class="ai-hands">
+            <div
                 v-for="player in infoPanelPlayers"
                 :key="player.id"
                 class="ai-hand-row"
-              >
-                <span class="text-caption">{{ player.name }}</span>
-                <div class="card-backs">
+            >
+              <span class="text-caption">{{ player.name }}</span>
+              <div class="card-backs">
                   <span
-                    v-for="n in player.hand.length"
-                    :key="`${player.id}-${n}`"
-                    class="card-back"
-                    >🂠</span
+                      v-for="n in player.hand.length"
+                      :key="`${player.id}-${n}`"
+                      class="card-back"
+                  >🂠</span
                   >
-                </div>
-                <small class="text-medium-emphasis">{{
+              </div>
+              <small class="text-medium-emphasis">{{
                   getSeatRoleLabel(
-                    players.findIndex((entry) => entry.id === player.id),
+                      players.findIndex((entry) => entry.id === player.id),
                   )
                 }}</small>
-              </div>
             </div>
-          </v-card>
-        </v-col>
-      </v-row>
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
 
-      <v-card class="pa-3 game-info-card mb-4" variant="outlined">
-        <p class="text-subtitle-2 font-weight-bold mb-2">
-          {{ t("gameComponents.belote.quickRules.title") }}
-        </p>
-        <ul class="mb-0 pl-4 belote-rules">
-          <li>{{ t("gameComponents.belote.quickRules.items.roundTricks") }}</li>
-          <li>{{ t("gameComponents.belote.quickRules.items.followSuit") }}</li>
-          <li>
-            {{
-              t("gameComponents.belote.quickRules.items.trump", {
-                trump: trumpSuit,
-              })
-            }}
-          </li>
-          <li>{{ t("gameComponents.belote.quickRules.items.winTrick") }}</li>
-          <li>{{ t("gameComponents.belote.quickRules.items.points") }}</li>
-        </ul>
-      </v-card>
-      <p v-if="!displayHandPlayer" class="text-medium-emphasis mb-0">
-        {{ t("gameComponents.belote.waitingLocalTurn") }}
+    <v-card class="pa-3 game-info-card mb-4" variant="outlined">
+      <p class="text-subtitle-2 font-weight-bold mb-2">
+        {{ t("gameComponents.belote.quickRules.title") }}
       </p>
-    </CardTableLayout>
-  </v-card>
+      <ul class="mb-0 pl-4 belote-rules">
+        <li>{{ t("gameComponents.belote.quickRules.items.roundTricks") }}</li>
+        <li>{{ t("gameComponents.belote.quickRules.items.followSuit") }}</li>
+        <li>
+          {{
+            t("gameComponents.belote.quickRules.items.trump", {
+              trump: trumpSuit,
+            })
+          }}
+        </li>
+        <li>{{ t("gameComponents.belote.quickRules.items.winTrick") }}</li>
+        <li>{{ t("gameComponents.belote.quickRules.items.points") }}</li>
+      </ul>
+    </v-card>
+    <p v-if="!displayHandPlayer" class="text-medium-emphasis mb-0">
+      {{ t("gameComponents.belote.waitingLocalTurn") }}
+    </p>
+  </CardTableLayout>
 </template>
 
 <style scoped>
