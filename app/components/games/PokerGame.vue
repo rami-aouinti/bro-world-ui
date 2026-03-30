@@ -155,23 +155,29 @@ onBeforeUnmount(() => {
       <v-chip>{{ t('gameComponents.poker.turn') }}: {{ currentPlayer?.name ?? '—' }}</v-chip>
     </div>
 
-    <CardTableLayout :players="tablePlayers" :center-cards="centerCards">
+    <CardTableLayout :players="tablePlayers" :center-cards="centerCards" class="poker-table-layout">
       <template #center>
-        <div class="board-row board-row--center">
-          <span
-            v-for="slot in boardSlots"
-            :key="slot.key"
-            class="table-card"
-            :class="slot.isVisible && slot.card ? getCardTone(formatCard(slot.card)) : 'table-card--back'"
-          >
-            <template v-if="slot.isVisible && slot.card">
-              <span class="table-card__rank">{{ getCardRank(formatCard(slot.card)) }}</span>
-              <span class="table-card__suit">{{ getCardSuit(formatCard(slot.card)) }}</span>
-            </template>
-            <template v-else>
-              <span class="table-card__back-pattern">🂠</span>
-            </template>
-          </span>
+        <div class="poker-table-surface">
+          <div class="poker-rail">
+            <div class="poker-pot-zone">
+              <div class="board-row board-row--center">
+                <span
+                  v-for="slot in boardSlots"
+                  :key="slot.key"
+                  class="table-card"
+                  :class="slot.isVisible && slot.card ? getCardTone(formatCard(slot.card)) : 'table-card--back'"
+                >
+                  <template v-if="slot.isVisible && slot.card">
+                    <span class="table-card__rank">{{ getCardRank(formatCard(slot.card)) }}</span>
+                    <span class="table-card__suit">{{ getCardSuit(formatCard(slot.card)) }}</span>
+                  </template>
+                  <template v-else>
+                    <span class="table-card__back-pattern">🂠</span>
+                  </template>
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </template>
 
@@ -272,6 +278,39 @@ onBeforeUnmount(() => {
   justify-content: center;
 }
 
+.poker-table-surface {
+  width: min(100%, 700px);
+  margin-inline: auto;
+  padding: 18px;
+  border-radius: 999px;
+  background: radial-gradient(circle at center, rgba(104, 239, 168, 0.28) 0%, rgba(9, 39, 21, 0.52) 72%);
+  box-shadow:
+    inset 0 0 40px rgba(8, 30, 18, 0.54),
+    0 12px 24px rgba(6, 20, 12, 0.35);
+}
+
+.poker-rail {
+  position: relative;
+  border-radius: 999px;
+  padding: 20px;
+  border: 2px solid rgba(17, 10, 6, 0.72);
+  background: linear-gradient(165deg, rgba(21, 10, 5, 0.78) 0%, rgba(8, 4, 2, 0.92) 100%);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 228, 184, 0.12),
+    inset 0 -2px 8px rgba(0, 0, 0, 0.55),
+    0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.poker-pot-zone {
+  position: relative;
+  border-radius: 999px;
+  padding: 18px 22px;
+  background:
+    radial-gradient(circle at center, rgba(250, 255, 205, 0.28) 0%, rgba(53, 138, 83, 0.12) 36%, rgba(7, 30, 19, 0) 70%),
+    radial-gradient(circle at center, rgba(42, 143, 79, 0.5) 0%, rgba(24, 100, 58, 0.65) 85%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 .opponent-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -319,7 +358,9 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18);
+  box-shadow:
+    0 12px 20px rgba(5, 8, 18, 0.32),
+    0 2px 6px rgba(8, 12, 24, 0.2);
 }
 
 .table-card--red {
@@ -349,5 +390,28 @@ onBeforeUnmount(() => {
 .table-card__back-pattern {
   font-size: 1.35rem;
   opacity: 0.9;
+}
+
+.poker-table-layout :deep(.card-table-layout__center) {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.poker-table-layout :deep(.table-seat) {
+  background: rgba(5, 12, 7, 0.52);
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 10px 20px rgba(4, 10, 6, 0.35);
+}
+
+.poker-table-layout :deep(.table-seat--active) {
+  border-color: color-mix(in srgb, rgb(var(--v-theme-warning)) 72%, #fff);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, rgb(var(--v-theme-warning)) 42%, transparent),
+    0 0 16px color-mix(in srgb, rgb(var(--v-theme-warning)) 45%, transparent);
+}
+
+.poker-table-layout :deep(.table-seat--active .v-avatar) {
+  box-shadow: 0 0 0 3px rgba(255, 241, 118, 0.38);
 }
 </style>
