@@ -166,32 +166,26 @@ const tablePlayers = computed(() => [
   },
 ]);
 
-const centerMelds = computed(() => [
-  ...playerMelds.value.map((meld) =>
-    meld.map((card) => `${formatRank(card.rank)}${card.suit}`),
-  ),
-  ...aiTopMelds.value.map((meld) =>
-    meld.map((card) => `${formatRank(card.rank)}${card.suit}`),
-  ),
-  ...aiRightMelds.value.map((meld) =>
-    meld.map((card) => `${formatRank(card.rank)}${card.suit}`),
-  ),
-  ...aiLeftMelds.value.map((meld) =>
-    meld.map((card) => `${formatRank(card.rank)}${card.suit}`),
-  ),
-]);
-
 const centerCards = computed(() =>
   discardPile.value
     .slice(0, 6)
     .map((card) => `${formatRank(card.rank)}${card.suit}`),
 );
 
-const playerMeldLabels = computed(() =>
-  playerMelds.value.map((meld) =>
+const meldsByPlayer = computed(() => ({
+  player: playerMelds.value.map((meld) =>
     meld.map((card) => `${formatRank(card.rank)}${card.suit}`),
   ),
-);
+  aiTop: aiTopMelds.value.map((meld) =>
+    meld.map((card) => `${formatRank(card.rank)}${card.suit}`),
+  ),
+  aiRight: aiRightMelds.value.map((meld) =>
+    meld.map((card) => `${formatRank(card.rank)}${card.suit}`),
+  ),
+  aiLeft: aiLeftMelds.value.map((meld) =>
+    meld.map((card) => `${formatRank(card.rank)}${card.suit}`),
+  ),
+}));
 
 const selectedCards = computed(() =>
   playerHand.value.filter((card) => selectedCardIds.value.includes(card.id)),
@@ -1163,7 +1157,7 @@ reset();
   <CardTableLayout
     :players="tablePlayers"
     :center-cards="centerCards"
-    :center-melds="centerMelds"
+    :melds-by-player="meldsByPlayer"
     :turn-timer-seconds="TURN_SECONDS"
   >
     <template #center>
@@ -1185,21 +1179,6 @@ reset();
           </span>
         </section>
 
-        <div v-if="playerMeldLabels.length" class="player-melds-strip">
-          <div
-            v-for="(meld, meldIndex) in playerMeldLabels"
-            :key="`player-meld-${meldIndex}`"
-            class="player-melds-strip__meld"
-          >
-            <span
-              v-for="(card, cardIndex) in meld"
-              :key="`player-meld-${meldIndex}-${cardIndex}`"
-              class="player-melds-strip__card"
-            >
-              {{ card }}
-            </span>
-          </div>
-        </div>
       </section>
     </template>
 
@@ -1509,34 +1488,6 @@ reset();
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.player-melds-strip {
-  position: absolute;
-  left: 50%;
-  bottom: -58px;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  width: min(92%, 420px);
-}
-
-.player-melds-strip__meld {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px;
-}
-
-.player-melds-strip__card {
-  padding: 3px 6px;
-  border-radius: 7px;
-  background: rgba(255, 255, 255, 0.88);
-  color: #111827;
-  font-size: 0.72rem;
-  font-weight: 700;
 }
 
 .card-corner {

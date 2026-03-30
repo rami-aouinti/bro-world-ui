@@ -15,12 +15,14 @@ interface Props {
   players: TablePlayer[]
   centerCards?: string[]
   centerMelds?: string[][]
+  meldsByPlayer?: Partial<Record<'player' | 'aiTop' | 'aiRight' | 'aiLeft', string[][]>>
   turnTimerSeconds?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   centerCards: () => [],
   centerMelds: () => [],
+  meldsByPlayer: () => ({}),
   turnTimerSeconds: 120,
 })
 
@@ -37,6 +39,13 @@ const playersWithSeats = computed(() => props.players.slice(0, seatPositions.val
   seat: seatPositions.value[index],
   displayedTimer: player.isCurrentTurn ? (player.timerSeconds ?? props.turnTimerSeconds) : null,
 })))
+
+const meldsBySeat = computed(() =>
+  playersWithSeats.value.reduce<Record<string, string[][]>>((accumulator, player) => {
+    accumulator[player.seat] = props.meldsByPlayer[player.id as keyof typeof props.meldsByPlayer] ?? []
+    return accumulator
+  }, {}),
+)
 
 const hasCenterContent = computed(() => props.centerCards.length > 0 || props.centerMelds.length > 0)
 
@@ -95,6 +104,27 @@ const getRingProgress = (secondsLeft: number) => Math.round((secondsLeft / TURN_
             <p class="table-seat__name mb-0">{{ player.name }}</p>
           </div>
         </article>
+
+        <section
+          v-for="player in playersWithSeats"
+          :key="`${player.id}-melds`"
+          class="seat-melds"
+          :class="`seat-melds--${player.seat}`"
+        >
+          <div
+            v-for="(meld, meldIndex) in meldsBySeat[player.seat] ?? []"
+            :key="`${player.id}-meld-${meldIndex}`"
+            class="seat-melds__group"
+          >
+            <span
+              v-for="(card, cardIndex) in meld"
+              :key="`${player.id}-meld-${meldIndex}-card-${cardIndex}`"
+              class="seat-melds__token"
+            >
+              {{ card }}
+            </span>
+          </div>
+        </section>
 
         <section class="card-table-layout__center">
           <slot name="center">
@@ -192,6 +222,70 @@ const getRingProgress = (secondsLeft: number) => Math.round((secondsLeft / TURN_
 .table-seat--south-west { bottom: 54px; left: 26px; }
 .table-seat--north-west { top: 54px; left: 26px; }
 
+.seat-melds {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 86px;
+  width: min(230px, 46%);
+  padding: 2px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.36) transparent;
+}
+
+.seat-melds--north {
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  align-items: center;
+}
+
+.seat-melds--south {
+  bottom: 76px;
+  left: 50%;
+  transform: translateX(-50%);
+  align-items: center;
+}
+
+.seat-melds--east {
+  top: 50%;
+  right: 120px;
+  transform: translateY(-50%);
+  align-items: flex-end;
+}
+
+.seat-melds--west {
+  top: 50%;
+  left: 120px;
+  transform: translateY(-50%);
+  align-items: flex-start;
+}
+
+.seat-melds__group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.seat-melds__token {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #0f172a;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
 .table-seat__name {
   font-size: 0.68rem;
   font-weight: 700;
@@ -250,7 +344,7 @@ const getRingProgress = (secondsLeft: number) => Math.round((secondsLeft / TURN_
 
 .card-table-layout__center {
   position: absolute;
-  inset: 172px 210px 172px;
+  inset: 172px 224px 172px;
   border-radius: 999px;
   border: 1px dashed rgba(255, 255, 255, 0.32);
   background: rgba(3, 9, 6, 0.18);
@@ -314,7 +408,7 @@ const getRingProgress = (secondsLeft: number) => Math.round((secondsLeft / TURN_
   }
 
   .card-table-layout__center {
-    inset: 220px 36px 188px;
+    inset: 220px 52px 188px;
   }
 
   .table-seat-hand--north {
@@ -352,6 +446,28 @@ const getRingProgress = (secondsLeft: number) => Math.round((secondsLeft / TURN_
   .table-seat-hand--west {
     left: 12px;
   }
+
+  .seat-melds {
+    max-height: 72px;
+  }
+
+  .seat-melds--south {
+    bottom: 130px;
+  }
+
+  .seat-melds--east {
+    right: 108px;
+    top: auto;
+    bottom: 192px;
+    transform: none;
+  }
+
+  .seat-melds--west {
+    left: 108px;
+    top: auto;
+    bottom: 192px;
+    transform: none;
+  }
 }
 
 @media (max-width: 600px) {
@@ -360,7 +476,7 @@ const getRingProgress = (secondsLeft: number) => Math.round((secondsLeft / TURN_
   }
 
   .card-table-layout__center {
-    inset: 248px 12px 236px;
+    inset: 248px 16px 236px;
   }
 
   .table-seat {
@@ -388,6 +504,30 @@ const getRingProgress = (secondsLeft: number) => Math.round((secondsLeft / TURN_
   .table-seat--east,
   .table-seat--west {
     bottom: 100px;
+  }
+
+  .seat-melds {
+    width: calc(100% - 132px);
+    max-height: 68px;
+  }
+
+  .seat-melds--north {
+    top: 74px;
+  }
+
+  .seat-melds--south {
+    bottom: 210px;
+  }
+
+  .seat-melds--east {
+    left: auto;
+    right: 100px;
+    bottom: 178px;
+  }
+
+  .seat-melds--west {
+    left: 100px;
+    bottom: 178px;
   }
 }
 </style>
