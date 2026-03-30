@@ -79,7 +79,7 @@ const isRedSuit = (suit: Suit) => suit === '♥' || suit === '♦'
 const tablePlayers = computed(() => [
   {
     id: 'ai',
-    name: 'Ordinateur',
+    name: t('gameComponents.rami.players.computer'),
     isAI: true,
     handCount: aiHand.value.length,
     isCurrentTurn: currentTurn.value === 'ai',
@@ -87,14 +87,14 @@ const tablePlayers = computed(() => [
   },
   {
     id: 'seat-east',
-    name: 'Siège libre',
+    name: t('gameComponents.rami.players.emptySeat'),
     isAI: true,
     handCount: 0,
     isCurrentTurn: false,
   },
   {
     id: 'player',
-    name: 'Vous',
+    name: t('gameComponents.rami.players.you'),
     isAI: false,
     handCount: playerHand.value.length,
     isCurrentTurn: currentTurn.value === 'player',
@@ -102,7 +102,7 @@ const tablePlayers = computed(() => [
   },
   {
     id: 'seat-west',
-    name: 'Siège libre',
+    name: t('gameComponents.rami.players.emptySeat'),
     isAI: true,
     handCount: 0,
     isCurrentTurn: false,
@@ -249,13 +249,13 @@ const startTurnTimer = () => {
 const checkWin = () => {
   if (!playerHand.value.length) {
     winner.value = 'player'
-    message.value = 'Vous gagnez ! Toutes vos cartes sont posées.'
+    message.value = t('gameComponents.rami.messages.playerWin')
     return true
   }
 
   if (!aiHand.value.length) {
     winner.value = 'ai'
-    message.value = 'L’ordinateur gagne la manche.'
+    message.value = t('gameComponents.rami.messages.computerWin')
     return true
   }
 
@@ -298,7 +298,7 @@ const discardCard = (cardId: string) => {
 
   playerHand.value = playerHand.value.filter(item => item.id !== card.id)
   discardPile.value.unshift(card)
-  message.value = 'Tour terminé. L’ordinateur joue…'
+  message.value = t('gameComponents.rami.messages.turnEndedComputerPlaying')
 
   if (checkWin()) return
 
@@ -323,7 +323,7 @@ const createMeld = () => {
   }
 
   if (!playerOpened.value && meldPoints(cards) < 51) {
-    message.value = 'Ouverture refusée: il faut poser au moins 51 points.'
+    message.value = t('gameComponents.rami.messages.openingRefused', { score: 51 })
     return
   }
 
@@ -372,8 +372,8 @@ const executeAiTurn = (forcedByTimer = false) => {
     aiHand.value = aiHand.value.filter(card => card.id !== discard.id)
     discardPile.value.unshift(discard)
     message.value = forcedByTimer
-      ? 'L’ordinateur a joué automatiquement (temps écoulé). À vous de jouer.'
-      : 'L’ordinateur a joué. À vous !'
+      ? t('gameComponents.rami.messages.computerAutoPlayed')
+      : t('gameComponents.rami.messages.computerPlayed')
 
     if (!checkWin()) {
       finishTurn('player')
@@ -401,7 +401,7 @@ const reset = () => {
   hasDrawn.value = false
   timer.value = TURN_SECONDS
   winner.value = null
-  message.value = 'Nouvelle partie: 14 cartes chacun. Piochez puis défaussez.'
+  message.value = t('gameComponents.rami.messages.newGameDetailed', { count: 14 })
   startTurnTimer()
 }
 
@@ -417,13 +417,13 @@ reset()
   <div class="d-flex flex-wrap align-center justify-space-between ga-3 mb-4">
     <div>
       <h3 class="game-title mb-1">{{ t('gameComponents.rami.title') }}</h3>
-      <p class="game-subtitle mb-0">Points posés: <strong>{{ score }}</strong> · Tour: <strong>{{ currentTurn === 'player' ? 'Vous' : 'Ordinateur' }}</strong></p>
+      <p class="game-subtitle mb-0">{{ t('gameComponents.rami.pointsPlayed') }}: <strong>{{ score }}</strong> · {{ t('gameComponents.rami.turn') }}: <strong>{{ currentTurn === 'player' ? t('gameComponents.rami.players.you') : t('gameComponents.rami.players.computer') }}</strong></p>
     </div>
     <div class="d-flex ga-2 flex-wrap justify-end">
       <v-chip color="primary" variant="tonal" prepend-icon="mdi-timer-outline">
         {{ timer }}s / {{ TURN_SECONDS }}s
       </v-chip>
-      <v-chip color="secondary" variant="outlined">Pioche: {{ stock.length }}</v-chip>
+      <v-chip color="secondary" variant="outlined">{{ t('gameComponents.rami.drawPile') }}: {{ stock.length }}</v-chip>
       <v-btn variant="outlined" prepend-icon="mdi-cards" :disabled="!canDraw" @click="drawCard">{{ t('gameComponents.rami.actions.draw') }}</v-btn>
       <v-btn color="primary" prepend-icon="mdi-refresh" @click="reset">{{ t('gameComponents.rami.actions.playAgain') }}</v-btn>
     </div>
@@ -433,7 +433,7 @@ reset()
 
   <CardTableLayout :players="tablePlayers" :center-cards="centerCards" :center-melds="centerMelds" :turn-timer-seconds="TURN_SECONDS">
     <section class="mb-4">
-      <h4 class="text-subtitle-1 mb-2 font-weight-bold">Main adverse (dos des cartes)</h4>
+      <h4 class="text-subtitle-1 mb-2 font-weight-bold">{{ t('gameComponents.rami.opponentHand') }}</h4>
       <div class="game-card-grid game-card-grid--opponent">
         <div v-for="card in aiHand" :key="`ai-${card.id}`" class="play-card play-card--back" />
       </div>
@@ -472,12 +472,12 @@ reset()
           prepend-icon="mdi-delete"
           @click="discardCard(selectedCards[0]?.id)"
         >
-          Défausser la carte sélectionnée
+          {{ t('gameComponents.rami.actions.discardSelected') }}
         </v-btn>
       </div>
 
       <p class="text-caption mt-2 mb-0 text-medium-emphasis">
-        Règle: vous devez piocher puis défausser pour terminer le tour. Double-cliquez aussi sur une carte pour la défausser rapidement.
+        {{ t('gameComponents.rami.ruleHint') }}
       </p>
     </section>
   </CardTableLayout>

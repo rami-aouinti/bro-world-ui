@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+const { t } = useI18n()
 
 interface TablePlayer {
   id: string
@@ -56,7 +57,7 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
         <div class="table-seat__meta">
           <p class="table-seat__name mb-0">{{ player.name }}</p>
           <p class="table-seat__details mb-0">
-            {{ player.isAI ? 'IA' : 'Joueur' }} · {{ player.handCount }} cartes
+            {{ player.isAI ? t('gameComponents.cardTable.ai') : t('gameComponents.cardTable.player') }} · {{ t('gameComponents.cardTable.cardsCount', { count: player.handCount }) }}
           </p>
         </div>
         <v-chip size="x-small" color="white" variant="flat" class="table-seat__timer">
@@ -77,7 +78,7 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
               </div>
             </div>
           </div>
-          <p v-else class="text-caption mb-0 text-medium-emphasis">Aucun pli/combinaison sur la table.</p>
+          <p v-else class="text-caption mb-0 text-medium-emphasis">{{ t('gameComponents.cardTable.emptyTable') }}</p>
         </slot>
       </section>
     </div>

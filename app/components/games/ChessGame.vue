@@ -5,6 +5,7 @@ import { useChessEngine } from '~/composables/games/useChessEngine'
 const props = defineProps<{
   selectedPlayMode: 'ai' | 'pvp'
 }>()
+const { t } = useI18n()
 
 const {
   board,
@@ -55,21 +56,23 @@ const cellClasses = (row: number, col: number) => ({
 
 const cellLabel = (row: number, col: number) => `${String.fromCharCode(97 + col)}${8 - row}`
 
-const sideLabel = computed(() => currentTurn.value === 'white' ? 'Blancs' : 'Noirs')
+const sideLabel = computed(() => currentTurn.value === 'white'
+  ? t('gameComponents.chess.sides.white')
+  : t('gameComponents.chess.sides.black'))
 </script>
 
 <template>
   <v-card class="pa-4 chess-card" variant="outlined">
     <div class="d-flex flex-wrap justify-space-between align-center ga-2 mb-3">
       <div>
-        <h3 class="text-h6 mb-1">Jeu d'échecs</h3>
+        <h3 class="text-h6 mb-1">{{ t('gameComponents.chess.title') }}</h3>
         <p class="text-body-2 text-medium-emphasis mb-0">{{ statusMessage }}</p>
       </div>
       <div class="d-flex flex-wrap ga-2">
-        <v-chip color="info" variant="tonal">Tour : {{ sideLabel }}</v-chip>
-        <v-chip v-if="isInCheck && !winner" color="warning" variant="flat">Échec</v-chip>
-        <v-chip v-if="props.selectedPlayMode === 'ai'" color="deep-purple" variant="outlined">Mode IA</v-chip>
-        <v-btn size="small" prepend-icon="mdi-refresh" variant="tonal" @click="reset">Nouvelle partie</v-btn>
+        <v-chip color="info" variant="tonal">{{ t('gameComponents.chess.turn') }} : {{ sideLabel }}</v-chip>
+        <v-chip v-if="isInCheck && !winner" color="warning" variant="flat">{{ t('gameComponents.chess.check') }}</v-chip>
+        <v-chip v-if="props.selectedPlayMode === 'ai'" color="deep-purple" variant="outlined">{{ t('gameComponents.chess.aiMode') }}</v-chip>
+        <v-btn size="small" prepend-icon="mdi-refresh" variant="tonal" @click="reset">{{ t('gameComponents.chess.actions.newGame') }}</v-btn>
       </div>
     </div>
 
@@ -80,11 +83,11 @@ const sideLabel = computed(() => currentTurn.value === 'white' ? 'Blancs' : 'Noi
       density="compact"
       class="mb-3"
     >
-      L'IA réfléchit...
+      {{ t('gameComponents.chess.aiThinking') }}
     </v-alert>
 
     <div class="chess-layout">
-      <div class="chess-board" role="grid" aria-label="Plateau d'échecs">
+      <div class="chess-board" role="grid" :aria-label="t('gameComponents.chess.aria.board')">
         <button
           v-for="cell in boardRows.flat()"
           :key="`cell-${cell.row}-${cell.col}`"
@@ -101,7 +104,7 @@ const sideLabel = computed(() => currentTurn.value === 'white' ? 'Blancs' : 'Noi
       </div>
 
       <div class="chess-history">
-        <h4 class="text-subtitle-1 mb-2">Historique des coups</h4>
+        <h4 class="text-subtitle-1 mb-2">{{ t('gameComponents.chess.history') }}</h4>
         <ol class="history-list">
           <li
             v-for="(move, index) in moveHistory"
@@ -113,7 +116,7 @@ const sideLabel = computed(() => currentTurn.value === 'white' ? 'Blancs' : 'Noi
           </li>
         </ol>
         <p v-if="!moveHistory.length" class="text-body-2 text-medium-emphasis mb-0">
-          Aucun coup pour le moment.
+          {{ t('gameComponents.chess.noMoves') }}
         </p>
       </div>
     </div>

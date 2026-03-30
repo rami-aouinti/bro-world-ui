@@ -5,6 +5,7 @@ import {
   type NonogramDifficulty,
   type NonogramPuzzle,
 } from "~/data/games/nonogram-puzzles";
+const { t } = useI18n();
 
 const props = defineProps<{
   selectedPlayMode: "ai";
@@ -123,8 +124,8 @@ watch(currentPuzzle, () => {
 <template>
   <v-card class="nonogram pa-4" variant="outlined">
     <div class="d-flex flex-wrap align-center ga-2 mb-4">
-      <v-chip prepend-icon="mdi-robot" color="info" variant="tonal">Mode {{ props.selectedPlayMode.toUpperCase() }}</v-chip>
-      <v-chip color="primary" variant="outlined">Puzzle: {{ currentPuzzle.name }}</v-chip>
+      <v-chip prepend-icon="mdi-robot" color="info" variant="tonal">{{ t("gameComponents.nonogram.mode") }} {{ props.selectedPlayMode.toUpperCase() }}</v-chip>
+      <v-chip color="primary" variant="outlined">{{ t("gameComponents.nonogram.puzzle") }}: {{ currentPuzzle.name }}</v-chip>
       <v-spacer />
       <v-btn
         v-for="level in difficultyLevels"
@@ -136,8 +137,8 @@ watch(currentPuzzle, () => {
       >
         {{ level }}
       </v-btn>
-      <v-btn size="small" color="secondary" variant="outlined" @click="nextPuzzle">Puzzle suivant</v-btn>
-      <v-btn size="small" color="warning" variant="outlined" @click="resetGrid">Réinitialiser</v-btn>
+      <v-btn size="small" color="secondary" variant="outlined" @click="nextPuzzle">{{ t("gameComponents.nonogram.actions.nextPuzzle") }}</v-btn>
+      <v-btn size="small" color="warning" variant="outlined" @click="resetGrid">{{ t("gameComponents.nonogram.actions.reset") }}</v-btn>
     </div>
 
     <div class="d-flex align-start ga-3">
@@ -186,11 +187,11 @@ watch(currentPuzzle, () => {
     </div>
 
     <v-alert v-if="victory" type="success" variant="tonal" class="mt-4">
-      Bravo ! Puzzle résolu.
+      {{ t("gameComponents.nonogram.victory") }}
     </v-alert>
 
     <p class="text-caption mt-3 mb-0">
-      Clic gauche = remplir, clic droit = marquer vide.
+      {{ t("gameComponents.nonogram.instructions") }}
     </p>
   </v-card>
 </template>

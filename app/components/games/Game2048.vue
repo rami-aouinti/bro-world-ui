@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+const { t } = useI18n()
 
 const GRID_SIZE = 4
 const STORAGE_KEY = 'bro-world:game-2048-state'
@@ -320,21 +321,21 @@ onBeforeUnmount(() => {
     <div class="header">
       <div>
         <h3 class="title">2048</h3>
-        <p class="subtitle">Flèches clavier ou swipe pour jouer.</p>
+        <p class="subtitle">{{ t('gameComponents.game2048.subtitle') }}</p>
       </div>
       <div class="scores">
         <div class="score-box">
-          <span>Score</span>
+          <span>{{ t('gameComponents.game2048.score') }}</span>
           <strong>{{ score }}</strong>
         </div>
         <div class="score-box">
-          <span>Best</span>
+          <span>{{ t('gameComponents.game2048.best') }}</span>
           <strong>{{ bestScore }}</strong>
         </div>
       </div>
     </div>
 
-    <div class="grid" role="grid" aria-label="Plateau 2048">
+    <div class="grid" role="grid" :aria-label="t('gameComponents.game2048.aria.board')">
       <div v-for="(row, rowIndex) in grid" :key="`row-${rowIndex}`" class="row">
         <div
           v-for="(tile, colIndex) in row"
@@ -349,10 +350,10 @@ onBeforeUnmount(() => {
 
     <div class="footer">
       <p class="status">
-        <template v-if="gameOver">Partie terminée — meilleur score {{ bestScore }}.</template>
-        <template v-else>Objectif: atteindre 2048. Tuile max: {{ highestTile }}.</template>
+        <template v-if="gameOver">{{ t('gameComponents.game2048.status.gameOver', { score: bestScore }) }}</template>
+        <template v-else>{{ t('gameComponents.game2048.status.objective', { tile: highestTile }) }}</template>
       </p>
-      <v-btn color="primary" variant="flat" @click="initializeNewGame">Nouvelle partie</v-btn>
+      <v-btn color="primary" variant="flat" @click="initializeNewGame">{{ t('gameComponents.game2048.actions.newGame') }}</v-btn>
     </div>
   </section>
 </template>

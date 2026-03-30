@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+const { t } = useI18n();
 
 const props = defineProps<{
   selectedPlayMode: "ai" | "pvp";
@@ -249,11 +250,11 @@ onBeforeUnmount(() => {
 <template>
   <v-card class="pa-4 unified-card" variant="outlined">
     <div class="d-flex flex-wrap align-center ga-2 mb-4">
-      <v-chip prepend-icon="mdi-robot">Mode : {{ props.selectedPlayMode === "ai" ? "Solo assisté" : "Local" }}</v-chip>
-      <v-chip prepend-icon="mdi-timer-outline">Temps : {{ formattedTime }}</v-chip>
-      <v-chip prepend-icon="mdi-close-circle-outline" color="error" variant="tonal">Erreurs : {{ mistakes }}</v-chip>
+      <v-chip prepend-icon="mdi-robot">{{ t("gameComponents.sudoku.mode") }} : {{ props.selectedPlayMode === "ai" ? t("gameComponents.sudoku.modes.assistedSolo") : t("gameComponents.sudoku.modes.local") }}</v-chip>
+      <v-chip prepend-icon="mdi-timer-outline">{{ t("gameComponents.sudoku.time") }} : {{ formattedTime }}</v-chip>
+      <v-chip prepend-icon="mdi-close-circle-outline" color="error" variant="tonal">{{ t("gameComponents.sudoku.errors") }} : {{ mistakes }}</v-chip>
       <v-chip prepend-icon="mdi-alert-circle-outline" :color="totalConflicts ? 'warning' : 'success'" variant="tonal">
-        Conflits : {{ totalConflicts }}
+        {{ t("gameComponents.sudoku.conflicts") }} : {{ totalConflicts }}
       </v-chip>
     </div>
 
@@ -263,23 +264,23 @@ onBeforeUnmount(() => {
         color="success"
         @click="difficulty = 'facile'; initGame()"
       >
-        Facile
+        {{ t("gameComponents.sudoku.difficulties.easy") }}
       </v-btn>
       <v-btn
         :variant="difficulty === 'moyen' ? 'flat' : 'outlined'"
         color="info"
         @click="difficulty = 'moyen'; initGame()"
       >
-        Moyen
+        {{ t("gameComponents.sudoku.difficulties.medium") }}
       </v-btn>
       <v-btn
         :variant="difficulty === 'difficile' ? 'flat' : 'outlined'"
         color="deep-purple"
         @click="difficulty = 'difficile'; initGame()"
       >
-        Difficile
+        {{ t("gameComponents.sudoku.difficulties.hard") }}
       </v-btn>
-      <v-btn variant="tonal" prepend-icon="mdi-refresh" @click="initGame">Nouvelle grille</v-btn>
+      <v-btn variant="tonal" prepend-icon="mdi-refresh" @click="initGame">{{ t("gameComponents.sudoku.actions.newGrid") }}</v-btn>
     </div>
 
     <div class="sudoku-grid mb-4">
@@ -309,7 +310,7 @@ onBeforeUnmount(() => {
       variant="tonal"
       icon="mdi-trophy-outline"
     >
-      Bravo ! Grille complétée en {{ formattedTime }}. Score final : <strong>{{ finalScore }}</strong>
+      {{ t("gameComponents.sudoku.win", { time: formattedTime, score: finalScore }) }}
     </v-alert>
   </v-card>
 </template>
