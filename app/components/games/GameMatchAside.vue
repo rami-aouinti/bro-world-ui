@@ -51,6 +51,10 @@ defineProps({
   },
 });
 
+const emit = defineEmits<{
+  (event: "action", actionId: string): void;
+}>();
+
 const { t } = useI18n();
 
 const liveHintByGameId: Record<string, string> = {
@@ -165,6 +169,7 @@ const liveHintByGameId: Record<string, string> = {
           size="small"
           variant="outlined"
           :disabled="action.disabled"
+          @click="emit('action', action.id)"
       >
         {{ action.label }}
       </v-btn>
