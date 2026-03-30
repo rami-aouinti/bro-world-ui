@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import type { PokerCard } from '~/composables/games/usePokerEngine'
 import { usePokerEngine } from '~/composables/games/usePokerEngine'
 
@@ -26,12 +26,24 @@ const actionMessage = computed(() => engine.actionMessage.value)
 
 const currentPlayer = computed(() => players.value[currentTurnIndex.value])
 const isHumanTurn = computed(() => currentPlayer.value?.id === humanPlayer.value?.id)
+const flyingChips = ref<Array<{
+  id: number
+  fromSeat: number
+  amount: number
+  count: number
+  phase: 'start' | 'end'
+}>>([])
+let chipAnimationId = 0
 
 const tablePlayers = computed(() => players.value.map((player, index) => ({
   id: player.id,
   name: player.name,
   isAI: player.isAI,
   handCount: player.hand.length,
+  stack: player.stack,
+  currentBet: player.currentBet,
+  lastAction: player.lastAction,
+  seatIndex: index,
   isCurrentTurn: street.value !== 'hand-over' && currentTurnIndex.value === index,
 })))
 
@@ -90,6 +102,46 @@ const getCardTone = (cardLabel: string) => {
 
 const getCardRank = (cardLabel: string) => cardLabel.replace(/[♠♥♦♣]/g, '')
 const getCardSuit = (cardLabel: string) => cardLabel.match(/[♠♥♦♣]/)?.[0] ?? ''
+const getActionFeedback = (action?: string | null) => {
+  if (!action) return ''
+  const normalizedAction = action.toLowerCase()
+  if (normalizedAction === 'fold') return 'Fold'
+  if (normalizedAction === 'check') return 'Check'
+  if (normalizedAction === 'call') return 'Call'
+  if (normalizedAction === 'raise') return 'Raise'
+  return action
+}
+
+const getChipVisualCount = (amount: number) => {
+  if (amount <= 0) return 0
+  return Math.min(12, Math.max(1, Math.round(amount / 20)))
+}
+
+const createFlyingChips = (fromSeat: number, amount: number) => {
+  if (amount <= 0) return
+
+  const id = ++chipAnimationId
+  const chip = {
+    id,
+    fromSeat,
+    amount,
+    count: getChipVisualCount(amount),
+    phase: 'start' as const,
+  }
+
+  flyingChips.value.push(chip)
+
+  nextTick(() => {
+    const activeChip = flyingChips.value.find(entry => entry.id === id)
+    if (activeChip) {
+      activeChip.phase = 'end'
+    }
+  })
+
+  setTimeout(() => {
+    flyingChips.value = flyingChips.value.filter(entry => entry.id !== id)
+  }, 850)
+}
 
 const formatCard = (card: PokerCard) => engine.formatCard(card)
 
@@ -117,6 +169,37 @@ watch([() => engine.currentTurnIndex.value, () => engine.currentBet.value, () =>
     engine.runAiAction()
   }, 650)
 }, { immediate: true })
+
+watch(
+  () => ({
+    pot: pot.value,
+    currentBet: currentBet.value,
+    playerBets: players.value.map((player, index) => ({
+      id: player.id,
+      seat: index,
+      currentBet: player.currentBet,
+    })),
+  }),
+  (next, previous) => {
+    if (!previous) return
+
+    next.playerBets.forEach((playerBet, index) => {
+      const previousBet = previous.playerBets[index]
+      if (!previousBet) return
+      const delta = playerBet.currentBet - previousBet.currentBet
+      if (delta > 0) {
+        createFlyingChips(playerBet.seat, delta)
+      }
+    })
+
+    const potDelta = next.pot - previous.pot
+    const currentBetDelta = next.currentBet - previous.currentBet
+
+    if (potDelta > 0 && currentBetDelta > 0) {
+      createFlyingChips(currentTurnIndex.value, Math.max(potDelta, currentBetDelta))
+    }
+  },
+)
 
 const perform = (action: 'fold' | 'check' | 'call' | 'raise') => {
   if (!isHumanTurn.value) return
@@ -160,6 +243,13 @@ onBeforeUnmount(() => {
         <div class="poker-table-surface">
           <div class="poker-rail">
             <div class="poker-pot-zone">
+              <div class="pot-stack">
+                <p class="pot-stack__label mb-1">{{ t('gameComponents.poker.pot') }}</p>
+                <div class="chip-stack chip-stack--pot" aria-hidden="true">
+                  <span v-for="chipIndex in getChipVisualCount(pot)" :key="`pot-chip-${chipIndex}`" class="chip-stack__chip" />
+                </div>
+                <strong class="pot-stack__amount">{{ pot }}</strong>
+              </div>
               <div class="board-row board-row--center">
                 <span
                   v-for="slot in boardSlots"
@@ -178,6 +268,16 @@ onBeforeUnmount(() => {
               </div>
             </div>
           </div>
+          <div class="flying-chips-layer" aria-hidden="true">
+            <div
+              v-for="chip in flyingChips"
+              :key="chip.id"
+              class="flying-chip"
+              :class="[`flying-chip--seat-${chip.fromSeat}`, { 'flying-chip--end': chip.phase === 'end' }]"
+            >
+              <span v-for="tokenIndex in chip.count" :key="`${chip.id}-token-${tokenIndex}`" class="chip-stack__chip chip-stack__chip--small" />
+            </div>
+          </div>
         </div>
       </template>
 
@@ -190,7 +290,13 @@ onBeforeUnmount(() => {
                 <strong class="text-body-2">{{ player.name }}</strong>
                 <v-chip size="x-small" color="secondary" variant="tonal">{{ player.stack }} jetons</v-chip>
               </div>
+              <div class="chip-stack mb-1" aria-hidden="true">
+                <span v-for="chipIndex in getChipVisualCount(player.stack)" :key="`${player.id}-stack-${chipIndex}`" class="chip-stack__chip" />
+              </div>
               <p class="text-caption mb-1 text-medium-emphasis">Action: {{ player.lastAction ?? '—' }} · Mise: {{ player.currentBet }}</p>
+              <p v-if="currentPlayer?.id === player.id && player.lastAction" class="action-feedback mb-1">
+                {{ getActionFeedback(player.lastAction) }}
+              </p>
               <div class="card-back-row">
                 <span v-for="n in player.hand.length" :key="`${player.id}-${n}`" class="card-back">🂠</span>
               </div>
@@ -201,6 +307,12 @@ onBeforeUnmount(() => {
         <v-card class="pa-3" variant="outlined">
           <p class="text-subtitle-2 font-weight-bold mb-2">{{ t('gameComponents.poker.yourCards') }}</p>
           <p class="text-caption text-medium-emphasis mb-2">Jetons: {{ humanPlayer?.stack ?? 0 }} · Votre mise: {{ humanPlayer?.currentBet ?? 0 }}</p>
+          <div class="chip-stack mb-2" aria-hidden="true">
+            <span v-for="chipIndex in getChipVisualCount(humanPlayer?.stack ?? 0)" :key="`human-stack-${chipIndex}`" class="chip-stack__chip" />
+          </div>
+          <p v-if="currentPlayer?.id === humanPlayer?.id && humanPlayer?.lastAction" class="action-feedback mb-2">
+            {{ getActionFeedback(humanPlayer.lastAction) }}
+          </p>
           <div class="board-row mb-3">
             <span
               v-for="card in humanPlayer?.hand ?? []"
@@ -279,6 +391,7 @@ onBeforeUnmount(() => {
 }
 
 .poker-table-surface {
+  position: relative;
   width: min(100%, 700px);
   margin-inline: auto;
   padding: 18px;
@@ -310,6 +423,80 @@ onBeforeUnmount(() => {
     radial-gradient(circle at center, rgba(42, 143, 79, 0.5) 0%, rgba(24, 100, 58, 0.65) 85%);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
+
+.pot-stack {
+  position: absolute;
+  left: 50%;
+  top: -10px;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+
+.pot-stack__label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(248, 250, 252, 0.82);
+}
+
+.pot-stack__amount {
+  font-size: 0.86rem;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.chip-stack {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  min-height: 12px;
+}
+
+.chip-stack--pot {
+  gap: 1px;
+}
+
+.chip-stack__chip {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  background: radial-gradient(circle at 30% 30%, #ffffff 0%, #ef4444 35%, #7f1d1d 100%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+.chip-stack__chip--small {
+  width: 8px;
+  height: 8px;
+}
+
+.flying-chips-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.flying-chip {
+  position: absolute;
+  display: flex;
+  gap: 2px;
+  opacity: 0.95;
+  transition: transform 700ms ease, opacity 700ms ease;
+}
+
+.flying-chip--end {
+  transform: translate(calc(50% - var(--chip-x)), calc(50% - var(--chip-y))) scale(0.8);
+  opacity: 0;
+}
+
+.flying-chip--seat-0 { --chip-x: 15%; --chip-y: 82%; left: 15%; top: 82%; }
+.flying-chip--seat-1 { --chip-x: 84%; --chip-y: 74%; left: 84%; top: 74%; }
+.flying-chip--seat-2 { --chip-x: 84%; --chip-y: 24%; left: 84%; top: 24%; }
+.flying-chip--seat-3 { --chip-x: 15%; --chip-y: 24%; left: 15%; top: 24%; }
+.flying-chip--seat-4 { --chip-x: 50%; --chip-y: 12%; left: 50%; top: 12%; }
+.flying-chip--seat-5 { --chip-x: 50%; --chip-y: 88%; left: 50%; top: 88%; }
 
 .opponent-grid {
   display: grid;
@@ -344,6 +531,19 @@ onBeforeUnmount(() => {
   border-radius: 6px;
   border: 1px solid rgba(30, 58, 138, 0.25);
   background: rgba(30, 58, 138, 0.12);
+}
+
+.action-feedback {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #fff;
+  background: color-mix(in srgb, rgb(var(--v-theme-warning)) 70%, rgba(0, 0, 0, 0.45));
 }
 
 .table-card {
