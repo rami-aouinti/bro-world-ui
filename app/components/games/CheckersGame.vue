@@ -8,6 +8,7 @@ import {
   watchEffect,
 } from "vue";
 import type { GameAsidePanelState } from "./types";
+import GameTableScaffold from "./GameTableScaffold.vue";
 
 const props = defineProps<{
   selectedPlayMode: "ai" | "pvp";
@@ -15,8 +16,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   (event: "panel-state", payload: GameAsidePanelState): void;
 }>();
-const route = useRoute();
-
 const { t } = useI18n();
 
 type Player = "red" | "black";
@@ -93,8 +92,6 @@ const mustContinueCapture = ref(false);
 const timerProgress = computed(() =>
   Math.max(0, (remainingSeconds.value / TURN_SECONDS) * 100),
 );
-const isGamePage = computed(() => route.path === "/game");
-
 const hasInside = (row: number, col: number) =>
   row >= 0 && row < 8 && col >= 0 && col < 8;
 
@@ -619,226 +616,65 @@ watchEffect(() => {
 </script>
 
 <template>
-  <div class="checkers-layout">
-    <div class="board-column">
-      <div v-if="isGamePage" class="board-toolbar mb-3">
-        <v-btn color="primary" prepend-icon="mdi-refresh" @click="reset">{{
-          t("gameComponents.checkers.actions.restart")
-        }}</v-btn>
-      </div>
-      <div
-        class="checkers-board"
-        :class="{ 'checkers-board--thinking': isThinking }"
-      >
-        <button
-          v-for="(cell, index) in board.flat()"
-          :key="index"
-          type="button"
-          class="checkers-cell"
-          :class="{
-            'checkers-cell--dark':
-              (Math.floor(index / 8) + (index % 8)) % 2 === 1,
-            'checkers-cell--selected':
-              selected &&
-              selected.row === Math.floor(index / 8) &&
-              selected.col === index % 8,
-            'checkers-cell--highlight': isHighlighted(
-              Math.floor(index / 8),
-              index % 8,
-            ),
-          }"
-          @click="clickCell(Math.floor(index / 8), index % 8)"
-        >
-          <span
-            v-if="cell"
-            class="piece"
+  <GameTableScaffold class="game-shell-unified">
+    <template #surface>
+      <div class="board-column">
+        <div class="checkers-board" :class="{ 'checkers-board--thinking': isThinking }">
+          <button
+            v-for="(cell, index) in board.flat()"
+            :key="index"
+            type="button"
+            class="checkers-cell"
             :class="{
-              'piece--white': cell.player === 'red',
-              'piece--black': cell.player === 'black',
-              'piece--king': cell.king,
+              'checkers-cell--dark': (Math.floor(index / 8) + (index % 8)) % 2 === 1,
+              'checkers-cell--selected': selected && selected.row === Math.floor(index / 8) && selected.col === index % 8,
+              'checkers-cell--highlight': isHighlighted(Math.floor(index / 8), index % 8),
             }"
+            @click="clickCell(Math.floor(index / 8), index % 8)"
           >
-            <v-icon v-if="cell.king" icon="mdi-crown" size="16" />
-          </span>
-        </button>
+            <span v-if="cell" class="piece" :class="{ 'piece--red': cell.player === 'red', 'piece--black': cell.player === 'black', 'piece--king': cell.king }">
+              <v-icon v-if="cell.king" icon="mdi-crown" size="16" />
+            </span>
+          </button>
+        </div>
       </div>
+    </template>
+
+    <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-1">
+      <h3 class="game-shell-title mb-0">{{ t("gameComponents.checkers.title") }}</h3>
+      <v-btn color="primary" prepend-icon="mdi-refresh" @click="reset">{{ t("gameComponents.checkers.actions.restart") }}</v-btn>
     </div>
+    <p class="game-shell-subtitle mb-0">{{ message }}</p>
 
-    <aside v-if="!isGamePage" class="info-aside">
-      <v-btn block color="primary" prepend-icon="mdi-refresh" @click="reset">{{
-        t("gameComponents.checkers.actions.restart")
-      }}</v-btn>
-      <p class="game-subtitle mt-4 mb-2">{{ message }}</p>
-      <p class="game-meta mb-1">
-        {{ t("gameComponents.checkers.activePlayer") }}:
-        <strong>{{
-          currentPlayer === "red"
-            ? t("gameComponents.checkers.players.white")
-            : t("gameComponents.checkers.players.black")
-        }}</strong>
-      </p>
-      <p class="game-meta mb-2">
-        {{ t("gameComponents.checkers.remainingTime") }}:
-        <strong>{{
-          t("gameComponents.checkers.seconds", { count: remainingSeconds })
-        }}</strong>
-      </p>
-
-      <v-progress-linear
-        class="timer-progress"
-        :model-value="timerProgress"
-        height="10"
-        rounded
-        color="primary"
-        bg-color="grey-lighten-1"
-      />
-
-      <p v-if="isThinking" class="game-thinking mt-4 mb-0">
-        {{ t("gameComponents.checkers.aiThinking") }}
-      </p>
-    </aside>
-  </div>
+    <template #aside>
+      <aside class="info-aside">
+        <p class="game-meta mb-1">Joueur actif: <strong>{{ currentPlayer }}</strong></p>
+        <p class="game-meta mb-2">Temps restant: <strong>{{ remainingSeconds }}s</strong></p>
+        <v-progress-linear class="timer-progress" :model-value="timerProgress" height="10" rounded color="primary" bg-color="grey-lighten-1" />
+        <p v-if="isThinking" class="game-thinking mt-4 mb-0">{{ t("gameComponents.checkers.aiThinking") }}</p>
+      </aside>
+    </template>
+  </GameTableScaffold>
 </template>
 
 <style scoped>
-.game-card-shell {
-  border-radius: 18px;
-  border: 1px solid
-    color-mix(in srgb, rgb(var(--v-theme-primary)) 20%, transparent);
-  background: linear-gradient(
-    160deg,
-    rgba(255, 255, 255, 0.08),
-    rgba(255, 255, 255, 0)
-  );
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.09);
-}
-
-.game-title {
-  font-size: 1.2rem;
-  font-weight: 800;
-}
-
-.game-subtitle {
-  color: rgba(var(--v-theme-on-surface), 0.78);
-}
-
-.game-meta {
-  margin: 0;
-  color: rgba(var(--v-theme-on-surface), 0.75);
-  font-size: 0.95rem;
-}
-
-.game-thinking {
-  margin: 0;
-  color: rgb(var(--v-theme-primary));
-  font-weight: 600;
-}
-
-.checkers-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
-  gap: 1rem;
-  align-items: start;
-}
-
-.board-column {
-  display: grid;
-  justify-items: center;
-}
-
-.board-toolbar {
-  width: min(500px, 100%);
-  display: flex;
-  justify-content: flex-end;
-}
-
-.info-aside {
-  border: 1px solid rgba(var(--v-theme-on-surface), 0.14);
-  border-radius: 12px;
-  padding: 1rem;
-  background: rgba(var(--v-theme-surface), 0.8);
-}
-
-.timer-progress {
-  max-width: 100%;
-}
-
-.checkers-board {
-  width: min(500px, 100%);
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  border: 1px solid rgba(0, 0, 0, 0.22);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.checkers-board--thinking {
-  pointer-events: none;
-  opacity: 0.85;
-}
-
-.checkers-cell {
-  aspect-ratio: 1;
-  border: none;
-  background: var(--v-theme-surface);
-  display: grid;
-  place-items: center;
-  transition:
-    box-shadow 180ms ease,
-    transform 180ms ease;
-}
-
-.checkers-cell--dark {
-  background: #1c1c1c;
-}
-
-.checkers-cell:hover {
-  box-shadow: inset 0 0 0 2px
-    color-mix(in srgb, rgb(var(--v-theme-primary)) 24%, transparent);
-}
-
-.checkers-cell:focus-visible {
-  outline: 3px solid
-    color-mix(in srgb, rgb(var(--v-theme-primary)) 40%, transparent);
-  outline-offset: -3px;
-}
-
-.checkers-cell--selected {
-  outline: 3px solid rgb(var(--v-theme-primary));
-  outline-offset: -3px;
-}
-
-.checkers-cell--highlight {
-  box-shadow: inset 0 0 0 3px rgb(var(--v-theme-secondary));
-}
-
-.piece {
-  width: 72%;
-  height: 72%;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  color: white;
-  box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.22);
-}
-
-.piece--white {
-  background: linear-gradient(145deg, #ffffff, #d7d7d7);
-  color: #1a1a1a;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-}
-
-.piece--black {
-  background: linear-gradient(145deg, #4f4f4f, #0b0b0b);
-}
-
-.piece--king {
-  border: 2px solid #9e9e9e;
-}
-
-@media (max-width: 960px) {
-  .checkers-layout {
-    grid-template-columns: 1fr;
-  }
-}
+.game-shell-title { font-size: 1.1rem; font-weight: 800; }
+.game-shell-subtitle { color: rgba(var(--v-theme-on-surface), 0.78); }
+.game-meta { margin: 0; color: rgba(var(--v-theme-on-surface), 0.75); font-size: 0.95rem; }
+.game-thinking { margin: 0; color: rgb(var(--v-theme-primary)); font-weight: 600; }
+.board-column { display: grid; justify-items: center; }
+.info-aside { border: 1px solid rgba(var(--v-theme-on-surface), 0.14); border-radius: 12px; padding: 1rem; background: rgba(var(--v-theme-surface), 0.8); }
+.timer-progress { max-width: 100%; }
+.checkers-board { width: min(500px, 100%); display: grid; grid-template-columns: repeat(8, 1fr); border: 1px solid rgba(0, 0, 0, 0.22); border-radius: 10px; overflow: hidden; }
+.checkers-board--thinking { pointer-events: none; opacity: 0.85; }
+.checkers-cell { aspect-ratio: 1; border: none; background: var(--v-theme-surface); display: grid; place-items: center; transition: box-shadow 180ms ease, transform 180ms ease; }
+.checkers-cell--dark { background: #1c1c1c; }
+.checkers-cell:hover { box-shadow: inset 0 0 0 2px color-mix(in srgb, rgb(var(--v-theme-primary)) 24%, transparent); }
+.checkers-cell:focus-visible { outline: 3px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 40%, transparent); outline-offset: -3px; }
+.checkers-cell--selected { outline: 3px solid rgb(var(--v-theme-primary)); outline-offset: -3px; }
+.checkers-cell--highlight { box-shadow: inset 0 0 0 3px rgb(var(--v-theme-secondary)); }
+.piece { width: 72%; height: 72%; border-radius: 999px; display: grid; place-items: center; color: white; box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.22); }
+.piece--red { background: linear-gradient(145deg, #ffffff, #d7d7d7); color: #1a1a1a; border: 1px solid rgba(0, 0, 0, 0.2); }
+.piece--black { background: linear-gradient(145deg, #4f4f4f, #0b0b0b); }
+.piece--king { border: 2px solid #9e9e9e; }
 </style>
