@@ -4,6 +4,7 @@ import BeloteGame from "~/components/games/BeloteGame.vue";
 import CheckersGame from "~/components/games/CheckersGame.vue";
 import RamiGame from "~/components/games/RamiGame.vue";
 import PokerGame from "~/components/games/PokerGame.vue";
+import Game2048 from "~/components/games/Game2048.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
 import type {
   BeloteMode,
@@ -127,8 +128,8 @@ const categories: GameCategory[] = [
             nameKey: "gamePage.catalog.games.game2048.name",
             descriptionKey: "gamePage.catalog.games.game2048.description",
             icon: "mdi-numeric-8-box-multiple-outline",
-            component: null,
-            supportedModes: [],
+            component: "game2048",
+            supportedModes: ["ai"],
             features: [
               "animations fluides",
               "score + best score",
@@ -635,6 +636,9 @@ const launchGame = () => {
         <PokerGame
           v-else-if="selectedGame.component === 'poker'"
           :selected-play-mode="selectedPlayMode"
+        />
+        <Game2048
+          v-else-if="selectedGame.component === 'game2048'"
         />
       </section>
     </template>
