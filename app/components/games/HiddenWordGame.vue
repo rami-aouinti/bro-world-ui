@@ -5,6 +5,7 @@ import {
   WORDS_FR,
   type HiddenWordLength,
 } from "~/data/games/words-fr";
+const { t } = useI18n();
 
 const MAX_ATTEMPTS = 6;
 const lengths: HiddenWordLength[] = [5, 6];
@@ -22,7 +23,7 @@ const targetWord = ref("");
 const guesses = ref<string[]>([]);
 const evaluations = ref<LetterResult[][]>([]);
 const currentGuess = ref("");
-const gameMessage = ref("Devinez le mot du jour.");
+const gameMessage = ref(t("gameComponents.hiddenWord.messages.guessDaily"));
 const shareMessage = ref("");
 
 const targetCharacters = computed(() => targetWord.value.split(""));
@@ -91,7 +92,7 @@ const resetGame = () => {
   guesses.value = [];
   evaluations.value = [];
   currentGuess.value = "";
-  gameMessage.value = "Devinez le mot du jour.";
+  gameMessage.value = t("gameComponents.hiddenWord.messages.guessDaily");
   shareMessage.value = "";
 };
 
@@ -131,14 +132,14 @@ const submitGuess = () => {
   if (isFinished.value) return;
 
   if (currentGuess.value.length !== wordLength.value) {
-    gameMessage.value = `Le mot doit contenir ${wordLength.value} lettres.`;
+    gameMessage.value = t("gameComponents.hiddenWord.messages.invalidLength", { count: wordLength.value });
     return;
   }
 
   const guess = currentGuess.value.toLowerCase();
   const dictionary = WORDS_FR[wordLength.value];
   if (!dictionary.includes(guess)) {
-    gameMessage.value = "Mot absent de la liste locale.";
+    gameMessage.value = t("gameComponents.hiddenWord.messages.wordNotFound");
     return;
   }
 
@@ -147,16 +148,16 @@ const submitGuess = () => {
   currentGuess.value = "";
 
   if (guess === targetWord.value) {
-    gameMessage.value = `Bravo ! Trouvé en ${guesses.value.length}/${MAX_ATTEMPTS}.`;
+    gameMessage.value = t("gameComponents.hiddenWord.messages.win", { score: `${guesses.value.length}/${MAX_ATTEMPTS}` });
     return;
   }
 
   if (guesses.value.length >= MAX_ATTEMPTS) {
-    gameMessage.value = `Perdu. Le mot était ${targetWord.value.toUpperCase()}.`;
+    gameMessage.value = t("gameComponents.hiddenWord.messages.lose", { word: targetWord.value.toUpperCase() });
     return;
   }
 
-  gameMessage.value = `Essai ${guesses.value.length + 1}/${MAX_ATTEMPTS}.`;
+  gameMessage.value = t("gameComponents.hiddenWord.messages.try", { count: guesses.value.length + 1, max: MAX_ATTEMPTS });
 };
 
 const onKeyInput = (value: string) => {
@@ -214,14 +215,14 @@ const buildShareText = () => {
     )
     .join("\n");
 
-  return [`Mot caché ${wordLength.value} (${date})`, `Score: ${score}`, grid]
+  return [t("gameComponents.hiddenWord.share.title", { count: wordLength.value, date }), t("gameComponents.hiddenWord.share.score", { score }), grid]
     .filter(Boolean)
     .join("\n");
 };
 
 const copyShareResult = async () => {
   if (!isFinished.value) {
-    shareMessage.value = "Terminez la partie pour partager.";
+    shareMessage.value = t("gameComponents.hiddenWord.share.finishBeforeShare");
     return;
   }
 
@@ -229,10 +230,10 @@ const copyShareResult = async () => {
 
   try {
     await navigator.clipboard.writeText(payload);
-    shareMessage.value = "Résultat copié dans le presse-papiers.";
+    shareMessage.value = t("gameComponents.hiddenWord.share.copied");
   }
   catch {
-    shareMessage.value = "Impossible de copier automatiquement.";
+    shareMessage.value = t("gameComponents.hiddenWord.share.copyFailed");
   }
 };
 
@@ -258,7 +259,7 @@ onBeforeUnmount(() => {
 <template>
   <v-card class="pa-4 hidden-word-card" variant="outlined">
     <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-3">
-      <h2 class="text-h6 font-weight-bold mb-0">Mot caché</h2>
+      <h2 class="text-h6 font-weight-bold mb-0">{{ t("gameComponents.hiddenWord.title") }}</h2>
       <div class="d-flex ga-2">
         <v-btn
           v-for="size in lengths"
@@ -268,7 +269,7 @@ onBeforeUnmount(() => {
           color="primary"
           @click="wordLength = size"
         >
-          {{ size }} lettres
+          {{ t("gameComponents.hiddenWord.wordLength", { count: size }) }}
         </v-btn>
       </div>
     </div>
@@ -289,9 +290,9 @@ onBeforeUnmount(() => {
     </div>
 
     <div class="d-flex ga-2 mb-4">
-      <v-btn color="primary" variant="flat" :disabled="isFinished" @click="submitGuess">Valider</v-btn>
-      <v-btn color="secondary" variant="tonal" @click="resetGame">Recommencer</v-btn>
-      <v-btn color="success" variant="outlined" :disabled="!isFinished" @click="copyShareResult">Partager</v-btn>
+      <v-btn color="primary" variant="flat" :disabled="isFinished" @click="submitGuess">{{ t("gameComponents.hiddenWord.actions.submit") }}</v-btn>
+      <v-btn color="secondary" variant="tonal" @click="resetGame">{{ t("gameComponents.hiddenWord.actions.restart") }}</v-btn>
+      <v-btn color="success" variant="outlined" :disabled="!isFinished" @click="copyShareResult">{{ t("gameComponents.hiddenWord.actions.share") }}</v-btn>
     </div>
     <p v-if="shareMessage" class="text-caption mb-4">{{ shareMessage }}</p>
 
@@ -310,7 +311,7 @@ onBeforeUnmount(() => {
         </v-btn>
       </div>
       <div class="keyboard-row">
-        <v-btn size="small" variant="outlined" @click="onKeyInput('ENTER')">Entrée</v-btn>
+        <v-btn size="small" variant="outlined" @click="onKeyInput('ENTER')">{{ t("gameComponents.hiddenWord.actions.enter") }}</v-btn>
         <v-btn size="small" variant="outlined" @click="onKeyInput('BACKSPACE')">⌫</v-btn>
       </div>
     </div>

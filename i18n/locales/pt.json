@@ -1930,7 +1930,40 @@
         "global": "Global score",
         "side": "Team / Player",
         "points": "Points"
-      }
+      },
+      "seatRoles": {
+        "localPlayer": "Local player",
+        "opponent": "Opponent",
+        "partner": "Partner"
+      },
+      "hands": {
+        "aiHands": "AI hands",
+        "localHands": "Local players hands"
+      },
+      "teams": {
+        "teamA": "Team A ({p1} + {p2})",
+        "teamB": "Team B ({p1} + {p2})"
+      },
+      "modes": {
+        "teams": "2v2",
+        "freeForAll": "Free-for-all"
+      },
+      "timer": "Timer",
+      "aria": {
+        "scoreTable": "Belote score table"
+      },
+      "totalTeams": "Team A: {scoreA} · Team B: {scoreB}",
+      "quickRules": {
+        "title": "Quick rules",
+        "items": {
+          "roundTricks": "8 tricks per round (32-card deck, 8 cards per player).",
+          "followSuit": "You must follow suit if possible.",
+          "trump": "Current trump: {trump} (changes each new deal).",
+          "winTrick": "The trick is won by the strongest card according to lead suit/trump.",
+          "points": "Trick card points are added to the player (free mode) or team (2v2)."
+        }
+      },
+      "waitingLocalTurn": "Waiting for a local player turn…"
     },
     "checkers": {
       "title": "Damas",
@@ -1941,8 +1974,14 @@
         "redTurn": "Vez do jogador vermelho.",
         "blackTurn": "Vez do jogador preto.",
         "redWin": "O jogador vermelho venceu!",
-        "blackWin": "O jogador preto venceu!"
-      }
+        "blackWin": "O jogador preto venceu!",
+        "white": "white",
+        "black": "black"
+      },
+      "activePlayer": "Active player",
+      "remainingTime": "Remaining time",
+      "seconds": "{count}s",
+      "aiThinking": "AI is thinking…"
     },
     "rami": {
       "title": "Rummy",
@@ -1950,7 +1989,8 @@
       "actions": {
         "draw": "Comprar carta",
         "playAgain": "Jogar novamente",
-        "playCombination": "Baixar combinação ({count})"
+        "playCombination": "Baixar combinação ({count})",
+        "discardSelected": "Discard selected card"
       },
       "hand": "Mão",
       "melds": "Combinações baixadas",
@@ -1962,7 +2002,24 @@
         "allCardsPlayed": "Parabéns! Você baixou todas as cartas.",
         "goodCombination": "Boa combinação. Continue!",
         "deckEmpty": "O baralho está vazio.",
-        "cardDrawn": "Carta comprada."
+        "cardDrawn": "Carta comprada.",
+        "playerWin": "You win! All your cards are played.",
+        "computerWin": "Computer wins the round.",
+        "turnEndedComputerPlaying": "Turn ended. Computer is playing…",
+        "openingRefused": "Opening refused: you must play at least {score} points.",
+        "computerAutoPlayed": "Computer played automatically (time elapsed). Your turn.",
+        "computerPlayed": "Computer played. Your turn!",
+        "newGameDetailed": "New game: {count} cards each. Draw then discard."
+      },
+      "pointsPlayed": "Points played",
+      "turn": "Turn",
+      "drawPile": "Draw pile",
+      "opponentHand": "Opponent hand (card backs)",
+      "ruleHint": "Rule: you must draw then discard to end your turn. Double-click a card to discard quickly.",
+      "players": {
+        "computer": "Computer",
+        "emptySeat": "Empty seat",
+        "you": "You"
       }
     },
     "poker": {
@@ -2011,6 +2068,100 @@
         "human": "Human",
         "ai": "IA"
       }
+    },
+    "cardTable": {
+      "ai": "AI",
+      "player": "Player",
+      "cardsCount": "{count} cards",
+      "emptyTable": "No trick/combination on the table."
+    },
+    "chess": {
+      "title": "Chess",
+      "turn": "Turn",
+      "check": "Check",
+      "aiMode": "AI mode",
+      "aiThinking": "AI is thinking...",
+      "history": "Move history",
+      "noMoves": "No moves yet.",
+      "sides": {
+        "white": "White",
+        "black": "Black"
+      },
+      "actions": {
+        "newGame": "New game"
+      },
+      "aria": {
+        "board": "Chess board"
+      }
+    },
+    "hiddenWord": {
+      "title": "Hidden word",
+      "wordLength": "{count} letters",
+      "actions": {
+        "submit": "Submit",
+        "restart": "Restart",
+        "share": "Share",
+        "enter": "Enter"
+      },
+      "messages": {
+        "guessDaily": "Guess the word of the day.",
+        "invalidLength": "The word must contain {count} letters.",
+        "wordNotFound": "Word not found in local list.",
+        "win": "Congrats! Found in {score}.",
+        "lose": "Lost. The word was {word}.",
+        "try": "Try {count}/{max}."
+      },
+      "share": {
+        "title": "Hidden word {count} ({date})",
+        "score": "Score: {score}",
+        "finishBeforeShare": "Finish the game before sharing.",
+        "copied": "Result copied to clipboard.",
+        "copyFailed": "Unable to copy automatically."
+      }
+    },
+    "sudoku": {
+      "mode": "Mode",
+      "modes": {
+        "assistedSolo": "Assisted solo",
+        "local": "Local"
+      },
+      "time": "Time",
+      "errors": "Errors",
+      "conflicts": "Conflicts",
+      "difficulties": {
+        "easy": "Easy",
+        "medium": "Medium",
+        "hard": "Hard"
+      },
+      "actions": {
+        "newGrid": "New grid"
+      },
+      "win": "Great! Grid completed in {time}. Final score: {score}"
+    },
+    "game2048": {
+      "subtitle": "Use arrow keys or swipe to play.",
+      "score": "Score",
+      "best": "Best",
+      "actions": {
+        "newGame": "New game"
+      },
+      "status": {
+        "gameOver": "Game over — best score {score}.",
+        "objective": "Goal: reach 2048. Max tile: {tile}."
+      },
+      "aria": {
+        "board": "2048 board"
+      }
+    },
+    "nonogram": {
+      "mode": "Mode",
+      "puzzle": "Puzzle",
+      "actions": {
+        "nextPuzzle": "Next puzzle",
+        "reset": "Reset"
+      },
+      "victory": "Great! Puzzle solved.",
+      "instructions": "Left click = fill, right click = mark empty."
     }
   }
 }

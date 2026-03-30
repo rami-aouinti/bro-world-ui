@@ -552,8 +552,8 @@ onBeforeUnmount(() => {
     <aside class="info-aside">
       <v-btn block color="primary" prepend-icon="mdi-refresh" @click="reset">{{ t("gameComponents.checkers.actions.restart") }}</v-btn>
       <p class="game-subtitle mt-4 mb-2">{{ message }}</p>
-      <p class="game-meta mb-1">Joueur actif: <strong>{{ currentPlayer === 'red' ? 'blanc' : 'noir' }}</strong></p>
-      <p class="game-meta mb-2">Temps restant: <strong>{{ remainingSeconds }}s</strong></p>
+      <p class="game-meta mb-1">{{ t('gameComponents.checkers.activePlayer') }}: <strong>{{ currentPlayer === 'red' ? t('gameComponents.checkers.players.white') : t('gameComponents.checkers.players.black') }}</strong></p>
+      <p class="game-meta mb-2">{{ t('gameComponents.checkers.remainingTime') }}: <strong>{{ t('gameComponents.checkers.seconds', { count: remainingSeconds }) }}</strong></p>
 
       <v-progress-linear
           class="timer-progress"
@@ -564,7 +564,7 @@ onBeforeUnmount(() => {
           bg-color="grey-lighten-1"
       />
 
-      <p v-if="isThinking" class="game-thinking mt-4 mb-0">IA en réflexion…</p>
+      <p v-if="isThinking" class="game-thinking mt-4 mb-0">{{ t('gameComponents.checkers.aiThinking') }}</p>
     </aside>
   </div>
 </template>

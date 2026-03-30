@@ -50,13 +50,17 @@ const infoPanelPlayers = computed(() => players.value.filter((_, index) => index
 const getSeatRoleLabel = (seatIndex: number) => {
   const referenceSeat = displayHandPlayerIndex.value
 
-  if (referenceSeat < 0) return 'Joueur local'
-  if (props.beloteMode !== 'teams') return 'Adversaire'
+  if (referenceSeat < 0) return t('gameComponents.belote.seatRoles.localPlayer')
+  if (props.beloteMode !== 'teams') return t('gameComponents.belote.seatRoles.opponent')
 
-  return (seatIndex - referenceSeat + 4) % 2 === 0 ? 'Partenaire' : 'Adversaire'
+  return (seatIndex - referenceSeat + 4) % 2 === 0
+    ? t('gameComponents.belote.seatRoles.partner')
+    : t('gameComponents.belote.seatRoles.opponent')
 }
 
-const handsPanelTitle = computed(() => (props.selectedPlayMode === 'ai' ? 'Mains IA' : 'Mains joueurs locaux'))
+const handsPanelTitle = computed(() => (props.selectedPlayMode === 'ai'
+  ? t('gameComponents.belote.hands.aiHands')
+  : t('gameComponents.belote.hands.localHands')))
 
 const isHumanCardPlayable = (cardId: string) => humanPlayableCards.value.some(card => card.id === cardId)
 
@@ -75,8 +79,8 @@ const trickCountValue = computed(() => trickCount.value)
 const scoreboardRows = computed(() => {
   if (props.beloteMode === 'teams') {
     return [
-      { id: 'team-a', label: `Équipe A (${players.value[0]?.name ?? 'J1'} + ${players.value[2]?.name ?? 'J3'})`, score: teamScores.value.teamA },
-      { id: 'team-b', label: `Équipe B (${players.value[1]?.name ?? 'J2'} + ${players.value[3]?.name ?? 'J4'})`, score: teamScores.value.teamB },
+      { id: 'team-a', label: t('gameComponents.belote.teams.teamA', { p1: players.value[0]?.name ?? 'J1', p2: players.value[2]?.name ?? 'J3' }), score: teamScores.value.teamA },
+      { id: 'team-b', label: t('gameComponents.belote.teams.teamB', { p1: players.value[1]?.name ?? 'J2', p2: players.value[3]?.name ?? 'J4' }), score: teamScores.value.teamB },
     ]
   }
 
@@ -87,7 +91,7 @@ const scoreboardRows = computed(() => {
   }))
 })
 
-const modeLabel = computed(() => (props.beloteMode === 'teams' ? '2v2' : 'Free-for-all'))
+const modeLabel = computed(() => (props.beloteMode === 'teams' ? t('gameComponents.belote.modes.teams') : t('gameComponents.belote.modes.freeForAll')))
 const phaseLabel = computed(() => t(`gameComponents.belote.phases.${phase.value}`))
 const expectedActionLabel = computed(() => t(`gameComponents.belote.expectedActions.${expectedAction.value}`))
 </script>
@@ -102,7 +106,7 @@ const expectedActionLabel = computed(() => t(`gameComponents.belote.expectedActi
     <p class="game-description mb-1">{{ t("gameComponents.belote.trump") }}: <strong>{{ trumpSuit }}</strong></p>
     <p class="game-subtitle mb-4">
       {{ t("gameComponents.belote.tricksPlayed", { count: trickCountValue }) }} · {{ t("gameComponents.belote.phase") }}: {{ phaseLabel }} · {{ t("gameComponents.belote.expectedAction") }}: {{ expectedActionLabel }}
-      · {{ t("gameComponents.belote.turn") }}: {{ players[turnIndex]?.name ?? '—' }} · Timer: {{ timerSeconds }}s
+      · {{ t("gameComponents.belote.turn") }}: {{ players[turnIndex]?.name ?? '—' }} · {{ t("gameComponents.belote.timer") }}: {{ timerSeconds }}s
     </p>
     <p v-if="contract" class="game-subtitle mb-4">
       {{ t("gameComponents.belote.contract") }}: {{ players[contract.takerIndex]?.name }} · {{ t("gameComponents.belote.trump") }} {{ contract.trumpSuit }} · {{ t("gameComponents.belote.target") }} {{ contract.targetPoints }}
@@ -111,7 +115,7 @@ const expectedActionLabel = computed(() => t(`gameComponents.belote.expectedActi
     <CardTableLayout :players="tablePlayers" :center-cards="centerCards" :turn-timer-seconds="TURN_SECONDS">
       <template #center>
         <div class="trick-center">
-          <p class="text-caption text-medium-emphasis mb-2">Pli central</p>
+          <p class="text-caption text-medium-emphasis mb-2">{{ t("gameComponents.belote.currentTrick") }}</p>
           <div class="trick-center__cards">
             <div v-for="slot in [0, 1, 2, 3]" :key="`trick-slot-${slot}`" class="center-card">
               <template v-if="trick.find(play => play.playerIndex === slot)">
@@ -128,7 +132,7 @@ const expectedActionLabel = computed(() => t(`gameComponents.belote.expectedActi
         <v-col cols="12" md="6">
           <v-card class="pa-3 game-info-card h-100" variant="outlined">
             <p class="text-subtitle-2 font-weight-bold mb-2">{{ t("gameComponents.belote.scoreboard.round") }}</p>
-            <v-table density="compact" class="belote-score-table" aria-label="Tableau des scores de belote">
+            <v-table density="compact" class="belote-score-table" :aria-label="t('gameComponents.belote.aria.scoreTable')">
               <thead>
                 <tr>
                   <th class="text-left">{{ t("gameComponents.belote.scoreboard.side") }}</th>
@@ -144,7 +148,7 @@ const expectedActionLabel = computed(() => t(`gameComponents.belote.expectedActi
             </v-table>
             <p class="text-subtitle-2 font-weight-bold mt-3 mb-1">{{ t("gameComponents.belote.scoreboard.global") }}</p>
             <p class="mb-1" v-if="props.beloteMode === 'teams'">
-              Équipe A: {{ totalTeamScores.teamA }} · Équipe B: {{ totalTeamScores.teamB }}
+              {{ t("gameComponents.belote.totalTeams", { scoreA: totalTeamScores.teamA, scoreB: totalTeamScores.teamB }) }}
             </p>
             <p class="mb-1" v-else>
               <span v-for="(player, index) in players" :key="`${player.id}-global`" class="mr-2">{{ player.name }}: {{ totalPlayerScores[index] }}</span>
@@ -169,13 +173,13 @@ const expectedActionLabel = computed(() => t(`gameComponents.belote.expectedActi
       </v-row>
 
       <v-card class="pa-3 game-info-card mb-4" variant="outlined">
-        <p class="text-subtitle-2 font-weight-bold mb-2">Règles rapides</p>
+        <p class="text-subtitle-2 font-weight-bold mb-2">{{ t("gameComponents.belote.quickRules.title") }}</p>
         <ul class="mb-0 pl-4 belote-rules">
-          <li>8 plis par manche (jeu de 32 cartes, 8 cartes par joueur).</li>
-          <li>Vous devez suivre la couleur demandée si possible.</li>
-          <li>Atout actuel: <strong>{{ trumpSuit }}</strong> (change à chaque nouvelle donne).</li>
-          <li>Le pli est gagné par la carte la plus forte selon la couleur demandée / l’atout.</li>
-          <li>Les points des cartes du pli sont ajoutés au joueur (mode libre) ou à l’équipe (2v2).</li>
+          <li>{{ t("gameComponents.belote.quickRules.items.roundTricks") }}</li>
+          <li>{{ t("gameComponents.belote.quickRules.items.followSuit") }}</li>
+          <li>{{ t("gameComponents.belote.quickRules.items.trump", { trump: trumpSuit }) }}</li>
+          <li>{{ t("gameComponents.belote.quickRules.items.winTrick") }}</li>
+          <li>{{ t("gameComponents.belote.quickRules.items.points") }}</li>
         </ul>
       </v-card>
 
@@ -197,7 +201,7 @@ const expectedActionLabel = computed(() => t(`gameComponents.belote.expectedActi
           <span :class="card.suit === '♥' || card.suit === '♦' ? 'text-red' : 'text-black'">{{ card.suit }}</span>
         </button>
       </div>
-      <p v-else class="text-medium-emphasis mb-0">Attente d'un tour joueur local…</p>
+      <p v-else class="text-medium-emphasis mb-0">{{ t("gameComponents.belote.waitingLocalTurn") }}</p>
     </CardTableLayout>
   </v-card>
 </template>
