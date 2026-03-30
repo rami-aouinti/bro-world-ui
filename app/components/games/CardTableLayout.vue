@@ -7,7 +7,6 @@ interface TablePlayer {
   name: string
   avatar?: string
   isAI: boolean
-  handCount: number
   isCurrentTurn: boolean
   timerSeconds?: number
 }
@@ -52,14 +51,11 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
           class="table-seat"
           :class="[`table-seat--${player.seat}`, { 'table-seat--active': player.isCurrentTurn }]"
         >
-          <v-avatar :image="player.avatar" size="38" color="primary" variant="tonal">
+          <v-avatar :image="player.avatar" size="34" color="primary" variant="tonal">
             <span class="text-caption font-weight-bold">{{ player.name.slice(0, 2).toUpperCase() }}</span>
           </v-avatar>
           <div class="table-seat__meta">
             <p class="table-seat__name mb-0">{{ player.name }}</p>
-            <p class="table-seat__details mb-0">
-              {{ player.isAI ? t('gameComponents.cardTable.ai') : t('gameComponents.cardTable.player') }} · {{ t('gameComponents.cardTable.cardsCount', { count: player.handCount }) }}
-            </p>
           </div>
           <v-chip size="x-small" color="white" variant="flat" class="table-seat__timer">
             <v-icon start icon="mdi-timer-outline" size="14" />
@@ -135,13 +131,13 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
 
 .table-seat {
   position: absolute;
-  width: 170px;
-  min-height: 76px;
-  display: grid;
-  grid-template-columns: auto 1fr;
+  width: 92px;
+  min-height: 96px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 8px;
+  gap: 4px;
+  padding: 8px 6px;
   border-radius: 14px;
   background: rgba(8, 19, 12, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.22);
@@ -163,19 +159,18 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
 .table-seat--north-west { top: 54px; left: 26px; }
 
 .table-seat__name {
-  font-size: 0.88rem;
+  font-size: 0.75rem;
   font-weight: 700;
   line-height: 1.1;
+  text-align: center;
 }
 
-.table-seat__details {
-  font-size: 0.74rem;
-  opacity: 0.9;
+.table-seat__meta {
+  width: 100%;
 }
 
 .table-seat__timer {
-  grid-column: 1 / -1;
-  justify-self: start;
+  justify-self: center;
   background: rgba(255, 255, 255, 0.92) !important;
 }
 
@@ -186,7 +181,7 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
 }
 
 .table-seat-hand--north {
-  top: 110px;
+  top: 96px;
   left: 50%;
   transform: translateX(-50%);
 }
@@ -199,21 +194,21 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
 
 .table-seat-hand--east {
   top: 50%;
-  right: 210px;
-  width: min(190px, 28%);
+  right: 86px;
+  width: min(100px, 20%);
   transform: translateY(-50%);
 }
 
 .table-seat-hand--west {
   top: 50%;
-  left: 210px;
-  width: min(190px, 28%);
+  left: 86px;
+  width: min(100px, 20%);
   transform: translateY(-50%);
 }
 
 .card-table-layout__center {
   position: absolute;
-  inset: 200px 240px 188px;
+  inset: 172px 210px 172px;
   border-radius: 999px;
   border: 1px dashed rgba(255, 255, 255, 0.32);
   background: rgba(3, 9, 6, 0.18);
@@ -327,8 +322,8 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
   }
 
   .table-seat {
-    width: 154px;
-    min-height: 72px;
+    width: 90px;
+    min-height: 88px;
     padding: 7px;
   }
 
