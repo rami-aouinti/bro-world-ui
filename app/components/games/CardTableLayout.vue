@@ -97,7 +97,7 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
         </div>
       </div>
 
-      <section class="card-table-layout__content">
+      <section v-if="$slots.default" class="card-table-layout__content">
         <slot />
       </section>
     </div>
@@ -122,11 +122,14 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
 
 .card-table-layout__table {
   position: relative;
-  min-height: 480px;
-  border-radius: 24px;
-  background: radial-gradient(circle at center, #2a8f4f 0%, #18643a 75%);
-  border: 2px solid rgba(255, 255, 255, 0.24);
-  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.08), 0 14px 32px rgba(12, 31, 20, 0.28);
+  min-height: 520px;
+  border-radius: 48% / 40%;
+  background: radial-gradient(circle at center, #2f9d59 0%, #19663c 74%);
+  border: 12px solid rgba(48, 24, 13, 0.72);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+    inset 0 0 0 14px rgba(0, 0, 0, 0.08),
+    0 18px 34px rgba(12, 31, 20, 0.28);
   overflow: hidden;
 }
 
@@ -150,10 +153,10 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
   box-shadow: 0 0 0 2px rgba(255, 235, 59, 0.25);
 }
 
-.table-seat--north { top: 16px; left: 50%; transform: translateX(-50%); }
-.table-seat--east { top: 50%; right: 16px; transform: translateY(-50%); }
-.table-seat--south { bottom: 16px; left: 50%; transform: translateX(-50%); }
-.table-seat--west { top: 50%; left: 16px; transform: translateY(-50%); }
+.table-seat--north { top: 20px; left: 50%; transform: translateX(-50%); }
+.table-seat--east { top: 50%; right: 18px; transform: translateY(-50%); }
+.table-seat--south { bottom: 20px; left: 50%; transform: translateX(-50%); }
+.table-seat--west { top: 50%; left: 18px; transform: translateY(-50%); }
 .table-seat--north-east { top: 54px; right: 26px; }
 .table-seat--south-east { bottom: 54px; right: 26px; }
 .table-seat--south-west { bottom: 54px; left: 26px; }
@@ -183,35 +186,35 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
 }
 
 .table-seat-hand--north {
-  top: 90px;
+  top: 110px;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .table-seat-hand--south {
-  bottom: 78px;
+  bottom: 92px;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .table-seat-hand--east {
   top: 50%;
-  right: 198px;
-  width: min(190px, 32%);
+  right: 210px;
+  width: min(190px, 28%);
   transform: translateY(-50%);
 }
 
 .table-seat-hand--west {
   top: 50%;
-  left: 198px;
-  width: min(190px, 32%);
+  left: 210px;
+  width: min(190px, 28%);
   transform: translateY(-50%);
 }
 
 .card-table-layout__center {
   position: absolute;
-  inset: 178px 205px 162px;
-  border-radius: 16px;
+  inset: 200px 240px 188px;
+  border-radius: 999px;
   border: 1px dashed rgba(255, 255, 255, 0.32);
   background: rgba(3, 9, 6, 0.18);
   display: flex;
@@ -268,11 +271,13 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
   }
 
   .card-table-layout__table {
-    min-height: 680px;
+    min-height: 700px;
+    border-radius: 28px;
+    border-width: 8px;
   }
 
   .card-table-layout__center {
-    inset: 218px 24px 174px;
+    inset: 220px 36px 188px;
   }
 
   .table-seat-hand--north {
