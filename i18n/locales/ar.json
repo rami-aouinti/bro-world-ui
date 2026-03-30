@@ -1720,6 +1720,11 @@
       "chooseGame": "اختر هذه اللعبة",
       "launchGame": "ابدأ اللعبة"
     },
+    "labels": {
+      "allGames": "كل الألعاب",
+      "features": "الميزات",
+      "bonus": "مزايا إضافية"
+    },
     "catalog": {
       "categories": {
         "cards": {
