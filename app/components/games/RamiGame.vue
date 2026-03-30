@@ -166,6 +166,12 @@ const centerCards = computed(() =>
     .map((card) => `${formatRank(card.rank)}${card.suit}`),
 );
 
+const playerMeldLabels = computed(() =>
+  playerMelds.value.map((meld) =>
+    meld.map((card) => `${formatRank(card.rank)}${card.suit}`),
+  ),
+);
+
 const selectedCards = computed(() =>
   playerHand.value.filter((card) => selectedCardIds.value.includes(card.id)),
 );
@@ -970,23 +976,39 @@ reset();
     :turn-timer-seconds="TURN_SECONDS"
   >
     <template #center>
-      <section
-        ref="discardDropZone"
-        class="discard-drop-zone"
-        :class="{ 'discard-drop-zone--active': dragOverDiscardZone }"
-        aria-label="Zone de défausse"
-      >
-        <p class="discard-drop-zone__title mb-1">Pile de défausse</p>
-        <p class="text-caption mb-2 text-white">
-          Glissez une carte ici pour défausser.
-        </p>
-        <span class="discard-drop-zone__card">
-          {{
-            topDiscardCard
-              ? `${formatRank(topDiscardCard.rank)}${topDiscardCard.suit}`
-              : "—"
-          }}
-        </span>
+      <section class="rami-table-center">
+        <section
+          ref="discardDropZone"
+          class="discard-drop-zone"
+          :class="{ 'discard-drop-zone--active': dragOverDiscardZone }"
+          aria-label="Zone de défausse"
+        >
+          <template v-if="selectedCardIds.length">
+            <p class="discard-drop-zone__title mb-1">Pile de défausse</p>
+            <p class="text-caption mb-0 text-white">
+              Glissez une carte ici pour défausser.
+            </p>
+          </template>
+          <span v-if="topDiscardCard" class="discard-drop-zone__card">
+            {{ `${formatRank(topDiscardCard.rank)}${topDiscardCard.suit}` }}
+          </span>
+        </section>
+
+        <div v-if="playerMeldLabels.length" class="player-melds-strip">
+          <div
+            v-for="(meld, meldIndex) in playerMeldLabels"
+            :key="`player-meld-${meldIndex}`"
+            class="player-melds-strip__meld"
+          >
+            <span
+              v-for="(card, cardIndex) in meld"
+              :key="`player-meld-${meldIndex}-${cardIndex}`"
+              class="player-melds-strip__card"
+            >
+              {{ card }}
+            </span>
+          </div>
+        </div>
       </section>
     </template>
 
@@ -1241,12 +1263,18 @@ reset();
   position: relative;
   z-index: 1;
   min-width: 190px;
+  min-height: 136px;
   border-radius: 14px;
   border: 2px dashed rgba(255, 255, 255, 0.65);
   background: rgba(3, 9, 6, 0.36);
   padding: 12px;
   text-align: center;
   color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   transition:
     border-color 160ms ease,
     background-color 160ms ease,
@@ -1273,6 +1301,43 @@ reset();
   background: rgba(255, 255, 255, 0.92);
   color: #111827;
   font-weight: 800;
+}
+
+.rami-table-center {
+  position: relative;
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-melds-strip {
+  position: absolute;
+  left: 50%;
+  bottom: -58px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: min(92%, 420px);
+}
+
+.player-melds-strip__meld {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.player-melds-strip__card {
+  padding: 3px 6px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #111827;
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .card-corner {
