@@ -273,10 +273,10 @@ const isGameStarted = ref(false);
 const isLoginDialogOpen = ref(false);
 const isCoinsDialogOpen = ref(false);
 const userCoins = ref(0);
-const loginUsernameOrEmail = ref("");
-const loginPassword = ref("");
-const isLoginSubmitting = ref(false);
-const loginErrorMessage = ref("");
+const usernameOrEmail = ref("");
+const password = ref("");
+const loginLoading = ref(false);
+const loginError = ref("");
 const liveGamePanel = ref<GameAsidePanelState | null>(null);
 const ramiGameRef = ref<{
   handleAsideAction: (actionId: string) => void;
@@ -432,24 +432,24 @@ const sidebarUserDisplayName = computed(() => {
   return fullName || authSession.profile?.username || "Player";
 });
 
-const handleLoginSubmit = async () => {
-  if (!loginUsernameOrEmail.value.trim() || !loginPassword.value.trim()) {
-    loginErrorMessage.value = "Veuillez renseigner vos identifiants.";
+const handleLogin = async () => {
+  if (!usernameOrEmail.value.trim() || !password.value.trim()) {
+    loginError.value = "Veuillez renseigner vos identifiants.";
     return;
   }
 
-  isLoginSubmitting.value = true;
-  loginErrorMessage.value = "";
+  loginLoading.value = true;
+  loginError.value = "";
 
   try {
-    await login(loginUsernameOrEmail.value.trim(), loginPassword.value);
+    await login(usernameOrEmail.value.trim(), password.value);
     isLoginDialogOpen.value = false;
-    loginUsernameOrEmail.value = "";
-    loginPassword.value = "";
+    usernameOrEmail.value = "";
+    password.value = "";
   } catch {
-    loginErrorMessage.value = "Connexion impossible. Réessayez.";
+    loginError.value = "Connexion impossible. Réessayez.";
   } finally {
-    isLoginSubmitting.value = false;
+    loginLoading.value = false;
   }
 };
 </script>
@@ -543,44 +543,42 @@ const handleLoginSubmit = async () => {
         >
       </div>
 
-      <v-dialog v-model="isLoginDialogOpen" max-width="420">
+      <v-dialog v-model="isLoginDialogOpen" max-width="520">
         <v-card>
           <v-card-title>Connexion</v-card-title>
           <v-card-text class="d-flex flex-column ga-3">
             <v-text-field
-              v-model="loginUsernameOrEmail"
+              v-model="usernameOrEmail"
               label="Email ou username"
               variant="outlined"
               density="comfortable"
             />
             <v-text-field
-              v-model="loginPassword"
+              v-model="password"
               label="Mot de passe"
               type="password"
               variant="outlined"
               density="comfortable"
             />
             <v-alert
-              v-if="loginErrorMessage"
+              v-if="loginError"
               type="error"
               variant="tonal"
               density="compact"
             >
-              {{ loginErrorMessage }}
+              {{ loginError }}
             </v-alert>
           </v-card-text>
           <v-card-actions>
             <v-spacer />
-            <v-btn variant="text" @click="isLoginDialogOpen = false"
-              >Annuler</v-btn
-            >
             <v-btn
               color="primary"
-              :loading="isLoginSubmitting"
-              @click="handleLoginSubmit"
+              :loading="loginLoading"
+              @click="handleLogin"
             >
               Se connecter
             </v-btn>
+            <v-btn variant="text" to="/login">Aller vers /login</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
