@@ -271,11 +271,12 @@ defineExpose({
               "
               @click="playCard(displayHandPlayerIndex, card.id)"
           >
-            <span>{{ card.rank }}</span>
+            <span class="card-rank">{{ card.rank }}</span>
             <span
-                :class="
-                  card.suit === '♥' || card.suit === '♦' ? 'text-red' : 'text-black'
-                "
+                :class="[
+                  'card-suit',
+                  card.suit === '♥' || card.suit === '♦' ? 'text-red' : 'text-black',
+                ]"
             >{{ card.suit }}</span
             >
           </button>
@@ -499,9 +500,9 @@ defineExpose({
 .play-card {
   min-height: 74px;
   border-radius: 12px;
-  border: 1px solid
-    color-mix(in srgb, rgb(var(--v-theme-primary)) 26%, transparent);
+  border: 1px solid rgba(17, 24, 39, 0.25);
   background: #ffffff;
+  color: #111827;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -525,7 +526,18 @@ defineExpose({
 }
 
 .play-card:disabled {
-  opacity: 0.5;
+  opacity: 0.82;
+}
+
+.card-rank {
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.card-suit {
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .ai-hands {
