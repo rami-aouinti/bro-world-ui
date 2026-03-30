@@ -380,6 +380,16 @@ const panelState = computed<GameAsidePanelState>(() => ({
 watchEffect(() => {
   emit("panel-state", panelState.value);
 });
+
+const handleAsideAction = (actionId: string) => {
+  if (actionId === "new-game") {
+    initializeNewGame();
+  }
+};
+
+defineExpose({
+  handleAsideAction,
+});
 </script>
 
 <template>
@@ -431,9 +441,6 @@ watchEffect(() => {
           t("gameComponents.game2048.status.objective", { tile: highestTile })
         }}</template>
       </p>
-      <v-btn color="primary" variant="flat" @click="initializeNewGame">{{
-        t("gameComponents.game2048.actions.newGame")
-      }}</v-btn>
     </div>
   </section>
 </template>

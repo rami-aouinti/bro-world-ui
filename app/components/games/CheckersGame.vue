@@ -613,6 +613,16 @@ const panelState = computed<GameAsidePanelState>(() => ({
 watchEffect(() => {
   emit("panel-state", panelState.value);
 });
+
+const handleAsideAction = (actionId: string) => {
+  if (actionId === "restart") {
+    reset();
+  }
+};
+
+defineExpose({
+  handleAsideAction,
+});
 </script>
 
 <template>
@@ -642,7 +652,6 @@ watchEffect(() => {
 
     <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-1">
       <h3 class="game-shell-title mb-0">{{ t("gameComponents.checkers.title") }}</h3>
-      <v-btn color="primary" prepend-icon="mdi-refresh" @click="reset">{{ t("gameComponents.checkers.actions.restart") }}</v-btn>
     </div>
     <p class="game-shell-subtitle mb-0">{{ message }}</p>
 

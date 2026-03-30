@@ -285,6 +285,30 @@ const coinOffers = [
 const ramiGameRef = ref<{
   handleAsideAction: (actionId: string) => void;
 } | null>(null);
+const beloteGameRef = ref<{
+  handleAsideAction: (actionId: string) => void;
+} | null>(null);
+const checkersGameRef = ref<{
+  handleAsideAction: (actionId: string) => void;
+} | null>(null);
+const chessGameRef = ref<{
+  handleAsideAction: (actionId: string) => void;
+} | null>(null);
+const sudokuGameRef = ref<{
+  handleAsideAction: (actionId: string) => void;
+} | null>(null);
+const nonogramGameRef = ref<{
+  handleAsideAction: (actionId: string) => void;
+} | null>(null);
+const hiddenWordGameRef = ref<{
+  handleAsideAction: (actionId: string) => void;
+} | null>(null);
+const game2048Ref = ref<{
+  handleAsideAction: (actionId: string) => void;
+} | null>(null);
+const pokerGameRef = ref<{
+  handleAsideAction: (actionId: string) => void;
+} | null>(null);
 const unoGameRef = ref<{
   handleAsideAction: (actionId: string) => void;
 } | null>(null);
@@ -418,15 +442,41 @@ const onAsideAction = (actionId: string) => {
   const component = selectedGame.value?.component;
   if (!component) return;
 
-  const asideHandlersByComponent: Partial<
-    Record<NonNullable<GameEntry["component"]>, AsideActionHandler | null>
+  const asideHandlersByComponent: Record<
+    NonNullable<GameEntry["component"]>,
+    AsideActionHandler | null
   > = {
     rami: ramiGameRef.value,
+    belote: beloteGameRef.value,
+    checkers: checkersGameRef.value,
+    chess: chessGameRef.value,
+    sudoku: sudokuGameRef.value,
+    nonogram: nonogramGameRef.value,
+    "hidden-word": hiddenWordGameRef.value,
+    game2048: game2048Ref.value,
+    poker: pokerGameRef.value,
     uno: unoGameRef.value,
   };
 
   asideHandlersByComponent[component]?.handleAsideAction(actionId);
 };
+
+const globalRestartAction = computed(() => {
+  const actions = liveGamePanel.value?.actions ?? [];
+  const primaryIds = new Set([
+    "play-again",
+    "new-round",
+    "new-deal",
+    "restart",
+    "new-grid",
+    "new-game",
+    "next",
+    "reset",
+    "next-hand",
+  ]);
+
+  return actions.find((action) => primaryIds.has(action.id)) ?? null;
+});
 
 watch([selectedGameId, isGameStarted], () => {
   if (!isGameStarted.value) {
@@ -491,6 +541,17 @@ const handleLogin = async () => {
 
 <template>
   <PlatformSplitLayout>
+    <teleport v-if="isGameStarted && globalRestartAction" to="#app-bar-teleport-target-right">
+      <v-btn
+        color="primary"
+        variant="tonal"
+        prepend-icon="mdi-refresh"
+        :disabled="globalRestartAction.disabled"
+        @click="onAsideAction(globalRestartAction.id)"
+      >
+        {{ globalRestartAction.label }}
+      </v-btn>
+    </teleport>
     <template #sidebar>
       <div class="mb-4">
         <v-chip variant="outlined" prepend-icon="mdi-controller" class="mb-2">{{
@@ -889,42 +950,50 @@ const handleLogin = async () => {
           @panel-state="onGamePanelState"
         />
         <BeloteGame
+          ref="beloteGameRef"
           v-else-if="selectedGame.component === 'belote'"
           :selected-play-mode="selectedPlayMode"
           :belote-mode="selectedBeloteMode ?? 'teams'"
           @panel-state="onGamePanelState"
         />
         <CheckersGame
+          ref="checkersGameRef"
           v-else-if="selectedGame.component === 'checkers'"
           :selected-play-mode="selectedPlayMode"
           @panel-state="onGamePanelState"
         />
         <PokerGame
+          ref="pokerGameRef"
           v-else-if="selectedGame.component === 'poker'"
           :selected-play-mode="selectedPlayMode"
           @panel-state="onGamePanelState"
         />
         <NonogramGame
+          ref="nonogramGameRef"
           v-else-if="selectedGame.component === 'nonogram'"
           :selected-play-mode="selectedPlayMode"
           @panel-state="onGamePanelState"
         />
         <HiddenWordGame
+          ref="hiddenWordGameRef"
           v-else-if="selectedGame.component === 'hidden-word'"
           :selected-play-mode="selectedPlayMode"
           @panel-state="onGamePanelState"
         />
         <ChessGame
+          ref="chessGameRef"
           v-else-if="selectedGame.component === 'chess'"
           :selected-play-mode="selectedPlayMode"
           @panel-state="onGamePanelState"
         />
         <SudokuGame
+          ref="sudokuGameRef"
           v-else-if="selectedGame.component === 'sudoku'"
           :selected-play-mode="selectedPlayMode"
           @panel-state="onGamePanelState"
         />
         <Game2048
+          ref="game2048Ref"
           v-else-if="selectedGame.component === 'game2048'"
           :selected-play-mode="selectedPlayMode"
           @panel-state="onGamePanelState"

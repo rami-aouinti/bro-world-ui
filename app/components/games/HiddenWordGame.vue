@@ -325,6 +325,21 @@ const panelState = computed<GameAsidePanelState>(() => ({
 watchEffect(() => {
   emit("panel-state", panelState.value);
 });
+
+const handleAsideAction = (actionId: string) => {
+  if (actionId === "submit") {
+    submitGuess();
+    return;
+  }
+
+  if (actionId === "restart") {
+    resetGame();
+  }
+};
+
+defineExpose({
+  handleAsideAction,
+});
 </script>
 
 <template>
@@ -377,9 +392,6 @@ watchEffect(() => {
         @click="submitGuess"
         >{{ t("gameComponents.hiddenWord.actions.submit") }}</v-btn
       >
-      <v-btn color="secondary" variant="tonal" @click="resetGame">{{
-        t("gameComponents.hiddenWord.actions.restart")
-      }}</v-btn>
       <v-btn
         color="success"
         variant="outlined"
