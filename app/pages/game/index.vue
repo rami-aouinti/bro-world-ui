@@ -12,6 +12,7 @@ definePageMeta({
 });
 
 type PlayMode = "ai" | "pvp";
+type BeloteMode = "teams" | "free-for-all";
 
 interface GameEntry {
   id: string;
@@ -109,6 +110,7 @@ const selectedCategoryId = ref<string | null>(null);
 const selectedSubCategoryId = ref<string | null>(null);
 const selectedGameId = ref<string | null>(null);
 const selectedPlayMode = ref<PlayMode | null>(null);
+const selectedBeloteMode = ref<BeloteMode | null>(null);
 const isGameStarted = ref(false);
 
 const selectedCategory = computed(
@@ -129,12 +131,22 @@ const selectedGame = computed(
     ) ?? null,
 );
 const canLaunchSelectedGame = computed(
-  () =>
-    Boolean(selectedGame.value?.component) &&
-    Boolean(
-      selectedPlayMode.value &&
-      selectedGame.value?.supportedModes.includes(selectedPlayMode.value),
-    ),
+  () => {
+    const hasPlayableMode =
+      Boolean(selectedPlayMode.value) &&
+      Boolean(
+        selectedPlayMode.value &&
+          selectedGame.value?.supportedModes.includes(selectedPlayMode.value),
+      );
+
+    if (!selectedGame.value?.component || !hasPlayableMode) return false;
+
+    if (selectedGame.value.id === "belote") {
+      return Boolean(selectedBeloteMode.value);
+    }
+
+    return true;
+  },
 );
 
 const modeLabel = (mode: PlayMode) =>
@@ -167,6 +179,7 @@ const openCategory = (categoryId: string) => {
   selectedSubCategoryId.value = null;
   selectedGameId.value = null;
   selectedPlayMode.value = null;
+  selectedBeloteMode.value = null;
   isGameStarted.value = false;
 };
 
@@ -174,12 +187,14 @@ const openSubCategory = (subCategoryId: string) => {
   selectedSubCategoryId.value = subCategoryId;
   selectedGameId.value = null;
   selectedPlayMode.value = null;
+  selectedBeloteMode.value = null;
   isGameStarted.value = false;
 };
 
 const openGame = (gameId: string) => {
   selectedGameId.value = gameId;
   selectedPlayMode.value = null;
+  selectedBeloteMode.value = gameId === "belote" ? "teams" : null;
   isGameStarted.value = false;
 };
 
@@ -188,6 +203,7 @@ const resetToCategories = () => {
   selectedSubCategoryId.value = null;
   selectedGameId.value = null;
   selectedPlayMode.value = null;
+  selectedBeloteMode.value = null;
   isGameStarted.value = false;
 };
 
@@ -197,6 +213,12 @@ const selectPlayMode = (mode: PlayMode) => {
   }
 
   selectedPlayMode.value = mode;
+  isGameStarted.value = false;
+};
+
+const selectBeloteMode = (mode: BeloteMode) => {
+  if (selectedGame.value?.id !== "belote") return;
+  selectedBeloteMode.value = mode;
   isGameStarted.value = false;
 };
 
@@ -373,6 +395,23 @@ const launchGame = () => {
             </v-btn>
           </div>
 
+          <div v-if="selectedGame.id === 'belote'" class="d-flex flex-wrap ga-2 mb-4">
+            <v-btn
+              color="deep-purple"
+              :variant="selectedBeloteMode === 'teams' ? 'flat' : 'outlined'"
+              @click="selectBeloteMode('teams')"
+            >
+              Belote 2v2
+            </v-btn>
+            <v-btn
+              color="deep-purple"
+              :variant="selectedBeloteMode === 'free-for-all' ? 'flat' : 'outlined'"
+              @click="selectBeloteMode('free-for-all')"
+            >
+              Belote free-for-all
+            </v-btn>
+          </div>
+
           <v-alert
             v-if="
               !selectedGame.supportedModes.length || !selectedGame.component
@@ -402,6 +441,7 @@ const launchGame = () => {
         <BeloteGame
           v-else-if="selectedGame.component === 'belote'"
           :selected-play-mode="selectedPlayMode"
+          :belote-mode="selectedBeloteMode ?? 'teams'"
         />
         <CheckersGame
           v-else-if="selectedGame.component === 'checkers'"
