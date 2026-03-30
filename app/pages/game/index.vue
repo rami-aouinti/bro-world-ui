@@ -575,8 +575,8 @@ const gamePanelState = computed(() => ({
         </v-row>
       </section>
 
-      <section v-else-if="selectedGame && !isGameStarted" class="mb-1">
-        <v-card class="pa-4 unified-card d-flex justify-center" variant="outlined">
+      <section v-else-if="selectedGame && !isGameStarted" class="mb-1 setup-section">
+        <v-card class="pa-4 unified-card" variant="outlined">
           <div v-if="selectedGame.features?.length" class="mb-4">
             <h3 class="section-title mb-2">
               {{ t("gamePage.labels.features") }}
@@ -591,24 +591,36 @@ const gamePanelState = computed(() => ({
             </ul>
           </div>
 
-          <div class="d-flex flex-wrap ga-2 mb-4">
-            <v-btn
-              :color="getLevelColor('mode')"
-              :variant="selectedPlayMode === 'ai' ? 'flat' : 'outlined'"
-              :disabled="!selectedGame.supportedModes.includes('ai')"
-              @click="selectPlayMode('ai')"
-            >
-              {{ modeLabel("ai") }}
-            </v-btn>
-            <v-btn
-              :color="getLevelColor('subCategory')"
-              :variant="selectedPlayMode === 'pvp' ? 'flat' : 'outlined'"
-              :disabled="!selectedGame.supportedModes.includes('pvp')"
-              @click="selectPlayMode('pvp')"
-            >
-              {{ modeLabel("pvp") }}
-            </v-btn>
-          </div>
+          <v-row class="mb-4" dense>
+            <v-col cols="6">
+              <v-card
+                class="mode-card h-100"
+                :class="{ 'mode-card--active': selectedPlayMode === 'ai' }"
+                :variant="selectedPlayMode === 'ai' ? 'flat' : 'outlined'"
+                :color="selectedPlayMode === 'ai' ? getLevelColor('mode') : undefined"
+                :disabled="!selectedGame.supportedModes.includes('ai')"
+                @click="selectedGame.supportedModes.includes('ai') && selectPlayMode('ai')"
+              >
+                <v-card-text class="text-center py-8 font-weight-bold text-subtitle-1">
+                  {{ modeLabel("ai") }}
+                </v-card-text>
+              </v-card>
+            </v-col>
+            <v-col cols="6">
+              <v-card
+                class="mode-card h-100"
+                :class="{ 'mode-card--active': selectedPlayMode === 'pvp' }"
+                :variant="selectedPlayMode === 'pvp' ? 'flat' : 'outlined'"
+                :color="selectedPlayMode === 'pvp' ? getLevelColor('subCategory') : undefined"
+                :disabled="!selectedGame.supportedModes.includes('pvp')"
+                @click="selectedGame.supportedModes.includes('pvp') && selectPlayMode('pvp')"
+              >
+                <v-card-text class="text-center py-8 font-weight-bold text-subtitle-1">
+                  {{ modeLabel("pvp") }}
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
 
           <div
             v-if="selectedGame.id === 'belote'"
@@ -643,11 +655,11 @@ const gamePanelState = computed(() => ({
             {{ t("gamePage.status.soonHint") }}
           </v-alert>
         </v-card>
-        <v-spacer></v-spacer>
-        <div class="d-flex justify-center my-4">
+        <div class="d-flex justify-center mt-auto pt-6">
           <v-btn
               :color="getLevelColor('game')"
               :disabled="!canLaunchSelectedGame"
+              size="large"
               @click="launchGame"
           >
             {{ t("gamePage.actions.launchGame") }}
@@ -772,6 +784,30 @@ const gamePanelState = computed(() => ({
   padding-left: 1rem;
   display: grid;
   gap: 0.35rem;
+}
+
+.setup-section {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.mode-card {
+  cursor: pointer;
+  border: 1px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 35%, transparent);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+
+.mode-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 18px rgba(15, 23, 42, 0.18);
+}
+
+.mode-card--active {
+  box-shadow: 0 12px 20px rgba(15, 23, 42, 0.18);
 }
 
 @media (max-width: 959px) {
