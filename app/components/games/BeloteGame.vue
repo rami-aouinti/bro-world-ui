@@ -12,6 +12,9 @@ const { t } = useI18n()
 
 const {
   TURN_SECONDS,
+  phase,
+  expectedAction,
+  contract,
   players,
   trumpSuit,
   trick,
@@ -23,6 +26,8 @@ const {
   roundResult,
   playerScores,
   teamScores,
+  totalPlayerScores,
+  totalTeamScores,
   canHumanPlay,
   humanTurnPlayerIndex,
   humanPlayableCards,
@@ -83,6 +88,8 @@ const scoreboardRows = computed(() => {
 })
 
 const modeLabel = computed(() => (props.beloteMode === 'teams' ? '2v2' : 'Free-for-all'))
+const phaseLabel = computed(() => t(`gameComponents.belote.phases.${phase.value}`))
+const expectedActionLabel = computed(() => t(`gameComponents.belote.expectedActions.${expectedAction.value}`))
 </script>
 
 <template>
@@ -94,7 +101,11 @@ const modeLabel = computed(() => (props.beloteMode === 'teams' ? '2v2' : 'Free-f
 
     <p class="game-description mb-1">{{ t("gameComponents.belote.trump") }}: <strong>{{ trumpSuit }}</strong></p>
     <p class="game-subtitle mb-4">
-      {{ t("gameComponents.belote.tricksPlayed", { count: trickCountValue }) }} · Tour: {{ players[turnIndex]?.name ?? '—' }} · Timer: {{ timerSeconds }}s
+      {{ t("gameComponents.belote.tricksPlayed", { count: trickCountValue }) }} · {{ t("gameComponents.belote.phase") }}: {{ phaseLabel }} · {{ t("gameComponents.belote.expectedAction") }}: {{ expectedActionLabel }}
+      · {{ t("gameComponents.belote.turn") }}: {{ players[turnIndex]?.name ?? '—' }} · Timer: {{ timerSeconds }}s
+    </p>
+    <p v-if="contract" class="game-subtitle mb-4">
+      {{ t("gameComponents.belote.contract") }}: {{ players[contract.takerIndex]?.name }} · {{ t("gameComponents.belote.trump") }} {{ contract.trumpSuit }} · {{ t("gameComponents.belote.target") }} {{ contract.targetPoints }}
     </p>
 
     <CardTableLayout :players="tablePlayers" :center-cards="centerCards" :turn-timer-seconds="TURN_SECONDS">
@@ -116,12 +127,12 @@ const modeLabel = computed(() => (props.beloteMode === 'teams' ? '2v2' : 'Free-f
       <v-row class="mb-4" dense>
         <v-col cols="12" md="6">
           <v-card class="pa-3 game-info-card h-100" variant="outlined">
-            <p class="text-subtitle-2 font-weight-bold mb-2">Scores</p>
+            <p class="text-subtitle-2 font-weight-bold mb-2">{{ t("gameComponents.belote.scoreboard.round") }}</p>
             <v-table density="compact" class="belote-score-table" aria-label="Tableau des scores de belote">
               <thead>
                 <tr>
-                  <th class="text-left">Joueur / Équipe</th>
-                  <th class="text-right">Points</th>
+                  <th class="text-left">{{ t("gameComponents.belote.scoreboard.side") }}</th>
+                  <th class="text-right">{{ t("gameComponents.belote.scoreboard.points") }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -131,6 +142,13 @@ const modeLabel = computed(() => (props.beloteMode === 'teams' ? '2v2' : 'Free-f
                 </tr>
               </tbody>
             </v-table>
+            <p class="text-subtitle-2 font-weight-bold mt-3 mb-1">{{ t("gameComponents.belote.scoreboard.global") }}</p>
+            <p class="mb-1" v-if="props.beloteMode === 'teams'">
+              Équipe A: {{ totalTeamScores.teamA }} · Équipe B: {{ totalTeamScores.teamB }}
+            </p>
+            <p class="mb-1" v-else>
+              <span v-for="(player, index) in players" :key="`${player.id}-global`" class="mr-2">{{ player.name }}: {{ totalPlayerScores[index] }}</span>
+            </p>
             <p class="mb-0 mt-2">{{ roundOver ? roundResult : message }}</p>
           </v-card>
         </v-col>

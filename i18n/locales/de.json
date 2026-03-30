@@ -1829,6 +1829,30 @@
         "aiWonGame": "Spiel beendet: KI gewinnt {aiScore} zu {playerScore}.",
         "drawGame": "Spiel beendet: Unentschieden {playerScore}-{aiScore}.",
         "newRound": "Neue Belote-Runde. Du bist dran!"
+      },
+      "phase": "Phase",
+      "expectedAction": "Expected action",
+      "turn": "Turn",
+      "contract": "Contract",
+      "target": "Target",
+      "phases": {
+        "distribution": "Distribution",
+        "bidding": "Bidding / trump",
+        "playing": "Playing tricks",
+        "round-end": "Round end"
+      },
+      "expectedActions": {
+        "deal": "Deal cards",
+        "choose-trump": "Choose contract / trump",
+        "play-card": "Play a valid card",
+        "resolve-trick": "Resolve trick",
+        "new-round": "Start a new round"
+      },
+      "scoreboard": {
+        "round": "Round score",
+        "global": "Global score",
+        "side": "Team / Player",
+        "points": "Points"
       }
     },
     "checkers": {
