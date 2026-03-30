@@ -2001,6 +2001,7 @@
         "invalidCombination": "Combinação inválida. Tente uma sequência do mesmo naipe ou uma trinca.",
         "allCardsPlayed": "Parabéns! Você baixou todas as cartas.",
         "goodCombination": "Boa combinação. Continue!",
+        "discardRecycled": "A pilha de descarte foi reciclada em uma nova pilha de compra.",
         "deckEmpty": "O baralho está vazio.",
         "cardDrawn": "Carta comprada.",
         "playerWin": "You win! All your cards are played.",

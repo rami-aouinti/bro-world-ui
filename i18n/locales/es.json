@@ -2001,6 +2001,7 @@
         "invalidCombination": "Combinación inválida. Prueba una escalera del mismo palo o un trío.",
         "allCardsPlayed": "¡Excelente! Jugaste todas tus cartas.",
         "goodCombination": "Buena combinación. ¡Sigue así!",
+        "discardRecycled": "La pila de descarte se recicló en un nuevo mazo de robo.",
         "deckEmpty": "La baraja está vacía.",
         "cardDrawn": "Carta robada.",
         "playerWin": "You win! All your cards are played.",

@@ -2001,6 +2001,7 @@
         "invalidCombination": "Combinaison invalide. Essayez une suite de même couleur ou un brelan.",
         "allCardsPlayed": "Bravo ! Vous avez posé toutes vos cartes.",
         "goodCombination": "Bonne combinaison. Continuez !",
+        "discardRecycled": "La défausse a été recyclée en nouvelle pioche.",
         "deckEmpty": "Le paquet est vide.",
         "cardDrawn": "Carte piochée.",
         "playerWin": "You win! All your cards are played.",

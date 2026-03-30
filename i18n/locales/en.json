@@ -2001,6 +2001,7 @@
         "invalidCombination": "Invalid combination. Try a same-suit run or a set.",
         "allCardsPlayed": "Great job! You played all your cards.",
         "goodCombination": "Nice combination. Keep going!",
+        "discardRecycled": "Discard pile recycled into a new draw pile.",
         "deckEmpty": "The deck is empty.",
         "cardDrawn": "Card drawn.",
         "playerWin": "You win! All your cards are played.",

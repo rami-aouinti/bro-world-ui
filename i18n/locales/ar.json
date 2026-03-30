@@ -2001,6 +2001,7 @@
         "invalidCombination": "تشكيلة غير صالحة. جرّب تسلسلًا من نفس النوع أو مجموعة.",
         "allCardsPlayed": "رائع! لقد أنزلت كل بطاقاتك.",
         "goodCombination": "تشكيلة جيدة. واصل!",
+        "discardRecycled": "تمت إعادة تدوير كومة الرمي لتصبح كومة سحب جديدة.",
         "deckEmpty": "الرزمة فارغة.",
         "cardDrawn": "تم سحب بطاقة.",
         "playerWin": "You win! All your cards are played.",
