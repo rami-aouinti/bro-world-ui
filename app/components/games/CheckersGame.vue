@@ -253,7 +253,7 @@ const highlightedMoves = computed(() => {
   }
 
   const moves = availableMoves(selected.value)
-  if (mustContinueCapture.value) {
+  if (mustContinueCapture.value || hasCaptureMoveForCurrentPlayer()) {
     return moves.captureMoves
   }
 
@@ -290,9 +290,27 @@ const stopTurnTimer = () => {
   intervalId.value = null
 }
 
+const hasCaptureMoveForCurrentPlayer = () => allMovesFor(currentPlayer.value).some(({ move }) => Boolean(move.capture))
+
+const updateTurnMessage = () => {
+  const baseMessage = currentPlayerLabel(currentPlayer.value)
+
+  if (mustContinueCapture.value) {
+    message.value = `${baseMessage} — prise obligatoire : continuez la capture`
+    return
+  }
+
+  if (hasCaptureMoveForCurrentPlayer()) {
+    message.value = `${baseMessage} — prise obligatoire`
+    return
+  }
+
+  message.value = baseMessage
+}
+
 const switchTurn = () => {
   currentPlayer.value = currentPlayer.value === 'red' ? 'black' : 'red'
-  message.value = currentPlayerLabel(currentPlayer.value)
+  updateTurnMessage()
   if (!winner.value) {
     startTurnTimer()
   }
@@ -333,6 +351,7 @@ const executeMove = (from: Position, move: Move) => {
     if (nextCaptures.length) {
       selected.value = { ...move.to }
       mustContinueCapture.value = true
+      updateTurnMessage()
       return true
     }
   }
@@ -430,6 +449,7 @@ const clickCell = (row: number, col: number) => {
   }
 
   const clickedPiece = board.value[row][col]
+  const hasMandatoryCapture = hasCaptureMoveForCurrentPlayer()
   if (clickedPiece && clickedPiece.player !== currentPlayer.value) {
     return
   }
@@ -442,7 +462,15 @@ const clickCell = (row: number, col: number) => {
       return
     }
 
+    if (hasMandatoryCapture && !availableMoves({ row, col }).captureMoves.length) {
+      message.value = `${currentPlayerLabel(currentPlayer.value)} — prise obligatoire`
+      return
+    }
+
     selected.value = { row, col }
+    if (hasMandatoryCapture) {
+      message.value = `${currentPlayerLabel(currentPlayer.value)} — prise obligatoire`
+    }
     return
   }
 
@@ -452,6 +480,11 @@ const clickCell = (row: number, col: number) => {
 
   const move = highlightedMoves.value.find(item => item.to.row === row && item.to.col === col)
   if (!move) {
+    return
+  }
+
+  if (hasMandatoryCapture && !move.capture) {
+    message.value = `${currentPlayerLabel(currentPlayer.value)} — prise obligatoire`
     return
   }
 
@@ -469,13 +502,14 @@ const reset = () => {
   currentPlayer.value = 'red'
   selected.value = null
   mustContinueCapture.value = false
-  message.value = currentPlayerLabel('red')
+  updateTurnMessage()
   isThinking.value = false
   forcedWinner.value = null
   startTurnTimer()
 }
 
 onMounted(() => {
+  updateTurnMessage()
   startTurnTimer()
 })
 
