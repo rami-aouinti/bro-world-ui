@@ -15,11 +15,17 @@ type Suit = "♠" | "♥" | "♦" | "♣";
 
 type Player = "player" | "aiRight" | "aiTop" | "aiLeft";
 type AiPlayer = Exclude<Player, "player">;
+type RoundScores = Record<Player, number>;
 
 interface Card {
   id: string;
   suit: Suit;
   rank: number;
+}
+
+interface RoundState {
+  winner: Player | null;
+  scores: RoundScores;
 }
 
 const { t } = useI18n();
@@ -37,6 +43,11 @@ const rankLabels: Record<number, string> = {
 const cardPoints = (card: Card) => {
   if (card.rank === 1) return 11;
   if (card.rank >= 10) return 10;
+  return card.rank;
+};
+
+const endRoundCardPoints = (card: Card) => {
+  if (card.rank === 1 || card.rank >= 10) return 10;
   return card.rank;
 };
 
@@ -86,6 +97,15 @@ const aiLeftOpened = ref(false);
 const currentTurn = ref<Player>("player");
 const hasDrawn = ref(false);
 const winner = ref<Player | null>(null);
+const roundState = ref<RoundState>({
+  winner: null,
+  scores: {
+    player: 0,
+    aiRight: 0,
+    aiTop: 0,
+    aiLeft: 0,
+  },
+});
 const timer = ref(TURN_SECONDS);
 const message = ref("");
 const draggedCardId = ref<string | null>(null);
@@ -198,6 +218,20 @@ const turnLabel = computed(() => {
 const score = computed(() =>
   playerMelds.value.flat().reduce((total, card) => total + cardPoints(card), 0),
 );
+const lastRoundSummary = computed(() => {
+  if (!roundState.value.winner) return "";
+  const roundWinnerName =
+    roundState.value.winner === "player"
+      ? playerDisplayNames.player
+      : playerDisplayNames[roundState.value.winner];
+  const roundScores = [
+    `${playerDisplayNames.player}: ${roundState.value.scores.player}`,
+    `${playerDisplayNames.aiRight}: ${roundState.value.scores.aiRight}`,
+    `${playerDisplayNames.aiTop}: ${roundState.value.scores.aiTop}`,
+    `${playerDisplayNames.aiLeft}: ${roundState.value.scores.aiLeft}`,
+  ].join(" · ");
+  return `Manche gagnée: ${roundWinnerName} (${roundScores})`;
+});
 
 const panelState = computed<GameAsidePanelState>(() => ({
   gameKey: "rami",
@@ -208,6 +242,7 @@ const panelState = computed<GameAsidePanelState>(() => ({
   highlights: [
     `${t("gameComponents.rami.pointsPlayed")}: ${score.value} · ${t("gameComponents.rami.turn")}: ${turnLabel.value}`,
     `${t("gameComponents.rami.hand")} (${playerHand.value.length}) · ${t("gameComponents.rami.drawPile")}: ${stock.value.length}`,
+    ...(lastRoundSummary.value ? [lastRoundSummary.value] : []),
   ],
   kpis: [
     {
@@ -549,6 +584,21 @@ const nextTurn = (turn: Player): Player => {
 
 const aiTurnPlayers: AiPlayer[] = ["aiRight", "aiTop", "aiLeft"];
 
+const getPlayerHandCards = (player: Player) => {
+  if (player === "player") return playerHand.value;
+  return getAiHandRef(player).value;
+};
+
+const calculateEndRoundScore = (cards: Card[]) =>
+  cards.reduce((total, card) => total + endRoundCardPoints(card), 0);
+
+const buildEndRoundScores = (): RoundScores => ({
+  player: calculateEndRoundScore(getPlayerHandCards("player")),
+  aiRight: calculateEndRoundScore(getPlayerHandCards("aiRight")),
+  aiTop: calculateEndRoundScore(getPlayerHandCards("aiTop")),
+  aiLeft: calculateEndRoundScore(getPlayerHandCards("aiLeft")),
+});
+
 const getAiHandRef = (aiPlayer: AiPlayer) => {
   if (aiPlayer === "aiRight") return aiRightHand;
   if (aiPlayer === "aiTop") return aiTopHand;
@@ -587,17 +637,30 @@ const startTurnTimer = () => {
 };
 
 const checkWin = () => {
+  const playerHasWon = !playerHand.value.length;
+  const winningAiPlayer = aiTurnPlayers.find(
+    (aiPlayer) => !getAiHandRef(aiPlayer).value.length,
+  );
+
+  const roundWinner: Player | null = playerHasWon
+    ? "player"
+    : winningAiPlayer ?? null;
+
+  if (roundWinner) {
+    roundState.value = {
+      winner: roundWinner,
+      scores: buildEndRoundScores(),
+    };
+  }
+
   if (!playerHand.value.length) {
     winner.value = "player";
     message.value = t("gameComponents.rami.messages.playerWin");
     return true;
   }
 
-  const hasAiWinner = aiTurnPlayers.some(
-    (aiPlayer) => !getAiHandRef(aiPlayer).value.length,
-  );
-  if (hasAiWinner) {
-    winner.value = "aiTop";
+  if (winningAiPlayer) {
+    winner.value = winningAiPlayer;
     message.value = t("gameComponents.rami.messages.computerWin");
     return true;
   }
@@ -967,6 +1030,15 @@ const reset = () => {
   hasDrawn.value = false;
   timer.value = TURN_SECONDS;
   winner.value = null;
+  roundState.value = {
+    winner: null,
+    scores: {
+      player: 0,
+      aiRight: 0,
+      aiTop: 0,
+      aiLeft: 0,
+    },
+  };
   message.value = t("gameComponents.rami.messages.newGameDetailed", {
     count: 14,
   });
