@@ -44,69 +44,80 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
 
 <template>
   <div class="card-table-layout">
-    <div class="card-table-layout__table">
-      <article
-        v-for="player in playersWithSeats"
-        :key="player.id"
-        class="table-seat"
-        :class="[`table-seat--${player.seat}`, { 'table-seat--active': player.isCurrentTurn }]"
-      >
-        <v-avatar :image="player.avatar" size="38" color="primary" variant="tonal">
-          <span class="text-caption font-weight-bold">{{ player.name.slice(0, 2).toUpperCase() }}</span>
-        </v-avatar>
-        <div class="table-seat__meta">
-          <p class="table-seat__name mb-0">{{ player.name }}</p>
-          <p class="table-seat__details mb-0">
-            {{ player.isAI ? t('gameComponents.cardTable.ai') : t('gameComponents.cardTable.player') }} · {{ t('gameComponents.cardTable.cardsCount', { count: player.handCount }) }}
-          </p>
-        </div>
-        <v-chip size="x-small" color="white" variant="flat" class="table-seat__timer">
-          <v-icon start icon="mdi-timer-outline" size="14" />
-          {{ player.displayedTimer !== null ? `${player.displayedTimer}s` : '—' }}
-        </v-chip>
-      </article>
+    <div class="card-table-layout__table-wrap">
+      <div class="card-table-layout__table">
+        <article
+          v-for="player in playersWithSeats"
+          :key="player.id"
+          class="table-seat"
+          :class="[`table-seat--${player.seat}`, { 'table-seat--active': player.isCurrentTurn }]"
+        >
+          <v-avatar :image="player.avatar" size="38" color="primary" variant="tonal">
+            <span class="text-caption font-weight-bold">{{ player.name.slice(0, 2).toUpperCase() }}</span>
+          </v-avatar>
+          <div class="table-seat__meta">
+            <p class="table-seat__name mb-0">{{ player.name }}</p>
+            <p class="table-seat__details mb-0">
+              {{ player.isAI ? t('gameComponents.cardTable.ai') : t('gameComponents.cardTable.player') }} · {{ t('gameComponents.cardTable.cardsCount', { count: player.handCount }) }}
+            </p>
+          </div>
+          <v-chip size="x-small" color="white" variant="flat" class="table-seat__timer">
+            <v-icon start icon="mdi-timer-outline" size="14" />
+            {{ player.displayedTimer !== null ? `${player.displayedTimer}s` : '—' }}
+          </v-chip>
+        </article>
 
-      <section class="card-table-layout__center">
-        <slot name="center">
-          <div v-if="hasCenterContent" class="center-fallback">
-            <div v-if="centerCards.length" class="center-fallback__row">
-              <span v-for="(card, index) in centerCards" :key="`center-card-${index}`" class="center-fallback__card">{{ card }}</span>
-            </div>
-            <div v-if="centerMelds.length" class="center-fallback__column">
-              <div v-for="(meld, meldIndex) in centerMelds" :key="`center-meld-${meldIndex}`" class="center-fallback__row">
-                <span v-for="(card, cardIndex) in meld" :key="`center-meld-${meldIndex}-${cardIndex}`" class="center-fallback__card">{{ card }}</span>
+        <section class="card-table-layout__center">
+          <slot name="center">
+            <div v-if="hasCenterContent" class="center-fallback">
+              <div v-if="centerCards.length" class="center-fallback__row">
+                <span v-for="(card, index) in centerCards" :key="`center-card-${index}`" class="center-fallback__card">{{ card }}</span>
+              </div>
+              <div v-if="centerMelds.length" class="center-fallback__column">
+                <div v-for="(meld, meldIndex) in centerMelds" :key="`center-meld-${meldIndex}`" class="center-fallback__row">
+                  <span v-for="(card, cardIndex) in meld" :key="`center-meld-${meldIndex}-${cardIndex}`" class="center-fallback__card">{{ card }}</span>
+                </div>
               </div>
             </div>
-          </div>
-          <p v-else class="text-caption mb-0 text-medium-emphasis">{{ t('gameComponents.cardTable.emptyTable') }}</p>
-        </slot>
-      </section>
+            <p v-else class="text-caption mb-0 text-medium-emphasis">{{ t('gameComponents.cardTable.emptyTable') }}</p>
+          </slot>
+        </section>
 
-      <div class="table-seat-hand table-seat-hand--north">
-        <slot name="seat-north-hand" />
+        <div class="table-seat-hand table-seat-hand--north">
+          <slot name="seat-north-hand" />
+        </div>
+        <div class="table-seat-hand table-seat-hand--east">
+          <slot name="seat-east-hand" />
+        </div>
+        <div class="table-seat-hand table-seat-hand--south">
+          <slot name="seat-south-hand" />
+        </div>
+        <div class="table-seat-hand table-seat-hand--west">
+          <slot name="seat-west-hand" />
+        </div>
       </div>
-      <div class="table-seat-hand table-seat-hand--east">
-        <slot name="seat-east-hand" />
-      </div>
-      <div class="table-seat-hand table-seat-hand--south">
-        <slot name="seat-south-hand" />
-      </div>
-      <div class="table-seat-hand table-seat-hand--west">
-        <slot name="seat-west-hand" />
-      </div>
+
+      <section class="card-table-layout__content">
+        <slot />
+      </section>
     </div>
 
-    <section class="card-table-layout__content">
-      <slot />
-    </section>
+    <aside v-if="$slots.aside" class="card-table-layout__aside">
+      <slot name="aside" />
+    </aside>
   </div>
 </template>
 
 <style scoped>
 .card-table-layout {
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
   gap: 16px;
+}
+
+.card-table-layout__table-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .card-table-layout__table {
@@ -234,13 +245,28 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
 }
 
 .card-table-layout__content {
+  width: 100%;
   border-radius: 16px;
   border: 1px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 22%, transparent);
   background: color-mix(in srgb, rgb(var(--v-theme-surface)) 96%, rgb(var(--v-theme-primary)) 4%);
   padding: 14px;
 }
 
+.card-table-layout__aside {
+  width: min(360px, 100%);
+  flex: 0 0 min(360px, 100%);
+}
+
 @media (max-width: 960px) {
+  .card-table-layout {
+    flex-direction: column;
+  }
+
+  .card-table-layout__aside {
+    width: 100%;
+    flex-basis: auto;
+  }
+
   .card-table-layout__table {
     min-height: 680px;
   }

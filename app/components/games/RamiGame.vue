@@ -783,23 +783,6 @@ reset()
 </script>
 
 <template>
-  <div class="d-flex flex-wrap align-center justify-space-between ga-3 mb-4">
-    <div>
-      <h3 class="game-title mb-1">{{ t('gameComponents.rami.title') }}</h3>
-      <p class="game-subtitle mb-0">{{ t('gameComponents.rami.pointsPlayed') }}: <strong>{{ score }}</strong> · {{ t('gameComponents.rami.turn') }}: <strong>{{ turnLabel }}</strong></p>
-    </div>
-    <div class="d-flex ga-2 flex-wrap justify-end">
-      <v-chip color="primary" variant="tonal" prepend-icon="mdi-timer-outline">
-        {{ timer }}s / {{ TURN_SECONDS }}s
-      </v-chip>
-      <v-chip color="secondary" variant="outlined">{{ t('gameComponents.rami.drawPile') }}: {{ stock.length }}</v-chip>
-      <v-btn variant="outlined" prepend-icon="mdi-cards" :disabled="!canDraw" @click="drawCard">{{ t('gameComponents.rami.actions.draw') }}</v-btn>
-      <v-btn color="primary" prepend-icon="mdi-refresh" @click="reset">{{ t('gameComponents.rami.actions.playAgain') }}</v-btn>
-    </div>
-  </div>
-
-  <p class="game-description mb-3">{{ message }}</p>
-
   <CardTableLayout :players="tablePlayers" :center-cards="centerCards" :center-melds="centerMelds" :turn-timer-seconds="TURN_SECONDS">
     <template #center>
       <section
@@ -884,52 +867,6 @@ reset()
               </span>
             </button>
           </div>
-          <div class="d-flex ga-1 flex-wrap mt-2">
-            <v-btn
-              size="x-small"
-              variant="tonal"
-              :color="currentSortMode === 'manual' ? 'primary' : undefined"
-              @click="setSortMode('manual')"
-            >
-              Manuel
-            </v-btn>
-            <v-btn
-              size="x-small"
-              variant="tonal"
-              :color="currentSortMode === 'color' ? 'primary' : undefined"
-              @click="setSortMode('color')"
-            >
-              Couleur
-            </v-btn>
-            <v-btn
-              size="x-small"
-              variant="tonal"
-              :color="currentSortMode === 'rank' ? 'primary' : undefined"
-              @click="setSortMode('rank')"
-            >
-              Rang
-            </v-btn>
-            <v-btn
-              size="x-small"
-              variant="tonal"
-              :color="currentSortMode === 'potential' ? 'primary' : undefined"
-              @click="setSortMode('potential')"
-            >
-              Combos
-            </v-btn>
-          </div>
-        </div>
-        <div class="player-hand-meta">
-          <div class="d-flex flex-wrap justify-space-between align-center ga-2 mb-2">
-            <h4 class="seat-hand__title text-subtitle-2 mb-0 font-weight-bold">{{ t('gameComponents.rami.hand') }} ({{ playerHand.length }})</h4>
-          </div>
-          <p class="text-caption mb-2 text-medium-emphasis">
-            Tri courant: <strong>{{ currentSortMode }}</strong> · Glissez sur une carte pour réorganiser, vers la pile centrale pour défausser.
-          </p>
-          <div v-if="suggestedGroups.length" class="suggestion-legend mb-2">
-            <span class="suggestion-dot" />
-            Groupes suggérés: {{ suggestedGroups.map(group => group.map(card => `${formatRank(card.rank)}${card.suit}`).join(' ')).join(' • ') }}
-          </div>
         </div>
       </section>
     </template>
@@ -949,28 +886,60 @@ reset()
       </section>
     </template>
 
-    <section class="mb-2">
-      <h4 class="text-subtitle-1 mb-2 font-weight-bold">Actions du tour</h4>
+    <template #aside>
+      <v-card class="rami-aside pa-4 unified-card" variant="outlined">
+        <h3 class="game-title mb-1">{{ t('gameComponents.rami.title') }}</h3>
+        <p class="game-subtitle mb-3">{{ t('gameComponents.rami.pointsPlayed') }}: <strong>{{ score }}</strong> · {{ t('gameComponents.rami.turn') }}: <strong>{{ turnLabel }}</strong></p>
+        <p class="game-description mb-3">{{ message }}</p>
 
-      <div class="d-flex ga-2 flex-wrap">
-        <v-btn :disabled="!selectedCards.length || !canCreateMeld" color="secondary" variant="outlined" @click="createMeld">
-          {{ t('gameComponents.rami.actions.playCombination', { count: selectedCards.length }) }}
-        </v-btn>
-        <v-btn
-          :disabled="!canDiscard || selectedCards.length !== 1"
-          color="error"
-          variant="outlined"
-          prepend-icon="mdi-delete"
-          @click="discardCard(selectedCards[0]?.id)"
-        >
-          {{ t('gameComponents.rami.actions.discardSelected') }}
-        </v-btn>
-      </div>
+        <div class="d-flex ga-2 flex-wrap mb-3">
+          <v-chip color="primary" variant="tonal" prepend-icon="mdi-timer-outline">
+            {{ timer }}s / {{ TURN_SECONDS }}s
+          </v-chip>
+          <v-chip color="secondary" variant="outlined">{{ t('gameComponents.rami.drawPile') }}: {{ stock.length }}</v-chip>
+        </div>
 
-      <p class="text-caption mt-2 mb-0 text-medium-emphasis">
-        {{ t('gameComponents.rami.ruleHint') }}
-      </p>
-    </section>
+        <div class="d-flex ga-2 flex-wrap mb-4">
+          <v-btn variant="outlined" prepend-icon="mdi-cards" :disabled="!canDraw" @click="drawCard">{{ t('gameComponents.rami.actions.draw') }}</v-btn>
+          <v-btn color="primary" prepend-icon="mdi-refresh" @click="reset">{{ t('gameComponents.rami.actions.playAgain') }}</v-btn>
+        </div>
+
+        <h4 class="text-subtitle-1 mb-2 font-weight-bold">{{ t('gameComponents.rami.hand') }} ({{ playerHand.length }})</h4>
+        <div class="d-flex ga-1 flex-wrap mb-2">
+          <v-btn size="x-small" variant="tonal" :color="currentSortMode === 'manual' ? 'primary' : undefined" @click="setSortMode('manual')">Manuel</v-btn>
+          <v-btn size="x-small" variant="tonal" :color="currentSortMode === 'color' ? 'primary' : undefined" @click="setSortMode('color')">Couleur</v-btn>
+          <v-btn size="x-small" variant="tonal" :color="currentSortMode === 'rank' ? 'primary' : undefined" @click="setSortMode('rank')">Rang</v-btn>
+          <v-btn size="x-small" variant="tonal" :color="currentSortMode === 'potential' ? 'primary' : undefined" @click="setSortMode('potential')">Combos</v-btn>
+        </div>
+        <p class="text-caption mb-2 text-medium-emphasis">
+          Tri courant: <strong>{{ currentSortMode }}</strong> · Glissez sur une carte pour réorganiser, vers la pile centrale pour défausser.
+        </p>
+        <div v-if="suggestedGroups.length" class="suggestion-legend mb-4">
+          <span class="suggestion-dot" />
+          Groupes suggérés: {{ suggestedGroups.map(group => group.map(card => `${formatRank(card.rank)}${card.suit}`).join(' ')).join(' • ') }}
+        </div>
+
+        <h4 class="text-subtitle-1 mb-2 font-weight-bold">Actions du tour</h4>
+        <div class="d-flex ga-2 flex-wrap">
+          <v-btn :disabled="!selectedCards.length || !canCreateMeld" color="secondary" variant="outlined" @click="createMeld">
+            {{ t('gameComponents.rami.actions.playCombination', { count: selectedCards.length }) }}
+          </v-btn>
+          <v-btn
+            :disabled="!canDiscard || selectedCards.length !== 1"
+            color="error"
+            variant="outlined"
+            prepend-icon="mdi-delete"
+            @click="discardCard(selectedCards[0]?.id)"
+          >
+            {{ t('gameComponents.rami.actions.discardSelected') }}
+          </v-btn>
+        </div>
+
+        <p class="text-caption mt-2 mb-0 text-medium-emphasis">
+          {{ t('gameComponents.rami.ruleHint') }}
+        </p>
+      </v-card>
+    </template>
   </CardTableLayout>
 </template>
 
@@ -1056,16 +1025,12 @@ reset()
 
 .player-hand-cards {
   width: 100%;
-  padding-bottom: 120px;
+  padding-bottom: 20px;
 }
 
-.player-hand-meta {
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
-  z-index: 5;
-  max-width: 360px;
-  text-align: left;
+.rami-aside {
+  position: sticky;
+  top: 90px;
 }
 
 .seat-hand__title {
