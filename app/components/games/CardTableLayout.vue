@@ -80,6 +80,19 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
           <p v-else class="text-caption mb-0 text-medium-emphasis">Aucun pli/combinaison sur la table.</p>
         </slot>
       </section>
+
+      <div class="table-seat-hand table-seat-hand--north">
+        <slot name="seat-north-hand" />
+      </div>
+      <div class="table-seat-hand table-seat-hand--east">
+        <slot name="seat-east-hand" />
+      </div>
+      <div class="table-seat-hand table-seat-hand--south">
+        <slot name="seat-south-hand" />
+      </div>
+      <div class="table-seat-hand table-seat-hand--west">
+        <slot name="seat-west-hand" />
+      </div>
     </div>
 
     <section class="card-table-layout__content">
@@ -151,9 +164,41 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
   background: rgba(255, 255, 255, 0.92) !important;
 }
 
+.table-seat-hand {
+  position: absolute;
+  z-index: 1;
+  width: min(520px, calc(100% - 36px));
+}
+
+.table-seat-hand--north {
+  top: 106px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.table-seat-hand--south {
+  bottom: 106px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.table-seat-hand--east {
+  top: 50%;
+  right: 198px;
+  width: min(190px, 32%);
+  transform: translateY(-50%);
+}
+
+.table-seat-hand--west {
+  top: 50%;
+  left: 198px;
+  width: min(190px, 32%);
+  transform: translateY(-50%);
+}
+
 .card-table-layout__center {
   position: absolute;
-  inset: 140px 180px;
+  inset: 190px 205px;
   border-radius: 16px;
   border: 1px dashed rgba(255, 255, 255, 0.32);
   background: rgba(3, 9, 6, 0.18);
@@ -196,11 +241,21 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
 
 @media (max-width: 960px) {
   .card-table-layout__table {
-    min-height: 560px;
+    min-height: 680px;
   }
 
   .card-table-layout__center {
-    inset: 170px 24px 170px;
+    inset: 230px 24px 190px;
+  }
+
+  .table-seat-hand--north {
+    top: 124px;
+    width: min(460px, calc(100% - 32px));
+  }
+
+  .table-seat-hand--south {
+    bottom: 180px;
+    width: min(460px, calc(100% - 32px));
   }
 
   .table-seat--east,
@@ -212,5 +267,58 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
 
   .table-seat--east { right: 12px; }
   .table-seat--west { left: 12px; }
+
+  .table-seat-hand--east,
+  .table-seat-hand--west {
+    top: auto;
+    bottom: 20px;
+    transform: none;
+    width: calc(50% - 24px);
+  }
+
+  .table-seat-hand--east {
+    right: 12px;
+  }
+
+  .table-seat-hand--west {
+    left: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .card-table-layout__table {
+    min-height: 740px;
+  }
+
+  .card-table-layout__center {
+    inset: 260px 12px 250px;
+  }
+
+  .table-seat {
+    width: 154px;
+    min-height: 72px;
+    padding: 7px;
+  }
+
+  .table-seat-hand--north {
+    top: 118px;
+    width: calc(100% - 24px);
+  }
+
+  .table-seat-hand--south {
+    bottom: 252px;
+    width: calc(100% - 24px);
+  }
+
+  .table-seat-hand--east,
+  .table-seat-hand--west {
+    bottom: 12px;
+    width: calc(50% - 18px);
+  }
+
+  .table-seat--east,
+  .table-seat--west {
+    bottom: 100px;
+  }
 }
 </style>
