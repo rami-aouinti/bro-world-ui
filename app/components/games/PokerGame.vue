@@ -13,24 +13,34 @@ const raiseToTotal = ref(engine.getMinimumRaiseToTotal(engine.currentTurnIndex.v
 
 let aiTimeout: ReturnType<typeof setTimeout> | null = null
 
-const currentPlayer = computed(() => engine.players.value[engine.currentTurnIndex.value])
-const isHumanTurn = computed(() => currentPlayer.value?.id === engine.humanPlayer.value?.id)
+const handNumber = computed(() => engine.handNumber.value)
+const street = computed(() => engine.street.value)
+const pot = computed(() => engine.pot.value)
+const currentBet = computed(() => engine.currentBet.value)
+const players = computed(() => engine.players.value)
+const humanPlayer = computed(() => engine.humanPlayer.value)
+const currentTurnIndex = computed(() => engine.currentTurnIndex.value)
+const showdownSummary = computed(() => engine.showdownSummary.value)
+const actionMessage = computed(() => engine.actionMessage.value)
+
+const currentPlayer = computed(() => players.value[currentTurnIndex.value])
+const isHumanTurn = computed(() => currentPlayer.value?.id === humanPlayer.value?.id)
 
 const playerCallAmount = computed(() => {
-  const player = engine.humanPlayer.value
+  const player = humanPlayer.value
   if (!player) return 0
-  return Math.min(player.stack, Math.max(0, engine.currentBet.value - player.currentBet))
+  return Math.min(player.stack, Math.max(0, currentBet.value - player.currentBet))
 })
 
 const canCheck = computed(() => playerCallAmount.value === 0)
-const canCall = computed(() => playerCallAmount.value > 0 && (engine.humanPlayer.value?.stack ?? 0) > 0)
+const canCall = computed(() => playerCallAmount.value > 0 && (humanPlayer.value?.stack ?? 0) > 0)
 const canRaise = computed(() => {
-  const player = engine.humanPlayer.value
+  const player = humanPlayer.value
   if (!player) return false
 
   const minimum = engine.getMinimumRaiseToTotal(0)
   const maximum = engine.getMaximumRaiseToTotal(0)
-  return minimum <= maximum && maximum > engine.currentBet.value
+  return minimum <= maximum && maximum > currentBet.value
 })
 
 const minRaiseToTotal = computed(() => engine.getMinimumRaiseToTotal(0))
@@ -45,13 +55,13 @@ const boardCards = computed(() => {
 })
 
 const streetLabel = computed(() => {
-  const key = engine.street.value
+  const key = street.value
   return t(`gameComponents.poker.states.${key}`)
 })
 
 const setRaiseWithinBounds = () => {
   if (!canRaise.value) {
-    raiseToTotal.value = engine.currentBet.value
+    raiseToTotal.value = currentBet.value
     return
   }
 
@@ -66,8 +76,8 @@ watch([() => engine.currentTurnIndex.value, () => engine.currentBet.value, () =>
     aiTimeout = null
   }
 
-  const player = engine.players.value[engine.currentTurnIndex.value]
-  if (!player?.isAI || engine.street.value === 'hand-over') return
+  const player = players.value[currentTurnIndex.value]
+  if (!player?.isAI || street.value === 'hand-over') return
 
   aiTimeout = setTimeout(() => {
     engine.runAiAction()
@@ -101,13 +111,13 @@ onBeforeUnmount(() => {
   <v-card class="pa-4 rounded-xl poker-shell" variant="tonal">
     <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-3">
       <h3 class="game-title mb-0">{{ t('gameComponents.poker.title') }}</h3>
-      <v-chip color="primary" variant="flat">{{ t('gameComponents.poker.handNumber', { count: engine.handNumber }) }}</v-chip>
+      <v-chip color="primary" variant="flat">{{ t('gameComponents.poker.handNumber', { count: handNumber }) }}</v-chip>
     </div>
 
     <div class="d-flex flex-wrap ga-2 mb-3">
       <v-chip>{{ t('gameComponents.poker.statesLabel') }}: {{ streetLabel }}</v-chip>
-      <v-chip>{{ t('gameComponents.poker.pot') }}: {{ engine.pot }}</v-chip>
-      <v-chip>{{ t('gameComponents.poker.currentBet') }}: {{ engine.currentBet }}</v-chip>
+      <v-chip>{{ t('gameComponents.poker.pot') }}: {{ pot }}</v-chip>
+      <v-chip>{{ t('gameComponents.poker.currentBet') }}: {{ currentBet }}</v-chip>
       <v-chip>{{ t('gameComponents.poker.turn') }}: {{ currentPlayer?.name ?? '—' }}</v-chip>
     </div>
 
@@ -118,10 +128,10 @@ onBeforeUnmount(() => {
           <div class="board-row mb-2">
             <span v-for="(card, index) in boardCards" :key="`board-${index}`" class="table-card">{{ card }}</span>
           </div>
-          <p class="text-caption text-medium-emphasis mb-0">{{ engine.actionMessage }}</p>
-          <div v-if="engine.showdownSummary.length" class="mt-3 d-grid ga-1">
+          <p class="text-caption text-medium-emphasis mb-0">{{ actionMessage }}</p>
+          <div v-if="showdownSummary.length" class="mt-3 d-grid ga-1">
             <p class="text-caption font-weight-bold mb-0">{{ t('gameComponents.poker.showdown') }}</p>
-            <p v-for="(line, index) in engine.showdownSummary" :key="`show-${index}`" class="mb-0 text-caption">{{ line }}</p>
+            <p v-for="(line, index) in showdownSummary" :key="`show-${index}`" class="mb-0 text-caption">{{ line }}</p>
           </div>
         </v-card>
       </v-col>
@@ -129,17 +139,17 @@ onBeforeUnmount(() => {
         <v-card class="pa-3 h-100" variant="outlined">
           <p class="text-subtitle-2 font-weight-bold mb-2">{{ t('gameComponents.poker.yourCards') }}</p>
           <div class="board-row mb-3">
-            <span v-for="card in engine.humanPlayer?.hand ?? []" :key="card.id" class="table-card">{{ engine.formatCard(card) }}</span>
+            <span v-for="card in humanPlayer?.hand ?? []" :key="card.id" class="table-card">{{ engine.formatCard(card) }}</span>
           </div>
 
           <div class="d-grid ga-2">
-            <v-btn color="error" variant="outlined" :disabled="!isHumanTurn || engine.street === 'hand-over'" @click="perform('fold')">
+            <v-btn color="error" variant="outlined" :disabled="!isHumanTurn || street === 'hand-over'" @click="perform('fold')">
               {{ t('gameComponents.poker.actions.fold') }}
             </v-btn>
-            <v-btn color="secondary" variant="outlined" :disabled="!isHumanTurn || !canCheck || engine.street === 'hand-over'" @click="perform('check')">
+            <v-btn color="secondary" variant="outlined" :disabled="!isHumanTurn || !canCheck || street === 'hand-over'" @click="perform('check')">
               {{ t('gameComponents.poker.actions.check') }}
             </v-btn>
-            <v-btn color="info" variant="outlined" :disabled="!isHumanTurn || !canCall || engine.street === 'hand-over'" @click="perform('call')">
+            <v-btn color="info" variant="outlined" :disabled="!isHumanTurn || !canCall || street === 'hand-over'" @click="perform('call')">
               {{ t('gameComponents.poker.actions.call') }} {{ canCall ? `(${playerCallAmount})` : '' }}
             </v-btn>
 
@@ -150,16 +160,16 @@ onBeforeUnmount(() => {
                 :min="minRaiseToTotal"
                 :max="maxRaiseToTotal"
                 :step="10"
-                :disabled="!isHumanTurn || !canRaise || engine.street === 'hand-over'"
+                :disabled="!isHumanTurn || !canRaise || street === 'hand-over'"
                 hide-details
               />
-              <v-btn color="primary" class="mt-1" block :disabled="!isHumanTurn || !canRaise || engine.street === 'hand-over'" @click="perform('raise')">
+              <v-btn color="primary" class="mt-1" block :disabled="!isHumanTurn || !canRaise || street === 'hand-over'" @click="perform('raise')">
                 {{ t('gameComponents.poker.actions.raise') }}
               </v-btn>
             </div>
           </div>
 
-          <v-btn v-if="engine.street === 'hand-over'" color="primary" prepend-icon="mdi-refresh" class="mt-3" @click="startNextHand">
+          <v-btn v-if="street === 'hand-over'" color="primary" prepend-icon="mdi-refresh" class="mt-3" @click="startNextHand">
             {{ t('gameComponents.poker.actions.nextHand') }}
           </v-btn>
         </v-card>
@@ -170,10 +180,10 @@ onBeforeUnmount(() => {
       <p class="text-subtitle-2 font-weight-bold mb-2">{{ t('gameComponents.poker.players') }}</p>
       <div class="players-grid">
         <div
-          v-for="(player, index) in engine.players"
+          v-for="(player, index) in players"
           :key="player.id"
           class="player-chip"
-          :class="{ 'player-chip--active': engine.currentTurnIndex === index }"
+          :class="{ 'player-chip--active': currentTurnIndex === index }"
         >
           <div class="d-flex justify-space-between ga-2">
             <strong>{{ player.name }}</strong>
