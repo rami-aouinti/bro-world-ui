@@ -432,34 +432,42 @@ reset()
   <p class="game-description mb-3">{{ message }}</p>
 
   <CardTableLayout :players="tablePlayers" :center-cards="centerCards" :center-melds="centerMelds" :turn-timer-seconds="TURN_SECONDS">
-    <section class="mb-4">
-      <h4 class="text-subtitle-1 mb-2 font-weight-bold">{{ t('gameComponents.rami.opponentHand') }}</h4>
-      <div class="game-card-grid game-card-grid--opponent">
-        <div v-for="card in aiHand" :key="`ai-${card.id}`" class="play-card play-card--back" />
-      </div>
-    </section>
+    <template #seat-north-hand>
+      <section class="seat-hand seat-hand--north">
+        <h4 class="seat-hand__title text-subtitle-2 mb-1 font-weight-bold">Main adverse</h4>
+        <div class="game-card-grid game-card-grid--opponent">
+          <div v-for="card in aiHand" :key="`ai-${card.id}`" class="play-card play-card--back" />
+        </div>
+      </section>
+    </template>
+
+    <template #seat-south-hand>
+      <section class="seat-hand seat-hand--south">
+        <h4 class="seat-hand__title text-subtitle-2 mb-1 font-weight-bold">{{ t('gameComponents.rami.hand') }} ({{ playerHand.length }})</h4>
+        <div class="game-card-grid game-card-grid--player">
+          <button
+            v-for="card in playerHand"
+            :key="card.id"
+            type="button"
+            class="play-card play-card--front"
+            :class="{ 'play-card--selected': isSelected(card.id) }"
+            @click="toggleCard(card.id)"
+            @dblclick="discardCard(card.id)"
+          >
+            <span class="card-corner" :class="{ 'text-red': isRedSuit(card.suit), 'text-black': !isRedSuit(card.suit) }">
+              {{ formatRank(card.rank) }}{{ card.suit }}
+            </span>
+            <span class="card-center" :class="{ 'text-red': isRedSuit(card.suit), 'text-black': !isRedSuit(card.suit) }">{{ card.suit }}</span>
+            <span class="card-corner card-corner--bottom" :class="{ 'text-red': isRedSuit(card.suit), 'text-black': !isRedSuit(card.suit) }">
+              {{ formatRank(card.rank) }}{{ card.suit }}
+            </span>
+          </button>
+        </div>
+      </section>
+    </template>
 
     <section class="mb-2">
-      <h4 class="text-subtitle-1 mb-2 font-weight-bold">{{ t('gameComponents.rami.hand') }} ({{ playerHand.length }})</h4>
-      <div class="game-card-grid mb-4">
-        <button
-          v-for="card in playerHand"
-          :key="card.id"
-          type="button"
-          class="play-card play-card--front"
-          :class="{ 'play-card--selected': isSelected(card.id) }"
-          @click="toggleCard(card.id)"
-          @dblclick="discardCard(card.id)"
-        >
-          <span class="card-corner" :class="{ 'text-red': isRedSuit(card.suit), 'text-black': !isRedSuit(card.suit) }">
-            {{ formatRank(card.rank) }}{{ card.suit }}
-          </span>
-          <span class="card-center" :class="{ 'text-red': isRedSuit(card.suit), 'text-black': !isRedSuit(card.suit) }">{{ card.suit }}</span>
-          <span class="card-corner card-corner--bottom" :class="{ 'text-red': isRedSuit(card.suit), 'text-black': !isRedSuit(card.suit) }">
-            {{ formatRank(card.rank) }}{{ card.suit }}
-          </span>
-        </button>
-      </div>
+      <h4 class="text-subtitle-1 mb-2 font-weight-bold">Actions du tour</h4>
 
       <div class="d-flex ga-2 flex-wrap">
         <v-btn :disabled="!selectedCards.length || !canCreateMeld" color="secondary" variant="outlined" @click="createMeld">
@@ -502,17 +510,33 @@ reset()
 
 .game-card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(54px, 1fr));
   gap: 8px;
 }
 
 .game-card-grid--opponent {
-  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+}
+
+.game-card-grid--player {
+  grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
+}
+
+.seat-hand {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(3, 9, 6, 0.24);
+  padding: 8px;
+}
+
+.seat-hand__title {
+  color: rgba(255, 255, 255, 0.92);
+  letter-spacing: 0.01em;
 }
 
 .play-card {
   border-radius: 10px;
-  min-height: 102px;
+  min-height: 96px;
   border: 1px solid rgba(15, 23, 42, 0.15);
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
@@ -528,7 +552,7 @@ reset()
 }
 
 .play-card--back {
-  min-height: 72px;
+  min-height: 54px;
   border: 1px solid #1f3153;
   background: repeating-linear-gradient(45deg, #26457a 0, #26457a 8px, #1a2e52 8px, #1a2e52 16px);
   box-shadow: 0 5px 12px rgba(15, 23, 42, 0.18);
@@ -559,5 +583,20 @@ reset()
   align-self: center;
   font-size: 1.7rem;
   line-height: 1;
+}
+
+@media (max-width: 600px) {
+  .game-card-grid--player {
+    grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+    gap: 6px;
+  }
+
+  .play-card {
+    min-height: 84px;
+  }
+
+  .play-card--back {
+    min-height: 46px;
+  }
 }
 </style>
