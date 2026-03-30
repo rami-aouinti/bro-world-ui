@@ -129,6 +129,7 @@ const selectedCards = computed(() => playerHand.value.filter(card => selectedCar
 const canDraw = computed(() => currentTurn.value === 'player' && !hasDrawn.value && !winner.value)
 const canDiscard = computed(() => currentTurn.value === 'player' && hasDrawn.value && !winner.value)
 const canCreateMeld = computed(() => currentTurn.value === 'player' && !winner.value)
+const canReorderHand = computed(() => currentTurn.value === 'player' && !winner.value)
 const topDiscardCard = computed(() => discardPile.value[0] ?? null)
 
 const score = computed(() => playerMelds.value.flat().reduce((total, card) => total + cardPoints(card), 0))
@@ -188,10 +189,151 @@ const computeCardUtility = (card: Card, hand: Card[]) => {
   return (sameRankCount * 3) + (nearSuitCards * 2) + cardPoints(card)
 }
 
+type SortMode = 'manual' | 'color' | 'rank' | 'potential'
+
+const currentSortMode = ref<SortMode>('manual')
+const dragHoverCardId = ref<string | null>(null)
+const didDrag = ref(false)
+
 const sortHand = (cards: Card[]) => [...cards].sort((left, right) => {
   if (left.suit === right.suit) return left.rank - right.rank
   return left.suit.localeCompare(right.suit)
 })
+
+const sortByRank = (cards: Card[]) => [...cards].sort((left, right) => {
+  if (left.rank === right.rank) return left.suit.localeCompare(right.suit)
+  return left.rank - right.rank
+})
+
+const sortByColor = (cards: Card[]) => [...cards].sort((left, right) => {
+  const leftColor = isRedSuit(left.suit) ? 1 : 0
+  const rightColor = isRedSuit(right.suit) ? 1 : 0
+  if (leftColor === rightColor) {
+    if (left.suit === right.suit) return left.rank - right.rank
+    return left.suit.localeCompare(right.suit)
+  }
+  return leftColor - rightColor
+})
+
+const syncSelectedCardIds = () => {
+  const handOrder = new Map(playerHand.value.map((card, index) => [card.id, index]))
+  selectedCardIds.value = selectedCardIds.value
+    .filter(id => handOrder.has(id))
+    .sort((left, right) => (handOrder.get(left) ?? 0) - (handOrder.get(right) ?? 0))
+}
+
+const buildSuggestedGroups = (hand: Card[]) => {
+  const suggestions: Card[][] = []
+
+  const byRank = new Map<number, Card[]>()
+  hand.forEach((card) => {
+    const list = byRank.get(card.rank) ?? []
+    list.push(card)
+    byRank.set(card.rank, list)
+  })
+  byRank.forEach((cards) => {
+    const uniqueSuits = new Set(cards.map(card => card.suit))
+    if (cards.length >= 3 && uniqueSuits.size >= 3) {
+      suggestions.push(cards.slice(0, 4))
+    }
+  })
+
+  const bySuit = new Map<Suit, Card[]>()
+  hand.forEach((card) => {
+    const list = bySuit.get(card.suit) ?? []
+    list.push(card)
+    bySuit.set(card.suit, list)
+  })
+  bySuit.forEach((cards) => {
+    const ordered = [...cards].sort((left, right) => left.rank - right.rank)
+    let run: Card[] = []
+    ordered.forEach((card) => {
+      if (!run.length) {
+        run = [card]
+        return
+      }
+
+      const previous = run[run.length - 1]
+      if (card.rank === previous.rank + 1) {
+        run.push(card)
+      }
+      else if (card.rank !== previous.rank) {
+        if (run.length >= 3) suggestions.push([...run])
+        run = [card]
+      }
+    })
+
+    if (run.length >= 3) suggestions.push([...run])
+
+    const hasAce = ordered.some(card => card.rank === 1)
+    const hasQueen = ordered.some(card => card.rank === 12)
+    const hasKing = ordered.some(card => card.rank === 13)
+    if (hasAce && hasQueen && hasKing) {
+      suggestions.push(ordered.filter(card => [1, 12, 13].includes(card.rank)).slice(0, 3))
+    }
+  })
+
+  return suggestions
+}
+
+const suggestedGroups = computed(() => buildSuggestedGroups(playerHand.value))
+const suggestedCardIds = computed(() => {
+  const ids = new Set<string>()
+  suggestedGroups.value.forEach(group => group.forEach(card => ids.add(card.id)))
+  return ids
+})
+
+const sortByPotential = (cards: Card[]) => {
+  const suggestions = buildSuggestedGroups(cards)
+  const suggestedIds = new Set<string>()
+  suggestions.forEach(group => group.forEach(card => suggestedIds.add(card.id)))
+
+  return [...cards].sort((left, right) => {
+    const leftSuggested = suggestedIds.has(left.id) ? 1 : 0
+    const rightSuggested = suggestedIds.has(right.id) ? 1 : 0
+    if (leftSuggested !== rightSuggested) return rightSuggested - leftSuggested
+    const utilityDelta = computeCardUtility(right, cards) - computeCardUtility(left, cards)
+    if (utilityDelta !== 0) return utilityDelta
+    if (left.suit === right.suit) return left.rank - right.rank
+    return left.suit.localeCompare(right.suit)
+  })
+}
+
+const reorderCard = (cardId: string, targetCardId: string) => {
+  if (cardId === targetCardId) return
+  const fromIndex = playerHand.value.findIndex(card => card.id === cardId)
+  const targetIndex = playerHand.value.findIndex(card => card.id === targetCardId)
+  if (fromIndex === -1 || targetIndex === -1) return
+
+  const reordered = [...playerHand.value]
+  const [moved] = reordered.splice(fromIndex, 1)
+  reordered.splice(targetIndex, 0, moved)
+  playerHand.value = reordered
+  syncSelectedCardIds()
+}
+
+const applyCurrentSortToPlayerHand = () => {
+  if (currentSortMode.value === 'manual') {
+    syncSelectedCardIds()
+    return
+  }
+
+  if (currentSortMode.value === 'color') {
+    playerHand.value = sortByColor(playerHand.value)
+  }
+  else if (currentSortMode.value === 'rank') {
+    playerHand.value = sortByRank(playerHand.value)
+  }
+  else {
+    playerHand.value = sortByPotential(playerHand.value)
+  }
+  syncSelectedCardIds()
+}
+
+const setSortMode = (mode: SortMode) => {
+  currentSortMode.value = mode
+  applyCurrentSortToPlayerHand()
+}
 
 const pickDiscardCard = (hand: Card[]) => {
   const sorted = [...hand].sort((left, right) => computeCardUtility(left, hand) - computeCardUtility(right, hand))
@@ -285,7 +427,8 @@ const drawCardFor = (player: Player) => {
 
   const drawnCard = stock.value.shift() as Card
   if (player === 'player') {
-    playerHand.value = sortHand([...playerHand.value, drawnCard])
+    playerHand.value = [...playerHand.value, drawnCard]
+    applyCurrentSortToPlayerHand()
     hasDrawn.value = true
     message.value = t('gameComponents.rami.messages.cardDrawn')
   }
@@ -366,8 +509,9 @@ const createMeld = () => {
   }
 
   playerMelds.value.push(sortHand(cards))
-  playerHand.value = sortHand(removeCardsFromHand(playerHand.value, cards))
+  playerHand.value = removeCardsFromHand(playerHand.value, cards)
   selectedCardIds.value = []
+  applyCurrentSortToPlayerHand()
 
   if (!playerOpened.value) {
     playerOpened.value = true
@@ -442,10 +586,12 @@ const updateDragZoneState = (x: number, y: number) => {
 }
 
 const onCardPointerDown = (event: PointerEvent, cardId: string) => {
-  if (!canDiscard.value || event.button !== 0) return
+  if (!canReorderHand.value || event.button !== 0) return
   draggedCardId.value = cardId
   dragPosition.value = { x: event.clientX, y: event.clientY }
   dragStartPosition.value = { x: event.clientX, y: event.clientY }
+  dragHoverCardId.value = null
+  didDrag.value = false
   isDragging.value = true
   dragOverDiscardZone.value = false
   startGlobalPointerListeners()
@@ -454,32 +600,45 @@ const onCardPointerDown = (event: PointerEvent, cardId: string) => {
 const onCardPointerMove = (event: PointerEvent) => {
   if (!isDragging.value) return
   dragPosition.value = { x: event.clientX, y: event.clientY }
+  didDrag.value = didDrag.value || Math.abs(event.clientX - dragStartPosition.value.x) + Math.abs(event.clientY - dragStartPosition.value.y) > 6
   updateDragZoneState(event.clientX, event.clientY)
 }
 
 const onCardPointerUp = () => {
   if (!isDragging.value) return
   const cardId = draggedCardId.value
-  const shouldDiscard = dragOverDiscardZone.value
+  const hoverCardId = dragHoverCardId.value
+  const shouldDiscard = dragOverDiscardZone.value && canDiscard.value
 
   draggedCardId.value = null
+  dragHoverCardId.value = null
   isDragging.value = false
   dragOverDiscardZone.value = false
   stopGlobalPointerListeners()
 
   if (cardId && shouldDiscard) {
     discardCard(cardId, true)
+    didDrag.value = false
+    return
   }
+
+  if (cardId && hoverCardId && didDrag.value) {
+    reorderCard(cardId, hoverCardId)
+  }
+
+  didDrag.value = false
 }
 
 const onTouchStart = (event: TouchEvent, cardId: string) => {
-  if (!canDiscard.value) return
+  if (!canReorderHand.value) return
   const touch = event.touches[0]
   if (!touch) return
 
   draggedCardId.value = cardId
   dragPosition.value = { x: touch.clientX, y: touch.clientY }
   dragStartPosition.value = { x: touch.clientX, y: touch.clientY }
+  dragHoverCardId.value = null
+  didDrag.value = false
   isDragging.value = true
   dragOverDiscardZone.value = false
   startGlobalPointerListeners()
@@ -491,6 +650,7 @@ const onTouchMove = (event: TouchEvent) => {
   if (!touch) return
 
   dragPosition.value = { x: touch.clientX, y: touch.clientY }
+  didDrag.value = didDrag.value || Math.abs(touch.clientX - dragStartPosition.value.x) + Math.abs(touch.clientY - dragStartPosition.value.y) > 6
   updateDragZoneState(touch.clientX, touch.clientY)
 }
 
@@ -514,6 +674,16 @@ const startGlobalPointerListeners = () => {
   window.addEventListener('touchend', onTouchEnd)
 }
 
+const onCardHover = (cardId: string) => {
+  if (!isDragging.value || draggedCardId.value === cardId) return
+  dragHoverCardId.value = cardId
+}
+
+const onCardClick = (cardId: string) => {
+  if (didDrag.value) return
+  toggleCard(cardId)
+}
+
 const cardStyle = (index: number, cardId: string) => {
   const isDragged = isDragging.value && draggedCardId.value === cardId
   const dragDeltaX = isDragged ? dragPosition.value.x - dragStartPosition.value.x : 0
@@ -529,7 +699,7 @@ const cardStyle = (index: number, cardId: string) => {
 
 const reset = () => {
   const randomDeck = shuffle(deck())
-  playerHand.value = sortHand(randomDeck.slice(0, 14))
+  playerHand.value = randomDeck.slice(0, 14)
   aiHand.value = sortHand(randomDeck.slice(14, 28))
   stock.value = randomDeck.slice(28)
   discardPile.value = []
@@ -543,6 +713,7 @@ const reset = () => {
   timer.value = TURN_SECONDS
   winner.value = null
   message.value = t('gameComponents.rami.messages.newGameDetailed', { count: 14 })
+  applyCurrentSortToPlayerHand()
   startTurnTimer()
 }
 
@@ -606,7 +777,50 @@ reset()
 
     <template #seat-south-hand>
       <section class="seat-hand seat-hand--south">
-        <h4 class="seat-hand__title text-subtitle-2 mb-1 font-weight-bold">{{ t('gameComponents.rami.hand') }} ({{ playerHand.length }})</h4>
+        <div class="d-flex flex-wrap justify-space-between align-center ga-2 mb-2">
+          <h4 class="seat-hand__title text-subtitle-2 mb-0 font-weight-bold">{{ t('gameComponents.rami.hand') }} ({{ playerHand.length }})</h4>
+          <div class="d-flex ga-1 flex-wrap">
+            <v-btn
+              size="x-small"
+              variant="tonal"
+              :color="currentSortMode === 'manual' ? 'primary' : undefined"
+              @click="setSortMode('manual')"
+            >
+              Manuel
+            </v-btn>
+            <v-btn
+              size="x-small"
+              variant="tonal"
+              :color="currentSortMode === 'color' ? 'primary' : undefined"
+              @click="setSortMode('color')"
+            >
+              Couleur
+            </v-btn>
+            <v-btn
+              size="x-small"
+              variant="tonal"
+              :color="currentSortMode === 'rank' ? 'primary' : undefined"
+              @click="setSortMode('rank')"
+            >
+              Rang
+            </v-btn>
+            <v-btn
+              size="x-small"
+              variant="tonal"
+              :color="currentSortMode === 'potential' ? 'primary' : undefined"
+              @click="setSortMode('potential')"
+            >
+              Combos
+            </v-btn>
+          </div>
+        </div>
+        <p class="text-caption mb-2 text-medium-emphasis">
+          Tri courant: <strong>{{ currentSortMode }}</strong> · Glissez sur une carte pour réorganiser, vers la pile centrale pour défausser.
+        </p>
+        <div v-if="suggestedGroups.length" class="suggestion-legend mb-2">
+          <span class="suggestion-dot" />
+          Groupes suggérés: {{ suggestedGroups.map(group => group.map(card => `${formatRank(card.rank)}${card.suit}`).join(' ')).join(' • ') }}
+        </div>
         <div class="hand-fan hand-fan--player">
           <button
             v-for="(card, index) in playerHand"
@@ -617,15 +831,19 @@ reset()
             :class="{
               'play-card--selected': isSelected(card.id),
               'play-card--dragging': isDragging && draggedCardId === card.id,
+              'play-card--drag-target': isDragging && dragHoverCardId === card.id,
+              'play-card--suggested': suggestedCardIds.has(card.id),
               'card-throwing': throwingCardId === card.id,
             }"
             :style="cardStyle(index, card.id)"
-            @click="toggleCard(card.id)"
+            @click="onCardClick(card.id)"
             @dblclick="discardCard(card.id)"
+            @pointerenter="onCardHover(card.id)"
             @pointerdown="onCardPointerDown($event, card.id)"
             @pointermove="onCardPointerMove($event)"
             @pointerup="onCardPointerUp"
             @pointercancel="onCardPointerUp"
+            @touchstart.capture="onCardHover(card.id)"
             @touchstart.prevent="onTouchStart($event, card.id)"
             @touchmove.prevent="onTouchMove"
             @touchend="onTouchEnd"
@@ -782,6 +1000,16 @@ reset()
     scale(1.06);
 }
 
+.play-card--drag-target {
+  border-color: rgb(var(--v-theme-secondary));
+  box-shadow: 0 0 0 2px rgba(var(--v-theme-secondary), 0.35);
+}
+
+.play-card--suggested {
+  border-color: rgba(16, 185, 129, 0.75);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.18), 0 10px 18px rgba(15, 23, 42, 0.16);
+}
+
 .card-throwing {
   pointer-events: none;
   animation: card-throwing 250ms ease-in forwards;
@@ -844,6 +1072,22 @@ reset()
   align-self: center;
   font-size: 1.7rem;
   line-height: 1;
+}
+
+.suggestion-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.76rem;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.suggestion-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
 }
 
 @media (max-width: 600px) {
