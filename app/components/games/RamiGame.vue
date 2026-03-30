@@ -814,44 +814,44 @@ reset()
               </span>
             </button>
           </div>
+          <div class="d-flex ga-1 flex-wrap mt-2">
+            <v-btn
+              size="x-small"
+              variant="tonal"
+              :color="currentSortMode === 'manual' ? 'primary' : undefined"
+              @click="setSortMode('manual')"
+            >
+              Manuel
+            </v-btn>
+            <v-btn
+              size="x-small"
+              variant="tonal"
+              :color="currentSortMode === 'color' ? 'primary' : undefined"
+              @click="setSortMode('color')"
+            >
+              Couleur
+            </v-btn>
+            <v-btn
+              size="x-small"
+              variant="tonal"
+              :color="currentSortMode === 'rank' ? 'primary' : undefined"
+              @click="setSortMode('rank')"
+            >
+              Rang
+            </v-btn>
+            <v-btn
+              size="x-small"
+              variant="tonal"
+              :color="currentSortMode === 'potential' ? 'primary' : undefined"
+              @click="setSortMode('potential')"
+            >
+              Combos
+            </v-btn>
+          </div>
         </div>
         <div class="player-hand-meta">
           <div class="d-flex flex-wrap justify-space-between align-center ga-2 mb-2">
             <h4 class="seat-hand__title text-subtitle-2 mb-0 font-weight-bold">{{ t('gameComponents.rami.hand') }} ({{ playerHand.length }})</h4>
-            <div class="d-flex ga-1 flex-wrap">
-              <v-btn
-                size="x-small"
-                variant="tonal"
-                :color="currentSortMode === 'manual' ? 'primary' : undefined"
-                @click="setSortMode('manual')"
-              >
-                Manuel
-              </v-btn>
-              <v-btn
-                size="x-small"
-                variant="tonal"
-                :color="currentSortMode === 'color' ? 'primary' : undefined"
-                @click="setSortMode('color')"
-              >
-                Couleur
-              </v-btn>
-              <v-btn
-                size="x-small"
-                variant="tonal"
-                :color="currentSortMode === 'rank' ? 'primary' : undefined"
-                @click="setSortMode('rank')"
-              >
-                Rang
-              </v-btn>
-              <v-btn
-                size="x-small"
-                variant="tonal"
-                :color="currentSortMode === 'potential' ? 'primary' : undefined"
-                @click="setSortMode('potential')"
-              >
-                Combos
-              </v-btn>
-            </div>
           </div>
           <p class="text-caption mb-2 text-medium-emphasis">
             Tri courant: <strong>{{ currentSortMode }}</strong> · Glissez sur une carte pour réorganiser, vers la pile centrale pour défausser.
