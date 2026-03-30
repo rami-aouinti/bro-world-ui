@@ -281,6 +281,9 @@ const liveGamePanel = ref<GameAsidePanelState | null>(null);
 const ramiGameRef = ref<{
   handleAsideAction: (actionId: string) => void;
 } | null>(null);
+const unoGameRef = ref<{
+  handleAsideAction: (actionId: string) => void;
+} | null>(null);
 const allGameEntries = computed(() =>
   categories.flatMap((category) =>
     category.subCategories.flatMap((subCategory) => subCategory.games),
@@ -405,8 +408,14 @@ const onGamePanelState = (payload: GameAsidePanelState) => {
 };
 
 const onAsideAction = (actionId: string) => {
-  if (selectedGame.value?.component !== "rami") return;
-  ramiGameRef.value?.handleAsideAction(actionId);
+  if (selectedGame.value?.component === "rami") {
+    ramiGameRef.value?.handleAsideAction(actionId);
+    return;
+  }
+
+  if (selectedGame.value?.component === "uno") {
+    unoGameRef.value?.handleAsideAction(actionId);
+  }
 };
 
 watch([selectedGameId, isGameStarted], () => {
@@ -859,6 +868,7 @@ const handleLogin = async () => {
           @panel-state="onGamePanelState"
         />
         <UnoGame
+          ref="unoGameRef"
           v-else-if="selectedGame.component === 'uno'"
           :selected-play-mode="selectedPlayMode"
           @panel-state="onGamePanelState"
