@@ -56,12 +56,36 @@ const revealedBoardCards = computed(() => {
   return 5
 })
 
+const boardCardAnimations = ref<Array<'idle' | 'dealing' | 'flip'>>(Array(5).fill('idle'))
+const boardAnimationTimers: ReturnType<typeof setTimeout>[] = []
+
+const getVisibleCountForStreet = (currentStreet: string) => {
+  if (currentStreet === 'preflop' || currentStreet === 'hand-over') return 0
+  if (currentStreet === 'flop') return 3
+  if (currentStreet === 'turn') return 4
+  return 5
+}
+
+const clearBoardAnimationTimers = () => {
+  boardAnimationTimers.forEach(timer => clearTimeout(timer))
+  boardAnimationTimers.length = 0
+}
+
+const resetBoardCardAnimations = () => {
+  boardCardAnimations.value = Array(5).fill('idle')
+}
+
 const boardSlots = computed(() => Array.from({ length: 5 }, (_, index) => {
   const card = engine.board.value[index]
+  const animationState = boardCardAnimations.value[index] ?? 'idle'
   return {
     key: `board-${index}`,
     card,
     isVisible: index < revealedBoardCards.value && Boolean(card),
+    animationClasses: {
+      'table-card--dealing': animationState === 'dealing',
+      'table-card--flip': animationState === 'flip',
+    },
   }
 }))
 
@@ -201,6 +225,45 @@ watch(
   },
 )
 
+watch(
+  () => street.value,
+  (nextStreet, previousStreet) => {
+    const previousVisible = getVisibleCountForStreet(previousStreet ?? 'preflop')
+    const nextVisible = getVisibleCountForStreet(nextStreet)
+
+    if (nextVisible <= previousVisible) {
+      clearBoardAnimationTimers()
+      resetBoardCardAnimations()
+      return
+    }
+
+    const newVisibleIndexes = Array.from(
+      { length: nextVisible - previousVisible },
+      (_, offset) => previousVisible + offset,
+    )
+
+    const baseDelay = nextStreet === 'flop' ? 90 : 0
+    newVisibleIndexes.forEach((index, sequencePosition) => {
+      const delay = sequencePosition * baseDelay
+
+      const dealingTimer = setTimeout(() => {
+        boardCardAnimations.value[index] = 'dealing'
+      }, delay)
+      boardAnimationTimers.push(dealingTimer)
+
+      const flipTimer = setTimeout(() => {
+        boardCardAnimations.value[index] = 'flip'
+      }, delay + 130)
+      boardAnimationTimers.push(flipTimer)
+
+      const cleanupTimer = setTimeout(() => {
+        boardCardAnimations.value[index] = 'idle'
+      }, delay + 520)
+      boardAnimationTimers.push(cleanupTimer)
+    })
+  },
+)
+
 const perform = (action: 'fold' | 'check' | 'call' | 'raise') => {
   if (!isHumanTurn.value) return
 
@@ -218,6 +281,8 @@ const startNextHand = () => {
 }
 
 onBeforeUnmount(() => {
+  clearBoardAnimationTimers()
+
   if (aiTimeout) {
     clearTimeout(aiTimeout)
   }
@@ -255,7 +320,10 @@ onBeforeUnmount(() => {
                   v-for="slot in boardSlots"
                   :key="slot.key"
                   class="table-card"
-                  :class="slot.isVisible && slot.card ? getCardTone(formatCard(slot.card)) : 'table-card--back'"
+                  :class="[
+                    slot.isVisible && slot.card ? getCardTone(formatCard(slot.card)) : 'table-card--back',
+                    slot.animationClasses,
+                  ]"
                 >
                   <template v-if="slot.isVisible && slot.card">
                     <span class="table-card__rank">{{ getCardRank(formatCard(slot.card)) }}</span>
@@ -561,6 +629,8 @@ onBeforeUnmount(() => {
   box-shadow:
     0 12px 20px rgba(5, 8, 18, 0.32),
     0 2px 6px rgba(8, 12, 24, 0.2);
+  transform-style: preserve-3d;
+  will-change: transform, filter;
 }
 
 .table-card--red {
@@ -590,6 +660,40 @@ onBeforeUnmount(() => {
 .table-card__back-pattern {
   font-size: 1.35rem;
   opacity: 0.9;
+}
+
+.table-card--dealing {
+  animation: tableCardDealing 160ms ease-out;
+}
+
+.table-card--flip {
+  animation: tableCardFlip 340ms cubic-bezier(0.2, 0.7, 0.15, 1);
+}
+
+@keyframes tableCardDealing {
+  0% {
+    transform: translateY(-8px) scale(0.96);
+    filter: brightness(0.92);
+  }
+
+  100% {
+    transform: translateY(0) scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes tableCardFlip {
+  0% {
+    transform: perspective(500px) rotateY(0deg);
+  }
+
+  50% {
+    transform: perspective(500px) rotateY(90deg);
+  }
+
+  100% {
+    transform: perspective(500px) rotateY(0deg);
+  }
 }
 
 .poker-table-layout :deep(.card-table-layout__center) {
