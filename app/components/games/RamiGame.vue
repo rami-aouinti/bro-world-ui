@@ -103,10 +103,17 @@ let throwTimeout: ReturnType<typeof setTimeout> | null = null;
 
 const isRedSuit = (suit: Suit) => suit === "♥" || suit === "♦";
 
+const playerDisplayNames = {
+  aiTop: "Flix",
+  aiRight: "John",
+  player: "You",
+  aiLeft: "Nora",
+} as const;
+
 const tablePlayers = computed(() => [
   {
     id: "aiTop",
-    name: t("gameComponents.rami.players.computerNorth"),
+    name: playerDisplayNames.aiTop,
     isAI: true,
     handCount: aiTopHand.value.length,
     isCurrentTurn: currentTurn.value === "aiTop",
@@ -114,7 +121,7 @@ const tablePlayers = computed(() => [
   },
   {
     id: "aiRight",
-    name: t("gameComponents.rami.players.computerEast"),
+    name: playerDisplayNames.aiRight,
     isAI: true,
     handCount: aiRightHand.value.length,
     isCurrentTurn: currentTurn.value === "aiRight",
@@ -122,7 +129,7 @@ const tablePlayers = computed(() => [
   },
   {
     id: "player",
-    name: t("gameComponents.rami.players.you"),
+    name: playerDisplayNames.player,
     isAI: false,
     handCount: playerHand.value.length,
     isCurrentTurn: currentTurn.value === "player",
@@ -130,7 +137,7 @@ const tablePlayers = computed(() => [
   },
   {
     id: "aiLeft",
-    name: t("gameComponents.rami.players.computerWest"),
+    name: playerDisplayNames.aiLeft,
     isAI: true,
     handCount: aiLeftHand.value.length,
     isCurrentTurn: currentTurn.value === "aiLeft",
@@ -176,13 +183,10 @@ const canReorderHand = computed(
 );
 const topDiscardCard = computed(() => discardPile.value[0] ?? null);
 const turnLabel = computed(() => {
-  if (currentTurn.value === "player")
-    return t("gameComponents.rami.players.you");
-  if (currentTurn.value === "aiRight")
-    return t("gameComponents.rami.players.computerEast");
-  if (currentTurn.value === "aiTop")
-    return t("gameComponents.rami.players.computerNorth");
-  return t("gameComponents.rami.players.computerWest");
+  if (currentTurn.value === "player") return playerDisplayNames.player;
+  if (currentTurn.value === "aiRight") return playerDisplayNames.aiRight;
+  if (currentTurn.value === "aiTop") return playerDisplayNames.aiTop;
+  return playerDisplayNames.aiLeft;
 });
 
 const score = computed(() =>
@@ -986,41 +990,18 @@ reset();
       </section>
     </template>
 
-    <template #seat-north-hand>
-      <section class="seat-hand seat-hand--north">
-        <h4 class="seat-hand__title text-subtitle-2 mb-1 font-weight-bold">
-          {{ t("gameComponents.rami.players.computerNorth") }}
-        </h4>
-        <div class="hand-fan hand-fan--opponent">
-          <div
-            v-for="(card, index) in aiTopHand"
-            :key="`ai-${card.id}`"
-            class="play-card play-card--back hand-fan__card hand-fan__card--back"
-            :style="cardStyle(index, card.id)"
-          />
-        </div>
-      </section>
-    </template>
-
-    <template #seat-east-hand>
-      <section class="seat-hand seat-hand--side">
-        <h4 class="seat-hand__title text-caption mb-1 font-weight-bold">
-          {{ t("gameComponents.rami.players.computerEast") }}
-        </h4>
-        <div class="hand-fan hand-fan--opponent hand-fan--side">
-          <div
-            v-for="(card, index) in aiRightHand"
-            :key="`ai-right-${card.id}`"
-            class="play-card play-card--back hand-fan__card hand-fan__card--back"
-            :style="cardStyle(index, card.id)"
-          />
-        </div>
-      </section>
-    </template>
-
     <template #seat-south-hand>
       <section class="seat-hand seat-hand--south">
         <div class="player-hand-cards">
+          <button
+            v-if="canDraw"
+            type="button"
+            class="draw-callout"
+            @click="drawCard"
+          >
+            <v-icon icon="mdi-cards" size="18" />
+            Draw card
+          </button>
           <div class="hand-fan hand-fan--player">
             <button
               v-for="(card, index) in playerHand"
@@ -1080,22 +1061,6 @@ reset();
         </div>
       </section>
     </template>
-
-    <template #seat-west-hand>
-      <section class="seat-hand seat-hand--side">
-        <h4 class="seat-hand__title text-caption mb-1 font-weight-bold">
-          {{ t("gameComponents.rami.players.computerWest") }}
-        </h4>
-        <div class="hand-fan hand-fan--opponent hand-fan--side">
-          <div
-            v-for="(card, index) in aiLeftHand"
-            :key="`ai-left-${card.id}`"
-            class="play-card play-card--back hand-fan__card hand-fan__card--back"
-            :style="cardStyle(index, card.id)"
-          />
-        </div>
-      </section>
-    </template>
   </CardTableLayout>
 </template>
 
@@ -1130,17 +1095,24 @@ reset();
 }
 
 .hand-fan--opponent .hand-fan__card {
-  margin-left: -24px;
+  margin-left: -20px;
   transform: translateY(0);
-  min-height: 48px;
+  min-height: 44px;
 }
 
 .hand-fan--side .hand-fan__card {
-  margin-left: -30px;
+  margin-left: 0;
+  margin-top: -26px;
+  transform: rotate(90deg);
+  transform-origin: center;
+}
+
+.hand-fan--side .hand-fan__card:first-child {
+  margin-top: 0;
 }
 
 .hand-fan__card--back {
-  width: 44px;
+  width: 40px;
 }
 
 .seat-hand {
@@ -1151,7 +1123,7 @@ reset();
 }
 
 .seat-hand--side {
-  max-width: 220px;
+  max-width: 140px;
 }
 
 .seat-hand--south {
@@ -1165,6 +1137,24 @@ reset();
 .player-hand-cards {
   width: 100%;
   padding-bottom: 20px;
+  position: relative;
+}
+
+.draw-callout {
+  position: absolute;
+  right: 8px;
+  top: -14px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: #fff;
+  background: rgba(3, 9, 6, 0.7);
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
 .seat-hand__title {
@@ -1174,7 +1164,7 @@ reset();
 
 .play-card {
   border-radius: 10px;
-  min-height: 96px;
+  min-height: 88px;
   border: 1px solid rgba(15, 23, 42, 0.15);
   transition:
     transform 180ms ease,
@@ -1185,7 +1175,7 @@ reset();
 .play-card--front {
   background: linear-gradient(160deg, #fff, #f6f7fb);
   box-shadow: 0 7px 18px rgba(15, 23, 42, 0.16);
-  padding: 8px;
+  padding: 7px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -1288,7 +1278,7 @@ reset();
 }
 
 .card-corner {
-  font-size: 0.92rem;
+  font-size: 0.84rem;
   font-weight: 700;
 }
 
@@ -1299,7 +1289,7 @@ reset();
 
 .card-center {
   align-self: center;
-  font-size: 1.7rem;
+  font-size: 1.45rem;
   line-height: 1;
 }
 
