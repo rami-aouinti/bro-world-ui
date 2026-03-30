@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from 'vue'
+import CardTableLayout from './CardTableLayout.vue'
 
 defineProps<{
   selectedPlayMode: 'ai' | 'pvp'
@@ -18,7 +19,7 @@ interface Card {
 const { t } = useI18n()
 
 const suits: Suit[] = ['♠', '♥', '♦', '♣']
-const TURN_SECONDS = 60
+const TURN_SECONDS = 120
 
 const rankLabels: Record<number, string> = {
   1: 'A',
@@ -75,6 +76,46 @@ let aiTimeout: ReturnType<typeof setTimeout> | null = null
 
 const isRedSuit = (suit: Suit) => suit === '♥' || suit === '♦'
 
+const tablePlayers = computed(() => [
+  {
+    id: 'ai',
+    name: 'Ordinateur',
+    isAI: true,
+    handCount: aiHand.value.length,
+    isCurrentTurn: currentTurn.value === 'ai',
+    timerSeconds: currentTurn.value === 'ai' ? timer.value : undefined,
+  },
+  {
+    id: 'seat-east',
+    name: 'Siège libre',
+    isAI: true,
+    handCount: 0,
+    isCurrentTurn: false,
+  },
+  {
+    id: 'player',
+    name: 'Vous',
+    isAI: false,
+    handCount: playerHand.value.length,
+    isCurrentTurn: currentTurn.value === 'player',
+    timerSeconds: currentTurn.value === 'player' ? timer.value : undefined,
+  },
+  {
+    id: 'seat-west',
+    name: 'Siège libre',
+    isAI: true,
+    handCount: 0,
+    isCurrentTurn: false,
+  },
+])
+
+const centerMelds = computed(() => [
+  ...playerMelds.value.map(meld => meld.map(card => `${formatRank(card.rank)}${card.suit}`)),
+  ...aiMelds.value.map(meld => meld.map(card => `${formatRank(card.rank)}${card.suit}`)),
+])
+
+const centerCards = computed(() => discardPile.value.slice(0, 6).map(card => `${formatRank(card.rank)}${card.suit}`))
+
 const selectedCards = computed(() => playerHand.value.filter(card => selectedCardIds.value.includes(card.id)))
 const canDraw = computed(() => currentTurn.value === 'player' && !hasDrawn.value && !winner.value)
 const canDiscard = computed(() => currentTurn.value === 'player' && hasDrawn.value && !winner.value)
@@ -129,7 +170,7 @@ const toggleCard = (cardId: string) => {
 const computeCardUtility = (card: Card, hand: Card[]) => {
   const sameRankCount = hand.filter(item => item.rank === card.rank && item.id !== card.id).length
   const sameSuitCards = hand.filter(item => item.suit === card.suit && item.id !== card.id)
-  const nearSuitCards = sameSuitCards.filter(item => {
+  const nearSuitCards = sameSuitCards.filter((item) => {
     const delta = Math.abs(item.rank - card.rank)
     const qkaBridge = [1, 12, 13].includes(item.rank) && [1, 12, 13].includes(card.rank)
     return delta <= 2 || qkaBridge
@@ -380,7 +421,7 @@ reset()
     </div>
     <div class="d-flex ga-2 flex-wrap justify-end">
       <v-chip color="primary" variant="tonal" prepend-icon="mdi-timer-outline">
-        {{ timer }}s / 60s
+        {{ timer }}s / {{ TURN_SECONDS }}s
       </v-chip>
       <v-chip color="secondary" variant="outlined">Pioche: {{ stock.length }}</v-chip>
       <v-btn variant="outlined" prepend-icon="mdi-cards" :disabled="!canDraw" @click="drawCard">{{ t('gameComponents.rami.actions.draw') }}</v-btn>
@@ -390,92 +431,56 @@ reset()
 
   <p class="game-description mb-3">{{ message }}</p>
 
-  <section class="mb-4">
-    <h4 class="text-subtitle-1 mb-2 font-weight-bold">Main adverse (dos des cartes)</h4>
-    <div class="game-card-grid game-card-grid--opponent">
-      <div v-for="card in aiHand" :key="`ai-${card.id}`" class="play-card play-card--back" />
-    </div>
-  </section>
+  <CardTableLayout :players="tablePlayers" :center-cards="centerCards" :center-melds="centerMelds" :turn-timer-seconds="TURN_SECONDS">
+    <section class="mb-4">
+      <h4 class="text-subtitle-1 mb-2 font-weight-bold">Main adverse (dos des cartes)</h4>
+      <div class="game-card-grid game-card-grid--opponent">
+        <div v-for="card in aiHand" :key="`ai-${card.id}`" class="play-card play-card--back" />
+      </div>
+    </section>
 
-  <section class="mb-4">
-    <h4 class="text-subtitle-1 mb-2 font-weight-bold">Table - combinaisons posées</h4>
-
-    <div class="d-flex flex-column ga-2 mb-3">
-      <p class="mb-1 text-caption text-medium-emphasis">Vous</p>
-      <div v-if="playerMelds.length" class="d-flex flex-column ga-2">
-        <div v-for="(meld, index) in playerMelds" :key="`player-meld-${index}`" class="d-flex ga-2 flex-wrap">
-          <div v-for="card in meld" :key="card.id" class="table-card" :class="{ 'table-card--red': isRedSuit(card.suit) }">
+    <section class="mb-2">
+      <h4 class="text-subtitle-1 mb-2 font-weight-bold">{{ t('gameComponents.rami.hand') }} ({{ playerHand.length }})</h4>
+      <div class="game-card-grid mb-4">
+        <button
+          v-for="card in playerHand"
+          :key="card.id"
+          type="button"
+          class="play-card play-card--front"
+          :class="{ 'play-card--selected': isSelected(card.id) }"
+          @click="toggleCard(card.id)"
+          @dblclick="discardCard(card.id)"
+        >
+          <span class="card-corner" :class="{ 'text-red': isRedSuit(card.suit), 'text-black': !isRedSuit(card.suit) }">
             {{ formatRank(card.rank) }}{{ card.suit }}
-          </div>
-        </div>
-      </div>
-      <p v-else class="game-subtitle mb-0">{{ t('gameComponents.rami.noMeld') }}</p>
-    </div>
-
-    <div class="d-flex flex-column ga-2">
-      <p class="mb-1 text-caption text-medium-emphasis">Ordinateur</p>
-      <div v-if="aiMelds.length" class="d-flex flex-column ga-2">
-        <div v-for="(meld, index) in aiMelds" :key="`ai-meld-${index}`" class="d-flex ga-2 flex-wrap">
-          <div v-for="card in meld" :key="card.id" class="table-card" :class="{ 'table-card--red': isRedSuit(card.suit) }">
+          </span>
+          <span class="card-center" :class="{ 'text-red': isRedSuit(card.suit), 'text-black': !isRedSuit(card.suit) }">{{ card.suit }}</span>
+          <span class="card-corner card-corner--bottom" :class="{ 'text-red': isRedSuit(card.suit), 'text-black': !isRedSuit(card.suit) }">
             {{ formatRank(card.rank) }}{{ card.suit }}
-          </div>
-        </div>
+          </span>
+        </button>
       </div>
-      <p v-else class="game-subtitle mb-0">Aucune combinaison de l’ordinateur pour le moment.</p>
-    </div>
-  </section>
 
-  <section class="mb-2">
-    <h4 class="text-subtitle-1 mb-2 font-weight-bold">{{ t('gameComponents.rami.hand') }} ({{ playerHand.length }})</h4>
-    <div class="game-card-grid mb-4">
-      <button
-        v-for="card in playerHand"
-        :key="card.id"
-        type="button"
-        class="play-card play-card--front"
-        :class="{ 'play-card--selected': isSelected(card.id) }"
-        @click="toggleCard(card.id)"
-        @dblclick="discardCard(card.id)"
-      >
-        <span class="card-corner" :class="{ 'text-red': isRedSuit(card.suit), 'text-black': !isRedSuit(card.suit) }">
-          {{ formatRank(card.rank) }}{{ card.suit }}
-        </span>
-        <span class="card-center" :class="{ 'text-red': isRedSuit(card.suit), 'text-black': !isRedSuit(card.suit) }">{{ card.suit }}</span>
-        <span class="card-corner card-corner--bottom" :class="{ 'text-red': isRedSuit(card.suit), 'text-black': !isRedSuit(card.suit) }">
-          {{ formatRank(card.rank) }}{{ card.suit }}
-        </span>
-      </button>
-    </div>
-
-    <div class="d-flex ga-2 flex-wrap">
-      <v-btn :disabled="!selectedCards.length || !canCreateMeld" color="secondary" variant="outlined" @click="createMeld">
-        {{ t('gameComponents.rami.actions.playCombination', { count: selectedCards.length }) }}
-      </v-btn>
-      <v-btn
-        :disabled="!canDiscard || selectedCards.length !== 1"
-        color="error"
-        variant="outlined"
-        prepend-icon="mdi-delete"
-        @click="discardCard(selectedCards[0]?.id)"
-      >
-        Défausser la carte sélectionnée
-      </v-btn>
-    </div>
-
-    <p class="text-caption mt-2 mb-0 text-medium-emphasis">
-      Règle: vous devez piocher puis défausser pour terminer le tour. Double-cliquez aussi sur une carte pour la défausser rapidement.
-    </p>
-  </section>
-
-  <section class="mt-4">
-    <h4 class="text-subtitle-1 mb-2 font-weight-bold">Défausse</h4>
-    <div class="d-flex ga-2 flex-wrap">
-      <div v-for="(card, index) in discardPile.slice(0, 6)" :key="`discard-${card.id}-${index}`" class="table-card" :class="{ 'table-card--red': isRedSuit(card.suit) }">
-        {{ formatRank(card.rank) }}{{ card.suit }}
+      <div class="d-flex ga-2 flex-wrap">
+        <v-btn :disabled="!selectedCards.length || !canCreateMeld" color="secondary" variant="outlined" @click="createMeld">
+          {{ t('gameComponents.rami.actions.playCombination', { count: selectedCards.length }) }}
+        </v-btn>
+        <v-btn
+          :disabled="!canDiscard || selectedCards.length !== 1"
+          color="error"
+          variant="outlined"
+          prepend-icon="mdi-delete"
+          @click="discardCard(selectedCards[0]?.id)"
+        >
+          Défausser la carte sélectionnée
+        </v-btn>
       </div>
-      <p v-if="!discardPile.length" class="game-subtitle mb-0">Aucune carte en défausse.</p>
-    </div>
-  </section>
+
+      <p class="text-caption mt-2 mb-0 text-medium-emphasis">
+        Règle: vous devez piocher puis défausser pour terminer le tour. Double-cliquez aussi sur une carte pour la défausser rapidement.
+      </p>
+    </section>
+  </CardTableLayout>
 </template>
 
 <style scoped>
@@ -554,18 +559,5 @@ reset()
   align-self: center;
   font-size: 1.7rem;
   line-height: 1;
-}
-
-.table-card {
-  border: 1px solid rgba(15, 23, 42, 0.2);
-  border-radius: 8px;
-  padding: 6px 10px;
-  background: white;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
-  font-weight: 700;
-}
-
-.table-card--red {
-  color: #e53935;
 }
 </style>

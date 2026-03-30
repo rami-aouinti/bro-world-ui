@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import CardTableLayout from './CardTableLayout.vue'
 
 defineProps<{
   selectedPlayMode: 'ai' | 'pvp'
@@ -15,6 +16,8 @@ interface Card {
   suit: Suit
   rank: Rank
 }
+
+const TURN_SECONDS = 120
 
 const suits: Suit[] = ['♠', '♥', '♦', '♣']
 const ranks: Rank[] = ['7', '8', '9', 'J', 'Q', 'K', '10', 'A']
@@ -74,6 +77,46 @@ const playerScore = ref(0)
 const aiScore = ref(0)
 const trickCount = ref(0)
 const message = ref(t('gameComponents.belote.messages.chooseCard'))
+
+const tablePlayers = computed(() => [
+  {
+    id: 'ai',
+    name: 'Ordinateur',
+    isAI: true,
+    handCount: aiHand.value.length,
+    isCurrentTurn: canPlay.value,
+    timerSeconds: canPlay.value ? TURN_SECONDS : undefined,
+  },
+  {
+    id: 'player',
+    name: 'Vous',
+    isAI: false,
+    handCount: playerHand.value.length,
+    isCurrentTurn: canPlay.value,
+    timerSeconds: canPlay.value ? TURN_SECONDS : undefined,
+  },
+  {
+    id: 'seat-3',
+    name: 'Siège libre',
+    isAI: true,
+    handCount: 0,
+    isCurrentTurn: false,
+  },
+  {
+    id: 'seat-4',
+    name: 'Siège libre',
+    isAI: true,
+    handCount: 0,
+    isCurrentTurn: false,
+  },
+])
+
+const centerCards = computed(() => {
+  const cards: string[] = []
+  if (playerCard.value) cards.push(`Vous: ${playerCard.value.rank}${playerCard.value.suit}`)
+  if (aiCard.value) cards.push(`IA: ${aiCard.value.rank}${aiCard.value.suit}`)
+  return cards
+})
 
 const trickWinner = (lead: Card, follow: Card) => {
   if (lead.suit === follow.suit) {
@@ -161,34 +204,36 @@ restart()
     <p class="game-description mb-1">{{ t("gameComponents.belote.trump") }}: <strong>{{ trumpSuit }}</strong></p>
     <p class="game-subtitle mb-4">{{ t("gameComponents.belote.tricksPlayed", { count: trickCount }) }} · {{ t("gameComponents.belote.score", { playerScore, aiScore }) }}</p>
 
-    <div class="d-flex flex-wrap ga-3 mb-4">
-      <v-card class="pa-3 flex-grow-1 game-info-card" min-width="220" variant="outlined">
-        <p class="text-subtitle-2 font-weight-bold mb-2">{{ t("gameComponents.belote.currentTrick") }}</p>
-        <p class="mb-1">{{ t("gameComponents.belote.you") }}: <strong>{{ playerCard ? `${playerCard.rank}${playerCard.suit}` : '—' }}</strong></p>
-        <p class="mb-2">{{ t("gameComponents.belote.ai") }}: <strong>{{ aiCard ? `${aiCard.rank}${aiCard.suit}` : '—' }}</strong></p>
-        <v-btn :disabled="!playerCard || !aiCard || trickCount >= 8" size="small" variant="text" @click="nextTrick">{{ t("gameComponents.belote.actions.nextTrick") }}</v-btn>
-      </v-card>
+    <CardTableLayout :players="tablePlayers" :center-cards="centerCards" :turn-timer-seconds="TURN_SECONDS">
+      <div class="d-flex flex-wrap ga-3 mb-4">
+        <v-card class="pa-3 flex-grow-1 game-info-card" min-width="220" variant="outlined">
+          <p class="text-subtitle-2 font-weight-bold mb-2">{{ t("gameComponents.belote.currentTrick") }}</p>
+          <p class="mb-1">{{ t("gameComponents.belote.you") }}: <strong>{{ playerCard ? `${playerCard.rank}${playerCard.suit}` : '—' }}</strong></p>
+          <p class="mb-2">{{ t("gameComponents.belote.ai") }}: <strong>{{ aiCard ? `${aiCard.rank}${aiCard.suit}` : '—' }}</strong></p>
+          <v-btn :disabled="!playerCard || !aiCard || trickCount >= 8" size="small" variant="text" @click="nextTrick">{{ t("gameComponents.belote.actions.nextTrick") }}</v-btn>
+        </v-card>
 
-      <v-card class="pa-3 flex-grow-1 game-info-card" min-width="220" variant="outlined">
-        <p class="text-subtitle-2 font-weight-bold mb-2">{{ t("gameComponents.belote.instruction") }}</p>
-        <p class="game-subtitle mb-0">{{ message }}</p>
-      </v-card>
-    </div>
+        <v-card class="pa-3 flex-grow-1 game-info-card" min-width="220" variant="outlined">
+          <p class="text-subtitle-2 font-weight-bold mb-2">{{ t("gameComponents.belote.instruction") }}</p>
+          <p class="game-subtitle mb-0">{{ message }}</p>
+        </v-card>
+      </div>
 
-    <p class="text-subtitle-2 font-weight-bold mb-2">{{ t("gameComponents.belote.yourHand") }}</p>
-    <div class="belote-card-grid">
-      <button
-        v-for="card in playerHand"
-        :key="card.id"
-        type="button"
-        class="play-card"
-        :disabled="!canPlay"
-        @click="playCard(card)"
-      >
-        <span>{{ card.rank }}</span>
-        <span :class="card.suit === '♥' || card.suit === '♦' ? 'text-red' : 'text-black'">{{ card.suit }}</span>
-      </button>
-    </div>
+      <p class="text-subtitle-2 font-weight-bold mb-2">{{ t("gameComponents.belote.yourHand") }}</p>
+      <div class="belote-card-grid">
+        <button
+          v-for="card in playerHand"
+          :key="card.id"
+          type="button"
+          class="play-card"
+          :disabled="!canPlay"
+          @click="playCard(card)"
+        >
+          <span>{{ card.rank }}</span>
+          <span :class="card.suit === '♥' || card.suit === '♦' ? 'text-red' : 'text-black'">{{ card.suit }}</span>
+        </button>
+      </div>
+    </CardTableLayout>
   </v-card>
 </template>
 
