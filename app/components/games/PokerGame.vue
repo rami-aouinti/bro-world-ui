@@ -1,17 +1,21 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch, watchEffect } from 'vue'
 import type { PokerCard } from '~/composables/games/usePokerEngine'
 import { usePokerEngine } from '~/composables/games/usePokerEngine'
+import type { GamePanelStatePayload } from '~/types/gamePanel'
 import CardTableLayout from './CardTableLayout.vue'
 
 defineProps<{
   selectedPlayMode: 'ai' | 'pvp'
 }>()
 
+const emit = defineEmits<{
+  (event: 'panel-state', payload: GamePanelStatePayload): void
+}>()
+
 const { t } = useI18n()
 
 const engine = usePokerEngine()
-const raiseToTotal = ref(engine.getMinimumRaiseToTotal(engine.currentTurnIndex.value))
 
 let aiTimeout: ReturnType<typeof setTimeout> | null = null
 
@@ -22,7 +26,6 @@ const currentBet = computed(() => engine.currentBet.value)
 const players = computed(() => engine.players.value)
 const humanPlayer = computed(() => engine.humanPlayer.value)
 const currentTurnIndex = computed(() => engine.currentTurnIndex.value)
-const showdownSummary = computed(() => engine.showdownSummary.value)
 const actionMessage = computed(() => engine.actionMessage.value)
 
 const currentPlayer = computed(() => players.value[currentTurnIndex.value])
@@ -111,12 +114,34 @@ const canRaise = computed(() => {
   return minimum <= maximum && maximum > currentBet.value
 })
 
-const minRaiseToTotal = computed(() => engine.getMinimumRaiseToTotal(0))
-const maxRaiseToTotal = computed(() => engine.getMaximumRaiseToTotal(0))
-
 const streetLabel = computed(() => {
   const key = street.value
   return t(`gameComponents.poker.states.${key}`)
+})
+
+const panelState = computed<GamePanelStatePayload>(() => ({
+  title: t('gameComponents.poker.title'),
+  summaryLines: [
+    `${t('gameComponents.poker.handNumber', { count: handNumber.value })} · ${t('gameComponents.poker.statesLabel')}: ${streetLabel.value}`,
+    `${t('gameComponents.poker.pot')}: ${pot.value} · ${t('gameComponents.poker.turn')}: ${currentPlayer.value?.name ?? '—'}`,
+  ],
+  statusMessage: actionMessage.value,
+  statsChips: [
+    { id: 'pot', label: t('gameComponents.poker.pot'), value: pot.value, color: 'primary', variant: 'flat' },
+    { id: 'current-bet', label: t('gameComponents.poker.currentBet'), value: currentBet.value, variant: 'outlined' },
+    { id: 'street', label: t('gameComponents.poker.statesLabel'), value: streetLabel.value, variant: 'tonal' },
+  ],
+  actions: [
+    { id: 'fold', label: t('gameComponents.poker.actions.fold'), disabled: !isHumanTurn.value || street.value === 'hand-over' },
+    { id: 'check', label: t('gameComponents.poker.actions.check'), disabled: !isHumanTurn.value || !canCheck.value || street.value === 'hand-over' },
+    { id: 'call', label: `${t('gameComponents.poker.actions.call')} ${canCall.value ? `(${playerCallAmount.value})` : ''}`.trim(), disabled: !isHumanTurn.value || !canCall.value || street.value === 'hand-over' },
+    { id: 'raise', label: t('gameComponents.poker.actions.raise'), disabled: !isHumanTurn.value || !canRaise.value || street.value === 'hand-over' },
+    { id: 'next-hand', label: t('gameComponents.poker.actions.nextHand'), disabled: street.value !== 'hand-over' },
+  ],
+}))
+
+watchEffect(() => {
+  emit('panel-state', panelState.value)
 })
 
 const getCardTone = (cardLabel: string) => {
@@ -160,18 +185,7 @@ const createFlyingChips = (fromSeat: number, amount: number) => {
 
 const formatCard = (card: PokerCard) => engine.formatCard(card)
 
-const setRaiseWithinBounds = () => {
-  if (!canRaise.value) {
-    raiseToTotal.value = currentBet.value
-    return
-  }
-
-  raiseToTotal.value = Math.min(maxRaiseToTotal.value, Math.max(minRaiseToTotal.value, raiseToTotal.value))
-}
-
 watch([() => engine.currentTurnIndex.value, () => engine.currentBet.value, () => engine.street.value], () => {
-  setRaiseWithinBounds()
-
   if (aiTimeout) {
     clearTimeout(aiTimeout)
     aiTimeout = null
@@ -254,22 +268,6 @@ watch(
     })
   },
 )
-
-const perform = (action: 'fold' | 'check' | 'call' | 'raise') => {
-  if (!isHumanTurn.value) return
-
-  if (action === 'raise') {
-    engine.performAction(0, 'raise', raiseToTotal.value)
-    return
-  }
-
-  engine.performAction(0, action)
-}
-
-const startNextHand = () => {
-  engine.startNewHand()
-  setRaiseWithinBounds()
-}
 
 onBeforeUnmount(() => {
   clearBoardAnimationTimers()
@@ -389,57 +387,7 @@ onBeforeUnmount(() => {
         </section>
       </template>
 
-      <template #aside>
-        <v-card class="poker-aside pa-4" variant="outlined">
-          <h3 class="game-title mb-2">{{ t('gameComponents.poker.title') }}</h3>
-          <div class="d-flex flex-wrap ga-2 mb-3">
-            <v-chip color="primary" variant="flat">{{ t('gameComponents.poker.handNumber', { count: handNumber }) }}</v-chip>
-            <v-chip>{{ t('gameComponents.poker.statesLabel') }}: {{ streetLabel }}</v-chip>
-          </div>
-          <div class="d-grid ga-1 mb-3">
-            <p class="text-caption mb-0">{{ t('gameComponents.poker.pot') }}: <strong>{{ pot }}</strong></p>
-            <p class="text-caption mb-0">{{ t('gameComponents.poker.currentBet') }}: <strong>{{ currentBet }}</strong></p>
-            <p class="text-caption mb-0">{{ t('gameComponents.poker.turn') }}: <strong>{{ currentPlayer?.name ?? '—' }}</strong></p>
-          </div>
 
-          <p class="text-caption text-medium-emphasis mb-2">{{ actionMessage }}</p>
-          <div v-if="showdownSummary.length" class="mb-3 d-grid ga-1">
-            <p class="text-caption font-weight-bold mb-0">{{ t('gameComponents.poker.showdown') }}</p>
-            <p v-for="(line, index) in showdownSummary" :key="`show-${index}`" class="mb-0 text-caption">{{ line }}</p>
-          </div>
-
-          <div class="d-grid ga-2">
-            <v-btn color="error" variant="outlined" :disabled="!isHumanTurn || street === 'hand-over'" @click="perform('fold')">
-              {{ t('gameComponents.poker.actions.fold') }}
-            </v-btn>
-            <v-btn color="secondary" variant="outlined" :disabled="!isHumanTurn || !canCheck || street === 'hand-over'" @click="perform('check')">
-              {{ t('gameComponents.poker.actions.check') }}
-            </v-btn>
-            <v-btn color="info" variant="outlined" :disabled="!isHumanTurn || !canCall || street === 'hand-over'" @click="perform('call')">
-              {{ t('gameComponents.poker.actions.call') }} {{ canCall ? `(${playerCallAmount})` : '' }}
-            </v-btn>
-
-            <div>
-              <label class="text-caption d-block mb-1">{{ t('gameComponents.poker.actions.raise') }}: {{ raiseToTotal }}</label>
-              <v-slider
-                v-model="raiseToTotal"
-                :min="minRaiseToTotal"
-                :max="maxRaiseToTotal"
-                :step="10"
-                :disabled="!isHumanTurn || !canRaise || street === 'hand-over'"
-                hide-details
-              />
-              <v-btn color="primary" class="mt-1" block :disabled="!isHumanTurn || !canRaise || street === 'hand-over'" @click="perform('raise')">
-                {{ t('gameComponents.poker.actions.raise') }}
-              </v-btn>
-            </div>
-          </div>
-
-          <v-btn v-if="street === 'hand-over'" color="primary" prepend-icon="mdi-refresh" class="mt-3" block @click="startNextHand">
-            {{ t('gameComponents.poker.actions.nextHand') }}
-          </v-btn>
-        </v-card>
-      </template>
     </CardTableLayout>
   </v-card>
 </template>
@@ -450,10 +398,6 @@ onBeforeUnmount(() => {
   border: 1px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 20%, transparent);
 }
 
-.game-title {
-  font-size: 1.2rem;
-  font-weight: 800;
-}
 
 .board-row {
   display: flex;
@@ -736,16 +680,5 @@ onBeforeUnmount(() => {
   letter-spacing: 0.04em;
   color: rgba(255, 255, 255, 0.86);
   text-transform: uppercase;
-}
-
-.poker-aside {
-  position: sticky;
-  top: 90px;
-}
-
-@media (max-width: 960px) {
-  .poker-aside {
-    position: static;
-  }
 }
 </style>
