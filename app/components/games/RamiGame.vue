@@ -32,6 +32,7 @@ const { t } = useI18n();
 
 const suits: Suit[] = ["♠", "♥", "♦", "♣"];
 const TURN_SECONDS = 120;
+const GAME_OVER_THRESHOLD = 501;
 
 const rankLabels: Record<number, string> = {
   1: "A",
@@ -218,6 +219,15 @@ const turnLabel = computed(() => {
 const score = computed(() =>
   playerMelds.value.flat().reduce((total, card) => total + cardPoints(card), 0),
 );
+const createEmptyRoundScores = (): RoundScores => ({
+  player: 0,
+  aiRight: 0,
+  aiTop: 0,
+  aiLeft: 0,
+});
+const totalsByPlayer = ref<RoundScores>(createEmptyRoundScores());
+const roundIndex = ref(1);
+const gameOver = ref(false);
 const lastRoundSummary = computed(() => {
   if (!roundState.value.winner) return "";
   const roundWinnerName =
@@ -232,6 +242,16 @@ const lastRoundSummary = computed(() => {
   ].join(" · ");
   return `Manche gagnée: ${roundWinnerName} (${roundScores})`;
 });
+const totalsSummary = computed(
+  () =>
+    `${playerDisplayNames.player}: ${totalsByPlayer.value.player} · ${playerDisplayNames.aiRight}: ${totalsByPlayer.value.aiRight} · ${playerDisplayNames.aiTop}: ${totalsByPlayer.value.aiTop} · ${playerDisplayNames.aiLeft}: ${totalsByPlayer.value.aiLeft}`,
+);
+const finalResultSummary = computed(() => {
+  if (!gameOver.value || !winner.value) return "";
+  const gameWinnerName =
+    winner.value === "player" ? playerDisplayNames.player : playerDisplayNames[winner.value];
+  return `Partie terminée: ${gameWinnerName} gagne avec ${totalsByPlayer.value[winner.value]} points (objectif: ${GAME_OVER_THRESHOLD}+).`;
+});
 
 const panelState = computed<GameAsidePanelState>(() => ({
   gameKey: "rami",
@@ -240,9 +260,12 @@ const panelState = computed<GameAsidePanelState>(() => ({
   turnLabel: turnLabel.value,
   status: message.value,
   highlights: [
+    `Manche ${roundIndex.value}${gameOver.value ? " · Partie terminée" : ""}`,
     `${t("gameComponents.rami.pointsPlayed")}: ${score.value} · ${t("gameComponents.rami.turn")}: ${turnLabel.value}`,
     `${t("gameComponents.rami.hand")} (${playerHand.value.length}) · ${t("gameComponents.rami.drawPile")}: ${stock.value.length}`,
+    `Cumuls: ${totalsSummary.value}`,
     ...(lastRoundSummary.value ? [lastRoundSummary.value] : []),
+    ...(finalResultSummary.value ? [finalResultSummary.value] : []),
   ],
   kpis: [
     {
@@ -258,6 +281,20 @@ const panelState = computed<GameAsidePanelState>(() => ({
       label: t("gameComponents.rami.drawPile"),
       value: stock.value.length,
       color: "secondary",
+      variant: "outlined",
+    },
+    {
+      id: "round",
+      label: "Manche",
+      value: roundIndex.value,
+      color: "info",
+      variant: "tonal",
+    },
+    {
+      id: "cumulative-score",
+      label: "Votre cumul",
+      value: totalsByPlayer.value.player,
+      color: "success",
       variant: "outlined",
     },
   ],
@@ -647,21 +684,53 @@ const checkWin = () => {
     : winningAiPlayer ?? null;
 
   if (roundWinner) {
+    const roundScores = buildEndRoundScores();
     roundState.value = {
       winner: roundWinner,
-      scores: buildEndRoundScores(),
+      scores: roundScores,
     };
-  }
+    totalsByPlayer.value = {
+      player: totalsByPlayer.value.player + roundScores.player,
+      aiRight: totalsByPlayer.value.aiRight + roundScores.aiRight,
+      aiTop: totalsByPlayer.value.aiTop + roundScores.aiTop,
+      aiLeft: totalsByPlayer.value.aiLeft + roundScores.aiLeft,
+    };
 
-  if (!playerHand.value.length) {
-    winner.value = "player";
-    message.value = t("gameComponents.rami.messages.playerWin");
-    return true;
-  }
+    const gameShouldEnd = Object.values(totalsByPlayer.value).some(
+      (total) => total >= GAME_OVER_THRESHOLD,
+    );
 
-  if (winningAiPlayer) {
-    winner.value = winningAiPlayer;
-    message.value = t("gameComponents.rami.messages.computerWin");
+    if (gameShouldEnd) {
+      gameOver.value = true;
+      const gameWinner = (Object.entries(totalsByPlayer.value) as [
+        Player,
+        number,
+      ][]).reduce((bestPlayer, [candidate]) => {
+        if (!bestPlayer) return candidate;
+        return totalsByPlayer.value[candidate] <
+          totalsByPlayer.value[bestPlayer]
+          ? candidate
+          : bestPlayer;
+      }, null as Player | null);
+
+      winner.value = gameWinner;
+      const gameWinnerName =
+        gameWinner === "player"
+          ? playerDisplayNames.player
+          : gameWinner
+            ? playerDisplayNames[gameWinner]
+            : "";
+      message.value = `Partie terminée · ${gameWinnerName} gagne avec ${totalsByPlayer.value[gameWinner as Player]} points.`;
+      return true;
+    }
+
+    const roundWinnerMessage =
+      roundWinner === "player"
+        ? t("gameComponents.rami.messages.playerWin")
+        : t("gameComponents.rami.messages.computerWin");
+    message.value = `${roundWinnerMessage} · Manche ${roundIndex.value + 1}.`;
+    roundIndex.value += 1;
+    startRound();
     return true;
   }
 
@@ -1010,6 +1079,17 @@ defineExpose({
 });
 
 const reset = () => {
+  totalsByPlayer.value = createEmptyRoundScores();
+  roundIndex.value = 1;
+  gameOver.value = false;
+  roundState.value = {
+    winner: null,
+    scores: createEmptyRoundScores(),
+  };
+  startRound();
+};
+
+const startRound = () => {
   const randomDeck = shuffle(deck(2));
   playerHand.value = randomDeck.slice(0, 14);
   aiRightHand.value = sortHand(randomDeck.slice(14, 28));
@@ -1030,18 +1110,12 @@ const reset = () => {
   hasDrawn.value = false;
   timer.value = TURN_SECONDS;
   winner.value = null;
-  roundState.value = {
-    winner: null,
-    scores: {
-      player: 0,
-      aiRight: 0,
-      aiTop: 0,
-      aiLeft: 0,
-    },
-  };
-  message.value = t("gameComponents.rami.messages.newGameDetailed", {
-    count: 14,
-  });
+  message.value =
+    roundIndex.value === 1
+      ? t("gameComponents.rami.messages.newGameDetailed", {
+          count: 14,
+        })
+      : `Manche ${roundIndex.value} démarrée.`;
   applyCurrentSortToPlayerHand();
   startTurnTimer();
 };
