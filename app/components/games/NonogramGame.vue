@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, watchEffect } from "vue";
+import type { GameAsidePanelState } from "./types";
 import {
   NONOGRAM_PUZZLES,
   type NonogramDifficulty,
@@ -10,6 +11,9 @@ const { t } = useI18n();
 const props = defineProps<{
   selectedPlayMode: "ai";
 }>();
+const emit = defineEmits<{
+  (event: "panel-state", payload: GameAsidePanelState): void;
+}>();
 
 type PlayerCell = "empty" | "filled" | "marked";
 
@@ -18,8 +22,8 @@ const difficultyLevels: NonogramDifficulty[] = ["small", "medium", "large"];
 const puzzleIndex = ref(0);
 const victory = ref(false);
 
-const currentPuzzle = computed<NonogramPuzzle>(() =>
-  NONOGRAM_PUZZLES[difficulty.value][puzzleIndex.value],
+const currentPuzzle = computed<NonogramPuzzle>(
+  () => NONOGRAM_PUZZLES[difficulty.value][puzzleIndex.value],
 );
 
 const createPlayerGrid = (puzzle: NonogramPuzzle) =>
@@ -119,13 +123,55 @@ const markCellAsEmpty = (row: number, col: number) => {
 watch(currentPuzzle, () => {
   resetGrid();
 });
+
+const panelState = computed<GameAsidePanelState>(() => ({
+  gameKey: "nonogram",
+  title: t("gameComponents.nonogram.puzzle"),
+  phase: t(`common.size.${difficulty.value}`),
+  turnLabel: props.selectedPlayMode.toUpperCase(),
+  status: victory.value
+    ? t("gameComponents.nonogram.victory")
+    : t("gameComponents.nonogram.instructions"),
+  highlights: [
+    `${t("gameComponents.nonogram.puzzle")}: ${currentPuzzle.value.name}`,
+    `${t("gameComponents.nonogram.mode")} ${props.selectedPlayMode.toUpperCase()}`,
+  ],
+  kpis: [
+    {
+      id: "width",
+      label: "Cols",
+      value: currentPuzzle.value.grid[0]?.length ?? 0,
+      variant: "outlined",
+    },
+    {
+      id: "height",
+      label: "Rows",
+      value: currentPuzzle.value.grid.length,
+      variant: "outlined",
+    },
+  ],
+  actions: [
+    { id: "next", label: t("gameComponents.nonogram.actions.nextPuzzle") },
+    { id: "reset", label: t("gameComponents.nonogram.actions.reset") },
+  ],
+}));
+
+watchEffect(() => {
+  emit("panel-state", panelState.value);
+});
 </script>
 
 <template>
   <v-card class="nonogram pa-4" variant="outlined">
     <div class="d-flex flex-wrap align-center ga-2 mb-4">
-      <v-chip prepend-icon="mdi-robot" color="info" variant="tonal">{{ t("gameComponents.nonogram.mode") }} {{ props.selectedPlayMode.toUpperCase() }}</v-chip>
-      <v-chip color="primary" variant="outlined">{{ t("gameComponents.nonogram.puzzle") }}: {{ currentPuzzle.name }}</v-chip>
+      <v-chip prepend-icon="mdi-robot" color="info" variant="tonal"
+        >{{ t("gameComponents.nonogram.mode") }}
+        {{ props.selectedPlayMode.toUpperCase() }}</v-chip
+      >
+      <v-chip color="primary" variant="outlined"
+        >{{ t("gameComponents.nonogram.puzzle") }}:
+        {{ currentPuzzle.name }}</v-chip
+      >
       <v-spacer />
       <v-btn
         v-for="level in difficultyLevels"
@@ -137,13 +183,29 @@ watch(currentPuzzle, () => {
       >
         {{ t(`common.size.${level}`) }}
       </v-btn>
-      <v-btn size="small" color="secondary" variant="outlined" @click="nextPuzzle">{{ t("gameComponents.nonogram.actions.nextPuzzle") }}</v-btn>
-      <v-btn size="small" color="warning" variant="outlined" @click="resetGrid">{{ t("gameComponents.nonogram.actions.reset") }}</v-btn>
+      <v-btn
+        size="small"
+        color="secondary"
+        variant="outlined"
+        @click="nextPuzzle"
+        >{{ t("gameComponents.nonogram.actions.nextPuzzle") }}</v-btn
+      >
+      <v-btn
+        size="small"
+        color="warning"
+        variant="outlined"
+        @click="resetGrid"
+        >{{ t("gameComponents.nonogram.actions.reset") }}</v-btn
+      >
     </div>
 
     <div class="d-flex align-start ga-3">
       <div class="row-hints">
-        <div v-for="(hints, rowIndex) in rowHints" :key="`row-hint-${rowIndex}`" class="hint-line">
+        <div
+          v-for="(hints, rowIndex) in rowHints"
+          :key="`row-hint-${rowIndex}`"
+          class="hint-line"
+        >
           {{ hints.join(" ") }}
         </div>
       </div>
@@ -163,7 +225,9 @@ watch(currentPuzzle, () => {
               :key="`col-${colIndex}-hint-${hintIndex}`"
               class="hint-column-item"
             >
-              {{ hints[hints.length - maxColumnHintDepth + hintIndex - 1] ?? "" }}
+              {{
+                hints[hints.length - maxColumnHintDepth + hintIndex - 1] ?? ""
+              }}
             </span>
           </div>
         </div>
@@ -177,8 +241,18 @@ watch(currentPuzzle, () => {
               filled: cell === 'filled',
               marked: cell === 'marked',
             }"
-            @click="fillCell(Math.floor(index / currentPuzzle.grid[0].length), index % currentPuzzle.grid[0].length)"
-            @contextmenu.prevent="markCellAsEmpty(Math.floor(index / currentPuzzle.grid[0].length), index % currentPuzzle.grid[0].length)"
+            @click="
+              fillCell(
+                Math.floor(index / currentPuzzle.grid[0].length),
+                index % currentPuzzle.grid[0].length,
+              )
+            "
+            @contextmenu.prevent="
+              markCellAsEmpty(
+                Math.floor(index / currentPuzzle.grid[0].length),
+                index % currentPuzzle.grid[0].length,
+              )
+            "
           >
             <span v-if="cell === 'marked'">×</span>
           </button>

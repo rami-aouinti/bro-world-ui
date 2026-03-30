@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useChessEngine } from '~/composables/games/useChessEngine'
+import { computed, watchEffect } from "vue";
+import type { GameAsidePanelState } from "./types";
+import { useChessEngine } from "~/composables/games/useChessEngine";
 
 const props = defineProps<{
-  selectedPlayMode: 'ai' | 'pvp'
-}>()
-const { t } = useI18n()
+  selectedPlayMode: "ai" | "pvp";
+}>();
+const emit = defineEmits<{
+  (event: "panel-state", payload: GameAsidePanelState): void;
+}>();
+const route = useRoute();
+const { t } = useI18n();
 
 const {
   board,
@@ -20,22 +25,22 @@ const {
   selectSquare,
   reset,
   formatHistoryMove,
-} = useChessEngine(props.selectedPlayMode)
+} = useChessEngine(props.selectedPlayMode);
 
 const pieceGlyph: Record<string, string> = {
-  'white-king': '♔',
-  'white-queen': '♕',
-  'white-rook': '♖',
-  'white-bishop': '♗',
-  'white-knight': '♘',
-  'white-pawn': '♙',
-  'black-king': '♚',
-  'black-queen': '♛',
-  'black-rook': '♜',
-  'black-bishop': '♝',
-  'black-knight': '♞',
-  'black-pawn': '♟',
-}
+  "white-king": "♔",
+  "white-queen": "♕",
+  "white-rook": "♖",
+  "white-bishop": "♗",
+  "white-knight": "♘",
+  "white-pawn": "♙",
+  "black-king": "♚",
+  "black-queen": "♛",
+  "black-rook": "♜",
+  "black-bishop": "♝",
+  "black-knight": "♞",
+  "black-pawn": "♟",
+};
 
 const boardRows = computed(() =>
   board.value.map((row, rowIndex) =>
@@ -45,34 +50,98 @@ const boardRows = computed(() =>
       piece: cell,
     })),
   ),
-)
+);
 
 const cellClasses = (row: number, col: number) => ({
-  'chess-cell': true,
-  'chess-cell--dark': (row + col) % 2 === 1,
-  'chess-cell--selected': Boolean(selectedSquare.value && selectedSquare.value.row === row && selectedSquare.value.col === col),
-  'chess-cell--target': legalTargets.value.some(target => target.row === row && target.col === col),
-})
+  "chess-cell": true,
+  "chess-cell--dark": (row + col) % 2 === 1,
+  "chess-cell--selected": Boolean(
+    selectedSquare.value &&
+    selectedSquare.value.row === row &&
+    selectedSquare.value.col === col,
+  ),
+  "chess-cell--target": legalTargets.value.some(
+    (target) => target.row === row && target.col === col,
+  ),
+});
 
-const cellLabel = (row: number, col: number) => `${String.fromCharCode(97 + col)}${8 - row}`
+const cellLabel = (row: number, col: number) =>
+  `${String.fromCharCode(97 + col)}${8 - row}`;
 
-const sideLabel = computed(() => currentTurn.value === 'white'
-  ? t('gameComponents.chess.sides.white')
-  : t('gameComponents.chess.sides.black'))
+const sideLabel = computed(() =>
+  currentTurn.value === "white"
+    ? t("gameComponents.chess.sides.white")
+    : t("gameComponents.chess.sides.black"),
+);
+
+const isGamePage = computed(() => route.path === "/game");
+
+const panelState = computed<GameAsidePanelState>(() => ({
+  gameKey: "chess",
+  title: t("gameComponents.chess.title"),
+  phase: winner.value
+    ? t("gameComponents.chess.check")
+    : t("gameComponents.chess.turn"),
+  turnLabel: sideLabel.value,
+  status: statusMessage.value,
+  highlights: [
+    `${t("gameComponents.chess.turn")} : ${sideLabel.value}`,
+    isAiThinking.value
+      ? t("gameComponents.chess.aiThinking")
+      : t("gameComponents.chess.history"),
+  ],
+  kpis: [
+    {
+      id: "moves",
+      label: t("gameComponents.chess.history"),
+      value: moveHistory.value.length,
+      variant: "outlined",
+    },
+    {
+      id: "check",
+      label: t("gameComponents.chess.check"),
+      value: isInCheck.value ? "Oui" : "Non",
+      color: isInCheck.value ? "warning" : "success",
+      variant: "tonal",
+    },
+  ],
+  actions: [
+    { id: "new-game", label: t("gameComponents.chess.actions.newGame") },
+  ],
+}));
+
+watchEffect(() => {
+  emit("panel-state", panelState.value);
+});
 </script>
 
 <template>
   <v-card class="pa-4 chess-card" variant="outlined">
     <div class="d-flex flex-wrap justify-space-between align-center ga-2 mb-3">
       <div>
-        <h3 class="text-h6 mb-1">{{ t('gameComponents.chess.title') }}</h3>
+        <h3 class="text-h6 mb-1">{{ t("gameComponents.chess.title") }}</h3>
         <p class="text-body-2 text-medium-emphasis mb-0">{{ statusMessage }}</p>
       </div>
       <div class="d-flex flex-wrap ga-2">
-        <v-chip color="info" variant="tonal">{{ t('gameComponents.chess.turn') }} : {{ sideLabel }}</v-chip>
-        <v-chip v-if="isInCheck && !winner" color="warning" variant="flat">{{ t('gameComponents.chess.check') }}</v-chip>
-        <v-chip v-if="props.selectedPlayMode === 'ai'" color="deep-purple" variant="outlined">{{ t('gameComponents.chess.aiMode') }}</v-chip>
-        <v-btn size="small" prepend-icon="mdi-refresh" variant="tonal" @click="reset">{{ t('gameComponents.chess.actions.newGame') }}</v-btn>
+        <v-chip color="info" variant="tonal"
+          >{{ t("gameComponents.chess.turn") }} : {{ sideLabel }}</v-chip
+        >
+        <v-chip v-if="isInCheck && !winner" color="warning" variant="flat">{{
+          t("gameComponents.chess.check")
+        }}</v-chip>
+        <v-chip
+          v-if="props.selectedPlayMode === 'ai'"
+          color="deep-purple"
+          variant="outlined"
+          >{{ t("gameComponents.chess.aiMode") }}</v-chip
+        >
+        <v-btn
+          size="small"
+          prepend-icon="mdi-refresh"
+          variant="tonal"
+          @click="reset"
+          >{{ t("gameComponents.chess.actions.newGame") }}</v-btn
+        >
       </div>
     </div>
 
@@ -83,11 +152,18 @@ const sideLabel = computed(() => currentTurn.value === 'white'
       density="compact"
       class="mb-3"
     >
-      {{ t('gameComponents.chess.aiThinking') }}
+      {{ t("gameComponents.chess.aiThinking") }}
     </v-alert>
 
-    <div class="chess-layout">
-      <div class="chess-board" role="grid" :aria-label="t('gameComponents.chess.aria.board')">
+    <div
+      class="chess-layout"
+      :class="{ 'chess-layout--game-page': isGamePage }"
+    >
+      <div
+        class="chess-board"
+        role="grid"
+        :aria-label="t('gameComponents.chess.aria.board')"
+      >
         <button
           v-for="cell in boardRows.flat()"
           :key="`cell-${cell.row}-${cell.col}`"
@@ -95,28 +171,44 @@ const sideLabel = computed(() => currentTurn.value === 'white'
           :class="cellClasses(cell.row, cell.col)"
           @click="selectSquare({ row: cell.row, col: cell.col })"
         >
-          <span class="chess-cell__coord">{{ cellLabel(cell.row, cell.col) }}</span>
+          <span class="chess-cell__coord">{{
+            cellLabel(cell.row, cell.col)
+          }}</span>
           <span v-if="cell.piece" class="chess-piece">
             {{ pieceGlyph[`${cell.piece.color}-${cell.piece.type}`] }}
           </span>
-          <span v-else-if="legalTargets.some(target => target.row === cell.row && target.col === cell.col)" class="chess-target-dot" />
+          <span
+            v-else-if="
+              legalTargets.some(
+                (target) => target.row === cell.row && target.col === cell.col,
+              )
+            "
+            class="chess-target-dot"
+          />
         </button>
       </div>
 
       <div class="chess-history">
-        <h4 class="text-subtitle-1 mb-2">{{ t('gameComponents.chess.history') }}</h4>
+        <h4 class="text-subtitle-1 mb-2">
+          {{ t("gameComponents.chess.history") }}
+        </h4>
         <ol class="history-list">
           <li
             v-for="(move, index) in moveHistory"
             :key="`move-${index}`"
             class="history-item"
           >
-            <span class="text-caption text-medium-emphasis mr-2">{{ index + 1 }}.</span>
+            <span class="text-caption text-medium-emphasis mr-2"
+              >{{ index + 1 }}.</span
+            >
             <span>{{ formatHistoryMove(move) }}</span>
           </li>
         </ol>
-        <p v-if="!moveHistory.length" class="text-body-2 text-medium-emphasis mb-0">
-          {{ t('gameComponents.chess.noMoves') }}
+        <p
+          v-if="!moveHistory.length"
+          class="text-body-2 text-medium-emphasis mb-0"
+        >
+          {{ t("gameComponents.chess.noMoves") }}
         </p>
       </div>
     </div>
@@ -135,6 +227,11 @@ const sideLabel = computed(() => currentTurn.value === 'white'
   align-items: start;
 }
 
+.chess-layout--game-page {
+  grid-template-columns: 1fr;
+  justify-items: center;
+}
+
 .chess-board {
   display: grid;
   grid-template-columns: repeat(8, minmax(36px, 1fr));
@@ -150,7 +247,9 @@ const sideLabel = computed(() => currentTurn.value === 'white'
   cursor: pointer;
   background: #f2e2c2;
   color: #2a2a2a;
-  transition: transform 120ms ease, box-shadow 120ms ease;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease;
 }
 
 .chess-cell:hover {

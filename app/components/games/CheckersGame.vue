@@ -1,242 +1,274 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import {
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+  watchEffect,
+} from "vue";
+import type { GameAsidePanelState } from "./types";
 
 const props = defineProps<{
-  selectedPlayMode: 'ai' | 'pvp'
-}>()
+  selectedPlayMode: "ai" | "pvp";
+}>();
+const emit = defineEmits<{
+  (event: "panel-state", payload: GameAsidePanelState): void;
+}>();
+const route = useRoute();
 
-const { t } = useI18n()
+const { t } = useI18n();
 
-type Player = 'red' | 'black'
+type Player = "red" | "black";
 
 interface Piece {
-  player: Player
-  king: boolean
+  player: Player;
+  king: boolean;
 }
 
-type Cell = Piece | null
+type Cell = Piece | null;
 
-type Board = Cell[][]
+type Board = Cell[][];
 
 interface Position {
-  row: number
-  col: number
+  row: number;
+  col: number;
 }
 
 interface Move {
-  to: Position
-  capture?: Position
+  to: Position;
+  capture?: Position;
 }
 
 interface AvailableMoves {
-  simpleMoves: Move[]
-  captureMoves: Move[]
-  followUpCaptureMoves: Move[]
+  simpleMoves: Move[];
+  captureMoves: Move[];
+  followUpCaptureMoves: Move[];
 }
 
 const createInitialBoard = (): Board => {
-  const board: Board = Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => null))
+  const board: Board = Array.from({ length: 8 }, () =>
+    Array.from({ length: 8 }, () => null),
+  );
 
   for (let row = 0; row < 8; row += 1) {
     for (let col = 0; col < 8; col += 1) {
       if ((row + col) % 2 === 0) {
-        continue
+        continue;
       }
 
       if (row <= 2) {
-        board[row][col] = { player: 'black', king: false }
-      }
-      else if (row >= 5) {
-        board[row][col] = { player: 'red', king: false }
+        board[row][col] = { player: "black", king: false };
+      } else if (row >= 5) {
+        board[row][col] = { player: "red", king: false };
       }
     }
   }
 
-  return board
-}
+  return board;
+};
 
-const currentPlayerLabel = (player: Player) => player === 'red'
-  ? t('gameComponents.checkers.players.redTurn')
-  : t('gameComponents.checkers.players.blackTurn')
+const currentPlayerLabel = (player: Player) =>
+  player === "red"
+    ? t("gameComponents.checkers.players.redTurn")
+    : t("gameComponents.checkers.players.blackTurn");
 
-const winnerLabel = (player: Player) => player === 'red'
-  ? t('gameComponents.checkers.players.redWin')
-  : t('gameComponents.checkers.players.blackWin')
+const winnerLabel = (player: Player) =>
+  player === "red"
+    ? t("gameComponents.checkers.players.redWin")
+    : t("gameComponents.checkers.players.blackWin");
 
+const TURN_SECONDS = 60;
 
-const TURN_SECONDS = 60
+const board = ref<Board>(createInitialBoard());
+const currentPlayer = ref<Player>("red");
+const selected = ref<Position | null>(null);
+const message = ref(currentPlayerLabel("red"));
+const isThinking = ref(false);
+const remainingSeconds = ref(TURN_SECONDS);
+const intervalId = ref<ReturnType<typeof setInterval> | null>(null);
+const forcedWinner = ref<Player | null>(null);
+const mustContinueCapture = ref(false);
 
-const board = ref<Board>(createInitialBoard())
-const currentPlayer = ref<Player>('red')
-const selected = ref<Position | null>(null)
-const message = ref(currentPlayerLabel('red'))
-const isThinking = ref(false)
-const remainingSeconds = ref(TURN_SECONDS)
-const intervalId = ref<ReturnType<typeof setInterval> | null>(null)
-const forcedWinner = ref<Player | null>(null)
-const mustContinueCapture = ref(false)
+const timerProgress = computed(() =>
+  Math.max(0, (remainingSeconds.value / TURN_SECONDS) * 100),
+);
+const isGamePage = computed(() => route.path === "/game");
 
-const timerProgress = computed(() => Math.max(0, (remainingSeconds.value / TURN_SECONDS) * 100))
+const hasInside = (row: number, col: number) =>
+  row >= 0 && row < 8 && col >= 0 && col < 8;
 
-const hasInside = (row: number, col: number) => row >= 0 && row < 8 && col >= 0 && col < 8
-
-const pieceAt = (position: Position) => board.value[position.row][position.col]
+const pieceAt = (position: Position) => board.value[position.row][position.col];
 
 const movementDirections = (piece: Piece) => {
   if (piece.king) {
-    return [1, -1]
+    return [1, -1];
   }
 
-  return piece.player === 'red' ? [-1] : [1]
-}
+  return piece.player === "red" ? [-1] : [1];
+};
 
-const cloneBoard = (source: Board): Board => source.map(row => row.map((cell) => {
-  if (!cell) {
-    return null
-  }
+const cloneBoard = (source: Board): Board =>
+  source.map((row) =>
+    row.map((cell) => {
+      if (!cell) {
+        return null;
+      }
 
-  return {
-    player: cell.player,
-    king: cell.king,
-  }
-}))
+      return {
+        player: cell.player,
+        king: cell.king,
+      };
+    }),
+  );
 
-const calculateManMoves = (position: Position, piece: Piece, boardState: Board) => {
-  const simpleMoves: Move[] = []
-  const captureMoves: Move[] = []
+const calculateManMoves = (
+  position: Position,
+  piece: Piece,
+  boardState: Board,
+) => {
+  const simpleMoves: Move[] = [];
+  const captureMoves: Move[] = [];
 
   for (const rowDir of movementDirections(piece)) {
     for (const colDir of [-1, 1]) {
-      const nextRow = position.row + rowDir
-      const nextCol = position.col + colDir
+      const nextRow = position.row + rowDir;
+      const nextCol = position.col + colDir;
 
       if (!hasInside(nextRow, nextCol)) {
-        continue
+        continue;
       }
 
-      const nextCell = boardState[nextRow][nextCol]
+      const nextCell = boardState[nextRow][nextCol];
       if (!nextCell) {
-        simpleMoves.push({ to: { row: nextRow, col: nextCol } })
-        continue
+        simpleMoves.push({ to: { row: nextRow, col: nextCol } });
+        continue;
       }
 
       if (nextCell.player === piece.player) {
-        continue
+        continue;
       }
 
-      const jumpRow = nextRow + rowDir
-      const jumpCol = nextCol + colDir
+      const jumpRow = nextRow + rowDir;
+      const jumpCol = nextCol + colDir;
       if (!hasInside(jumpRow, jumpCol) || boardState[jumpRow][jumpCol]) {
-        continue
+        continue;
       }
 
       captureMoves.push({
         to: { row: jumpRow, col: jumpCol },
         capture: { row: nextRow, col: nextCol },
-      })
+      });
     }
   }
 
-  return { simpleMoves, captureMoves }
-}
+  return { simpleMoves, captureMoves };
+};
 
-const calculateKingMoves = (position: Position, piece: Piece, boardState: Board) => {
-  const simpleMoves: Move[] = []
-  const captureMoves: Move[] = []
+const calculateKingMoves = (
+  position: Position,
+  piece: Piece,
+  boardState: Board,
+) => {
+  const simpleMoves: Move[] = [];
+  const captureMoves: Move[] = [];
 
   for (const rowDir of [-1, 1]) {
     for (const colDir of [-1, 1]) {
-      let nextRow = position.row + rowDir
-      let nextCol = position.col + colDir
-      let encounteredOpponent: Position | null = null
+      let nextRow = position.row + rowDir;
+      let nextCol = position.col + colDir;
+      let encounteredOpponent: Position | null = null;
 
       while (hasInside(nextRow, nextCol)) {
-        const nextCell = boardState[nextRow][nextCol]
+        const nextCell = boardState[nextRow][nextCol];
 
         if (!encounteredOpponent) {
           if (!nextCell) {
-            simpleMoves.push({ to: { row: nextRow, col: nextCol } })
-            nextRow += rowDir
-            nextCol += colDir
-            continue
+            simpleMoves.push({ to: { row: nextRow, col: nextCol } });
+            nextRow += rowDir;
+            nextCol += colDir;
+            continue;
           }
 
           if (nextCell.player === piece.player) {
-            break
+            break;
           }
 
-          encounteredOpponent = { row: nextRow, col: nextCol }
-          nextRow += rowDir
-          nextCol += colDir
-          continue
+          encounteredOpponent = { row: nextRow, col: nextCol };
+          nextRow += rowDir;
+          nextCol += colDir;
+          continue;
         }
 
         if (nextCell) {
-          break
+          break;
         }
 
         captureMoves.push({
           to: { row: nextRow, col: nextCol },
           capture: encounteredOpponent,
-        })
-        nextRow += rowDir
-        nextCol += colDir
+        });
+        nextRow += rowDir;
+        nextCol += colDir;
       }
     }
   }
 
-  return { simpleMoves, captureMoves }
-}
+  return { simpleMoves, captureMoves };
+};
 
-const calculateMoves = (position: Position, boardState: Board): Pick<AvailableMoves, 'simpleMoves' | 'captureMoves'> => {
-  const piece = boardState[position.row][position.col]
+const calculateMoves = (
+  position: Position,
+  boardState: Board,
+): Pick<AvailableMoves, "simpleMoves" | "captureMoves"> => {
+  const piece = boardState[position.row][position.col];
   if (!piece) {
-    return { simpleMoves: [], captureMoves: [] }
+    return { simpleMoves: [], captureMoves: [] };
   }
 
   if (piece.king) {
-    return calculateKingMoves(position, piece, boardState)
+    return calculateKingMoves(position, piece, boardState);
   }
 
-  return calculateManMoves(position, piece, boardState)
-}
+  return calculateManMoves(position, piece, boardState);
+};
 
 const availableMoves = (position: Position): AvailableMoves => {
-  const piece = pieceAt(position)
+  const piece = pieceAt(position);
   if (!piece) {
     return {
       simpleMoves: [],
       captureMoves: [],
       followUpCaptureMoves: [],
-    }
+    };
   }
 
-  const { simpleMoves, captureMoves } = calculateMoves(position, board.value)
-  const followUpCaptureMoves: Move[] = []
+  const { simpleMoves, captureMoves } = calculateMoves(position, board.value);
+  const followUpCaptureMoves: Move[] = [];
 
   for (const captureMove of captureMoves) {
-    const simulatedBoard = cloneBoard(board.value)
-    const movingPiece = simulatedBoard[position.row][position.col]
+    const simulatedBoard = cloneBoard(board.value);
+    const movingPiece = simulatedBoard[position.row][position.col];
     if (!movingPiece) {
-      continue
+      continue;
     }
 
-    simulatedBoard[position.row][position.col] = null
-    simulatedBoard[captureMove.to.row][captureMove.to.col] = movingPiece
+    simulatedBoard[position.row][position.col] = null;
+    simulatedBoard[captureMove.to.row][captureMove.to.col] = movingPiece;
     if (captureMove.capture) {
-      simulatedBoard[captureMove.capture.row][captureMove.capture.col] = null
+      simulatedBoard[captureMove.capture.row][captureMove.capture.col] = null;
     }
 
-    if (movingPiece.player === 'red' && captureMove.to.row === 0) {
-      movingPiece.king = true
+    if (movingPiece.player === "red" && captureMove.to.row === 0) {
+      movingPiece.king = true;
     }
-    if (movingPiece.player === 'black' && captureMove.to.row === 7) {
-      movingPiece.king = true
+    if (movingPiece.player === "black" && captureMove.to.row === 7) {
+      movingPiece.king = true;
     }
 
-    const next = calculateMoves(captureMove.to, simulatedBoard).captureMoves
+    const next = calculateMoves(captureMove.to, simulatedBoard).captureMoves;
     if (next.length) {
-      followUpCaptureMoves.push(captureMove)
+      followUpCaptureMoves.push(captureMove);
     }
   }
 
@@ -244,327 +276,426 @@ const availableMoves = (position: Position): AvailableMoves => {
     simpleMoves,
     captureMoves,
     followUpCaptureMoves,
-  }
-}
+  };
+};
 
 const highlightedMoves = computed(() => {
   if (!selected.value) {
-    return [] as Move[]
+    return [] as Move[];
   }
 
-  const moves = availableMoves(selected.value)
+  const moves = availableMoves(selected.value);
   if (mustContinueCapture.value || hasCaptureMoveForCurrentPlayer()) {
-    return moves.captureMoves
+    return moves.captureMoves;
   }
 
-  return [...moves.captureMoves, ...moves.simpleMoves]
-})
+  return [...moves.captureMoves, ...moves.simpleMoves];
+});
 
-const isHighlighted = (row: number, col: number) => highlightedMoves.value.some(move => move.to.row === row && move.to.col === col)
+const isHighlighted = (row: number, col: number) =>
+  highlightedMoves.value.some(
+    (move) => move.to.row === row && move.to.col === col,
+  );
 
 const startTurnTimer = () => {
-  remainingSeconds.value = TURN_SECONDS
+  remainingSeconds.value = TURN_SECONDS;
 
   if (intervalId.value) {
-    clearInterval(intervalId.value)
+    clearInterval(intervalId.value);
   }
 
   intervalId.value = setInterval(() => {
     if (remainingSeconds.value <= 1) {
-      remainingSeconds.value = 0
-      stopTurnTimer()
-      autoMoveFor(currentPlayer.value)
-      return
+      remainingSeconds.value = 0;
+      stopTurnTimer();
+      autoMoveFor(currentPlayer.value);
+      return;
     }
 
-    remainingSeconds.value -= 1
-  }, 1000)
-}
+    remainingSeconds.value -= 1;
+  }, 1000);
+};
 
 const stopTurnTimer = () => {
   if (!intervalId.value) {
-    return
+    return;
   }
 
-  clearInterval(intervalId.value)
-  intervalId.value = null
-}
+  clearInterval(intervalId.value);
+  intervalId.value = null;
+};
 
-const hasCaptureMoveForCurrentPlayer = () => allMovesFor(currentPlayer.value).some(({ move }) => Boolean(move.capture))
+const hasCaptureMoveForCurrentPlayer = () =>
+  allMovesFor(currentPlayer.value).some(({ move }) => Boolean(move.capture));
 
 const updateTurnMessage = () => {
-  const baseMessage = currentPlayerLabel(currentPlayer.value)
+  const baseMessage = currentPlayerLabel(currentPlayer.value);
 
   if (mustContinueCapture.value) {
-    message.value = `${baseMessage} — prise obligatoire : continuez la capture`
-    return
+    message.value = `${baseMessage} — prise obligatoire : continuez la capture`;
+    return;
   }
 
   if (hasCaptureMoveForCurrentPlayer()) {
-    message.value = `${baseMessage} — prise obligatoire`
-    return
+    message.value = `${baseMessage} — prise obligatoire`;
+    return;
   }
 
-  message.value = baseMessage
-}
+  message.value = baseMessage;
+};
 
 const switchTurn = () => {
-  currentPlayer.value = currentPlayer.value === 'red' ? 'black' : 'red'
-  updateTurnMessage()
+  currentPlayer.value = currentPlayer.value === "red" ? "black" : "red";
+  updateTurnMessage();
   if (!winner.value) {
-    startTurnTimer()
+    startTurnTimer();
   }
-}
+};
 
 const executeMove = (from: Position, move: Move) => {
-  const movingPiece = board.value[from.row][from.col]
+  const movingPiece = board.value[from.row][from.col];
   if (!movingPiece) {
-    selected.value = null
-    mustContinueCapture.value = false
-    return false
+    selected.value = null;
+    mustContinueCapture.value = false;
+    return false;
   }
 
-  board.value[from.row][from.col] = null
-  board.value[move.to.row][move.to.col] = movingPiece
+  board.value[from.row][from.col] = null;
+  board.value[move.to.row][move.to.col] = movingPiece;
 
   if (move.capture) {
-    board.value[move.capture.row][move.capture.col] = null
+    board.value[move.capture.row][move.capture.col] = null;
   }
 
-  if (movingPiece.player === 'red' && move.to.row === 0) {
-    movingPiece.king = true
+  if (movingPiece.player === "red" && move.to.row === 0) {
+    movingPiece.king = true;
   }
-  if (movingPiece.player === 'black' && move.to.row === 7) {
-    movingPiece.king = true
+  if (movingPiece.player === "black" && move.to.row === 7) {
+    movingPiece.king = true;
   }
 
   if (winner.value) {
-    selected.value = null
-    mustContinueCapture.value = false
-    message.value = winnerLabel(winner.value)
-    stopTurnTimer()
-    return true
+    selected.value = null;
+    mustContinueCapture.value = false;
+    message.value = winnerLabel(winner.value);
+    stopTurnTimer();
+    return true;
   }
 
   if (move.capture) {
-    const nextCaptures = availableMoves(move.to).captureMoves
+    const nextCaptures = availableMoves(move.to).captureMoves;
     if (nextCaptures.length) {
-      selected.value = { ...move.to }
-      mustContinueCapture.value = true
-      updateTurnMessage()
-      return true
+      selected.value = { ...move.to };
+      mustContinueCapture.value = true;
+      updateTurnMessage();
+      return true;
     }
   }
 
-  selected.value = null
-  mustContinueCapture.value = false
-  switchTurn()
-  return true
-}
+  selected.value = null;
+  mustContinueCapture.value = false;
+  switchTurn();
+  return true;
+};
 
 const allMovesFor = (player: Player) => {
-  const moves: Array<{ from: Position, move: Move }> = []
+  const moves: Array<{ from: Position; move: Move }> = [];
 
   if (mustContinueCapture.value && selected.value) {
-    const piece = pieceAt(selected.value)
+    const piece = pieceAt(selected.value);
     if (piece?.player === player) {
-      const captures = availableMoves(selected.value).captureMoves
-      return captures.map(move => ({ from: { ...selected.value! }, move }))
+      const captures = availableMoves(selected.value).captureMoves;
+      return captures.map((move) => ({ from: { ...selected.value! }, move }));
     }
-    return moves
+    return moves;
   }
 
   for (let row = 0; row < 8; row += 1) {
     for (let col = 0; col < 8; col += 1) {
-      const piece = board.value[row][col]
+      const piece = board.value[row][col];
       if (!piece || piece.player !== player) {
-        continue
+        continue;
       }
 
-      const from = { row, col }
-      const available = availableMoves(from)
-      for (const move of [...available.captureMoves, ...available.simpleMoves]) {
-        moves.push({ from, move })
+      const from = { row, col };
+      const available = availableMoves(from);
+      for (const move of [
+        ...available.captureMoves,
+        ...available.simpleMoves,
+      ]) {
+        moves.push({ from, move });
       }
     }
   }
 
-  return moves
-}
+  return moves;
+};
 
 const autoMoveFor = (player: Player) => {
-  const moves = allMovesFor(player)
+  const moves = allMovesFor(player);
   if (!moves.length) {
-    const opponent: Player = player === 'red' ? 'black' : 'red'
-    forcedWinner.value = opponent
-    message.value = winnerLabel(opponent)
-    stopTurnTimer()
-    return
+    const opponent: Player = player === "red" ? "black" : "red";
+    forcedWinner.value = opponent;
+    message.value = winnerLabel(opponent);
+    stopTurnTimer();
+    return;
   }
 
-  const captureMoves = moves.filter(({ move }) => move.capture)
-  const candidateMoves = captureMoves.length ? captureMoves : moves
-  const randomMove = candidateMoves[Math.floor(Math.random() * candidateMoves.length)]
-  executeMove(randomMove.from, randomMove.move)
-}
+  const captureMoves = moves.filter(({ move }) => move.capture);
+  const candidateMoves = captureMoves.length ? captureMoves : moves;
+  const randomMove =
+    candidateMoves[Math.floor(Math.random() * candidateMoves.length)];
+  executeMove(randomMove.from, randomMove.move);
+};
 
 const playAiTurn = async () => {
-  isThinking.value = true
-  await new Promise(resolve => setTimeout(resolve, 300))
-  autoMoveFor('black')
-  while (currentPlayer.value === 'black' && mustContinueCapture.value && !winner.value) {
-    await new Promise(resolve => setTimeout(resolve, 180))
-    autoMoveFor('black')
+  isThinking.value = true;
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  autoMoveFor("black");
+  while (
+    currentPlayer.value === "black" &&
+    mustContinueCapture.value &&
+    !winner.value
+  ) {
+    await new Promise((resolve) => setTimeout(resolve, 180));
+    autoMoveFor("black");
   }
-  isThinking.value = false
-}
+  isThinking.value = false;
+};
 
 const winner = computed(() => {
   if (forcedWinner.value) {
-    return forcedWinner.value
+    return forcedWinner.value;
   }
 
-  const pieces = board.value.flat().filter(Boolean) as Piece[]
-  const redCount = pieces.filter(piece => piece.player === 'red').length
-  const blackCount = pieces.filter(piece => piece.player === 'black').length
+  const pieces = board.value.flat().filter(Boolean) as Piece[];
+  const redCount = pieces.filter((piece) => piece.player === "red").length;
+  const blackCount = pieces.filter((piece) => piece.player === "black").length;
 
   if (!redCount) {
-    return 'black'
+    return "black";
   }
 
   if (!blackCount) {
-    return 'red'
+    return "red";
   }
 
-  return null
-})
+  return null;
+});
 
 const clickCell = (row: number, col: number) => {
   if (
-    winner.value
-    || isThinking.value
-    || (props.selectedPlayMode === 'ai' && currentPlayer.value === 'black')
+    winner.value ||
+    isThinking.value ||
+    (props.selectedPlayMode === "ai" && currentPlayer.value === "black")
   ) {
-    return
+    return;
   }
 
-  const clickedPiece = board.value[row][col]
-  const hasMandatoryCapture = hasCaptureMoveForCurrentPlayer()
+  const clickedPiece = board.value[row][col];
+  const hasMandatoryCapture = hasCaptureMoveForCurrentPlayer();
   if (clickedPiece && clickedPiece.player !== currentPlayer.value) {
-    return
+    return;
   }
 
   if (clickedPiece && clickedPiece.player === currentPlayer.value) {
     if (
-      mustContinueCapture.value
-      && (!selected.value || selected.value.row !== row || selected.value.col !== col)
+      mustContinueCapture.value &&
+      (!selected.value ||
+        selected.value.row !== row ||
+        selected.value.col !== col)
     ) {
-      return
+      return;
     }
 
-    if (hasMandatoryCapture && !availableMoves({ row, col }).captureMoves.length) {
-      message.value = `${currentPlayerLabel(currentPlayer.value)} — prise obligatoire`
-      return
+    if (
+      hasMandatoryCapture &&
+      !availableMoves({ row, col }).captureMoves.length
+    ) {
+      message.value = `${currentPlayerLabel(currentPlayer.value)} — prise obligatoire`;
+      return;
     }
 
-    selected.value = { row, col }
+    selected.value = { row, col };
     if (hasMandatoryCapture) {
-      message.value = `${currentPlayerLabel(currentPlayer.value)} — prise obligatoire`
+      message.value = `${currentPlayerLabel(currentPlayer.value)} — prise obligatoire`;
     }
-    return
+    return;
   }
 
   if (!selected.value) {
-    return
+    return;
   }
 
-  const move = highlightedMoves.value.find(item => item.to.row === row && item.to.col === col)
+  const move = highlightedMoves.value.find(
+    (item) => item.to.row === row && item.to.col === col,
+  );
   if (!move) {
-    return
+    return;
   }
 
   if (hasMandatoryCapture && !move.capture) {
-    message.value = `${currentPlayerLabel(currentPlayer.value)} — prise obligatoire`
-    return
+    message.value = `${currentPlayerLabel(currentPlayer.value)} — prise obligatoire`;
+    return;
   }
 
-  executeMove(selected.value, move)
-}
+  executeMove(selected.value, move);
+};
 
 watch(currentPlayer, async (player) => {
-  if (props.selectedPlayMode === 'ai' && player === 'black' && !winner.value) {
-    await playAiTurn()
+  if (props.selectedPlayMode === "ai" && player === "black" && !winner.value) {
+    await playAiTurn();
   }
-})
+});
 
 const reset = () => {
-  board.value = createInitialBoard()
-  currentPlayer.value = 'red'
-  selected.value = null
-  mustContinueCapture.value = false
-  updateTurnMessage()
-  isThinking.value = false
-  forcedWinner.value = null
-  startTurnTimer()
-}
+  board.value = createInitialBoard();
+  currentPlayer.value = "red";
+  selected.value = null;
+  mustContinueCapture.value = false;
+  updateTurnMessage();
+  isThinking.value = false;
+  forcedWinner.value = null;
+  startTurnTimer();
+};
 
 onMounted(() => {
-  updateTurnMessage()
-  startTurnTimer()
-})
+  updateTurnMessage();
+  startTurnTimer();
+});
 
 onBeforeUnmount(() => {
-  stopTurnTimer()
-})
+  stopTurnTimer();
+});
+
+const panelState = computed<GameAsidePanelState>(() => ({
+  gameKey: "checkers",
+  title: t("gameComponents.checkers.title"),
+  phase: winner.value
+    ? winnerLabel(winner.value)
+    : t("gameComponents.checkers.activePlayer"),
+  turnLabel:
+    currentPlayer.value === "red"
+      ? t("gameComponents.checkers.players.white")
+      : t("gameComponents.checkers.players.black"),
+  status: message.value,
+  highlights: [
+    `${t("gameComponents.checkers.remainingTime")}: ${t("gameComponents.checkers.seconds", { count: remainingSeconds.value })}`,
+    isThinking.value
+      ? t("gameComponents.checkers.aiThinking")
+      : t("gameComponents.checkers.actions.restart"),
+  ],
+  kpis: [
+    {
+      id: "timer",
+      label: t("gameComponents.checkers.remainingTime"),
+      value: `${remainingSeconds.value}s`,
+      color: "primary",
+      variant: "tonal",
+    },
+    {
+      id: "red-pieces",
+      label: t("gameComponents.checkers.players.white"),
+      value: board.value.flat().filter((piece) => piece?.player === "red")
+        .length,
+      variant: "outlined",
+    },
+    {
+      id: "black-pieces",
+      label: t("gameComponents.checkers.players.black"),
+      value: board.value.flat().filter((piece) => piece?.player === "black")
+        .length,
+      variant: "outlined",
+    },
+  ],
+  actions: [
+    { id: "restart", label: t("gameComponents.checkers.actions.restart") },
+  ],
+}));
+
+watchEffect(() => {
+  emit("panel-state", panelState.value);
+});
 </script>
 
 <template>
   <div class="checkers-layout">
     <div class="board-column">
-      <div class="checkers-board" :class="{ 'checkers-board--thinking': isThinking }">
+      <div v-if="isGamePage" class="board-toolbar mb-3">
+        <v-btn color="primary" prepend-icon="mdi-refresh" @click="reset">{{
+          t("gameComponents.checkers.actions.restart")
+        }}</v-btn>
+      </div>
+      <div
+        class="checkers-board"
+        :class="{ 'checkers-board--thinking': isThinking }"
+      >
         <button
-            v-for="(cell, index) in board.flat()"
-            :key="index"
-            type="button"
-            class="checkers-cell"
-            :class="{
-              'checkers-cell--dark': (Math.floor(index / 8) + (index % 8)) % 2 === 1,
-              'checkers-cell--selected': selected && selected.row === Math.floor(index / 8) && selected.col === index % 8,
-              'checkers-cell--highlight': isHighlighted(Math.floor(index / 8), index % 8),
-            }"
-            @click="clickCell(Math.floor(index / 8), index % 8)"
+          v-for="(cell, index) in board.flat()"
+          :key="index"
+          type="button"
+          class="checkers-cell"
+          :class="{
+            'checkers-cell--dark':
+              (Math.floor(index / 8) + (index % 8)) % 2 === 1,
+            'checkers-cell--selected':
+              selected &&
+              selected.row === Math.floor(index / 8) &&
+              selected.col === index % 8,
+            'checkers-cell--highlight': isHighlighted(
+              Math.floor(index / 8),
+              index % 8,
+            ),
+          }"
+          @click="clickCell(Math.floor(index / 8), index % 8)"
         >
-            <span
-                v-if="cell"
-                class="piece"
-                :class="{
-                'piece--white': cell.player === 'red',
-                'piece--black': cell.player === 'black',
-                'piece--king': cell.king,
-              }"
-            >
-              <v-icon v-if="cell.king" icon="mdi-crown" size="16" />
-            </span>
+          <span
+            v-if="cell"
+            class="piece"
+            :class="{
+              'piece--white': cell.player === 'red',
+              'piece--black': cell.player === 'black',
+              'piece--king': cell.king,
+            }"
+          >
+            <v-icon v-if="cell.king" icon="mdi-crown" size="16" />
+          </span>
         </button>
       </div>
     </div>
 
-    <aside class="info-aside">
-      <v-btn block color="primary" prepend-icon="mdi-refresh" @click="reset">{{ t("gameComponents.checkers.actions.restart") }}</v-btn>
+    <aside v-if="!isGamePage" class="info-aside">
+      <v-btn block color="primary" prepend-icon="mdi-refresh" @click="reset">{{
+        t("gameComponents.checkers.actions.restart")
+      }}</v-btn>
       <p class="game-subtitle mt-4 mb-2">{{ message }}</p>
-      <p class="game-meta mb-1">{{ t('gameComponents.checkers.activePlayer') }}: <strong>{{ currentPlayer === 'red' ? t('gameComponents.checkers.players.white') : t('gameComponents.checkers.players.black') }}</strong></p>
-      <p class="game-meta mb-2">{{ t('gameComponents.checkers.remainingTime') }}: <strong>{{ t('gameComponents.checkers.seconds', { count: remainingSeconds }) }}</strong></p>
+      <p class="game-meta mb-1">
+        {{ t("gameComponents.checkers.activePlayer") }}:
+        <strong>{{
+          currentPlayer === "red"
+            ? t("gameComponents.checkers.players.white")
+            : t("gameComponents.checkers.players.black")
+        }}</strong>
+      </p>
+      <p class="game-meta mb-2">
+        {{ t("gameComponents.checkers.remainingTime") }}:
+        <strong>{{
+          t("gameComponents.checkers.seconds", { count: remainingSeconds })
+        }}</strong>
+      </p>
 
       <v-progress-linear
-          class="timer-progress"
-          :model-value="timerProgress"
-          height="10"
-          rounded
-          color="primary"
-          bg-color="grey-lighten-1"
+        class="timer-progress"
+        :model-value="timerProgress"
+        height="10"
+        rounded
+        color="primary"
+        bg-color="grey-lighten-1"
       />
 
-      <p v-if="isThinking" class="game-thinking mt-4 mb-0">{{ t('gameComponents.checkers.aiThinking') }}</p>
+      <p v-if="isThinking" class="game-thinking mt-4 mb-0">
+        {{ t("gameComponents.checkers.aiThinking") }}
+      </p>
     </aside>
   </div>
 </template>
@@ -572,8 +703,13 @@ onBeforeUnmount(() => {
 <style scoped>
 .game-card-shell {
   border-radius: 18px;
-  border: 1px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 20%, transparent);
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
+  border: 1px solid
+    color-mix(in srgb, rgb(var(--v-theme-primary)) 20%, transparent);
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0)
+  );
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.09);
 }
 
@@ -610,6 +746,12 @@ onBeforeUnmount(() => {
   justify-items: center;
 }
 
+.board-toolbar {
+  width: min(500px, 100%);
+  display: flex;
+  justify-content: flex-end;
+}
+
 .info-aside {
   border: 1px solid rgba(var(--v-theme-on-surface), 0.14);
   border-radius: 12px;
@@ -641,7 +783,9 @@ onBeforeUnmount(() => {
   background: var(--v-theme-surface);
   display: grid;
   place-items: center;
-  transition: box-shadow 180ms ease, transform 180ms ease;
+  transition:
+    box-shadow 180ms ease,
+    transform 180ms ease;
 }
 
 .checkers-cell--dark {
@@ -649,11 +793,13 @@ onBeforeUnmount(() => {
 }
 
 .checkers-cell:hover {
-  box-shadow: inset 0 0 0 2px color-mix(in srgb, rgb(var(--v-theme-primary)) 24%, transparent);
+  box-shadow: inset 0 0 0 2px
+    color-mix(in srgb, rgb(var(--v-theme-primary)) 24%, transparent);
 }
 
 .checkers-cell:focus-visible {
-  outline: 3px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 40%, transparent);
+  outline: 3px solid
+    color-mix(in srgb, rgb(var(--v-theme-primary)) 40%, transparent);
   outline-offset: -3px;
 }
 

@@ -1,11 +1,22 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import {
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+  watchEffect,
+} from "vue";
+import type { GameAsidePanelState } from "./types";
 import {
   getDailyHiddenWord,
   WORDS_FR,
   type HiddenWordLength,
 } from "~/data/games/words-fr";
 const { t } = useI18n();
+const emit = defineEmits<{
+  (event: "panel-state", payload: GameAsidePanelState): void;
+}>();
 
 const MAX_ATTEMPTS = 6;
 const lengths: HiddenWordLength[] = [5, 6];
@@ -28,7 +39,9 @@ const shareMessage = ref("");
 
 const targetCharacters = computed(() => targetWord.value.split(""));
 const isWon = computed(() => guesses.value.includes(targetWord.value));
-const isLost = computed(() => !isWon.value && guesses.value.length >= MAX_ATTEMPTS);
+const isLost = computed(
+  () => !isWon.value && guesses.value.length >= MAX_ATTEMPTS,
+);
 const isFinished = computed(() => isWon.value || isLost.value);
 
 const keyboardState = computed<Record<string, LetterStatus>>(() => {
@@ -132,7 +145,9 @@ const submitGuess = () => {
   if (isFinished.value) return;
 
   if (currentGuess.value.length !== wordLength.value) {
-    gameMessage.value = t("gameComponents.hiddenWord.messages.invalidLength", { count: wordLength.value });
+    gameMessage.value = t("gameComponents.hiddenWord.messages.invalidLength", {
+      count: wordLength.value,
+    });
     return;
   }
 
@@ -148,16 +163,23 @@ const submitGuess = () => {
   currentGuess.value = "";
 
   if (guess === targetWord.value) {
-    gameMessage.value = t("gameComponents.hiddenWord.messages.win", { score: `${guesses.value.length}/${MAX_ATTEMPTS}` });
+    gameMessage.value = t("gameComponents.hiddenWord.messages.win", {
+      score: `${guesses.value.length}/${MAX_ATTEMPTS}`,
+    });
     return;
   }
 
   if (guesses.value.length >= MAX_ATTEMPTS) {
-    gameMessage.value = t("gameComponents.hiddenWord.messages.lose", { word: targetWord.value.toUpperCase() });
+    gameMessage.value = t("gameComponents.hiddenWord.messages.lose", {
+      word: targetWord.value.toUpperCase(),
+    });
     return;
   }
 
-  gameMessage.value = t("gameComponents.hiddenWord.messages.try", { count: guesses.value.length + 1, max: MAX_ATTEMPTS });
+  gameMessage.value = t("gameComponents.hiddenWord.messages.try", {
+    count: guesses.value.length + 1,
+    max: MAX_ATTEMPTS,
+  });
 };
 
 const onKeyInput = (value: string) => {
@@ -202,7 +224,9 @@ const onPhysicalKeydown = (event: KeyboardEvent) => {
 
 const buildShareText = () => {
   const date = new Date().toISOString().slice(0, 10);
-  const score = isWon.value ? `${guesses.value.length}/${MAX_ATTEMPTS}` : `X/${MAX_ATTEMPTS}`;
+  const score = isWon.value
+    ? `${guesses.value.length}/${MAX_ATTEMPTS}`
+    : `X/${MAX_ATTEMPTS}`;
   const grid = evaluations.value
     .map((row) =>
       row
@@ -215,7 +239,14 @@ const buildShareText = () => {
     )
     .join("\n");
 
-  return [t("gameComponents.hiddenWord.share.title", { count: wordLength.value, date }), t("gameComponents.hiddenWord.share.score", { score }), grid]
+  return [
+    t("gameComponents.hiddenWord.share.title", {
+      count: wordLength.value,
+      date,
+    }),
+    t("gameComponents.hiddenWord.share.score", { score }),
+    grid,
+  ]
     .filter(Boolean)
     .join("\n");
 };
@@ -231,8 +262,7 @@ const copyShareResult = async () => {
   try {
     await navigator.clipboard.writeText(payload);
     shareMessage.value = t("gameComponents.hiddenWord.share.copied");
-  }
-  catch {
+  } catch {
     shareMessage.value = t("gameComponents.hiddenWord.share.copyFailed");
   }
 };
@@ -254,12 +284,55 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener("keydown", onPhysicalKeydown);
 });
+
+const panelState = computed<GameAsidePanelState>(() => ({
+  gameKey: "hidden-word",
+  title: t("gameComponents.hiddenWord.title"),
+  phase: t("gameComponents.hiddenWord.wordLength", { count: wordLength.value }),
+  turnLabel: `${guesses.value.length}/${MAX_ATTEMPTS}`,
+  status: gameMessage.value,
+  highlights: [
+    `${t("gameComponents.hiddenWord.actions.submit")} ${guesses.value.length}/${MAX_ATTEMPTS}`,
+    isFinished.value
+      ? t("gameComponents.hiddenWord.actions.restart")
+      : t("gameComponents.hiddenWord.actions.enter"),
+  ],
+  kpis: [
+    {
+      id: "attempts",
+      label: "Attempts",
+      value: `${guesses.value.length}/${MAX_ATTEMPTS}`,
+      color: "primary",
+      variant: "tonal",
+    },
+    {
+      id: "length",
+      label: "Length",
+      value: wordLength.value,
+      variant: "outlined",
+    },
+  ],
+  actions: [
+    {
+      id: "submit",
+      label: t("gameComponents.hiddenWord.actions.submit"),
+      disabled: isFinished.value,
+    },
+    { id: "restart", label: t("gameComponents.hiddenWord.actions.restart") },
+  ],
+}));
+
+watchEffect(() => {
+  emit("panel-state", panelState.value);
+});
 </script>
 
 <template>
   <v-card class="pa-4 hidden-word-card" variant="outlined">
     <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-3">
-      <h2 class="text-h6 font-weight-bold mb-0">{{ t("gameComponents.hiddenWord.title") }}</h2>
+      <h2 class="text-h6 font-weight-bold mb-0">
+        {{ t("gameComponents.hiddenWord.title") }}
+      </h2>
       <div class="d-flex ga-2">
         <v-btn
           v-for="size in lengths"
@@ -277,7 +350,14 @@ onBeforeUnmount(() => {
     <p class="text-body-2 mb-3">{{ gameMessage }}</p>
 
     <div class="board mb-4">
-      <div v-for="(row, rowIndex) in boardRows" :key="`row-${rowIndex}`" class="board-row" :style="{ gridTemplateColumns: `repeat(${wordLength}, minmax(0, 48px))` }">
+      <div
+        v-for="(row, rowIndex) in boardRows"
+        :key="`row-${rowIndex}`"
+        class="board-row"
+        :style="{
+          gridTemplateColumns: `repeat(${wordLength}, minmax(0, 48px))`,
+        }"
+      >
         <div
           v-for="(tile, tileIndex) in row"
           :key="`tile-${rowIndex}-${tileIndex}`"
@@ -290,9 +370,23 @@ onBeforeUnmount(() => {
     </div>
 
     <div class="d-flex ga-2 mb-4">
-      <v-btn color="primary" variant="flat" :disabled="isFinished" @click="submitGuess">{{ t("gameComponents.hiddenWord.actions.submit") }}</v-btn>
-      <v-btn color="secondary" variant="tonal" @click="resetGame">{{ t("gameComponents.hiddenWord.actions.restart") }}</v-btn>
-      <v-btn color="success" variant="outlined" :disabled="!isFinished" @click="copyShareResult">{{ t("gameComponents.hiddenWord.actions.share") }}</v-btn>
+      <v-btn
+        color="primary"
+        variant="flat"
+        :disabled="isFinished"
+        @click="submitGuess"
+        >{{ t("gameComponents.hiddenWord.actions.submit") }}</v-btn
+      >
+      <v-btn color="secondary" variant="tonal" @click="resetGame">{{
+        t("gameComponents.hiddenWord.actions.restart")
+      }}</v-btn>
+      <v-btn
+        color="success"
+        variant="outlined"
+        :disabled="!isFinished"
+        @click="copyShareResult"
+        >{{ t("gameComponents.hiddenWord.actions.share") }}</v-btn
+      >
     </div>
     <p v-if="shareMessage" class="text-caption mb-4">{{ shareMessage }}</p>
 
@@ -303,7 +397,15 @@ onBeforeUnmount(() => {
           :key="char"
           size="small"
           class="keyboard-key"
-          :color="keyboardState[char] === 'correct' ? 'success' : keyboardState[char] === 'present' ? 'warning' : keyboardState[char] === 'absent' ? 'grey' : undefined"
+          :color="
+            keyboardState[char] === 'correct'
+              ? 'success'
+              : keyboardState[char] === 'present'
+                ? 'warning'
+                : keyboardState[char] === 'absent'
+                  ? 'grey'
+                  : undefined
+          "
           :variant="keyboardState[char] ? 'flat' : 'outlined'"
           @click="onKeyInput(char)"
         >
@@ -311,8 +413,12 @@ onBeforeUnmount(() => {
         </v-btn>
       </div>
       <div class="keyboard-row">
-        <v-btn size="small" variant="outlined" @click="onKeyInput('ENTER')">{{ t("gameComponents.hiddenWord.actions.enter") }}</v-btn>
-        <v-btn size="small" variant="outlined" @click="onKeyInput('BACKSPACE')">⌫</v-btn>
+        <v-btn size="small" variant="outlined" @click="onKeyInput('ENTER')">{{
+          t("gameComponents.hiddenWord.actions.enter")
+        }}</v-btn>
+        <v-btn size="small" variant="outlined" @click="onKeyInput('BACKSPACE')"
+          >⌫</v-btn
+        >
       </div>
     </div>
   </v-card>
