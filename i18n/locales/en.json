@@ -1785,24 +1785,101 @@
         },
         "sudoku": {
           "name": "Sudoku",
-          "description": "Fill each grid with numbers from 1 to 9 without repetition."
+          "description": "Fill each grid with numbers from 1 to 9 without repetition.",
+          "meta": {
+            "tags": {
+              "logic": "Logic",
+              "puzzle": "Puzzle",
+              "daily": "Daily",
+              "solo": "Solo",
+              "timer": "Timer",
+              "score": "Score"
+            },
+            "features": {
+              "gridGeneration": "Grid generation",
+              "autoCheck": "Auto-check",
+              "timerAndScore": "Timer + score"
+            }
+          }
         },
         "chess": {
           "name": "Chess",
-          "description": "Classic tactical duel based on foresight and strategy."
+          "description": "Classic tactical duel based on foresight and strategy.",
+          "meta": {
+            "tags": {
+              "strategy": "Strategy",
+              "solo": "Solo",
+              "multiplayer": "Multiplayer",
+              "oneVsOne": "1v1",
+              "ai": "AI",
+              "replay": "Replay"
+            },
+            "features": {
+              "ai": "AI",
+              "multiplayer": "Multiplayer",
+              "replay": "Replay"
+            }
+          }
         },
         "game2048": {
           "name": "2048",
-          "description": "Merge tiles to reach 2048 and beyond."
+          "description": "Merge tiles to reach 2048 and beyond.",
+          "meta": {
+            "tags": {
+              "logic": "Logic",
+              "strategy": "Strategy",
+              "puzzle": "Puzzle",
+              "solo": "Solo",
+              "score": "Score"
+            },
+            "features": {
+              "smoothAnimations": "Smooth animations",
+              "scoreAndBest": "Score + best score",
+              "sessionSave": "Session save"
+            }
+          }
         },
         "hiddenWord": {
           "name": "Hidden word (Wordle-like)",
-          "description": "Guess the secret word in a limited number of attempts."
+          "description": "Guess the secret word in a limited number of attempts.",
+          "meta": {
+            "tags": {
+              "words": "Words",
+              "daily": "Daily",
+              "puzzle": "Puzzle",
+              "solo": "Solo",
+              "hints": "Hints",
+              "share": "Share"
+            },
+            "features": {
+              "wordOfTheDay": "Word of the day",
+              "dictionary": "Dictionary",
+              "share": "Share"
+            }
+          }
         },
         "nonogram": {
           "name": "Nonogram / Picross",
-          "description": "Reveal pixel art by solving number clues on a grid."
+          "description": "Reveal pixel art by solving number clues on a grid.",
+          "meta": {
+            "tags": {
+              "logic": "Logic",
+              "puzzle": "Puzzle",
+              "grid": "Grid",
+              "solo": "Solo",
+              "deduction": "Deduction"
+            },
+            "features": {
+              "rowColumnHints": "Row/column hints",
+              "progressiveLevels": "Progressive levels"
+            }
+          }
         }
+      },
+      "difficulties": {
+        "easy": "Easy",
+        "medium": "Medium",
+        "hard": "Hard"
       }
     }
   },

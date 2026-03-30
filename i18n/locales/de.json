@@ -1785,24 +1785,101 @@
         },
         "sudoku": {
           "name": "Sudoku",
-          "description": "Fülle das Raster von 1 bis 9 ohne Wiederholungen."
+          "description": "Fülle das Raster von 1 bis 9 ohne Wiederholungen.",
+          "meta": {
+            "tags": {
+              "logic": "Logik",
+              "puzzle": "Puzzle",
+              "daily": "Täglich",
+              "solo": "Solo",
+              "timer": "Timer",
+              "score": "Punktzahl"
+            },
+            "features": {
+              "gridGeneration": "Raster-Generierung",
+              "autoCheck": "Auto-Prüfung",
+              "timerAndScore": "Timer + Punktzahl"
+            }
+          }
         },
         "chess": {
           "name": "Schach",
-          "description": "Klassisches Strategiespiel mit taktischer Tiefe."
+          "description": "Klassisches Strategiespiel mit taktischer Tiefe.",
+          "meta": {
+            "tags": {
+              "strategy": "Strategie",
+              "solo": "Solo",
+              "multiplayer": "Mehrspieler",
+              "oneVsOne": "1v1",
+              "ai": "KI",
+              "replay": "Wiederholung"
+            },
+            "features": {
+              "ai": "KI",
+              "multiplayer": "Mehrspieler",
+              "replay": "Wiederholung"
+            }
+          }
         },
         "game2048": {
           "name": "2048",
-          "description": "Kombiniere Kacheln, um 2048 zu erreichen."
+          "description": "Kombiniere Kacheln, um 2048 zu erreichen.",
+          "meta": {
+            "tags": {
+              "logic": "Logik",
+              "strategy": "Strategie",
+              "puzzle": "Puzzle",
+              "solo": "Solo",
+              "score": "Punktzahl"
+            },
+            "features": {
+              "smoothAnimations": "Flüssige Animationen",
+              "scoreAndBest": "Punktzahl + Bestwert",
+              "sessionSave": "Sitzung speichern"
+            }
+          }
         },
         "hiddenWord": {
           "name": "Verstecktes Wort (Wordle-ähnlich)",
-          "description": "Errate das geheime Wort in wenigen Versuchen."
+          "description": "Errate das geheime Wort in wenigen Versuchen.",
+          "meta": {
+            "tags": {
+              "words": "Wörter",
+              "daily": "Täglich",
+              "puzzle": "Puzzle",
+              "solo": "Solo",
+              "hints": "Hinweise",
+              "share": "Teilen"
+            },
+            "features": {
+              "wordOfTheDay": "Wort des Tages",
+              "dictionary": "Wörterbuch",
+              "share": "Teilen"
+            }
+          }
         },
         "nonogram": {
           "name": "Nonogram/Picross",
-          "description": "Löse Zahlenhinweise im Raster und decke ein Bild auf."
+          "description": "Löse Zahlenhinweise im Raster und decke ein Bild auf.",
+          "meta": {
+            "tags": {
+              "logic": "Logik",
+              "puzzle": "Puzzle",
+              "grid": "Raster",
+              "solo": "Solo",
+              "deduction": "Deduktion"
+            },
+            "features": {
+              "rowColumnHints": "Zeilen-/Spaltenhinweise",
+              "progressiveLevels": "Progressive Level"
+            }
+          }
         }
+      },
+      "difficulties": {
+        "easy": "Einfach",
+        "medium": "Mittel",
+        "hard": "Schwer"
       }
     }
   },

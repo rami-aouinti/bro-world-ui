@@ -102,42 +102,49 @@ const categories: GameCategory[] = [
         games: [
           {
             id: "sudoku",
-            title: "Sudoku",
-            description:
-              "Logique pure avec niveaux progressifs, timer intégré et score par performance.",
             categoryKey: "gamePage.catalog.categories.smartGames.name",
             subcategoryKey: "gamePage.catalog.subCategories.logic.name",
-            difficulty: "moyen",
-            tags: ["logique", "puzzle", "daily", "solo", "timer", "score"],
+            difficultyKey: "gamePage.catalog.difficulties.medium",
+            tags: [
+              "gamePage.catalog.games.sudoku.meta.tags.logic",
+              "gamePage.catalog.games.sudoku.meta.tags.puzzle",
+              "gamePage.catalog.games.sudoku.meta.tags.daily",
+              "gamePage.catalog.games.sudoku.meta.tags.solo",
+              "gamePage.catalog.games.sudoku.meta.tags.timer",
+              "gamePage.catalog.games.sudoku.meta.tags.score",
+            ],
             nameKey: "gamePage.catalog.games.sudoku.name",
             descriptionKey: "gamePage.catalog.games.sudoku.description",
             icon: "mdi-grid",
             component: "sudoku",
             supportedModes: ["ai"],
             features: [
-              "génération de grilles",
-              "vérification auto",
-              "timer + score",
+              "gamePage.catalog.games.sudoku.meta.features.gridGeneration",
+              "gamePage.catalog.games.sudoku.meta.features.autoCheck",
+              "gamePage.catalog.games.sudoku.meta.features.timerAndScore",
             ],
           },
           {
             id: "game-2048",
-            title: "2048",
-            description:
-              "Fusion de tuiles orientée optimisation avec suivi du meilleur score.",
             categoryKey: "gamePage.catalog.categories.smartGames.name",
             subcategoryKey: "gamePage.catalog.subCategories.logic.name",
-            difficulty: "facile",
-            tags: ["logique", "stratégie", "puzzle", "solo", "score"],
+            difficultyKey: "gamePage.catalog.difficulties.easy",
+            tags: [
+              "gamePage.catalog.games.game2048.meta.tags.logic",
+              "gamePage.catalog.games.game2048.meta.tags.strategy",
+              "gamePage.catalog.games.game2048.meta.tags.puzzle",
+              "gamePage.catalog.games.game2048.meta.tags.solo",
+              "gamePage.catalog.games.game2048.meta.tags.score",
+            ],
             nameKey: "gamePage.catalog.games.game2048.name",
             descriptionKey: "gamePage.catalog.games.game2048.description",
             icon: "mdi-numeric-8-box-multiple-outline",
             component: "game2048",
             supportedModes: ["ai"],
             features: [
-              "animations fluides",
-              "score + best score",
-              "sauvegarde session",
+              "gamePage.catalog.games.game2048.meta.features.smoothAnimations",
+              "gamePage.catalog.games.game2048.meta.features.scoreAndBest",
+              "gamePage.catalog.games.game2048.meta.features.sessionSave",
             ],
           },
         ],
@@ -150,19 +157,27 @@ const categories: GameCategory[] = [
         games: [
           {
             id: "chess",
-            title: "Échecs",
-            description:
-              "Stratégie avancée en 1v1 avec options IA et replay de parties selon disponibilité.",
             categoryKey: "gamePage.catalog.categories.smartGames.name",
             subcategoryKey: "gamePage.catalog.subCategories.strategy.name",
-            difficulty: "difficile",
-            tags: ["stratégie", "solo", "multijoueur", "1v1", "ia", "replay"],
+            difficultyKey: "gamePage.catalog.difficulties.hard",
+            tags: [
+              "gamePage.catalog.games.chess.meta.tags.strategy",
+              "gamePage.catalog.games.chess.meta.tags.solo",
+              "gamePage.catalog.games.chess.meta.tags.multiplayer",
+              "gamePage.catalog.games.chess.meta.tags.oneVsOne",
+              "gamePage.catalog.games.chess.meta.tags.ai",
+              "gamePage.catalog.games.chess.meta.tags.replay",
+            ],
             nameKey: "gamePage.catalog.games.chess.name",
             descriptionKey: "gamePage.catalog.games.chess.description",
             icon: "mdi-chess-knight",
             component: "chess",
             supportedModes: ["ai", "pvp"],
-            features: ["IA", "multijoueur", "replay"],
+            features: [
+              "gamePage.catalog.games.chess.meta.features.ai",
+              "gamePage.catalog.games.chess.meta.features.multiplayer",
+              "gamePage.catalog.games.chess.meta.features.replay",
+            ],
           },
         ],
       },
@@ -174,19 +189,27 @@ const categories: GameCategory[] = [
         games: [
           {
             id: "hidden-word",
-            title: "Mot caché",
-            description:
-              "Mot du jour avec indices progressifs et partage rapide du résultat.",
             categoryKey: "gamePage.catalog.categories.smartGames.name",
             subcategoryKey: "gamePage.catalog.subCategories.wordsLanguage.name",
-            difficulty: "moyen",
-            tags: ["mots", "daily", "puzzle", "solo", "indices", "partage"],
+            difficultyKey: "gamePage.catalog.difficulties.medium",
+            tags: [
+              "gamePage.catalog.games.hiddenWord.meta.tags.words",
+              "gamePage.catalog.games.hiddenWord.meta.tags.daily",
+              "gamePage.catalog.games.hiddenWord.meta.tags.puzzle",
+              "gamePage.catalog.games.hiddenWord.meta.tags.solo",
+              "gamePage.catalog.games.hiddenWord.meta.tags.hints",
+              "gamePage.catalog.games.hiddenWord.meta.tags.share",
+            ],
             nameKey: "gamePage.catalog.games.hiddenWord.name",
             descriptionKey: "gamePage.catalog.games.hiddenWord.description",
             icon: "mdi-text-search-variant",
             component: "hidden-word",
             supportedModes: ["ai"],
-            features: ["mot du jour", "dictionnaire", "partage"],
+            features: [
+              "gamePage.catalog.games.hiddenWord.meta.features.wordOfTheDay",
+              "gamePage.catalog.games.hiddenWord.meta.features.dictionary",
+              "gamePage.catalog.games.hiddenWord.meta.features.share",
+            ],
           },
         ],
       },
@@ -198,21 +221,24 @@ const categories: GameCategory[] = [
         games: [
           {
             id: "nonogram",
-            title: "Nonogram",
-            description:
-              "Grille à indices numériques basée sur la déduction logique et la précision.",
             categoryKey: "gamePage.catalog.categories.smartGames.name",
             subcategoryKey: "gamePage.catalog.subCategories.gridsPuzzles.name",
-            difficulty: "difficile",
-            tags: ["logique", "puzzle", "grille", "solo", "déduction"],
+            difficultyKey: "gamePage.catalog.difficulties.hard",
+            tags: [
+              "gamePage.catalog.games.nonogram.meta.tags.logic",
+              "gamePage.catalog.games.nonogram.meta.tags.puzzle",
+              "gamePage.catalog.games.nonogram.meta.tags.grid",
+              "gamePage.catalog.games.nonogram.meta.tags.solo",
+              "gamePage.catalog.games.nonogram.meta.tags.deduction",
+            ],
             nameKey: "gamePage.catalog.games.nonogram.name",
             descriptionKey: "gamePage.catalog.games.nonogram.description",
             icon: "mdi-view-grid-plus-outline",
             component: "nonogram",
             supportedModes: ["ai"],
             features: [
-              "indices de lignes/colonnes",
-              "niveaux progressifs",
+              "gamePage.catalog.games.nonogram.meta.features.rowColumnHints",
+              "gamePage.catalog.games.nonogram.meta.features.progressiveLevels",
             ],
           },
         ],
@@ -421,12 +447,12 @@ const launchGame = () => {
             <v-card class="pa-4 h-100 unified-card" variant="outlined">
               <div class="d-flex flex-column ga-2 h-100">
                 <v-avatar :color="getLevelColor('game')" variant="tonal"><v-icon :icon="game.icon" /></v-avatar>
-                <h3 class="card-title mb-0">{{ game.title || t(game.nameKey) }}</h3>
-                <p class="card-description mb-1">{{ game.description || t(game.descriptionKey) }}</p>
+                <h3 class="card-title mb-0">{{ t(game.nameKey) }}</h3>
+                <p class="card-description mb-1">{{ t(game.descriptionKey) }}</p>
                 <div class="d-flex flex-wrap ga-1">
-                  <v-chip v-if="game.categoryKey || game.category" size="x-small" variant="tonal" color="primary">{{ game.categoryKey ? t(game.categoryKey) : game.category }}</v-chip>
-                  <v-chip v-if="game.subcategoryKey || game.subcategory" size="x-small" variant="tonal" color="secondary">{{ game.subcategoryKey ? t(game.subcategoryKey) : game.subcategory }}</v-chip>
-                  <v-chip v-if="game.difficulty" size="x-small" variant="outlined" color="info">{{ game.difficulty }}</v-chip>
+                  <v-chip v-if="game.categoryKey" size="x-small" variant="tonal" color="primary">{{ t(game.categoryKey) }}</v-chip>
+                  <v-chip v-if="game.subcategoryKey" size="x-small" variant="tonal" color="secondary">{{ t(game.subcategoryKey) }}</v-chip>
+                  <v-chip v-if="game.difficultyKey" size="x-small" variant="outlined" color="info">{{ t(game.difficultyKey) }}</v-chip>
                 </div>
                 <div v-if="game.features?.length" class="mt-1">
                   <p class="text-caption font-weight-bold mb-1">{{ t("gamePage.labels.features") }}</p>
@@ -438,7 +464,7 @@ const launchGame = () => {
                       variant="tonal"
                       color="indigo"
                     >
-                      {{ feature }}
+                      {{ t(feature) }}
                     </v-chip>
                   </div>
                 </div>
@@ -501,23 +527,23 @@ const launchGame = () => {
                 <h3 class="card-title mb-0">{{ t(game.nameKey) }}</h3>
                 <p class="card-description">{{ t(game.descriptionKey) }}</p>
                 <div class="d-flex flex-wrap ga-1">
-                  <v-chip v-if="game.categoryKey || game.category" size="x-small" variant="tonal" color="primary">{{ game.categoryKey ? t(game.categoryKey) : game.category }}</v-chip>
-                  <v-chip v-if="game.subcategoryKey || game.subcategory" size="x-small" variant="tonal" color="secondary">{{ game.subcategoryKey ? t(game.subcategoryKey) : game.subcategory }}</v-chip>
-                  <v-chip v-if="game.difficulty" size="x-small" variant="outlined" color="info">{{ game.difficulty }}</v-chip>
+                  <v-chip v-if="game.categoryKey" size="x-small" variant="tonal" color="primary">{{ t(game.categoryKey) }}</v-chip>
+                  <v-chip v-if="game.subcategoryKey" size="x-small" variant="tonal" color="secondary">{{ t(game.subcategoryKey) }}</v-chip>
+                  <v-chip v-if="game.difficultyKey" size="x-small" variant="outlined" color="info">{{ t(game.difficultyKey) }}</v-chip>
                   <v-chip
                     v-for="tag in game.tags ?? []"
                     :key="`${game.id}-${tag}`"
                     size="x-small"
                     variant="outlined"
                   >
-                    {{ tag }}
+                    {{ t(tag) }}
                   </v-chip>
                 </div>
                 <div v-if="game.features?.length" class="mt-1">
                   <p class="text-caption font-weight-bold mb-1">{{ t("gamePage.labels.bonus") }}</p>
                   <ul class="info-list">
                     <li v-for="feature in game.features" :key="`${game.id}-bonus-${feature}`">
-                      {{ feature }}
+                      {{ t(feature) }}
                     </li>
                   </ul>
                 </div>
@@ -561,7 +587,7 @@ const launchGame = () => {
             <h3 class="section-title mb-2">{{ t("gamePage.labels.features") }}</h3>
             <ul class="info-list">
               <li v-for="feature in selectedGame.features" :key="`selected-feature-${feature}`">
-                {{ feature }}
+                {{ t(feature) }}
               </li>
             </ul>
           </div>
