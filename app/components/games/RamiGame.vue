@@ -1117,8 +1117,6 @@ reset();
 
 .seat-hand {
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(3, 9, 6, 0.18);
   padding: 6px;
 }
 
@@ -1142,8 +1140,8 @@ reset();
 
 .draw-callout {
   position: absolute;
-  right: 8px;
-  top: -14px;
+  right: 0px;
+  top: 90px;
   z-index: 5;
   display: inline-flex;
   align-items: center;
