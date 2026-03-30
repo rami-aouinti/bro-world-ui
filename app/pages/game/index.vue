@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import BeloteGame from "~/components/games/BeloteGame.vue";
 import CheckersGame from "~/components/games/CheckersGame.vue";
 import RamiGame from "~/components/games/RamiGame.vue";
+import PokerGame from "~/components/games/PokerGame.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
 
 const { t } = useI18n();
@@ -19,7 +20,7 @@ interface GameEntry {
   nameKey: string;
   descriptionKey: string;
   icon: string;
-  component: "rami" | "belote" | "checkers" | null;
+  component: "rami" | "belote" | "checkers" | "poker" | null;
   supportedModes: PlayMode[];
 }
 
@@ -73,8 +74,8 @@ const categories: GameCategory[] = [
             nameKey: "gamePage.catalog.games.poker.name",
             descriptionKey: "gamePage.catalog.games.poker.description",
             icon: "mdi-cards-spade-outline",
-            component: null,
-            supportedModes: [],
+            component: "poker",
+            supportedModes: ["ai"],
           },
         ],
       },
@@ -445,6 +446,10 @@ const launchGame = () => {
         />
         <CheckersGame
           v-else-if="selectedGame.component === 'checkers'"
+          :selected-play-mode="selectedPlayMode"
+        />
+        <PokerGame
+          v-else-if="selectedGame.component === 'poker'"
           :selected-play-mode="selectedPlayMode"
         />
       </section>

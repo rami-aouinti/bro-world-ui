@@ -1751,8 +1751,8 @@
           "description": "Fast 8-trick format against AI."
         },
         "poker": {
-          "name": "Poker (soon)",
-          "description": "Texas Hold'em mode coming soon."
+          "name": "Texas Hold'em Poker",
+          "description": "6-player table with blinds, showdown and AI opponents."
         },
         "checkers": {
           "name": "Checkers",
@@ -1817,6 +1817,53 @@
         "goodCombination": "Nice combination. Keep going!",
         "deckEmpty": "The deck is empty.",
         "cardDrawn": "Card drawn."
+      }
+    },
+    "poker": {
+      "title": "Texas Hold'em Poker",
+      "handNumber": "Hand #{count}",
+      "statesLabel": "Street",
+      "turn": "Turn",
+      "pot": "Pot",
+      "currentBet": "Current bet",
+      "board": "Board",
+      "showdown": "Showdown result",
+      "yourCards": "Your cards",
+      "players": "Players",
+      "stack": "Stack",
+      "bet": "Bet",
+      "actions": {
+        "fold": "Fold",
+        "check": "Check",
+        "call": "Call",
+        "raise": "Raise",
+        "nextHand": "Next hand"
+      },
+      "states": {
+        "preflop": "Preflop",
+        "flop": "Flop",
+        "turn": "Turn",
+        "river": "River",
+        "showdown": "Showdown",
+        "hand-over": "Hand over",
+        "folded": "Folded",
+        "allIn": "All-in",
+        "active": "Active"
+      },
+      "errors": {
+        "notYourTurn": "It is not your turn.",
+        "invalidCheck": "Cannot check while facing a bet.",
+        "invalidRaise": "Invalid raise amount.",
+        "notEnoughChips": "Not enough chips."
+      },
+      "messages": {
+        "handStart": "New hand: blinds posted.",
+        "uncontested": "Pot won without showdown.",
+        "showdownComplete": "Showdown completed."
+      },
+      "aiStatus": {
+        "human": "Human",
+        "ai": "IA"
       }
     }
   }
