@@ -199,6 +199,13 @@ const selectedCards = computed(() =>
 const canDraw = computed(
   () => currentTurn.value === "player" && !hasDrawn.value && !winner.value,
 );
+const canDrawDiscard = computed(
+  () =>
+    currentTurn.value === "player" &&
+    !hasDrawn.value &&
+    !!topDiscardCard.value &&
+    !winner.value,
+);
 const canDiscard = computed(
   () => currentTurn.value === "player" && hasDrawn.value && !winner.value,
 );
@@ -303,6 +310,11 @@ const panelState = computed<GameAsidePanelState>(() => ({
       id: "draw",
       label: t("gameComponents.rami.actions.draw"),
       disabled: !canDraw.value,
+    },
+    {
+      id: "draw-discard",
+      label: "Prendre défausse",
+      disabled: !canDrawDiscard.value,
     },
     {
       id: "play-combination",
@@ -783,6 +795,18 @@ const drawCard = () => {
   drawCardFor("player");
 };
 
+const drawDiscard = () => {
+  if (!canDrawDiscard.value || !topDiscardCard.value) return;
+
+  const [drawnDiscardCard] = discardPile.value.splice(0, 1);
+  if (!drawnDiscardCard) return;
+
+  playerHand.value = [...playerHand.value, drawnDiscardCard];
+  applyCurrentSortToPlayerHand();
+  hasDrawn.value = true;
+  message.value = "Défausse prise.";
+};
+
 const completeDiscard = (cardId: string) => {
   const card = playerHand.value.find((item) => item.id === cardId);
   if (!card) return;
@@ -1058,6 +1082,11 @@ const handleAsideAction = (actionId: string) => {
     return;
   }
 
+  if (actionId === "draw-discard") {
+    drawDiscard();
+    return;
+  }
+
   if (actionId === "play-combination") {
     createMeld();
     return;
@@ -1185,6 +1214,15 @@ reset();
           >
             <v-icon icon="mdi-cards" size="18" />
             Draw card
+          </button>
+          <button
+            v-if="canDrawDiscard"
+            type="button"
+            class="draw-callout"
+            @click="drawDiscard"
+          >
+            <v-icon icon="mdi-cards-outline" size="18" />
+            Prendre défausse
           </button>
           <div class="hand-fan hand-fan--player">
             <button
