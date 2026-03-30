@@ -5,6 +5,7 @@ import CheckersGame from "~/components/games/CheckersGame.vue";
 import ChessGame from "~/components/games/ChessGame.vue";
 import RamiGame from "~/components/games/RamiGame.vue";
 import PokerGame from "~/components/games/PokerGame.vue";
+import HiddenWordGame from "~/components/games/HiddenWordGame.vue";
 import SudokuGame from "~/components/games/SudokuGame.vue";
 import Game2048 from "~/components/games/Game2048.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
@@ -182,8 +183,8 @@ const categories: GameCategory[] = [
             nameKey: "gamePage.catalog.games.hiddenWord.name",
             descriptionKey: "gamePage.catalog.games.hiddenWord.description",
             icon: "mdi-text-search-variant",
-            component: null,
-            supportedModes: [],
+            component: "hidden-word",
+            supportedModes: ["ai"],
             features: ["mot du jour", "dictionnaire", "partage"],
           },
         ],
@@ -639,6 +640,10 @@ const launchGame = () => {
           v-else-if="selectedGame.component === 'poker'"
           :selected-play-mode="selectedPlayMode"
         />
+        <HiddenWordGame
+          v-else-if="selectedGame.component === 'hidden-word'"
+         :selected-play-mode="selectedPlayMode"
+        />                  
         <ChessGame
           v-else-if="selectedGame.component === 'chess'"
          :selected-play-mode="selectedPlayMode"
