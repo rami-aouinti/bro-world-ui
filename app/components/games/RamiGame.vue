@@ -947,16 +947,18 @@ reset()
 }
 
 .seat-hand {
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  background: rgba(3, 9, 6, 0.24);
-  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(3, 9, 6, 0.18);
+  padding: 6px;
 }
 
 .seat-hand--south {
   position: relative;
   display: flex;
   justify-content: center;
+  max-width: min(100%, 980px);
+  margin-inline: auto;
 }
 
 .player-hand-cards {
