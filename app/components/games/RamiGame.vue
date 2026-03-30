@@ -1156,7 +1156,6 @@ reset();
 
 .player-hand-cards {
   width: 100%;
-  padding-bottom: 20px;
   position: relative;
 }
 
