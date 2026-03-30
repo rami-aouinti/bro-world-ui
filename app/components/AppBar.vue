@@ -205,7 +205,7 @@ const signOut = async () => {
                 <v-btn
                   icon
                   variant="text"
-                  class="app-bar__icon-btn app-bar__control-btn"
+                  class="app-bar__icon-btn app-bar__control-btn app-bar__theme-toggle-btn"
                   v-bind="props"
                   :aria-label="t('app.navigation.toggleTheme')"
                 >
@@ -481,7 +481,7 @@ const signOut = async () => {
 .app-bar__link-btn {
   font-weight: 500;
   color: rgb(var(--v-theme-on-surface));
-  border-radius: var(--ui-radius-md);
+  border-radius: var(--ui-radius);
 }
 
 .app-bar__link-btn:hover {
@@ -496,12 +496,16 @@ const signOut = async () => {
 
 .app-bar__icon-btn {
   color: rgb(var(--v-theme-on-surface));
-  border-radius: var(--ui-radius-pill);
+  border-radius: var(--ui-radius);
 }
 
 .app-bar__control-btn {
   width: 40px;
   height: 40px;
+}
+
+.app-bar__theme-toggle-btn {
+  margin-inline-end: var(--ui-spacing-xs);
 }
 
 .app-bar__icon-btn:hover {
