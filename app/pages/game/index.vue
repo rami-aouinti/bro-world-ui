@@ -9,6 +9,7 @@ import NonogramGame from "~/components/games/NonogramGame.vue";
 import HiddenWordGame from "~/components/games/HiddenWordGame.vue";
 import SudokuGame from "~/components/games/SudokuGame.vue";
 import Game2048 from "~/components/games/Game2048.vue";
+import UnoGame from "~/components/games/UnoGame.vue";
 import GameMatchAside from "~/components/games/GameMatchAside.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
 import type {
@@ -62,6 +63,14 @@ const categories: GameCategory[] = [
             icon: "mdi-cards-spade-outline",
             component: "poker",
             supportedModes: ["ai"],
+          },
+          {
+            id: "uno",
+            nameKey: "gamePage.catalog.games.uno.name",
+            descriptionKey: "gamePage.catalog.games.uno.description",
+            icon: "mdi-cards-playing",
+            component: "uno",
+            supportedModes: ["ai", "pvp"],
           },
         ],
       },
@@ -721,6 +730,11 @@ const gamePanelState = computed(() => ({
         />
         <Game2048
           v-else-if="selectedGame.component === 'game2048'"
+          :selected-play-mode="selectedPlayMode"
+          @panel-state="onGamePanelState"
+        />
+        <UnoGame
+          v-else-if="selectedGame.component === 'uno'"
           :selected-play-mode="selectedPlayMode"
           @panel-state="onGamePanelState"
         />
