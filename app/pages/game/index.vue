@@ -406,7 +406,6 @@ const gamePanelState = computed(() => ({
         <v-chip variant="outlined" prepend-icon="mdi-controller" class="mb-2">{{
           t("gamePage.sidebar.badge")
         }}</v-chip>
-        <h1 class="page-title mb-2">{{ t("gamePage.sidebar.title") }}</h1>
       </div>
       <div class="d-flex flex-column ga-2 mb-4">
         <v-btn
@@ -475,7 +474,6 @@ const gamePanelState = computed(() => ({
             v-for="category in categories"
             :key="category.id"
             cols="12"
-            md="4"
           >
             <v-card
               class="pa-4 h-100 unified-card interactive-card"
@@ -501,70 +499,6 @@ const gamePanelState = computed(() => ({
             </v-card>
           </v-col>
         </v-row>
-
-        <v-divider class="my-6" />
-
-        <h2 class="card-title mb-3">{{ t("gamePage.labels.allGames") }}</h2>
-        <v-row class="ga-0 ga-md-1">
-          <v-col
-            v-for="game in allGameEntries"
-            :key="`all-${game.id}`"
-            cols="12"
-            md="4"
-            xl="3"
-          >
-            <v-card class="pa-4 h-100 unified-card" variant="outlined">
-              <div class="d-flex flex-column ga-2 h-100">
-                <v-avatar :color="getLevelColor('game')" variant="tonal"
-                  ><v-icon :icon="game.icon"
-                /></v-avatar>
-                <h3 class="card-title mb-0">{{ t(game.nameKey) }}</h3>
-                <p class="card-description mb-1">
-                  {{ t(game.descriptionKey) }}
-                </p>
-                <div class="d-flex flex-wrap ga-1">
-                  <v-chip
-                    v-if="game.categoryKey"
-                    size="x-small"
-                    variant="tonal"
-                    color="primary"
-                    >{{ t(game.categoryKey) }}</v-chip
-                  >
-                  <v-chip
-                    v-if="game.subcategoryKey"
-                    size="x-small"
-                    variant="tonal"
-                    color="secondary"
-                    >{{ t(game.subcategoryKey) }}</v-chip
-                  >
-                  <v-chip
-                    v-if="game.difficultyKey"
-                    size="x-small"
-                    variant="outlined"
-                    color="info"
-                    >{{ t(game.difficultyKey) }}</v-chip
-                  >
-                </div>
-                <div v-if="game.features?.length" class="mt-1">
-                  <p class="text-caption font-weight-bold mb-1">
-                    {{ t("gamePage.labels.features") }}
-                  </p>
-                  <div class="d-flex flex-wrap ga-1">
-                    <v-chip
-                      v-for="feature in game.features"
-                      :key="`${game.id}-feature-${feature}`"
-                      size="x-small"
-                      variant="tonal"
-                      color="indigo"
-                    >
-                      {{ t(feature) }}
-                    </v-chip>
-                  </div>
-                </div>
-              </div>
-            </v-card>
-          </v-col>
-        </v-row>
       </section>
 
       <section
@@ -576,7 +510,6 @@ const gamePanelState = computed(() => ({
             v-for="subCategory in selectedCategory.subCategories"
             :key="subCategory.id"
             cols="12"
-            md="4"
           >
             <v-card
               class="pa-4 h-100 unified-card interactive-card"
@@ -610,83 +543,20 @@ const gamePanelState = computed(() => ({
             v-for="game in selectedSubCategory.games"
             :key="game.id"
             cols="12"
-            md="4"
-            xl="4"
+            md="6"
           >
             <v-card
               class="pa-4 h-100 unified-card interactive-card"
               variant="outlined"
             >
               <div class="d-flex flex-column ga-2 h-100">
-                <v-avatar :color="getLevelColor('game')" variant="tonal"
+                <div class="d-flex justify-content-center align-center">
+                  <v-avatar :color="getLevelColor('game')" variant="tonal"
                   ><v-icon :icon="game.icon"
-                /></v-avatar>
-                <h3 class="card-title mb-0">{{ t(game.nameKey) }}</h3>
+                  /></v-avatar>
+                  <h3 class="card-title mx-4">{{ t(game.nameKey) }}</h3>
+                </div>
                 <p class="card-description">{{ t(game.descriptionKey) }}</p>
-                <div class="d-flex flex-wrap ga-1">
-                  <v-chip
-                    v-if="game.categoryKey"
-                    size="x-small"
-                    variant="tonal"
-                    color="primary"
-                    >{{ t(game.categoryKey) }}</v-chip
-                  >
-                  <v-chip
-                    v-if="game.subcategoryKey"
-                    size="x-small"
-                    variant="tonal"
-                    color="secondary"
-                    >{{ t(game.subcategoryKey) }}</v-chip
-                  >
-                  <v-chip
-                    v-if="game.difficultyKey"
-                    size="x-small"
-                    variant="outlined"
-                    color="info"
-                    >{{ t(game.difficultyKey) }}</v-chip
-                  >
-                  <v-chip
-                    v-for="tag in game.tags ?? []"
-                    :key="`${game.id}-${tag}`"
-                    size="x-small"
-                    variant="outlined"
-                  >
-                    {{ t(tag) }}
-                  </v-chip>
-                </div>
-                <div v-if="game.features?.length" class="mt-1">
-                  <p class="text-caption font-weight-bold mb-1">
-                    {{ t("gamePage.labels.bonus") }}
-                  </p>
-                  <ul class="info-list">
-                    <li
-                      v-for="feature in game.features"
-                      :key="`${game.id}-bonus-${feature}`"
-                    >
-                      {{ t(feature) }}
-                    </li>
-                  </ul>
-                </div>
-                <div class="d-flex flex-wrap ga-1">
-                  <v-chip
-                    v-for="mode in game.supportedModes"
-                    :key="`${game.id}-${mode}`"
-                    size="small"
-                    variant="tonal"
-                    :color="getLevelColor('mode')"
-                  >
-                    {{ modeLabel(mode) }}
-                  </v-chip>
-                  <v-chip
-                    v-if="!game.supportedModes.length"
-                    size="small"
-                    variant="outlined"
-                    color="warning"
-                  >
-                    {{ t("gamePage.status.comingSoon") }}
-                  </v-chip>
-                </div>
-                <v-spacer />
                 <v-btn
                   :color="getLevelColor('game')"
                   variant="flat"
@@ -706,7 +576,7 @@ const gamePanelState = computed(() => ({
       </section>
 
       <section v-else-if="selectedGame && !isGameStarted" class="mb-1">
-        <v-card class="pa-4 unified-card" variant="outlined">
+        <v-card class="pa-4 unified-card d-flex justify-center" variant="outlined">
           <div v-if="selectedGame.features?.length" class="mb-4">
             <h3 class="section-title mb-2">
               {{ t("gamePage.labels.features") }}
@@ -772,15 +642,17 @@ const gamePanelState = computed(() => ({
           >
             {{ t("gamePage.status.soonHint") }}
           </v-alert>
-
+        </v-card>
+        <v-spacer></v-spacer>
+        <div class="d-flex justify-center my-4">
           <v-btn
-            :color="getLevelColor('game')"
-            :disabled="!canLaunchSelectedGame"
-            @click="launchGame"
+              :color="getLevelColor('game')"
+              :disabled="!canLaunchSelectedGame"
+              @click="launchGame"
           >
             {{ t("gamePage.actions.launchGame") }}
           </v-btn>
-        </v-card>
+        </div>
       </section>
 
       <section v-else-if="selectedGame && selectedPlayMode && isGameStarted">
