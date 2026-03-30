@@ -306,11 +306,6 @@ const panelState = computed<GameAsidePanelState>(() => ({
       disabled: !canDraw.value,
     },
     {
-      id: "draw-discard",
-      label: "Prendre défausse",
-      disabled: !canDrawDiscard.value,
-    },
-    {
       id: "play-combination",
       label: t("gameComponents.rami.actions.playCombination", {
         count: selectedCards.value.length,
@@ -1076,11 +1071,6 @@ const handleAsideAction = (actionId: string) => {
     return;
   }
 
-  if (actionId === "draw-discard") {
-    drawDiscard();
-    return;
-  }
-
   if (actionId === "play-combination") {
     createMeld();
     return;
@@ -1174,9 +1164,16 @@ reset();
               Glissez une carte ici pour défausser.
             </p>
           </template>
-          <span v-if="topDiscardCard" class="discard-drop-zone__card">
+          <button
+            v-if="topDiscardCard"
+            type="button"
+            class="discard-drop-zone__card"
+            :class="{ 'discard-drop-zone__card--clickable': canDrawDiscard }"
+            :disabled="!canDrawDiscard"
+            @click="drawDiscard"
+          >
             {{ `${formatRank(topDiscardCard.rank)}${topDiscardCard.suit}` }}
-          </span>
+          </button>
         </section>
 
       </section>
@@ -1193,15 +1190,6 @@ reset();
           >
             <v-icon icon="mdi-cards" size="18" />
             Draw card
-          </button>
-          <button
-            v-if="canDrawDiscard"
-            type="button"
-            class="draw-callout"
-            @click="drawDiscard"
-          >
-            <v-icon icon="mdi-cards-outline" size="18" />
-            Prendre défausse
           </button>
           <div class="hand-fan hand-fan--player">
             <button
@@ -1472,6 +1460,7 @@ reset();
 
 .discard-drop-zone__card {
   display: inline-flex;
+  border: none;
   min-width: 52px;
   justify-content: center;
   border-radius: 8px;
@@ -1479,6 +1468,14 @@ reset();
   background: rgba(255, 255, 255, 0.92);
   color: #111827;
   font-weight: 800;
+}
+
+.discard-drop-zone__card:disabled {
+  opacity: 0.75;
+}
+
+.discard-drop-zone__card--clickable {
+  cursor: pointer;
 }
 
 .rami-table-center {
