@@ -10,34 +10,51 @@ const props = defineProps<{
 
 const { t } = useI18n()
 
-const engine = useBeloteEngine(() => props.beloteMode)
+const {
+  TURN_SECONDS,
+  players,
+  trumpSuit,
+  trick,
+  trickCount,
+  turnIndex,
+  timerSeconds,
+  message,
+  roundOver,
+  roundResult,
+  playerScores,
+  teamScores,
+  canHumanPlay,
+  humanPlayableCards,
+  playCard,
+  restartRound,
+} = useBeloteEngine(() => props.beloteMode)
 
-const isHumanCardPlayable = (cardId: string) => engine.humanPlayableCards.value.some(card => card.id === cardId)
+const isHumanCardPlayable = (cardId: string) => humanPlayableCards.value.some(card => card.id === cardId)
 
-const tablePlayers = computed(() => engine.players.value.map((player, index) => ({
+const tablePlayers = computed(() => players.value.map((player, index) => ({
   id: player.id,
   name: player.name,
   isAI: player.isAI,
   handCount: player.hand.length,
-  isCurrentTurn: engine.turnIndex.value === index,
-  timerSeconds: engine.turnIndex.value === index ? engine.timerSeconds.value : undefined,
+  isCurrentTurn: turnIndex.value === index,
+  timerSeconds: turnIndex.value === index ? timerSeconds.value : undefined,
 })))
 
-const centerCards = computed(() => engine.trick.value.map(play => `${engine.players.value[play.playerIndex].name}: ${play.card.rank}${play.card.suit}`))
-const trickCountValue = computed(() => engine.trickCount.value)
+const centerCards = computed(() => trick.value.map(play => `${players.value[play.playerIndex].name}: ${play.card.rank}${play.card.suit}`))
+const trickCountValue = computed(() => trickCount.value)
 
 const scoreboardRows = computed(() => {
   if (props.beloteMode === 'teams') {
     return [
-      { id: 'team-a', label: 'Équipe A (Vous + IA Nord)', score: engine.teamScores.value.teamA },
-      { id: 'team-b', label: 'Équipe B (IA Est + IA Ouest)', score: engine.teamScores.value.teamB },
+      { id: 'team-a', label: 'Équipe A (Vous + IA Nord)', score: teamScores.value.teamA },
+      { id: 'team-b', label: 'Équipe B (IA Est + IA Ouest)', score: teamScores.value.teamB },
     ]
   }
 
-  return engine.players.value.map((player, index) => ({
+  return players.value.map((player, index) => ({
     id: player.id,
     label: player.name,
-    score: engine.playerScores.value[index],
+    score: playerScores.value[index],
   }))
 })
 
@@ -48,23 +65,23 @@ const modeLabel = computed(() => (props.beloteMode === 'teams' ? '2v2' : 'Free-f
   <v-card class="pa-4 rounded-xl game-card-shell" variant="tonal">
     <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-3">
       <h3 class="game-title mb-0">{{ t("gameComponents.belote.title") }} · {{ modeLabel }}</h3>
-      <v-btn color="primary" prepend-icon="mdi-refresh" @click="engine.restartRound">{{ t("gameComponents.belote.actions.newDeal") }}</v-btn>
+      <v-btn color="primary" prepend-icon="mdi-refresh" @click="restartRound">{{ t("gameComponents.belote.actions.newDeal") }}</v-btn>
     </div>
 
-    <p class="game-description mb-1">{{ t("gameComponents.belote.trump") }}: <strong>{{ engine.trumpSuit }}</strong></p>
+    <p class="game-description mb-1">{{ t("gameComponents.belote.trump") }}: <strong>{{ trumpSuit }}</strong></p>
     <p class="game-subtitle mb-4">
-      {{ t("gameComponents.belote.tricksPlayed", { count: trickCountValue }) }} · Tour: {{ engine.players[engine.turnIndex]?.name ?? '—' }} · Timer: {{ engine.timerSeconds }}s
+      {{ t("gameComponents.belote.tricksPlayed", { count: trickCountValue }) }} · Tour: {{ players[turnIndex]?.name ?? '—' }} · Timer: {{ timerSeconds }}s
     </p>
 
-    <CardTableLayout :players="tablePlayers" :center-cards="centerCards" :turn-timer-seconds="engine.TURN_SECONDS">
+    <CardTableLayout :players="tablePlayers" :center-cards="centerCards" :turn-timer-seconds="TURN_SECONDS">
       <template #center>
         <div class="trick-center">
           <p class="text-caption text-medium-emphasis mb-2">Pli central</p>
           <div class="trick-center__cards">
             <div v-for="slot in [0, 1, 2, 3]" :key="`trick-slot-${slot}`" class="center-card">
-              <template v-if="engine.trick.find(play => play.playerIndex === slot)">
-                <span>{{ engine.trick.find(play => play.playerIndex === slot)?.card.rank }}</span>
-                <span :class="['card-suit', engine.trick.find(play => play.playerIndex === slot)?.card.suit === '♥' || engine.trick.find(play => play.playerIndex === slot)?.card.suit === '♦' ? 'text-red' : 'text-black']">{{ engine.trick.find(play => play.playerIndex === slot)?.card.suit }}</span>
+              <template v-if="trick.find(play => play.playerIndex === slot)">
+                <span>{{ trick.find(play => play.playerIndex === slot)?.card.rank }}</span>
+                <span :class="['card-suit', trick.find(play => play.playerIndex === slot)?.card.suit === '♥' || trick.find(play => play.playerIndex === slot)?.card.suit === '♦' ? 'text-red' : 'text-black']">{{ trick.find(play => play.playerIndex === slot)?.card.suit }}</span>
               </template>
               <span v-else class="text-medium-emphasis">—</span>
             </div>
@@ -90,14 +107,14 @@ const modeLabel = computed(() => (props.beloteMode === 'teams' ? '2v2' : 'Free-f
                 </tr>
               </tbody>
             </v-table>
-            <p class="mb-0 mt-2">{{ engine.roundOver ? engine.roundResult : engine.message }}</p>
+            <p class="mb-0 mt-2">{{ roundOver ? roundResult : message }}</p>
           </v-card>
         </v-col>
         <v-col cols="12" md="6">
           <v-card class="pa-3 game-info-card h-100" variant="outlined">
             <p class="text-subtitle-2 font-weight-bold mb-2">Mains IA</p>
             <div class="ai-hands">
-              <div v-for="(player, index) in engine.players.slice(1)" :key="player.id" class="ai-hand-row">
+              <div v-for="(player, index) in players.slice(1)" :key="player.id" class="ai-hand-row">
                 <span class="text-caption">{{ player.name }}</span>
                 <div class="card-backs">
                   <span v-for="n in player.hand.length" :key="`${player.id}-${n}`" class="card-back">🂠</span>
@@ -114,7 +131,7 @@ const modeLabel = computed(() => (props.beloteMode === 'teams' ? '2v2' : 'Free-f
         <ul class="mb-0 pl-4 belote-rules">
           <li>8 plis par manche (jeu de 32 cartes, 8 cartes par joueur).</li>
           <li>Vous devez suivre la couleur demandée si possible.</li>
-          <li>Atout actuel: <strong>{{ engine.trumpSuit }}</strong> (change à chaque nouvelle donne).</li>
+          <li>Atout actuel: <strong>{{ trumpSuit }}</strong> (change à chaque nouvelle donne).</li>
           <li>Le pli est gagné par la carte la plus forte selon la couleur demandée / l’atout.</li>
           <li>Les points des cartes du pli sont ajoutés au joueur (mode libre) ou à l’équipe (2v2).</li>
         </ul>
@@ -123,12 +140,12 @@ const modeLabel = computed(() => (props.beloteMode === 'teams' ? '2v2' : 'Free-f
       <p class="text-subtitle-2 font-weight-bold mb-2">{{ t("gameComponents.belote.yourHand") }}</p>
       <div class="belote-card-grid">
         <button
-          v-for="card in engine.players[0]?.hand ?? []"
+          v-for="card in players[0]?.hand ?? []"
           :key="card.id"
           type="button"
           class="play-card"
-          :disabled="!engine.canHumanPlay || !isHumanCardPlayable(card.id)"
-          @click="engine.playCard(0, card.id)"
+          :disabled="!canHumanPlay || !isHumanCardPlayable(card.id)"
+          @click="playCard(0, card.id)"
         >
           <span>{{ card.rank }}</span>
           <span :class="card.suit === '♥' || card.suit === '♦' ? 'text-red' : 'text-black'">{{ card.suit }}</span>
