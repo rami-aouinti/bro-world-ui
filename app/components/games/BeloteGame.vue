@@ -81,22 +81,72 @@ const handsPanelTitle = computed(() =>
 const isHumanCardPlayable = (cardId: string) =>
   humanPlayableCards.value.some((card) => card.id === cardId);
 
+const tableSeatOrder = ["north", "east", "south", "west"] as const;
+type TableSeat = (typeof tableSeatOrder)[number];
+
+const tablePlayerIndexes = computed(() => {
+  const localPlayerIndex = displayHandPlayerIndex.value;
+
+  if (players.value.length !== 4 || localPlayerIndex < 0) {
+    return players.value.map((_, index) => index);
+  }
+
+  return tableSeatOrder.map((_, seatIndex) =>
+    (localPlayerIndex + ((seatIndex - 2 + 4) % 4)) % 4,
+  );
+});
+
 const tablePlayers = computed(() =>
-  players.value.map((player, index) => ({
-    id: player.id,
-    name: player.name,
-    isAI: player.isAI,
-    handCount: player.hand.length,
-    isCurrentTurn: turnIndex.value === index,
-    timerSeconds: turnIndex.value === index ? timerSeconds.value : undefined,
-  })),
+  tablePlayerIndexes.value.map((playerIndex) => {
+    const player = players.value[playerIndex];
+
+    return {
+      id: player.id,
+      name: player.name,
+      isAI: player.isAI,
+      handCount: player.hand.length,
+      isCurrentTurn: turnIndex.value === playerIndex,
+      timerSeconds:
+        turnIndex.value === playerIndex ? timerSeconds.value : undefined,
+    };
+  }),
 );
 
-const centerCards = computed(() =>
-  trick.value.map(
-    (play) =>
-      `${players.value[play.playerIndex].name}: ${play.card.rank}${play.card.suit}`,
+const seatByPlayerIndex = computed(() =>
+  tablePlayerIndexes.value.reduce(
+    (mapping, playerIndex, seatIndex) => {
+      const seat = tableSeatOrder[seatIndex] ?? tableSeatOrder[0];
+      mapping[playerIndex] = seat;
+      return mapping;
+    },
+    {} as Record<number, TableSeat>,
   ),
+);
+
+const trickBySeat = computed(() => {
+  const bySeat = {
+    north: null,
+    east: null,
+    south: null,
+    west: null,
+  } as Record<TableSeat, (typeof trick.value)[number] | null>;
+
+  for (const play of trick.value) {
+    const seat = seatByPlayerIndex.value[play.playerIndex];
+    if (seat) bySeat[seat] = play;
+  }
+
+  return bySeat;
+});
+
+const centerCards = computed(() =>
+  tableSeatOrder
+    .map((seat) => {
+      const play = trickBySeat.value[seat];
+      if (!play) return null;
+      return `${players.value[play.playerIndex].name}: ${play.card.rank}${play.card.suit}`;
+    })
+    .filter((entry): entry is string => Boolean(entry)),
 );
 const trickCountValue = computed(() => trickCount.value);
 
@@ -228,28 +278,24 @@ watchEffect(() => {
           </p>
           <div class="trick-center__cards">
             <div
-              v-for="slot in [0, 1, 2, 3]"
-              :key="`trick-slot-${slot}`"
+              v-for="seat in tableSeatOrder"
+              :key="`trick-slot-${seat}`"
               class="center-card"
+              :class="`center-card--${seat}`"
             >
-              <template v-if="trick.find((play) => play.playerIndex === slot)">
-                <span>{{
-                  trick.find((play) => play.playerIndex === slot)?.card.rank
-                }}</span>
+              <template v-if="trickBySeat[seat]">
+                <span>{{ trickBySeat[seat]?.card.rank }}</span>
                 <span
                   :class="[
                     'card-suit',
-                    trick.find((play) => play.playerIndex === slot)?.card
-                      .suit === '♥' ||
-                    trick.find((play) => play.playerIndex === slot)?.card
-                      .suit === '♦'
+                    trickBySeat[seat]?.card.suit === '♥' ||
+                    trickBySeat[seat]?.card.suit === '♦'
                       ? 'text-red'
                       : 'text-black',
                   ]"
-                  >{{
-                    trick.find((play) => play.playerIndex === slot)?.card.suit
-                  }}</span
                 >
+                  {{ trickBySeat[seat]?.card.suit }}
+                </span>
               </template>
               <span v-else class="text-medium-emphasis">—</span>
             </div>
@@ -515,8 +561,28 @@ watchEffect(() => {
 
 .trick-center__cards {
   display: grid;
-  grid-template-columns: repeat(4, minmax(40px, 1fr));
+  grid-template-columns: repeat(3, minmax(40px, 1fr));
   gap: 8px;
+}
+
+.center-card--north {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.center-card--east {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.center-card--south {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.center-card--west {
+  grid-column: 1;
+  grid-row: 2;
 }
 
 .center-card {
