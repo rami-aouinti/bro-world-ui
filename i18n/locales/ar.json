@@ -1785,24 +1785,101 @@
         },
         "sudoku": {
           "name": "سودوكو",
-          "description": "املأ الشبكة بالأرقام من 1 إلى 9 بدون تكرار."
+          "description": "املأ الشبكة بالأرقام من 1 إلى 9 بدون تكرار.",
+          "meta": {
+            "tags": {
+              "logic": "منطق",
+              "puzzle": "ألغاز",
+              "daily": "يومي",
+              "solo": "فردي",
+              "timer": "مؤقت",
+              "score": "نقاط"
+            },
+            "features": {
+              "gridGeneration": "توليد الشبكات",
+              "autoCheck": "تحقق تلقائي",
+              "timerAndScore": "مؤقت + نقاط"
+            }
+          }
         },
         "chess": {
           "name": "شطرنج",
-          "description": "مواجهة كلاسيكية في التكتيك والتخطيط."
+          "description": "مواجهة كلاسيكية في التكتيك والتخطيط.",
+          "meta": {
+            "tags": {
+              "strategy": "استراتيجية",
+              "solo": "فردي",
+              "multiplayer": "متعدد اللاعبين",
+              "oneVsOne": "1 ضد 1",
+              "ai": "ذكاء اصطناعي",
+              "replay": "إعادة"
+            },
+            "features": {
+              "ai": "ذكاء اصطناعي",
+              "multiplayer": "متعدد اللاعبين",
+              "replay": "إعادة"
+            }
+          }
         },
         "game2048": {
           "name": "2048",
-          "description": "ادمج المربعات للوصول إلى 2048."
+          "description": "ادمج المربعات للوصول إلى 2048.",
+          "meta": {
+            "tags": {
+              "logic": "منطق",
+              "strategy": "استراتيجية",
+              "puzzle": "ألغاز",
+              "solo": "فردي",
+              "score": "نقاط"
+            },
+            "features": {
+              "smoothAnimations": "رسوم متحركة سلسة",
+              "scoreAndBest": "النقاط + أفضل نتيجة",
+              "sessionSave": "حفظ الجلسة"
+            }
+          }
         },
         "hiddenWord": {
           "name": "كلمة مخفية (على نمط Wordle)",
-          "description": "اكتشف الكلمة السرية بعدد محاولات محدود."
+          "description": "اكتشف الكلمة السرية بعدد محاولات محدود.",
+          "meta": {
+            "tags": {
+              "words": "كلمات",
+              "daily": "يومي",
+              "puzzle": "ألغاز",
+              "solo": "فردي",
+              "hints": "تلميحات",
+              "share": "مشاركة"
+            },
+            "features": {
+              "wordOfTheDay": "كلمة اليوم",
+              "dictionary": "قاموس",
+              "share": "مشاركة"
+            }
+          }
         },
         "nonogram": {
           "name": "Nonogram/Picross",
-          "description": "حل تلميحات الأرقام على الشبكة لكشف صورة مخفية."
+          "description": "حل تلميحات الأرقام على الشبكة لكشف صورة مخفية.",
+          "meta": {
+            "tags": {
+              "logic": "منطق",
+              "puzzle": "ألغاز",
+              "grid": "شبكة",
+              "solo": "فردي",
+              "deduction": "استنتاج"
+            },
+            "features": {
+              "rowColumnHints": "تلميحات الصفوف/الأعمدة",
+              "progressiveLevels": "مستويات متدرجة"
+            }
+          }
         }
+      },
+      "difficulties": {
+        "easy": "سهل",
+        "medium": "متوسط",
+        "hard": "صعب"
       }
     }
   },

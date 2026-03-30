@@ -1,16 +1,11 @@
 export type PlayMode = "ai" | "pvp";
 export type BeloteMode = "teams" | "free-for-all";
-export type GameDifficulty = "facile" | "moyen" | "difficile";
 
 export interface GameEntry {
   id: string;
-  title?: string;
-  description?: string;
-  category?: string;
-  subcategory?: string;
   categoryKey?: string;
   subcategoryKey?: string;
-  difficulty?: GameDifficulty;
+  difficultyKey?: string;
   tags?: string[];
   features?: string[];
   nameKey: string;

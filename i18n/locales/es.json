@@ -1785,24 +1785,101 @@
         },
         "sudoku": {
           "name": "Sudoku",
-          "description": "Completa la cuadrícula del 1 al 9 sin repetir números."
+          "description": "Completa la cuadrícula del 1 al 9 sin repetir números.",
+          "meta": {
+            "tags": {
+              "logic": "Lógica",
+              "puzzle": "Rompecabezas",
+              "daily": "Diario",
+              "solo": "Solo",
+              "timer": "Temporizador",
+              "score": "Puntuación"
+            },
+            "features": {
+              "gridGeneration": "Generación de cuadrículas",
+              "autoCheck": "Verificación automática",
+              "timerAndScore": "Temporizador + puntuación"
+            }
+          }
         },
         "chess": {
           "name": "Ajedrez",
-          "description": "Duelo clásico de estrategia y anticipación."
+          "description": "Duelo clásico de estrategia y anticipación.",
+          "meta": {
+            "tags": {
+              "strategy": "Estrategia",
+              "solo": "Solo",
+              "multiplayer": "Multijugador",
+              "oneVsOne": "1v1",
+              "ai": "IA",
+              "replay": "Repetición"
+            },
+            "features": {
+              "ai": "IA",
+              "multiplayer": "Multijugador",
+              "replay": "Repetición"
+            }
+          }
         },
         "game2048": {
           "name": "2048",
-          "description": "Combina fichas para alcanzar 2048."
+          "description": "Combina fichas para alcanzar 2048.",
+          "meta": {
+            "tags": {
+              "logic": "Lógica",
+              "strategy": "Estrategia",
+              "puzzle": "Rompecabezas",
+              "solo": "Solo",
+              "score": "Puntuación"
+            },
+            "features": {
+              "smoothAnimations": "Animaciones fluidas",
+              "scoreAndBest": "Puntuación + mejor puntuación",
+              "sessionSave": "Guardado de sesión"
+            }
+          }
         },
         "hiddenWord": {
           "name": "Palabra oculta (tipo Wordle)",
-          "description": "Adivina la palabra secreta en intentos limitados."
+          "description": "Adivina la palabra secreta en intentos limitados.",
+          "meta": {
+            "tags": {
+              "words": "Palabras",
+              "daily": "Diario",
+              "puzzle": "Rompecabezas",
+              "solo": "Solo",
+              "hints": "Pistas",
+              "share": "Compartir"
+            },
+            "features": {
+              "wordOfTheDay": "Palabra del día",
+              "dictionary": "Diccionario",
+              "share": "Compartir"
+            }
+          }
         },
         "nonogram": {
           "name": "Nonogram/Picross",
-          "description": "Resuelve pistas numéricas para revelar una imagen."
+          "description": "Resuelve pistas numéricas para revelar una imagen.",
+          "meta": {
+            "tags": {
+              "logic": "Lógica",
+              "puzzle": "Rompecabezas",
+              "grid": "Cuadrícula",
+              "solo": "Solo",
+              "deduction": "Deducción"
+            },
+            "features": {
+              "rowColumnHints": "Pistas de filas/columnas",
+              "progressiveLevels": "Niveles progresivos"
+            }
+          }
         }
+      },
+      "difficulties": {
+        "easy": "Fácil",
+        "medium": "Medio",
+        "hard": "Difícil"
       }
     }
   },
