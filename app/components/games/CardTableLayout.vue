@@ -128,7 +128,7 @@ const isRedSuit = (suit: string) => suit === "♥" || suit === "♦";
 
 <style scoped>
 .seat-melds { position: absolute; z-index: 2; display: flex; flex-direction: column; gap: 4px; max-height: 86px; width: min(230px, 46%); padding: 2px; overflow-y: auto; }
-.seat-melds--north { top: 80px; left: 50%; transform: translateX(-50%); align-items: center; }
+.seat-melds--north { top: 75px; left: 50%; transform: translateX(-50%); align-items: center; }
 .seat-melds--south { bottom: 76px; left: 50%; transform: translateX(-50%); align-items: center; }
 .seat-melds--east { top: 52%; right: 20px; width: min(150px, 24%); transform: translateY(-52%); align-items: flex-end; z-index: 3; }
 .seat-melds--west { top: 52%; left: 20px; width: min(150px, 24%); transform: translateY(-52%); align-items: flex-start; z-index: 3; }
@@ -157,7 +157,7 @@ const isRedSuit = (suit: string) => suit === "♥" || suit === "♦";
   .table-seat-hand--east, .table-seat-hand--west { top: auto; bottom: 20px; transform: none; width: calc(50% - 24px); }
   .table-seat-hand--east { right: 12px; }
   .table-seat-hand--west { left: 12px; }
-  .seat-melds { max-height: 72px; }
+  .seat-melds { max-height: 86px; }
   .seat-melds--south { bottom: 130px; }
   .seat-melds--east { right: 12px; width: calc(50% - 24px); top: auto; bottom: 184px; transform: none; }
   .seat-melds--west { left: 12px; width: calc(50% - 24px); top: auto; bottom: 184px; transform: none; }
@@ -168,7 +168,7 @@ const isRedSuit = (suit: string) => suit === "♥" || suit === "♦";
   .table-seat-hand--south { bottom: 236px; width: calc(100% - 24px); }
   .table-seat-hand--east, .table-seat-hand--west { bottom: 12px; width: calc(50% - 18px); }
   .seat-melds { width: calc(100% - 132px); max-height: 68px; }
-  .seat-melds--north { top: 74px; }
+  .seat-melds--north { top: 75px; }
   .seat-melds--south { bottom: 210px; }
   .seat-melds--east { left: auto; right: 12px; width: calc(50% - 18px); bottom: 170px; }
   .seat-melds--west { left: 12px; width: calc(50% - 18px); bottom: 170px; }

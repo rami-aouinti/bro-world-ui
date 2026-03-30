@@ -1328,7 +1328,7 @@ reset();
 .draw-callout {
   position: absolute;
   right: 0px;
-  top: 90px;
+  top: 0px;
   z-index: 5;
   display: inline-flex;
   align-items: center;
@@ -1350,7 +1350,7 @@ reset();
 .play-card {
   border-radius: 10px;
   min-height: 80px;
-  min-width: 52px;
+  min-width: 35px;
   border: 1px solid rgba(15, 23, 42, 0.15);
   transition:
     transform 180ms ease,
