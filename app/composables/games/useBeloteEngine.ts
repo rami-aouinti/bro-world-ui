@@ -1,8 +1,11 @@
-import { computed, onScopeDispose, ref } from 'vue'
+import { computed, onScopeDispose, ref, type Ref } from 'vue'
 
 export type Suit = '♠' | '♥' | '♦' | '♣'
 export type Rank = '7' | '8' | '9' | 'J' | 'Q' | 'K' | '10' | 'A'
 export type BeloteMode = 'teams' | 'free-for-all'
+export type BelotePlayMode = 'ai' | 'pvp'
+
+type ReactiveSource<T> = Ref<T> | (() => T)
 
 export interface Card {
   id: string
@@ -59,12 +62,25 @@ const cardPoints: Record<Rank, number> = {
   '7': 0,
 }
 
-const playerTemplates: Omit<BelotePlayer, 'hand'>[] = [
-  { id: 'player', name: 'Vous', isAI: false },
-  { id: 'ai-east', name: 'IA Est', isAI: true },
-  { id: 'ai-north', name: 'IA Nord', isAI: true },
-  { id: 'ai-west', name: 'IA Ouest', isAI: true },
-]
+const resolveSource = <T,>(source: ReactiveSource<T>) => (typeof source === 'function' ? source() : source.value)
+
+const createPlayerTemplates = (playMode: BelotePlayMode): Omit<BelotePlayer, 'hand'>[] => {
+  if (playMode === 'pvp') {
+    return [
+      { id: 'player-1', name: 'Joueur 1', isAI: false },
+      { id: 'player-2', name: 'Joueur 2', isAI: false },
+      { id: 'player-3', name: 'Joueur 3', isAI: false },
+      { id: 'player-4', name: 'Joueur 4', isAI: false },
+    ]
+  }
+
+  return [
+    { id: 'player', name: 'Vous', isAI: false },
+    { id: 'ai-east', name: 'IA Est', isAI: true },
+    { id: 'ai-north', name: 'IA Nord', isAI: true },
+    { id: 'ai-west', name: 'IA Ouest', isAI: true },
+  ]
+}
 
 const shuffle = <T,>(items: T[]) => {
   const output = [...items]
@@ -79,8 +95,10 @@ const shuffle = <T,>(items: T[]) => {
 
 const createDeck = (): Card[] => suits.flatMap(suit => ranks.map(rank => ({ id: `${suit}-${rank}`, suit, rank })))
 
-export const useBeloteEngine = (mode: () => BeloteMode) => {
-  const players = ref<BelotePlayer[]>(playerTemplates.map(player => ({ ...player, hand: [] })))
+export const useBeloteEngine = (modeSource: ReactiveSource<BeloteMode>, playModeSource: ReactiveSource<BelotePlayMode>) => {
+  const initialPlayers = createPlayerTemplates(resolveSource(playModeSource)).map(player => ({ ...player, hand: [] }))
+
+  const players = ref<BelotePlayer[]>(initialPlayers)
   const trumpSuit = ref<Suit>('♠')
   const trick = ref<TrickPlay[]>([])
   const trickLeaderIndex = ref(0)
@@ -112,14 +130,15 @@ export const useBeloteEngine = (mode: () => BeloteMode) => {
 
       if (timerSeconds.value > 0) return
 
-      if (turnIndex.value !== 0) {
+      const activePlayer = players.value[turnIndex.value]
+      if (!activePlayer || activePlayer.isAI) {
         resetTurnTimer()
         return
       }
 
-      const forcedCard = getValidCards(0).at(0)
+      const forcedCard = getValidCards(turnIndex.value).at(0)
       if (forcedCard) {
-        playCard(0, forcedCard.id)
+        playCard(turnIndex.value, forcedCard.id)
       }
     }, 1000)
   }
@@ -183,7 +202,7 @@ export const useBeloteEngine = (mode: () => BeloteMode) => {
     const winner = trick.value.reduce((best, current) => (compareCards(current.card, best.card, leadSuit) > 0 ? current : best))
     const points = trick.value.reduce((sum, play) => sum + cardPoints[play.card.rank], 0)
 
-    if (mode() === 'teams') {
+    if (resolveSource(modeSource) === 'teams') {
       if (winner.playerIndex % 2 === 0) {
         teamScores.value.teamA += points
       }
@@ -203,7 +222,7 @@ export const useBeloteEngine = (mode: () => BeloteMode) => {
     if (trickCount.value >= 8) {
       roundOver.value = true
 
-      if (mode() === 'teams') {
+      if (resolveSource(modeSource) === 'teams') {
         const { teamA, teamB } = teamScores.value
         if (teamA === teamB) roundResult.value = `Égalité ${teamA}-${teamB}.`
         else roundResult.value = teamA > teamB ? `Équipe A gagne ${teamA}-${teamB}.` : `Équipe B gagne ${teamB}-${teamA}.`
@@ -224,9 +243,14 @@ export const useBeloteEngine = (mode: () => BeloteMode) => {
   }
 
   const playCard = (playerIndex: number, cardId: string) => {
-    if (roundOver.value || playerIndex !== turnIndex.value) return false
+    const player = players.value[playerIndex]
+    if (!player || roundOver.value || playerIndex !== turnIndex.value) return false
 
-    const hand = players.value[playerIndex].hand
+    if (!player.isAI && turnIndex.value !== playerIndex) {
+      return false
+    }
+
+    const hand = player.hand
     const card = hand.find(entry => entry.id === cardId)
     if (!card) return false
 
@@ -241,7 +265,7 @@ export const useBeloteEngine = (mode: () => BeloteMode) => {
       return true
     }
 
-    turnIndex.value = (turnIndex.value + 1) % 4
+    turnIndex.value = (turnIndex.value + 1) % players.value.length
     resetTurnTimer()
     processAiTurns()
     return true
@@ -255,9 +279,13 @@ export const useBeloteEngine = (mode: () => BeloteMode) => {
       aiTimeout = null
     }
 
-    if (turnIndex.value === 0) return
+    const activePlayer = players.value[turnIndex.value]
+    if (!activePlayer?.isAI) return
 
     aiTimeout = setTimeout(() => {
+      const currentPlayer = players.value[turnIndex.value]
+      if (!currentPlayer?.isAI) return
+
       const chosenCard = aiPickCard(turnIndex.value)
       if (chosenCard) {
         playCard(turnIndex.value, chosenCard.id)
@@ -267,6 +295,8 @@ export const useBeloteEngine = (mode: () => BeloteMode) => {
 
   const restartRound = () => {
     const freshDeck = shuffle(createDeck())
+    const playerTemplates = createPlayerTemplates(resolveSource(playModeSource))
+
     players.value = playerTemplates.map((template, index) => ({
       ...template,
       hand: freshDeck.slice(index * 8, (index + 1) * 8),
@@ -286,8 +316,18 @@ export const useBeloteEngine = (mode: () => BeloteMode) => {
     processAiTurns()
   }
 
-  const humanPlayableCards = computed(() => getValidCards(0))
-  const canHumanPlay = computed(() => !roundOver.value && turnIndex.value === 0)
+  const humanTurnPlayerIndex = computed(() => {
+    const activePlayer = players.value[turnIndex.value]
+    if (!activePlayer || activePlayer.isAI || roundOver.value) return -1
+    return turnIndex.value
+  })
+
+  const humanPlayableCards = computed(() => {
+    if (humanTurnPlayerIndex.value < 0) return []
+    return getValidCards(humanTurnPlayerIndex.value)
+  })
+
+  const canHumanPlay = computed(() => humanTurnPlayerIndex.value >= 0)
 
   restartRound()
   startTurnTimer()
@@ -312,6 +352,7 @@ export const useBeloteEngine = (mode: () => BeloteMode) => {
     playerScores,
     teamScores,
     canHumanPlay,
+    humanTurnPlayerIndex,
     humanPlayableCards,
     playCard,
     restartRound,

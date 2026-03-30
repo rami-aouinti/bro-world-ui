@@ -24,10 +24,34 @@ const {
   playerScores,
   teamScores,
   canHumanPlay,
+  humanTurnPlayerIndex,
   humanPlayableCards,
   playCard,
   restartRound,
-} = useBeloteEngine(() => props.beloteMode)
+} = useBeloteEngine(() => props.beloteMode, () => props.selectedPlayMode)
+
+const displayHandPlayerIndex = computed(() => {
+  if (props.selectedPlayMode === 'ai') return 0
+  return humanTurnPlayerIndex.value
+})
+
+const displayHandPlayer = computed(() => {
+  const index = displayHandPlayerIndex.value
+  return index >= 0 ? players.value[index] : null
+})
+
+const infoPanelPlayers = computed(() => players.value.filter((_, index) => index !== displayHandPlayerIndex.value))
+
+const getSeatRoleLabel = (seatIndex: number) => {
+  const referenceSeat = displayHandPlayerIndex.value
+
+  if (referenceSeat < 0) return 'Joueur local'
+  if (props.beloteMode !== 'teams') return 'Adversaire'
+
+  return (seatIndex - referenceSeat + 4) % 2 === 0 ? 'Partenaire' : 'Adversaire'
+}
+
+const handsPanelTitle = computed(() => (props.selectedPlayMode === 'ai' ? 'Mains IA' : 'Mains joueurs locaux'))
 
 const isHumanCardPlayable = (cardId: string) => humanPlayableCards.value.some(card => card.id === cardId)
 
@@ -46,8 +70,8 @@ const trickCountValue = computed(() => trickCount.value)
 const scoreboardRows = computed(() => {
   if (props.beloteMode === 'teams') {
     return [
-      { id: 'team-a', label: 'Équipe A (Vous + IA Nord)', score: teamScores.value.teamA },
-      { id: 'team-b', label: 'Équipe B (IA Est + IA Ouest)', score: teamScores.value.teamB },
+      { id: 'team-a', label: `Équipe A (${players.value[0]?.name ?? 'J1'} + ${players.value[2]?.name ?? 'J3'})`, score: teamScores.value.teamA },
+      { id: 'team-b', label: `Équipe B (${players.value[1]?.name ?? 'J2'} + ${players.value[3]?.name ?? 'J4'})`, score: teamScores.value.teamB },
     ]
   }
 
@@ -112,14 +136,14 @@ const modeLabel = computed(() => (props.beloteMode === 'teams' ? '2v2' : 'Free-f
         </v-col>
         <v-col cols="12" md="6">
           <v-card class="pa-3 game-info-card h-100" variant="outlined">
-            <p class="text-subtitle-2 font-weight-bold mb-2">Mains IA</p>
+            <p class="text-subtitle-2 font-weight-bold mb-2">{{ handsPanelTitle }}</p>
             <div class="ai-hands">
-              <div v-for="(player, index) in players.slice(1)" :key="player.id" class="ai-hand-row">
+              <div v-for="player in infoPanelPlayers" :key="player.id" class="ai-hand-row">
                 <span class="text-caption">{{ player.name }}</span>
                 <div class="card-backs">
                   <span v-for="n in player.hand.length" :key="`${player.id}-${n}`" class="card-back">🂠</span>
                 </div>
-                <small class="text-medium-emphasis">{{ index === 1 ? 'Partenaire' : 'Adversaire' }}</small>
+                <small class="text-medium-emphasis">{{ getSeatRoleLabel(players.findIndex(entry => entry.id === player.id)) }}</small>
               </div>
             </div>
           </v-card>
@@ -137,20 +161,25 @@ const modeLabel = computed(() => (props.beloteMode === 'teams' ? '2v2' : 'Free-f
         </ul>
       </v-card>
 
-      <p class="text-subtitle-2 font-weight-bold mb-2">{{ t("gameComponents.belote.yourHand") }}</p>
-      <div class="belote-card-grid">
+      <p class="text-subtitle-2 font-weight-bold mb-2">
+        {{ t("gameComponents.belote.yourHand") }}
+        <span v-if="displayHandPlayer" class="text-medium-emphasis"> · {{ displayHandPlayer.name }}</span>
+      </p>
+
+      <div v-if="displayHandPlayer" class="belote-card-grid">
         <button
-          v-for="card in players[0]?.hand ?? []"
+          v-for="card in displayHandPlayer.hand"
           :key="card.id"
           type="button"
           class="play-card"
-          :disabled="!canHumanPlay || !isHumanCardPlayable(card.id)"
-          @click="playCard(0, card.id)"
+          :disabled="!canHumanPlay || humanTurnPlayerIndex !== displayHandPlayerIndex || !isHumanCardPlayable(card.id)"
+          @click="playCard(displayHandPlayerIndex, card.id)"
         >
           <span>{{ card.rank }}</span>
           <span :class="card.suit === '♥' || card.suit === '♦' ? 'text-red' : 'text-black'">{{ card.suit }}</span>
         </button>
       </div>
+      <p v-else class="text-medium-emphasis mb-0">Attente d'un tour joueur local…</p>
     </CardTableLayout>
   </v-card>
 </template>
