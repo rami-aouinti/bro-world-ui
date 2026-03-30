@@ -144,7 +144,7 @@ const isRedSuit = (suit: string) => suit === "♥" || suit === "♦";
 .meld-card__center { align-self: center; font-size: 0.9rem; }
 .table-seat-hand { position: absolute; z-index: 1; width: min(520px, calc(100% - 36px)); }
 .table-seat-hand--north { top: 96px; left: 50%; transform: translateX(-50%); }
-.table-seat-hand--south { bottom: 92px; left: 50%; transform: translateX(-50%); }
+.table-seat-hand--south { bottom: 60px; left: 50%; transform: translateX(-50%); }
 .table-seat-hand--east { top: 50%; right: 86px; width: min(100px, 20%); transform: translateY(-50%); }
 .table-seat-hand--west { top: 50%; left: 86px; width: min(100px, 20%); transform: translateY(-50%); }
 .center-fallback, .center-fallback__column { display: flex; flex-direction: column; gap: 8px; width: 100%; }
