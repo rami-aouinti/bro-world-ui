@@ -1676,6 +1676,30 @@
       "backToGames": "Volver a juegos",
       "backToSubCategories": "Volver a subcategorías"
     },
+    "auth": {
+      "connect": "Conectar",
+      "connectedAs": "Conectado como {name}",
+      "coinsBalance": "{count} monedas",
+      "buyCoins": "Comprar monedas",
+      "loginModalTitle": "Iniciar sesión",
+      "loginEmailOrUsername": "Email o usuario",
+      "loginPassword": "Contraseña",
+      "loginSubmit": "Entrar",
+      "goToLoginPage": "Ir a /login",
+      "buyCoinsModalTitle": "Comprar monedas",
+      "chooseOffer": "Elegir",
+      "closeModal": "Cerrar",
+      "paymentSoon": "El pago estará disponible pronto ({offerId})",
+      "loginMissingCredentials": "Por favor, completa tus credenciales.",
+      "loginFailed": "No se pudo iniciar sesión. Inténtalo de nuevo.",
+      "defaultPlayerName": "Jugador",
+      "offers": {
+        "offer1Label": "{count} monedas",
+        "offer2Label": "{count} monedas",
+        "offer3Label": "{count} monedas",
+        "offer3PriceLabel": "Por definir (ej.: 49 €)"
+      }
+    },
     "info": {
       "title": "Información de la partida",
       "category": "Categoría",
@@ -1723,7 +1747,9 @@
     "labels": {
       "allGames": "Todos los juegos",
       "features": "Funciones",
-      "bonus": "Bonus"
+      "bonus": "Bonus",
+      "beloteTeams": "Belote 2v2",
+      "beloteFreeForAll": "Belote free-for-all"
     },
     "catalog": {
       "categories": {

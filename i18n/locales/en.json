@@ -1676,6 +1676,30 @@
       "backToGames": "Back to games",
       "backToSubCategories": "Back to sub-categories"
     },
+    "auth": {
+      "connect": "Connect",
+      "connectedAs": "Connected as {name}",
+      "coinsBalance": "{count} coins",
+      "buyCoins": "Buy coins",
+      "loginModalTitle": "Sign in",
+      "loginEmailOrUsername": "Email or username",
+      "loginPassword": "Password",
+      "loginSubmit": "Sign in",
+      "goToLoginPage": "Go to /login",
+      "buyCoinsModalTitle": "Buy coins",
+      "chooseOffer": "Choose",
+      "closeModal": "Close",
+      "paymentSoon": "Payment will be available soon ({offerId})",
+      "loginMissingCredentials": "Please enter your credentials.",
+      "loginFailed": "Unable to sign in. Please try again.",
+      "defaultPlayerName": "Player",
+      "offers": {
+        "offer1Label": "{count} coins",
+        "offer2Label": "{count} coins",
+        "offer3Label": "{count} coins",
+        "offer3PriceLabel": "To be defined (e.g. €49)"
+      }
+    },
     "info": {
       "title": "Match info",
       "category": "Category",
@@ -1723,7 +1747,9 @@
     "labels": {
       "allGames": "All games",
       "features": "Features",
-      "bonus": "Bonus"
+      "bonus": "Bonus",
+      "beloteTeams": "Belote 2v2",
+      "beloteFreeForAll": "Belote free-for-all"
     },
     "catalog": {
       "categories": {

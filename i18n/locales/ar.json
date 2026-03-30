@@ -1676,6 +1676,30 @@
       "backToGames": "العودة إلى الألعاب",
       "backToSubCategories": "العودة إلى الفئات الفرعية"
     },
+    "auth": {
+      "connect": "تسجيل الدخول",
+      "connectedAs": "متصل باسم {name}",
+      "coinsBalance": "{count} عملة",
+      "buyCoins": "شراء العملات",
+      "loginModalTitle": "تسجيل الدخول",
+      "loginEmailOrUsername": "البريد الإلكتروني أو اسم المستخدم",
+      "loginPassword": "كلمة المرور",
+      "loginSubmit": "دخول",
+      "goToLoginPage": "اذهب إلى /login",
+      "buyCoinsModalTitle": "شراء العملات",
+      "chooseOffer": "اختيار",
+      "closeModal": "إغلاق",
+      "paymentSoon": "الدفع سيتوفر قريبًا ({offerId})",
+      "loginMissingCredentials": "يرجى إدخال بيانات الدخول.",
+      "loginFailed": "تعذر تسجيل الدخول. حاول مرة أخرى.",
+      "defaultPlayerName": "لاعب",
+      "offers": {
+        "offer1Label": "{count} عملة",
+        "offer2Label": "{count} عملة",
+        "offer3Label": "{count} عملة",
+        "offer3PriceLabel": "سيتم التحديد لاحقًا (مثال: 49 €)"
+      }
+    },
     "info": {
       "title": "معلومات المباراة",
       "category": "الفئة",
@@ -1723,7 +1747,9 @@
     "labels": {
       "allGames": "كل الألعاب",
       "features": "الميزات",
-      "bonus": "مزايا إضافية"
+      "bonus": "مزايا إضافية",
+      "beloteTeams": "Belote 2v2",
+      "beloteFreeForAll": "Belote free-for-all"
     },
     "catalog": {
       "categories": {
