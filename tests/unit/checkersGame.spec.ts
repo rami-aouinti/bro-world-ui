@@ -26,6 +26,8 @@ const clickCell = async (wrapper: VueWrapper, row: number, col: number) => {
   await cell.trigger('click')
 }
 
+const createEmptyBoard = () => Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => null))
+
 const mountGame = async (selectedPlayMode: 'ai' | 'pvp') => {
   const Component = (await import('~/app/components/games/CheckersGame.vue')).default
 
@@ -111,5 +113,33 @@ describe('CheckersGame', () => {
 
     expect(boardState(wrapper)).not.toEqual(beforeBlackMove)
     expect(wrapper.text()).toContain('Joueur actif: red')
+  })
+
+  it('n redémarre pas le timer après une victoire', async () => {
+    const wrapper = await mountGame('pvp')
+
+    const customBoard = createEmptyBoard()
+    customBoard[2][1] = { player: 'red', king: false }
+    customBoard[1][2] = { player: 'black', king: false }
+
+    wrapper.vm.board = customBoard
+    wrapper.vm.currentPlayer = 'red'
+    wrapper.vm.message = 'Joueur actif: red'
+    wrapper.vm.selected = null
+    await nextTick()
+
+    await clickCell(wrapper, 2, 1)
+    await clickCell(wrapper, 0, 3)
+    await nextTick()
+
+    const boardAfterWin = boardState(wrapper)
+    expect(wrapper.text()).toContain('gameComponents.checkers.players.redWin')
+
+    await vi.advanceTimersByTimeAsync(120_000)
+    await nextTick()
+
+    expect(boardState(wrapper)).toEqual(boardAfterWin)
+    expect(wrapper.text()).toContain('gameComponents.checkers.players.redWin')
+    expect(wrapper.text()).toContain('Temps restant: 60s')
   })
 })

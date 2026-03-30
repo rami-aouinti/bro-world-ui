@@ -156,7 +156,9 @@ const stopTurnTimer = () => {
 const switchTurn = () => {
   currentPlayer.value = currentPlayer.value === 'red' ? 'black' : 'red'
   message.value = currentPlayerLabel(currentPlayer.value)
-  startTurnTimer()
+  if (!winner.value) {
+    startTurnTimer()
+  }
 }
 
 const executeMove = (from: Position, move: { to: Position, capture?: Position }) => {
@@ -184,6 +186,7 @@ const executeMove = (from: Position, move: { to: Position, capture?: Position })
 
   if (winner.value) {
     message.value = winnerLabel(winner.value)
+    stopTurnTimer()
     return true
   }
 
