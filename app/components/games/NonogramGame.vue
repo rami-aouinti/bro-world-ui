@@ -13,8 +13,8 @@ const props = defineProps<{
 
 type PlayerCell = "empty" | "filled" | "marked";
 
-const difficulty = ref<NonogramDifficulty>("petit");
-const difficultyLevels: NonogramDifficulty[] = ["petit", "moyen", "grand"];
+const difficulty = ref<NonogramDifficulty>("small");
+const difficultyLevels: NonogramDifficulty[] = ["small", "medium", "large"];
 const puzzleIndex = ref(0);
 const victory = ref(false);
 
@@ -28,8 +28,8 @@ const createPlayerGrid = (puzzle: NonogramPuzzle) =>
 const playerGrid = ref<PlayerCell[][]>(createPlayerGrid(currentPuzzle.value));
 
 const gridSizeClass = computed(() => {
-  if (difficulty.value === "petit") return "grid-small";
-  if (difficulty.value === "moyen") return "grid-medium";
+  if (difficulty.value === "small") return "grid-small";
+  if (difficulty.value === "medium") return "grid-medium";
   return "grid-large";
 });
 
@@ -135,7 +135,7 @@ watch(currentPuzzle, () => {
         color="primary"
         @click="selectDifficulty(level)"
       >
-        {{ level }}
+        {{ t(`common.size.${level}`) }}
       </v-btn>
       <v-btn size="small" color="secondary" variant="outlined" @click="nextPuzzle">{{ t("gameComponents.nonogram.actions.nextPuzzle") }}</v-btn>
       <v-btn size="small" color="warning" variant="outlined" @click="resetGrid">{{ t("gameComponents.nonogram.actions.reset") }}</v-btn>
