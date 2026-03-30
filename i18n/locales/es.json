@@ -2009,15 +2009,18 @@
         "openingRefused": "Opening refused: you must play at least {score} points.",
         "computerAutoPlayed": "Computer played automatically (time elapsed). Your turn.",
         "computerPlayed": "Computer played. Your turn!",
-        "newGameDetailed": "New game: {count} cards each. Draw then discard."
+        "newGameDetailed": "New 4-player game: {count} cards each. Free opening is enabled; draw then discard."
       },
       "pointsPlayed": "Points played",
       "turn": "Turn",
       "drawPile": "Draw pile",
       "opponentHand": "Opponent hand (card backs)",
-      "ruleHint": "Rule: you must draw then discard to end your turn. Double-click a card to discard quickly.",
+      "ruleHint": "Rule: free opening. Draw then discard to end your turn. Double-click a card to discard quickly.",
       "players": {
         "computer": "Computer",
+        "computerNorth": "Computer (North)",
+        "computerEast": "Computer (East)",
+        "computerWest": "Computer (West)",
         "emptySeat": "Empty seat",
         "you": "You"
       }
