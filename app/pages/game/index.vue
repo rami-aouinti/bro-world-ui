@@ -21,6 +21,8 @@ import type {
 import type { GameAsidePanelState } from "~/components/games/types";
 
 const { t } = useI18n();
+const { isAuthenticated, login } = useAuth();
+const authSession = useAuthSessionStore();
 
 definePageMeta({
   splitShell: false,
@@ -268,6 +270,13 @@ const selectedGameId = ref<string | null>(null);
 const selectedPlayMode = ref<PlayMode | null>(null);
 const selectedBeloteMode = ref<BeloteMode | null>(null);
 const isGameStarted = ref(false);
+const isLoginDialogOpen = ref(false);
+const isCoinsDialogOpen = ref(false);
+const userCoins = ref(0);
+const loginUsernameOrEmail = ref("");
+const loginPassword = ref("");
+const isLoginSubmitting = ref(false);
+const loginErrorMessage = ref("");
 const liveGamePanel = ref<GameAsidePanelState | null>(null);
 const ramiGameRef = ref<{
   handleAsideAction: (actionId: string) => void;
@@ -414,6 +423,35 @@ const gamePanelState = computed(() => ({
   getLevelColor,
   resetToCategories,
 }));
+
+const sidebarUserDisplayName = computed(() => {
+  const firstName = authSession.profile?.firstName?.trim() ?? "";
+  const lastName = authSession.profile?.lastName?.trim() ?? "";
+  const fullName = `${firstName} ${lastName}`.trim();
+
+  return fullName || authSession.profile?.username || "Player";
+});
+
+const handleLoginSubmit = async () => {
+  if (!loginUsernameOrEmail.value.trim() || !loginPassword.value.trim()) {
+    loginErrorMessage.value = "Veuillez renseigner vos identifiants.";
+    return;
+  }
+
+  isLoginSubmitting.value = true;
+  loginErrorMessage.value = "";
+
+  try {
+    await login(loginUsernameOrEmail.value.trim(), loginPassword.value);
+    isLoginDialogOpen.value = false;
+    loginUsernameOrEmail.value = "";
+    loginPassword.value = "";
+  } catch {
+    loginErrorMessage.value = "Connexion impossible. Réessayez.";
+  } finally {
+    isLoginSubmitting.value = false;
+  }
+};
 </script>
 
 <template>
@@ -423,6 +461,38 @@ const gamePanelState = computed(() => ({
         <v-chip variant="outlined" prepend-icon="mdi-controller" class="mb-2">{{
           t("gamePage.sidebar.badge")
         }}</v-chip>
+      </div>
+      <div class="mb-4">
+        <v-btn
+          v-if="!isAuthenticated"
+          variant="tonal"
+          color="primary"
+          prepend-icon="mdi-login"
+          @click="isLoginDialogOpen = true"
+        >
+          Connect
+        </v-btn>
+        <div v-else class="d-flex align-center ga-2">
+          <UiAvatar
+            :src="authSession.profile?.photo"
+            :name="sidebarUserDisplayName"
+            size="sm"
+          />
+          <div class="d-flex flex-column ga-1">
+            <p class="text-body-2 font-weight-medium mb-0">
+              {{ sidebarUserDisplayName }}
+            </p>
+            <p class="text-caption mb-0">{{ userCoins }} coins</p>
+            <v-btn
+              size="x-small"
+              variant="outlined"
+              prepend-icon="mdi-cash-plus"
+              @click="isCoinsDialogOpen = true"
+            >
+              Acheter des coins
+            </v-btn>
+          </div>
+        </div>
       </div>
       <div class="d-flex flex-column ga-2 mb-4">
         <v-btn
@@ -472,6 +542,63 @@ const gamePanelState = computed(() => ({
           >{{ t(selectedGame.nameKey) }}</v-chip
         >
       </div>
+
+      <v-dialog v-model="isLoginDialogOpen" max-width="420">
+        <v-card>
+          <v-card-title>Connexion</v-card-title>
+          <v-card-text class="d-flex flex-column ga-3">
+            <v-text-field
+              v-model="loginUsernameOrEmail"
+              label="Email ou username"
+              variant="outlined"
+              density="comfortable"
+            />
+            <v-text-field
+              v-model="loginPassword"
+              label="Mot de passe"
+              type="password"
+              variant="outlined"
+              density="comfortable"
+            />
+            <v-alert
+              v-if="loginErrorMessage"
+              type="error"
+              variant="tonal"
+              density="compact"
+            >
+              {{ loginErrorMessage }}
+            </v-alert>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn variant="text" @click="isLoginDialogOpen = false"
+              >Annuler</v-btn
+            >
+            <v-btn
+              color="primary"
+              :loading="isLoginSubmitting"
+              @click="handleLoginSubmit"
+            >
+              Se connecter
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
+      <v-dialog v-model="isCoinsDialogOpen" max-width="420">
+        <v-card>
+          <v-card-title>Acheter des coins</v-card-title>
+          <v-card-text>
+            Le parcours d&apos;achat des coins arrive bientôt.
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn color="primary" variant="text" @click="isCoinsDialogOpen = false"
+              >Fermer</v-btn
+            >
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </template>
     <template #aside>
       <GameMatchAside
