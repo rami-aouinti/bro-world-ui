@@ -1900,6 +1900,10 @@
               "progressiveLevels": "Progressive Level"
             }
           }
+        },
+        "uno": {
+          "name": "UNO",
+          "description": "Lege passende Farben und Zahlen, rufe UNO vor deiner letzten Karte."
         }
       },
       "difficulties": {
@@ -2192,6 +2196,31 @@
       },
       "victory": "Great! Puzzle solved.",
       "instructions": "Left click = fill, right click = mark empty."
+    },
+    "uno": {
+      "title": "UNO",
+      "phase": "Phase",
+      "turn": "Zug",
+      "messages": {
+        "waiting": "Warten auf Spieler…",
+        "yourTurn": "Du bist am Zug.",
+        "opponentTurn": "Gegner ist am Zug.",
+        "chooseColor": "Wähle eine Farbe zum Fortfahren.",
+        "unoDeclared": "UNO gerufen!",
+        "roundWon": "Runde gewonnen!"
+      },
+      "actions": {
+        "draw": "Karte ziehen",
+        "callUno": "UNO rufen",
+        "chooseColor": "Farbe wählen",
+        "playAgain": "Nochmal spielen"
+      },
+      "kpi": {
+        "score": "Punktestand",
+        "cardsRemaining": "Verbleibende Karten",
+        "activeColor": "Aktive Farbe",
+        "round": "Runde"
+      }
     }
   },
   "common": {

@@ -1900,6 +1900,10 @@
               "progressiveLevels": "مستويات متدرجة"
             }
           }
+        },
+        "uno": {
+          "name": "أونو",
+          "description": "طابِق الألوان والأرقام وقل أونو قبل بطاقتك الأخيرة."
         }
       },
       "difficulties": {
@@ -2192,6 +2196,31 @@
       },
       "victory": "Great! Puzzle solved.",
       "instructions": "Left click = fill, right click = mark empty."
+    },
+    "uno": {
+      "title": "أونو",
+      "phase": "المرحلة",
+      "turn": "الدور",
+      "messages": {
+        "waiting": "بانتظار اللاعبين…",
+        "yourTurn": "دورك الآن.",
+        "opponentTurn": "دور الخصم.",
+        "chooseColor": "اختر لونًا للمتابعة.",
+        "unoDeclared": "تم إعلان أونو!",
+        "roundWon": "تم الفوز بالجولة!"
+      },
+      "actions": {
+        "draw": "اسحب بطاقة",
+        "callUno": "قل أونو",
+        "chooseColor": "اختر لونًا",
+        "playAgain": "العب مجددًا"
+      },
+      "kpi": {
+        "score": "النقاط",
+        "cardsRemaining": "البطاقات المتبقية",
+        "activeColor": "اللون النشط",
+        "round": "الجولة"
+      }
     }
   },
   "common": {
