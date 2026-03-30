@@ -24,6 +24,7 @@ const tablePlayers = computed(() => engine.players.value.map((player, index) => 
 })))
 
 const centerCards = computed(() => engine.trick.value.map(play => `${engine.players.value[play.playerIndex].name}: ${play.card.rank}${play.card.suit}`))
+const trickCountValue = computed(() => engine.trickCount.value)
 
 const scoreboardRows = computed(() => {
   if (props.beloteMode === 'teams') {
@@ -52,7 +53,7 @@ const modeLabel = computed(() => (props.beloteMode === 'teams' ? '2v2' : 'Free-f
 
     <p class="game-description mb-1">{{ t("gameComponents.belote.trump") }}: <strong>{{ engine.trumpSuit }}</strong></p>
     <p class="game-subtitle mb-4">
-      {{ t("gameComponents.belote.tricksPlayed", { count: engine.trickCount }) }} · Tour: {{ engine.players[engine.turnIndex]?.name ?? '—' }} · Timer: {{ engine.timerSeconds }}s
+      {{ t("gameComponents.belote.tricksPlayed", { count: trickCountValue }) }} · Tour: {{ engine.players[engine.turnIndex]?.name ?? '—' }} · Timer: {{ engine.timerSeconds }}s
     </p>
 
     <CardTableLayout :players="tablePlayers" :center-cards="centerCards" :turn-timer-seconds="engine.TURN_SECONDS">
@@ -75,9 +76,20 @@ const modeLabel = computed(() => (props.beloteMode === 'teams' ? '2v2' : 'Free-f
         <v-col cols="12" md="6">
           <v-card class="pa-3 game-info-card h-100" variant="outlined">
             <p class="text-subtitle-2 font-weight-bold mb-2">Scores</p>
-            <div class="d-flex flex-column ga-1">
-              <p v-for="entry in scoreboardRows" :key="entry.id" class="mb-0">{{ entry.label }}: <strong>{{ entry.score }}</strong></p>
-            </div>
+            <v-table density="compact" class="belote-score-table" aria-label="Tableau des scores de belote">
+              <thead>
+                <tr>
+                  <th class="text-left">Joueur / Équipe</th>
+                  <th class="text-right">Points</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="entry in scoreboardRows" :key="entry.id">
+                  <td>{{ entry.label }}</td>
+                  <td class="text-right font-weight-bold">{{ entry.score }}</td>
+                </tr>
+              </tbody>
+            </v-table>
             <p class="mb-0 mt-2">{{ engine.roundOver ? engine.roundResult : engine.message }}</p>
           </v-card>
         </v-col>
@@ -96,6 +108,17 @@ const modeLabel = computed(() => (props.beloteMode === 'teams' ? '2v2' : 'Free-f
           </v-card>
         </v-col>
       </v-row>
+
+      <v-card class="pa-3 game-info-card mb-4" variant="outlined">
+        <p class="text-subtitle-2 font-weight-bold mb-2">Règles rapides</p>
+        <ul class="mb-0 pl-4 belote-rules">
+          <li>8 plis par manche (jeu de 32 cartes, 8 cartes par joueur).</li>
+          <li>Vous devez suivre la couleur demandée si possible.</li>
+          <li>Atout actuel: <strong>{{ engine.trumpSuit }}</strong> (change à chaque nouvelle donne).</li>
+          <li>Le pli est gagné par la carte la plus forte selon la couleur demandée / l’atout.</li>
+          <li>Les points des cartes du pli sont ajoutés au joueur (mode libre) ou à l’équipe (2v2).</li>
+        </ul>
+      </v-card>
 
       <p class="text-subtitle-2 font-weight-bold mb-2">{{ t("gameComponents.belote.yourHand") }}</p>
       <div class="belote-card-grid">
@@ -127,6 +150,15 @@ const modeLabel = computed(() => (props.beloteMode === 'teams' ? '2v2' : 'Free-f
   border-radius: 14px;
   border: 1px solid color-mix(in srgb, rgb(var(--v-theme-info)) 22%, transparent);
   background: color-mix(in srgb, rgb(var(--v-theme-surface)) 95%, rgb(var(--v-theme-info)) 5%);
+}
+
+.belote-score-table {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 10px;
+}
+
+.belote-rules {
+  color: rgba(var(--v-theme-on-surface), 0.86);
 }
 
 .game-title {
