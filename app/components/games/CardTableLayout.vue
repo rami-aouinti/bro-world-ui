@@ -72,6 +72,15 @@ const getRingColor = (secondsLeft: number) => {
 }
 
 const getRingProgress = (secondsLeft: number) => Math.round((secondsLeft / TURN_RING_BASE_SECONDS) * 100)
+
+const parseCardDisplay = (card: string) => {
+  const trimmedCard = card.trim()
+  const suit = trimmedCard.slice(-1)
+  const rank = trimmedCard.slice(0, -1)
+  return { rank, suit }
+}
+
+const isRedSuit = (suit: string) => suit === '♥' || suit === '♦'
 </script>
 
 <template>
@@ -117,11 +126,17 @@ const getRingProgress = (secondsLeft: number) => Math.round((secondsLeft / TURN_
             class="seat-melds__group"
           >
             <span
-              v-for="(card, cardIndex) in meld"
+              v-for="(cardParts, cardIndex) in meld.map(parseCardDisplay)"
               :key="`${player.id}-meld-${meldIndex}-card-${cardIndex}`"
-              class="seat-melds__token"
+              class="meld-card"
+              :class="{
+                'meld-card--red': isRedSuit(cardParts.suit),
+                'meld-card--black': !isRedSuit(cardParts.suit),
+              }"
             >
-              {{ card }}
+              <span class="meld-card__corner">{{ cardParts.rank }}{{ cardParts.suit }}</span>
+              <span class="meld-card__center">{{ cardParts.suit }}</span>
+              <span class="meld-card__corner meld-card__corner--bottom">{{ cardParts.rank }}{{ cardParts.suit }}</span>
             </span>
           </div>
         </section>
@@ -270,20 +285,43 @@ const getRingProgress = (secondsLeft: number) => Math.round((secondsLeft / TURN_
   gap: 4px;
 }
 
-.seat-melds__token {
+.meld-card {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 34px;
-  height: 20px;
-  padding: 0 6px;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 28px;
+  min-height: 40px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #0f172a;
-  font-size: 0.62rem;
+  border: 1px solid rgba(15, 23, 42, 0.15);
+  padding: 3px 4px;
+  background: linear-gradient(160deg, #fff, #f6f7fb);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.18);
+  line-height: 1;
+}
+
+.meld-card--red {
+  color: #dc2626;
+}
+
+.meld-card--black {
+  color: #111827;
+}
+
+.meld-card__corner {
+  font-size: 0.5rem;
   font-weight: 700;
   letter-spacing: 0.01em;
-  line-height: 1;
+}
+
+.meld-card__corner--bottom {
+  align-self: flex-end;
+  transform: rotate(180deg);
+}
+
+.meld-card__center {
+  align-self: center;
+  font-size: 0.9rem;
 }
 
 .table-seat__name {
