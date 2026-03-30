@@ -435,8 +435,13 @@ reset()
     <template #seat-north-hand>
       <section class="seat-hand seat-hand--north">
         <h4 class="seat-hand__title text-subtitle-2 mb-1 font-weight-bold">Main adverse</h4>
-        <div class="game-card-grid game-card-grid--opponent">
-          <div v-for="card in aiHand" :key="`ai-${card.id}`" class="play-card play-card--back" />
+        <div class="hand-fan hand-fan--opponent">
+          <div
+            v-for="(card, index) in aiHand"
+            :key="`ai-${card.id}`"
+            class="play-card play-card--back hand-fan__card hand-fan__card--back"
+            :style="{ '--card-index': index }"
+          />
         </div>
       </section>
     </template>
@@ -444,13 +449,14 @@ reset()
     <template #seat-south-hand>
       <section class="seat-hand seat-hand--south">
         <h4 class="seat-hand__title text-subtitle-2 mb-1 font-weight-bold">{{ t('gameComponents.rami.hand') }} ({{ playerHand.length }})</h4>
-        <div class="game-card-grid game-card-grid--player">
+        <div class="hand-fan hand-fan--player">
           <button
-            v-for="card in playerHand"
+            v-for="(card, index) in playerHand"
             :key="card.id"
             type="button"
-            class="play-card play-card--front"
+            class="play-card play-card--front hand-fan__card"
             :class="{ 'play-card--selected': isSelected(card.id) }"
+            :style="{ '--card-index': index }"
             @click="toggleCard(card.id)"
             @dblclick="discardCard(card.id)"
           >
@@ -508,18 +514,43 @@ reset()
   font-size: 0.94rem;
 }
 
-.game-card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(54px, 1fr));
-  gap: 8px;
+.hand-fan {
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: 8px 10px 10px;
+  scrollbar-width: thin;
 }
 
-.game-card-grid--opponent {
-  grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+.hand-fan__card {
+  position: relative;
+  z-index: calc(var(--card-index) + 1);
+  margin-left: calc(-20px - (var(--card-index) * 0.35px));
+  transform-origin: center 130%;
+  transform:
+    rotate(calc((var(--card-index) - 7) * 1deg))
+    translateY(calc(6px - (var(--card-index) * 0.28px)));
 }
 
-.game-card-grid--player {
-  grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
+.hand-fan__card:first-child {
+  margin-left: 0;
+}
+
+.hand-fan--opponent {
+  justify-content: center;
+  padding-top: 4px;
+}
+
+.hand-fan--opponent .hand-fan__card {
+  margin-left: -24px;
+  transform: translateY(0);
+  min-height: 48px;
+}
+
+.hand-fan__card--back {
+  width: 44px;
 }
 
 .seat-hand {
@@ -559,13 +590,16 @@ reset()
 }
 
 .play-card:hover {
-  transform: translateY(-2px);
+  filter: brightness(1.02);
   box-shadow: 0 10px 18px rgba(15, 23, 42, 0.16);
 }
 
 .play-card--selected {
   border-color: rgb(var(--v-theme-primary));
-  transform: translateY(-2px);
+  transform:
+    rotate(calc((var(--card-index) - 7) * 1deg))
+    translateY(-12px)
+    scale(1.03);
   box-shadow: 0 12px 20px rgba(15, 23, 42, 0.19);
 }
 
@@ -586,9 +620,12 @@ reset()
 }
 
 @media (max-width: 600px) {
-  .game-card-grid--player {
-    grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
-    gap: 6px;
+  .hand-fan {
+    padding: 6px 8px 8px;
+  }
+
+  .hand-fan__card {
+    margin-left: -24px;
   }
 
   .play-card {
@@ -597,6 +634,10 @@ reset()
 
   .play-card--back {
     min-height: 46px;
+  }
+
+  .hand-fan__card--back {
+    width: 38px;
   }
 }
 </style>
