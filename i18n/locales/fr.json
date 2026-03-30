@@ -1751,8 +1751,8 @@
           "description": "Version rapide en 8 plis contre une IA."
         },
         "poker": {
-          "name": "Poker (bientôt)",
-          "description": "Mode Texas Hold'em à venir prochainement."
+          "name": "Poker Texas Hold’em",
+          "description": "Table de 6 joueurs avec blindes, abattage et IA."
         },
         "checkers": {
           "name": "Dames",
@@ -1817,6 +1817,53 @@
         "goodCombination": "Bonne combinaison. Continuez !",
         "deckEmpty": "Le paquet est vide.",
         "cardDrawn": "Carte piochée."
+      }
+    },
+    "poker": {
+      "title": "Poker Texas Hold’em",
+      "handNumber": "Main #{count}",
+      "statesLabel": "Phase",
+      "turn": "Tour",
+      "pot": "Pot",
+      "currentBet": "Mise courante",
+      "board": "Board",
+      "showdown": "Résultat abattage",
+      "yourCards": "Vos cartes",
+      "players": "Joueurs",
+      "stack": "Stack",
+      "bet": "Mise",
+      "actions": {
+        "fold": "Fold",
+        "check": "Check",
+        "call": "Call",
+        "raise": "Raise",
+        "nextHand": "Main suivante"
+      },
+      "states": {
+        "preflop": "Preflop",
+        "flop": "Flop",
+        "turn": "Turn",
+        "river": "River",
+        "showdown": "Showdown",
+        "hand-over": "Main terminée",
+        "folded": "Couché",
+        "allIn": "All-in",
+        "active": "Actif"
+      },
+      "errors": {
+        "notYourTurn": "Ce n'est pas votre tour.",
+        "invalidCheck": "Check impossible, mise à suivre.",
+        "invalidRaise": "Relance invalide.",
+        "notEnoughChips": "Jetons insuffisants."
+      },
+      "messages": {
+        "handStart": "Nouvelle main: blindes postées.",
+        "uncontested": "Pot gagné sans abattage.",
+        "showdownComplete": "Abattage terminé."
+      },
+      "aiStatus": {
+        "human": "Humain",
+        "ai": "IA"
       }
     }
   }
