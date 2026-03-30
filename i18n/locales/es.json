@@ -1900,6 +1900,10 @@
               "progressiveLevels": "Niveles progresivos"
             }
           }
+        },
+        "uno": {
+          "name": "UNO",
+          "description": "Empareja colores y números, canta UNO antes de tu última carta."
         }
       },
       "difficulties": {
@@ -2192,6 +2196,31 @@
       },
       "victory": "Great! Puzzle solved.",
       "instructions": "Left click = fill, right click = mark empty."
+    },
+    "uno": {
+      "title": "UNO",
+      "phase": "Fase",
+      "turn": "Turno",
+      "messages": {
+        "waiting": "Esperando jugadores…",
+        "yourTurn": "Tu turno.",
+        "opponentTurn": "Turno del oponente.",
+        "chooseColor": "Elige un color para continuar.",
+        "unoDeclared": "¡UNO cantado!",
+        "roundWon": "¡Ronda ganada!"
+      },
+      "actions": {
+        "draw": "Robar carta",
+        "callUno": "Cantar UNO",
+        "chooseColor": "Elegir color",
+        "playAgain": "Jugar de nuevo"
+      },
+      "kpi": {
+        "score": "Puntuación",
+        "cardsRemaining": "Cartas restantes",
+        "activeColor": "Color activo",
+        "round": "Ronda"
+      }
     }
   },
   "common": {

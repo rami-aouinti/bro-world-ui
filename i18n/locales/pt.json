@@ -1900,6 +1900,10 @@
               "progressiveLevels": "Níveis progressivos"
             }
           }
+        },
+        "uno": {
+          "name": "UNO",
+          "description": "Combine cores e números e diga UNO antes da sua última carta."
         }
       },
       "difficulties": {
@@ -2192,6 +2196,31 @@
       },
       "victory": "Great! Puzzle solved.",
       "instructions": "Left click = fill, right click = mark empty."
+    },
+    "uno": {
+      "title": "UNO",
+      "phase": "Fase",
+      "turn": "Turno",
+      "messages": {
+        "waiting": "Aguardando jogadores…",
+        "yourTurn": "Sua vez.",
+        "opponentTurn": "Vez do oponente.",
+        "chooseColor": "Escolha uma cor para continuar.",
+        "unoDeclared": "UNO declarado!",
+        "roundWon": "Rodada vencida!"
+      },
+      "actions": {
+        "draw": "Comprar carta",
+        "callUno": "Dizer UNO",
+        "chooseColor": "Escolher cor",
+        "playAgain": "Jogar novamente"
+      },
+      "kpi": {
+        "score": "Pontuação",
+        "cardsRemaining": "Cartas restantes",
+        "activeColor": "Cor ativa",
+        "round": "Rodada"
+      }
     }
   },
   "common": {

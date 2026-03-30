@@ -1900,6 +1900,10 @@
               "progressiveLevels": "Progressive levels"
             }
           }
+        },
+        "uno": {
+          "name": "UNO",
+          "description": "Match colors and numbers, call UNO before your last card."
         }
       },
       "difficulties": {
@@ -2192,6 +2196,31 @@
       },
       "victory": "Great! Puzzle solved.",
       "instructions": "Left click = fill, right click = mark empty."
+    },
+    "uno": {
+      "title": "UNO",
+      "phase": "Phase",
+      "turn": "Turn",
+      "messages": {
+        "waiting": "Waiting for players…",
+        "yourTurn": "Your turn.",
+        "opponentTurn": "Opponent turn.",
+        "chooseColor": "Choose a color to continue.",
+        "unoDeclared": "UNO called!",
+        "roundWon": "Round won!"
+      },
+      "actions": {
+        "draw": "Draw card",
+        "callUno": "Call UNO",
+        "chooseColor": "Choose color",
+        "playAgain": "Play again"
+      },
+      "kpi": {
+        "score": "Score",
+        "cardsRemaining": "Cards remaining",
+        "activeColor": "Active color",
+        "round": "Round"
+      }
     }
   },
   "common": {

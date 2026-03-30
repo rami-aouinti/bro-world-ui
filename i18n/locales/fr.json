@@ -1900,6 +1900,10 @@
               "progressiveLevels": "Niveaux progressifs"
             }
           }
+        },
+        "uno": {
+          "name": "UNO",
+          "description": "Associez couleurs et chiffres, annoncez UNO avant votre dernière carte."
         }
       },
       "difficulties": {
@@ -2192,6 +2196,31 @@
       },
       "victory": "Great! Puzzle solved.",
       "instructions": "Left click = fill, right click = mark empty."
+    },
+    "uno": {
+      "title": "UNO",
+      "phase": "Phase",
+      "turn": "Tour",
+      "messages": {
+        "waiting": "En attente de joueurs…",
+        "yourTurn": "À vous de jouer.",
+        "opponentTurn": "Tour de l’adversaire.",
+        "chooseColor": "Choisissez une couleur pour continuer.",
+        "unoDeclared": "UNO annoncé !",
+        "roundWon": "Manche gagnée !"
+      },
+      "actions": {
+        "draw": "Piocher",
+        "callUno": "Annoncer UNO",
+        "chooseColor": "Choisir la couleur",
+        "playAgain": "Rejouer"
+      },
+      "kpi": {
+        "score": "Score",
+        "cardsRemaining": "Cartes restantes",
+        "activeColor": "Couleur active",
+        "round": "Manche"
+      }
     }
   },
   "common": {
