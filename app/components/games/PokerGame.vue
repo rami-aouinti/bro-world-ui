@@ -2,6 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import type { PokerCard } from '~/composables/games/usePokerEngine'
 import { usePokerEngine } from '~/composables/games/usePokerEngine'
+import CardTableLayout from './CardTableLayout.vue'
 
 defineProps<{
   selectedPlayMode: 'ai' | 'pvp'
