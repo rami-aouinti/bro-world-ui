@@ -235,6 +235,16 @@ const panelState = computed<GameAsidePanelState>(() => ({
 watchEffect(() => {
   emit("panel-state", panelState.value);
 });
+
+const handleAsideAction = (actionId: string) => {
+  if (actionId === "new-deal") {
+    restartRound();
+  }
+};
+
+defineExpose({
+  handleAsideAction,
+});
 </script>
 
 <template>
@@ -243,9 +253,6 @@ watchEffect(() => {
       <h3 class="game-title mb-0">
         {{ t("gameComponents.belote.title") }} · {{ modeLabel }}
       </h3>
-      <v-btn color="primary" prepend-icon="mdi-refresh" @click="restartRound">{{
-        t("gameComponents.belote.actions.newDeal")
-      }}</v-btn>
     </div>
 
     <p class="game-description mb-1">

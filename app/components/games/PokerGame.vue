@@ -214,6 +214,41 @@ watchEffect(() => {
   emit("panel-state", panelState.value);
 });
 
+const handleAsideAction = (actionId: string) => {
+  if (actionId === "next-hand") {
+    engine.startNewHand();
+    return;
+  }
+
+  if (!isHumanTurn.value || street.value === "hand-over") {
+    return;
+  }
+
+  if (actionId === "fold") {
+    engine.performAction(currentTurnIndex.value, "fold");
+    return;
+  }
+
+  if (actionId === "check") {
+    engine.performAction(currentTurnIndex.value, "check");
+    return;
+  }
+
+  if (actionId === "call") {
+    engine.performAction(currentTurnIndex.value, "call");
+    return;
+  }
+
+  if (actionId === "raise") {
+    const raiseToTotal = engine.getMinimumRaiseToTotal(currentTurnIndex.value);
+    engine.performAction(currentTurnIndex.value, "raise", raiseToTotal);
+  }
+};
+
+defineExpose({
+  handleAsideAction,
+});
+
 const getCardTone = (cardLabel: string) => {
   if (/♥|♦/.test(cardLabel)) return "table-card--red";
   if (/♣|♠/.test(cardLabel)) return "table-card--black";

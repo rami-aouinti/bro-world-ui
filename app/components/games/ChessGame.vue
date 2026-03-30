@@ -109,6 +109,16 @@ const panelState = computed<GameAsidePanelState>(() => ({
 watchEffect(() => {
   emit("panel-state", panelState.value);
 });
+
+const handleAsideAction = (actionId: string) => {
+  if (actionId === "new-game") {
+    reset();
+  }
+};
+
+defineExpose({
+  handleAsideAction,
+});
 </script>
 
 <template>
@@ -143,7 +153,6 @@ watchEffect(() => {
         <v-chip color="info" variant="tonal">{{ t("gameComponents.chess.turn") }} : {{ sideLabel }}</v-chip>
         <v-chip v-if="isInCheck && !winner" color="warning" variant="flat">{{ t("gameComponents.chess.check") }}</v-chip>
         <v-chip v-if="props.selectedPlayMode === 'ai'" color="deep-purple" variant="outlined">{{ t("gameComponents.chess.aiMode") }}</v-chip>
-        <v-btn size="small" prepend-icon="mdi-refresh" variant="tonal" @click="reset">{{ t("gameComponents.chess.actions.newGame") }}</v-btn>
       </div>
     </div>
 

@@ -432,9 +432,6 @@ defineExpose({
   <v-card class="pa-4 rounded-xl game-card-shell" variant="tonal">
     <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-3">
       <h3 class="game-title mb-0">UNO · {{ selectedPlayMode.toUpperCase() }}</h3>
-      <v-btn color="primary" prepend-icon="mdi-refresh" @click="restartRound">
-        Nouvelle manche
-      </v-btn>
     </div>
 
     <p class="game-subtitle mb-4">

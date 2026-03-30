@@ -159,6 +159,21 @@ const panelState = computed<GameAsidePanelState>(() => ({
 watchEffect(() => {
   emit("panel-state", panelState.value);
 });
+
+const handleAsideAction = (actionId: string) => {
+  if (actionId === "next") {
+    nextPuzzle();
+    return;
+  }
+
+  if (actionId === "reset") {
+    resetGrid();
+  }
+};
+
+defineExpose({
+  handleAsideAction,
+});
 </script>
 
 <template>
@@ -183,20 +198,6 @@ watchEffect(() => {
       >
         {{ t(`common.size.${level}`) }}
       </v-btn>
-      <v-btn
-        size="small"
-        color="secondary"
-        variant="outlined"
-        @click="nextPuzzle"
-        >{{ t("gameComponents.nonogram.actions.nextPuzzle") }}</v-btn
-      >
-      <v-btn
-        size="small"
-        color="warning"
-        variant="outlined"
-        @click="resetGrid"
-        >{{ t("gameComponents.nonogram.actions.reset") }}</v-btn
-      >
     </div>
 
     <div class="d-flex align-start ga-3">

@@ -321,6 +321,16 @@ const panelState = computed<GameAsidePanelState>(() => ({
 watchEffect(() => {
   emit("panel-state", panelState.value);
 });
+
+const handleAsideAction = (actionId: string) => {
+  if (actionId === "new-grid") {
+    initGame();
+  }
+};
+
+defineExpose({
+  handleAsideAction,
+});
 </script>
 
 <template>
@@ -383,9 +393,6 @@ watchEffect(() => {
       >
         {{ t("common.difficulty.hard") }}
       </v-btn>
-      <v-btn variant="tonal" prepend-icon="mdi-refresh" @click="initGame">{{
-        t("gameComponents.sudoku.actions.newGrid")
-      }}</v-btn>
     </div>
 
     <div class="sudoku-grid mb-4">
