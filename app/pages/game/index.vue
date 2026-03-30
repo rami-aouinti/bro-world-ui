@@ -14,9 +14,16 @@ definePageMeta({
 
 type PlayMode = "ai" | "pvp";
 type BeloteMode = "teams" | "free-for-all";
+type GameDifficulty = "facile" | "moyen" | "difficile";
 
 interface GameEntry {
   id: string;
+  title?: string;
+  description?: string;
+  category?: string;
+  subcategory?: string;
+  difficulty?: GameDifficulty;
+  tags?: string[];
   nameKey: string;
   descriptionKey: string;
   icon: string;
@@ -119,6 +126,13 @@ const categories: GameCategory[] = [
         games: [
           {
             id: "sudoku",
+            title: "Sudoku",
+            description:
+              "Logique pure avec niveaux progressifs, timer intégré et score par performance.",
+            category: "Jeux intelligents",
+            subcategory: "Logique",
+            difficulty: "moyen",
+            tags: ["logique", "puzzle", "daily", "solo", "timer", "score"],
             nameKey: "gamePage.catalog.games.sudoku.name",
             descriptionKey: "gamePage.catalog.games.sudoku.description",
             icon: "mdi-grid",
@@ -126,7 +140,14 @@ const categories: GameCategory[] = [
             supportedModes: [],
           },
           {
-            id: "2048",
+            id: "game-2048",
+            title: "2048",
+            description:
+              "Fusion de tuiles orientée optimisation avec suivi du meilleur score.",
+            category: "Jeux intelligents",
+            subcategory: "Logique",
+            difficulty: "facile",
+            tags: ["logique", "stratégie", "puzzle", "solo", "score"],
             nameKey: "gamePage.catalog.games.game2048.name",
             descriptionKey: "gamePage.catalog.games.game2048.description",
             icon: "mdi-numeric-8-box-multiple-outline",
@@ -143,6 +164,13 @@ const categories: GameCategory[] = [
         games: [
           {
             id: "chess",
+            title: "Échecs",
+            description:
+              "Stratégie avancée en 1v1 avec options IA et replay de parties selon disponibilité.",
+            category: "Jeux intelligents",
+            subcategory: "Stratégie",
+            difficulty: "difficile",
+            tags: ["stratégie", "solo", "multijoueur", "1v1", "ia", "replay"],
             nameKey: "gamePage.catalog.games.chess.name",
             descriptionKey: "gamePage.catalog.games.chess.description",
             icon: "mdi-chess-knight",
@@ -159,6 +187,13 @@ const categories: GameCategory[] = [
         games: [
           {
             id: "hidden-word",
+            title: "Mot caché",
+            description:
+              "Mot du jour avec indices progressifs et partage rapide du résultat.",
+            category: "Jeux intelligents",
+            subcategory: "Mots & Langage",
+            difficulty: "moyen",
+            tags: ["mots", "daily", "puzzle", "solo", "indices", "partage"],
             nameKey: "gamePage.catalog.games.hiddenWord.name",
             descriptionKey: "gamePage.catalog.games.hiddenWord.description",
             icon: "mdi-text-search-variant",
@@ -175,6 +210,13 @@ const categories: GameCategory[] = [
         games: [
           {
             id: "nonogram",
+            title: "Nonogram",
+            description:
+              "Grille à indices numériques basée sur la déduction logique et la précision.",
+            category: "Jeux intelligents",
+            subcategory: "Grilles & Puzzles",
+            difficulty: "difficile",
+            tags: ["logique", "puzzle", "grille", "solo", "déduction"],
             nameKey: "gamePage.catalog.games.nonogram.name",
             descriptionKey: "gamePage.catalog.games.nonogram.description",
             icon: "mdi-view-grid-plus-outline",
@@ -193,6 +235,11 @@ const selectedGameId = ref<string | null>(null);
 const selectedPlayMode = ref<PlayMode | null>(null);
 const selectedBeloteMode = ref<BeloteMode | null>(null);
 const isGameStarted = ref(false);
+const allGameEntries = computed(() =>
+  categories.flatMap((category) =>
+    category.subCategories.flatMap((subCategory) => subCategory.games),
+  ),
+);
 
 const selectedCategory = computed(
   () =>
@@ -367,6 +414,32 @@ const launchGame = () => {
             </v-card>
           </v-col>
         </v-row>
+
+        <v-divider class="my-6" />
+
+        <h2 class="card-title mb-3">Tous les jeux</h2>
+        <v-row class="ga-0 ga-md-1">
+          <v-col
+            v-for="game in allGameEntries"
+            :key="`all-${game.id}`"
+            cols="12"
+            md="4"
+            xl="3"
+          >
+            <v-card class="pa-4 h-100 unified-card" variant="outlined">
+              <div class="d-flex flex-column ga-2 h-100">
+                <v-avatar :color="getLevelColor('game')" variant="tonal"><v-icon :icon="game.icon" /></v-avatar>
+                <h3 class="card-title mb-0">{{ game.title || t(game.nameKey) }}</h3>
+                <p class="card-description mb-1">{{ game.description || t(game.descriptionKey) }}</p>
+                <div class="d-flex flex-wrap ga-1">
+                  <v-chip v-if="game.category" size="x-small" variant="tonal" color="primary">{{ game.category }}</v-chip>
+                  <v-chip v-if="game.subcategory" size="x-small" variant="tonal" color="secondary">{{ game.subcategory }}</v-chip>
+                  <v-chip v-if="game.difficulty" size="x-small" variant="outlined" color="info">{{ game.difficulty }}</v-chip>
+                </div>
+              </div>
+            </v-card>
+          </v-col>
+        </v-row>
       </section>
 
       <section
@@ -421,6 +494,19 @@ const launchGame = () => {
                 <v-avatar :color="getLevelColor('game')" variant="tonal"><v-icon :icon="game.icon" /></v-avatar>
                 <h3 class="card-title mb-0">{{ t(game.nameKey) }}</h3>
                 <p class="card-description">{{ t(game.descriptionKey) }}</p>
+                <div class="d-flex flex-wrap ga-1">
+                  <v-chip v-if="game.category" size="x-small" variant="tonal" color="primary">{{ game.category }}</v-chip>
+                  <v-chip v-if="game.subcategory" size="x-small" variant="tonal" color="secondary">{{ game.subcategory }}</v-chip>
+                  <v-chip v-if="game.difficulty" size="x-small" variant="outlined" color="info">{{ game.difficulty }}</v-chip>
+                  <v-chip
+                    v-for="tag in game.tags ?? []"
+                    :key="`${game.id}-${tag}`"
+                    size="x-small"
+                    variant="outlined"
+                  >
+                    {{ tag }}
+                  </v-chip>
+                </div>
                 <div class="d-flex flex-wrap ga-1">
                   <v-chip
                     v-for="mode in game.supportedModes"
