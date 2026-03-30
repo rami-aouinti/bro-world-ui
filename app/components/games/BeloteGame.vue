@@ -271,11 +271,12 @@ defineExpose({
               "
               @click="playCard(displayHandPlayerIndex, card.id)"
           >
-            <span>{{ card.rank }}</span>
+            <span class="card-rank">{{ card.rank }}</span>
             <span
-                :class="
-                  card.suit === '♥' || card.suit === '♦' ? 'text-red' : 'text-black'
-                "
+                :class="[
+                  'card-suit',
+                  card.suit === '♥' || card.suit === '♦' ? 'text-red' : 'text-black',
+                ]"
             >{{ card.suit }}</span
             >
           </button>
@@ -487,8 +488,8 @@ defineExpose({
 }
 
 .belote-seat-hand__card {
-  width: 64px;
-  min-height: 86px;
+  width: 58px;
+  min-height: 78px;
   margin-left: -18px;
 }
 
@@ -497,15 +498,11 @@ defineExpose({
 }
 
 .play-card {
-  min-height: 82px;
+  min-height: 74px;
   border-radius: 12px;
-  border: 1px solid
-    color-mix(in srgb, rgb(var(--v-theme-primary)) 26%, transparent);
-  background: color-mix(
-    in srgb,
-    rgb(var(--v-theme-surface)) 92%,
-    rgb(var(--v-theme-primary)) 8%
-  );
+  border: 1px solid rgba(17, 24, 39, 0.25);
+  background: #ffffff;
+  color: #111827;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -529,7 +526,18 @@ defineExpose({
 }
 
 .play-card:disabled {
-  opacity: 0.5;
+  opacity: 0.82;
+}
+
+.card-rank {
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.card-suit {
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .ai-hands {
@@ -604,8 +612,8 @@ defineExpose({
 
 @media (max-width: 700px) {
   .belote-seat-hand__card {
-    width: 54px;
-    min-height: 78px;
+    width: 50px;
+    min-height: 70px;
     margin-left: -22px;
     padding: 6px;
   }
