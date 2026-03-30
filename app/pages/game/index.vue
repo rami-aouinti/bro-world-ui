@@ -105,6 +105,86 @@ const categories: GameCategory[] = [
       },
     ],
   },
+  {
+    id: "smart-games",
+    nameKey: "gamePage.catalog.categories.smartGames.name",
+    descriptionKey: "gamePage.catalog.categories.smartGames.description",
+    icon: "mdi-brain",
+    subCategories: [
+      {
+        id: "logic",
+        nameKey: "gamePage.catalog.subCategories.logic.name",
+        descriptionKey: "gamePage.catalog.subCategories.logic.description",
+        icon: "mdi-lightbulb-on-outline",
+        games: [
+          {
+            id: "sudoku",
+            nameKey: "gamePage.catalog.games.sudoku.name",
+            descriptionKey: "gamePage.catalog.games.sudoku.description",
+            icon: "mdi-grid",
+            component: null,
+            supportedModes: [],
+          },
+          {
+            id: "2048",
+            nameKey: "gamePage.catalog.games.game2048.name",
+            descriptionKey: "gamePage.catalog.games.game2048.description",
+            icon: "mdi-numeric-8-box-multiple-outline",
+            component: null,
+            supportedModes: [],
+          },
+        ],
+      },
+      {
+        id: "strategy",
+        nameKey: "gamePage.catalog.subCategories.strategy.name",
+        descriptionKey: "gamePage.catalog.subCategories.strategy.description",
+        icon: "mdi-chess-king",
+        games: [
+          {
+            id: "chess",
+            nameKey: "gamePage.catalog.games.chess.name",
+            descriptionKey: "gamePage.catalog.games.chess.description",
+            icon: "mdi-chess-knight",
+            component: null,
+            supportedModes: [],
+          },
+        ],
+      },
+      {
+        id: "words-language",
+        nameKey: "gamePage.catalog.subCategories.wordsLanguage.name",
+        descriptionKey: "gamePage.catalog.subCategories.wordsLanguage.description",
+        icon: "mdi-alphabetical-variant",
+        games: [
+          {
+            id: "hidden-word",
+            nameKey: "gamePage.catalog.games.hiddenWord.name",
+            descriptionKey: "gamePage.catalog.games.hiddenWord.description",
+            icon: "mdi-text-search-variant",
+            component: null,
+            supportedModes: [],
+          },
+        ],
+      },
+      {
+        id: "grids-puzzles",
+        nameKey: "gamePage.catalog.subCategories.gridsPuzzles.name",
+        descriptionKey: "gamePage.catalog.subCategories.gridsPuzzles.description",
+        icon: "mdi-grid-large",
+        games: [
+          {
+            id: "nonogram",
+            nameKey: "gamePage.catalog.games.nonogram.name",
+            descriptionKey: "gamePage.catalog.games.nonogram.description",
+            icon: "mdi-view-grid-plus-outline",
+            component: null,
+            supportedModes: [],
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 const selectedCategoryId = ref<string | null>(null);

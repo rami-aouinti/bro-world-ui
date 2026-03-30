@@ -1729,6 +1729,10 @@
         "board": {
           "name": "Juegos de mesa",
           "description": "Juegos de tablero simples y amigables."
+        },
+        "smartGames": {
+          "name": "Juegos inteligentes",
+          "description": "Entrena tu mente con desafíos de lógica, estrategia y rompecabezas."
         }
       },
       "subCategories": {
@@ -1739,6 +1743,22 @@
         "tableClassic": {
           "name": "Clásicos de mesa",
           "description": "Empieza con una partida completa de damas."
+        },
+        "logic": {
+          "name": "Lógica",
+          "description": "Retos de deducción y reconocimiento de patrones."
+        },
+        "strategy": {
+          "name": "Estrategia",
+          "description": "Piensa varios pasos adelante para ganar."
+        },
+        "wordsLanguage": {
+          "name": "Palabras y lenguaje",
+          "description": "Juegos de letras y vocabulario."
+        },
+        "gridsPuzzles": {
+          "name": "Cuadrículas y puzzles",
+          "description": "Rompecabezas visuales basados en cuadrículas."
         }
       },
       "games": {
@@ -1757,6 +1777,26 @@
         "checkers": {
           "name": "Damas",
           "description": "Partida local de damas para 2 jugadores en la misma pantalla."
+        },
+        "sudoku": {
+          "name": "Sudoku",
+          "description": "Completa la cuadrícula del 1 al 9 sin repetir números."
+        },
+        "chess": {
+          "name": "Ajedrez",
+          "description": "Duelo clásico de estrategia y anticipación."
+        },
+        "game2048": {
+          "name": "2048",
+          "description": "Combina fichas para alcanzar 2048."
+        },
+        "hiddenWord": {
+          "name": "Palabra oculta (tipo Wordle)",
+          "description": "Adivina la palabra secreta en intentos limitados."
+        },
+        "nonogram": {
+          "name": "Nonogram/Picross",
+          "description": "Resuelve pistas numéricas para revelar una imagen."
         }
       }
     }
