@@ -1829,6 +1829,30 @@
         "aiWonGame": "Partie terminée: l'IA gagne {aiScore} à {playerScore}.",
         "drawGame": "Partie terminée: égalité {playerScore}-{aiScore}.",
         "newRound": "Nouvelle manche de belote. À vous de jouer !"
+      },
+      "phase": "Phase",
+      "expectedAction": "Action attendue",
+      "turn": "Tour",
+      "contract": "Contrat",
+      "target": "Objectif",
+      "phases": {
+        "distribution": "Distribution",
+        "bidding": "Enchères / prise",
+        "playing": "Jeu des plis",
+        "round-end": "Fin de manche"
+      },
+      "expectedActions": {
+        "deal": "Distribuer les cartes",
+        "choose-trump": "Définir le contrat / atout",
+        "play-card": "Jouer une carte valide",
+        "resolve-trick": "Résoudre le pli",
+        "new-round": "Lancer une nouvelle manche"
+      },
+      "scoreboard": {
+        "round": "Score de manche",
+        "global": "Score global",
+        "side": "Équipe / Joueur",
+        "points": "Points"
       }
     },
     "checkers": {
