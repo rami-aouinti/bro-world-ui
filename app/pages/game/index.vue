@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import BeloteGame from "~/components/games/BeloteGame.vue";
 import CheckersGame from "~/components/games/CheckersGame.vue";
+import ChessGame from "~/components/games/ChessGame.vue";
 import RamiGame from "~/components/games/RamiGame.vue";
 import PokerGame from "~/components/games/PokerGame.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
@@ -155,8 +156,8 @@ const categories: GameCategory[] = [
             nameKey: "gamePage.catalog.games.chess.name",
             descriptionKey: "gamePage.catalog.games.chess.description",
             icon: "mdi-chess-knight",
-            component: null,
-            supportedModes: [],
+            component: "chess",
+            supportedModes: ["ai", "pvp"],
             features: ["IA", "multijoueur", "replay"],
           },
         ],
@@ -634,6 +635,10 @@ const launchGame = () => {
         />
         <PokerGame
           v-else-if="selectedGame.component === 'poker'"
+          :selected-play-mode="selectedPlayMode"
+        />
+        <ChessGame
+          v-else-if="selectedGame.component === 'chess'"
           :selected-play-mode="selectedPlayMode"
         />
       </section>
