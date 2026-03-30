@@ -4,6 +4,7 @@ import BeloteGame from "~/components/games/BeloteGame.vue";
 import CheckersGame from "~/components/games/CheckersGame.vue";
 import RamiGame from "~/components/games/RamiGame.vue";
 import PokerGame from "~/components/games/PokerGame.vue";
+import NonogramGame from "~/components/games/NonogramGame.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
 import type {
   BeloteMode,
@@ -203,8 +204,8 @@ const categories: GameCategory[] = [
             nameKey: "gamePage.catalog.games.nonogram.name",
             descriptionKey: "gamePage.catalog.games.nonogram.description",
             icon: "mdi-view-grid-plus-outline",
-            component: null,
-            supportedModes: [],
+            component: "nonogram",
+            supportedModes: ["ai"],
             features: [
               "indices de lignes/colonnes",
               "niveaux progressifs",
@@ -634,6 +635,10 @@ const launchGame = () => {
         />
         <PokerGame
           v-else-if="selectedGame.component === 'poker'"
+          :selected-play-mode="selectedPlayMode"
+        />
+        <NonogramGame
+          v-else-if="selectedGame.component === 'nonogram'"
           :selected-play-mode="selectedPlayMode"
         />
       </section>
