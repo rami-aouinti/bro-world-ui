@@ -8,6 +8,8 @@ export interface GameEntry {
   description?: string;
   category?: string;
   subcategory?: string;
+  categoryKey?: string;
+  subcategoryKey?: string;
   difficulty?: GameDifficulty;
   tags?: string[];
   features?: string[];

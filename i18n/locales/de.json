@@ -1720,6 +1720,11 @@
       "chooseGame": "Dieses Spiel wählen",
       "launchGame": "Spiel starten"
     },
+    "labels": {
+      "allGames": "Alle Spiele",
+      "features": "Funktionen",
+      "bonus": "Bonus"
+    },
     "catalog": {
       "categories": {
         "cards": {

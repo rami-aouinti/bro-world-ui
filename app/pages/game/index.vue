@@ -100,8 +100,8 @@ const categories: GameCategory[] = [
             title: "Sudoku",
             description:
               "Logique pure avec niveaux progressifs, timer intégré et score par performance.",
-            category: "Jeux intelligents",
-            subcategory: "Logique",
+            categoryKey: "gamePage.catalog.categories.smartGames.name",
+            subcategoryKey: "gamePage.catalog.subCategories.logic.name",
             difficulty: "moyen",
             tags: ["logique", "puzzle", "daily", "solo", "timer", "score"],
             nameKey: "gamePage.catalog.games.sudoku.name",
@@ -120,8 +120,8 @@ const categories: GameCategory[] = [
             title: "2048",
             description:
               "Fusion de tuiles orientée optimisation avec suivi du meilleur score.",
-            category: "Jeux intelligents",
-            subcategory: "Logique",
+            categoryKey: "gamePage.catalog.categories.smartGames.name",
+            subcategoryKey: "gamePage.catalog.subCategories.logic.name",
             difficulty: "facile",
             tags: ["logique", "stratégie", "puzzle", "solo", "score"],
             nameKey: "gamePage.catalog.games.game2048.name",
@@ -148,8 +148,8 @@ const categories: GameCategory[] = [
             title: "Échecs",
             description:
               "Stratégie avancée en 1v1 avec options IA et replay de parties selon disponibilité.",
-            category: "Jeux intelligents",
-            subcategory: "Stratégie",
+            categoryKey: "gamePage.catalog.categories.smartGames.name",
+            subcategoryKey: "gamePage.catalog.subCategories.strategy.name",
             difficulty: "difficile",
             tags: ["stratégie", "solo", "multijoueur", "1v1", "ia", "replay"],
             nameKey: "gamePage.catalog.games.chess.name",
@@ -172,8 +172,8 @@ const categories: GameCategory[] = [
             title: "Mot caché",
             description:
               "Mot du jour avec indices progressifs et partage rapide du résultat.",
-            category: "Jeux intelligents",
-            subcategory: "Mots & Langage",
+            categoryKey: "gamePage.catalog.categories.smartGames.name",
+            subcategoryKey: "gamePage.catalog.subCategories.wordsLanguage.name",
             difficulty: "moyen",
             tags: ["mots", "daily", "puzzle", "solo", "indices", "partage"],
             nameKey: "gamePage.catalog.games.hiddenWord.name",
@@ -196,8 +196,8 @@ const categories: GameCategory[] = [
             title: "Nonogram",
             description:
               "Grille à indices numériques basée sur la déduction logique et la précision.",
-            category: "Jeux intelligents",
-            subcategory: "Grilles & Puzzles",
+            categoryKey: "gamePage.catalog.categories.smartGames.name",
+            subcategoryKey: "gamePage.catalog.subCategories.gridsPuzzles.name",
             difficulty: "difficile",
             tags: ["logique", "puzzle", "grille", "solo", "déduction"],
             nameKey: "gamePage.catalog.games.nonogram.name",
@@ -404,7 +404,7 @@ const launchGame = () => {
 
         <v-divider class="my-6" />
 
-        <h2 class="card-title mb-3">Tous les jeux</h2>
+        <h2 class="card-title mb-3">{{ t("gamePage.labels.allGames") }}</h2>
         <v-row class="ga-0 ga-md-1">
           <v-col
             v-for="game in allGameEntries"
@@ -419,12 +419,12 @@ const launchGame = () => {
                 <h3 class="card-title mb-0">{{ game.title || t(game.nameKey) }}</h3>
                 <p class="card-description mb-1">{{ game.description || t(game.descriptionKey) }}</p>
                 <div class="d-flex flex-wrap ga-1">
-                  <v-chip v-if="game.category" size="x-small" variant="tonal" color="primary">{{ game.category }}</v-chip>
-                  <v-chip v-if="game.subcategory" size="x-small" variant="tonal" color="secondary">{{ game.subcategory }}</v-chip>
+                  <v-chip v-if="game.categoryKey || game.category" size="x-small" variant="tonal" color="primary">{{ game.categoryKey ? t(game.categoryKey) : game.category }}</v-chip>
+                  <v-chip v-if="game.subcategoryKey || game.subcategory" size="x-small" variant="tonal" color="secondary">{{ game.subcategoryKey ? t(game.subcategoryKey) : game.subcategory }}</v-chip>
                   <v-chip v-if="game.difficulty" size="x-small" variant="outlined" color="info">{{ game.difficulty }}</v-chip>
                 </div>
                 <div v-if="game.features?.length" class="mt-1">
-                  <p class="text-caption font-weight-bold mb-1">Fonctionnalités</p>
+                  <p class="text-caption font-weight-bold mb-1">{{ t("gamePage.labels.features") }}</p>
                   <div class="d-flex flex-wrap ga-1">
                     <v-chip
                       v-for="feature in game.features"
@@ -496,8 +496,8 @@ const launchGame = () => {
                 <h3 class="card-title mb-0">{{ t(game.nameKey) }}</h3>
                 <p class="card-description">{{ t(game.descriptionKey) }}</p>
                 <div class="d-flex flex-wrap ga-1">
-                  <v-chip v-if="game.category" size="x-small" variant="tonal" color="primary">{{ game.category }}</v-chip>
-                  <v-chip v-if="game.subcategory" size="x-small" variant="tonal" color="secondary">{{ game.subcategory }}</v-chip>
+                  <v-chip v-if="game.categoryKey || game.category" size="x-small" variant="tonal" color="primary">{{ game.categoryKey ? t(game.categoryKey) : game.category }}</v-chip>
+                  <v-chip v-if="game.subcategoryKey || game.subcategory" size="x-small" variant="tonal" color="secondary">{{ game.subcategoryKey ? t(game.subcategoryKey) : game.subcategory }}</v-chip>
                   <v-chip v-if="game.difficulty" size="x-small" variant="outlined" color="info">{{ game.difficulty }}</v-chip>
                   <v-chip
                     v-for="tag in game.tags ?? []"
@@ -509,7 +509,7 @@ const launchGame = () => {
                   </v-chip>
                 </div>
                 <div v-if="game.features?.length" class="mt-1">
-                  <p class="text-caption font-weight-bold mb-1">Bonus</p>
+                  <p class="text-caption font-weight-bold mb-1">{{ t("gamePage.labels.bonus") }}</p>
                   <ul class="info-list">
                     <li v-for="feature in game.features" :key="`${game.id}-bonus-${feature}`">
                       {{ feature }}
@@ -553,7 +553,7 @@ const launchGame = () => {
       <section v-else-if="selectedGame && !isGameStarted" class="mb-1">
         <v-card class="pa-4 unified-card" variant="outlined">
           <div v-if="selectedGame.features?.length" class="mb-4">
-            <h3 class="section-title mb-2">Fonctionnalités</h3>
+            <h3 class="section-title mb-2">{{ t("gamePage.labels.features") }}</h3>
             <ul class="info-list">
               <li v-for="feature in selectedGame.features" :key="`selected-feature-${feature}`">
                 {{ feature }}
