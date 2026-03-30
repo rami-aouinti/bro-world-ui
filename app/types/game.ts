@@ -16,7 +16,7 @@ export interface GameEntry {
   nameKey: string;
   descriptionKey: string;
   icon: string;
-  component: "rami" | "belote" | "checkers" | "poker" | "game2048" | null;
+  component: "rami" | "belote" | "checkers" | "poker" |  "game2048" | "sudoku" | null;
   supportedModes: PlayMode[];
 }
 
