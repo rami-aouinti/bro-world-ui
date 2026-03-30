@@ -8,7 +8,8 @@ defineProps<{
 
 type Suit = '♠' | '♥' | '♦' | '♣'
 
-type Player = 'player' | 'ai'
+type Player = 'player' | 'aiRight' | 'aiTop' | 'aiLeft'
+type AiPlayer = Exclude<Player, 'player'>
 
 interface Card {
   id: string
@@ -34,14 +35,14 @@ const cardPoints = (card: Card) => {
   return card.rank
 }
 
-const deck = (): Card[] => suits.flatMap(suit => Array.from({ length: 13 }, (_, index) => {
+const deck = (copies = 1): Card[] => Array.from({ length: copies }, (_, copyIndex) => copyIndex).flatMap(copyIndex => suits.flatMap(suit => Array.from({ length: 13 }, (_, index) => {
   const rank = index + 1
   return {
-    id: `${suit}-${rank}`,
+    id: `${copyIndex}-${suit}-${rank}`,
     suit,
     rank,
   }
-}))
+})))
 
 const shuffle = <T,>(items: T[]): T[] => {
   const cloned = [...items]
@@ -59,12 +60,18 @@ const formatRank = (rank: number) => rankLabels[rank] ?? String(rank)
 const stock = ref<Card[]>([])
 const discardPile = ref<Card[]>([])
 const playerHand = ref<Card[]>([])
-const aiHand = ref<Card[]>([])
+const aiTopHand = ref<Card[]>([])
+const aiRightHand = ref<Card[]>([])
+const aiLeftHand = ref<Card[]>([])
 const selectedCardIds = ref<string[]>([])
 const playerMelds = ref<Card[][]>([])
-const aiMelds = ref<Card[][]>([])
+const aiTopMelds = ref<Card[][]>([])
+const aiRightMelds = ref<Card[][]>([])
+const aiLeftMelds = ref<Card[][]>([])
 const playerOpened = ref(false)
-const aiOpened = ref(false)
+const aiTopOpened = ref(false)
+const aiRightOpened = ref(false)
+const aiLeftOpened = ref(false)
 const currentTurn = ref<Player>('player')
 const hasDrawn = ref(false)
 const winner = ref<Player | null>(null)
@@ -87,19 +94,20 @@ const isRedSuit = (suit: Suit) => suit === '♥' || suit === '♦'
 
 const tablePlayers = computed(() => [
   {
-    id: 'ai',
-    name: t('gameComponents.rami.players.computer'),
+    id: 'aiTop',
+    name: t('gameComponents.rami.players.computerNorth'),
     isAI: true,
-    handCount: aiHand.value.length,
-    isCurrentTurn: currentTurn.value === 'ai',
-    timerSeconds: currentTurn.value === 'ai' ? timer.value : undefined,
+    handCount: aiTopHand.value.length,
+    isCurrentTurn: currentTurn.value === 'aiTop',
+    timerSeconds: currentTurn.value === 'aiTop' ? timer.value : undefined,
   },
   {
-    id: 'seat-east',
-    name: t('gameComponents.rami.players.emptySeat'),
+    id: 'aiRight',
+    name: t('gameComponents.rami.players.computerEast'),
     isAI: true,
-    handCount: 0,
-    isCurrentTurn: false,
+    handCount: aiRightHand.value.length,
+    isCurrentTurn: currentTurn.value === 'aiRight',
+    timerSeconds: currentTurn.value === 'aiRight' ? timer.value : undefined,
   },
   {
     id: 'player',
@@ -110,17 +118,20 @@ const tablePlayers = computed(() => [
     timerSeconds: currentTurn.value === 'player' ? timer.value : undefined,
   },
   {
-    id: 'seat-west',
-    name: t('gameComponents.rami.players.emptySeat'),
+    id: 'aiLeft',
+    name: t('gameComponents.rami.players.computerWest'),
     isAI: true,
-    handCount: 0,
-    isCurrentTurn: false,
+    handCount: aiLeftHand.value.length,
+    isCurrentTurn: currentTurn.value === 'aiLeft',
+    timerSeconds: currentTurn.value === 'aiLeft' ? timer.value : undefined,
   },
 ])
 
 const centerMelds = computed(() => [
   ...playerMelds.value.map(meld => meld.map(card => `${formatRank(card.rank)}${card.suit}`)),
-  ...aiMelds.value.map(meld => meld.map(card => `${formatRank(card.rank)}${card.suit}`)),
+  ...aiTopMelds.value.map(meld => meld.map(card => `${formatRank(card.rank)}${card.suit}`)),
+  ...aiRightMelds.value.map(meld => meld.map(card => `${formatRank(card.rank)}${card.suit}`)),
+  ...aiLeftMelds.value.map(meld => meld.map(card => `${formatRank(card.rank)}${card.suit}`)),
 ])
 
 const centerCards = computed(() => discardPile.value.slice(0, 6).map(card => `${formatRank(card.rank)}${card.suit}`))
@@ -131,6 +142,12 @@ const canDiscard = computed(() => currentTurn.value === 'player' && hasDrawn.val
 const canCreateMeld = computed(() => currentTurn.value === 'player' && !winner.value)
 const canReorderHand = computed(() => currentTurn.value === 'player' && !winner.value)
 const topDiscardCard = computed(() => discardPile.value[0] ?? null)
+const turnLabel = computed(() => {
+  if (currentTurn.value === 'player') return t('gameComponents.rami.players.you')
+  if (currentTurn.value === 'aiRight') return t('gameComponents.rami.players.computerEast')
+  if (currentTurn.value === 'aiTop') return t('gameComponents.rami.players.computerNorth')
+  return t('gameComponents.rami.players.computerWest')
+})
 
 const score = computed(() => playerMelds.value.flat().reduce((total, card) => total + cardPoints(card), 0))
 
@@ -377,6 +394,33 @@ const finishTurn = (next: Player) => {
   timer.value = TURN_SECONDS
 }
 
+
+const nextTurn = (turn: Player): Player => {
+  if (turn === 'player') return 'aiRight'
+  if (turn === 'aiRight') return 'aiTop'
+  if (turn === 'aiTop') return 'aiLeft'
+  return 'player'
+}
+
+const aiTurnPlayers: AiPlayer[] = ['aiRight', 'aiTop', 'aiLeft']
+
+const getAiHandRef = (aiPlayer: AiPlayer) => {
+  if (aiPlayer === 'aiRight') return aiRightHand
+  if (aiPlayer === 'aiTop') return aiTopHand
+  return aiLeftHand
+}
+
+const getAiMeldsRef = (aiPlayer: AiPlayer) => {
+  if (aiPlayer === 'aiRight') return aiRightMelds
+  if (aiPlayer === 'aiTop') return aiTopMelds
+  return aiLeftMelds
+}
+
+const getAiOpenedRef = (aiPlayer: AiPlayer) => {
+  if (aiPlayer === 'aiRight') return aiRightOpened
+  if (aiPlayer === 'aiTop') return aiTopOpened
+  return aiLeftOpened
+}
 const startTurnTimer = () => {
   if (timerInterval) clearInterval(timerInterval)
   timerInterval = setInterval(() => {
@@ -393,7 +437,7 @@ const startTurnTimer = () => {
       autoDiscardForPlayer()
     }
     else {
-      executeAiTurn(true)
+      executeAiTurn(currentTurn.value as AiPlayer, true)
     }
   }, 1000)
 }
@@ -405,8 +449,9 @@ const checkWin = () => {
     return true
   }
 
-  if (!aiHand.value.length) {
-    winner.value = 'ai'
+  const hasAiWinner = aiTurnPlayers.some(aiPlayer => !getAiHandRef(aiPlayer).value.length)
+  if (hasAiWinner) {
+    winner.value = 'aiTop'
     message.value = t('gameComponents.rami.messages.computerWin')
     return true
   }
@@ -433,7 +478,8 @@ const drawCardFor = (player: Player) => {
     message.value = t('gameComponents.rami.messages.cardDrawn')
   }
   else {
-    aiHand.value = sortHand([...aiHand.value, drawnCard])
+    const aiHandRef = getAiHandRef(player)
+    aiHandRef.value = sortHand([...aiHandRef.value, drawnCard])
   }
 
   return drawnCard
@@ -454,7 +500,7 @@ const completeDiscard = (cardId: string) => {
 
   if (checkWin()) return
 
-  finishTurn('ai')
+  finishTurn('aiRight')
   scheduleAiTurn()
 }
 
@@ -503,10 +549,6 @@ const createMeld = () => {
     return
   }
 
-  if (!playerOpened.value && meldPoints(cards) < 51) {
-    message.value = t('gameComponents.rami.messages.openingRefused', { score: 51 })
-    return
-  }
 
   playerMelds.value.push(sortHand(cards))
   playerHand.value = removeCardsFromHand(playerHand.value, cards)
@@ -521,51 +563,58 @@ const createMeld = () => {
   checkWin()
 }
 
-const executeAiTurn = (forcedByTimer = false) => {
-  if (winner.value || currentTurn.value !== 'ai') return
+const executeAiTurn = (aiPlayer: AiPlayer, forcedByTimer = false) => {
+  if (winner.value || currentTurn.value !== aiPlayer) return
 
   if (!hasDrawn.value) {
-    drawCardFor('ai')
+    drawCardFor(aiPlayer)
     hasDrawn.value = true
   }
 
-  let aiWorkingHand = [...aiHand.value]
+  const aiHandRef = getAiHandRef(aiPlayer)
+  const aiMeldsRef = getAiMeldsRef(aiPlayer)
+  const aiOpenedRef = getAiOpenedRef(aiPlayer)
+
+  let aiWorkingHand = [...aiHandRef.value]
   let canContinue = true
 
   while (canContinue) {
     const bestMeld = findBestMeld(aiWorkingHand)
     if (!bestMeld) break
 
-    if (!aiOpened.value && meldPoints(bestMeld) < 51) break
-
-    aiMelds.value.push(sortHand(bestMeld))
+    aiMeldsRef.value.push(sortHand(bestMeld))
     aiWorkingHand = removeCardsFromHand(aiWorkingHand, bestMeld)
-    if (!aiOpened.value) aiOpened.value = true
+    if (!aiOpenedRef.value) aiOpenedRef.value = true
 
     if (!aiWorkingHand.length) break
 
-    canContinue = aiOpened.value
+    canContinue = aiOpenedRef.value
   }
 
-  aiHand.value = sortHand(aiWorkingHand)
+  aiHandRef.value = sortHand(aiWorkingHand)
 
   if (!checkWin()) {
-    const discard = pickDiscardCard(aiHand.value)
-    aiHand.value = aiHand.value.filter(card => card.id !== discard.id)
+    const discard = pickDiscardCard(aiHandRef.value)
+    aiHandRef.value = aiHandRef.value.filter(card => card.id !== discard.id)
     discardPile.value.unshift(discard)
     message.value = forcedByTimer
       ? t('gameComponents.rami.messages.computerAutoPlayed')
       : t('gameComponents.rami.messages.computerPlayed')
 
     if (!checkWin()) {
-      finishTurn('player')
+      finishTurn(nextTurn(aiPlayer))
+      if (nextTurn(aiPlayer) !== 'player') {
+        scheduleAiTurn()
+      }
     }
   }
 }
 
 const scheduleAiTurn = () => {
+  if (currentTurn.value === 'player') return
   if (aiTimeout) clearTimeout(aiTimeout)
-  aiTimeout = setTimeout(() => executeAiTurn(), 900)
+  const aiPlayer = currentTurn.value as AiPlayer
+  aiTimeout = setTimeout(() => executeAiTurn(aiPlayer), 900)
 }
 
 const getDiscardZoneRect = () => discardDropZone.value?.getBoundingClientRect() ?? null
@@ -698,16 +747,22 @@ const cardStyle = (index: number, cardId: string) => {
 }
 
 const reset = () => {
-  const randomDeck = shuffle(deck())
+  const randomDeck = shuffle(deck(2))
   playerHand.value = randomDeck.slice(0, 14)
-  aiHand.value = sortHand(randomDeck.slice(14, 28))
-  stock.value = randomDeck.slice(28)
+  aiRightHand.value = sortHand(randomDeck.slice(14, 28))
+  aiTopHand.value = sortHand(randomDeck.slice(28, 42))
+  aiLeftHand.value = sortHand(randomDeck.slice(42, 56))
+  stock.value = randomDeck.slice(56)
   discardPile.value = []
   selectedCardIds.value = []
   playerMelds.value = []
-  aiMelds.value = []
+  aiTopMelds.value = []
+  aiRightMelds.value = []
+  aiLeftMelds.value = []
   playerOpened.value = false
-  aiOpened.value = false
+  aiTopOpened.value = false
+  aiRightOpened.value = false
+  aiLeftOpened.value = false
   currentTurn.value = 'player'
   hasDrawn.value = false
   timer.value = TURN_SECONDS
@@ -731,7 +786,7 @@ reset()
   <div class="d-flex flex-wrap align-center justify-space-between ga-3 mb-4">
     <div>
       <h3 class="game-title mb-1">{{ t('gameComponents.rami.title') }}</h3>
-      <p class="game-subtitle mb-0">{{ t('gameComponents.rami.pointsPlayed') }}: <strong>{{ score }}</strong> · {{ t('gameComponents.rami.turn') }}: <strong>{{ currentTurn === 'player' ? t('gameComponents.rami.players.you') : t('gameComponents.rami.players.computer') }}</strong></p>
+      <p class="game-subtitle mb-0">{{ t('gameComponents.rami.pointsPlayed') }}: <strong>{{ score }}</strong> · {{ t('gameComponents.rami.turn') }}: <strong>{{ turnLabel }}</strong></p>
     </div>
     <div class="d-flex ga-2 flex-wrap justify-end">
       <v-chip color="primary" variant="tonal" prepend-icon="mdi-timer-outline">
@@ -763,11 +818,26 @@ reset()
 
     <template #seat-north-hand>
       <section class="seat-hand seat-hand--north">
-        <h4 class="seat-hand__title text-subtitle-2 mb-1 font-weight-bold">Main adverse</h4>
+        <h4 class="seat-hand__title text-subtitle-2 mb-1 font-weight-bold">{{ t('gameComponents.rami.players.computerNorth') }}</h4>
         <div class="hand-fan hand-fan--opponent">
           <div
-            v-for="(card, index) in aiHand"
+            v-for="(card, index) in aiTopHand"
             :key="`ai-${card.id}`"
+            class="play-card play-card--back hand-fan__card hand-fan__card--back"
+            :style="cardStyle(index, card.id)"
+          />
+        </div>
+      </section>
+    </template>
+
+
+    <template #seat-east-hand>
+      <section class="seat-hand seat-hand--side">
+        <h4 class="seat-hand__title text-caption mb-1 font-weight-bold">{{ t('gameComponents.rami.players.computerEast') }}</h4>
+        <div class="hand-fan hand-fan--opponent hand-fan--side">
+          <div
+            v-for="(card, index) in aiRightHand"
+            :key="`ai-right-${card.id}`"
             class="play-card play-card--back hand-fan__card hand-fan__card--back"
             :style="cardStyle(index, card.id)"
           />
@@ -864,6 +934,21 @@ reset()
       </section>
     </template>
 
+
+    <template #seat-west-hand>
+      <section class="seat-hand seat-hand--side">
+        <h4 class="seat-hand__title text-caption mb-1 font-weight-bold">{{ t('gameComponents.rami.players.computerWest') }}</h4>
+        <div class="hand-fan hand-fan--opponent hand-fan--side">
+          <div
+            v-for="(card, index) in aiLeftHand"
+            :key="`ai-left-${card.id}`"
+            class="play-card play-card--back hand-fan__card hand-fan__card--back"
+            :style="cardStyle(index, card.id)"
+          />
+        </div>
+      </section>
+    </template>
+
     <section class="mb-2">
       <h4 class="text-subtitle-1 mb-2 font-weight-bold">Actions du tour</h4>
 
@@ -942,6 +1027,10 @@ reset()
   min-height: 48px;
 }
 
+.hand-fan--side .hand-fan__card {
+  margin-left: -30px;
+}
+
 .hand-fan__card--back {
   width: 44px;
 }
@@ -951,6 +1040,10 @@ reset()
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(3, 9, 6, 0.18);
   padding: 6px;
+}
+
+.seat-hand--side {
+  max-width: 220px;
 }
 
 .seat-hand--south {
