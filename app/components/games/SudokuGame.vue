@@ -334,39 +334,12 @@ defineExpose({
 </script>
 
 <template>
-  <v-card class="pa-4 unified-card" variant="outlined">
-    <div class="d-flex flex-wrap align-center ga-2 mb-4">
-      <v-chip prepend-icon="mdi-robot"
-        >{{ t("gameComponents.sudoku.mode") }} :
-        {{
-          props.selectedPlayMode === "ai"
-            ? t("gameComponents.sudoku.modes.assistedSolo")
-            : t("gameComponents.sudoku.modes.local")
-        }}</v-chip
-      >
-      <v-chip prepend-icon="mdi-timer-outline"
-        >{{ t("gameComponents.sudoku.time") }} : {{ formattedTime }}</v-chip
-      >
-      <v-chip
-        prepend-icon="mdi-close-circle-outline"
-        color="error"
-        variant="tonal"
-        >{{ t("gameComponents.sudoku.errors") }} : {{ mistakes }}</v-chip
-      >
-      <v-chip
-        prepend-icon="mdi-alert-circle-outline"
-        :color="totalConflicts ? 'warning' : 'success'"
-        variant="tonal"
-      >
-        {{ t("gameComponents.sudoku.conflicts") }} : {{ totalConflicts }}
-      </v-chip>
-    </div>
-
+  <div class="d-flex flex-column">
     <div class="d-flex flex-wrap align-center ga-2 mb-4">
       <v-btn
-        :variant="difficulty === 'easy' ? 'flat' : 'outlined'"
-        color="success"
-        @click="
+          :variant="difficulty === 'easy' ? 'flat' : 'outlined'"
+          color="success"
+          @click="
           difficulty = 'easy';
           initGame();
         "
@@ -374,9 +347,9 @@ defineExpose({
         {{ t("common.difficulty.easy") }}
       </v-btn>
       <v-btn
-        :variant="difficulty === 'medium' ? 'flat' : 'outlined'"
-        color="info"
-        @click="
+          :variant="difficulty === 'medium' ? 'flat' : 'outlined'"
+          color="info"
+          @click="
           difficulty = 'medium';
           initGame();
         "
@@ -384,9 +357,9 @@ defineExpose({
         {{ t("common.difficulty.medium") }}
       </v-btn>
       <v-btn
-        :variant="difficulty === 'hard' ? 'flat' : 'outlined'"
-        color="deep-purple"
-        @click="
+          :variant="difficulty === 'hard' ? 'flat' : 'outlined'"
+          color="deep-purple"
+          @click="
           difficulty = 'hard';
           initGame();
         "
@@ -397,24 +370,24 @@ defineExpose({
 
     <div class="sudoku-grid mb-4">
       <template
-        v-for="(rowValues, rowIndex) in playerGrid"
-        :key="`row-${rowIndex}`"
+          v-for="(rowValues, rowIndex) in playerGrid"
+          :key="`row-${rowIndex}`"
       >
         <input
-          v-for="(cell, colIndex) in rowValues"
-          :key="`cell-${rowIndex}-${colIndex}`"
-          class="sudoku-cell"
-          :class="{
+            v-for="(cell, colIndex) in rowValues"
+            :key="`cell-${rowIndex}-${colIndex}`"
+            class="sudoku-cell"
+            :class="{
             'is-fixed': fixedCells[rowIndex]?.[colIndex],
             'is-conflict': isCellConflicting(rowIndex, colIndex),
             'block-right': (colIndex + 1) % 3 === 0 && colIndex !== 8,
             'block-bottom': (rowIndex + 1) % 3 === 0 && rowIndex !== 8,
           }"
-          :value="cell || ''"
-          :disabled="fixedCells[rowIndex]?.[colIndex] || hasWon"
-          inputmode="numeric"
-          maxlength="1"
-          @input="
+            :value="cell || ''"
+            :disabled="fixedCells[rowIndex]?.[colIndex] || hasWon"
+            inputmode="numeric"
+            maxlength="1"
+            @input="
             updateCell(
               rowIndex,
               colIndex,
@@ -426,10 +399,10 @@ defineExpose({
     </div>
 
     <v-alert
-      v-if="hasWon"
-      type="success"
-      variant="tonal"
-      icon="mdi-trophy-outline"
+        v-if="hasWon"
+        type="success"
+        variant="tonal"
+        icon="mdi-trophy-outline"
     >
       {{
         t("gameComponents.sudoku.win", {
@@ -438,7 +411,7 @@ defineExpose({
         })
       }}
     </v-alert>
-  </v-card>
+  </div>
 </template>
 
 <style scoped>
@@ -448,6 +421,8 @@ defineExpose({
   gap: 0;
   width: fit-content;
   border: 2px solid rgba(var(--v-theme-on-surface), 0.6);
+  justify-content: center;
+  align-items: center;
   border-radius: 8px;
   overflow: hidden;
 }
