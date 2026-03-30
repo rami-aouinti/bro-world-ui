@@ -2,9 +2,12 @@
 import { computed, ref } from "vue";
 import BeloteGame from "~/components/games/BeloteGame.vue";
 import CheckersGame from "~/components/games/CheckersGame.vue";
+import ChessGame from "~/components/games/ChessGame.vue";
 import RamiGame from "~/components/games/RamiGame.vue";
 import PokerGame from "~/components/games/PokerGame.vue";
 import HiddenWordGame from "~/components/games/HiddenWordGame.vue";
+import SudokuGame from "~/components/games/SudokuGame.vue";
+import Game2048 from "~/components/games/Game2048.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
 import type {
   BeloteMode,
@@ -108,8 +111,8 @@ const categories: GameCategory[] = [
             nameKey: "gamePage.catalog.games.sudoku.name",
             descriptionKey: "gamePage.catalog.games.sudoku.description",
             icon: "mdi-grid",
-            component: null,
-            supportedModes: [],
+            component: "sudoku",
+            supportedModes: ["ai"],
             features: [
               "génération de grilles",
               "vérification auto",
@@ -128,8 +131,8 @@ const categories: GameCategory[] = [
             nameKey: "gamePage.catalog.games.game2048.name",
             descriptionKey: "gamePage.catalog.games.game2048.description",
             icon: "mdi-numeric-8-box-multiple-outline",
-            component: null,
-            supportedModes: [],
+            component: "game2048",
+            supportedModes: ["ai"],
             features: [
               "animations fluides",
               "score + best score",
@@ -156,8 +159,8 @@ const categories: GameCategory[] = [
             nameKey: "gamePage.catalog.games.chess.name",
             descriptionKey: "gamePage.catalog.games.chess.description",
             icon: "mdi-chess-knight",
-            component: null,
-            supportedModes: [],
+            component: "chess",
+            supportedModes: ["ai", "pvp"],
             features: ["IA", "multijoueur", "replay"],
           },
         ],
@@ -639,6 +642,19 @@ const launchGame = () => {
         />
         <HiddenWordGame
           v-else-if="selectedGame.component === 'hidden-word'"
+         :selected-play-mode="selectedPlayMode"
+        />                  
+        <ChessGame
+          v-else-if="selectedGame.component === 'chess'"
+         :selected-play-mode="selectedPlayMode"
+        />            
+        <SudokuGame
+          v-else-if="selectedGame.component === 'sudoku'"
+          :selected-play-mode="selectedPlayMode"
+        />            
+        <Game2048
+          v-else-if="selectedGame.component === 'game2048'"
+          :selected-play-mode="selectedPlayMode"
         />
       </section>
     </template>
