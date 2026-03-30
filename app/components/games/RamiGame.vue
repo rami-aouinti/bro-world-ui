@@ -610,10 +610,21 @@ const removeCardsFromHand = (hand: Card[], cardsToRemove: Card[]) => {
   return hand.filter((card) => !ids.has(card.id));
 };
 
+const recycleDiscardIntoStock = () => {
+  const topDiscardCard = discardPile.value[0];
+  if (!topDiscardCard || discardPile.value.length <= 1) return false;
+
+  const recycledCards = shuffle(discardPile.value.slice(1));
+  stock.value = recycledCards;
+  discardPile.value = [topDiscardCard];
+  return true;
+};
+
 const drawCardFor = (player: Player) => {
+  let hasRecycledDiscard = false;
   if (!stock.value.length) {
-    message.value = t("gameComponents.rami.messages.deckEmpty");
-    return null;
+    hasRecycledDiscard = recycleDiscardIntoStock();
+    if (!hasRecycledDiscard) return null;
   }
 
   const drawnCard = stock.value.shift() as Card;
@@ -621,10 +632,15 @@ const drawCardFor = (player: Player) => {
     playerHand.value = [...playerHand.value, drawnCard];
     applyCurrentSortToPlayerHand();
     hasDrawn.value = true;
-    message.value = t("gameComponents.rami.messages.cardDrawn");
+    message.value = hasRecycledDiscard
+      ? t("gameComponents.rami.messages.discardRecycled")
+      : t("gameComponents.rami.messages.cardDrawn");
   } else {
     const aiHandRef = getAiHandRef(player);
     aiHandRef.value = sortHand([...aiHandRef.value, drawnCard]);
+    if (hasRecycledDiscard) {
+      message.value = t("gameComponents.rami.messages.discardRecycled");
+    }
   }
 
   return drawnCard;

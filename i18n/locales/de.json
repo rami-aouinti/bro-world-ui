@@ -2001,6 +2001,7 @@
         "invalidCombination": "Ungültige Kombination. Versuche eine Folge gleicher Farbe oder einen Satz.",
         "allCardsPlayed": "Super! Du hast alle Karten abgelegt.",
         "goodCombination": "Gute Kombination. Weiter so!",
+        "discardRecycled": "Der Ablagestapel wurde als neuer Nachziehstapel recycelt.",
         "deckEmpty": "Der Stapel ist leer.",
         "cardDrawn": "Karte gezogen.",
         "playerWin": "You win! All your cards are played.",
