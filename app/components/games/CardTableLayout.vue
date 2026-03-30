@@ -172,13 +172,13 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
 }
 
 .table-seat-hand--north {
-  top: 106px;
+  top: 90px;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .table-seat-hand--south {
-  bottom: 106px;
+  bottom: 78px;
   left: 50%;
   transform: translateX(-50%);
 }
@@ -199,7 +199,7 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
 
 .card-table-layout__center {
   position: absolute;
-  inset: 190px 205px;
+  inset: 178px 205px 162px;
   border-radius: 16px;
   border: 1px dashed rgba(255, 255, 255, 0.32);
   background: rgba(3, 9, 6, 0.18);
@@ -246,16 +246,16 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
   }
 
   .card-table-layout__center {
-    inset: 230px 24px 190px;
+    inset: 218px 24px 174px;
   }
 
   .table-seat-hand--north {
-    top: 124px;
+    top: 108px;
     width: min(460px, calc(100% - 32px));
   }
 
   .table-seat-hand--south {
-    bottom: 180px;
+    bottom: 152px;
     width: min(460px, calc(100% - 32px));
   }
 
@@ -292,7 +292,7 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
   }
 
   .card-table-layout__center {
-    inset: 260px 12px 250px;
+    inset: 248px 12px 236px;
   }
 
   .table-seat {
@@ -302,12 +302,12 @@ const hasCenterContent = computed(() => props.centerCards.length > 0 || props.ce
   }
 
   .table-seat-hand--north {
-    top: 118px;
+    top: 104px;
     width: calc(100% - 24px);
   }
 
   .table-seat-hand--south {
-    bottom: 252px;
+    bottom: 236px;
     width: calc(100% - 24px);
   }
 
