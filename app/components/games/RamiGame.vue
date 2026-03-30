@@ -42,7 +42,7 @@ const rankLabels: Record<number, string> = {
 };
 
 const cardPoints = (card: Card) => {
-  if (card.rank === 1) return 11;
+  if (card.rank === 1) return 10;
   if (card.rank >= 10) return 10;
   return card.rank;
 };
