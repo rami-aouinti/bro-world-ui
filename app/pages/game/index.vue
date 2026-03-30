@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import BeloteGame from "~/components/games/BeloteGame.vue";
 import CheckersGame from "~/components/games/CheckersGame.vue";
 import ChessGame from "~/components/games/ChessGame.vue";
@@ -17,6 +17,7 @@ import type {
   GameEntry,
   PlayMode,
 } from "~/types/game";
+import type { GamePanelStatePayload } from "~/types/gamePanel";
 
 const { t } = useI18n();
 
@@ -254,6 +255,7 @@ const selectedGameId = ref<string | null>(null);
 const selectedPlayMode = ref<PlayMode | null>(null);
 const selectedBeloteMode = ref<BeloteMode | null>(null);
 const isGameStarted = ref(false);
+const liveGamePanel = ref<GamePanelStatePayload | null>(null);
 const allGameEntries = computed(() =>
   categories.flatMap((category) =>
     category.subCategories.flatMap((subCategory) => subCategory.games),
@@ -377,6 +379,16 @@ const launchGame = () => {
   isGameStarted.value = true;
 };
 
+const onGamePanelState = (payload: GamePanelStatePayload) => {
+  liveGamePanel.value = payload;
+};
+
+watch([selectedGameId, isGameStarted], () => {
+  if (!isGameStarted.value || !["rami", "poker"].includes(selectedGame.value?.component ?? "")) {
+    liveGamePanel.value = null;
+  }
+});
+
 const gamePanelState = computed(() => ({
   gameStatusLabel: gameStatusLabel.value,
   canLaunchSelectedGame: canLaunchSelectedGame.value,
@@ -419,6 +431,7 @@ const gamePanelState = computed(() => ({
         :selected-play-mode="selectedPlayMode"
         :is-game-started="isGameStarted"
         :game-panel-state="gamePanelState"
+        :live-game-panel="liveGamePanel"
       />
     </template>
     <template #default>
@@ -673,6 +686,7 @@ const gamePanelState = computed(() => ({
         <RamiGame
           v-if="selectedGame.component === 'rami'"
           :selected-play-mode="selectedPlayMode"
+          @panel-state="onGamePanelState"
         />
         <BeloteGame
           v-else-if="selectedGame.component === 'belote'"
@@ -686,6 +700,7 @@ const gamePanelState = computed(() => ({
         <PokerGame
           v-else-if="selectedGame.component === 'poker'"
           :selected-play-mode="selectedPlayMode"
+          @panel-state="onGamePanelState"
         />
         <NonogramGame
           v-else-if="selectedGame.component === 'nonogram'"

@@ -7,6 +7,7 @@ import type {
   GameSubCategory,
   PlayMode,
 } from "~/types/game";
+import type { GamePanelStatePayload } from "~/types/gamePanel";
 
 type PanelLevel = "category" | "subCategory" | "game" | "mode" | "info";
 
@@ -43,6 +44,10 @@ defineProps({
   gamePanelState: {
     type: Object as PropType<GamePanelState>,
     required: true,
+  },
+  liveGamePanel: {
+    type: Object as PropType<GamePanelStatePayload | null>,
+    default: null,
   },
 });
 
@@ -146,6 +151,45 @@ const liveHintByGameId: Record<string, string> = {
       >
         Variante: {{ gamePanelState.selectedBeloteMode === "free-for-all" ? "free-for-all" : "2v2" }}
       </p>
+    </div>
+
+    <div v-else-if="liveGamePanel" class="d-flex flex-column ga-3">
+      <v-chip color="warning" variant="tonal" prepend-icon="mdi-timer-sand">
+        Match en cours
+      </v-chip>
+      <h3 class="text-subtitle-1 font-weight-bold mb-0">{{ liveGamePanel.title }}</h3>
+      <p
+        v-for="(line, lineIndex) in liveGamePanel.summaryLines"
+        :key="`panel-summary-${lineIndex}`"
+        class="text-body-2 mb-0"
+      >
+        {{ line }}
+      </p>
+      <p class="text-caption text-medium-emphasis mb-0">{{ liveGamePanel.statusMessage }}</p>
+
+      <div v-if="liveGamePanel.statsChips.length" class="d-flex flex-wrap ga-2">
+        <v-chip
+          v-for="chip in liveGamePanel.statsChips"
+          :key="`panel-chip-${chip.id}`"
+          :color="chip.color"
+          :variant="chip.variant ?? 'outlined'"
+          :prepend-icon="chip.icon"
+        >
+          {{ chip.label }}: {{ chip.value }}
+        </v-chip>
+      </div>
+
+      <div v-if="liveGamePanel.actions.length" class="d-flex flex-wrap ga-2">
+        <v-btn
+          v-for="action in liveGamePanel.actions"
+          :key="`panel-action-${action.id}`"
+          size="small"
+          variant="outlined"
+          :disabled="action.disabled"
+        >
+          {{ action.label }}
+        </v-btn>
+      </div>
     </div>
 
     <div v-else class="d-flex flex-column ga-3">

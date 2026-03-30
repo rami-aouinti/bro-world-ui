@@ -1,9 +1,14 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeUnmount, ref, watchEffect } from 'vue'
+import type { GamePanelStatePayload } from '~/types/gamePanel'
 import CardTableLayout from './CardTableLayout.vue'
 
 defineProps<{
   selectedPlayMode: 'ai' | 'pvp'
+}>()
+
+const emit = defineEmits<{
+  (event: 'panel-state', payload: GamePanelStatePayload): void
 }>()
 
 type Suit = '♠' | '♥' | '♦' | '♣'
@@ -150,6 +155,42 @@ const turnLabel = computed(() => {
 })
 
 const score = computed(() => playerMelds.value.flat().reduce((total, card) => total + cardPoints(card), 0))
+
+const panelState = computed<GamePanelStatePayload>(() => ({
+  title: t('gameComponents.rami.title'),
+  summaryLines: [
+    `${t('gameComponents.rami.pointsPlayed')}: ${score.value} · ${t('gameComponents.rami.turn')}: ${turnLabel.value}`,
+    `${t('gameComponents.rami.hand')} (${playerHand.value.length}) · ${t('gameComponents.rami.drawPile')}: ${stock.value.length}`,
+  ],
+  statusMessage: message.value,
+  statsChips: [
+    {
+      id: 'timer',
+      label: t('gameComponents.rami.turn'),
+      value: `${timer.value}s / ${TURN_SECONDS}s`,
+      color: 'primary',
+      variant: 'tonal',
+      icon: 'mdi-timer-outline',
+    },
+    {
+      id: 'draw-pile',
+      label: t('gameComponents.rami.drawPile'),
+      value: stock.value.length,
+      color: 'secondary',
+      variant: 'outlined',
+    },
+  ],
+  actions: [
+    { id: 'draw', label: t('gameComponents.rami.actions.draw'), disabled: !canDraw.value },
+    { id: 'play-combination', label: t('gameComponents.rami.actions.playCombination', { count: selectedCards.value.length }), disabled: !selectedCards.value.length || !canCreateMeld.value },
+    { id: 'discard-selected', label: t('gameComponents.rami.actions.discardSelected'), disabled: !canDiscard.value || selectedCards.value.length !== 1 },
+    { id: 'play-again', label: t('gameComponents.rami.actions.playAgain'), disabled: false },
+  ],
+}))
+
+watchEffect(() => {
+  emit('panel-state', panelState.value)
+})
 
 const isSet = (cards: Card[]) => {
   if (cards.length < 3 || cards.length > 4) return false
@@ -886,79 +927,13 @@ reset()
       </section>
     </template>
 
-    <template #aside>
-      <v-card class="rami-aside pa-4 unified-card" variant="outlined">
-        <h3 class="game-title mb-1">{{ t('gameComponents.rami.title') }}</h3>
-        <p class="game-subtitle mb-3">{{ t('gameComponents.rami.pointsPlayed') }}: <strong>{{ score }}</strong> · {{ t('gameComponents.rami.turn') }}: <strong>{{ turnLabel }}</strong></p>
-        <p class="game-description mb-3">{{ message }}</p>
 
-        <div class="d-flex ga-2 flex-wrap mb-3">
-          <v-chip color="primary" variant="tonal" prepend-icon="mdi-timer-outline">
-            {{ timer }}s / {{ TURN_SECONDS }}s
-          </v-chip>
-          <v-chip color="secondary" variant="outlined">{{ t('gameComponents.rami.drawPile') }}: {{ stock.length }}</v-chip>
-        </div>
-
-        <div class="d-flex ga-2 flex-wrap mb-4">
-          <v-btn variant="outlined" prepend-icon="mdi-cards" :disabled="!canDraw" @click="drawCard">{{ t('gameComponents.rami.actions.draw') }}</v-btn>
-          <v-btn color="primary" prepend-icon="mdi-refresh" @click="reset">{{ t('gameComponents.rami.actions.playAgain') }}</v-btn>
-        </div>
-
-        <h4 class="text-subtitle-1 mb-2 font-weight-bold">{{ t('gameComponents.rami.hand') }} ({{ playerHand.length }})</h4>
-        <div class="d-flex ga-1 flex-wrap mb-2">
-          <v-btn size="x-small" variant="tonal" :color="currentSortMode === 'manual' ? 'primary' : undefined" @click="setSortMode('manual')">Manuel</v-btn>
-          <v-btn size="x-small" variant="tonal" :color="currentSortMode === 'color' ? 'primary' : undefined" @click="setSortMode('color')">Couleur</v-btn>
-          <v-btn size="x-small" variant="tonal" :color="currentSortMode === 'rank' ? 'primary' : undefined" @click="setSortMode('rank')">Rang</v-btn>
-          <v-btn size="x-small" variant="tonal" :color="currentSortMode === 'potential' ? 'primary' : undefined" @click="setSortMode('potential')">Combos</v-btn>
-        </div>
-        <p class="text-caption mb-2 text-medium-emphasis">
-          Tri courant: <strong>{{ currentSortMode }}</strong> · Glissez sur une carte pour réorganiser, vers la pile centrale pour défausser.
-        </p>
-        <div v-if="suggestedGroups.length" class="suggestion-legend mb-4">
-          <span class="suggestion-dot" />
-          Groupes suggérés: {{ suggestedGroups.map(group => group.map(card => `${formatRank(card.rank)}${card.suit}`).join(' ')).join(' • ') }}
-        </div>
-
-        <h4 class="text-subtitle-1 mb-2 font-weight-bold">Actions du tour</h4>
-        <div class="d-flex ga-2 flex-wrap">
-          <v-btn :disabled="!selectedCards.length || !canCreateMeld" color="secondary" variant="outlined" @click="createMeld">
-            {{ t('gameComponents.rami.actions.playCombination', { count: selectedCards.length }) }}
-          </v-btn>
-          <v-btn
-            :disabled="!canDiscard || selectedCards.length !== 1"
-            color="error"
-            variant="outlined"
-            prepend-icon="mdi-delete"
-            @click="discardCard(selectedCards[0]?.id)"
-          >
-            {{ t('gameComponents.rami.actions.discardSelected') }}
-          </v-btn>
-        </div>
-
-        <p class="text-caption mt-2 mb-0 text-medium-emphasis">
-          {{ t('gameComponents.rami.ruleHint') }}
-        </p>
-      </v-card>
-    </template>
   </CardTableLayout>
 </template>
 
 <style scoped>
-.game-title {
-  font-size: 1.2rem;
-  font-weight: 800;
-  line-height: 1.25;
-}
 
-.game-subtitle {
-  color: rgba(var(--v-theme-on-surface), 0.76);
-  font-size: 0.92rem;
-}
 
-.game-description {
-  color: rgba(var(--v-theme-on-surface), 0.88);
-  font-size: 0.94rem;
-}
 
 .hand-fan {
   display: flex;
@@ -1028,10 +1003,6 @@ reset()
   padding-bottom: 20px;
 }
 
-.rami-aside {
-  position: sticky;
-  top: 90px;
-}
 
 .seat-hand__title {
   color: rgba(255, 255, 255, 0.92);
