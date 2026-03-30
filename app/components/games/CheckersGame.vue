@@ -23,6 +23,17 @@ interface Position {
   col: number
 }
 
+interface Move {
+  to: Position
+  capture?: Position
+}
+
+interface AvailableMoves {
+  simpleMoves: Move[]
+  captureMoves: Move[]
+  followUpCaptureMoves: Move[]
+}
+
 const createInitialBoard = (): Board => {
   const board: Board = Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => null))
 
@@ -63,6 +74,7 @@ const isThinking = ref(false)
 const remainingSeconds = ref(TURN_SECONDS)
 const intervalId = ref<ReturnType<typeof setInterval> | null>(null)
 const forcedWinner = ref<Player | null>(null)
+const mustContinueCapture = ref(false)
 
 const timerProgress = computed(() => Math.max(0, (remainingSeconds.value / TURN_SECONDS) * 100))
 
@@ -78,13 +90,20 @@ const movementDirections = (piece: Piece) => {
   return piece.player === 'red' ? [-1] : [1]
 }
 
-const availableMoves = (position: Position) => {
-  const piece = pieceAt(position)
-  if (!piece) {
-    return [] as Array<{ to: Position, capture?: Position }>
+const cloneBoard = (source: Board): Board => source.map(row => row.map((cell) => {
+  if (!cell) {
+    return null
   }
 
-  const moves: Array<{ to: Position, capture?: Position }> = []
+  return {
+    player: cell.player,
+    king: cell.king,
+  }
+}))
+
+const calculateManMoves = (position: Position, piece: Piece, boardState: Board) => {
+  const simpleMoves: Move[] = []
+  const captureMoves: Move[] = []
 
   for (const rowDir of movementDirections(piece)) {
     for (const colDir of [-1, 1]) {
@@ -95,9 +114,9 @@ const availableMoves = (position: Position) => {
         continue
       }
 
-      const nextCell = board.value[nextRow][nextCol]
+      const nextCell = boardState[nextRow][nextCol]
       if (!nextCell) {
-        moves.push({ to: { row: nextRow, col: nextCol } })
+        simpleMoves.push({ to: { row: nextRow, col: nextCol } })
         continue
       }
 
@@ -107,21 +126,139 @@ const availableMoves = (position: Position) => {
 
       const jumpRow = nextRow + rowDir
       const jumpCol = nextCol + colDir
-      if (!hasInside(jumpRow, jumpCol) || board.value[jumpRow][jumpCol]) {
+      if (!hasInside(jumpRow, jumpCol) || boardState[jumpRow][jumpCol]) {
         continue
       }
 
-      moves.push({
+      captureMoves.push({
         to: { row: jumpRow, col: jumpCol },
         capture: { row: nextRow, col: nextCol },
       })
     }
   }
 
-  return moves
+  return { simpleMoves, captureMoves }
 }
 
-const highlightedMoves = computed(() => selected.value ? availableMoves(selected.value) : [])
+const calculateKingMoves = (position: Position, piece: Piece, boardState: Board) => {
+  const simpleMoves: Move[] = []
+  const captureMoves: Move[] = []
+
+  for (const rowDir of [-1, 1]) {
+    for (const colDir of [-1, 1]) {
+      let nextRow = position.row + rowDir
+      let nextCol = position.col + colDir
+      let encounteredOpponent: Position | null = null
+
+      while (hasInside(nextRow, nextCol)) {
+        const nextCell = boardState[nextRow][nextCol]
+
+        if (!encounteredOpponent) {
+          if (!nextCell) {
+            simpleMoves.push({ to: { row: nextRow, col: nextCol } })
+            nextRow += rowDir
+            nextCol += colDir
+            continue
+          }
+
+          if (nextCell.player === piece.player) {
+            break
+          }
+
+          encounteredOpponent = { row: nextRow, col: nextCol }
+          nextRow += rowDir
+          nextCol += colDir
+          continue
+        }
+
+        if (nextCell) {
+          break
+        }
+
+        captureMoves.push({
+          to: { row: nextRow, col: nextCol },
+          capture: encounteredOpponent,
+        })
+        nextRow += rowDir
+        nextCol += colDir
+      }
+    }
+  }
+
+  return { simpleMoves, captureMoves }
+}
+
+const calculateMoves = (position: Position, boardState: Board): Pick<AvailableMoves, 'simpleMoves' | 'captureMoves'> => {
+  const piece = boardState[position.row][position.col]
+  if (!piece) {
+    return { simpleMoves: [], captureMoves: [] }
+  }
+
+  if (piece.king) {
+    return calculateKingMoves(position, piece, boardState)
+  }
+
+  return calculateManMoves(position, piece, boardState)
+}
+
+const availableMoves = (position: Position): AvailableMoves => {
+  const piece = pieceAt(position)
+  if (!piece) {
+    return {
+      simpleMoves: [],
+      captureMoves: [],
+      followUpCaptureMoves: [],
+    }
+  }
+
+  const { simpleMoves, captureMoves } = calculateMoves(position, board.value)
+  const followUpCaptureMoves: Move[] = []
+
+  for (const captureMove of captureMoves) {
+    const simulatedBoard = cloneBoard(board.value)
+    const movingPiece = simulatedBoard[position.row][position.col]
+    if (!movingPiece) {
+      continue
+    }
+
+    simulatedBoard[position.row][position.col] = null
+    simulatedBoard[captureMove.to.row][captureMove.to.col] = movingPiece
+    if (captureMove.capture) {
+      simulatedBoard[captureMove.capture.row][captureMove.capture.col] = null
+    }
+
+    if (movingPiece.player === 'red' && captureMove.to.row === 0) {
+      movingPiece.king = true
+    }
+    if (movingPiece.player === 'black' && captureMove.to.row === 7) {
+      movingPiece.king = true
+    }
+
+    const next = calculateMoves(captureMove.to, simulatedBoard).captureMoves
+    if (next.length) {
+      followUpCaptureMoves.push(captureMove)
+    }
+  }
+
+  return {
+    simpleMoves,
+    captureMoves,
+    followUpCaptureMoves,
+  }
+}
+
+const highlightedMoves = computed(() => {
+  if (!selected.value) {
+    return [] as Move[]
+  }
+
+  const moves = availableMoves(selected.value)
+  if (mustContinueCapture.value) {
+    return moves.captureMoves
+  }
+
+  return [...moves.captureMoves, ...moves.simpleMoves]
+})
 
 const isHighlighted = (row: number, col: number) => highlightedMoves.value.some(move => move.to.row === row && move.to.col === col)
 
@@ -161,10 +298,11 @@ const switchTurn = () => {
   }
 }
 
-const executeMove = (from: Position, move: { to: Position, capture?: Position }) => {
+const executeMove = (from: Position, move: Move) => {
   const movingPiece = board.value[from.row][from.col]
   if (!movingPiece) {
     selected.value = null
+    mustContinueCapture.value = false
     return false
   }
 
@@ -182,20 +320,40 @@ const executeMove = (from: Position, move: { to: Position, capture?: Position })
     movingPiece.king = true
   }
 
-  selected.value = null
-
   if (winner.value) {
+    selected.value = null
+    mustContinueCapture.value = false
     message.value = winnerLabel(winner.value)
     stopTurnTimer()
     return true
   }
 
+  if (move.capture) {
+    const nextCaptures = availableMoves(move.to).captureMoves
+    if (nextCaptures.length) {
+      selected.value = { ...move.to }
+      mustContinueCapture.value = true
+      return true
+    }
+  }
+
+  selected.value = null
+  mustContinueCapture.value = false
   switchTurn()
   return true
 }
 
 const allMovesFor = (player: Player) => {
-  const moves: Array<{ from: Position, move: { to: Position, capture?: Position } }> = []
+  const moves: Array<{ from: Position, move: Move }> = []
+
+  if (mustContinueCapture.value && selected.value) {
+    const piece = pieceAt(selected.value)
+    if (piece?.player === player) {
+      const captures = availableMoves(selected.value).captureMoves
+      return captures.map(move => ({ from: { ...selected.value! }, move }))
+    }
+    return moves
+  }
 
   for (let row = 0; row < 8; row += 1) {
     for (let col = 0; col < 8; col += 1) {
@@ -206,7 +364,7 @@ const allMovesFor = (player: Player) => {
 
       const from = { row, col }
       const available = availableMoves(from)
-      for (const move of available) {
+      for (const move of [...available.captureMoves, ...available.simpleMoves]) {
         moves.push({ from, move })
       }
     }
@@ -235,6 +393,10 @@ const playAiTurn = async () => {
   isThinking.value = true
   await new Promise(resolve => setTimeout(resolve, 300))
   autoMoveFor('black')
+  while (currentPlayer.value === 'black' && mustContinueCapture.value && !winner.value) {
+    await new Promise(resolve => setTimeout(resolve, 180))
+    autoMoveFor('black')
+  }
   isThinking.value = false
 }
 
@@ -273,6 +435,13 @@ const clickCell = (row: number, col: number) => {
   }
 
   if (clickedPiece && clickedPiece.player === currentPlayer.value) {
+    if (
+      mustContinueCapture.value
+      && (!selected.value || selected.value.row !== row || selected.value.col !== col)
+    ) {
+      return
+    }
+
     selected.value = { row, col }
     return
   }
@@ -299,6 +468,7 @@ const reset = () => {
   board.value = createInitialBoard()
   currentPlayer.value = 'red'
   selected.value = null
+  mustContinueCapture.value = false
   message.value = currentPlayerLabel('red')
   isThinking.value = false
   forcedWinner.value = null

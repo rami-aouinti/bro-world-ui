@@ -142,4 +142,100 @@ describe('CheckersGame', () => {
     expect(wrapper.text()).toContain('gameComponents.checkers.players.redWin')
     expect(wrapper.text()).toContain('Temps restant: 60s')
   })
+
+  it('autorise une capture multiple sur un même tour', async () => {
+    const wrapper = await mountGame('pvp')
+
+    const customBoard = createEmptyBoard()
+    customBoard[5][0] = { player: 'red', king: false }
+    customBoard[5][2] = { player: 'red', king: false }
+    customBoard[4][1] = { player: 'black', king: false }
+    customBoard[2][3] = { player: 'black', king: false }
+    customBoard[7][6] = { player: 'black', king: false }
+
+    wrapper.vm.board = customBoard
+    wrapper.vm.currentPlayer = 'red'
+    wrapper.vm.selected = null
+    await nextTick()
+
+    await clickCell(wrapper, 5, 0)
+    await clickCell(wrapper, 3, 2)
+    await nextTick()
+
+    expect(wrapper.vm.currentPlayer).toBe('red')
+    expect(wrapper.vm.selected).toEqual({ row: 3, col: 2 })
+    expect(wrapper.vm.board[4][1]).toBeNull()
+
+    await clickCell(wrapper, 5, 2)
+    await clickCell(wrapper, 4, 3)
+    await nextTick()
+
+    expect(wrapper.vm.board[5][2]).toEqual({ player: 'red', king: false })
+    expect(wrapper.vm.currentPlayer).toBe('red')
+
+    await clickCell(wrapper, 1, 4)
+    await nextTick()
+
+    expect(wrapper.vm.board[1][4]).toEqual({ player: 'red', king: false })
+    expect(wrapper.vm.board[2][3]).toBeNull()
+    expect(wrapper.vm.currentPlayer).toBe('black')
+    expect(wrapper.vm.selected).toBeNull()
+  })
+
+  it('permet une capture supplémentaire après promotion en king', async () => {
+    const wrapper = await mountGame('pvp')
+
+    const customBoard = createEmptyBoard()
+    customBoard[2][1] = { player: 'red', king: false }
+    customBoard[1][2] = { player: 'black', king: false }
+    customBoard[2][5] = { player: 'black', king: false }
+    customBoard[7][0] = { player: 'black', king: false }
+
+    wrapper.vm.board = customBoard
+    wrapper.vm.currentPlayer = 'red'
+    wrapper.vm.selected = null
+    await nextTick()
+
+    await clickCell(wrapper, 2, 1)
+    await clickCell(wrapper, 0, 3)
+    await nextTick()
+
+    expect(wrapper.vm.board[0][3]).toEqual({ player: 'red', king: true })
+    expect(wrapper.vm.currentPlayer).toBe('red')
+    expect(wrapper.vm.selected).toEqual({ row: 0, col: 3 })
+
+    await clickCell(wrapper, 4, 7)
+    await nextTick()
+
+    expect(wrapper.vm.board[4][7]).toEqual({ player: 'red', king: true })
+    expect(wrapper.vm.board[2][5]).toBeNull()
+    expect(wrapper.vm.currentPlayer).toBe('black')
+  })
+
+  it('interdit de terminer le tour sans capture suivante quand elle existe', async () => {
+    const wrapper = await mountGame('pvp')
+
+    const customBoard = createEmptyBoard()
+    customBoard[5][0] = { player: 'red', king: false }
+    customBoard[4][1] = { player: 'black', king: false }
+    customBoard[2][3] = { player: 'black', king: false }
+
+    wrapper.vm.board = customBoard
+    wrapper.vm.currentPlayer = 'red'
+    wrapper.vm.selected = null
+    await nextTick()
+
+    await clickCell(wrapper, 5, 0)
+    await clickCell(wrapper, 3, 2)
+    await nextTick()
+
+    const boardAfterFirstCapture = JSON.parse(JSON.stringify(wrapper.vm.board))
+
+    await clickCell(wrapper, 2, 1)
+    await nextTick()
+
+    expect(wrapper.vm.board).toEqual(boardAfterFirstCapture)
+    expect(wrapper.vm.currentPlayer).toBe('red')
+    expect(wrapper.vm.selected).toEqual({ row: 3, col: 2 })
+  })
 })
