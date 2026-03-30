@@ -124,6 +124,11 @@ const isRedSuit = (suit: string) => suit === '♥' || suit === '♦'
             v-for="(meld, meldIndex) in meldsBySeat[player.seat] ?? []"
             :key="`${player.id}-meld-${meldIndex}`"
             class="seat-melds__group"
+            :class="{
+              'seat-melds__group--side': player.seat === 'east' || player.seat === 'west',
+              'seat-melds__group--east': player.seat === 'east',
+              'seat-melds__group--west': player.seat === 'west',
+            }"
           >
             <span
               v-for="(cardParts, cardIndex) in meld.map(parseCardDisplay)"
@@ -287,6 +292,20 @@ const isRedSuit = (suit: string) => suit === '♥' || suit === '♦'
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
+}
+
+.seat-melds__group--side {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
+.seat-melds__group--east .meld-card {
+  transform: rotate(8deg);
+}
+
+.seat-melds__group--west .meld-card {
+  transform: rotate(-8deg);
 }
 
 .meld-card {
