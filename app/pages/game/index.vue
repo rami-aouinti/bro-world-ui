@@ -4,6 +4,7 @@ import BeloteGame from "~/components/games/BeloteGame.vue";
 import CheckersGame from "~/components/games/CheckersGame.vue";
 import RamiGame from "~/components/games/RamiGame.vue";
 import PokerGame from "~/components/games/PokerGame.vue";
+import SudokuGame from "~/components/games/SudokuGame.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
 import type {
   BeloteMode,
@@ -107,8 +108,8 @@ const categories: GameCategory[] = [
             nameKey: "gamePage.catalog.games.sudoku.name",
             descriptionKey: "gamePage.catalog.games.sudoku.description",
             icon: "mdi-grid",
-            component: null,
-            supportedModes: [],
+            component: "sudoku",
+            supportedModes: ["ai"],
             features: [
               "génération de grilles",
               "vérification auto",
@@ -634,6 +635,10 @@ const launchGame = () => {
         />
         <PokerGame
           v-else-if="selectedGame.component === 'poker'"
+          :selected-play-mode="selectedPlayMode"
+        />
+        <SudokuGame
+          v-else-if="selectedGame.component === 'sudoku'"
           :selected-play-mode="selectedPlayMode"
         />
       </section>
