@@ -432,10 +432,10 @@ const gamePanelState = computed(() => ({
         </v-btn>
       </div>
       <div class="d-flex align-center flex-wrap ga-2 mb-0">
-        <v-chip>{{
+        <v-chip v-if="selectedPlayMode">{{
           selectedPlayMode ? modeLabel(selectedPlayMode) : "—"
         }}</v-chip>
-        <v-chip>{{ gameStatusLabel }}</v-chip>
+        <v-chip v-if="gameStatusLabel">{{ gameStatusLabel }}</v-chip>
         <v-chip
           v-if="selectedCategory"
           prepend-icon="mdi-folder-open-outline"
