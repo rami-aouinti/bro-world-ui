@@ -238,4 +238,29 @@ describe('CheckersGame', () => {
     expect(wrapper.vm.currentPlayer).toBe('red')
     expect(wrapper.vm.selected).toEqual({ row: 3, col: 2 })
   })
+
+  it('refuse un coup simple quand une capture est disponible', async () => {
+    const wrapper = await mountGame('pvp')
+
+    const customBoard = createEmptyBoard()
+    customBoard[5][0] = { player: 'red', king: false }
+    customBoard[5][4] = { player: 'red', king: false }
+    customBoard[4][1] = { player: 'black', king: false }
+    customBoard[7][6] = { player: 'black', king: false }
+
+    wrapper.vm.board = customBoard
+    wrapper.vm.currentPlayer = 'red'
+    wrapper.vm.selected = null
+    wrapper.vm.message = 'Joueur actif: red'
+    await nextTick()
+
+    await clickCell(wrapper, 5, 4)
+    await clickCell(wrapper, 4, 3)
+    await nextTick()
+
+    expect(wrapper.vm.board[5][4]).toEqual({ player: 'red', king: false })
+    expect(wrapper.vm.board[4][3]).toBeNull()
+    expect(wrapper.vm.currentPlayer).toBe('red')
+    expect(wrapper.vm.message).toContain('prise obligatoire')
+  })
 })
