@@ -1764,6 +1764,10 @@
         "smartGames": {
           "name": "Smart games",
           "description": "Sharpen your mind with logic, strategy, and puzzle challenges."
+        },
+        "arcade": {
+          "name": "Arcade games",
+          "description": "Fast-paced games you can launch in seconds."
         }
       },
       "subCategories": {
@@ -1771,9 +1775,17 @@
           "name": "Classic cards",
           "description": "Rummy, Belote, and other popular card games."
         },
+        "partyCards": {
+          "name": "Party cards",
+          "description": "Relaxed card classics for solo or friendly matches."
+        },
         "tableClassic": {
           "name": "Classic board games",
           "description": "Start with full checkers gameplay."
+        },
+        "familyBoard": {
+          "name": "Family board",
+          "description": "Friendly tabletop games designed for group sessions."
         },
         "logic": {
           "name": "Logic",
@@ -1790,6 +1802,18 @@
         "gridsPuzzles": {
           "name": "Grids & Puzzles",
           "description": "Grid-based brain teasers and visual puzzles."
+        },
+        "brainTraining": {
+          "name": "Brain training",
+          "description": "Memory, speed, and concentration challenges."
+        },
+        "reactionArcade": {
+          "name": "Reaction arcade",
+          "description": "Quick action games focused on timing and reflexes."
+        },
+        "classicArcade": {
+          "name": "Classic arcade",
+          "description": "Retro-inspired arcade experiences."
         }
       },
       "games": {
@@ -1904,6 +1928,62 @@
         "uno": {
           "name": "UNO",
           "description": "Match colors and numbers, call UNO before your last card."
+        },
+        "solitaire": {
+          "name": "Solitaire",
+          "description": "Patience-style card mode with daily challenges (Coming soon)."
+        },
+        "hearts": {
+          "name": "Hearts",
+          "description": "Avoid penalty cards in this strategic trick-taking game (Coming soon)."
+        },
+        "spades": {
+          "name": "Spades",
+          "description": "Bid your tricks and coordinate with a partner (Coming soon)."
+        },
+        "ludo": {
+          "name": "Ludo",
+          "description": "Family race game with customizable rules (Coming soon)."
+        },
+        "backgammon": {
+          "name": "Backgammon",
+          "description": "Dice-driven strategy on a classic board (Coming soon)."
+        },
+        "dominoes": {
+          "name": "Dominoes",
+          "description": "Place your tiles and block your opponents (Coming soon)."
+        },
+        "memoryMatch": {
+          "name": "Memory Match",
+          "description": "Find matching pairs as quickly as possible (Coming soon)."
+        },
+        "mastermind": {
+          "name": "Mastermind",
+          "description": "Crack the hidden code in as few guesses as possible (Coming soon)."
+        },
+        "minesweeper": {
+          "name": "Minesweeper",
+          "description": "Reveal all safe cells without triggering a mine (Coming soon)."
+        },
+        "flappyRocket": {
+          "name": "Flappy Rocket",
+          "description": "Pilot your rocket through tight obstacle gaps (Coming soon)."
+        },
+        "stackJump": {
+          "name": "Stack Jump",
+          "description": "Stack moving blocks with perfect timing (Coming soon)."
+        },
+        "spaceInvaders": {
+          "name": "Space Invaders",
+          "description": "Defend your base against incoming alien waves (Coming soon)."
+        },
+        "brickBreaker": {
+          "name": "Brick Breaker",
+          "description": "Bounce the ball and clear every brick (Coming soon)."
+        },
+        "snake": {
+          "name": "Snake",
+          "description": "Grow longer without hitting walls or your own tail (Coming soon)."
         }
       },
       "difficulties": {
