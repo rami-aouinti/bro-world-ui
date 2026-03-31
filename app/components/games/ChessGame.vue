@@ -159,20 +159,17 @@ defineExpose({
     <v-alert v-if="isAiThinking" type="info" variant="tonal" density="compact" class="mb-0">
       {{ t("gameComponents.chess.aiThinking") }}
     </v-alert>
-
-    <template #aside>
-      <div class="chess-history">
-        <h4 class="text-subtitle-1 mb-2">{{ t("gameComponents.chess.history") }}</h4>
-        <ol class="history-list">
-          <li v-for="(move, index) in moveHistory" :key="`move-${index}`" class="history-item">
-            <span class="text-caption text-medium-emphasis mr-2">{{ index + 1 }}.</span>
-            <span>{{ formatHistoryMove(move) }}</span>
-          </li>
-        </ol>
-        <p v-if="!moveHistory.length" class="text-body-2 text-medium-emphasis mb-0">{{ t("gameComponents.chess.noMoves") }}</p>
-      </div>
-    </template>
   </GameTableScaffold>
+  <div class="chess-history">
+    <h4 class="text-subtitle-1 mb-2">{{ t("gameComponents.chess.history") }}</h4>
+    <ol class="history-list">
+      <li v-for="(move, index) in moveHistory" :key="`move-${index}`" class="history-item">
+        <span class="text-caption text-medium-emphasis mr-2">{{ index + 1 }}.</span>
+        <span>{{ formatHistoryMove(move) }}</span>
+      </li>
+    </ol>
+    <p v-if="!moveHistory.length" class="text-body-2 text-medium-emphasis mb-0">{{ t("gameComponents.chess.noMoves") }}</p>
+  </div>
 </template>
 
 <style scoped>

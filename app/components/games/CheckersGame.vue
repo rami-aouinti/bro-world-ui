@@ -655,14 +655,12 @@ defineExpose({
     </div>
     <p class="game-shell-subtitle mb-0">{{ message }}</p>
 
-    <template #aside>
-      <aside class="info-aside">
-        <p class="game-meta mb-1">Joueur actif: <strong>{{ currentPlayer }}</strong></p>
-        <p class="game-meta mb-2">Temps restant: <strong>{{ remainingSeconds }}s</strong></p>
-        <v-progress-linear class="timer-progress" :model-value="timerProgress" height="10" rounded color="primary" bg-color="grey-lighten-1" />
-        <p v-if="isThinking" class="game-thinking mt-4 mb-0">{{ t("gameComponents.checkers.aiThinking") }}</p>
-      </aside>
-    </template>
+    <aside class="info-aside">
+      <p class="game-meta mb-1">Joueur actif: <strong>{{ currentPlayer }}</strong></p>
+      <p class="game-meta mb-2">Temps restant: <strong>{{ remainingSeconds }}s</strong></p>
+      <v-progress-linear class="timer-progress" :model-value="timerProgress" height="10" rounded color="primary" bg-color="grey-lighten-1" />
+      <p v-if="isThinking" class="game-thinking mt-4 mb-0">{{ t("gameComponents.checkers.aiThinking") }}</p>
+    </aside>
   </GameTableScaffold>
 </template>
 
@@ -674,7 +672,7 @@ defineExpose({
 .board-column { display: grid; justify-items: center; }
 .info-aside { border: 1px solid rgba(var(--v-theme-on-surface), 0.14); border-radius: 12px; padding: 1rem; background: rgba(var(--v-theme-surface), 0.8); }
 .timer-progress { max-width: 100%; }
-.checkers-board { width: min(500px, 100%); display: grid; grid-template-columns: repeat(8, 1fr); border: 1px solid rgba(0, 0, 0, 0.22); border-radius: 10px; overflow: hidden; }
+.checkers-board { width: min(500px, 100%); min-width: 480px; display: grid; grid-template-columns: repeat(8, 1fr); border: 1px solid rgba(0, 0, 0, 0.22); border-radius: 10px; overflow: hidden; }
 .checkers-board--thinking { pointer-events: none; opacity: 0.85; }
 .checkers-cell { aspect-ratio: 1; border: none; background: var(--v-theme-surface); display: grid; place-items: center; transition: box-shadow 180ms ease, transform 180ms ease; }
 .checkers-cell--dark { background: #1c1c1c; }
