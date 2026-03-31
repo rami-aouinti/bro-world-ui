@@ -160,7 +160,8 @@ const categories: GameCategory[] = [
       {
         id: "family-board",
         nameKey: "gamePage.catalog.subCategories.familyBoard.name",
-        descriptionKey: "gamePage.catalog.subCategories.familyBoard.description",
+        descriptionKey:
+          "gamePage.catalog.subCategories.familyBoard.description",
         icon: "mdi-account-group-outline",
         games: [
           {
@@ -436,8 +437,18 @@ const loginLoading = ref(false);
 const loginError = ref("");
 const liveGamePanel = ref<GameAsidePanelState | null>(null);
 const coinOffers = [
-  { id: "offer-1", coins: 1000, priceEuro: 1, labelKey: "gamePage.auth.offers.offer1Label" },
-  { id: "offer-2", coins: 5000, priceEuro: 4, labelKey: "gamePage.auth.offers.offer2Label" },
+  {
+    id: "offer-1",
+    coins: 1000,
+    priceEuro: 1,
+    labelKey: "gamePage.auth.offers.offer1Label",
+  },
+  {
+    id: "offer-2",
+    coins: 5000,
+    priceEuro: 4,
+    labelKey: "gamePage.auth.offers.offer2Label",
+  },
   {
     id: "offer-3",
     coins: 100000,
@@ -539,6 +550,35 @@ const getLevelColor = (
   if (level === "game") return "success";
   if (level === "mode") return "info";
   return "indigo";
+};
+
+const colorPalettesByTone: Record<
+  "category" | "subCategory" | "game",
+  [string, string, string]
+> = {
+  category: ["#5b8cff", "#40c4ff", "#7c4dff"],
+  subCategory: ["#26a69a", "#42a5f5", "#7e57c2"],
+  game: ["#ff7043", "#ffca28", "#ab47bc"],
+};
+
+const getCatalogImageStyle = (
+  seed: string,
+  tone: "category" | "subCategory" | "game",
+) => {
+  const palette = colorPalettesByTone[tone];
+  const hash = [...seed].reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const angle = 110 + (hash % 120);
+  const first = palette[hash % palette.length];
+  const second = palette[(hash + 1) % palette.length];
+  const third = palette[(hash + 2) % palette.length];
+
+  return {
+    background: `
+      radial-gradient(circle at 18% 20%, ${first}55 0%, transparent 45%),
+      radial-gradient(circle at 85% 15%, ${second}4d 0%, transparent 40%),
+      linear-gradient(${angle}deg, ${third}40 0%, rgba(15, 23, 42, 0.12) 70%)
+    `,
+  };
 };
 
 const openCategory = (categoryId: string) => {
@@ -661,10 +701,15 @@ const sidebarUserDisplayName = computed(() => {
   const lastName = authSession.profile?.lastName?.trim() ?? "";
   const fullName = `${firstName} ${lastName}`.trim();
 
-  return fullName || authSession.profile?.username || t("gamePage.auth.defaultPlayerName");
+  return (
+    fullName ||
+    authSession.profile?.username ||
+    t("gamePage.auth.defaultPlayerName")
+  );
 });
 
-const formatCoinsAmount = (coins: number) => new Intl.NumberFormat("fr-FR").format(coins);
+const formatCoinsAmount = (coins: number) =>
+  new Intl.NumberFormat("fr-FR").format(coins);
 
 const formatOfferPrice = (offer: (typeof coinOffers)[number]) =>
   typeof offer.priceEuro === "number"
@@ -704,15 +749,15 @@ const handleLogin = async () => {
 
 <template>
   <teleport
-      v-if="isGameStarted && globalRestartAction"
-      to="#app-bar-teleport-target-right"
+    v-if="isGameStarted && globalRestartAction"
+    to="#app-bar-teleport-target-right"
   >
     <v-btn
-        color="primary"
-        variant="tonal"
-        prepend-icon="mdi-refresh"
-        :disabled="globalRestartAction.disabled"
-        @click="onAsideAction(globalRestartAction.id)"
+      color="primary"
+      variant="tonal"
+      prepend-icon="mdi-refresh"
+      :disabled="globalRestartAction.disabled"
+      @click="onAsideAction(globalRestartAction.id)"
     >
       {{ globalRestartAction.label }}
     </v-btn>
@@ -742,7 +787,8 @@ const handleLogin = async () => {
           />
           <div class="d-flex flex-column mx-3">
             <p class="text-body-2 font-weight-medium">
-              {{ sidebarUserDisplayName }} -  {{ t("gamePage.auth.coinsBalance", { count: userCoins }) }}
+              {{ sidebarUserDisplayName }} -
+              {{ t("gamePage.auth.coinsBalance", { count: userCoins }) }}
             </p>
             <v-btn
               variant="outlined"
@@ -770,10 +816,10 @@ const handleLogin = async () => {
           {{ t("gamePage.navigation.backToSubCategories") }}
         </v-btn>
         <v-btn
-            v-if="selectedGame"
-            variant="outlined"
-            prepend-icon="mdi-arrow-left"
-            @click="selectedGameId = null"
+          v-if="selectedGame"
+          variant="outlined"
+          prepend-icon="mdi-arrow-left"
+          @click="selectedGameId = null"
         >
           {{ t("gamePage.navigation.backToGames") }}
         </v-btn>
@@ -831,21 +877,21 @@ const handleLogin = async () => {
           </v-card-text>
           <v-card-actions>
             <v-spacer />
-            <v-btn
-              color="primary"
-              :loading="loginLoading"
-              @click="handleLogin"
-            >
+            <v-btn color="primary" :loading="loginLoading" @click="handleLogin">
               {{ t("gamePage.auth.loginSubmit") }}
             </v-btn>
-            <v-btn variant="text" to="/login">{{ t("gamePage.auth.goToLoginPage") }}</v-btn>
+            <v-btn variant="text" to="/login">{{
+              t("gamePage.auth.goToLoginPage")
+            }}</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
 
       <v-dialog v-model="isCoinsDialogOpen" max-width="760">
         <v-card>
-          <v-card-title>{{ t("gamePage.auth.buyCoinsModalTitle") }}</v-card-title>
+          <v-card-title>{{
+            t("gamePage.auth.buyCoinsModalTitle")
+          }}</v-card-title>
           <v-card-text class="pt-2">
             <v-row>
               <v-col
@@ -856,7 +902,11 @@ const handleLogin = async () => {
               >
                 <v-card variant="outlined" class="h-100 d-flex flex-column">
                   <v-card-title class="text-h6">
-                    {{ t(offer.labelKey, { count: formatCoinsAmount(offer.coins) }) }}
+                    {{
+                      t(offer.labelKey, {
+                        count: formatCoinsAmount(offer.coins),
+                      })
+                    }}
                   </v-card-title>
                   <v-card-subtitle class="text-body-1">
                     {{ formatOfferPrice(offer) }}
@@ -877,7 +927,10 @@ const handleLogin = async () => {
           </v-card-text>
           <v-card-actions>
             <v-spacer />
-            <v-btn color="primary" variant="text" @click="isCoinsDialogOpen = false"
+            <v-btn
+              color="primary"
+              variant="text"
+              @click="isCoinsDialogOpen = false"
               >{{ t("gamePage.auth.closeModal") }}</v-btn
             >
           </v-card-actions>
@@ -907,11 +960,7 @@ const handleLogin = async () => {
     <template #default>
       <section v-if="!selectedCategory" class="mb-4">
         <v-row class="ga-0 ga-md-1">
-          <v-col
-            v-for="category in categories"
-            :key="category.id"
-            cols="12"
-          >
+          <v-col v-for="category in categories" :key="category.id" cols="12">
             <v-card
               class="pa-4 h-100 unified-card interactive-card"
               variant="outlined"
@@ -920,11 +969,19 @@ const handleLogin = async () => {
                 <v-avatar :color="getLevelColor('category')" variant="tonal"
                   ><v-icon :icon="category.icon"
                 /></v-avatar>
-                <div>
+                <div class="w-100">
                   <h3 class="card-title mb-1">{{ t(category.nameKey) }}</h3>
-                  <p class="card-description mb-3">
-                    {{ t(category.descriptionKey) }}
-                  </p>
+                  <div
+                    class="catalog-image mb-3"
+                    :style="getCatalogImageStyle(category.id, 'category')"
+                  >
+                    <div class="catalog-image__overlay">
+                      <v-icon :icon="category.icon" size="44" />
+                      <span class="catalog-image__label">{{
+                        t(category.descriptionKey)
+                      }}</span>
+                    </div>
+                  </div>
                   <v-btn
                     :color="getLevelColor('category')"
                     variant="flat"
@@ -956,11 +1013,19 @@ const handleLogin = async () => {
                 <v-avatar :color="getLevelColor('subCategory')" variant="tonal"
                   ><v-icon :icon="subCategory.icon"
                 /></v-avatar>
-                <div>
+                <div class="w-100">
                   <h3 class="card-title mb-1">{{ t(subCategory.nameKey) }}</h3>
-                  <p class="card-description mb-3">
-                    {{ t(subCategory.descriptionKey) }}
-                  </p>
+                  <div
+                    class="catalog-image mb-3"
+                    :style="getCatalogImageStyle(subCategory.id, 'subCategory')"
+                  >
+                    <div class="catalog-image__overlay">
+                      <v-icon :icon="subCategory.icon" size="44" />
+                      <span class="catalog-image__label">{{
+                        t(subCategory.descriptionKey)
+                      }}</span>
+                    </div>
+                  </div>
                   <v-btn
                     :color="getLevelColor('subCategory')"
                     variant="flat"
@@ -989,11 +1054,21 @@ const handleLogin = async () => {
               <div class="d-flex flex-column ga-2 h-100">
                 <div class="d-flex justify-content-center align-center">
                   <v-avatar :color="getLevelColor('game')" variant="tonal"
-                  ><v-icon :icon="game.icon"
+                    ><v-icon :icon="game.icon"
                   /></v-avatar>
                   <h3 class="card-title mx-4">{{ t(game.nameKey) }}</h3>
                 </div>
-                <p class="card-description">{{ t(game.descriptionKey) }}</p>
+                <div
+                  class="catalog-image mb-2"
+                  :style="getCatalogImageStyle(game.id, 'game')"
+                >
+                  <div class="catalog-image__overlay">
+                    <v-icon :icon="game.icon" size="44" />
+                    <span class="catalog-image__label">{{
+                      t(game.descriptionKey)
+                    }}</span>
+                  </div>
+                </div>
                 <v-btn
                   :color="getLevelColor('game')"
                   variant="flat"
@@ -1012,7 +1087,10 @@ const handleLogin = async () => {
         </v-row>
       </section>
 
-      <section v-else-if="selectedGame && !isGameStarted" class="mb-1 setup-section">
+      <section
+        v-else-if="selectedGame && !isGameStarted"
+        class="mb-1 setup-section"
+      >
         <v-card class="pa-4 unified-card" variant="outlined">
           <div v-if="selectedGame.features?.length" class="mb-4">
             <h3 class="section-title mb-2">
@@ -1034,11 +1112,18 @@ const handleLogin = async () => {
                 class="mode-card h-100"
                 :class="{ 'mode-card--active': selectedPlayMode === 'ai' }"
                 :variant="selectedPlayMode === 'ai' ? 'flat' : 'outlined'"
-                :color="selectedPlayMode === 'ai' ? getLevelColor('mode') : undefined"
+                :color="
+                  selectedPlayMode === 'ai' ? getLevelColor('mode') : undefined
+                "
                 :disabled="!selectedGame.supportedModes.includes('ai')"
-                @click="selectedGame.supportedModes.includes('ai') && selectPlayMode('ai')"
+                @click="
+                  selectedGame.supportedModes.includes('ai') &&
+                  selectPlayMode('ai')
+                "
               >
-                <v-card-text class="text-center py-8 font-weight-bold text-subtitle-1">
+                <v-card-text
+                  class="text-center py-8 font-weight-bold text-subtitle-1"
+                >
                   {{ modeLabel("ai") }}
                 </v-card-text>
               </v-card>
@@ -1048,11 +1133,20 @@ const handleLogin = async () => {
                 class="mode-card h-100"
                 :class="{ 'mode-card--active': selectedPlayMode === 'pvp' }"
                 :variant="selectedPlayMode === 'pvp' ? 'flat' : 'outlined'"
-                :color="selectedPlayMode === 'pvp' ? getLevelColor('subCategory') : undefined"
+                :color="
+                  selectedPlayMode === 'pvp'
+                    ? getLevelColor('subCategory')
+                    : undefined
+                "
                 :disabled="!selectedGame.supportedModes.includes('pvp')"
-                @click="selectedGame.supportedModes.includes('pvp') && selectPlayMode('pvp')"
+                @click="
+                  selectedGame.supportedModes.includes('pvp') &&
+                  selectPlayMode('pvp')
+                "
               >
-                <v-card-text class="text-center py-8 font-weight-bold text-subtitle-1">
+                <v-card-text
+                  class="text-center py-8 font-weight-bold text-subtitle-1"
+                >
                   {{ modeLabel("pvp") }}
                 </v-card-text>
               </v-card>
@@ -1094,10 +1188,10 @@ const handleLogin = async () => {
         </v-card>
         <div class="d-flex justify-center mt-auto pt-6">
           <v-btn
-              :color="getLevelColor('game')"
-              :disabled="!canLaunchSelectedGame"
-              size="large"
-              @click="launchGame"
+            :color="getLevelColor('game')"
+            :disabled="!canLaunchSelectedGame"
+            size="large"
+            @click="launchGame"
           >
             {{ t("gamePage.actions.launchGame") }}
           </v-btn>
@@ -1226,9 +1320,39 @@ const handleLogin = async () => {
   font-weight: 700;
 }
 
-.card-description {
-  font-size: 0.93rem;
-  color: rgba(var(--v-theme-on-surface), 0.74);
+.catalog-image {
+  position: relative;
+  min-height: 118px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid
+    color-mix(in srgb, rgb(var(--v-theme-primary)) 24%, transparent);
+}
+
+.catalog-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.16) 0%, transparent 54%),
+    linear-gradient(0deg, rgba(15, 23, 42, 0.35), rgba(15, 23, 42, 0.12));
+}
+
+.catalog-image__overlay {
+  position: relative;
+  z-index: 1;
+  min-height: 118px;
+  padding: 0.75rem 0.95rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.catalog-image__label {
+  font-size: 0.88rem;
+  line-height: 1.35;
+  text-shadow: 0 2px 10px rgba(15, 23, 42, 0.25);
 }
 
 .info-list {
@@ -1246,7 +1370,8 @@ const handleLogin = async () => {
 
 .mode-card {
   cursor: pointer;
-  border: 1px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 35%, transparent);
+  border: 1px solid
+    color-mix(in srgb, rgb(var(--v-theme-primary)) 35%, transparent);
   transition:
     transform 180ms ease,
     box-shadow 180ms ease,
