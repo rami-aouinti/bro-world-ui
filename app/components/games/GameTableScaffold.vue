@@ -164,10 +164,10 @@ const getRingProgress = (secondsLeft: number) =>
   z-index: 4;
 }
 .game-seat--active { border-color: rgba(255, 235, 59, 0.8); box-shadow: 0 0 0 1px rgba(255, 235, 59, 0.35); padding-top: 8px; }
-.game-seat--north { top: 20px; left: 50%; transform: translateX(-50%); }
-.game-seat--east { top: 50%; right: 18px; transform: translateY(-50%); }
-.game-seat--south { bottom: 20px; left: 50%; transform: translateX(-50%); }
-.game-seat--west { top: 50%; left: 18px; transform: translateY(-50%); }
+.game-seat--north { top: 0px; left: 50%; transform: translateX(-50%); }
+.game-seat--east { top: 50%; right: 0px; transform: translateY(-50%); }
+.game-seat--south { bottom: 0px; left: 50%; transform: translateX(-50%); }
+.game-seat--west { top: 50%; left: 0px; transform: translateY(-50%); }
 .game-seat--north-east { top: 54px; right: 26px; }
 .game-seat--south-east { bottom: 54px; right: 26px; }
 .game-seat--south-west { bottom: 54px; left: 26px; }
