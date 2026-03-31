@@ -33,6 +33,7 @@ const categories: GameCategory[] = [
     id: "cards",
     nameKey: "gamePage.catalog.categories.cards.name",
     descriptionKey: "gamePage.catalog.categories.cards.description",
+    img: "/img/game/card-game.png",
     icon: "mdi-cards-playing-outline",
     subCategories: [
       {
@@ -40,6 +41,7 @@ const categories: GameCategory[] = [
         nameKey: "gamePage.catalog.subCategories.classicCards.name",
         descriptionKey:
           "gamePage.catalog.subCategories.classicCards.description",
+        img: "/img/game/classic-card.png",
         icon: "mdi-cards-outline",
         games: [
           {
@@ -80,6 +82,7 @@ const categories: GameCategory[] = [
         id: "party-cards",
         nameKey: "gamePage.catalog.subCategories.partyCards.name",
         descriptionKey: "gamePage.catalog.subCategories.partyCards.description",
+        img: "/img/game/party-card.png",
         icon: "mdi-party-popper",
         games: [
           {
@@ -113,6 +116,7 @@ const categories: GameCategory[] = [
   {
     id: "board",
     nameKey: "gamePage.catalog.categories.board.name",
+    img: "/img/game/board-game.png",
     descriptionKey: "gamePage.catalog.categories.board.description",
     icon: "mdi-checkerboard",
     subCategories: [
@@ -121,6 +125,7 @@ const categories: GameCategory[] = [
         nameKey: "gamePage.catalog.subCategories.tableClassic.name",
         descriptionKey:
           "gamePage.catalog.subCategories.tableClassic.description",
+        img: "/img/game/card-game.png",
         icon: "mdi-gamepad-round-outline",
         games: [
           {
@@ -162,6 +167,7 @@ const categories: GameCategory[] = [
         nameKey: "gamePage.catalog.subCategories.familyBoard.name",
         descriptionKey:
           "gamePage.catalog.subCategories.familyBoard.description",
+        img: "/img/game/family-board.png",
         icon: "mdi-account-group-outline",
         games: [
           {
@@ -196,12 +202,14 @@ const categories: GameCategory[] = [
     id: "smart-games",
     nameKey: "gamePage.catalog.categories.smartGames.name",
     descriptionKey: "gamePage.catalog.categories.smartGames.description",
+    img: "/img/game/smart-game.png",
     icon: "mdi-brain",
     subCategories: [
       {
         id: "logic",
         nameKey: "gamePage.catalog.subCategories.logic.name",
         descriptionKey: "gamePage.catalog.subCategories.logic.description",
+        img: "/img/game/logic.png",
         icon: "mdi-lightbulb-on-outline",
         games: [
           {
@@ -258,6 +266,7 @@ const categories: GameCategory[] = [
         nameKey: "gamePage.catalog.subCategories.wordsLanguage.name",
         descriptionKey:
           "gamePage.catalog.subCategories.wordsLanguage.description",
+        img: "/img/game/words.png",
         icon: "mdi-alphabetical-variant",
         games: [
           {
@@ -291,6 +300,7 @@ const categories: GameCategory[] = [
         nameKey: "gamePage.catalog.subCategories.gridsPuzzles.name",
         descriptionKey:
           "gamePage.catalog.subCategories.gridsPuzzles.description",
+        img: "/img/game/puzzle.png",
         icon: "mdi-grid-large",
         games: [
           {
@@ -322,6 +332,7 @@ const categories: GameCategory[] = [
         nameKey: "gamePage.catalog.subCategories.brainTraining.name",
         descriptionKey:
           "gamePage.catalog.subCategories.brainTraining.description",
+        img: "/img/game/brain.png",
         icon: "mdi-head-cog-outline",
         games: [
           {
@@ -356,6 +367,7 @@ const categories: GameCategory[] = [
     id: "arcade",
     nameKey: "gamePage.catalog.categories.arcade.name",
     descriptionKey: "gamePage.catalog.categories.arcade.description",
+    img: "/img/game/arcade-game.png",
     icon: "mdi-gamepad-variant-outline",
     subCategories: [
       {
@@ -363,6 +375,7 @@ const categories: GameCategory[] = [
         nameKey: "gamePage.catalog.subCategories.reactionArcade.name",
         descriptionKey:
           "gamePage.catalog.subCategories.reactionArcade.description",
+        img: "/img/game/card-game.png",
         icon: "mdi-lightning-bolt-outline",
         games: [
           {
@@ -388,6 +401,7 @@ const categories: GameCategory[] = [
         nameKey: "gamePage.catalog.subCategories.classicArcade.name",
         descriptionKey:
           "gamePage.catalog.subCategories.classicArcade.description",
+        img: "/img/game/card-game.png",
         icon: "mdi-ghost-outline",
         games: [
           {
@@ -960,34 +974,18 @@ const handleLogin = async () => {
     <template #default>
       <section v-if="!selectedCategory" class="mb-4">
         <v-row class="ga-0 ga-md-1">
-          <v-col v-for="category in categories" :key="category.id" cols="12">
+          <v-col v-for="category in categories" :key="category.id" cols="12" md="6">
             <v-card
-              class="pa-4 h-100 unified-card interactive-card"
+              class="pa-8 h-100 unified-card interactive-card"
               variant="outlined"
             >
-              <div class="d-flex align-start ga-3">
-                <v-avatar :color="getLevelColor('category')" variant="tonal"
-                  ><v-icon :icon="category.icon"
-                /></v-avatar>
-                <div class="w-100">
-                  <h3 class="card-title mb-1">{{ t(category.nameKey) }}</h3>
-                  <div
-                    class="catalog-image mb-3"
-                    :style="getCatalogImageStyle(category.id, 'category')"
-                  >
-                    <div class="catalog-image__overlay">
-                      <v-icon :icon="category.icon" size="44" />
-                      <span class="catalog-image__label">{{
-                        t(category.descriptionKey)
-                      }}</span>
-                    </div>
-                  </div>
-                  <v-btn
-                    :color="getLevelColor('category')"
-                    variant="flat"
+              <div class="w-100">
+                <div
                     @click="openCategory(category.id)"
-                    >{{ t("gamePage.actions.viewSubCategories") }}</v-btn
-                  >
+                    class="catalog-image"
+                    :style="getCatalogImageStyle(category.id, 'category')"
+                >
+                  <v-img :src="category.img" alt="Card" />
                 </div>
               </div>
             </v-card>
@@ -1004,34 +1002,19 @@ const handleLogin = async () => {
             v-for="subCategory in selectedCategory.subCategories"
             :key="subCategory.id"
             cols="12"
+            md="6"
           >
             <v-card
-              class="pa-4 h-100 unified-card interactive-card"
+              class="pa-8 h-100 unified-card interactive-card"
               variant="outlined"
             >
-              <div class="d-flex align-start ga-3">
-                <v-avatar :color="getLevelColor('subCategory')" variant="tonal"
-                  ><v-icon :icon="subCategory.icon"
-                /></v-avatar>
-                <div class="w-100">
-                  <h3 class="card-title mb-1">{{ t(subCategory.nameKey) }}</h3>
-                  <div
-                    class="catalog-image mb-3"
-                    :style="getCatalogImageStyle(subCategory.id, 'subCategory')"
-                  >
-                    <div class="catalog-image__overlay">
-                      <v-icon :icon="subCategory.icon" size="44" />
-                      <span class="catalog-image__label">{{
-                        t(subCategory.descriptionKey)
-                      }}</span>
-                    </div>
-                  </div>
-                  <v-btn
-                    :color="getLevelColor('subCategory')"
-                    variant="flat"
+              <div class="w-100">
+                <div
                     @click="openSubCategory(subCategory.id)"
-                    >{{ t("gamePage.actions.viewGames") }}</v-btn
-                  >
+                    class="catalog-image"
+                    :style="getCatalogImageStyle(subCategory.id, 'subCategory')"
+                >
+                  <v-img :src="subCategory.img" alt="Card" />
                 </div>
               </div>
             </v-card>
@@ -1321,8 +1304,8 @@ const handleLogin = async () => {
 }
 
 .catalog-image {
+  cursor: pointer;
   position: relative;
-  min-height: 118px;
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid

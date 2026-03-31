@@ -1739,7 +1739,7 @@
       }
     },
     "actions": {
-      "viewSubCategories": "Voir sous-catégories",
+      "viewSubCategories": "Ouvrir",
       "viewGames": "Voir les jeux",
       "chooseGame": "Choisir ce jeu",
       "launchGame": "Lancer le jeu"

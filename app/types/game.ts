@@ -30,6 +30,7 @@ export interface GameSubCategory {
   id: string;
   nameKey: string;
   descriptionKey: string;
+  img: string;
   icon: string;
   games: GameEntry[];
 }
@@ -38,6 +39,7 @@ export interface GameCategory {
   id: string;
   nameKey: string;
   descriptionKey: string;
+  img: string;
   icon: string;
   subCategories: GameSubCategory[];
 }

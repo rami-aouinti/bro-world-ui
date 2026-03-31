@@ -1739,7 +1739,7 @@
       }
     },
     "actions": {
-      "viewSubCategories": "View sub-categories",
+      "viewSubCategories": "Open",
       "viewGames": "View games",
       "chooseGame": "Choose this game",
       "launchGame": "Launch game"

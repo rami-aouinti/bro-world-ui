@@ -1739,7 +1739,7 @@
       }
     },
     "actions": {
-      "viewSubCategories": "Unterkategorien ansehen",
+      "viewSubCategories": "Öffnen",
       "viewGames": "Spiele ansehen",
       "chooseGame": "Dieses Spiel wählen",
       "launchGame": "Spiel starten"
