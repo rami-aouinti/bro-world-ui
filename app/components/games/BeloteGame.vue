@@ -286,9 +286,6 @@ defineExpose({
 
     <template #center>
       <div class="trick-center">
-        <p class="text-caption text-medium-emphasis mb-2">
-          {{ t("gameComponents.belote.currentTrick") }}
-        </p>
         <div class="trick-center__cards">
           <div
               v-for="seat in tableSeatOrder"
