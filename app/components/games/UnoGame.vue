@@ -429,61 +429,49 @@ defineExpose({
 </script>
 
 <template>
-  <v-card class="pa-4 rounded-xl game-card-shell" variant="tonal">
-    <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-3">
-      <h3 class="game-title mb-0">UNO · {{ selectedPlayMode.toUpperCase() }}</h3>
-    </div>
-
-    <p class="game-subtitle mb-4">
-      Tour: <strong>{{ currentPlayer?.name ?? "—" }}</strong> · Manche
-      <strong>#{{ currentRound }}</strong> · Objectif
-      <strong>{{ scoreTarget }}</strong>
-    </p>
-
-    <CardTableLayout
+  <CardTableLayout
       :players="tablePlayers"
       :turn-timer-seconds="TURN_SECONDS"
-      class="mb-4"
-    >
-      <template #center>
-        <div class="uno-center">
-          <div class="uno-pile" :class="{ 'is-pulsing': drawPulse }">
-            <div class="uno-pile__card-back">UNO</div>
-            <p class="text-caption mb-0">Pioche: {{ roundState.drawPileCount }}</p>
-          </div>
+  >
+    <template #center>
+      <div class="uno-center">
+        <div class="uno-pile" :class="{ 'is-pulsing': drawPulse }">
+          <div class="uno-pile__card-back">UNO</div>
+          <p class="text-caption mb-0">Pioche: {{ roundState.drawPileCount }}</p>
+        </div>
 
-          <div
+        <div
             class="uno-discard"
             :class="{ 'is-pulsing': playedCardPulseId === discardTopCard?.id }"
-          >
-            <template v-if="discardTopCard">
-              <div :class="['uno-card', cardColorClass(discardTopCard)]">
-                <span class="uno-card__value">{{ cardValueLabel(discardTopCard.value) }}</span>
-              </div>
-            </template>
-            <div v-else class="uno-card uno-card--empty">—</div>
-            <p class="text-caption mb-0">Défausse</p>
-          </div>
+        >
+          <template v-if="discardTopCard">
+            <div :class="['uno-card', cardColorClass(discardTopCard)]">
+              <span class="uno-card__value">{{ cardValueLabel(discardTopCard.value) }}</span>
+            </div>
+          </template>
+          <div v-else class="uno-card uno-card--empty">—</div>
+          <p class="text-caption mb-0">Défausse</p>
+        </div>
 
-          <div class="uno-state-column">
-            <v-chip
+        <div class="uno-state-column">
+          <v-chip
               size="small"
               :class="['uno-color-badge', colorBadgeClass]"
               variant="flat"
-            >
-              Couleur: {{ colorLabelMap[roundState.currentColor] }}
-            </v-chip>
-            <v-chip size="small" color="warning" variant="tonal">
-              {{ activeEffectLabel }}
-            </v-chip>
-          </div>
+          >
+            Couleur: {{ colorLabelMap[roundState.currentColor] }}
+          </v-chip>
+          <v-chip size="small" color="warning" variant="tonal">
+            {{ activeEffectLabel }}
+          </v-chip>
         </div>
-      </template>
+      </div>
+    </template>
 
-      <template #seat-south-hand>
-        <div class="uno-local-hand">
-          <TransitionGroup name="hand-card" tag="div" class="uno-local-hand__cards">
-            <button
+    <template #seat-south-hand>
+      <div class="uno-local-hand">
+        <TransitionGroup name="hand-card" tag="div" class="uno-local-hand__cards">
+          <button
               v-for="card in localPlayer?.hand ?? []"
               :key="card.id"
               type="button"
@@ -496,57 +484,54 @@ defineExpose({
                 },
               ]"
               @click="handleCardClick(card)"
-            >
-              <span class="uno-card__value">{{ cardValueLabel(card.value) }}</span>
-            </button>
-          </TransitionGroup>
+          >
+            <span class="uno-card__value">{{ cardValueLabel(card.value) }}</span>
+          </button>
+        </TransitionGroup>
 
-          <div class="uno-local-hand__actions">
-            <v-btn
+        <div class="uno-local-hand__actions">
+          <v-btn
               color="primary"
               prepend-icon="mdi-cards-playing-outline"
               :disabled="!canLocalDraw"
               @click="handleDrawCard"
-            >
-              Piocher
-            </v-btn>
-            <v-btn
+          >
+            Piocher
+          </v-btn>
+          <v-btn
               color="error"
               variant="outlined"
               prepend-icon="mdi-bullhorn"
               :disabled="!canCallUno"
               @click="handleCallUno"
-            >
-              UNO
-            </v-btn>
-            <v-switch
+          >
+            UNO
+          </v-btn>
+          <v-switch
               v-model="autoUnoEnabled"
               hide-details
               inset
               color="success"
               label="UNO auto"
-            />
-          </div>
+          />
         </div>
-      </template>
+      </div>
+    </template>
 
-      <template #seat-north-hand>
-        <div class="uno-opponent-hand">{{ players[1]?.hand.length ?? 0 }} cartes</div>
-      </template>
-      <template #seat-east-hand>
-        <div class="uno-opponent-hand uno-opponent-hand--vertical">
-          {{ players[2]?.hand.length ?? 0 }}
-        </div>
-      </template>
-      <template #seat-west-hand>
-        <div class="uno-opponent-hand uno-opponent-hand--vertical">
-          {{ players[3]?.hand.length ?? 0 }}
-        </div>
-      </template>
-    </CardTableLayout>
-
-    <p class="mb-0 text-body-2">{{ statusText }}</p>
-  </v-card>
+    <template #seat-north-hand>
+      <div class="uno-opponent-hand">{{ players[1]?.hand.length ?? 0 }} cartes</div>
+    </template>
+    <template #seat-east-hand>
+      <div class="uno-opponent-hand uno-opponent-hand--vertical">
+        {{ players[2]?.hand.length ?? 0 }}
+      </div>
+    </template>
+    <template #seat-west-hand>
+      <div class="uno-opponent-hand uno-opponent-hand--vertical">
+        {{ players[3]?.hand.length ?? 0 }}
+      </div>
+    </template>
+  </CardTableLayout>
 
   <v-dialog v-model="isColorDialogOpen" max-width="360" persistent>
     <v-card class="pa-4 rounded-xl">

@@ -397,36 +397,35 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <v-card class="pa-4 rounded-xl poker-shell" variant="tonal">
-    <CardTableLayout
+  <CardTableLayout
       :players="tablePlayers"
       :center-cards="centerCards"
       class="poker-table-layout"
-    >
-      <template #center>
-        <div class="poker-table-surface">
-          <div class="poker-rail">
-            <div class="poker-pot-zone">
-              <div class="pot-stack">
-                <p class="pot-stack__label mb-1">
-                  {{ t("gameComponents.poker.pot") }}
-                </p>
-                <div class="chip-stack chip-stack--pot" aria-hidden="true">
+  >
+    <template #center>
+      <div class="poker-table-surface">
+        <div class="poker-rail">
+          <div class="poker-pot-zone">
+            <div class="pot-stack">
+              <p class="pot-stack__label mb-1">
+                {{ t("gameComponents.poker.pot") }}
+              </p>
+              <div class="chip-stack chip-stack--pot" aria-hidden="true">
                   <span
-                    v-for="chipIndex in getChipVisualCount(pot)"
-                    :key="`pot-chip-${chipIndex}`"
-                    class="chip-stack__chip"
+                      v-for="chipIndex in getChipVisualCount(pot)"
+                      :key="`pot-chip-${chipIndex}`"
+                      class="chip-stack__chip"
                   />
-                </div>
-                <strong class="pot-stack__amount">{{ pot }}</strong>
               </div>
+              <strong class="pot-stack__amount">{{ pot }}</strong>
+            </div>
 
-              <div class="board-row board-row--center">
+            <div class="board-row board-row--center">
                 <span
-                  v-for="slot in boardSlots"
-                  :key="slot.key"
-                  class="table-card"
-                  :class="[
+                    v-for="slot in boardSlots"
+                    :key="slot.key"
+                    class="table-card"
+                    :class="[
                     slot.isVisible && slot.card
                       ? getCardTone(formatCard(slot.card))
                       : 'table-card--back',
@@ -435,27 +434,27 @@ onBeforeUnmount(() => {
                 >
                   <template v-if="slot.isVisible && slot.card">
                     <span class="table-card__rank">{{
-                      getCardRank(formatCard(slot.card))
-                    }}</span>
+                        getCardRank(formatCard(slot.card))
+                      }}</span>
                     <span class="table-card__suit">{{
-                      getCardSuit(formatCard(slot.card))
-                    }}</span>
+                        getCardSuit(formatCard(slot.card))
+                      }}</span>
                   </template>
                   <template v-else>
                     <span class="table-card__back-pattern">🂠</span>
                   </template>
                 </span>
-              </div>
-
-              <p class="active-turn-indicator mb-0">
-                {{ t("gameComponents.poker.turn") }}:
-                {{ currentPlayer?.name ?? "—" }}
-              </p>
             </div>
-          </div>
 
-          <div class="flying-chips-layer" aria-hidden="true">
-            <div
+            <p class="active-turn-indicator mb-0">
+              {{ t("gameComponents.poker.turn") }}:
+              {{ currentPlayer?.name ?? "—" }}
+            </p>
+          </div>
+        </div>
+
+        <div class="flying-chips-layer" aria-hidden="true">
+          <div
               v-for="chip in flyingChips"
               :key="chip.id"
               class="flying-chip"
@@ -463,81 +462,80 @@ onBeforeUnmount(() => {
                 `flying-chip--seat-${chip.fromSeat}`,
                 { 'flying-chip--end': chip.phase === 'end' },
               ]"
-            >
+          >
               <span
-                v-for="tokenIndex in chip.count"
-                :key="`${chip.id}-token-${tokenIndex}`"
-                class="chip-stack__chip chip-stack__chip--small"
+                  v-for="tokenIndex in chip.count"
+                  :key="`${chip.id}-token-${tokenIndex}`"
+                  class="chip-stack__chip chip-stack__chip--small"
               />
-            </div>
           </div>
         </div>
-      </template>
+      </div>
+    </template>
 
-      <template #seat-north-hand>
-        <section class="seat-hand seat-hand--opponent">
-          <div class="card-back-row">
+    <template #seat-north-hand>
+      <section class="seat-hand seat-hand--opponent">
+        <div class="card-back-row">
             <span
-              v-for="n in opponents[0]?.hand.length ?? 0"
-              :key="`north-${n}`"
-              class="card-back"
-              >🂠</span
+                v-for="n in opponents[0]?.hand.length ?? 0"
+                :key="`north-${n}`"
+                class="card-back"
+            >🂠</span
             >
-          </div>
-        </section>
-      </template>
+        </div>
+      </section>
+    </template>
 
-      <template #seat-east-hand>
-        <section class="seat-hand seat-hand--opponent seat-hand--side">
-          <div class="card-back-row card-back-row--side">
+    <template #seat-east-hand>
+      <section class="seat-hand seat-hand--opponent seat-hand--side">
+        <div class="card-back-row card-back-row--side">
             <span
-              v-for="n in opponents[1]?.hand.length ?? 0"
-              :key="`east-${n}`"
-              class="card-back"
-              >🂠</span
+                v-for="n in opponents[1]?.hand.length ?? 0"
+                :key="`east-${n}`"
+                class="card-back"
+            >🂠</span
             >
-          </div>
-        </section>
-      </template>
+        </div>
+      </section>
+    </template>
 
-      <template #seat-south-hand>
-        <section class="seat-hand seat-hand--player">
-          <p class="text-caption text-white mb-2">
-            {{ t("gameComponents.poker.yourCards") }} ·
-            {{ humanPlayer?.stack ?? 0 }}
-          </p>
-          <div class="board-row board-row--center">
+    <template #seat-south-hand>
+      <section class="seat-hand seat-hand--player">
+        <p class="text-caption text-white mb-2">
+          {{ t("gameComponents.poker.yourCards") }} ·
+          {{ humanPlayer?.stack ?? 0 }}
+        </p>
+        <div class="board-row board-row--center">
             <span
-              v-for="card in humanPlayer?.hand ?? []"
-              :key="card.id"
-              class="table-card"
-              :class="getCardTone(formatCard(card))"
+                v-for="card in humanPlayer?.hand ?? []"
+                :key="card.id"
+                class="table-card"
+                :class="getCardTone(formatCard(card))"
             >
               <span class="table-card__rank">{{
-                getCardRank(formatCard(card))
-              }}</span>
+                  getCardRank(formatCard(card))
+                }}</span>
               <span class="table-card__suit">{{
-                getCardSuit(formatCard(card))
-              }}</span>
+                  getCardSuit(formatCard(card))
+                }}</span>
             </span>
-          </div>
-        </section>
-      </template>
+        </div>
+      </section>
+    </template>
 
-      <template #seat-west-hand>
-        <section class="seat-hand seat-hand--opponent seat-hand--side">
-          <div class="card-back-row card-back-row--side">
+    <template #seat-west-hand>
+      <section class="seat-hand seat-hand--opponent seat-hand--side">
+        <div class="card-back-row card-back-row--side">
             <span
-              v-for="n in opponents[2]?.hand.length ?? 0"
-              :key="`west-${n}`"
-              class="card-back"
-              >🂠</span
+                v-for="n in opponents[2]?.hand.length ?? 0"
+                :key="`west-${n}`"
+                class="card-back"
+            >🂠</span
             >
-          </div>
-        </section>
-      </template>
-    </CardTableLayout>
-  </v-card>
+        </div>
+      </section>
+    </template>
+  </CardTableLayout>
 </template>
 
 <style scoped>
