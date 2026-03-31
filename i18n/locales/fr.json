@@ -1764,6 +1764,10 @@
         "smartGames": {
           "name": "Jeux intelligents",
           "description": "Stimulez votre esprit avec des défis de logique, stratégie et réflexion."
+        },
+        "arcade": {
+          "name": "Jeux arcade",
+          "description": "Des jeux rapides et nerveux à lancer en quelques secondes."
         }
       },
       "subCategories": {
@@ -1771,9 +1775,17 @@
           "name": "Cartes classiques",
           "description": "Rami, Belote, et d'autres jeux populaires."
         },
+        "partyCards": {
+          "name": "Cartes fun",
+          "description": "Des classiques détente à jouer en solo ou entre amis."
+        },
         "tableClassic": {
           "name": "Classiques de table",
           "description": "Commencez avec le jeu de dames complet."
+        },
+        "familyBoard": {
+          "name": "Plateau famille",
+          "description": "Des jeux conviviaux pour des parties en groupe."
         },
         "logic": {
           "name": "Logique",
@@ -1790,6 +1802,18 @@
         "gridsPuzzles": {
           "name": "Grilles & Puzzles",
           "description": "Des énigmes visuelles et des casse-têtes sur grille."
+        },
+        "brainTraining": {
+          "name": "Entraînement cérébral",
+          "description": "Mémoire, rapidité et concentration."
+        },
+        "reactionArcade": {
+          "name": "Arcade réflexe",
+          "description": "Actions rapides, timing précis et score maximal."
+        },
+        "classicArcade": {
+          "name": "Arcade classique",
+          "description": "L'esprit rétro des bornes d'arcade."
         }
       },
       "games": {
@@ -1904,6 +1928,62 @@
         "uno": {
           "name": "UNO",
           "description": "Associez couleurs et chiffres, annoncez UNO avant votre dernière carte."
+        },
+        "solitaire": {
+          "name": "Solitaire",
+          "description": "Version patience avec défis quotidiens (Coming soon)."
+        },
+        "hearts": {
+          "name": "Hearts",
+          "description": "Évitez les cartes à points dans ce classique stratégique (Coming soon)."
+        },
+        "spades": {
+          "name": "Spades",
+          "description": "Annoncez vos levées et coordonnez-vous en équipe (Coming soon)."
+        },
+        "ludo": {
+          "name": "Ludo",
+          "description": "Course de pions familiale avec règles personnalisables (Coming soon)."
+        },
+        "backgammon": {
+          "name": "Backgammon",
+          "description": "Stratégie et probabilité au lancer de dés (Coming soon)."
+        },
+        "dominoes": {
+          "name": "Dominos",
+          "description": "Posez vos tuiles et bloquez vos adversaires (Coming soon)."
+        },
+        "memoryMatch": {
+          "name": "Memory Match",
+          "description": "Retrouvez les paires le plus vite possible (Coming soon)."
+        },
+        "mastermind": {
+          "name": "Mastermind",
+          "description": "Devinez la combinaison secrète en un minimum d'essais (Coming soon)."
+        },
+        "minesweeper": {
+          "name": "Démineur",
+          "description": "Déduisez les cases sûres sans exploser (Coming soon)."
+        },
+        "flappyRocket": {
+          "name": "Flappy Rocket",
+          "description": "Pilotez votre fusée entre les obstacles (Coming soon)."
+        },
+        "stackJump": {
+          "name": "Stack Jump",
+          "description": "Empilez des blocs avec un timing parfait (Coming soon)."
+        },
+        "spaceInvaders": {
+          "name": "Space Invaders",
+          "description": "Défendez la base contre les vagues alien (Coming soon)."
+        },
+        "brickBreaker": {
+          "name": "Brick Breaker",
+          "description": "Cassez les briques avec une balle et une raquette (Coming soon)."
+        },
+        "snake": {
+          "name": "Snake",
+          "description": "Grandissez sans toucher les murs ni votre queue (Coming soon)."
         }
       },
       "difficulties": {
