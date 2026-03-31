@@ -626,7 +626,7 @@ defineExpose({
 </script>
 
 <template>
-  <GameTableScaffold class="game-shell-unified">
+  <GameTableScaffold class="game-shell-unified" surface-variant="flat">
     <template #surface>
       <div class="board-column">
         <div class="checkers-board" :class="{ 'checkers-board--thinking': isThinking }">

@@ -14,12 +14,14 @@ interface Props {
   players?: TablePlayer[];
   turnTimerSeconds?: number;
   tableClass?: string;
+  surfaceVariant?: "table" | "flat";
 }
 
 const props = withDefaults(defineProps<Props>(), {
   players: () => [],
   turnTimerSeconds: 120,
   tableClass: "",
+  surfaceVariant: "table",
 });
 
 const seatPositions = computed(() => {
@@ -76,7 +78,13 @@ const getRingProgress = (secondsLeft: number) =>
 <template>
   <div class="game-table-scaffold">
     <div class="game-table-scaffold__table-wrap">
-      <div class="game-table-scaffold__table" :class="tableClass">
+      <div
+        class="game-table-scaffold__table"
+        :class="[
+          tableClass,
+          `game-table-scaffold__table--${props.surfaceVariant}`,
+        ]"
+      >
         <article
           v-for="player in playersWithSeats"
           :key="player.id"
@@ -133,6 +141,15 @@ const getRingProgress = (secondsLeft: number) =>
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16), inset 0 0 0 14px rgba(0, 0, 0, 0.08), 0 18px 34px rgba(12, 31, 20, 0.28);
   overflow: hidden;
 }
+.game-table-scaffold__table--flat {
+  min-height: auto;
+  min-width: 0;
+  border-radius: 20px;
+  background: color-mix(in srgb, rgb(var(--v-theme-surface)) 97%, rgb(var(--v-theme-on-surface)) 3%);
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.1);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.12);
+  padding: 1rem;
+}
 .game-seat {
   position: absolute;
   display: flex;
@@ -170,6 +187,15 @@ const getRingProgress = (secondsLeft: number) =>
   padding: 14px;
   color: #fff;
 }
+.game-table-scaffold__table--flat .game-table-scaffold__surface {
+  position: static;
+  inset: auto;
+  border: none;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  color: inherit;
+}
 .game-table-scaffold__hands,
 .game-table-scaffold__content { width: 100%; }
 .game-table-scaffold__content {
@@ -185,7 +211,13 @@ const getRingProgress = (secondsLeft: number) =>
   .game-table-scaffold { flex-direction: column; }
   .game-table-scaffold__aside { width: 100%; flex-basis: auto; }
   .game-table-scaffold__table { min-height: 700px; border-radius: 28px; border-width: 8px; }
+  .game-table-scaffold__table--flat {
+    min-height: auto;
+    border-width: 1px;
+    border-radius: 16px;
+  }
   .game-table-scaffold__surface { inset: 200px 150px 200px; }
+  .game-table-scaffold__table--flat .game-table-scaffold__surface { inset: auto; }
   .game-seat--east, .game-seat--west { top: auto; transform: none; bottom: 106px; }
   .game-seat--east { right: 12px; }
   .game-seat--west { left: 12px; }
