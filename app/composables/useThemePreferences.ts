@@ -160,13 +160,32 @@ export const useThemePreferences = () => {
       return
     }
 
-    await apiFetch('/api/v1/profile/configuration', {
-      method: 'POST',
-      body: {
-        configurationKey: THEME_CONFIGURATION_KEY,
-        configurationValue: next,
-      },
-    })
+    try {
+      await apiFetch('/api/v1/profile/configuration', {
+        method: 'POST',
+        body: {
+          configurationKey: THEME_CONFIGURATION_KEY,
+          configurationValue: next,
+        },
+      })
+    }
+    catch (error) {
+      const statusCode =
+        (error as { statusCode?: number })?.statusCode
+        ?? (error as { status?: number })?.status
+        ?? (error as { response?: { status?: number } })?.response?.status
+
+      if (statusCode !== 409) {
+        throw error
+      }
+
+      await apiFetch(`/api/v1/profile/configuration/${THEME_CONFIGURATION_KEY}`, {
+        method: 'PATCH',
+        body: {
+          configurationValue: next,
+        },
+      })
+    }
   }
 
   const loadRemoteThemePreferenceIfAuthenticated = async () => {
