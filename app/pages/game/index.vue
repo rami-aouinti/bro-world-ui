@@ -11,7 +11,6 @@ import HiddenWordGame from "~/components/games/HiddenWordGame.vue";
 import SudokuGame from "~/components/games/SudokuGame.vue";
 import Game2048 from "~/components/games/Game2048.vue";
 import UnoGame from "~/components/games/UnoGame.vue";
-import GameMatchAside from "~/components/games/GameMatchAside.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
 import type {
   ApiPlayMode,
@@ -24,7 +23,7 @@ import { mapApiPlayModeToUiMode } from "~/utils/gameCatalogMapper";
 import type { GameAsidePanelState } from "~/components/games/types";
 import { useGameCatalogStore } from "~/stores/gameCatalog";
 
-const { t } = useI18n();
+const { t, te } = useI18n();
 const { isAuthenticated, login } = useAuth();
 const authSession = useAuthSessionStore();
 
@@ -176,7 +175,7 @@ const selectedGame = computed(
   () =>
     selectedSubCategory.value?.games.find(
       (game) => game.id === selectedGameId.value,
-    ) ?? null,
+    ) ?? allGameEntries.value.find((game) => game.id === selectedGameId.value) ?? null,
 );
 const localSupportedModes = computed<PlayMode[]>(() =>
   Array.from(
@@ -187,6 +186,31 @@ const localSupportedModes = computed<PlayMode[]>(() =>
     ),
   ),
 );
+
+const quickAccessGames = computed<GameEntry[]>(() =>
+  allGameEntries.value.slice(0, 4),
+);
+
+const getPlayableModes = (game: GameEntry | null | undefined): PlayMode[] =>
+  Array.from(
+    new Set(
+      (game?.supportedModes ?? [])
+        .map((mode) => mapApiPlayModeToUiMode(mode as ApiPlayMode))
+        .filter((mode): mode is PlayMode => Boolean(mode)),
+    ),
+  );
+
+const hasSoonBadge = (game: GameEntry) =>
+  !game.component || !getPlayableModes(game).length;
+
+const selectQuickAccessGame = (game: GameEntry) => {
+  selectedGameId.value = game.id;
+  selectedPlayMode.value = null;
+  selectedBeloteMode.value =
+    getGameBusinessKey(game) === "belote" ? "teams" : null;
+  isGameStarted.value = false;
+};
+
 
 const canLaunchSelectedGame = computed(() => {
   if (!selectedGame.value?.component) return false;
@@ -390,6 +414,19 @@ watch(categories, (nextCategories) => {
     return;
   }
 
+  if (!selectedSubCategoryId.value) {
+    if (
+      selectedGameId.value &&
+      !allGameEntries.value.some((game) => game.id === selectedGameId.value)
+    ) {
+      selectedGameId.value = null;
+      selectedPlayMode.value = null;
+      selectedBeloteMode.value = null;
+      isGameStarted.value = false;
+    }
+    return;
+  }
+
   const hasSelectedSubCategory = nextSelectedCategory.subCategories.some(
     (subCategory) => subCategory.id === selectedSubCategoryId.value,
   );
@@ -432,15 +469,6 @@ watch([selectedGameId, isGameStarted], () => {
     liveGamePanel.value = null;
   }
 });
-
-const gamePanelState = computed(() => ({
-  gameStatusLabel: gameStatusLabel.value,
-  canLaunchSelectedGame: canLaunchSelectedGame.value,
-  selectedBeloteMode: selectedBeloteMode.value,
-  modeLabel,
-  getLevelColor,
-  resetToCategories,
-}));
 
 const sidebarUserDisplayName = computed(() => {
   const firstName = authSession.profile?.firstName?.trim() ?? "";
@@ -694,16 +722,55 @@ const handleLogin = async () => {
       </v-snackbar>
     </template>
     <template #aside>
-      <GameMatchAside
-        :selected-category="selectedCategory"
-        :selected-sub-category="selectedSubCategory"
-        :selected-game="selectedGame"
-        :selected-play-mode="selectedPlayMode"
-        :is-game-started="isGameStarted"
-        :game-panel-state="gamePanelState"
-        :live-game-panel="liveGamePanel"
-        @action="onAsideAction"
-      />
+      <section class="quick-access">
+        <h3 class="text-h6 mb-3">
+          {{ te("gamePage.quickAccess.title") ? t("gamePage.quickAccess.title") : "Quick Access" }}
+        </h3>
+        <div class="d-flex flex-column ga-3">
+          <v-card
+            v-for="game in quickAccessGames"
+            :key="`quick-access-${game.id}`"
+            variant="outlined"
+            class="pa-3"
+            @click="selectQuickAccessGame(game)"
+          >
+            <div class="d-flex justify-space-between align-center ga-2 mb-2">
+              <span class="font-weight-medium">{{ t(game.nameKey) }}</span>
+              <v-chip
+                v-if="hasSoonBadge(game)"
+                size="small"
+                color="warning"
+                variant="tonal"
+              >
+                Bientôt disponible
+              </v-chip>
+            </div>
+
+            <div
+              v-if="selectedGameId === game.id && getPlayableModes(game).length"
+              class="d-flex ga-2"
+              @click.stop
+            >
+              <v-btn
+                size="small"
+                :variant="selectedPlayMode === 'ai' ? 'flat' : 'outlined'"
+                :disabled="!getPlayableModes(game).includes('ai')"
+                @click="getPlayableModes(game).includes('ai') && selectPlayMode('ai')"
+              >
+                {{ modeLabel("ai") }}
+              </v-btn>
+              <v-btn
+                size="small"
+                :variant="selectedPlayMode === 'pvp' ? 'flat' : 'outlined'"
+                :disabled="!getPlayableModes(game).includes('pvp')"
+                @click="getPlayableModes(game).includes('pvp') && selectPlayMode('pvp')"
+              >
+                {{ modeLabel("pvp") }}
+              </v-btn>
+            </div>
+          </v-card>
+        </div>
+      </section>
     </template>
     <template #default>
       <section v-if="isCatalogLoading">
