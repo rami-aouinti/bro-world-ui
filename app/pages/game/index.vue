@@ -14,11 +14,13 @@ import UnoGame from "~/components/games/UnoGame.vue";
 import GameMatchAside from "~/components/games/GameMatchAside.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
 import type {
+  ApiPlayMode,
   BeloteMode,
   GameCategory,
   GameEntry,
   PlayMode,
 } from "~/types/game";
+import { mapApiPlayModeToUiMode } from "~/utils/gameCatalogMapper";
 import type { GameAsidePanelState } from "~/components/games/types";
 import { useGameCatalogStore } from "~/stores/gameCatalog";
 
@@ -174,15 +176,24 @@ const selectedGame = computed(
       (game) => game.id === selectedGameId.value,
     ) ?? null,
 );
+const localSupportedModes = computed<PlayMode[]>(() =>
+  Array.from(
+    new Set(
+      (selectedGame.value?.supportedModes ?? [])
+        .map((mode) => mapApiPlayModeToUiMode(mode as ApiPlayMode))
+        .filter((mode): mode is PlayMode => Boolean(mode)),
+    ),
+  ),
+);
+
 const canLaunchSelectedGame = computed(() => {
+  if (!selectedGame.value?.component) return false;
+
   const hasPlayableMode =
     Boolean(selectedPlayMode.value) &&
-    Boolean(
-      selectedPlayMode.value &&
-      selectedGame.value?.supportedModes.includes(selectedPlayMode.value),
-    );
+    localSupportedModes.value.includes(selectedPlayMode.value as PlayMode);
 
-  if (!selectedGame.value?.component || !hasPlayableMode) return false;
+  if (!hasPlayableMode) return false;
 
   if (selectedGame.value.id === "belote") {
     return Boolean(selectedBeloteMode.value);
@@ -191,8 +202,12 @@ const canLaunchSelectedGame = computed(() => {
   return true;
 });
 
-const modeLabel = (mode: PlayMode) =>
-  mode === "ai" ? t("gamePage.modes.vsComputer") : t("gamePage.modes.vsPlayer");
+const modeLabel = (mode: PlayMode | ApiPlayMode) => {
+  if (mode === "ai" || mode === "solo") return t("gamePage.modes.vsComputer");
+  if (mode === "pvp" || mode === "versus") return t("gamePage.modes.vsPlayer");
+  if (mode === "online") return t("gamePage.status.soonHint");
+  return t("gamePage.status.soonHint");
+};
 
 const gameStatusLabel = computed(() => {
   if (!selectedGame.value) return t("gamePage.status.none");
@@ -277,7 +292,7 @@ const resetToCategories = () => {
 };
 
 const selectPlayMode = (mode: PlayMode) => {
-  if (!selectedGame.value?.supportedModes.includes(mode)) {
+  if (!localSupportedModes.value.includes(mode)) {
     return;
   }
 
@@ -829,9 +844,9 @@ const handleLogin = async () => {
                 :color="
                   selectedPlayMode === 'ai' ? getLevelColor('mode') : undefined
                 "
-                :disabled="!selectedGame.supportedModes.includes('ai')"
+                :disabled="!localSupportedModes.includes('ai')"
                 @click="
-                  selectedGame.supportedModes.includes('ai') &&
+                  localSupportedModes.includes('ai') &&
                   selectPlayMode('ai')
                 "
             >
@@ -856,9 +871,9 @@ const handleLogin = async () => {
                     ? getLevelColor('subCategory')
                     : undefined
                 "
-                :disabled="!selectedGame.supportedModes.includes('pvp')"
+                :disabled="!localSupportedModes.includes('pvp')"
                 @click="
-                  selectedGame.supportedModes.includes('pvp') &&
+                  localSupportedModes.includes('pvp') &&
                   selectPlayMode('pvp')
                 "
             >
@@ -895,7 +910,7 @@ const handleLogin = async () => {
 
         <v-alert
             v-if="
-              !selectedGame.supportedModes.length || !selectedGame.component
+              !localSupportedModes.length || !selectedGame.component
             "
             type="info"
             variant="tonal"

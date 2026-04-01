@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { useGameCatalogApi } from '~/composables/api/useGameCatalogApi'
-import type { GameCategory } from '~/types/game'
+import type { ApiGameCategory, GameCategory } from '~/types/game'
+import { mapGameCatalogFromApi } from '~/utils/gameCatalogMapper'
 
 export const useGameCatalogStore = defineStore('game-catalog', () => {
   const gameCatalogApi = useGameCatalogApi()
@@ -19,7 +20,11 @@ export const useGameCatalogStore = defineStore('game-catalog', () => {
 
     try {
       const response = await gameCatalogApi.getPublicGameCatalog()
-      categories.value = Array.isArray(response) ? response : (response.items ?? [])
+      const apiCategories: ApiGameCategory[] = Array.isArray(response)
+        ? response
+        : (response.items ?? [])
+
+      categories.value = mapGameCatalogFromApi(apiCategories)
       return categories.value
     }
     catch (err) {
