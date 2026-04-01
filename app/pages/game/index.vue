@@ -419,6 +419,30 @@ const globalRestartAction = computed(() => {
   return actions.find((action) => primaryIds.has(action.id)) ?? null;
 });
 
+const fallbackValue = computed(() => "—");
+
+const safeTranslate = (key?: string | null) => {
+  if (!key) return fallbackValue.value;
+  return te(key) ? t(key) : fallbackValue.value;
+};
+
+const selectedGameLevel = computed(() => {
+  if (selectedGame.value?.difficultyKey) {
+    return safeTranslate(selectedGame.value.difficultyKey);
+  }
+
+  const level = (selectedGame.value as (GameEntry & { level?: string | number }) | null)
+    ?.level;
+  return level ? String(level) : fallbackValue.value;
+});
+
+const gameDetailTags = computed(() => selectedGame.value?.tags?.filter(Boolean) ?? []);
+const gameDetailFeatures = computed(
+  () => selectedGame.value?.features?.filter(Boolean) ?? [],
+);
+
+const formatMetaChip = (value: string) => (te(value) ? t(value) : value);
+
 onMounted(async () => {
   await Promise.all([
     gameCatalogStore.fetchCatalog(),
@@ -560,20 +584,6 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <teleport
-    v-if="isGameStarted && globalRestartAction"
-    to="#app-bar-teleport-target-right"
-  >
-    <v-btn
-      color="primary"
-      variant="tonal"
-      prepend-icon="mdi-refresh"
-      :disabled="globalRestartAction.disabled"
-      @click="onAsideAction(globalRestartAction.id)"
-    >
-      {{ globalRestartAction.label }}
-    </v-btn>
-  </teleport>
   <PlatformSplitLayout>
     <template #sidebar>
       <div class="mb-4">
@@ -814,6 +824,81 @@ const handleLogin = async () => {
             </div>
           </v-card>
         </div>
+      </section>
+      <section
+        v-else-if="isGameStarted && selectedGame"
+        class="d-flex flex-column ga-4"
+      >
+        <v-card variant="outlined" class="pa-4">
+          <h3 class="text-h6 mb-3">Game Details</h3>
+          <div class="d-flex flex-column ga-3">
+            <div>
+              <p class="text-caption text-medium-emphasis mb-1">Nom</p>
+              <p class="text-body-1 font-weight-medium mb-0">
+                {{ safeTranslate(selectedGame.nameKey) }}
+              </p>
+            </div>
+            <div>
+              <p class="text-caption text-medium-emphasis mb-1">Description</p>
+              <p class="text-body-2 mb-0">
+                {{ safeTranslate(selectedGame.descriptionKey) }}
+              </p>
+            </div>
+            <div class="d-flex flex-wrap ga-2">
+              <v-chip size="small" variant="outlined">
+                Catégorie: {{ safeTranslate(selectedGame.categoryKey) }}
+              </v-chip>
+              <v-chip size="small" variant="outlined">
+                Sous-catégorie: {{ safeTranslate(selectedGame.subcategoryKey) }}
+              </v-chip>
+              <v-chip size="small" variant="outlined">
+                Niveau: {{ selectedGameLevel }}
+              </v-chip>
+            </div>
+            <div v-if="gameDetailTags.length" class="d-flex flex-wrap ga-2">
+              <v-chip
+                v-for="tag in gameDetailTags"
+                :key="`game-tag-${tag}`"
+                size="small"
+                color="primary"
+                variant="tonal"
+              >
+                {{ formatMetaChip(tag) }}
+              </v-chip>
+            </div>
+            <div v-if="gameDetailFeatures.length" class="d-flex flex-wrap ga-2">
+              <v-chip
+                v-for="feature in gameDetailFeatures"
+                :key="`game-feature-${feature}`"
+                size="small"
+                color="secondary"
+                variant="tonal"
+              >
+                {{ formatMetaChip(feature) }}
+              </v-chip>
+            </div>
+          </div>
+          <div class="d-flex flex-wrap ga-2 mt-4">
+            <v-btn
+              v-if="globalRestartAction"
+              color="primary"
+              variant="tonal"
+              prepend-icon="mdi-refresh"
+              :disabled="globalRestartAction.disabled"
+              @click="onAsideAction(globalRestartAction.id)"
+            >
+              {{ globalRestartAction.label }}
+            </v-btn>
+            <v-btn
+              color="error"
+              variant="outlined"
+              prepend-icon="mdi-close-circle-outline"
+              @click="isGameStarted = false"
+            >
+              Quitter
+            </v-btn>
+          </div>
+        </v-card>
       </section>
     </template>
     <template #default>
