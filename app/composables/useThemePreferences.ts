@@ -161,10 +161,9 @@ export const useThemePreferences = () => {
     }
 
     try {
-      await apiFetch('/api/v1/profile/configuration', {
-        method: 'POST',
+      await apiFetch(`/api/v1/profile/configuration/${THEME_CONFIGURATION_KEY}`, {
+        method: 'PATCH',
         body: {
-          configurationKey: THEME_CONFIGURATION_KEY,
           configurationValue: next,
         },
       })
@@ -175,13 +174,14 @@ export const useThemePreferences = () => {
         ?? (error as { status?: number })?.status
         ?? (error as { response?: { status?: number } })?.response?.status
 
-      if (statusCode !== 409) {
+      if (statusCode !== 404) {
         throw error
       }
 
-      await apiFetch(`/api/v1/profile/configuration/${THEME_CONFIGURATION_KEY}`, {
-        method: 'PATCH',
+      await apiFetch('/api/v1/profile/configuration', {
+        method: 'POST',
         body: {
+          configurationKey: THEME_CONFIGURATION_KEY,
           configurationValue: next,
         },
       })
