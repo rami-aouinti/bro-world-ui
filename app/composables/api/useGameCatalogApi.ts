@@ -1,7 +1,7 @@
 import { useApiClient } from '../useApiClient'
-import type { GameCategory } from '~/types/game'
+import type { ApiGameCategory } from '~/types/game'
 
-type GameCatalogResponse = GameCategory[] | { items?: GameCategory[] }
+type GameCatalogResponse = ApiGameCategory[] | { items?: ApiGameCategory[] }
 
 export const useGameCatalogApi = () => {
   const { apiFetch } = useApiClient()
