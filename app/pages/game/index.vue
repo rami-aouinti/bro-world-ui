@@ -22,6 +22,7 @@ import type {
 import { mapApiPlayModeToUiMode } from "~/utils/gameCatalogMapper";
 import type { GameAsidePanelState } from "~/components/games/types";
 import { useGameCatalogStore } from "~/stores/gameCatalog";
+import { useGamesStore } from "~/stores/games";
 
 const { t, te } = useI18n();
 const { isAuthenticated, login } = useAuth();
@@ -75,11 +76,16 @@ definePageMeta({
 });
 
 const gameCatalogStore = useGameCatalogStore();
+const gamesStore = useGamesStore();
 const {
   categories: storeCategories,
   isLoading: isCatalogLoading,
   error: catalogError,
 } = storeToRefs(gameCatalogStore);
+const {
+  featuredGames: featuredGamesItems,
+  isLoading: isFeaturedGamesLoading,
+} = storeToRefs(gamesStore);
 const categories = computed<GameCategory[]>(() => storeCategories.value);
 
 
@@ -187,9 +193,14 @@ const localSupportedModes = computed<PlayMode[]>(() =>
   ),
 );
 
-const quickAccessGames = computed<GameEntry[]>(() =>
-  allGameEntries.value.slice(0, 4),
-);
+const featuredGames = computed<GameEntry[]>(() => {
+  if (!featuredGamesItems.value.length) return [];
+
+  const gameById = new Map(allGameEntries.value.map((game) => [game.id, game]));
+  return featuredGamesItems.value
+    .map((item) => gameById.get(item.id))
+    .filter((game): game is GameEntry => Boolean(game));
+});
 
 const getPlayableModes = (game: GameEntry | null | undefined): PlayMode[] =>
   Array.from(
@@ -387,7 +398,10 @@ const globalRestartAction = computed(() => {
 });
 
 onMounted(async () => {
-  await gameCatalogStore.fetchCatalog();
+  await Promise.all([
+    gameCatalogStore.fetchCatalog(),
+    gamesStore.fetchGames(),
+  ]);
 });
 
 watch(categories, (nextCategories) => {
@@ -726,9 +740,24 @@ const handleLogin = async () => {
         <h3 class="text-h6 mb-3">
           {{ te("gamePage.quickAccess.title") ? t("gamePage.quickAccess.title") : "Quick Access" }}
         </h3>
-        <div class="d-flex flex-column ga-3">
+        <div v-if="isFeaturedGamesLoading" class="d-flex flex-column ga-3">
+          <v-skeleton-loader
+            v-for="index in 4"
+            :key="`featured-games-skeleton-${index}`"
+            type="heading"
+          />
+        </div>
+        <v-alert
+          v-else-if="!featuredGames.length"
+          type="info"
+          variant="tonal"
+          density="comfortable"
+        >
+          {{ t("gamePage.status.none") }}
+        </v-alert>
+        <div v-else class="d-flex flex-column ga-3">
           <v-card
-            v-for="game in quickAccessGames"
+            v-for="game in featuredGames"
             :key="`quick-access-${game.id}`"
             variant="outlined"
             class="pa-3"
