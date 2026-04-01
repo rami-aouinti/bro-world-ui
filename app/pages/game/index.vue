@@ -192,6 +192,9 @@ const localSupportedModes = computed<PlayMode[]>(() =>
     ),
   ),
 );
+const displayedLocalModes = computed<PlayMode[]>(() =>
+  getDisplayModes(localSupportedModes.value),
+);
 
 const featuredGames = computed<GameEntry[]>(() => {
   if (!featuredGamesItems.value.length) return [];
@@ -210,6 +213,10 @@ const getPlayableModes = (game: GameEntry | null | undefined): PlayMode[] =>
         .filter((mode): mode is PlayMode => Boolean(mode)),
     ),
   );
+
+const orderedModes: PlayMode[] = ["ai", "pvp"];
+const getDisplayModes = (modes: PlayMode[]): PlayMode[] =>
+  orderedModes.filter((mode) => modes.includes(mode));
 
 const hasSoonBadge = (game: GameEntry) =>
   !game.component || !getPlayableModes(game).length;
@@ -781,20 +788,13 @@ const handleLogin = async () => {
               @click.stop
             >
               <v-btn
+                v-for="mode in getDisplayModes(getPlayableModes(game))"
+                :key="`quick-mode-${game.id}-${mode}`"
                 size="small"
-                :variant="selectedPlayMode === 'ai' ? 'flat' : 'outlined'"
-                :disabled="!getPlayableModes(game).includes('ai')"
-                @click="getPlayableModes(game).includes('ai') && selectPlayMode('ai')"
+                :variant="selectedPlayMode === mode ? 'flat' : 'outlined'"
+                @click="selectPlayMode(mode)"
               >
-                {{ modeLabel("ai") }}
-              </v-btn>
-              <v-btn
-                size="small"
-                :variant="selectedPlayMode === 'pvp' ? 'flat' : 'outlined'"
-                :disabled="!getPlayableModes(game).includes('pvp')"
-                @click="getPlayableModes(game).includes('pvp') && selectPlayMode('pvp')"
-              >
-                {{ modeLabel("pvp") }}
+                {{ modeLabel(mode) }}
               </v-btn>
             </div>
           </v-card>
@@ -934,55 +934,32 @@ const handleLogin = async () => {
         class="mb-1 setup-section"
       >
         <v-row class="mb-4" dense>
-          <v-col cols="6">
+          <v-col
+            v-for="mode in displayedLocalModes"
+            :key="`mode-selection-${mode}`"
+            :cols="displayedLocalModes.length > 1 ? 6 : 12"
+          >
             <v-card
                 v-motion
                 :initial="cardMotion.initial"
                 :enter="cardMotion.enter"
                 :hovered="cardMotion.hovered"
                 class="mode-card h-100 d-flex align-center justify-center"
-                :class="{ 'mode-card--active': selectedPlayMode === 'ai' }"
-                :variant="selectedPlayMode === 'ai' ? 'flat' : 'outlined'"
+                :class="{ 'mode-card--active': selectedPlayMode === mode }"
+                :variant="selectedPlayMode === mode ? 'flat' : 'outlined'"
                 :color="
-                  selectedPlayMode === 'ai' ? getLevelColor('mode') : undefined
-                "
-                :disabled="!localSupportedModes.includes('ai')"
-                @click="
-                  localSupportedModes.includes('ai') &&
-                  selectPlayMode('ai')
-                "
-            >
-              <v-card-text
-                  class="text-center font-weight-bold text-title-large"
-              >
-                {{ modeLabel("ai") }}
-              </v-card-text>
-            </v-card>
-          </v-col>
-          <v-col cols="6">
-            <v-card
-                v-motion
-                :initial="cardMotion.initial"
-                :enter="cardMotion.enter"
-                :hovered="cardMotion.hovered"
-                class="mode-card h-100 d-flex align-center justify-center"
-                :class="{ 'mode-card--active': selectedPlayMode === 'pvp' }"
-                :variant="selectedPlayMode === 'pvp' ? 'flat' : 'outlined'"
-                :color="
-                  selectedPlayMode === 'pvp'
-                    ? getLevelColor('subCategory')
+                  selectedPlayMode === mode
+                    ? mode === 'ai'
+                      ? getLevelColor('mode')
+                      : getLevelColor('subCategory')
                     : undefined
                 "
-                :disabled="!localSupportedModes.includes('pvp')"
-                @click="
-                  localSupportedModes.includes('pvp') &&
-                  selectPlayMode('pvp')
-                "
+                @click="selectPlayMode(mode)"
             >
               <v-card-text
                   class="text-center font-weight-bold text-title-large"
               >
-                {{ modeLabel("pvp") }}
+                {{ modeLabel(mode) }}
               </v-card-text>
             </v-card>
           </v-col>
