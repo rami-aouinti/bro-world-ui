@@ -337,6 +337,21 @@ const resetToCategories = () => {
   isGameStarted.value = false;
 };
 
+const backToSubCategories = () => {
+  selectedSubCategoryId.value = null;
+  selectedGameId.value = null;
+  selectedPlayMode.value = null;
+  selectedBeloteMode.value = null;
+  isGameStarted.value = false;
+};
+
+const backToGames = () => {
+  selectedGameId.value = null;
+  selectedPlayMode.value = null;
+  selectedBeloteMode.value = null;
+  isGameStarted.value = false;
+};
+
 const selectPlayMode = (mode: PlayMode) => {
   if (!localSupportedModes.value.includes(mode)) {
     return;
@@ -608,7 +623,7 @@ const handleLogin = async () => {
           v-if="selectedSubCategory"
           variant="outlined"
           prepend-icon="mdi-arrow-left"
-          @click="selectedSubCategoryId = null"
+          @click="backToSubCategories"
         >
           {{ t("gamePage.navigation.backToSubCategories") }}
         </v-btn>
@@ -616,7 +631,7 @@ const handleLogin = async () => {
           v-if="selectedGame"
           variant="outlined"
           prepend-icon="mdi-arrow-left"
-          @click="selectedGameId = null"
+          @click="backToGames"
         >
           {{ t("gamePage.navigation.backToGames") }}
         </v-btn>
@@ -743,7 +758,7 @@ const handleLogin = async () => {
       </v-snackbar>
     </template>
     <template #aside>
-      <section class="quick-access">
+      <section v-if="!isGameStarted" class="quick-access">
         <h3 class="text-h6 mb-3">
           {{ te("gamePage.quickAccess.title") ? t("gamePage.quickAccess.title") : "Quick Access" }}
         </h3>
