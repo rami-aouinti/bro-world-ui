@@ -6,6 +6,7 @@ export interface Profile {
   firstName: string
   lastName: string
   email: string
+  coins?: number
   language?: string
   locale?: string
   timezone: string

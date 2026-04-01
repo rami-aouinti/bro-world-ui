@@ -87,7 +87,7 @@ describe('game page UNO integration', () => {
     vi.stubGlobal('definePageMeta', vi.fn())
     vi.stubGlobal('useI18n', vi.fn(() => ({ t: (key: string) => key })))
     vi.stubGlobal('useAuth', vi.fn(() => ({ isAuthenticated: { value: true }, login: vi.fn() })))
-    vi.stubGlobal('useAuthSessionStore', vi.fn(() => ({ profile: { username: 'tester' } })))
+    vi.stubGlobal('useAuthSessionStore', vi.fn(() => ({ profile: { username: 'tester', coins: 0 } })))
   })
 
   it('contient UNO dans le catalogue cartes et lance UnoGame', async () => {

@@ -24,7 +24,7 @@ describe('notifications page', () => {
   beforeEach(() => {
     vi.resetModules()
     vi.clearAllMocks()
-    vi.stubGlobal('useAuthSessionStore', vi.fn(() => ({ profile: { id: 'u1' } })))
+    vi.stubGlobal('useAuthSessionStore', vi.fn(() => ({ profile: { id: 'u1', coins: 0 } })))
     vi.stubGlobal('useI18n', vi.fn(() => ({ t: (key: string) => key })))
     vi.stubGlobal('nextTick', vi.fn(() => Promise.resolve()))
   })
