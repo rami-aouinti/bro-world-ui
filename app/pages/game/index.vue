@@ -94,7 +94,7 @@ const isLoginDialogOpen = ref(false);
 const isCoinsDialogOpen = ref(false);
 const isPaymentSoonSnackbarOpen = ref(false);
 const paymentSoonSnackbarText = ref("");
-const userCoins = ref(0);
+const userCoins = computed(() => authSession.profile?.coins ?? 0);
 const usernameOrEmail = ref("");
 const password = ref("");
 const loginLoading = ref(false);
@@ -453,6 +453,8 @@ const sidebarUserDisplayName = computed(() => {
 const formatCoinsAmount = (coins: number) =>
   new Intl.NumberFormat("fr-FR").format(coins);
 
+const formattedUserCoins = computed(() => formatCoinsAmount(userCoins.value));
+
 const formatOfferPrice = (offer: (typeof coinOffers)[number]) =>
   typeof offer.priceEuro === "number"
     ? `${offer.priceEuro} €`
@@ -530,7 +532,7 @@ const handleLogin = async () => {
           <div class="d-flex flex-column mx-3">
             <p class="text-body-2 font-weight-medium">
               {{ sidebarUserDisplayName }} -
-              {{ t("gamePage.auth.coinsBalance", { count: userCoins }) }}
+              {{ t("gamePage.auth.coinsBalance", { count: formattedUserCoins }) }}
             </p>
             <v-btn
               variant="outlined"
