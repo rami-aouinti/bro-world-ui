@@ -24,6 +24,49 @@ const { t } = useI18n();
 const { isAuthenticated, login } = useAuth();
 const authSession = useAuthSessionStore();
 
+const cardMotion = {
+  initial: {
+    opacity: 0,
+    y: 30,
+    scale: 0.96,
+  },
+  enter: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 450,
+    },
+  },
+  hovered: {
+    y: -8,
+    scale: 1.02,
+    transition: {
+      duration: 180,
+    },
+  },
+};
+
+const imageMotion = {
+  initial: {
+    opacity: 0,
+    scale: 0.92,
+  },
+  enter: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 500,
+    },
+  },
+  hovered: {
+    scale: 1.04,
+    transition: {
+      duration: 200,
+    },
+  },
+};
+
 definePageMeta({
   splitShell: false,
 });
@@ -48,6 +91,7 @@ const categories: GameCategory[] = [
             id: "rami",
             nameKey: "gamePage.catalog.games.rami.name",
             descriptionKey: "gamePage.catalog.games.rami.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-cards-diamond-outline",
             component: "rami",
             supportedModes: ["ai", "pvp"],
@@ -56,6 +100,7 @@ const categories: GameCategory[] = [
             id: "belote",
             nameKey: "gamePage.catalog.games.belote.name",
             descriptionKey: "gamePage.catalog.games.belote.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-cards-club-outline",
             component: "belote",
             supportedModes: ["ai"],
@@ -64,6 +109,7 @@ const categories: GameCategory[] = [
             id: "poker",
             nameKey: "gamePage.catalog.games.poker.name",
             descriptionKey: "gamePage.catalog.games.poker.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-cards-spade-outline",
             component: "poker",
             supportedModes: ["ai"],
@@ -72,6 +118,7 @@ const categories: GameCategory[] = [
             id: "uno",
             nameKey: "gamePage.catalog.games.uno.name",
             descriptionKey: "gamePage.catalog.games.uno.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-cards-playing",
             component: "uno",
             supportedModes: ["ai", "pvp"],
@@ -89,6 +136,7 @@ const categories: GameCategory[] = [
             id: "solitaire",
             nameKey: "gamePage.catalog.games.solitaire.name",
             descriptionKey: "gamePage.catalog.games.solitaire.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-cards-playing-heart-outline",
             component: null,
             supportedModes: [],
@@ -97,6 +145,7 @@ const categories: GameCategory[] = [
             id: "hearts",
             nameKey: "gamePage.catalog.games.hearts.name",
             descriptionKey: "gamePage.catalog.games.hearts.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-cards-heart",
             component: null,
             supportedModes: [],
@@ -105,6 +154,7 @@ const categories: GameCategory[] = [
             id: "spades",
             nameKey: "gamePage.catalog.games.spades.name",
             descriptionKey: "gamePage.catalog.games.spades.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-cards-spade-heart-outline",
             component: null,
             supportedModes: [],
@@ -132,6 +182,7 @@ const categories: GameCategory[] = [
             id: "checkers",
             nameKey: "gamePage.catalog.games.checkers.name",
             descriptionKey: "gamePage.catalog.games.checkers.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-circle-multiple-outline",
             component: "checkers",
             supportedModes: ["ai", "pvp"],
@@ -151,6 +202,7 @@ const categories: GameCategory[] = [
             ],
             nameKey: "gamePage.catalog.games.chess.name",
             descriptionKey: "gamePage.catalog.games.chess.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-chess-knight",
             component: "chess",
             supportedModes: ["ai", "pvp"],
@@ -174,6 +226,7 @@ const categories: GameCategory[] = [
             id: "ludo",
             nameKey: "gamePage.catalog.games.ludo.name",
             descriptionKey: "gamePage.catalog.games.ludo.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-dice-multiple-outline",
             component: null,
             supportedModes: [],
@@ -182,6 +235,7 @@ const categories: GameCategory[] = [
             id: "backgammon",
             nameKey: "gamePage.catalog.games.backgammon.name",
             descriptionKey: "gamePage.catalog.games.backgammon.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-gamepad-variant-outline",
             component: null,
             supportedModes: [],
@@ -190,6 +244,7 @@ const categories: GameCategory[] = [
             id: "dominoes",
             nameKey: "gamePage.catalog.games.dominoes.name",
             descriptionKey: "gamePage.catalog.games.dominoes.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-domino-mask",
             component: null,
             supportedModes: [],
@@ -227,6 +282,7 @@ const categories: GameCategory[] = [
             ],
             nameKey: "gamePage.catalog.games.sudoku.name",
             descriptionKey: "gamePage.catalog.games.sudoku.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-grid",
             component: "sudoku",
             supportedModes: ["ai"],
@@ -250,6 +306,7 @@ const categories: GameCategory[] = [
             ],
             nameKey: "gamePage.catalog.games.game2048.name",
             descriptionKey: "gamePage.catalog.games.game2048.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-numeric-8-box-multiple-outline",
             component: "game2048",
             supportedModes: ["ai"],
@@ -284,6 +341,7 @@ const categories: GameCategory[] = [
             ],
             nameKey: "gamePage.catalog.games.hiddenWord.name",
             descriptionKey: "gamePage.catalog.games.hiddenWord.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-text-search-variant",
             component: "hidden-word",
             supportedModes: ["ai"],
@@ -317,6 +375,7 @@ const categories: GameCategory[] = [
             ],
             nameKey: "gamePage.catalog.games.nonogram.name",
             descriptionKey: "gamePage.catalog.games.nonogram.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-view-grid-plus-outline",
             component: "nonogram",
             supportedModes: ["ai"],
@@ -339,6 +398,7 @@ const categories: GameCategory[] = [
             id: "memory-match",
             nameKey: "gamePage.catalog.games.memoryMatch.name",
             descriptionKey: "gamePage.catalog.games.memoryMatch.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-brain",
             component: null,
             supportedModes: [],
@@ -347,6 +407,7 @@ const categories: GameCategory[] = [
             id: "mastermind",
             nameKey: "gamePage.catalog.games.mastermind.name",
             descriptionKey: "gamePage.catalog.games.mastermind.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-bullseye-arrow",
             component: null,
             supportedModes: [],
@@ -355,6 +416,7 @@ const categories: GameCategory[] = [
             id: "minesweeper",
             nameKey: "gamePage.catalog.games.minesweeper.name",
             descriptionKey: "gamePage.catalog.games.minesweeper.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-bomb",
             component: null,
             supportedModes: [],
@@ -382,6 +444,7 @@ const categories: GameCategory[] = [
             id: "flappy-rocket",
             nameKey: "gamePage.catalog.games.flappyRocket.name",
             descriptionKey: "gamePage.catalog.games.flappyRocket.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-rocket-launch-outline",
             component: null,
             supportedModes: [],
@@ -390,6 +453,7 @@ const categories: GameCategory[] = [
             id: "stack-jump",
             nameKey: "gamePage.catalog.games.stackJump.name",
             descriptionKey: "gamePage.catalog.games.stackJump.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-cube-outline",
             component: null,
             supportedModes: [],
@@ -408,6 +472,7 @@ const categories: GameCategory[] = [
             id: "space-invaders",
             nameKey: "gamePage.catalog.games.spaceInvaders.name",
             descriptionKey: "gamePage.catalog.games.spaceInvaders.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-space-invaders",
             component: null,
             supportedModes: [],
@@ -416,6 +481,7 @@ const categories: GameCategory[] = [
             id: "brick-breaker",
             nameKey: "gamePage.catalog.games.brickBreaker.name",
             descriptionKey: "gamePage.catalog.games.brickBreaker.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-view-grid-plus-outline",
             component: null,
             supportedModes: [],
@@ -424,6 +490,7 @@ const categories: GameCategory[] = [
             id: "snake",
             nameKey: "gamePage.catalog.games.snake.name",
             descriptionKey: "gamePage.catalog.games.snake.description",
+            img: "/img/game/classic-card.png",
             icon: "mdi-snake",
             component: null,
             supportedModes: [],
@@ -972,17 +1039,26 @@ const handleLogin = async () => {
       />
     </template>
     <template #default>
-      <section v-if="!selectedCategory" class="mb-4">
-        <v-row class="ga-0 ga-md-1">
+      <section v-if="!selectedCategory">
+        <v-row>
           <v-col v-for="category in categories" :key="category.id" cols="12" md="6">
             <v-card
-              class="pa-8 h-100 unified-card interactive-card"
-              variant="outlined"
+                v-motion
+                :initial="cardMotion.initial"
+                :enter="cardMotion.enter"
+                :hovered="cardMotion.hovered"
+                class="h-100 card-category-game"
+                variant="text"
             >
+              <v-card-title class="text-center">{{ t(category?.nameKey) }}</v-card-title>
               <div class="w-100">
                 <div
-                    @click="openCategory(category.id)"
+                    v-motion
+                    :initial="imageMotion.initial"
+                    :enter="imageMotion.enter"
+                    :hovered="imageMotion.hovered"
                     class="catalog-image"
+                    @click="openCategory(category.id)"
                     :style="getCatalogImageStyle(category.id, 'category')"
                 >
                   <v-img :src="category.img" alt="Card" />
@@ -1005,12 +1081,21 @@ const handleLogin = async () => {
             md="6"
           >
             <v-card
-              class="pa-8 h-100 unified-card interactive-card"
-              variant="outlined"
+                v-motion
+                :initial="cardMotion.initial"
+                :enter="cardMotion.enter"
+                :hovered="cardMotion.hovered"
+                class="h-100 card-category-game"
+                variant="text"
             >
+              <v-card-title class="text-center">{{ t(subCategory?.nameKey) }}</v-card-title>
               <div class="w-100">
                 <div
                     @click="openSubCategory(subCategory.id)"
+                    v-motion
+                    :initial="imageMotion.initial"
+                    :enter="imageMotion.enter"
+                    :hovered="imageMotion.hovered"
                     class="catalog-image"
                     :style="getCatalogImageStyle(subCategory.id, 'subCategory')"
                 >
@@ -1031,39 +1116,27 @@ const handleLogin = async () => {
             md="6"
           >
             <v-card
-              class="pa-4 h-100 unified-card interactive-card"
-              variant="outlined"
+                v-motion
+                :initial="cardMotion.initial"
+                :enter="cardMotion.enter"
+                :hovered="cardMotion.hovered"
+                class="h-100 card-category-game"
+                variant="text"
             >
-              <div class="d-flex flex-column ga-2 h-100">
-                <div class="d-flex justify-content-center align-center">
-                  <v-avatar :color="getLevelColor('game')" variant="tonal"
-                    ><v-icon :icon="game.icon"
-                  /></v-avatar>
-                  <h3 class="card-title mx-4">{{ t(game.nameKey) }}</h3>
-                </div>
+              <v-card-title class="text-center">{{ t(game?.nameKey) }}</v-card-title>
+              <div class="w-100">
                 <div
-                  class="catalog-image mb-2"
-                  :style="getCatalogImageStyle(game.id, 'game')"
+                    @click="openGame(game.id)"
+                    :disabled="!game.component || !game.supportedModes.length"
+                    v-motion
+                    :initial="imageMotion.initial"
+                    :enter="imageMotion.enter"
+                    :hovered="imageMotion.hovered"
+                    class="catalog-image"
+                    :style="getCatalogImageStyle(game.id, 'game')"
                 >
-                  <div class="catalog-image__overlay">
-                    <v-icon :icon="game.icon" size="44" />
-                    <span class="catalog-image__label">{{
-                      t(game.descriptionKey)
-                    }}</span>
-                  </div>
+                  <v-img :src="game.img" alt="Card" />
                 </div>
-                <v-btn
-                  :color="getLevelColor('game')"
-                  variant="flat"
-                  :disabled="!game.component || !game.supportedModes.length"
-                  @click="openGame(game.id)"
-                >
-                  {{
-                    game.component
-                      ? t("gamePage.actions.chooseGame")
-                      : t("gamePage.status.comingSoon")
-                  }}
-                </v-btn>
               </div>
             </v-card>
           </v-col>
@@ -1074,25 +1147,14 @@ const handleLogin = async () => {
         v-else-if="selectedGame && !isGameStarted"
         class="mb-1 setup-section"
       >
-        <v-card class="pa-4 unified-card" variant="outlined">
-          <div v-if="selectedGame.features?.length" class="mb-4">
-            <h3 class="section-title mb-2">
-              {{ t("gamePage.labels.features") }}
-            </h3>
-            <ul class="info-list">
-              <li
-                v-for="feature in selectedGame.features"
-                :key="`selected-feature-${feature}`"
-              >
-                {{ t(feature) }}
-              </li>
-            </ul>
-          </div>
-
-          <v-row class="mb-4" dense>
-            <v-col cols="6">
-              <v-card
-                class="mode-card h-100"
+        <v-row class="mb-4" dense>
+          <v-col cols="6">
+            <v-card
+                v-motion
+                :initial="cardMotion.initial"
+                :enter="cardMotion.enter"
+                :hovered="cardMotion.hovered"
+                class="mode-card h-100 d-flex align-center justify-center"
                 :class="{ 'mode-card--active': selectedPlayMode === 'ai' }"
                 :variant="selectedPlayMode === 'ai' ? 'flat' : 'outlined'"
                 :color="
@@ -1103,17 +1165,21 @@ const handleLogin = async () => {
                   selectedGame.supportedModes.includes('ai') &&
                   selectPlayMode('ai')
                 "
+            >
+              <v-card-text
+                  class="text-center font-weight-bold text-title-large"
               >
-                <v-card-text
-                  class="text-center py-8 font-weight-bold text-subtitle-1"
-                >
-                  {{ modeLabel("ai") }}
-                </v-card-text>
-              </v-card>
-            </v-col>
-            <v-col cols="6">
-              <v-card
-                class="mode-card h-100"
+                {{ modeLabel("ai") }}
+              </v-card-text>
+            </v-card>
+          </v-col>
+          <v-col cols="6">
+            <v-card
+                v-motion
+                :initial="cardMotion.initial"
+                :enter="cardMotion.enter"
+                :hovered="cardMotion.hovered"
+                class="mode-card h-100 d-flex align-center justify-center"
                 :class="{ 'mode-card--active': selectedPlayMode === 'pvp' }"
                 :variant="selectedPlayMode === 'pvp' ? 'flat' : 'outlined'"
                 :color="
@@ -1126,49 +1192,48 @@ const handleLogin = async () => {
                   selectedGame.supportedModes.includes('pvp') &&
                   selectPlayMode('pvp')
                 "
+            >
+              <v-card-text
+                  class="text-center font-weight-bold text-title-large"
               >
-                <v-card-text
-                  class="text-center py-8 font-weight-bold text-subtitle-1"
-                >
-                  {{ modeLabel("pvp") }}
-                </v-card-text>
-              </v-card>
-            </v-col>
-          </v-row>
+                {{ modeLabel("pvp") }}
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
 
-          <div
+        <div
             v-if="selectedGame.id === 'belote'"
             class="d-flex flex-wrap ga-2 mb-4"
-          >
-            <v-btn
+        >
+          <v-btn
               color="deep-purple"
               :variant="selectedBeloteMode === 'teams' ? 'flat' : 'outlined'"
               @click="selectBeloteMode('teams')"
-            >
-              {{ t("gamePage.labels.beloteTeams") }}
-            </v-btn>
-            <v-btn
+          >
+            {{ t("gamePage.labels.beloteTeams") }}
+          </v-btn>
+          <v-btn
               color="deep-purple"
               :variant="
                 selectedBeloteMode === 'free-for-all' ? 'flat' : 'outlined'
               "
               @click="selectBeloteMode('free-for-all')"
-            >
-              {{ t("gamePage.labels.beloteFreeForAll") }}
-            </v-btn>
-          </div>
+          >
+            {{ t("gamePage.labels.beloteFreeForAll") }}
+          </v-btn>
+        </div>
 
-          <v-alert
+        <v-alert
             v-if="
               !selectedGame.supportedModes.length || !selectedGame.component
             "
             type="info"
             variant="tonal"
             class="mb-4"
-          >
-            {{ t("gamePage.status.soonHint") }}
-          </v-alert>
-        </v-card>
+        >
+          {{ t("gamePage.status.soonHint") }}
+        </v-alert>
         <div class="d-flex justify-center mt-auto pt-6">
           <v-btn
             :color="getLevelColor('game')"
@@ -1249,6 +1314,23 @@ const handleLogin = async () => {
 </template>
 
 <style scoped>
+.card-category-game {
+  padding: 20px;
+  border-radius: 12px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-category-game:hover {
+  transform: translateY(-10px) scale(1.03);
+}
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
 .unified-shell,
 .unified-card {
   border-radius: 18px;

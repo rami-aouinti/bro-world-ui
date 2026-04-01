@@ -122,6 +122,7 @@ export default defineNuxtConfig({
     '@nuxtjs/i18n',
     '@pinia/nuxt',
     'nuxt-auth-utils',
+    '@vueuse/motion/nuxt'
   ],
   vuetify: {
     vuetifyOptions: {

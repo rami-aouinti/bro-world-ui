@@ -10,6 +10,7 @@ export interface GameEntry {
   features?: string[];
   nameKey: string;
   descriptionKey: string;
+  img: string;
   icon: string;
   component:
     | "rami"
