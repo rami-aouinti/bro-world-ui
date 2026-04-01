@@ -158,6 +158,8 @@ const allGameEntries = computed(() =>
     category.subCategories.flatMap((subCategory) => subCategory.games),
   ),
 );
+const getGameBusinessKey = (game: GameEntry | null | undefined) =>
+  game?.key ?? game?.id ?? null;
 
 const selectedCategory = computed(
   () =>
@@ -195,7 +197,7 @@ const canLaunchSelectedGame = computed(() => {
 
   if (!hasPlayableMode) return false;
 
-  if (selectedGame.value.id === "belote") {
+  if (getGameBusinessKey(selectedGame.value) === "belote") {
     return Boolean(selectedBeloteMode.value);
   }
 
@@ -278,7 +280,9 @@ const openSubCategory = (subCategoryId: string) => {
 const openGame = (gameId: string) => {
   selectedGameId.value = gameId;
   selectedPlayMode.value = null;
-  selectedBeloteMode.value = gameId === "belote" ? "teams" : null;
+  const nextGame = allGameEntries.value.find((entry) => entry.id === gameId);
+  selectedBeloteMode.value =
+    getGameBusinessKey(nextGame) === "belote" ? "teams" : null;
   isGameStarted.value = false;
 };
 
@@ -301,7 +305,7 @@ const selectPlayMode = (mode: PlayMode) => {
 };
 
 const selectBeloteMode = (mode: BeloteMode) => {
-  if (selectedGame.value?.id !== "belote") return;
+  if (getGameBusinessKey(selectedGame.value) !== "belote") return;
   selectedBeloteMode.value = mode;
   isGameStarted.value = false;
 };
@@ -889,7 +893,7 @@ const handleLogin = async () => {
         </v-row>
 
         <div
-            v-if="selectedGame.id === 'belote'"
+            v-if="getGameBusinessKey(selectedGame) === 'belote'"
             class="d-flex flex-wrap ga-2 mb-4"
         >
           <v-btn
