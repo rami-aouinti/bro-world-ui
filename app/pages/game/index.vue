@@ -158,6 +158,7 @@ const unoGameRef = ref<{
 type AsideActionHandler = {
   handleAsideAction: (actionId: string) => void;
 };
+type RightPanelState = "quick-access" | "mode-selection" | "in-game-details";
 const allGameEntries = computed(() =>
   categories.value.flatMap((category) =>
     category.subCategories.flatMap((subCategory) => subCategory.games),
@@ -261,6 +262,18 @@ const gameStatusLabel = computed(() => {
   if (canLaunchSelectedGame.value) return t("gamePage.status.ready");
 
   return t("gamePage.status.selecting");
+});
+
+const rightPanelState = computed<RightPanelState>(() => {
+  if (isGameStarted.value && selectedGame.value) {
+    return "in-game-details";
+  }
+
+  if (selectedGame.value) {
+    return "mode-selection";
+  }
+
+  return "quick-access";
 });
 
 const getLevelColor = (
@@ -768,7 +781,7 @@ const handleLogin = async () => {
       </v-snackbar>
     </template>
     <template #aside>
-      <section v-if="!isGameStarted" class="quick-access">
+      <section v-if="rightPanelState === 'quick-access'" class="quick-access">
         <h3 class="text-h6 mb-3">
           {{ te("gamePage.quickAccess.title") ? t("gamePage.quickAccess.title") : "Quick Access" }}
         </h3>
@@ -826,7 +839,25 @@ const handleLogin = async () => {
         </div>
       </section>
       <section
-        v-else-if="isGameStarted && selectedGame"
+        v-else-if="rightPanelState === 'mode-selection' && selectedGame"
+        class="d-flex flex-column ga-4"
+      >
+        <v-card variant="outlined" class="pa-4">
+          <h3 class="text-h6 mb-3">Mode Selection</h3>
+          <div class="d-flex flex-column ga-2">
+            <p class="text-caption text-medium-emphasis mb-0">Jeu sélectionné</p>
+            <p class="text-body-1 font-weight-medium mb-1">
+              {{ safeTranslate(selectedGame.nameKey) }}
+            </p>
+            <p class="text-caption text-medium-emphasis mb-0">Mode actuel</p>
+            <p class="text-body-2 mb-0">
+              {{ selectedPlayMode ? modeLabel(selectedPlayMode) : "Aucun mode sélectionné" }}
+            </p>
+          </div>
+        </v-card>
+      </section>
+      <section
+        v-else
         class="d-flex flex-column ga-4"
       >
         <v-card variant="outlined" class="pa-4">
