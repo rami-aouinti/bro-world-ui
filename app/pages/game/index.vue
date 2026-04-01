@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { storeToRefs } from "pinia";
+import { computed, onMounted, ref, watch } from "vue";
 import BeloteGame from "~/components/games/BeloteGame.vue";
 import CheckersGame from "~/components/games/CheckersGame.vue";
 import ChessGame from "~/components/games/ChessGame.vue";
@@ -19,6 +20,7 @@ import type {
   PlayMode,
 } from "~/types/game";
 import type { GameAsidePanelState } from "~/components/games/types";
+import { useGameCatalogStore } from "~/stores/gameCatalog";
 
 const { t } = useI18n();
 const { isAuthenticated, login } = useAuth();
@@ -71,435 +73,14 @@ definePageMeta({
   splitShell: false,
 });
 
-const categories: GameCategory[] = [
-  {
-    id: "cards",
-    nameKey: "gamePage.catalog.categories.cards.name",
-    descriptionKey: "gamePage.catalog.categories.cards.description",
-    img: "/img/game/card-game.png",
-    icon: "mdi-cards-playing-outline",
-    subCategories: [
-      {
-        id: "classic-cards",
-        nameKey: "gamePage.catalog.subCategories.classicCards.name",
-        descriptionKey:
-          "gamePage.catalog.subCategories.classicCards.description",
-        img: "/img/game/classic-card.png",
-        icon: "mdi-cards-outline",
-        games: [
-          {
-            id: "rami",
-            nameKey: "gamePage.catalog.games.rami.name",
-            descriptionKey: "gamePage.catalog.games.rami.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-cards-diamond-outline",
-            component: "rami",
-            supportedModes: ["ai", "pvp"],
-          },
-          {
-            id: "belote",
-            nameKey: "gamePage.catalog.games.belote.name",
-            descriptionKey: "gamePage.catalog.games.belote.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-cards-club-outline",
-            component: "belote",
-            supportedModes: ["ai"],
-          },
-          {
-            id: "poker",
-            nameKey: "gamePage.catalog.games.poker.name",
-            descriptionKey: "gamePage.catalog.games.poker.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-cards-spade-outline",
-            component: "poker",
-            supportedModes: ["ai"],
-          },
-          {
-            id: "uno",
-            nameKey: "gamePage.catalog.games.uno.name",
-            descriptionKey: "gamePage.catalog.games.uno.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-cards-playing",
-            component: "uno",
-            supportedModes: ["ai", "pvp"],
-          },
-        ],
-      },
-      {
-        id: "party-cards",
-        nameKey: "gamePage.catalog.subCategories.partyCards.name",
-        descriptionKey: "gamePage.catalog.subCategories.partyCards.description",
-        img: "/img/game/party-card.png",
-        icon: "mdi-party-popper",
-        games: [
-          {
-            id: "solitaire",
-            nameKey: "gamePage.catalog.games.solitaire.name",
-            descriptionKey: "gamePage.catalog.games.solitaire.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-cards-playing-heart-outline",
-            component: null,
-            supportedModes: [],
-          },
-          {
-            id: "hearts",
-            nameKey: "gamePage.catalog.games.hearts.name",
-            descriptionKey: "gamePage.catalog.games.hearts.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-cards-heart",
-            component: null,
-            supportedModes: [],
-          },
-          {
-            id: "spades",
-            nameKey: "gamePage.catalog.games.spades.name",
-            descriptionKey: "gamePage.catalog.games.spades.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-cards-spade-heart-outline",
-            component: null,
-            supportedModes: [],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "board",
-    nameKey: "gamePage.catalog.categories.board.name",
-    img: "/img/game/board-game.png",
-    descriptionKey: "gamePage.catalog.categories.board.description",
-    icon: "mdi-checkerboard",
-    subCategories: [
-      {
-        id: "table-classic",
-        nameKey: "gamePage.catalog.subCategories.tableClassic.name",
-        descriptionKey:
-          "gamePage.catalog.subCategories.tableClassic.description",
-        img: "/img/game/card-game.png",
-        icon: "mdi-gamepad-round-outline",
-        games: [
-          {
-            id: "checkers",
-            nameKey: "gamePage.catalog.games.checkers.name",
-            descriptionKey: "gamePage.catalog.games.checkers.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-circle-multiple-outline",
-            component: "checkers",
-            supportedModes: ["ai", "pvp"],
-          },
-          {
-            id: "chess",
-            categoryKey: "gamePage.catalog.categories.board.name",
-            subcategoryKey: "gamePage.catalog.subCategories.tableClassic.name",
-            difficultyKey: "gamePage.catalog.difficulties.hard",
-            tags: [
-              "gamePage.catalog.games.chess.meta.tags.strategy",
-              "gamePage.catalog.games.chess.meta.tags.solo",
-              "gamePage.catalog.games.chess.meta.tags.multiplayer",
-              "gamePage.catalog.games.chess.meta.tags.oneVsOne",
-              "gamePage.catalog.games.chess.meta.tags.ai",
-              "gamePage.catalog.games.chess.meta.tags.replay",
-            ],
-            nameKey: "gamePage.catalog.games.chess.name",
-            descriptionKey: "gamePage.catalog.games.chess.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-chess-knight",
-            component: "chess",
-            supportedModes: ["ai", "pvp"],
-            features: [
-              "gamePage.catalog.games.chess.meta.features.ai",
-              "gamePage.catalog.games.chess.meta.features.multiplayer",
-              "gamePage.catalog.games.chess.meta.features.replay",
-            ],
-          },
-        ],
-      },
-      {
-        id: "family-board",
-        nameKey: "gamePage.catalog.subCategories.familyBoard.name",
-        descriptionKey:
-          "gamePage.catalog.subCategories.familyBoard.description",
-        img: "/img/game/family-board.png",
-        icon: "mdi-account-group-outline",
-        games: [
-          {
-            id: "ludo",
-            nameKey: "gamePage.catalog.games.ludo.name",
-            descriptionKey: "gamePage.catalog.games.ludo.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-dice-multiple-outline",
-            component: null,
-            supportedModes: [],
-          },
-          {
-            id: "backgammon",
-            nameKey: "gamePage.catalog.games.backgammon.name",
-            descriptionKey: "gamePage.catalog.games.backgammon.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-gamepad-variant-outline",
-            component: null,
-            supportedModes: [],
-          },
-          {
-            id: "dominoes",
-            nameKey: "gamePage.catalog.games.dominoes.name",
-            descriptionKey: "gamePage.catalog.games.dominoes.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-domino-mask",
-            component: null,
-            supportedModes: [],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "smart-games",
-    nameKey: "gamePage.catalog.categories.smartGames.name",
-    descriptionKey: "gamePage.catalog.categories.smartGames.description",
-    img: "/img/game/smart-game.png",
-    icon: "mdi-brain",
-    subCategories: [
-      {
-        id: "logic",
-        nameKey: "gamePage.catalog.subCategories.logic.name",
-        descriptionKey: "gamePage.catalog.subCategories.logic.description",
-        img: "/img/game/logic.png",
-        icon: "mdi-lightbulb-on-outline",
-        games: [
-          {
-            id: "sudoku",
-            categoryKey: "gamePage.catalog.categories.smartGames.name",
-            subcategoryKey: "gamePage.catalog.subCategories.logic.name",
-            difficultyKey: "gamePage.catalog.difficulties.medium",
-            tags: [
-              "gamePage.catalog.games.sudoku.meta.tags.logic",
-              "gamePage.catalog.games.sudoku.meta.tags.puzzle",
-              "gamePage.catalog.games.sudoku.meta.tags.daily",
-              "gamePage.catalog.games.sudoku.meta.tags.solo",
-              "gamePage.catalog.games.sudoku.meta.tags.timer",
-              "gamePage.catalog.games.sudoku.meta.tags.score",
-            ],
-            nameKey: "gamePage.catalog.games.sudoku.name",
-            descriptionKey: "gamePage.catalog.games.sudoku.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-grid",
-            component: "sudoku",
-            supportedModes: ["ai"],
-            features: [
-              "gamePage.catalog.games.sudoku.meta.features.gridGeneration",
-              "gamePage.catalog.games.sudoku.meta.features.autoCheck",
-              "gamePage.catalog.games.sudoku.meta.features.timerAndScore",
-            ],
-          },
-          {
-            id: "game-2048",
-            categoryKey: "gamePage.catalog.categories.smartGames.name",
-            subcategoryKey: "gamePage.catalog.subCategories.logic.name",
-            difficultyKey: "gamePage.catalog.difficulties.easy",
-            tags: [
-              "gamePage.catalog.games.game2048.meta.tags.logic",
-              "gamePage.catalog.games.game2048.meta.tags.strategy",
-              "gamePage.catalog.games.game2048.meta.tags.puzzle",
-              "gamePage.catalog.games.game2048.meta.tags.solo",
-              "gamePage.catalog.games.game2048.meta.tags.score",
-            ],
-            nameKey: "gamePage.catalog.games.game2048.name",
-            descriptionKey: "gamePage.catalog.games.game2048.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-numeric-8-box-multiple-outline",
-            component: "game2048",
-            supportedModes: ["ai"],
-            features: [
-              "gamePage.catalog.games.game2048.meta.features.smoothAnimations",
-              "gamePage.catalog.games.game2048.meta.features.scoreAndBest",
-              "gamePage.catalog.games.game2048.meta.features.sessionSave",
-            ],
-          },
-        ],
-      },
-      {
-        id: "words-language",
-        nameKey: "gamePage.catalog.subCategories.wordsLanguage.name",
-        descriptionKey:
-          "gamePage.catalog.subCategories.wordsLanguage.description",
-        img: "/img/game/words.png",
-        icon: "mdi-alphabetical-variant",
-        games: [
-          {
-            id: "hidden-word",
-            categoryKey: "gamePage.catalog.categories.smartGames.name",
-            subcategoryKey: "gamePage.catalog.subCategories.wordsLanguage.name",
-            difficultyKey: "gamePage.catalog.difficulties.medium",
-            tags: [
-              "gamePage.catalog.games.hiddenWord.meta.tags.words",
-              "gamePage.catalog.games.hiddenWord.meta.tags.daily",
-              "gamePage.catalog.games.hiddenWord.meta.tags.puzzle",
-              "gamePage.catalog.games.hiddenWord.meta.tags.solo",
-              "gamePage.catalog.games.hiddenWord.meta.tags.hints",
-              "gamePage.catalog.games.hiddenWord.meta.tags.share",
-            ],
-            nameKey: "gamePage.catalog.games.hiddenWord.name",
-            descriptionKey: "gamePage.catalog.games.hiddenWord.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-text-search-variant",
-            component: "hidden-word",
-            supportedModes: ["ai"],
-            features: [
-              "gamePage.catalog.games.hiddenWord.meta.features.wordOfTheDay",
-              "gamePage.catalog.games.hiddenWord.meta.features.dictionary",
-              "gamePage.catalog.games.hiddenWord.meta.features.share",
-            ],
-          },
-        ],
-      },
-      {
-        id: "grids-puzzles",
-        nameKey: "gamePage.catalog.subCategories.gridsPuzzles.name",
-        descriptionKey:
-          "gamePage.catalog.subCategories.gridsPuzzles.description",
-        img: "/img/game/puzzle.png",
-        icon: "mdi-grid-large",
-        games: [
-          {
-            id: "nonogram",
-            categoryKey: "gamePage.catalog.categories.smartGames.name",
-            subcategoryKey: "gamePage.catalog.subCategories.gridsPuzzles.name",
-            difficultyKey: "gamePage.catalog.difficulties.hard",
-            tags: [
-              "gamePage.catalog.games.nonogram.meta.tags.logic",
-              "gamePage.catalog.games.nonogram.meta.tags.puzzle",
-              "gamePage.catalog.games.nonogram.meta.tags.grid",
-              "gamePage.catalog.games.nonogram.meta.tags.solo",
-              "gamePage.catalog.games.nonogram.meta.tags.deduction",
-            ],
-            nameKey: "gamePage.catalog.games.nonogram.name",
-            descriptionKey: "gamePage.catalog.games.nonogram.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-view-grid-plus-outline",
-            component: "nonogram",
-            supportedModes: ["ai"],
-            features: [
-              "gamePage.catalog.games.nonogram.meta.features.rowColumnHints",
-              "gamePage.catalog.games.nonogram.meta.features.progressiveLevels",
-            ],
-          },
-        ],
-      },
-      {
-        id: "brain-training",
-        nameKey: "gamePage.catalog.subCategories.brainTraining.name",
-        descriptionKey:
-          "gamePage.catalog.subCategories.brainTraining.description",
-        img: "/img/game/brain.png",
-        icon: "mdi-head-cog-outline",
-        games: [
-          {
-            id: "memory-match",
-            nameKey: "gamePage.catalog.games.memoryMatch.name",
-            descriptionKey: "gamePage.catalog.games.memoryMatch.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-brain",
-            component: null,
-            supportedModes: [],
-          },
-          {
-            id: "mastermind",
-            nameKey: "gamePage.catalog.games.mastermind.name",
-            descriptionKey: "gamePage.catalog.games.mastermind.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-bullseye-arrow",
-            component: null,
-            supportedModes: [],
-          },
-          {
-            id: "minesweeper",
-            nameKey: "gamePage.catalog.games.minesweeper.name",
-            descriptionKey: "gamePage.catalog.games.minesweeper.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-bomb",
-            component: null,
-            supportedModes: [],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "arcade",
-    nameKey: "gamePage.catalog.categories.arcade.name",
-    descriptionKey: "gamePage.catalog.categories.arcade.description",
-    img: "/img/game/arcade-game.png",
-    icon: "mdi-gamepad-variant-outline",
-    subCategories: [
-      {
-        id: "reaction-arcade",
-        nameKey: "gamePage.catalog.subCategories.reactionArcade.name",
-        descriptionKey:
-          "gamePage.catalog.subCategories.reactionArcade.description",
-        img: "/img/game/card-game.png",
-        icon: "mdi-lightning-bolt-outline",
-        games: [
-          {
-            id: "flappy-rocket",
-            nameKey: "gamePage.catalog.games.flappyRocket.name",
-            descriptionKey: "gamePage.catalog.games.flappyRocket.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-rocket-launch-outline",
-            component: null,
-            supportedModes: [],
-          },
-          {
-            id: "stack-jump",
-            nameKey: "gamePage.catalog.games.stackJump.name",
-            descriptionKey: "gamePage.catalog.games.stackJump.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-cube-outline",
-            component: null,
-            supportedModes: [],
-          },
-        ],
-      },
-      {
-        id: "classic-arcade",
-        nameKey: "gamePage.catalog.subCategories.classicArcade.name",
-        descriptionKey:
-          "gamePage.catalog.subCategories.classicArcade.description",
-        img: "/img/game/card-game.png",
-        icon: "mdi-ghost-outline",
-        games: [
-          {
-            id: "space-invaders",
-            nameKey: "gamePage.catalog.games.spaceInvaders.name",
-            descriptionKey: "gamePage.catalog.games.spaceInvaders.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-space-invaders",
-            component: null,
-            supportedModes: [],
-          },
-          {
-            id: "brick-breaker",
-            nameKey: "gamePage.catalog.games.brickBreaker.name",
-            descriptionKey: "gamePage.catalog.games.brickBreaker.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-view-grid-plus-outline",
-            component: null,
-            supportedModes: [],
-          },
-          {
-            id: "snake",
-            nameKey: "gamePage.catalog.games.snake.name",
-            descriptionKey: "gamePage.catalog.games.snake.description",
-            img: "/img/game/classic-card.png",
-            icon: "mdi-snake",
-            component: null,
-            supportedModes: [],
-          },
-        ],
-      },
-    ],
-  },
-];
+const gameCatalogStore = useGameCatalogStore();
+const {
+  categories: storeCategories,
+  isLoading: isCatalogLoading,
+  error: catalogError,
+} = storeToRefs(gameCatalogStore);
+const categories = computed<GameCategory[]>(() => storeCategories.value);
+
 
 const selectedCategoryId = ref<string | null>(null);
 const selectedSubCategoryId = ref<string | null>(null);
@@ -571,14 +152,14 @@ type AsideActionHandler = {
   handleAsideAction: (actionId: string) => void;
 };
 const allGameEntries = computed(() =>
-  categories.flatMap((category) =>
+  categories.value.flatMap((category) =>
     category.subCategories.flatMap((subCategory) => subCategory.games),
   ),
 );
 
 const selectedCategory = computed(
   () =>
-    categories.find((category) => category.id === selectedCategoryId.value) ??
+    categories.value.find((category) => category.id === selectedCategoryId.value) ??
     null,
 );
 const selectedSubCategory = computed(
@@ -761,6 +342,71 @@ const globalRestartAction = computed(() => {
 
   return actions.find((action) => primaryIds.has(action.id)) ?? null;
 });
+
+onMounted(async () => {
+  await gameCatalogStore.fetchCatalog();
+});
+
+watch(categories, (nextCategories) => {
+  if (!nextCategories.length) {
+    resetToCategories();
+    return;
+  }
+
+  const hasSelectedCategory = nextCategories.some(
+    (category) => category.id === selectedCategoryId.value,
+  );
+
+  if (!hasSelectedCategory) {
+    resetToCategories();
+    return;
+  }
+
+  const nextSelectedCategory = nextCategories.find(
+    (category) => category.id === selectedCategoryId.value,
+  );
+
+  if (!nextSelectedCategory) {
+    resetToCategories();
+    return;
+  }
+
+  const hasSelectedSubCategory = nextSelectedCategory.subCategories.some(
+    (subCategory) => subCategory.id === selectedSubCategoryId.value,
+  );
+
+  if (!hasSelectedSubCategory) {
+    selectedSubCategoryId.value = null;
+    selectedGameId.value = null;
+    selectedPlayMode.value = null;
+    selectedBeloteMode.value = null;
+    isGameStarted.value = false;
+    return;
+  }
+
+  const nextSelectedSubCategory = nextSelectedCategory.subCategories.find(
+    (subCategory) => subCategory.id === selectedSubCategoryId.value,
+  );
+
+  if (!nextSelectedSubCategory) {
+    selectedGameId.value = null;
+    selectedPlayMode.value = null;
+    selectedBeloteMode.value = null;
+    isGameStarted.value = false;
+    return;
+  }
+
+  const hasSelectedGame = nextSelectedSubCategory.games.some(
+    (game) => game.id === selectedGameId.value,
+  );
+
+  if (!hasSelectedGame) {
+    selectedGameId.value = null;
+    selectedPlayMode.value = null;
+    selectedBeloteMode.value = null;
+    isGameStarted.value = false;
+  }
+}, { immediate: true });
 
 watch([selectedGameId, isGameStarted], () => {
   if (!isGameStarted.value) {
@@ -1039,7 +685,30 @@ const handleLogin = async () => {
       />
     </template>
     <template #default>
-      <section v-if="!selectedCategory">
+      <section v-if="isCatalogLoading">
+        <v-row>
+          <v-col v-for="index in 4" :key="`catalog-skeleton-${index}`" cols="12" md="6">
+            <v-skeleton-loader type="heading, image" class="h-100" />
+          </v-col>
+        </v-row>
+      </section>
+
+      <section v-else-if="catalogError">
+        <v-alert type="error" variant="tonal" class="mb-4">
+          {{ catalogError }}
+        </v-alert>
+        <v-btn color="primary" variant="outlined" @click="gameCatalogStore.fetchCatalog(true)">
+          {{ t("common.retry") }}
+        </v-btn>
+      </section>
+
+      <section v-else-if="!categories.length">
+        <v-alert type="info" variant="tonal">
+          {{ t("gamePage.status.none") }}
+        </v-alert>
+      </section>
+
+      <section v-else-if="!selectedCategory">
         <v-row>
           <v-col v-for="category in categories" :key="category.id" cols="12" md="6">
             <v-card
