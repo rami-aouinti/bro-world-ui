@@ -2,6 +2,7 @@ import { useApiClient } from "../useApiClient";
 
 export interface ApiGameListItem {
   id: string;
+  key?: string | null;
   status?: string | null;
   [key: string]: unknown;
 }
