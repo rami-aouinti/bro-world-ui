@@ -4,6 +4,7 @@ export type BeloteMode = "teams" | "free-for-all";
 
 export interface GameEntry {
   id: string;
+  key?: string;
   categoryKey?: string;
   subcategoryKey?: string;
   difficultyKey?: string;
@@ -30,6 +31,7 @@ export interface GameEntry {
 
 export interface GameSubCategory {
   id: string;
+  key?: string;
   nameKey: string;
   descriptionKey: string;
   img: string;
@@ -39,6 +41,7 @@ export interface GameSubCategory {
 
 export interface GameCategory {
   id: string;
+  key?: string;
   nameKey: string;
   descriptionKey: string;
   img: string;
