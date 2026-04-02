@@ -1,6 +1,7 @@
 export type PlayMode = "ai" | "pvp";
 export type ApiPlayMode = "solo" | "versus" | "online" | "endless" | "ai" | "pvp";
 export type BeloteMode = "teams" | "free-for-all";
+export type GameDevelopmentStatus = "playable" | "prototype" | "coming_soon";
 
 export interface GameEntry {
   id: string;
@@ -27,6 +28,8 @@ export interface GameEntry {
     | "uno"
     | null;
   supportedModes: PlayMode[];
+  developmentStatus: GameDevelopmentStatus;
+  availableModes?: PlayMode[];
 }
 
 export interface GameSubCategory {
@@ -50,8 +53,10 @@ export interface GameCategory {
 }
 
 
-export interface ApiGameEntry extends Omit<GameEntry, "supportedModes"> {
+export interface ApiGameEntry extends Omit<GameEntry, "supportedModes" | "developmentStatus" | "availableModes"> {
   supportedModes: ApiPlayMode[];
+  developmentStatus?: GameDevelopmentStatus;
+  availableModes?: ApiPlayMode[];
 }
 
 export interface ApiGameSubCategory extends Omit<GameSubCategory, "games"> {
