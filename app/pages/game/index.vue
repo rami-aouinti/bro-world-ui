@@ -12,6 +12,10 @@ import SudokuGame from "~/components/games/SudokuGame.vue";
 import Game2048 from "~/components/games/Game2048.vue";
 import UnoGame from "~/components/games/UnoGame.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
+import {
+  useGameSessionsApi,
+  type GameLevel,
+} from "~/composables/api/useGameSessionsApi";
 import type {
   ApiPlayMode,
   BeloteMode,
@@ -27,6 +31,8 @@ import { useGamesStore } from "~/stores/games";
 const { t, te } = useI18n();
 const { isAuthenticated, login } = useAuth();
 const authSession = useAuthSessionStore();
+const router = useRouter();
+const gameSessionsApi = useGameSessionsApi();
 
 const cardMotion = {
   initial: {
@@ -94,6 +100,7 @@ const selectedSubCategoryId = ref<string | null>(null);
 const selectedGameId = ref<string | null>(null);
 const selectedPlayMode = ref<PlayMode | null>(null);
 const selectedBeloteMode = ref<BeloteMode | null>(null);
+const selectedAiLevel = ref<GameLevel | null>(null);
 const isGameStarted = ref(false);
 const isLoginDialogOpen = ref(false);
 const isCoinsDialogOpen = ref(false);
@@ -159,6 +166,7 @@ type AsideActionHandler = {
   handleAsideAction: (actionId: string) => void;
 };
 type RightPanelState = "quick-access" | "mode-selection" | "in-game-details";
+const aiLevels: GameLevel[] = ["easy", "medium", "hard"];
 const allGameEntries = computed(() =>
   categories.value.flatMap((category) =>
     category.subCategories.flatMap((subCategory) => subCategory.games),
@@ -239,6 +247,10 @@ const canLaunchSelectedGame = computed(() => {
     localSupportedModes.value.includes(selectedPlayMode.value as PlayMode);
 
   if (!hasPlayableMode) return false;
+
+  if (selectedPlayMode.value === "ai" && !selectedAiLevel.value) {
+    return false;
+  }
 
   if (getGameBusinessKey(selectedGame.value) === "belote") {
     return Boolean(selectedBeloteMode.value);
@@ -321,6 +333,7 @@ const openCategory = (categoryId: string) => {
   selectedGameId.value = null;
   selectedPlayMode.value = null;
   selectedBeloteMode.value = null;
+  selectedAiLevel.value = null;
   isGameStarted.value = false;
 };
 
@@ -329,6 +342,7 @@ const openSubCategory = (subCategoryId: string) => {
   selectedGameId.value = null;
   selectedPlayMode.value = null;
   selectedBeloteMode.value = null;
+  selectedAiLevel.value = null;
   isGameStarted.value = false;
 };
 
@@ -338,6 +352,7 @@ const openGame = (gameId: string) => {
   const nextGame = allGameEntries.value.find((entry) => entry.id === gameId);
   selectedBeloteMode.value =
     getGameBusinessKey(nextGame) === "belote" ? "teams" : null;
+  selectedAiLevel.value = null;
   isGameStarted.value = false;
 };
 
@@ -347,6 +362,7 @@ const resetToCategories = () => {
   selectedGameId.value = null;
   selectedPlayMode.value = null;
   selectedBeloteMode.value = null;
+  selectedAiLevel.value = null;
   isGameStarted.value = false;
 };
 
@@ -355,6 +371,7 @@ const backToSubCategories = () => {
   selectedGameId.value = null;
   selectedPlayMode.value = null;
   selectedBeloteMode.value = null;
+  selectedAiLevel.value = null;
   isGameStarted.value = false;
 };
 
@@ -362,6 +379,7 @@ const backToGames = () => {
   selectedGameId.value = null;
   selectedPlayMode.value = null;
   selectedBeloteMode.value = null;
+  selectedAiLevel.value = null;
   isGameStarted.value = false;
 };
 
@@ -371,6 +389,14 @@ const selectPlayMode = (mode: PlayMode) => {
   }
 
   selectedPlayMode.value = mode;
+  if (mode !== "ai") {
+    selectedAiLevel.value = null;
+  }
+  isGameStarted.value = false;
+};
+
+const selectAiLevel = (level: GameLevel) => {
+  selectedAiLevel.value = level;
   isGameStarted.value = false;
 };
 
@@ -380,9 +406,48 @@ const selectBeloteMode = (mode: BeloteMode) => {
   isGameStarted.value = false;
 };
 
-const launchGame = () => {
+const launchGame = async () => {
   if (!canLaunchSelectedGame.value) {
     return;
+  }
+
+  if (selectedPlayMode.value === "ai") {
+    if (!isAuthenticated.value) {
+      isLoginDialogOpen.value = true;
+      return;
+    }
+
+    if (!selectedGame.value?.id || !selectedAiLevel.value) {
+      return;
+    }
+
+    try {
+      const response = await gameSessionsApi.startGameSession(
+        selectedGame.value.id,
+        selectedAiLevel.value,
+      );
+
+      if (authSession.profile) {
+        authSession.profile = {
+          ...authSession.profile,
+          coins: response.coins,
+        };
+      }
+
+      await router.push({
+        path: `/game/${response.userGameId}/play`,
+        query: {
+          gameId: selectedGame.value.id,
+          mode: selectedPlayMode.value,
+          level: selectedAiLevel.value,
+          sessionId: response.session.sessionId,
+          beloteMode: selectedBeloteMode.value ?? undefined,
+        },
+      });
+      return;
+    } catch {
+      return;
+    }
   }
 
   isGameStarted.value = true;
@@ -495,6 +560,7 @@ watch(categories, (nextCategories) => {
       selectedGameId.value = null;
       selectedPlayMode.value = null;
       selectedBeloteMode.value = null;
+      selectedAiLevel.value = null;
       isGameStarted.value = false;
     }
     return;
@@ -509,6 +575,7 @@ watch(categories, (nextCategories) => {
     selectedGameId.value = null;
     selectedPlayMode.value = null;
     selectedBeloteMode.value = null;
+    selectedAiLevel.value = null;
     isGameStarted.value = false;
     return;
   }
@@ -521,6 +588,7 @@ watch(categories, (nextCategories) => {
     selectedGameId.value = null;
     selectedPlayMode.value = null;
     selectedBeloteMode.value = null;
+    selectedAiLevel.value = null;
     isGameStarted.value = false;
     return;
   }
@@ -533,6 +601,7 @@ watch(categories, (nextCategories) => {
     selectedGameId.value = null;
     selectedPlayMode.value = null;
     selectedBeloteMode.value = null;
+    selectedAiLevel.value = null;
     isGameStarted.value = false;
   }
 }, { immediate: true });
@@ -1117,6 +1186,31 @@ const handleLogin = async () => {
             {{ t("gamePage.labels.beloteFreeForAll") }}
           </v-btn>
         </div>
+
+        <v-row
+          v-if="selectedPlayMode === 'ai'"
+          class="mb-4"
+          dense
+        >
+          <v-col
+            v-for="level in aiLevels"
+            :key="`ai-level-${level}`"
+            cols="12"
+            md="4"
+          >
+            <v-card
+              class="mode-card h-100 d-flex align-center justify-center"
+              :class="{ 'mode-card--active': selectedAiLevel === level }"
+              :variant="selectedAiLevel === level ? 'flat' : 'outlined'"
+              :color="selectedAiLevel === level ? 'primary' : undefined"
+              @click="selectAiLevel(level)"
+            >
+              <v-card-text class="text-center font-weight-bold text-title-medium text-uppercase">
+                {{ level }}
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
 
         <v-alert
             v-if="
