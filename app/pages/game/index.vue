@@ -406,6 +406,7 @@ const onAsideAction = (actionId: string) => {
     game2048: game2048Ref.value,
     poker: pokerGameRef.value,
     uno: unoGameRef.value,
+    "flappy-rocket": null,
   };
 
   asideHandlersByComponent[component]?.handleAsideAction(actionId);
