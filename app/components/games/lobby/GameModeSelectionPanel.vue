@@ -158,8 +158,17 @@ const emit = defineEmits<{
   box-shadow: 0 10px 18px rgba(15, 23, 42, 0.18);
 }
 
+:global(body.theme-gaming) .mode-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--gaming-glow-strong);
+}
+
 .mode-card--active {
   box-shadow: 0 12px 20px rgba(15, 23, 42, 0.18);
+}
+
+:global(body.theme-gaming) .mode-card--active {
+  border-color: rgba(0, 229, 255, 0.42);
 }
 
 .selection-card-image {
@@ -179,5 +188,12 @@ const emit = defineEmits<{
     rgba(var(--v-theme-primary), 0.1),
     rgba(var(--v-theme-surface), 0.4)
   );
+}
+
+:global(body.theme-gaming) .launch-loader {
+  border-color: rgba(0, 229, 255, 0.4);
+  background:
+    radial-gradient(circle at top, rgba(0, 229, 255, 0.12), transparent 58%),
+    linear-gradient(130deg, rgba(124, 77, 255, 0.2), rgba(8, 12, 26, 0.88));
 }
 </style>

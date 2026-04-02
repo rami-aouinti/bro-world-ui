@@ -117,6 +117,50 @@ body.rtl .text-right {
   --ui-platform-text-secondary: var(--platform-color-text-secondary);
   --ui-platform-radius-md: var(--platform-radius-md);
   --ui-platform-shadow-md: var(--platform-shadow-md);
+
+  /* Gaming theme tokens (opt-in via body.theme-gaming) */
+  --gaming-bg: rgb(var(--v-theme-background));
+  --gaming-surface-0: rgb(var(--v-theme-surface));
+  --gaming-surface-1: color-mix(in srgb, rgb(var(--v-theme-surface)) 92%, #000 8%);
+  --gaming-surface-border: rgba(var(--v-theme-on-surface), 0.16);
+  --gaming-neon-primary: rgb(var(--v-theme-primary));
+  --gaming-neon-secondary: #00e5ff;
+  --gaming-neon-accent: #8b5cf6;
+  --gaming-glow-soft: 0 0 18px color-mix(in srgb, var(--gaming-neon-secondary) 35%, transparent);
+  --gaming-glow-strong:
+    0 0 0 1px color-mix(in srgb, var(--gaming-neon-secondary) 30%, transparent),
+    0 0 24px color-mix(in srgb, var(--gaming-neon-accent) 35%, transparent);
+  --gaming-title-font: "Orbitron", "Rajdhani", "Plus Jakarta Sans", system-ui, sans-serif;
+  --gaming-hover-translate: -3px;
+  --gaming-active-scale: 0.98;
+}
+
+body.theme-gaming {
+  --gaming-bg: #060913;
+  --gaming-surface-0: #0b1022;
+  --gaming-surface-1: #10162d;
+  --gaming-surface-border: rgba(0, 229, 255, 0.32);
+  --gaming-neon-primary: #7c4dff;
+  --gaming-neon-secondary: #00e5ff;
+  --gaming-neon-accent: #ff2dd1;
+  --ui-focus:
+    0 0 0 2px color-mix(in srgb, var(--gaming-neon-secondary) 65%, transparent),
+    0 0 20px color-mix(in srgb, var(--gaming-neon-accent) 35%, transparent);
+}
+
+body.theme-gaming .v-btn:not(.v-btn--disabled),
+body.theme-gaming .v-card,
+body.theme-gaming .v-sheet {
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+body.theme-gaming .v-btn:not(.v-btn--disabled):hover {
+  transform: translateY(var(--gaming-hover-translate));
+  box-shadow: var(--gaming-glow-soft);
+}
+
+body.theme-gaming .v-btn:not(.v-btn--disabled):active {
+  transform: scale(var(--gaming-active-scale));
 }
 
 :where(

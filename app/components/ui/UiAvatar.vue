@@ -111,4 +111,14 @@ const onImageError = () => {
   background-color: rgb(var(--v-theme-on-surface)) !important;
   color: rgb(var(--v-theme-surface)) !important;
 }
+
+:global(body.theme-gaming) .ui-avatar {
+  border: 1px solid rgba(0, 229, 255, 0.36);
+  box-shadow: 0 0 12px rgba(124, 77, 255, 0.22);
+}
+
+:global(body.theme-gaming) .ui-avatar--fallback {
+  background-color: #0c1430 !important;
+  color: #d8ebff !important;
+}
 </style>

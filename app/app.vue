@@ -11,9 +11,17 @@ import SpeedInsightsPlaceholder from '~/components/layout/analytics/SpeedInsight
 const isPageLoading = ref(false)
 const pageSkeletonKey = ref('')
 const { locale } = useI18n({ useScope: 'global' })
+const route = useRoute()
 const isRtl = computed(() => locale.value === 'ar')
 const direction = computed(() => isRtl.value ? 'rtl' : 'ltr')
-const bodyClass = computed(() => isRtl.value ? 'rtl' : 'ltr')
+const bodyClass = computed(() => {
+  const classes = [isRtl.value ? 'rtl' : 'ltr']
+  if (route.meta.gamingTheme === true) {
+    classes.push('theme-gaming')
+  }
+
+  return classes.join(' ')
+})
 
 useHead(() => ({
   htmlAttrs: {
