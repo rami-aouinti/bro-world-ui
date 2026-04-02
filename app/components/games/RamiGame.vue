@@ -1182,14 +1182,24 @@ reset();
     <template #seat-south-hand>
       <section class="seat-hand seat-hand--south">
         <div class="player-hand-cards">
-          <button
-            v-if="canDraw"
-            type="button"
-            class="draw-callout"
-            @click="drawCard"
-          >
-            <v-icon icon="mdi-cards" size="18" />
-          </button>
+          <div class="table-actions">
+            <button
+              v-if="canDraw"
+              type="button"
+              class="draw-callout"
+              @click="drawCard"
+            >
+              <v-icon icon="mdi-cards" size="18" />
+            </button>
+            <button
+              v-if="canCreateMeld"
+              type="button"
+              class="draw-callout draw-callout--secondary"
+              @click="createMeld"
+            >
+              <v-icon icon="mdi-cards-playing-outline" size="18" />
+            </button>
+          </div>
           <div class="hand-fan hand-fan--player">
             <button
               v-for="(card, index) in playerHand"
@@ -1289,14 +1299,14 @@ reset();
 }
 
 .hand-fan--side .hand-fan__card {
-  margin-left: 0;
-  margin-top: -26px;
-  transform: rotate(90deg);
+  margin-left: -14px;
+  margin-top: 0;
+  transform: translateY(0);
   transform-origin: center;
 }
 
 .hand-fan--side .hand-fan__card:first-child {
-  margin-top: 0;
+  margin-left: 0;
 }
 
 .hand-fan__card--back {
@@ -1325,13 +1335,20 @@ reset();
   position: relative;
 }
 
-.draw-callout {
+.table-actions {
   position: absolute;
-  right: 0px;
-  top: 0px;
+  right: 0;
+  top: 0;
   z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.draw-callout {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 999px;
@@ -1340,6 +1357,10 @@ reset();
   background: rgba(3, 9, 6, 0.7);
   font-size: 0.78rem;
   font-weight: 700;
+}
+
+.draw-callout--secondary {
+  background: rgba(18, 55, 33, 0.78);
 }
 
 .seat-hand__title {

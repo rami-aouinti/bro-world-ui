@@ -680,6 +680,18 @@ const handleLogin = async () => {
 
 <template>
   <PlatformSplitLayout>
+    <teleport v-if="isGameStarted && globalRestartAction" to="#app-bar-teleport-target-right">
+      <v-btn
+        color="primary"
+        variant="tonal"
+        size="small"
+        prepend-icon="mdi-refresh"
+        :disabled="globalRestartAction.disabled"
+        @click="onAsideAction(globalRestartAction.id)"
+      >
+        {{ globalRestartAction.label }}
+      </v-btn>
+    </teleport>
     <template #sidebar>
       <div class="mb-4">
         <v-chip variant="outlined" prepend-icon="mdi-controller" class="mb-2">{{
@@ -990,26 +1002,6 @@ const handleLogin = async () => {
                 {{ formatMetaChip(feature) }}
               </v-chip>
             </div>
-          </div>
-          <div class="d-flex flex-wrap ga-2 mt-4">
-            <v-btn
-              v-if="globalRestartAction"
-              color="primary"
-              variant="tonal"
-              prepend-icon="mdi-refresh"
-              :disabled="globalRestartAction.disabled"
-              @click="onAsideAction(globalRestartAction.id)"
-            >
-              {{ globalRestartAction.label }}
-            </v-btn>
-            <v-btn
-              color="error"
-              variant="outlined"
-              prepend-icon="mdi-close-circle-outline"
-              @click="isGameStarted = false"
-            >
-              Quitter
-            </v-btn>
           </div>
         </v-card>
       </section>
