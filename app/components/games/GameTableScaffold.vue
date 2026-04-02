@@ -141,6 +141,16 @@ const getRingProgress = (secondsLeft: number) =>
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16), inset 0 0 0 14px rgba(0, 0, 0, 0.08), 0 18px 34px rgba(12, 31, 20, 0.28);
   overflow: hidden;
 }
+:global(body.theme-gaming) .game-table-scaffold__table {
+  background:
+    radial-gradient(circle at 50% 40%, rgba(0, 229, 255, 0.14), transparent 52%),
+    radial-gradient(circle at center, #122242 0%, #081327 72%);
+  border: 10px solid rgba(3, 9, 20, 0.95);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 229, 255, 0.25),
+    inset 0 0 40px rgba(124, 77, 255, 0.18),
+    0 20px 40px rgba(2, 8, 20, 0.65);
+}
 .game-table-scaffold__table--flat {
   min-height: auto;
   min-width: 0;
@@ -149,6 +159,12 @@ const getRingProgress = (secondsLeft: number) =>
   border: 1px solid rgba(var(--v-theme-on-surface), 0.1);
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.12);
   padding: 1rem;
+}
+:global(body.theme-gaming) .game-table-scaffold__table--flat {
+  background:
+    linear-gradient(160deg, rgba(11, 16, 34, 0.98), rgba(8, 12, 26, 0.95));
+  border-color: var(--gaming-surface-border);
+  box-shadow: var(--gaming-glow-strong);
 }
 .game-seat {
   position: absolute;
@@ -163,7 +179,15 @@ const getRingProgress = (secondsLeft: number) =>
   color: #fff;
   z-index: 4;
 }
+:global(body.theme-gaming) .game-seat {
+  background: rgba(5, 11, 24, 0.72);
+  border-color: rgba(0, 229, 255, 0.45);
+}
 .game-seat--active { border-color: rgba(255, 235, 59, 0.8); box-shadow: 0 0 0 1px rgba(255, 235, 59, 0.35); padding-top: 8px; }
+:global(body.theme-gaming) .game-seat--active {
+  border-color: rgba(0, 229, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.6), 0 0 16px rgba(139, 92, 246, 0.45);
+}
 .game-seat--north { top: 0px; left: 50%; transform: translateX(-50%); }
 .game-seat--east { top: 50%; right: 0px; transform: translateY(-50%); }
 .game-seat--south { bottom: 0px; left: 50%; transform: translateX(-50%); }
@@ -186,6 +210,10 @@ const getRingProgress = (secondsLeft: number) =>
   justify-content: center;
   padding: 14px;
   color: #fff;
+}
+:global(body.theme-gaming) .game-table-scaffold__surface {
+  border: 1px dashed rgba(0, 229, 255, 0.38);
+  background: rgba(3, 8, 20, 0.46);
 }
 .game-table-scaffold__table--flat .game-table-scaffold__surface {
   position: static;

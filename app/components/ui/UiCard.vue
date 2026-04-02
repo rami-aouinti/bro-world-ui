@@ -143,6 +143,17 @@ const stateClasses = computed(() => ({
   background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.14), rgba(var(--v-theme-surface), 0.95));
 }
 
+:global(body.theme-gaming) .ui-card {
+  border-color: var(--gaming-surface-border);
+  background: linear-gradient(155deg, rgba(11, 16, 34, 0.96), rgba(8, 11, 23, 0.94));
+}
+
+:global(body.theme-gaming) .ui-card--kind-interactive:hover,
+:global(body.theme-gaming) .ui-card--kind-interactive:focus-within {
+  transform: translateY(-4px);
+  box-shadow: var(--gaming-glow-strong);
+}
+
 .ui-card--loading {
   pointer-events: none;
 }

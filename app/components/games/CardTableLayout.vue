@@ -138,6 +138,11 @@ const isRedSuit = (suit: string) => suit === "♥" || suit === "♦";
 .seat-melds__group--east .meld-card--side,
 .seat-melds__group--west .meld-card--side { transform: none; }
 .meld-card { display: inline-flex; flex-direction: column; justify-content: space-between; align-items: flex-start; width: 22px; min-height: 20px; border-radius: 6px; border: 1px solid rgba(15, 23, 42, 0.15); padding: 3px 4px; background: linear-gradient(160deg, #fff, #f6f7fb); box-shadow: 0 4px 10px rgba(15, 23, 42, 0.18); line-height: 0.8; }
+:global(body.theme-gaming) .meld-card {
+  border-color: rgba(0, 229, 255, 0.34);
+  background: linear-gradient(165deg, #e8edff, #cbd9ff);
+  box-shadow: 0 0 0 1px rgba(124, 77, 255, 0.18), 0 4px 14px rgba(9, 14, 32, 0.46);
+}
 .meld-card--side { width: 22px; min-height: 20px; padding: 3px 4px; }
 .meld-card--red { color: #dc2626; }
 .meld-card--black { color: #111827; }
@@ -152,6 +157,11 @@ const isRedSuit = (suit: string) => suit === "♥" || suit === "♦";
 .center-fallback, .center-fallback__column { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .center-fallback__row { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
 .center-fallback__card { padding: 4px 8px; border-radius: 8px; background: rgba(255, 255, 255, 0.9); color: #1f2937; font-weight: 700; }
+:global(body.theme-gaming) .center-fallback__card {
+  background: rgba(11, 16, 34, 0.88);
+  color: #dbe9ff;
+  border: 1px solid rgba(0, 229, 255, 0.28);
+}
 
 @media (max-width: 960px) {
   .table-seat-hand--north { top: 108px; width: min(460px, calc(100% - 32px)); }
