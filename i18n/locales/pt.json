@@ -2221,6 +2221,15 @@
         "activeColor": "Cor ativa",
         "round": "Rodada"
       }
+    },
+    "flappyRocket": {
+      "title": "Flappy Rocket",
+      "controls": "Espaço / ↑ / toque: impulso · R: reiniciar",
+      "start": "Iniciar",
+      "restart": "Reiniciar",
+      "gameOver": "Colisão detectada",
+      "score": "Placar",
+      "bestScore": "Melhor placar"
     }
   },
   "common": {
