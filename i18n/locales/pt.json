@@ -2230,6 +2230,33 @@
       "gameOver": "Colisão detectada",
       "score": "Placar",
       "bestScore": "Melhor placar"
+    },
+    "solitaire": {
+      "title": "Paciência",
+      "stock": "Monte",
+      "waste": "Descarte",
+      "foundations": "Fundações",
+      "tableau": "Mesa",
+      "moves": "Jogadas",
+      "hint": "Dica",
+      "auto": "Auto fundações",
+      "statusWon": "Partida vencida"
+    },
+    "hearts": {
+      "title": "Hearts",
+      "heartsBroken": "Copas quebradas",
+      "currentTrick": "Vaza atual",
+      "hand": "Mão",
+      "penalty": "Penalidade",
+      "statusHandOver": "Mão concluída"
+    },
+    "spades": {
+      "title": "Spades",
+      "spadesBroken": "Espadas quebradas",
+      "bid": "Lance",
+      "tricksWon": "Vazas ganhas",
+      "currentTrick": "Vaza atual",
+      "statusHandOver": "Mão concluída"
     }
   },
   "common": {
@@ -2243,5 +2270,12 @@
       "medium": "Médio",
       "large": "Grande"
     }
+  },
+  "gameCards": {
+    "color": "Cor",
+    "trump": "Trunfo",
+    "trick": "Vaza",
+    "score": "Pontuação",
+    "tips": "Dicas"
   }
 }

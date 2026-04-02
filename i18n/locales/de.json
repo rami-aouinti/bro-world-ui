@@ -2230,6 +2230,33 @@
       "gameOver": "Absturz erkannt",
       "score": "Punktzahl",
       "bestScore": "Bestwert"
+    },
+    "solitaire": {
+      "title": "Solitaire",
+      "stock": "Nachziehstapel",
+      "waste": "Ablage",
+      "foundations": "Fundamente",
+      "tableau": "Tableau",
+      "moves": "Züge",
+      "hint": "Hinweis",
+      "auto": "Auto-Fundamente",
+      "statusWon": "Spiel gewonnen"
+    },
+    "hearts": {
+      "title": "Hearts",
+      "heartsBroken": "Herz gebrochen",
+      "currentTrick": "Laufender Stich",
+      "hand": "Hand",
+      "penalty": "Strafe",
+      "statusHandOver": "Hand beendet"
+    },
+    "spades": {
+      "title": "Spades",
+      "spadesBroken": "Pik gebrochen",
+      "bid": "Gebot",
+      "tricksWon": "Gewonnene Stiche",
+      "currentTrick": "Laufender Stich",
+      "statusHandOver": "Hand beendet"
     }
   },
   "common": {
@@ -2243,5 +2270,12 @@
       "medium": "Mittel",
       "large": "Groß"
     }
+  },
+  "gameCards": {
+    "color": "Farbe",
+    "trump": "Trumpf",
+    "trick": "Stich",
+    "score": "Punktzahl",
+    "tips": "Tipps"
   }
 }

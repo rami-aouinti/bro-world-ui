@@ -2230,6 +2230,33 @@
       "gameOver": "تم اكتشاف الاصطدام",
       "score": "النتيجة",
       "bestScore": "أفضل نتيجة"
+    },
+    "solitaire": {
+      "title": "سوليتير",
+      "stock": "الرزمة",
+      "waste": "المكشوف",
+      "foundations": "الأساسات",
+      "tableau": "الصفوف",
+      "moves": "الحركات",
+      "hint": "تلميح",
+      "auto": "إكمال الأساسات",
+      "statusWon": "فوز الجولة"
+    },
+    "hearts": {
+      "title": "Hearts",
+      "heartsBroken": "تم كسر القلوب",
+      "currentTrick": "اللفة الحالية",
+      "hand": "اليد",
+      "penalty": "عقوبة",
+      "statusHandOver": "انتهت اليد"
+    },
+    "spades": {
+      "title": "Spades",
+      "spadesBroken": "تم كسر السبيت",
+      "bid": "المزايدة",
+      "tricksWon": "لفات رابحة",
+      "currentTrick": "اللفة الحالية",
+      "statusHandOver": "انتهت اليد"
     }
   },
   "common": {
@@ -2243,5 +2270,12 @@
       "medium": "متوسط",
       "large": "كبير"
     }
+  },
+  "gameCards": {
+    "color": "اللون",
+    "trump": "الحكم",
+    "trick": "اللفة",
+    "score": "النتيجة",
+    "tips": "نصائح"
   }
 }
