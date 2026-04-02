@@ -2,6 +2,7 @@ import type {
   ApiGameCategory,
   ApiGameEntry,
   ApiPlayMode,
+  ConceptPlayMode,
   GameCategory,
   GameDevelopmentStatus,
   GameEntry,
@@ -29,6 +30,18 @@ const mapApiModesToUiModes = (modes: ApiPlayMode[] = []): PlayMode[] =>
     ),
   );
 
+const mapApiModesToPlannedModes = (modes: ApiPlayMode[] = []): ConceptPlayMode[] =>
+  Array.from(
+    new Set(
+      modes
+        .map((mode): ConceptPlayMode | null => {
+          if (mode === "online") return "online";
+          return mapApiPlayModeToUiMode(mode);
+        })
+        .filter((mode): mode is ConceptPlayMode => Boolean(mode)),
+    ),
+  );
+
 const resolveDevelopmentStatus = (
   game: ApiGameEntry,
   mappedModes: PlayMode[],
@@ -41,14 +54,17 @@ const resolveDevelopmentStatus = (
 };
 
 const mapGameEntry = (game: ApiGameEntry): GameEntry => {
+  const rawModes = game.availableModes?.length ? game.availableModes : game.supportedModes;
   const mappedModes = mapApiModesToUiModes(
-    game.availableModes?.length ? game.availableModes : game.supportedModes,
+    rawModes,
   );
+  const plannedModes = mapApiModesToPlannedModes(rawModes);
 
   return {
     ...game,
     supportedModes: mappedModes,
     availableModes: mappedModes,
+    plannedModes,
     developmentStatus: resolveDevelopmentStatus(game, mappedModes),
   };
 };

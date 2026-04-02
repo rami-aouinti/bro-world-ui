@@ -1,4 +1,5 @@
 export type PlayMode = "ai" | "pvp";
+export type ConceptPlayMode = PlayMode | "online";
 export type ApiPlayMode = "solo" | "versus" | "online" | "endless" | "ai" | "pvp";
 export type BeloteMode = "teams" | "free-for-all";
 export type GameDevelopmentStatus = "playable" | "prototype" | "coming_soon";
@@ -11,6 +12,9 @@ export interface GameEntry {
   difficultyKey?: string;
   tags?: string[];
   features?: string[];
+  plannedModes?: ConceptPlayMode[];
+  artDirection?: string;
+  averageDuration?: string;
   nameKey: string;
   descriptionKey: string;
   img: string;
