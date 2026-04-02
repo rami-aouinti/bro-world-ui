@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch, watchEffect } from "vue";
 import type { GameAsidePanelState } from "./types";
 const { t } = useI18n();
 const props = defineProps<{
@@ -7,6 +7,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   (event: "panel-state", payload: GameAsidePanelState): void;
+  (event: "game-finished", payload: { result: "win" | "lose" }): void;
 }>();
 
 const GRID_SIZE = 4;
@@ -142,9 +143,11 @@ const grid = ref<Grid>(createEmptyGrid());
 const score = ref(0);
 const bestScore = ref(0);
 const gameOver = ref(false);
+const gameFinishedEmitted = ref(false);
 const touchStart = ref<{ x: number; y: number } | null>(null);
 
 const highestTile = computed(() => Math.max(...grid.value.flat()));
+const hasWon = computed(() => highestTile.value >= 2048);
 
 const saveState = () => {
   if (!import.meta.client) {
@@ -172,6 +175,7 @@ const initializeNewGame = () => {
   grid.value = nextGrid;
   score.value = 0;
   gameOver.value = false;
+  gameFinishedEmitted.value = false;
   saveState();
 };
 
@@ -332,6 +336,23 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener("keydown", handleKeydown);
+});
+
+watch([hasWon, gameOver], ([won, over]) => {
+  if (gameFinishedEmitted.value) {
+    return;
+  }
+
+  if (won) {
+    gameFinishedEmitted.value = true;
+    emit("game-finished", { result: "win" });
+    return;
+  }
+
+  if (over) {
+    gameFinishedEmitted.value = true;
+    emit("game-finished", { result: "lose" });
+  }
 });
 
 const panelState = computed<GameAsidePanelState>(() => ({

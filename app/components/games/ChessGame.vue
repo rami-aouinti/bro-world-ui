@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watchEffect } from "vue";
+import { computed, ref, watch, watchEffect } from "vue";
 import GameTableScaffold from "./GameTableScaffold.vue";
 import type { GameAsidePanelState } from "./types";
 import { useChessEngine } from "~/composables/games/useChessEngine";
@@ -9,8 +9,10 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   (event: "panel-state", payload: GameAsidePanelState): void;
+  (event: "game-finished", payload: { result: "win" | "lose" }): void;
 }>();
 const { t } = useI18n();
+const gameFinishedEmitted = ref(false);
 
 const {
   board,
@@ -108,6 +110,20 @@ const panelState = computed<GameAsidePanelState>(() => ({
 
 watchEffect(() => {
   emit("panel-state", panelState.value);
+});
+
+watch(winner, (nextWinner) => {
+  if (!nextWinner) {
+    gameFinishedEmitted.value = false;
+    return;
+  }
+
+  if (gameFinishedEmitted.value) {
+    return;
+  }
+
+  gameFinishedEmitted.value = true;
+  emit("game-finished", { result: nextWinner === "white" ? "win" : "lose" });
 });
 
 const handleAsideAction = (actionId: string) => {

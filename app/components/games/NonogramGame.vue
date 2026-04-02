@@ -13,6 +13,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   (event: "panel-state", payload: GameAsidePanelState): void;
+  (event: "game-finished", payload: { result: "win" | "lose" }): void;
 }>();
 
 type PlayerCell = "empty" | "filled" | "marked";
@@ -21,6 +22,7 @@ const difficulty = ref<NonogramDifficulty>("small");
 const difficultyLevels: NonogramDifficulty[] = ["small", "medium", "large"];
 const puzzleIndex = ref(0);
 const victory = ref(false);
+const gameFinishedEmitted = ref(false);
 
 const currentPuzzle = computed<NonogramPuzzle>(
   () => NONOGRAM_PUZZLES[difficulty.value][puzzleIndex.value],
@@ -90,6 +92,7 @@ const nextPuzzle = () => {
 const resetGrid = () => {
   playerGrid.value = createPlayerGrid(currentPuzzle.value);
   victory.value = false;
+  gameFinishedEmitted.value = false;
 };
 
 const checkVictory = () => {
@@ -122,6 +125,15 @@ const markCellAsEmpty = (row: number, col: number) => {
 
 watch(currentPuzzle, () => {
   resetGrid();
+});
+
+watch(victory, (hasWon) => {
+  if (!hasWon || gameFinishedEmitted.value) {
+    return;
+  }
+
+  gameFinishedEmitted.value = true;
+  emit("game-finished", { result: "win" });
 });
 
 const panelState = computed<GameAsidePanelState>(() => ({

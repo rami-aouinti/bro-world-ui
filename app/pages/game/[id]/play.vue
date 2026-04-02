@@ -94,7 +94,6 @@ const sessionId = computed(() =>
   typeof route.query.sessionId === "string" ? route.query.sessionId : null,
 );
 const userGameResult = ref<SessionResult | null>(null);
-const hasFinishableSession = computed(() => Boolean(sessionId.value));
 const gameResultStorageKey = computed(() => {
   const userId = authSession.profile?.id;
   const currentGameId =
@@ -200,6 +199,14 @@ const finishGame = async (result: SessionResult) => {
   } finally {
     finishLoading.value = false;
   }
+};
+
+const onGameFinished = ({ result }: { result: SessionResult }) => {
+  if (finishLoading.value || userGameResult.value) {
+    return;
+  }
+
+  void finishGame(result);
 };
 
 const onGamePanelState = (payload: GameAsidePanelState) => {
@@ -445,47 +452,6 @@ onMounted(async () => {
         :live-game-panel="liveGamePanel"
       />
 
-      <v-card variant="outlined" class="mt-4">
-        <v-card-text class="d-flex flex-column ga-2">
-          <v-chip
-            v-if="userGameResult"
-            :color="userGameResult === 'win' ? 'success' : 'error'"
-            variant="tonal"
-            size="small"
-            class="align-self-start"
-          >
-            {{
-              userGameResult === "win"
-                ? "Résultat: gagné"
-                : "Résultat: perdu"
-            }}
-          </v-chip>
-          <p v-else class="text-caption text-medium-emphasis mb-0">
-            Résultat: à définir
-          </p>
-
-          <div class="d-flex ga-2 mt-2">
-            <v-btn
-              color="success"
-              size="small"
-              :loading="finishLoading"
-              :disabled="!hasFinishableSession"
-              @click="finishGame('win')"
-            >
-              Marquer gagné
-            </v-btn>
-            <v-btn
-              color="error"
-              size="small"
-              :loading="finishLoading"
-              :disabled="!hasFinishableSession"
-              @click="finishGame('lose')"
-            >
-              Marquer perdu
-            </v-btn>
-          </div>
-        </v-card-text>
-      </v-card>
     </template>
 
     <component
@@ -494,6 +460,7 @@ onMounted(async () => {
       :selected-play-mode="selectedPlayMode"
       :belote-mode="selectedBeloteMode"
       @panel-state="onGamePanelState"
+      @game-finished="onGameFinished"
     />
 
     <v-alert v-else type="warning" variant="tonal">
