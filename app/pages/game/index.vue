@@ -17,6 +17,7 @@ import GameModeSelectionPanel from "~/components/games/lobby/GameModeSelectionPa
 import GameDetailsPanel from "~/components/games/lobby/GameDetailsPanel.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
 import { useGameConcept } from "~/composables/useGameConcept";
+import { useGameMotionPresets } from "~/composables/games/useGameMotionPresets";
 import {
   useGameSessionsApi,
   type GameLevel,
@@ -37,49 +38,7 @@ const { isAuthenticated, login } = useAuth();
 const authSession = useAuthSessionStore();
 const router = useRouter();
 const gameSessionsApi = useGameSessionsApi();
-
-const cardMotion = {
-  initial: {
-    opacity: 0,
-    y: 30,
-    scale: 0.96,
-  },
-  enter: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      duration: 450,
-    },
-  },
-  hovered: {
-    y: -8,
-    scale: 1.02,
-    transition: {
-      duration: 180,
-    },
-  },
-};
-
-const imageMotion = {
-  initial: {
-    opacity: 0,
-    scale: 0.92,
-  },
-  enter: {
-    opacity: 1,
-    scale: 1,
-    transition: {
-      duration: 500,
-    },
-  },
-  hovered: {
-    scale: 1.04,
-    transition: {
-      duration: 200,
-    },
-  },
-};
+const { context: motionContext, flowTransitions } = useGameMotionPresets();
 
 definePageMeta({
   splitShell: false,
@@ -261,6 +220,34 @@ const rightPanelState = computed<RightPanelState>(() => {
   }
 
   return "quick-access";
+});
+
+const gameFlowStage = computed<
+  "catalog" | "modeSelection" | "launchSession" | "inGame"
+>(() => {
+  if (isGameStarted.value && selectedGame.value) return "inGame";
+  if (isLaunchingSession.value) return "launchSession";
+  if (selectedGame.value) return "modeSelection";
+  return "catalog";
+});
+
+const flowTransitionName = computed(() => flowTransitions[gameFlowStage.value]);
+const mainContentTransitionKey = computed(() => {
+  if (gameFlowStage.value === "catalog") {
+    if (!selectedCategory.value) return "catalog-categories";
+    if (!selectedSubCategory.value) return "catalog-sub-categories";
+    if (!selectedGame.value) return "catalog-games";
+  }
+  if (gameFlowStage.value === "modeSelection" && selectedGame.value) {
+    return `mode-selection-${selectedGame.value.id}-${selectedPlayMode.value ?? "none"}`;
+  }
+  if (gameFlowStage.value === "launchSession") {
+    return `launch-session-${selectedGame.value?.id ?? "none"}`;
+  }
+  if (gameFlowStage.value === "inGame" && selectedGame.value) {
+    return `in-game-${selectedGame.value.id}`;
+  }
+  return "catalog-empty";
 });
 
 const getLevelColor = (
@@ -634,55 +621,61 @@ const handleLogin = async () => {
       </v-snackbar>
     </template>
     <template #aside>
-      <GameQuickAccessPanel
-        v-if="rightPanelState === 'quick-access'"
-        :featured-games="featuredGames"
-        :is-loading="isFeaturedGamesLoading"
-        :selected-game-id="selectedGameId"
-        :selected-play-mode="selectedPlayMode"
-        :mode-label="modeLabel"
-        :title="te('gamePage.quickAccess.title') ? t('gamePage.quickAccess.title') : 'Quick Access'"
-        :empty-text="t('gamePage.status.none')"
-        :game-name-label="(game) => t(game.nameKey)"
-        @select-game="selectQuickAccessGame"
-        @select-mode="selectPlayMode"
-      />
-      <GameModeSelectionPanel
-        v-else-if="rightPanelState === 'mode-selection' && selectedGame"
-        :selected-game="selectedGame"
-        :selected-play-mode="selectedPlayMode"
-        :selected-ai-level="selectedAiLevel"
-        :selected-belote-mode="selectedBeloteMode"
-        :displayed-local-modes="displayedLocalModes"
-        :ai-levels="aiLevels"
-        :is-launching-session="isLaunchingSession"
-        :can-launch-selected-game="canLaunchSelectedGame"
-        :mode-image-map="modeImageMap"
-        :level-image-map="levelImageMap"
-        :mode-label="modeLabel"
-        :is-game-available-for-launch="isGameAvailableForLaunch"
-        :get-game-business-key="getGameBusinessKey"
-        :belote-teams-label="t('gamePage.labels.beloteTeams')"
-        :belote-free-for-all-label="t('gamePage.labels.beloteFreeForAll')"
-        :soon-hint-label="t('gamePage.status.soonHint')"
-        :launch-game-label="t('gamePage.actions.launchGame')"
-        @select-play-mode="selectPlayMode"
-        @select-ai-level="selectAiLevel"
-        @select-belote-mode="selectBeloteMode"
-        @launch-game="launchGame"
-      />
-      <GameDetailsPanel
-        v-else-if="selectedGame"
-        :selected-game="selectedGame"
-        :selected-game-concept="selectedGameConcept"
-        :safe-translate="safeTranslate"
-        :selected-game-level="selectedGameLevel"
-        :game-detail-tags="gameDetailTags"
-        :game-detail-features="gameDetailFeatures"
-        :format-meta-chip="formatMetaChip"
-      />
+      <Transition :name="flowTransitionName" mode="out-in">
+        <div :key="`aside-${rightPanelState}-${selectedGameId ?? 'none'}`">
+          <GameQuickAccessPanel
+            v-if="rightPanelState === 'quick-access'"
+            :featured-games="featuredGames"
+            :is-loading="isFeaturedGamesLoading"
+            :selected-game-id="selectedGameId"
+            :selected-play-mode="selectedPlayMode"
+            :mode-label="modeLabel"
+            :title="te('gamePage.quickAccess.title') ? t('gamePage.quickAccess.title') : 'Quick Access'"
+            :empty-text="t('gamePage.status.none')"
+            :game-name-label="(game) => t(game.nameKey)"
+            @select-game="selectQuickAccessGame"
+            @select-mode="selectPlayMode"
+          />
+          <GameModeSelectionPanel
+            v-else-if="rightPanelState === 'mode-selection' && selectedGame"
+            :selected-game="selectedGame"
+            :selected-play-mode="selectedPlayMode"
+            :selected-ai-level="selectedAiLevel"
+            :selected-belote-mode="selectedBeloteMode"
+            :displayed-local-modes="displayedLocalModes"
+            :ai-levels="aiLevels"
+            :is-launching-session="isLaunchingSession"
+            :can-launch-selected-game="canLaunchSelectedGame"
+            :mode-image-map="modeImageMap"
+            :level-image-map="levelImageMap"
+            :mode-label="modeLabel"
+            :is-game-available-for-launch="isGameAvailableForLaunch"
+            :get-game-business-key="getGameBusinessKey"
+            :belote-teams-label="t('gamePage.labels.beloteTeams')"
+            :belote-free-for-all-label="t('gamePage.labels.beloteFreeForAll')"
+            :soon-hint-label="t('gamePage.status.soonHint')"
+            :launch-game-label="t('gamePage.actions.launchGame')"
+            @select-play-mode="selectPlayMode"
+            @select-ai-level="selectAiLevel"
+            @select-belote-mode="selectBeloteMode"
+            @launch-game="launchGame"
+          />
+          <GameDetailsPanel
+            v-else-if="selectedGame"
+            :selected-game="selectedGame"
+            :selected-game-concept="selectedGameConcept"
+            :safe-translate="safeTranslate"
+            :selected-game-level="selectedGameLevel"
+            :game-detail-tags="gameDetailTags"
+            :game-detail-features="gameDetailFeatures"
+            :format-meta-chip="formatMetaChip"
+          />
+        </div>
+      </Transition>
     </template>
     <template #default>
+      <Transition :name="flowTransitionName" mode="out-in">
+        <div :key="mainContentTransitionKey">
       <section v-if="isCatalogLoading">
         <v-row>
           <v-col v-for="index in 4" :key="`catalog-skeleton-${index}`" cols="12" md="6">
@@ -711,9 +704,10 @@ const handleLogin = async () => {
           <v-col v-for="category in categories" :key="category.id" cols="12" md="4">
             <v-card
                 v-motion
-                :initial="cardMotion.initial"
-                :enter="cardMotion.enter"
-                :hovered="cardMotion.hovered"
+                :initial="motionContext.catalogCard.initial"
+                :enter="motionContext.catalogCard.enter"
+                :hovered="motionContext.catalogCard.hovered"
+                :tapped="motionContext.catalogCard.tapped"
                 class="h-100 card-category-game"
                 variant="text"
             >
@@ -721,9 +715,10 @@ const handleLogin = async () => {
               <div class="w-100 pa-3">
                 <div
                     v-motion
-                    :initial="imageMotion.initial"
-                    :enter="imageMotion.enter"
-                    :hovered="imageMotion.hovered"
+                    :initial="motionContext.catalogMedia.initial"
+                    :enter="motionContext.catalogMedia.enter"
+                    :hovered="motionContext.catalogMedia.hovered"
+                    :tapped="motionContext.catalogMedia.tapped"
                     class="catalog-image"
                     @click="openCategory(category.id)"
                     :style="getCatalogImageStyle(category.id, 'category')"
@@ -749,9 +744,10 @@ const handleLogin = async () => {
           >
             <v-card
                 v-motion
-                :initial="cardMotion.initial"
-                :enter="cardMotion.enter"
-                :hovered="cardMotion.hovered"
+                :initial="motionContext.catalogCard.initial"
+                :enter="motionContext.catalogCard.enter"
+                :hovered="motionContext.catalogCard.hovered"
+                :tapped="motionContext.catalogCard.tapped"
                 class="h-100 card-category-game"
                 variant="text"
             >
@@ -760,9 +756,10 @@ const handleLogin = async () => {
                 <div
                     @click="openSubCategory(subCategory.id)"
                     v-motion
-                    :initial="imageMotion.initial"
-                    :enter="imageMotion.enter"
-                    :hovered="imageMotion.hovered"
+                    :initial="motionContext.catalogMedia.initial"
+                    :enter="motionContext.catalogMedia.enter"
+                    :hovered="motionContext.catalogMedia.hovered"
+                    :tapped="motionContext.catalogMedia.tapped"
                     class="catalog-image"
                     :style="getCatalogImageStyle(subCategory.id, 'subCategory')"
                 >
@@ -784,9 +781,10 @@ const handleLogin = async () => {
           >
             <v-card
                 v-motion
-                :initial="cardMotion.initial"
-                :enter="cardMotion.enter"
-                :hovered="cardMotion.hovered"
+                :initial="motionContext.catalogCard.initial"
+                :enter="motionContext.catalogCard.enter"
+                :hovered="motionContext.catalogCard.hovered"
+                :tapped="motionContext.catalogCard.tapped"
                 class="h-100 card-category-game"
                 variant="text"
             >
@@ -796,9 +794,10 @@ const handleLogin = async () => {
                     @click="openGame(game.id)"
                     :disabled="!isGameAvailableForLaunch(game)"
                     v-motion
-                    :initial="imageMotion.initial"
-                    :enter="imageMotion.enter"
-                    :hovered="imageMotion.hovered"
+                    :initial="motionContext.catalogMedia.initial"
+                    :enter="motionContext.catalogMedia.enter"
+                    :hovered="motionContext.catalogMedia.hovered"
+                    :tapped="motionContext.catalogMedia.tapped"
                     class="catalog-image"
                     :style="getCatalogImageStyle(game.id, 'game')"
                 >
@@ -837,9 +836,10 @@ const handleLogin = async () => {
           >
             <v-card
                 v-motion
-                :initial="cardMotion.initial"
-                :enter="cardMotion.enter"
-                :hovered="cardMotion.hovered"
+                :initial="motionContext.modeCard.initial"
+                :enter="motionContext.modeCard.enter"
+                :hovered="motionContext.modeCard.hovered"
+                :tapped="motionContext.modeCard.tapped"
                 class="mode-card d-flex align-center justify-center"
                 :class="{ 'mode-card--active': selectedPlayMode === mode }"
                 :variant="selectedPlayMode === mode ? 'flat' : 'outlined'"
@@ -900,6 +900,11 @@ const handleLogin = async () => {
             md="4"
           >
             <v-card
+              v-motion
+              :initial="motionContext.modeCard.initial"
+              :enter="motionContext.modeCard.enter"
+              :hovered="motionContext.modeCard.hovered"
+              :tapped="motionContext.modeCard.tapped"
               class="mode-card d-flex align-center justify-center"
               :class="{ 'mode-card--active': selectedAiLevel === level }"
               :variant="selectedAiLevel === level ? 'flat' : 'outlined'"
@@ -953,7 +958,12 @@ const handleLogin = async () => {
         </div>
       </section>
 
-      <section v-else-if="selectedGame && selectedPlayMode && isGameStarted">
+      <section
+        v-else-if="selectedGame && selectedPlayMode && isGameStarted"
+        v-motion
+        :initial="motionContext.inGamePanel.initial"
+        :enter="motionContext.inGamePanel.enter"
+      >
         <RamiGame
           ref="ramiGameRef"
           v-if="selectedGame.component === 'rami'"
@@ -1016,6 +1026,8 @@ const handleLogin = async () => {
           @panel-state="onGamePanelState"
         />
       </section>
+        </div>
+      </Transition>
     </template>
   </PlatformSplitLayout>
 </template>
@@ -1198,6 +1210,50 @@ const handleLogin = async () => {
     rgba(var(--v-theme-primary), 0.1),
     rgba(var(--v-theme-surface), 0.4)
   );
+}
+
+.game-flow-catalog-enter-active,
+.game-flow-mode-selection-enter-active,
+.game-flow-launch-session-enter-active,
+.game-flow-in-game-enter-active,
+.game-flow-catalog-leave-active,
+.game-flow-mode-selection-leave-active,
+.game-flow-launch-session-leave-active,
+.game-flow-in-game-leave-active {
+  transition: opacity 300ms ease, transform 300ms ease, filter 300ms ease;
+}
+
+.game-flow-catalog-enter-from,
+.game-flow-mode-selection-enter-from,
+.game-flow-launch-session-enter-from,
+.game-flow-in-game-enter-from {
+  opacity: 0;
+  transform: translateY(20px) scale(0.985);
+  filter: blur(2px);
+}
+
+.game-flow-catalog-leave-to,
+.game-flow-mode-selection-leave-to,
+.game-flow-launch-session-leave-to,
+.game-flow-in-game-leave-to {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.99);
+}
+
+.game-flow-mode-selection-enter-active {
+  transition-duration: 340ms;
+}
+
+.game-flow-launch-session-enter-from {
+  transform: translateY(26px) scale(0.98);
+}
+
+.game-flow-in-game-enter-active {
+  transition-duration: 360ms;
+}
+
+.game-flow-in-game-enter-from {
+  transform: translateY(12px) scale(0.995);
 }
 
 @media (max-width: 959px) {
