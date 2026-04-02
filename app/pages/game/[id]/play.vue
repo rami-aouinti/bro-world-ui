@@ -44,7 +44,12 @@ const password = ref("");
 const loginLoading = ref(false);
 const loginError = ref("");
 const userCoins = computed(() => authSession.profile?.coins ?? 0);
-const gameStatusLabel = computed(() => t("gamePage.status.inProgress"));
+const gameStatusLabel = computed(() => {
+  if (finishLoading.value) return "Finalisation…";
+  if (userGameResult.value === "win") return "Victoire";
+  if (userGameResult.value === "lose") return "Défaite";
+  return t("gamePage.status.inProgress");
+});
 const coinOffers = [
   {
     id: "offer-1",
@@ -159,7 +164,7 @@ const modeLabel = (mode: PlayMode) =>
   mode === "ai" ? t("gamePage.modes.vsComputer") : t("gamePage.modes.vsPlayer");
 
 const gamePanelState = computed(() => ({
-  gameStatusLabel: t("gamePage.status.inProgress"),
+  gameStatusLabel: gameStatusLabel.value,
   canLaunchSelectedGame: false,
   selectedBeloteMode: selectedBeloteMode.value,
   modeLabel,
@@ -194,8 +199,6 @@ const finishGame = async (result: SessionResult) => {
         coins: response.coins,
       };
     }
-
-    await router.push("/game");
   } finally {
     finishLoading.value = false;
   }
@@ -212,6 +215,32 @@ const onGameFinished = ({ result }: { result: SessionResult }) => {
 const onGamePanelState = (payload: GameAsidePanelState) => {
   liveGamePanel.value = payload;
 };
+
+const finishResultTitle = computed(() => {
+  if (userGameResult.value === "win") return "You win 🎉";
+  if (userGameResult.value === "lose") return "You lose 💥";
+  return "";
+});
+
+const finishResultColor = computed(() =>
+  userGameResult.value === "win" ? "success" : "error",
+);
+
+const finishResultIcon = computed(() =>
+  userGameResult.value === "win" ? "mdi-trophy" : "mdi-emoticon-dead-outline",
+);
+
+const finishResultScore = computed<number | null>(() => {
+  const scoreChip = liveGamePanel.value?.kpis.find((chip) =>
+    chip.id.toLowerCase().includes("score"),
+  );
+
+  if (!scoreChip) return null;
+  if (typeof scoreChip.value === "number") return scoreChip.value;
+
+  const parsed = Number.parseFloat(String(scoreChip.value).replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : null;
+});
 
 const resetToCategories = () => router.push("/game");
 const backToSubCategories = () => router.push("/game");
@@ -454,9 +483,30 @@ onMounted(async () => {
 
     </template>
 
+    <div v-if="finishLoading" class="result-panel result-panel--loading">
+      <v-progress-circular indeterminate :size="80" :width="6" color="primary" />
+      <p class="text-h6 mt-4 mb-0">Finalisation de la partie…</p>
+    </div>
+
+    <div v-else-if="userGameResult" class="result-panel">
+      <v-icon
+        :icon="finishResultIcon"
+        :color="finishResultColor"
+        size="76"
+        class="result-panel__icon"
+      />
+      <h2 class="text-h4 mb-2">{{ finishResultTitle }}</h2>
+      <p v-if="finishResultScore !== null" class="text-h6 mb-6">
+        Score: {{ finishResultScore }}
+      </p>
+      <v-btn color="primary" size="large" @click="resetToCategories">
+        Retour au catalogue
+      </v-btn>
+    </div>
+
     <component
       :is="selectedComponent"
-      v-if="selectedComponent"
+      v-else-if="selectedComponent"
       :selected-play-mode="selectedPlayMode"
       :belote-mode="selectedBeloteMode"
       @panel-state="onGamePanelState"
@@ -468,3 +518,39 @@ onMounted(async () => {
     </v-alert>
   </PlatformSplitLayout>
 </template>
+
+<style scoped>
+.result-panel {
+  min-height: 60vh;
+  border-radius: 18px;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  text-align: center;
+  padding: 2rem;
+  border: 1px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 28%, transparent);
+  background: radial-gradient(
+      circle at top,
+      rgba(var(--v-theme-primary), 0.12),
+      transparent 64%
+    ),
+    rgba(var(--v-theme-surface), 0.5);
+}
+
+.result-panel__icon {
+  animation: result-pop 1.4s ease-in-out infinite alternate;
+}
+
+.result-panel--loading {
+  gap: 0.5rem;
+}
+
+@keyframes result-pop {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.1);
+  }
+}
+</style>

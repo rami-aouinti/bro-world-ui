@@ -106,6 +106,7 @@ const isLoginDialogOpen = ref(false);
 const isCoinsDialogOpen = ref(false);
 const isPaymentSoonSnackbarOpen = ref(false);
 const paymentSoonSnackbarText = ref("");
+const isLaunchingSession = ref(false);
 const userCoins = computed(() => authSession.profile?.coins ?? 0);
 const usernameOrEmail = ref("");
 const password = ref("");
@@ -420,7 +421,7 @@ const selectBeloteMode = (mode: BeloteMode) => {
 };
 
 const launchGame = async () => {
-  if (!canLaunchSelectedGame.value) {
+  if (!canLaunchSelectedGame.value || isLaunchingSession.value) {
     return;
   }
 
@@ -434,6 +435,7 @@ const launchGame = async () => {
       return;
     }
 
+    isLaunchingSession.value = true;
     try {
       const response = await gameSessionsApi.startGameSession(
         selectedGame.value.id,
@@ -460,6 +462,8 @@ const launchGame = async () => {
       return;
     } catch {
       return;
+    } finally {
+      isLaunchingSession.value = false;
     }
   }
 
@@ -1194,7 +1198,7 @@ const handleLogin = async () => {
         </div>
 
         <v-row
-          v-if="selectedPlayMode === 'ai'"
+          v-if="selectedPlayMode === 'ai' && !isLaunchingSession"
           class="mb-4"
           dense
         >
@@ -1228,7 +1232,20 @@ const handleLogin = async () => {
         >
           {{ t("gamePage.status.soonHint") }}
         </v-alert>
-        <div class="d-flex justify-center mt-auto pt-6">
+        <div v-if="isLaunchingSession" class="launch-loader mt-auto pt-6">
+          <v-progress-circular
+            indeterminate
+            :size="68"
+            :width="6"
+            color="primary"
+            class="mb-4"
+          />
+          <p class="text-body-1 font-weight-medium mb-0">
+            Préparation de votre session…
+          </p>
+        </div>
+
+        <div v-else class="d-flex justify-center mt-auto pt-6">
           <v-btn
             :color="getLevelColor('game')"
             :disabled="!canLaunchSelectedGame"
@@ -1444,6 +1461,20 @@ const handleLogin = async () => {
 
 .mode-card--active {
   box-shadow: 0 12px 20px rgba(15, 23, 42, 0.18);
+}
+
+.launch-loader {
+  min-height: 230px;
+  border: 1px solid color-mix(in srgb, rgb(var(--v-theme-primary)) 28%, transparent);
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  background: linear-gradient(
+    130deg,
+    rgba(var(--v-theme-primary), 0.1),
+    rgba(var(--v-theme-surface), 0.4)
+  );
 }
 
 @media (max-width: 959px) {
