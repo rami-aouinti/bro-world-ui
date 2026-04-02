@@ -7,6 +7,9 @@ import RamiGame from "~/components/games/RamiGame.vue";
 import BeloteGame from "~/components/games/BeloteGame.vue";
 import CheckersGame from "~/components/games/CheckersGame.vue";
 import PokerGame from "~/components/games/PokerGame.vue";
+import SolitaireGame from "~/components/games/SolitaireGame.vue";
+import HeartsGame from "~/components/games/HeartsGame.vue";
+import SpadesGame from "~/components/games/SpadesGame.vue";
 import NonogramGame from "~/components/games/NonogramGame.vue";
 import HiddenWordGame from "~/components/games/HiddenWordGame.vue";
 import ChessGame from "~/components/games/ChessGame.vue";
@@ -86,6 +89,9 @@ const gameComponents: Record<string, unknown> = {
   belote: BeloteGame,
   checkers: CheckersGame,
   poker: PokerGame,
+  solitaire: SolitaireGame,
+  hearts: HeartsGame,
+  spades: SpadesGame,
   nonogram: NonogramGame,
   "hidden-word": HiddenWordGame,
   chess: ChessGame,
