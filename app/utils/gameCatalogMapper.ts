@@ -1,6 +1,8 @@
 import type {
   ApiGameCategory,
   ApiGameEntry,
+  GameMood,
+  GameVisualStyle,
   ApiPlayMode,
   ConceptPlayMode,
   GameCategory,
@@ -8,6 +10,19 @@ import type {
   GameEntry,
   PlayMode,
 } from "~/types/game";
+
+const supportedMoods: GameMood[] = ["competitive", "chill", "arcade", "strategy"];
+const supportedVisualStyles: GameVisualStyle[] = ["neon", "classic", "minimal"];
+
+const resolveMood = (mood: ApiGameEntry["mood"]): GameMood | undefined =>
+  supportedMoods.includes(mood as GameMood) ? (mood as GameMood) : undefined;
+
+const resolveVisualStyle = (
+  visualStyle: ApiGameEntry["visualStyle"],
+): GameVisualStyle | undefined =>
+  supportedVisualStyles.includes(visualStyle as GameVisualStyle)
+    ? (visualStyle as GameVisualStyle)
+    : undefined;
 
 const apiToUiPlayModeMap: Record<ApiPlayMode, PlayMode | null> = {
   solo: "ai",
@@ -62,6 +77,8 @@ const mapGameEntry = (game: ApiGameEntry): GameEntry => {
 
   return {
     ...game,
+    mood: resolveMood(game.mood),
+    visualStyle: resolveVisualStyle(game.visualStyle),
     supportedModes: mappedModes,
     availableModes: mappedModes,
     plannedModes,

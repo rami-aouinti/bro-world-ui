@@ -3,6 +3,8 @@ export type ConceptPlayMode = PlayMode | "online";
 export type ApiPlayMode = "solo" | "versus" | "online" | "endless" | "ai" | "pvp";
 export type BeloteMode = "teams" | "free-for-all";
 export type GameDevelopmentStatus = "playable" | "prototype" | "coming_soon";
+export type GameMood = "competitive" | "chill" | "arcade" | "strategy";
+export type GameVisualStyle = "neon" | "classic" | "minimal";
 
 export interface GameEntry {
   id: string;
@@ -12,6 +14,11 @@ export interface GameEntry {
   difficultyKey?: string;
   tags?: string[];
   features?: string[];
+  mood?: GameMood;
+  visualStyle?: GameVisualStyle;
+  soundProfile?: string;
+  lobbyBackground?: string;
+  intensityLevel?: string | number;
   plannedModes?: ConceptPlayMode[];
   artDirection?: string;
   averageDuration?: string;

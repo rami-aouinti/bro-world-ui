@@ -5,6 +5,8 @@ import type {
   GameCategory,
   GameDevelopmentStatus,
   GameEntry,
+  GameMood,
+  GameVisualStyle,
   GameSubCategory,
   PlayMode,
 } from "~/types/game";
@@ -123,6 +125,63 @@ const liveHintByGameId: Record<string, string> = {
   "hidden-word": "Mot caché · essais restants, indice actif, série en cours",
   nonogram: "Nonogramme · progression ligne/colonne, erreurs, timer",
 };
+
+const moodLabelMap: Record<GameMood, string> = {
+  competitive: "Compétitif",
+  chill: "Chill",
+  arcade: "Arcade",
+  strategy: "Stratégie",
+};
+
+const moodColorMap: Record<GameMood, string> = {
+  competitive: "deep-orange",
+  chill: "teal",
+  arcade: "pink",
+  strategy: "indigo",
+};
+
+const visualLabelMap: Record<GameVisualStyle, string> = {
+  neon: "Néon",
+  classic: "Classique",
+  minimal: "Minimal",
+};
+
+const visualColorMap: Record<GameVisualStyle, string> = {
+  neon: "cyan",
+  classic: "amber",
+  minimal: "blue-grey",
+};
+
+const getAsideSurfaceStyle = (game: GameEntry | null) => {
+  if (!game) return undefined;
+  const texture = game.lobbyBackground ? `url(${game.lobbyBackground})` : "none";
+  const overlayByStyle: Record<GameVisualStyle, string> = {
+    neon: "linear-gradient(140deg, rgba(6,182,212,.12), rgba(168,85,247,.12))",
+    classic: "linear-gradient(140deg, rgba(120,53,15,.12), rgba(251,191,36,.12))",
+    minimal: "linear-gradient(140deg, rgba(15,23,42,.03), rgba(15,23,42,.08))",
+  };
+  const visualStyle = game.visualStyle ?? "minimal";
+
+  return {
+    backgroundImage: `${overlayByStyle[visualStyle]}, ${texture}`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    borderRadius: "12px",
+    padding: "0.75rem",
+  };
+};
+
+const getStatusToneLabel = (game: GameEntry | null | undefined, started: boolean) => {
+  if (!game) return t("gamePage.status.none");
+  if (started) {
+    if (game.mood === "competitive") return "Clutch en cours · restez concentré";
+    if (game.mood === "chill") return "Flow détente en cours";
+    return "Partie active";
+  }
+  if (game.mood === "strategy") return "Analysez votre prochain coup";
+  if (game.mood === "arcade") return "Prêt pour une montée d'adrénaline";
+  return "Session en préparation";
+};
 </script>
 
 <template>
@@ -153,6 +212,7 @@ const liveHintByGameId: Record<string, string> = {
       selectedGame.developmentStatus !== 'playable'
     "
     class="d-flex flex-column ga-3"
+    :style="getAsideSurfaceStyle(selectedGame)"
   >
     <v-chip color="warning" variant="tonal" prepend-icon="mdi-progress-clock">
       {{ t("gamePage.comingSoon.title") }}
@@ -199,6 +259,32 @@ const liveHintByGameId: Record<string, string> = {
   </div>
 
   <div v-else-if="!isGameStarted" class="d-flex flex-column ga-3">
+    <div class="d-flex flex-wrap ga-2">
+      <v-chip
+        v-if="selectedGame.mood"
+        :color="moodColorMap[selectedGame.mood]"
+        variant="tonal"
+        prepend-icon="mdi-lightning-bolt-outline"
+      >
+        {{ moodLabelMap[selectedGame.mood] }}
+      </v-chip>
+      <v-chip
+        v-if="selectedGame.visualStyle"
+        :color="visualColorMap[selectedGame.visualStyle]"
+        variant="tonal"
+        prepend-icon="mdi-palette-outline"
+      >
+        {{ visualLabelMap[selectedGame.visualStyle] }}
+      </v-chip>
+      <v-chip
+        v-if="selectedGame.intensityLevel"
+        color="red"
+        variant="outlined"
+        prepend-icon="mdi-fire"
+      >
+        Intensité {{ selectedGame.intensityLevel }}
+      </v-chip>
+    </div>
     <v-chip variant="outlined" :color="gamePanelState.getLevelColor('mode')">
       {{
         selectedPlayMode
@@ -233,9 +319,16 @@ const liveHintByGameId: Record<string, string> = {
             : "2v2"
       }}
     </p>
+    <p class="text-caption text-medium-emphasis mb-0">
+      {{ getStatusToneLabel(selectedGame, false) }}
+    </p>
   </div>
 
-  <div v-else-if="liveGamePanel" class="d-flex flex-column ga-3">
+  <div
+    v-else-if="liveGamePanel"
+    class="d-flex flex-column ga-3"
+    :style="getAsideSurfaceStyle(selectedGame)"
+  >
     <v-chip color="warning" variant="tonal" prepend-icon="mdi-timer-sand">
       Match en cours
     </v-chip>
@@ -282,14 +375,14 @@ const liveHintByGameId: Record<string, string> = {
     </div>
   </div>
 
-  <div v-else class="d-flex flex-column ga-3">
+  <div v-else class="d-flex flex-column ga-3" :style="getAsideSurfaceStyle(selectedGame)">
     <v-chip color="warning" variant="tonal" prepend-icon="mdi-timer-sand">
       Match en cours
     </v-chip>
     <p class="text-body-2 mb-0">
       {{
         liveHintByGameId[selectedGame.id] ??
-        "Suivi live de la partie en cours."
+        getStatusToneLabel(selectedGame, true)
       }}
     </p>
     <div v-if="selectedGame.tags?.length" class="d-flex flex-wrap ga-1">
