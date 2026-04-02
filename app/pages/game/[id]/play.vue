@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { storeToRefs } from "pinia";
+import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
+import GameMatchAside from "~/components/games/GameMatchAside.vue";
 import RamiGame from "~/components/games/RamiGame.vue";
 import BeloteGame from "~/components/games/BeloteGame.vue";
 import CheckersGame from "~/components/games/CheckersGame.vue";
@@ -11,6 +13,7 @@ import ChessGame from "~/components/games/ChessGame.vue";
 import SudokuGame from "~/components/games/SudokuGame.vue";
 import Game2048 from "~/components/games/Game2048.vue";
 import UnoGame from "~/components/games/UnoGame.vue";
+import type { GameAsidePanelState } from "~/components/games/types";
 import { useGameCatalogStore } from "~/stores/gameCatalog";
 import type { BeloteMode, GameEntry, PlayMode } from "~/types/game";
 import {
@@ -27,8 +30,11 @@ const router = useRouter();
 const gameCatalogStore = useGameCatalogStore();
 const gameSessionsApi = useGameSessionsApi();
 const authSession = useAuthSessionStore();
+const { isAuthenticated } = useAuth();
 const { categories } = storeToRefs(gameCatalogStore);
+const { t, te } = useI18n();
 const finishLoading = ref(false);
+const liveGamePanel = ref<GameAsidePanelState | null>(null);
 
 const gameComponents: Record<string, unknown> = {
   rami: RamiGame,
@@ -61,17 +67,31 @@ const sessionId = computed(() =>
   typeof route.query.sessionId === "string" ? route.query.sessionId : null,
 );
 
+const selectedCategory = computed(() => {
+  if (!gameId.value) return null;
+  return (
+    categories.value.find((category) =>
+      category.subCategories.some((sub) =>
+        sub.games.some((game) => game.id === gameId.value),
+      ),
+    ) ?? null
+  );
+});
+
+const selectedSubCategory = computed(() => {
+  if (!gameId.value) return null;
+  return (
+    selectedCategory.value?.subCategories.find((sub) =>
+      sub.games.some((game) => game.id === gameId.value),
+    ) ?? null
+  );
+});
+
 const selectedGame = computed<GameEntry | null>(() => {
   if (!gameId.value) return null;
-
-  for (const category of categories.value) {
-    for (const sub of category.subCategories) {
-      const found = sub.games.find((game) => game.id === gameId.value);
-      if (found) return found;
-    }
-  }
-
-  return null;
+  return (
+    selectedSubCategory.value?.games.find((game) => game.id === gameId.value) ?? null
+  );
 });
 
 const selectedComponent = computed(() =>
@@ -79,6 +99,38 @@ const selectedComponent = computed(() =>
     ? gameComponents[selectedGame.value.component]
     : null,
 );
+
+const sidebarUserDisplayName = computed(() => {
+  const firstName = authSession.profile?.firstName?.trim() ?? "";
+  const lastName = authSession.profile?.lastName?.trim() ?? "";
+  const fullName = `${firstName} ${lastName}`.trim();
+
+  return (
+    fullName ||
+    authSession.profile?.username ||
+    t("gamePage.auth.defaultPlayerName")
+  );
+});
+
+const formatCoinsAmount = (coins: number) =>
+  new Intl.NumberFormat("fr-FR").format(coins);
+
+const formattedUserCoins = computed(() =>
+  formatCoinsAmount(authSession.profile?.coins ?? 0),
+);
+
+const modeLabel = (mode: PlayMode) =>
+  mode === "ai" ? t("gamePage.modes.vsComputer") : t("gamePage.modes.vsPlayer");
+
+const gamePanelState = computed(() => ({
+  gameStatusLabel: t("gamePage.status.inProgress"),
+  canLaunchSelectedGame: false,
+  selectedBeloteMode: selectedBeloteMode.value,
+  modeLabel,
+  getLevelColor: (_level: "category" | "subCategory" | "game" | "mode" | "info") =>
+    "info",
+  resetToCategories: () => router.push("/game"),
+}));
 
 const finishGame = async (result: SessionResult) => {
   if (!sessionId.value || finishLoading.value) return;
@@ -100,51 +152,111 @@ const finishGame = async (result: SessionResult) => {
   }
 };
 
+const onGamePanelState = (payload: GameAsidePanelState) => {
+  liveGamePanel.value = payload;
+};
+
 onMounted(async () => {
   await gameCatalogStore.fetchCatalog();
 });
 </script>
 
 <template>
-  <div class="play-page">
-    <div class="d-flex justify-space-between align-center mb-4 flex-wrap ga-2">
-      <div>
-        <h1 class="text-h5 mb-1">Partie en cours</h1>
-        <p class="text-body-2 text-medium-emphasis mb-0">
-          User game: {{ route.params.id }} · Level: {{ selectedLevel ?? "—" }}
-        </p>
+  <PlatformSplitLayout>
+    <template #sidebar>
+      <v-chip variant="outlined" prepend-icon="mdi-controller" class="mb-3">
+        {{ t("gamePage.sidebar.badge") }}
+      </v-chip>
+
+      <div v-if="isAuthenticated" class="d-flex align-center ga-2 mb-4">
+        <UiAvatar
+          :src="authSession.profile?.photo"
+          :name="sidebarUserDisplayName"
+          size="40"
+        />
+        <div>
+          <p class="text-body-2 font-weight-bold mb-0">{{ sidebarUserDisplayName }}</p>
+          <p class="text-caption text-medium-emphasis mb-0">
+            {{ t("gamePage.auth.coinsBalance", { count: formattedUserCoins }) }}
+          </p>
+        </div>
       </div>
 
-      <div class="d-flex ga-2">
-        <v-btn variant="outlined" @click="router.push('/game')">Quitter</v-btn>
-        <v-btn
-          color="success"
-          :loading="finishLoading"
-          :disabled="!sessionId"
-          @click="finishGame('win')"
-        >
-          Terminer (win)
-        </v-btn>
-        <v-btn
-          color="error"
-          :loading="finishLoading"
-          :disabled="!sessionId"
-          @click="finishGame('lose')"
-        >
-          Terminer (lose)
-        </v-btn>
-      </div>
-    </div>
+      <v-card variant="outlined" class="mb-3">
+        <v-card-text class="d-flex flex-column ga-1">
+          <p class="text-caption text-medium-emphasis mb-0">Catégorie</p>
+          <p class="text-body-2 mb-0">{{ selectedCategory ? t(selectedCategory.nameKey) : "—" }}</p>
+          <p class="text-caption text-medium-emphasis mb-0 mt-2">Sous-catégorie</p>
+          <p class="text-body-2 mb-0">
+            {{ selectedSubCategory ? t(selectedSubCategory.nameKey) : "—" }}
+          </p>
+          <p class="text-caption text-medium-emphasis mb-0 mt-2">Jeu</p>
+          <p class="text-body-2 mb-0">{{ selectedGame ? t(selectedGame.nameKey) : "—" }}</p>
+        </v-card-text>
+      </v-card>
+
+      <v-btn block variant="outlined" prepend-icon="mdi-arrow-left" @click="router.push('/game')">
+        {{ t("gamePage.navigation.backToCategories") }}
+      </v-btn>
+    </template>
+
+    <template #aside>
+      <GameMatchAside
+        :selected-category="selectedCategory"
+        :selected-sub-category="selectedSubCategory"
+        :selected-game="selectedGame"
+        :selected-play-mode="selectedPlayMode"
+        :is-game-started="true"
+        :game-panel-state="gamePanelState"
+        :live-game-panel="liveGamePanel"
+      />
+
+      <v-card variant="outlined" class="mt-4">
+        <v-card-text class="d-flex flex-column ga-2">
+          <p class="text-caption text-medium-emphasis mb-0">
+            Session: {{ sessionId ?? "—" }}
+          </p>
+          <p class="text-caption text-medium-emphasis mb-0">
+            User game: {{ route.params.id }}
+          </p>
+          <p class="text-caption text-medium-emphasis mb-0">
+            Level: {{ selectedLevel ?? "—" }}
+          </p>
+
+          <div class="d-flex ga-2 mt-2">
+            <v-btn
+              color="success"
+              size="small"
+              :loading="finishLoading"
+              :disabled="!sessionId"
+              @click="finishGame('win')"
+            >
+              Finish win
+            </v-btn>
+            <v-btn
+              color="error"
+              size="small"
+              :loading="finishLoading"
+              :disabled="!sessionId"
+              @click="finishGame('lose')"
+            >
+              Finish lose
+            </v-btn>
+          </div>
+        </v-card-text>
+      </v-card>
+    </template>
 
     <component
       :is="selectedComponent"
       v-if="selectedComponent"
       :selected-play-mode="selectedPlayMode"
       :belote-mode="selectedBeloteMode"
+      @panel-state="onGamePanelState"
     />
 
     <v-alert v-else type="warning" variant="tonal">
-      Impossible de charger ce jeu pour la session actuelle.
+      {{ te("gamePage.status.none") ? t("gamePage.status.none") : "Game not found." }}
     </v-alert>
-  </div>
+  </PlatformSplitLayout>
 </template>
