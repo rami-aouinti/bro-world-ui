@@ -280,6 +280,17 @@ const modeLabel = (mode: PlayMode | ApiPlayMode) => {
   return t("gamePage.status.soonHint");
 };
 
+const modeImageMap: Record<PlayMode, string> = {
+  ai: "/img/game/computer.png",
+  pvp: "/img/game/player.png",
+};
+
+const levelImageMap: Record<GameLevel, string> = {
+  easy: "/img/game/200.png",
+  medium: "/img/game/400.png",
+  hard: "/img/game/600.png",
+};
+
 const gameStatusLabel = computed(() => {
   if (!selectedGame.value) return t("gamePage.status.none");
 
@@ -362,7 +373,9 @@ const openSubCategory = (subCategoryId: string) => {
 
 const openGame = (gameId: string) => {
   selectedGameId.value = gameId;
-  selectedPlayMode.value = null;
+  selectedPlayMode.value = localSupportedModes.value.includes("ai")
+    ? "ai"
+    : (localSupportedModes.value[0] ?? null);
   const nextGame = allGameEntries.value.find((entry) => entry.id === gameId);
   selectedBeloteMode.value =
     getGameBusinessKey(nextGame) === "belote" ? "teams" : null;
@@ -403,9 +416,6 @@ const selectPlayMode = (mode: PlayMode) => {
   }
 
   selectedPlayMode.value = mode;
-  if (mode !== "ai") {
-    selectedAiLevel.value = null;
-  }
   isGameStarted.value = false;
 };
 
@@ -1168,9 +1178,14 @@ const handleLogin = async () => {
                 @click="selectPlayMode(mode)"
             >
               <v-card-text
-                  class="text-center font-weight-bold text-title-large"
+                  class="d-flex align-center justify-center"
               >
-                {{ modeLabel(mode) }}
+                <v-img
+                  :src="modeImageMap[mode]"
+                  :alt="modeLabel(mode)"
+                  contain
+                  class="selection-card-image"
+                />
               </v-card-text>
             </v-card>
           </v-col>
@@ -1199,7 +1214,7 @@ const handleLogin = async () => {
         </div>
 
         <v-row
-          v-if="selectedPlayMode === 'ai' && !isLaunchingSession"
+          v-if="!isLaunchingSession"
           class="mb-4"
           dense
         >
@@ -1216,8 +1231,13 @@ const handleLogin = async () => {
               :color="selectedAiLevel === level ? 'primary' : undefined"
               @click="selectAiLevel(level)"
             >
-              <v-card-text class="text-center font-weight-bold text-title-medium text-uppercase">
-                {{ level }}
+              <v-card-text class="d-flex align-center justify-center">
+                <v-img
+                  :src="levelImageMap[level]"
+                  :alt="level"
+                  contain
+                  class="selection-card-image"
+                />
               </v-card-text>
             </v-card>
           </v-col>
@@ -1462,6 +1482,11 @@ const handleLogin = async () => {
 
 .mode-card--active {
   box-shadow: 0 12px 20px rgba(15, 23, 42, 0.18);
+}
+
+.selection-card-image {
+  width: min(240px, 90%);
+  min-height: 56px;
 }
 
 .launch-loader {
