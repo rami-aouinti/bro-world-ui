@@ -231,10 +231,23 @@ const hasSoonBadge = (game: GameEntry) =>
   !game.component || !getPlayableModes(game).length;
 
 const selectQuickAccessGame = (game: GameEntry) => {
+  const gameLocation = categories.value
+    .flatMap((category) =>
+      category.subCategories.map((subCategory) => ({
+        categoryId: category.id,
+        subCategoryId: subCategory.id,
+        gameIds: subCategory.games.map((entry) => entry.id),
+      })),
+    )
+    .find((entry) => entry.gameIds.includes(game.id));
+
+  selectedCategoryId.value = gameLocation?.categoryId ?? null;
+  selectedSubCategoryId.value = gameLocation?.subCategoryId ?? null;
   selectedGameId.value = game.id;
   selectedPlayMode.value = null;
   selectedBeloteMode.value =
     getGameBusinessKey(game) === "belote" ? "teams" : null;
+  selectedAiLevel.value = null;
   isGameStarted.value = false;
 };
 
