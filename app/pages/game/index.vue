@@ -683,7 +683,6 @@ const handleLogin = async () => {
 </script>
 
 <template>
-
   <teleport v-if="isGameStarted && globalRestartAction" to="#app-bar-teleport-target-right">
     <v-btn
         color="primary"
@@ -699,7 +698,7 @@ const handleLogin = async () => {
   <PlatformSplitLayout>
     <template #sidebar>
       <div class="mb-4">
-        <v-chip variant="outlined" prepend-icon="mdi-controller" class="mb-2">{{
+        <v-chip variant="outlined" prepend-icon="mdi-gamepad" class="mb-2">{{
           t("gamePage.sidebar.badge")
         }}</v-chip>
       </div>
@@ -880,10 +879,10 @@ const handleLogin = async () => {
       </v-snackbar>
     </template>
     <template #aside>
-      <section v-if="rightPanelState === 'quick-access'" class="quick-access">
-        <h3 class="text-h6 mb-3">
+      <section v-if="rightPanelState === 'quick-access'">
+        <v-chip variant="outlined" prepend-icon="mdi-gamepad" class="mb-2">
           {{ te("gamePage.quickAccess.title") ? t("gamePage.quickAccess.title") : "Quick Access" }}
-        </h3>
+        </v-chip>
         <div v-if="isFeaturedGamesLoading" class="d-flex flex-column ga-3">
           <v-skeleton-loader
             v-for="index in 4"
@@ -899,24 +898,26 @@ const handleLogin = async () => {
         >
           {{ t("gamePage.status.none") }}
         </v-alert>
-        <div v-else class="d-flex flex-column ga-3">
+        <div v-else class="d-flex flex-column ga-3 pa-2">
           <v-card
             v-for="game in featuredGames"
             :key="`quick-access-${game.id}`"
             variant="outlined"
             class="pa-3"
-            @click="selectQuickAccessGame(game)"
           >
             <div class="d-flex justify-space-between align-center ga-2 mb-2">
+              <v-avatar size="32" :image="game.img"></v-avatar>
               <span class="font-weight-medium">{{ t(game.nameKey) }}</span>
+              <v-spacer></v-spacer>
               <v-chip
                 v-if="hasSoonBadge(game)"
                 size="small"
                 color="warning"
                 variant="tonal"
               >
-                Bientôt disponible
+                Soon
               </v-chip>
+              <v-btn variant="text" color="primary" icon="mdi-play"  v-else @click="selectQuickAccessGame(game)"></v-btn>
             </div>
 
             <div
@@ -1037,7 +1038,7 @@ const handleLogin = async () => {
 
       <section v-else-if="!selectedCategory">
         <v-row>
-          <v-col v-for="category in categories" :key="category.id" cols="12" md="6">
+          <v-col v-for="category in categories" :key="category.id" cols="12" md="4">
             <v-card
                 v-motion
                 :initial="cardMotion.initial"
@@ -1046,8 +1047,8 @@ const handleLogin = async () => {
                 class="h-100 card-category-game"
                 variant="text"
             >
-              <v-card-title class="text-center">{{ t(category?.nameKey) }}</v-card-title>
-              <div class="w-100">
+              <v-card-subtitle class="text-center">{{ t(category?.nameKey) }}</v-card-subtitle>
+              <div class="w-100 pa-3">
                 <div
                     v-motion
                     :initial="imageMotion.initial"
@@ -1074,7 +1075,7 @@ const handleLogin = async () => {
             v-for="subCategory in selectedCategory.subCategories"
             :key="subCategory.id"
             cols="12"
-            md="6"
+            md="4"
           >
             <v-card
                 v-motion
@@ -1084,8 +1085,8 @@ const handleLogin = async () => {
                 class="h-100 card-category-game"
                 variant="text"
             >
-              <v-card-title class="text-center">{{ t(subCategory?.nameKey) }}</v-card-title>
-              <div class="w-100">
+              <v-card-subtitle class="text-center">{{ t(subCategory?.nameKey) }}</v-card-subtitle>
+              <div class="w-100 pa-3">
                 <div
                     @click="openSubCategory(subCategory.id)"
                     v-motion
@@ -1109,7 +1110,7 @@ const handleLogin = async () => {
             v-for="game in selectedSubCategory.games"
             :key="game.id"
             cols="12"
-            md="6"
+            md="4"
           >
             <v-card
                 v-motion
@@ -1119,8 +1120,8 @@ const handleLogin = async () => {
                 class="h-100 card-category-game"
                 variant="text"
             >
-              <v-card-title class="text-center">{{ t(game?.nameKey) }}</v-card-title>
-              <div class="w-100">
+              <v-card-subtitle class="text-center">{{ t(game?.nameKey) }}</v-card-subtitle>
+              <div class="w-100 pa-3">
                 <div
                     @click="openGame(game.id)"
                     :disabled="!game.component || !game.supportedModes.length"
@@ -1326,7 +1327,7 @@ const handleLogin = async () => {
 
 <style scoped>
 .card-category-game {
-  padding: 20px;
+  padding: 10px;
   border-radius: 12px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
