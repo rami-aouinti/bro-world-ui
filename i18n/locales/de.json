@@ -2221,6 +2221,15 @@
         "activeColor": "Aktive Farbe",
         "round": "Runde"
       }
+    },
+    "flappyRocket": {
+      "title": "Flappy Rocket",
+      "controls": "Leertaste / ↑ / Tap: Schub · R: Neustart",
+      "start": "Starten",
+      "restart": "Neu starten",
+      "gameOver": "Absturz erkannt",
+      "score": "Punktzahl",
+      "bestScore": "Bestwert"
     }
   },
   "common": {

@@ -2221,6 +2221,15 @@
         "activeColor": "اللون النشط",
         "round": "الجولة"
       }
+    },
+    "flappyRocket": {
+      "title": "فلاپي روكِت",
+      "controls": "Space / ↑ / لمس: دفعة · R: إعادة التشغيل",
+      "start": "ابدأ",
+      "restart": "إعادة اللعب",
+      "gameOver": "تم اكتشاف الاصطدام",
+      "score": "النتيجة",
+      "bestScore": "أفضل نتيجة"
     }
   },
   "common": {
