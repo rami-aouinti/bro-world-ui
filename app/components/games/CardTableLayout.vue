@@ -131,10 +131,10 @@ const isRedSuit = (suit: string) => suit === "♥" || suit === "♦";
 .seat-melds { position: absolute; z-index: 2; display: flex; flex-direction: column; gap: 4px; width: min(230px, 100%); padding: 10px; overflow-y: auto; }
 .seat-melds--north { top: -130px; left: 50%; transform: translateX(-50%); align-items: center; }
 .seat-melds--south { bottom: 76px; left: 50%; transform: translateX(-50%); align-items: center; }
-.seat-melds--east { right: -100px; width: min(150px, 24%); transform: translateX(-50%); align-items: center; }
-.seat-melds--west { left: -60px; width: min(150px, 24%); transform: translateX(-50%); align-items: center;  }
+.seat-melds--east { right: -120px; width: min(220px, 30%); transform: translateX(-50%); align-items: flex-start; }
+.seat-melds--west { left: -80px; width: min(220px, 30%); transform: translateX(-50%); align-items: flex-start;  }
 .seat-melds__group { display: flex; flex-wrap: wrap; gap: 4px; }
-.seat-melds__group--side { flex-direction: row; flex-wrap: wrap; gap: 4px; justify-content: center; }
+.seat-melds__group--side { flex-direction: row; flex-wrap: nowrap; gap: 4px; justify-content: flex-start; width: 100%; }
 .seat-melds__group--east .meld-card--side,
 .seat-melds__group--west .meld-card--side { transform: none; }
 .meld-card { display: inline-flex; flex-direction: column; justify-content: space-between; align-items: flex-start; width: 28px; min-height: 40px; border-radius: 6px; border: 1px solid rgba(15, 23, 42, 0.15); padding: 3px 4px; background: linear-gradient(160deg, #fff, #f6f7fb); box-shadow: 0 4px 10px rgba(15, 23, 42, 0.18); line-height: 1; }
