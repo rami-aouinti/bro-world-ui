@@ -6,6 +6,9 @@ import CheckersGame from "~/components/games/CheckersGame.vue";
 import ChessGame from "~/components/games/ChessGame.vue";
 import RamiGame from "~/components/games/RamiGame.vue";
 import PokerGame from "~/components/games/PokerGame.vue";
+import SolitaireGame from "~/components/games/SolitaireGame.vue";
+import HeartsGame from "~/components/games/HeartsGame.vue";
+import SpadesGame from "~/components/games/SpadesGame.vue";
 import NonogramGame from "~/components/games/NonogramGame.vue";
 import HiddenWordGame from "~/components/games/HiddenWordGame.vue";
 import SudokuGame from "~/components/games/SudokuGame.vue";
@@ -116,6 +119,15 @@ const game2048Ref = ref<{
   handleAsideAction: (actionId: string) => void;
 } | null>(null);
 const pokerGameRef = ref<{
+  handleAsideAction: (actionId: string) => void;
+} | null>(null);
+const solitaireGameRef = ref<{
+  handleAsideAction: (actionId: string) => void;
+} | null>(null);
+const heartsGameRef = ref<{
+  handleAsideAction: (actionId: string) => void;
+} | null>(null);
+const spadesGameRef = ref<{
   handleAsideAction: (actionId: string) => void;
 } | null>(null);
 const unoGameRef = ref<{
@@ -409,6 +421,9 @@ const onAsideAction = (actionId: string) => {
     "hidden-word": hiddenWordGameRef.value,
     game2048: game2048Ref.value,
     poker: pokerGameRef.value,
+    solitaire: solitaireGameRef.value,
+    hearts: heartsGameRef.value,
+    spades: spadesGameRef.value,
     uno: unoGameRef.value,
     "flappy-rocket": flappyRocketGameRef.value,
   };
@@ -1102,6 +1117,24 @@ const handleLogin = async () => {
         <PokerGame
           ref="pokerGameRef"
           v-else-if="selectedGame.component === 'poker'"
+          :selected-play-mode="selectedPlayMode"
+          @panel-state="onGamePanelState"
+        />
+        <SolitaireGame
+          ref="solitaireGameRef"
+          v-else-if="selectedGame.component === 'solitaire'"
+          :selected-play-mode="selectedPlayMode"
+          @panel-state="onGamePanelState"
+        />
+        <HeartsGame
+          ref="heartsGameRef"
+          v-else-if="selectedGame.component === 'hearts'"
+          :selected-play-mode="selectedPlayMode"
+          @panel-state="onGamePanelState"
+        />
+        <SpadesGame
+          ref="spadesGameRef"
+          v-else-if="selectedGame.component === 'spades'"
           :selected-play-mode="selectedPlayMode"
           @panel-state="onGamePanelState"
         />
