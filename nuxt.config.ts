@@ -166,6 +166,7 @@ export default defineNuxtConfig({
     '~/assets/styles/material-dashboard.scss',
     '~/assets/styles/index.css',
     '~/assets/styles/critical-home.css',
+    '~/assets/styles/game-cards.css',
   ],
   vite: {
     build: {

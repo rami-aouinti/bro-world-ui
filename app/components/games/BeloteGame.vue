@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { computed, watchEffect } from "vue";
+import { computed, ref, watchEffect } from "vue";
 import CardTableLayout from "./CardTableLayout.vue";
+import CardFanHand from "./cards/CardFanHand.vue";
+import DeckStack from "./cards/DeckStack.vue";
+import TrickPile from "./cards/TrickPile.vue";
 import type { GameAsidePanelState } from "./types";
 import {
   type BeloteMode,
@@ -81,6 +84,10 @@ const handsPanelTitle = computed(() =>
 const isHumanCardPlayable = (cardId: string) =>
   humanPlayableCards.value.some((card) => card.id === cardId);
 
+const selectedCardId = ref<string | null>(null);
+const rejectedCardId = ref<string | null>(null);
+const wonCardIds = ref<string[]>([]);
+
 const tableSeatOrder = ["north", "east", "south", "west"] as const;
 type TableSeat = (typeof tableSeatOrder)[number];
 
@@ -139,15 +146,27 @@ const trickBySeat = computed(() => {
   return bySeat;
 });
 
-const centerCards = computed(() =>
-  tableSeatOrder
-    .map((seat) => {
-      const play = trickBySeat.value[seat];
-      if (!play) return null;
-      return `${players.value[play.playerIndex].name}: ${play.card.rank}${play.card.suit}`;
-    })
-    .filter((entry): entry is string => Boolean(entry)),
+const trickCards = computed(() =>
+  tableSeatOrder.flatMap((seat) => {
+    const play = trickBySeat.value[seat];
+    if (!play) return [];
+    return {
+      seat,
+      rank: play.card.rank,
+      suit: play.card.suit,
+      playerName: players.value[play.playerIndex]?.name,
+    };
+  }),
 );
+
+const winnerSeat = computed<TableSeat | null>(() => {
+  if (!trick.value.length || !roundOver.value) {
+    return null;
+  }
+
+  const previousTurn = (turnIndex.value + 3) % 4;
+  return seatByPlayerIndex.value[previousTurn] ?? null;
+});
 const trickCountValue = computed(() => trickCount.value);
 
 const scoreboardRows = computed(() => {
@@ -236,10 +255,48 @@ watchEffect(() => {
   emit("panel-state", panelState.value);
 });
 
+watchEffect(() => {
+  if (!displayHandPlayer.value) {
+    selectedCardId.value = null;
+    return;
+  }
+
+  if (selectedCardId.value && !displayHandPlayer.value.hand.some((card) => card.id === selectedCardId.value)) {
+    selectedCardId.value = null;
+  }
+});
+
+watchEffect(() => {
+  if (!winnerSeat.value) return;
+
+  const winningPlay = trickCards.value.find((play) => play.seat === winnerSeat.value);
+  if (!winningPlay) return;
+
+  wonCardIds.value = [`${winningPlay.rank}${winningPlay.suit}`];
+});
+
 const handleAsideAction = (actionId: string) => {
   if (actionId === "new-deal") {
     restartRound();
   }
+};
+
+const handlePlayCard = (payload: { id: string }) => {
+  if (!displayHandPlayer.value) return;
+
+  selectedCardId.value = payload.id;
+  const canPlay = canHumanPlay.value && humanTurnPlayerIndex.value === displayHandPlayerIndex.value;
+  const allowed = isHumanCardPlayable(payload.id);
+
+  if (!canPlay || !allowed) {
+    rejectedCardId.value = payload.id;
+    window.setTimeout(() => {
+      if (rejectedCardId.value === payload.id) rejectedCardId.value = null;
+    }, 450);
+    return;
+  }
+
+  playCard(displayHandPlayerIndex.value, payload.id);
 };
 
 defineExpose({
@@ -250,7 +307,6 @@ defineExpose({
 <template>
   <CardTableLayout
       :players="tablePlayers"
-      :center-cards="centerCards"
       :turn-timer-seconds="TURN_SECONDS"
   >
     <template #seat-south-hand>
@@ -258,58 +314,42 @@ defineExpose({
         <p class="belote-seat-hand__title">
           {{ t("gameComponents.belote.yourHand") }} · {{ displayHandPlayer.name }}
         </p>
-        <div class="belote-seat-hand__cards">
-          <button
-              v-for="card in displayHandPlayer.hand"
-              :key="card.id"
-              type="button"
-              class="play-card belote-seat-hand__card"
-              :disabled="
-                !canHumanPlay ||
-                humanTurnPlayerIndex !== displayHandPlayerIndex ||
-                !isHumanCardPlayable(card.id)
-              "
-              @click="playCard(displayHandPlayerIndex, card.id)"
-          >
-            <span class="card-rank">{{ card.rank }}</span>
-            <span
-                :class="[
-                  'card-suit',
-                  card.suit === '♥' || card.suit === '♦' ? 'text-red' : 'text-black',
-                ]"
-            >{{ card.suit }}</span
-            >
-          </button>
-        </div>
+        <CardFanHand
+          :cards="displayHandPlayer.hand"
+          :selected-card-ids="selectedCardId ? [selectedCardId] : []"
+          :playable-card-ids="humanPlayableCards.map((card) => card.id)"
+          :disabled-card-ids="
+            !canHumanPlay || humanTurnPlayerIndex !== displayHandPlayerIndex
+              ? displayHandPlayer.hand.map((card) => card.id)
+              : []
+          "
+          :highlighted-card-ids="humanPlayableCards.map((card) => card.id)"
+          :feedback-by-card-id="
+            Object.fromEntries(
+              displayHandPlayer.hand.map((card) => [
+                card.id,
+                rejectedCardId === card.id
+                  ? 'error'
+                  : wonCardIds.includes(`${card.rank}${card.suit}`)
+                    ? 'won'
+                    : 'idle',
+              ]),
+            )
+          "
+          @play-card="handlePlayCard"
+        />
       </section>
     </template>
 
     <template #center>
       <div class="trick-center">
-        <div class="trick-center__cards">
-          <div
-              v-for="seat in tableSeatOrder"
-              :key="`trick-slot-${seat}`"
-              class="center-card"
-              :class="`center-card--${seat}`"
-          >
-            <template v-if="trickBySeat[seat]">
-              <span>{{ trickBySeat[seat]?.card.rank }}</span>
-              <span
-                  :class="[
-                    'card-suit',
-                    trickBySeat[seat]?.card.suit === '♥' ||
-                    trickBySeat[seat]?.card.suit === '♦'
-                      ? 'text-red'
-                      : 'text-black',
-                  ]"
-              >
-                  {{ trickBySeat[seat]?.card.suit }}
-                </span>
-            </template>
-            <span v-else class="text-medium-emphasis">—</span>
-          </div>
-        </div>
+        <TrickPile :trick="trickCards" :winner-seat="winnerSeat" />
+        <DeckStack
+          class="trick-center__deck"
+          :remaining="Math.max(0, 32 - trickCountValue * 4)"
+          :can-draw="false"
+          :disabled="true"
+        />
       </div>
     </template>
 
@@ -376,12 +416,7 @@ defineExpose({
             >
               <span class="text-caption">{{ player.name }}</span>
               <div class="card-backs">
-                  <span
-                      v-for="n in player.hand.length"
-                      :key="`${player.id}-${n}`"
-                      class="card-back"
-                  >🂠</span
-                  >
+                <span v-for="n in player.hand.length" :key="`${player.id}-${n}`" class="card-back">🂠</span>
               </div>
               <small class="text-medium-emphasis">{{
                   getSeatRoleLabel(
@@ -478,65 +513,6 @@ defineExpose({
   font-weight: 600;
 }
 
-.belote-seat-hand__cards {
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-}
-
-.belote-seat-hand__card {
-  width: 58px;
-  min-height: 78px;
-  margin-left: -18px;
-}
-
-.belote-seat-hand__card:first-child {
-  margin-left: 0;
-}
-
-.play-card {
-  min-height: 74px;
-  border-radius: 12px;
-  border: 1px solid rgba(17, 24, 39, 0.25);
-  background: #ffffff;
-  color: #111827;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px;
-  transition:
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    border-color 180ms ease;
-}
-
-.play-card:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
-}
-
-.play-card:focus-visible {
-  outline: 3px solid
-    color-mix(in srgb, rgb(var(--v-theme-primary)) 40%, transparent);
-  outline-offset: 2px;
-}
-
-.play-card:disabled {
-  opacity: 0.82;
-}
-
-.card-rank {
-  font-size: 1.2rem;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.card-suit {
-  font-size: 1.25rem;
-  line-height: 1;
-}
-
 .ai-hands {
   display: grid;
   gap: 8px;
@@ -566,53 +542,18 @@ defineExpose({
 
 .trick-center {
   width: 100%;
-}
-
-.trick-center__cards {
   display: grid;
-  grid-template-columns: repeat(3, minmax(40px, 1fr));
-  gap: 8px;
+  place-items: center;
+  gap: 10px;
 }
 
-.center-card--north {
-  grid-column: 2;
-  grid-row: 1;
-}
-
-.center-card--east {
-  grid-column: 3;
-  grid-row: 2;
-}
-
-.center-card--south {
-  grid-column: 2;
-  grid-row: 3;
-}
-
-.center-card--west {
-  grid-column: 1;
-  grid-row: 2;
-}
-
-.center-card {
-  min-height: 52px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #111827;
-  border: 1px solid rgba(17, 24, 39, 0.15);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
+.trick-center__deck {
+  transform: scale(0.86);
 }
 
 @media (max-width: 700px) {
-  .belote-seat-hand__card {
-    width: 50px;
-    min-height: 70px;
-    margin-left: -22px;
-    padding: 6px;
+  .trick-center__deck {
+    transform: scale(0.72);
   }
 }
 </style>
