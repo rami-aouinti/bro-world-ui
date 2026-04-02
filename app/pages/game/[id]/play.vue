@@ -30,11 +30,41 @@ const router = useRouter();
 const gameCatalogStore = useGameCatalogStore();
 const gameSessionsApi = useGameSessionsApi();
 const authSession = useAuthSessionStore();
-const { isAuthenticated } = useAuth();
+const { isAuthenticated, login } = useAuth();
 const { categories } = storeToRefs(gameCatalogStore);
 const { t, te } = useI18n();
 const finishLoading = ref(false);
 const liveGamePanel = ref<GameAsidePanelState | null>(null);
+const isLoginDialogOpen = ref(false);
+const isCoinsDialogOpen = ref(false);
+const isPaymentSoonSnackbarOpen = ref(false);
+const paymentSoonSnackbarText = ref("");
+const usernameOrEmail = ref("");
+const password = ref("");
+const loginLoading = ref(false);
+const loginError = ref("");
+const userCoins = computed(() => authSession.profile?.coins ?? 0);
+const gameStatusLabel = computed(() => t("gamePage.status.inProgress"));
+const coinOffers = [
+  {
+    id: "offer-1",
+    coins: 1000,
+    priceEuro: 1,
+    labelKey: "gamePage.auth.offers.offer1Label",
+  },
+  {
+    id: "offer-2",
+    coins: 5000,
+    priceEuro: 4,
+    labelKey: "gamePage.auth.offers.offer2Label",
+  },
+  {
+    id: "offer-3",
+    coins: 100000,
+    priceLabelKey: "gamePage.auth.offers.offer3PriceLabel",
+    labelKey: "gamePage.auth.offers.offer3Label",
+  },
+] as const;
 
 const gameComponents: Record<string, unknown> = {
   rami: RamiGame,
@@ -116,7 +146,7 @@ const formatCoinsAmount = (coins: number) =>
   new Intl.NumberFormat("fr-FR").format(coins);
 
 const formattedUserCoins = computed(() =>
-  formatCoinsAmount(authSession.profile?.coins ?? 0),
+  formatCoinsAmount(userCoins.value),
 );
 
 const modeLabel = (mode: PlayMode) =>
@@ -156,6 +186,42 @@ const onGamePanelState = (payload: GameAsidePanelState) => {
   liveGamePanel.value = payload;
 };
 
+const resetToCategories = () => router.push("/game");
+const backToSubCategories = () => router.push("/game");
+const backToGames = () => router.push("/game");
+
+const formatOfferPrice = (offer: (typeof coinOffers)[number]) =>
+  typeof offer.priceEuro === "number"
+    ? `${offer.priceEuro} €`
+    : t(offer.priceLabelKey ?? "gamePage.auth.offers.offer3PriceLabel");
+
+const chooseCoinOffer = (offerId: string) => {
+  isCoinsDialogOpen.value = false;
+  paymentSoonSnackbarText.value = t("gamePage.auth.paymentSoon", { offerId });
+  isPaymentSoonSnackbarOpen.value = true;
+};
+
+const handleLogin = async () => {
+  if (!usernameOrEmail.value.trim() || !password.value.trim()) {
+    loginError.value = t("gamePage.auth.loginMissingCredentials");
+    return;
+  }
+
+  loginLoading.value = true;
+  loginError.value = "";
+
+  try {
+    await login(usernameOrEmail.value.trim(), password.value);
+    isLoginDialogOpen.value = false;
+    usernameOrEmail.value = "";
+    password.value = "";
+  } catch {
+    loginError.value = t("gamePage.auth.loginFailed");
+  } finally {
+    loginLoading.value = false;
+  }
+};
+
 onMounted(async () => {
   await gameCatalogStore.fetchCatalog();
 });
@@ -164,40 +230,187 @@ onMounted(async () => {
 <template>
   <PlatformSplitLayout>
     <template #sidebar>
-      <v-chip variant="outlined" prepend-icon="mdi-controller" class="mb-3">
-        {{ t("gamePage.sidebar.badge") }}
-      </v-chip>
-
-      <div v-if="isAuthenticated" class="d-flex align-center ga-2 mb-4">
-        <UiAvatar
-          :src="authSession.profile?.photo"
-          :name="sidebarUserDisplayName"
-          size="40"
-        />
-        <div>
-          <p class="text-body-2 font-weight-bold mb-0">{{ sidebarUserDisplayName }}</p>
-          <p class="text-caption text-medium-emphasis mb-0">
-            {{ t("gamePage.auth.coinsBalance", { count: formattedUserCoins }) }}
-          </p>
+      <div class="mb-4">
+        <v-chip variant="outlined" prepend-icon="mdi-controller" class="mb-2">{{
+          t("gamePage.sidebar.badge")
+        }}</v-chip>
+      </div>
+      <div class="mb-4">
+        <v-btn
+          v-if="!isAuthenticated"
+          variant="tonal"
+          color="primary"
+          prepend-icon="mdi-login"
+          @click="isLoginDialogOpen = true"
+        >
+          {{ t("gamePage.auth.connect") }}
+        </v-btn>
+        <div v-else class="d-flex align-center ga-1">
+          <UiAvatar
+            :src="authSession.profile?.photo"
+            :name="sidebarUserDisplayName"
+            size="lg"
+          />
+          <div class="d-flex flex-column mx-3">
+            <p class="text-body-2 font-weight-medium">
+              {{ sidebarUserDisplayName }} -
+              {{ t("gamePage.auth.coinsBalance", { count: formattedUserCoins }) }}
+            </p>
+            <v-btn
+              variant="outlined"
+              prepend-icon="mdi-cash-plus"
+              @click="isCoinsDialogOpen = true"
+            >
+              {{ t("gamePage.auth.buyCoins") }}
+            </v-btn>
+          </div>
         </div>
       </div>
+      <div class="d-flex flex-column ga-2 mb-4">
+        <v-btn
+          variant="outlined"
+          prepend-icon="mdi-home"
+          @click="resetToCategories"
+          >{{ t("gamePage.navigation.backToCategories") }}</v-btn
+        >
+        <v-btn
+          v-if="selectedSubCategory"
+          variant="outlined"
+          prepend-icon="mdi-arrow-left"
+          @click="backToSubCategories"
+        >
+          {{ t("gamePage.navigation.backToSubCategories") }}
+        </v-btn>
+        <v-btn
+          v-if="selectedGame"
+          variant="outlined"
+          prepend-icon="mdi-arrow-left"
+          @click="backToGames"
+        >
+          {{ t("gamePage.navigation.backToGames") }}
+        </v-btn>
+      </div>
+      <div class="d-flex align-center flex-wrap ga-2 mb-0">
+        <v-chip v-if="selectedPlayMode">{{
+          selectedPlayMode ? modeLabel(selectedPlayMode) : "—"
+        }}</v-chip>
+        <v-chip v-if="gameStatusLabel">{{ gameStatusLabel }}</v-chip>
+        <v-chip
+          v-if="selectedCategory"
+          prepend-icon="mdi-folder-open-outline"
+          color="primary"
+          >{{ t(selectedCategory.nameKey) }}</v-chip
+        >
+        <v-chip
+          v-if="selectedSubCategory"
+          prepend-icon="mdi-shape-outline"
+          color="secondary"
+          >{{ t(selectedSubCategory.nameKey) }}</v-chip
+        >
+        <v-chip
+          v-if="selectedGame"
+          prepend-icon="mdi-play-circle-outline"
+          color="success"
+          >{{ t(selectedGame.nameKey) }}</v-chip
+        >
+      </div>
 
-      <v-card variant="outlined" class="mb-3">
-        <v-card-text class="d-flex flex-column ga-1">
-          <p class="text-caption text-medium-emphasis mb-0">Catégorie</p>
-          <p class="text-body-2 mb-0">{{ selectedCategory ? t(selectedCategory.nameKey) : "—" }}</p>
-          <p class="text-caption text-medium-emphasis mb-0 mt-2">Sous-catégorie</p>
-          <p class="text-body-2 mb-0">
-            {{ selectedSubCategory ? t(selectedSubCategory.nameKey) : "—" }}
-          </p>
-          <p class="text-caption text-medium-emphasis mb-0 mt-2">Jeu</p>
-          <p class="text-body-2 mb-0">{{ selectedGame ? t(selectedGame.nameKey) : "—" }}</p>
-        </v-card-text>
-      </v-card>
+      <v-dialog v-model="isLoginDialogOpen" max-width="520">
+        <v-card>
+          <v-card-title>{{ t("gamePage.auth.loginModalTitle") }}</v-card-title>
+          <v-card-text class="d-flex flex-column ga-3">
+            <v-text-field
+              v-model="usernameOrEmail"
+              :label="t('gamePage.auth.loginEmailOrUsername')"
+              variant="outlined"
+              density="comfortable"
+            />
+            <v-text-field
+              v-model="password"
+              :label="t('gamePage.auth.loginPassword')"
+              type="password"
+              variant="outlined"
+              density="comfortable"
+            />
+            <v-alert
+              v-if="loginError"
+              type="error"
+              variant="tonal"
+              density="compact"
+            >
+              {{ loginError }}
+            </v-alert>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn color="primary" :loading="loginLoading" @click="handleLogin">
+              {{ t("gamePage.auth.loginSubmit") }}
+            </v-btn>
+            <v-btn variant="text" to="/login">{{
+              t("gamePage.auth.goToLoginPage")
+            }}</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
 
-      <v-btn block variant="outlined" prepend-icon="mdi-arrow-left" @click="router.push('/game')">
-        {{ t("gamePage.navigation.backToCategories") }}
-      </v-btn>
+      <v-dialog v-model="isCoinsDialogOpen" max-width="760">
+        <v-card>
+          <v-card-title>{{
+            t("gamePage.auth.buyCoinsModalTitle")
+          }}</v-card-title>
+          <v-card-text class="pt-2">
+            <v-row>
+              <v-col
+                v-for="offer in coinOffers"
+                :key="offer.id"
+                cols="12"
+                md="4"
+              >
+                <v-card variant="outlined" class="h-100 d-flex flex-column">
+                  <v-card-title class="text-h6">
+                    {{
+                      t(offer.labelKey, {
+                        count: formatCoinsAmount(offer.coins),
+                      })
+                    }}
+                  </v-card-title>
+                  <v-card-subtitle class="text-body-1">
+                    {{ formatOfferPrice(offer) }}
+                  </v-card-subtitle>
+                  <v-card-actions class="mt-auto">
+                    <v-btn
+                      color="primary"
+                      variant="flat"
+                      block
+                      @click="chooseCoinOffer(offer.id)"
+                    >
+                      {{ t("gamePage.auth.chooseOffer") }}
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-col>
+            </v-row>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn
+              color="primary"
+              variant="text"
+              @click="isCoinsDialogOpen = false"
+              >{{ t("gamePage.auth.closeModal") }}</v-btn
+            >
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
+      <v-snackbar
+        v-model="isPaymentSoonSnackbarOpen"
+        color="info"
+        timeout="2600"
+        location="bottom right"
+      >
+        {{ paymentSoonSnackbarText }}
+      </v-snackbar>
     </template>
 
     <template #aside>
