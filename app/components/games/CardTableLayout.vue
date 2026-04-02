@@ -130,15 +130,15 @@ const isRedSuit = (suit: string) => suit === "♥" || suit === "♦";
 <style scoped>
 .seat-melds { position: absolute; z-index: 2; display: flex; flex-direction: column; gap: 4px; width: min(230px, 100%); padding: 10px; overflow-y: auto; }
 .seat-melds--north { top: -130px; left: 50%; transform: translateX(-50%); align-items: center; }
-.seat-melds--south { bottom: 76px; left: 50%; transform: translateX(-50%); align-items: center; }
-.seat-melds--east { right: -120px; width: min(220px, 30%); transform: translateX(-50%); align-items: flex-start; }
-.seat-melds--west { left: -80px; width: min(220px, 30%); transform: translateX(-50%); align-items: flex-start;  }
+.seat-melds--south { bottom: -90px; left: 50%; transform: translateX(-50%); align-items: center; }
+.seat-melds--east { right: -180px; }
+.seat-melds--west { left: -100px; }
 .seat-melds__group { display: flex; flex-wrap: wrap; gap: 4px; }
 .seat-melds__group--side { flex-direction: row; flex-wrap: nowrap; gap: 4px; justify-content: flex-start; width: 100%; }
 .seat-melds__group--east .meld-card--side,
 .seat-melds__group--west .meld-card--side { transform: none; }
-.meld-card { display: inline-flex; flex-direction: column; justify-content: space-between; align-items: flex-start; width: 28px; min-height: 40px; border-radius: 6px; border: 1px solid rgba(15, 23, 42, 0.15); padding: 3px 4px; background: linear-gradient(160deg, #fff, #f6f7fb); box-shadow: 0 4px 10px rgba(15, 23, 42, 0.18); line-height: 1; }
-.meld-card--side { width: 28px; min-height: 40px; padding: 3px 4px; }
+.meld-card { display: inline-flex; flex-direction: column; justify-content: space-between; align-items: flex-start; width: 22px; min-height: 20px; border-radius: 6px; border: 1px solid rgba(15, 23, 42, 0.15); padding: 3px 4px; background: linear-gradient(160deg, #fff, #f6f7fb); box-shadow: 0 4px 10px rgba(15, 23, 42, 0.18); line-height: 0.8; }
+.meld-card--side { width: 22px; min-height: 20px; padding: 3px 4px; }
 .meld-card--red { color: #dc2626; }
 .meld-card--black { color: #111827; }
 .meld-card__corner { font-size: 0.5rem; font-weight: 700; letter-spacing: 0.01em; }
@@ -146,7 +146,7 @@ const isRedSuit = (suit: string) => suit === "♥" || suit === "♦";
 .meld-card__center { align-self: center; font-size: 0.9rem; }
 .table-seat-hand { position: absolute; z-index: 1; width: min(520px, calc(100% - 36px)); }
 .table-seat-hand--north { top: 96px; left: 50%; transform: translateX(-50%); }
-.table-seat-hand--south { bottom: 60px; left: 50%; transform: translateX(-50%); }
+.table-seat-hand--south { bottom: 30px; left: 50%; transform: translateX(-50%); }
 .table-seat-hand--east { top: 50%; right: 86px; width: min(100px, 20%); transform: translateY(-50%); }
 .table-seat-hand--west { top: 50%; left: 86px; width: min(100px, 20%); transform: translateY(-50%); }
 .center-fallback, .center-fallback__column { display: flex; flex-direction: column; gap: 8px; width: 100%; }
