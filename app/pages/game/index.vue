@@ -12,14 +12,18 @@ import SudokuGame from "~/components/games/SudokuGame.vue";
 import Game2048 from "~/components/games/Game2048.vue";
 import UnoGame from "~/components/games/UnoGame.vue";
 import GameConceptPreview from "~/components/games/GameConceptPreview.vue";
+import GameQuickAccessPanel from "~/components/games/lobby/GameQuickAccessPanel.vue";
+import GameModeSelectionPanel from "~/components/games/lobby/GameModeSelectionPanel.vue";
+import GameDetailsPanel from "~/components/games/lobby/GameDetailsPanel.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
 import { useGameConcept } from "~/composables/useGameConcept";
 import {
   useGameSessionsApi,
   type GameLevel,
 } from "~/composables/api/useGameSessionsApi";
+import { useGameCatalogNavigation } from "~/composables/games/useGameCatalogNavigation";
+import { useGameLaunchFlow } from "~/composables/games/useGameLaunchFlow";
 import type {
-  BeloteMode,
   GameCategory,
   GameEntry,
   PlayMode,
@@ -95,18 +99,9 @@ const {
 const categories = computed<GameCategory[]>(() => storeCategories.value);
 
 
-const selectedCategoryId = ref<string | null>(null);
-const selectedSubCategoryId = ref<string | null>(null);
-const selectedGameId = ref<string | null>(null);
-const selectedPlayMode = ref<PlayMode | null>(null);
-const selectedBeloteMode = ref<BeloteMode | null>(null);
-const selectedAiLevel = ref<GameLevel | null>(null);
-const isGameStarted = ref(false);
-const isLoginDialogOpen = ref(false);
 const isCoinsDialogOpen = ref(false);
 const isPaymentSoonSnackbarOpen = ref(false);
 const paymentSoonSnackbarText = ref("");
-const isLaunchingSession = ref(false);
 const userCoins = computed(() => authSession.profile?.coins ?? 0);
 const usernameOrEmail = ref("");
 const password = ref("");
@@ -168,35 +163,53 @@ type AsideActionHandler = {
 };
 type RightPanelState = "quick-access" | "mode-selection" | "in-game-details";
 const aiLevels: GameLevel[] = ["easy", "medium", "hard"];
-const allGameEntries = computed(() =>
-  categories.value.flatMap((category) =>
-    category.subCategories.flatMap((subCategory) => subCategory.games),
-  ),
-);
 const getGameBusinessKey = (game: GameEntry | null | undefined) =>
   game?.key ?? game?.id ?? null;
-
-const selectedCategory = computed(
-  () =>
-    categories.value.find((category) => category.id === selectedCategoryId.value) ??
-    null,
-);
-const selectedSubCategory = computed(
-  () =>
-    selectedCategory.value?.subCategories.find(
-      (sub) => sub.id === selectedSubCategoryId.value,
-    ) ?? null,
-);
-const selectedGame = computed(
-  () =>
-    selectedSubCategory.value?.games.find(
-      (game) => game.id === selectedGameId.value,
-    ) ?? allGameEntries.value.find((game) => game.id === selectedGameId.value) ?? null,
-);
+const {
+  allGameEntries,
+  localSupportedModes,
+  selectedCategory,
+  selectedSubCategory,
+  selectedGame,
+  selectedBeloteMode,
+  selectedGameId,
+  openCategory,
+  openSubCategory,
+  openGame,
+  resetToCategories,
+  backToSubCategories,
+  backToGames,
+  selectQuickAccessGame,
+} = useGameCatalogNavigation(categories);
 const selectedGameConcept = useGameConcept(selectedGame);
-const localSupportedModes = computed<PlayMode[]>(() =>
-  selectedGame.value?.availableModes ?? selectedGame.value?.supportedModes ?? [],
-);
+const {
+  selectedPlayMode,
+  selectedAiLevel,
+  isGameStarted,
+  isLoginDialogOpen,
+  isLaunchingSession,
+  canLaunchSelectedGame,
+  selectPlayMode,
+  selectAiLevel,
+  selectBeloteMode,
+  launchGame,
+  isGameAvailableForLaunch,
+} = useGameLaunchFlow({
+  selectedGame,
+  localSupportedModes,
+  selectedBeloteMode,
+  isAuthenticated,
+  startGameSession: (...args) => gameSessionsApi.startGameSession(...args),
+  updateProfileCoins: (coins) => {
+    if (authSession.profile) {
+      authSession.profile = {
+        ...authSession.profile,
+        coins,
+      };
+    }
+  },
+  router,
+});
 const displayedLocalModes = computed<PlayMode[]>(() =>
   getDisplayModes(localSupportedModes.value),
 );
@@ -209,59 +222,9 @@ const featuredGames = computed<GameEntry[]>(() => {
     .filter((game): game is GameEntry => Boolean(game));
 });
 
-const getPlayableModes = (game: GameEntry | null | undefined): PlayMode[] =>
-  game?.availableModes ?? game?.supportedModes ?? [];
-
 const orderedModes: PlayMode[] = ["ai", "pvp"];
 const getDisplayModes = (modes: PlayMode[]): PlayMode[] =>
   orderedModes.filter((mode) => modes.includes(mode));
-
-const hasSoonBadge = (game: GameEntry) => game.developmentStatus === "coming_soon";
-
-const isGameAvailableForLaunch = (game: GameEntry | null | undefined) =>
-  game?.developmentStatus === "playable";
-
-const selectQuickAccessGame = (game: GameEntry) => {
-  const gameLocation = categories.value
-    .flatMap((category) =>
-      category.subCategories.map((subCategory) => ({
-        categoryId: category.id,
-        subCategoryId: subCategory.id,
-        gameIds: subCategory.games.map((entry) => entry.id),
-      })),
-    )
-    .find((entry) => entry.gameIds.includes(game.id));
-
-  selectedCategoryId.value = gameLocation?.categoryId ?? null;
-  selectedSubCategoryId.value = gameLocation?.subCategoryId ?? null;
-  selectedGameId.value = game.id;
-  selectedPlayMode.value = null;
-  selectedBeloteMode.value =
-    getGameBusinessKey(game) === "belote" ? "teams" : null;
-  selectedAiLevel.value = null;
-  isGameStarted.value = false;
-};
-
-
-const canLaunchSelectedGame = computed(() => {
-  if (!selectedGame.value?.component || !isGameAvailableForLaunch(selectedGame.value)) return false;
-
-  const hasPlayableMode =
-    Boolean(selectedPlayMode.value) &&
-    localSupportedModes.value.includes(selectedPlayMode.value as PlayMode);
-
-  if (!hasPlayableMode) return false;
-
-  if (selectedPlayMode.value === "ai" && !selectedAiLevel.value) {
-    return false;
-  }
-
-  if (getGameBusinessKey(selectedGame.value) === "belote") {
-    return Boolean(selectedBeloteMode.value);
-  }
-
-  return true;
-});
 
 const modeLabel = (mode: PlayMode) =>
   mode === "ai" ? t("gamePage.modes.vsComputer") : t("gamePage.modes.vsPlayer");
@@ -338,133 +301,6 @@ const getCatalogImageStyle = (
   };
 };
 
-const openCategory = (categoryId: string) => {
-  selectedCategoryId.value = categoryId;
-  selectedSubCategoryId.value = null;
-  selectedGameId.value = null;
-  selectedPlayMode.value = null;
-  selectedBeloteMode.value = null;
-  selectedAiLevel.value = null;
-  isGameStarted.value = false;
-};
-
-const openSubCategory = (subCategoryId: string) => {
-  selectedSubCategoryId.value = subCategoryId;
-  selectedGameId.value = null;
-  selectedPlayMode.value = null;
-  selectedBeloteMode.value = null;
-  selectedAiLevel.value = null;
-  isGameStarted.value = false;
-};
-
-const openGame = (gameId: string) => {
-  selectedGameId.value = gameId;
-  selectedPlayMode.value = localSupportedModes.value.includes("ai")
-    ? "ai"
-    : (localSupportedModes.value[0] ?? null);
-  const nextGame = allGameEntries.value.find((entry) => entry.id === gameId);
-  selectedBeloteMode.value =
-    getGameBusinessKey(nextGame) === "belote" ? "teams" : null;
-  selectedAiLevel.value = null;
-  isGameStarted.value = false;
-};
-
-const resetToCategories = () => {
-  selectedCategoryId.value = null;
-  selectedSubCategoryId.value = null;
-  selectedGameId.value = null;
-  selectedPlayMode.value = null;
-  selectedBeloteMode.value = null;
-  selectedAiLevel.value = null;
-  isGameStarted.value = false;
-};
-
-const backToSubCategories = () => {
-  selectedSubCategoryId.value = null;
-  selectedGameId.value = null;
-  selectedPlayMode.value = null;
-  selectedBeloteMode.value = null;
-  selectedAiLevel.value = null;
-  isGameStarted.value = false;
-};
-
-const backToGames = () => {
-  selectedGameId.value = null;
-  selectedPlayMode.value = null;
-  selectedBeloteMode.value = null;
-  selectedAiLevel.value = null;
-  isGameStarted.value = false;
-};
-
-const selectPlayMode = (mode: PlayMode) => {
-  if (!localSupportedModes.value.includes(mode)) {
-    return;
-  }
-
-  selectedPlayMode.value = mode;
-  isGameStarted.value = false;
-};
-
-const selectAiLevel = (level: GameLevel) => {
-  selectedAiLevel.value = level;
-  isGameStarted.value = false;
-};
-
-const selectBeloteMode = (mode: BeloteMode) => {
-  if (getGameBusinessKey(selectedGame.value) !== "belote") return;
-  selectedBeloteMode.value = mode;
-  isGameStarted.value = false;
-};
-
-const launchGame = async () => {
-  if (!canLaunchSelectedGame.value || isLaunchingSession.value) {
-    return;
-  }
-
-  if (selectedPlayMode.value === "ai") {
-    if (!isAuthenticated.value) {
-      isLoginDialogOpen.value = true;
-      return;
-    }
-
-    if (!selectedGame.value?.id || !selectedAiLevel.value) {
-      return;
-    }
-
-    isLaunchingSession.value = true;
-    try {
-      const response = await gameSessionsApi.startGameSession(
-        selectedGame.value.id,
-        selectedAiLevel.value,
-      );
-
-      if (authSession.profile) {
-        authSession.profile = {
-          ...authSession.profile,
-          coins: response.coins,
-        };
-      }
-
-      await router.push({
-        path: `/game/${response.userGameId}/play`,
-        query: {
-          gameId: selectedGame.value.id,
-          mode: selectedPlayMode.value,
-          level: selectedAiLevel.value,
-          sessionId: response.session.sessionId,
-          beloteMode: selectedBeloteMode.value ?? undefined,
-        },
-      });
-      return;
-    } catch {
-      return;
-    } finally {
-      isLaunchingSession.value = false;
-    }
-  }
-
-  isGameStarted.value = true;
-};
 
 const onGamePanelState = (payload: GameAsidePanelState) => {
   liveGamePanel.value = payload;
@@ -540,84 +376,6 @@ onMounted(async () => {
     gamesStore.fetchGames(),
   ]);
 });
-
-watch(categories, (nextCategories) => {
-  if (!nextCategories.length) {
-    resetToCategories();
-    return;
-  }
-
-  const hasSelectedCategory = nextCategories.some(
-    (category) => category.id === selectedCategoryId.value,
-  );
-
-  if (!hasSelectedCategory) {
-    resetToCategories();
-    return;
-  }
-
-  const nextSelectedCategory = nextCategories.find(
-    (category) => category.id === selectedCategoryId.value,
-  );
-
-  if (!nextSelectedCategory) {
-    resetToCategories();
-    return;
-  }
-
-  if (!selectedSubCategoryId.value) {
-    if (
-      selectedGameId.value &&
-      !allGameEntries.value.some((game) => game.id === selectedGameId.value)
-    ) {
-      selectedGameId.value = null;
-      selectedPlayMode.value = null;
-      selectedBeloteMode.value = null;
-      selectedAiLevel.value = null;
-      isGameStarted.value = false;
-    }
-    return;
-  }
-
-  const hasSelectedSubCategory = nextSelectedCategory.subCategories.some(
-    (subCategory) => subCategory.id === selectedSubCategoryId.value,
-  );
-
-  if (!hasSelectedSubCategory) {
-    selectedSubCategoryId.value = null;
-    selectedGameId.value = null;
-    selectedPlayMode.value = null;
-    selectedBeloteMode.value = null;
-    selectedAiLevel.value = null;
-    isGameStarted.value = false;
-    return;
-  }
-
-  const nextSelectedSubCategory = nextSelectedCategory.subCategories.find(
-    (subCategory) => subCategory.id === selectedSubCategoryId.value,
-  );
-
-  if (!nextSelectedSubCategory) {
-    selectedGameId.value = null;
-    selectedPlayMode.value = null;
-    selectedBeloteMode.value = null;
-    selectedAiLevel.value = null;
-    isGameStarted.value = false;
-    return;
-  }
-
-  const hasSelectedGame = nextSelectedSubCategory.games.some(
-    (game) => game.id === selectedGameId.value,
-  );
-
-  if (!hasSelectedGame) {
-    selectedGameId.value = null;
-    selectedPlayMode.value = null;
-    selectedBeloteMode.value = null;
-    selectedAiLevel.value = null;
-    isGameStarted.value = false;
-  }
-}, { immediate: true });
 
 watch([selectedGameId, isGameStarted], () => {
   if (!isGameStarted.value) {
@@ -875,173 +633,53 @@ const handleLogin = async () => {
       </v-snackbar>
     </template>
     <template #aside>
-      <section v-if="rightPanelState === 'quick-access'">
-        <v-chip variant="outlined" prepend-icon="mdi-gamepad" class="mb-2">
-          {{ te("gamePage.quickAccess.title") ? t("gamePage.quickAccess.title") : "Quick Access" }}
-        </v-chip>
-        <div v-if="isFeaturedGamesLoading" class="d-flex flex-column ga-3">
-          <v-skeleton-loader
-            v-for="index in 4"
-            :key="`featured-games-skeleton-${index}`"
-            type="heading"
-          />
-        </div>
-        <v-alert
-          v-else-if="!featuredGames.length"
-          type="info"
-          variant="tonal"
-          density="comfortable"
-        >
-          {{ t("gamePage.status.none") }}
-        </v-alert>
-        <div v-else class="d-flex flex-column ga-3 pa-2">
-          <v-card
-            v-for="game in featuredGames"
-            :key="`quick-access-${game.id}`"
-            variant="outlined"
-            class="pa-3"
-          >
-            <div class="d-flex justify-space-between align-center ga-2 mb-2">
-              <v-avatar size="32" :image="game.img"></v-avatar>
-              <span class="font-weight-medium">{{ t(game.nameKey) }}</span>
-              <v-spacer></v-spacer>
-              <v-chip
-                v-if="hasSoonBadge(game)"
-                size="small"
-                color="warning"
-                variant="tonal"
-              >
-                Soon
-              </v-chip>
-              <v-btn variant="text" color="primary" icon="mdi-play"  v-else @click="selectQuickAccessGame(game)"></v-btn>
-            </div>
-
-            <div
-              v-if="selectedGameId === game.id && getPlayableModes(game).length"
-              class="d-flex ga-2"
-              @click.stop
-            >
-              <v-btn
-                v-for="mode in getDisplayModes(getPlayableModes(game))"
-                :key="`quick-mode-${game.id}-${mode}`"
-                size="small"
-                :variant="selectedPlayMode === mode ? 'flat' : 'outlined'"
-                @click="selectPlayMode(mode)"
-              >
-                {{ modeLabel(mode) }}
-              </v-btn>
-            </div>
-          </v-card>
-        </div>
-      </section>
-      <section
+      <GameQuickAccessPanel
+        v-if="rightPanelState === 'quick-access'"
+        :featured-games="featuredGames"
+        :is-loading="isFeaturedGamesLoading"
+        :selected-game-id="selectedGameId"
+        :selected-play-mode="selectedPlayMode"
+        :mode-label="modeLabel"
+        :title="te('gamePage.quickAccess.title') ? t('gamePage.quickAccess.title') : 'Quick Access'"
+        :empty-text="t('gamePage.status.none')"
+        :game-name-label="(game) => t(game.nameKey)"
+        @select-game="selectQuickAccessGame"
+        @select-mode="selectPlayMode"
+      />
+      <GameModeSelectionPanel
         v-else-if="rightPanelState === 'mode-selection' && selectedGame"
-        class="d-flex flex-column ga-4"
-      >
-        <v-card variant="outlined" class="pa-4">
-          <h3 class="text-h6 mb-3">Mode Selection</h3>
-          <div class="d-flex flex-column ga-2">
-            <p class="text-caption text-medium-emphasis mb-0">Jeu sélectionné</p>
-            <p class="text-body-1 font-weight-medium mb-1">
-              {{ safeTranslate(selectedGame.nameKey) }}
-            </p>
-            <p class="text-caption text-medium-emphasis mb-0">Mode actuel</p>
-            <p class="text-body-2 mb-0">
-              {{ selectedPlayMode ? modeLabel(selectedPlayMode) : "Aucun mode sélectionné" }}
-            </p>
-          </div>
-        </v-card>
-        <v-card variant="outlined" class="pa-4">
-          <h3 class="text-h6 mb-3">Concept Snapshot</h3>
-          <p class="text-caption text-medium-emphasis mb-1">Core loop</p>
-          <ul class="pl-5 mb-3">
-            <li
-              v-for="step in selectedGameConcept.coreLoop"
-              :key="`mode-selection-loop-${step}`"
-              class="mb-1"
-            >
-              {{ step }}
-            </li>
-          </ul>
-          <p class="text-caption text-medium-emphasis mb-1">Prochaines milestones</p>
-          <ul class="pl-5 mb-0">
-            <li
-              v-for="milestone in selectedGameConcept.milestones"
-              :key="`mode-selection-milestone-${milestone}`"
-              class="mb-1"
-            >
-              {{ milestone }}
-            </li>
-          </ul>
-        </v-card>
-      </section>
-      <section
-        v-else
-        class="d-flex flex-column ga-4"
-      >
-        <v-card variant="outlined" class="pa-4">
-          <h3 class="text-h6 mb-3">Game Details</h3>
-          <div class="d-flex flex-column ga-3">
-            <div>
-              <p class="text-caption text-medium-emphasis mb-1">Nom</p>
-              <p class="text-body-1 font-weight-medium mb-0">
-                {{ safeTranslate(selectedGame.nameKey) }}
-              </p>
-            </div>
-            <div>
-              <p class="text-caption text-medium-emphasis mb-1">Description</p>
-              <p class="text-body-2 mb-0">
-                {{ safeTranslate(selectedGame.descriptionKey) }}
-              </p>
-            </div>
-            <div class="d-flex flex-wrap ga-2">
-              <v-chip size="small" variant="outlined">
-                Catégorie: {{ safeTranslate(selectedGame.categoryKey) }}
-              </v-chip>
-              <v-chip size="small" variant="outlined">
-                Sous-catégorie: {{ safeTranslate(selectedGame.subcategoryKey) }}
-              </v-chip>
-              <v-chip size="small" variant="outlined">
-                Niveau: {{ selectedGameLevel }}
-              </v-chip>
-            </div>
-            <div v-if="gameDetailTags.length" class="d-flex flex-wrap ga-2">
-              <v-chip
-                v-for="tag in gameDetailTags"
-                :key="`game-tag-${tag}`"
-                size="small"
-                color="primary"
-                variant="tonal"
-              >
-                {{ formatMetaChip(tag) }}
-              </v-chip>
-            </div>
-            <div v-if="gameDetailFeatures.length" class="d-flex flex-wrap ga-2">
-              <v-chip
-                v-for="feature in gameDetailFeatures"
-                :key="`game-feature-${feature}`"
-                size="small"
-                color="secondary"
-                variant="tonal"
-              >
-                {{ formatMetaChip(feature) }}
-              </v-chip>
-            </div>
-            <div>
-              <p class="text-caption text-medium-emphasis mb-1">Résumé des règles</p>
-              <ul class="pl-5 mb-0">
-                <li
-                  v-for="rule in selectedGameConcept.rulesSummary"
-                  :key="`game-rule-${rule}`"
-                  class="mb-1"
-                >
-                  {{ rule }}
-                </li>
-              </ul>
-            </div>
-          </div>
-        </v-card>
-      </section>
+        :selected-game="selectedGame"
+        :selected-play-mode="selectedPlayMode"
+        :selected-ai-level="selectedAiLevel"
+        :selected-belote-mode="selectedBeloteMode"
+        :displayed-local-modes="displayedLocalModes"
+        :ai-levels="aiLevels"
+        :is-launching-session="isLaunchingSession"
+        :can-launch-selected-game="canLaunchSelectedGame"
+        :mode-image-map="modeImageMap"
+        :level-image-map="levelImageMap"
+        :mode-label="modeLabel"
+        :is-game-available-for-launch="isGameAvailableForLaunch"
+        :get-game-business-key="getGameBusinessKey"
+        :belote-teams-label="t('gamePage.labels.beloteTeams')"
+        :belote-free-for-all-label="t('gamePage.labels.beloteFreeForAll')"
+        :soon-hint-label="t('gamePage.status.soonHint')"
+        :launch-game-label="t('gamePage.actions.launchGame')"
+        @select-play-mode="selectPlayMode"
+        @select-ai-level="selectAiLevel"
+        @select-belote-mode="selectBeloteMode"
+        @launch-game="launchGame"
+      />
+      <GameDetailsPanel
+        v-else-if="selectedGame"
+        :selected-game="selectedGame"
+        :selected-game-concept="selectedGameConcept"
+        :safe-translate="safeTranslate"
+        :selected-game-level="selectedGameLevel"
+        :game-detail-tags="gameDetailTags"
+        :game-detail-features="gameDetailFeatures"
+        :format-meta-chip="formatMetaChip"
+      />
     </template>
     <template #default>
       <section v-if="isCatalogLoading">
