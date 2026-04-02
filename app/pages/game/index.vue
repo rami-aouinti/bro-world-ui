@@ -27,6 +27,8 @@ import { useGameLaunchFlow } from "~/composables/games/useGameLaunchFlow";
 import type {
   GameCategory,
   GameEntry,
+  GameMood,
+  GameVisualStyle,
   PlayMode,
 } from "~/types/game";
 import type { GameAsidePanelState } from "~/components/games/types";
@@ -203,11 +205,103 @@ const levelImageMap: Record<GameLevel, string> = {
 const gameStatusLabel = computed(() => {
   if (!selectedGame.value) return t("gamePage.status.none");
 
-  if (isGameStarted.value) return t("gamePage.status.inProgress");
+  if (isGameStarted.value) {
+    const moodLabel = selectedGame.value.mood ? moodLabelMap[selectedGame.value.mood] : "session";
+    return `En ${moodLabel.toLowerCase()} · ${t("gamePage.status.inProgress")}`;
+  }
 
-  if (canLaunchSelectedGame.value) return t("gamePage.status.ready");
+  if (canLaunchSelectedGame.value) {
+    return selectedGame.value.mood === "chill"
+      ? "Ambiance détente prête"
+      : t("gamePage.status.ready");
+  }
 
-  return t("gamePage.status.selecting");
+  return selectedGame.value.mood === "competitive"
+    ? "Préparation stratégique…"
+    : t("gamePage.status.selecting");
+});
+
+const moodLabelMap: Record<GameMood, string> = {
+  competitive: "Compétitif",
+  chill: "Chill",
+  arcade: "Arcade",
+  strategy: "Stratégie",
+};
+
+const visualStyleLabelMap: Record<GameVisualStyle, string> = {
+  neon: "Néon",
+  classic: "Classique",
+  minimal: "Minimal",
+};
+
+const moodColorMap: Record<GameMood, string> = {
+  competitive: "deep-orange",
+  chill: "teal",
+  arcade: "pink",
+  strategy: "indigo",
+};
+
+const visualStyleColorMap: Record<GameVisualStyle, string> = {
+  neon: "cyan",
+  classic: "amber",
+  minimal: "blue-grey",
+};
+
+const gameMetaChips = computed(() => {
+  if (!selectedGame.value) return [];
+
+  const chips: Array<{ label: string; color: string; icon: string }> = [];
+  if (selectedGame.value.mood) {
+    chips.push({
+      label: moodLabelMap[selectedGame.value.mood],
+      color: moodColorMap[selectedGame.value.mood],
+      icon: "mdi-lightning-bolt-outline",
+    });
+  }
+  if (selectedGame.value.visualStyle) {
+    chips.push({
+      label: visualStyleLabelMap[selectedGame.value.visualStyle],
+      color: visualStyleColorMap[selectedGame.value.visualStyle],
+      icon: "mdi-palette-outline",
+    });
+  }
+  if (selectedGame.value.soundProfile) {
+    chips.push({
+      label: selectedGame.value.soundProfile,
+      color: "purple",
+      icon: "mdi-music-note-outline",
+    });
+  }
+  if (selectedGame.value.intensityLevel) {
+    chips.push({
+      label: `Intensité ${selectedGame.value.intensityLevel}`,
+      color: "red",
+      icon: "mdi-fire-circle",
+    });
+  }
+  return chips;
+});
+
+const selectedGameSetupStyle = computed(() => {
+  const game = selectedGame.value;
+  if (!game) return null;
+  const texture = game.lobbyBackground
+    ? `url(${game.lobbyBackground})`
+    : "radial-gradient(circle at top right, rgba(99,102,241,.20), transparent 50%)";
+
+  if (game.visualStyle === "minimal") {
+    return {
+      backgroundImage: `linear-gradient(140deg, rgba(15,23,42,.02), rgba(15,23,42,.08)), ${texture}`,
+    };
+  }
+  if (game.visualStyle === "classic") {
+    return {
+      backgroundImage: `linear-gradient(140deg, rgba(120,53,15,.12), rgba(251,191,36,.12)), ${texture}`,
+    };
+  }
+  return {
+    backgroundImage: `linear-gradient(140deg, rgba(6,182,212,.15), rgba(168,85,247,.15)), ${texture}`,
+  };
 });
 
 const rightPanelState = computed<RightPanelState>(() => {
@@ -522,6 +616,15 @@ const handleLogin = async () => {
           :color="getLevelColor('game')"
           >{{ t(selectedGame.nameKey) }}</v-chip
         >
+        <v-chip
+          v-for="(metaChip, index) in gameMetaChips"
+          :key="`selected-game-chip-${index}`"
+          :color="metaChip.color"
+          variant="tonal"
+          :prepend-icon="metaChip.icon"
+        >
+          {{ metaChip.label }}
+        </v-chip>
       </div>
 
       <v-dialog v-model="isLoginDialogOpen" max-width="520">
@@ -812,6 +915,7 @@ const handleLogin = async () => {
       <section
         v-else-if="selectedGame && !isGameStarted && selectedGame.developmentStatus !== 'playable'"
         class="mb-1 setup-section"
+        :style="selectedGameSetupStyle"
       >
         <GameConceptPreview
           :title="selectedGameConcept.title"
@@ -827,6 +931,7 @@ const handleLogin = async () => {
       <section
         v-else-if="selectedGame && !isGameStarted"
         class="mb-1 setup-section"
+        :style="selectedGameSetupStyle"
       >
         <v-row class="mb-4" dense>
           <v-col
@@ -942,7 +1047,13 @@ const handleLogin = async () => {
             class="mb-4"
           />
           <p class="text-body-1 font-weight-medium mb-0">
-            Préparation de votre session…
+            {{
+              selectedGame?.mood === "competitive"
+                ? "Briefing tactique en cours…"
+                : selectedGame?.mood === "chill"
+                  ? "Mise en place d'une session détente…"
+                  : "Préparation de votre session…"
+            }}
           </p>
         </div>
 
@@ -1174,6 +1285,10 @@ const handleLogin = async () => {
   min-height: 70vh;
   display: flex;
   flex-direction: column;
+  border-radius: 16px;
+  background-size: cover;
+  background-position: center;
+  padding: 1rem;
 }
 
 .mode-card {
