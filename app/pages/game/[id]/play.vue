@@ -13,6 +13,7 @@ import ChessGame from "~/components/games/ChessGame.vue";
 import SudokuGame from "~/components/games/SudokuGame.vue";
 import Game2048 from "~/components/games/Game2048.vue";
 import UnoGame from "~/components/games/UnoGame.vue";
+import FlappyRocketGame from "~/components/games/FlappyRocketGame.vue";
 import type { GameAsidePanelState } from "~/components/games/types";
 import { useGameCatalogStore } from "~/stores/gameCatalog";
 import type { BeloteMode, GameEntry, PlayMode } from "~/types/game";
@@ -91,6 +92,7 @@ const gameComponents: Record<string, unknown> = {
   sudoku: SudokuGame,
   game2048: Game2048,
   uno: UnoGame,
+  "flappy-rocket": FlappyRocketGame,
 };
 
 const gameId = computed(() => {

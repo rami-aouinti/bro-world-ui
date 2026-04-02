@@ -11,6 +11,7 @@ import HiddenWordGame from "~/components/games/HiddenWordGame.vue";
 import SudokuGame from "~/components/games/SudokuGame.vue";
 import Game2048 from "~/components/games/Game2048.vue";
 import UnoGame from "~/components/games/UnoGame.vue";
+import FlappyRocketGame from "~/components/games/FlappyRocketGame.vue";
 import GameConceptPreview from "~/components/games/GameConceptPreview.vue";
 import GameQuickAccessPanel from "~/components/games/lobby/GameQuickAccessPanel.vue";
 import GameModeSelectionPanel from "~/components/games/lobby/GameModeSelectionPanel.vue";
@@ -118,6 +119,9 @@ const pokerGameRef = ref<{
   handleAsideAction: (actionId: string) => void;
 } | null>(null);
 const unoGameRef = ref<{
+  handleAsideAction: (actionId: string) => void;
+} | null>(null);
+const flappyRocketGameRef = ref<{
   handleAsideAction: (actionId: string) => void;
 } | null>(null);
 type AsideActionHandler = {
@@ -406,7 +410,7 @@ const onAsideAction = (actionId: string) => {
     game2048: game2048Ref.value,
     poker: pokerGameRef.value,
     uno: unoGameRef.value,
-    "flappy-rocket": null,
+    "flappy-rocket": flappyRocketGameRef.value,
   };
 
   asideHandlersByComponent[component]?.handleAsideAction(actionId);
@@ -1134,6 +1138,12 @@ const handleLogin = async () => {
         <UnoGame
           ref="unoGameRef"
           v-else-if="selectedGame.component === 'uno'"
+          :selected-play-mode="selectedPlayMode"
+          @panel-state="onGamePanelState"
+        />
+        <FlappyRocketGame
+          ref="flappyRocketGameRef"
+          v-else-if="selectedGame.component === 'flappy-rocket'"
           :selected-play-mode="selectedPlayMode"
           @panel-state="onGamePanelState"
         />
