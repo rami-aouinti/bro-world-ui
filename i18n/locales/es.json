@@ -2230,6 +2230,33 @@
       "gameOver": "Choque detectado",
       "score": "Puntuación",
       "bestScore": "Mejor puntuación"
+    },
+    "solitaire": {
+      "title": "Solitario",
+      "stock": "Mazo",
+      "waste": "Descarte",
+      "foundations": "Fundaciones",
+      "tableau": "Tablero",
+      "moves": "Movimientos",
+      "hint": "Sugerencia",
+      "auto": "Auto fundaciones",
+      "statusWon": "Partida ganada"
+    },
+    "hearts": {
+      "title": "Hearts",
+      "heartsBroken": "Corazones rotos",
+      "currentTrick": "Baza actual",
+      "hand": "Mano",
+      "penalty": "Penalización",
+      "statusHandOver": "Mano terminada"
+    },
+    "spades": {
+      "title": "Spades",
+      "spadesBroken": "Picas activadas",
+      "bid": "Apuesta",
+      "tricksWon": "Bazas ganadas",
+      "currentTrick": "Baza actual",
+      "statusHandOver": "Mano terminada"
     }
   },
   "common": {
@@ -2243,5 +2270,12 @@
       "medium": "Mediano",
       "large": "Grande"
     }
+  },
+  "gameCards": {
+    "color": "Color",
+    "trump": "Triunfo",
+    "trick": "Baza",
+    "score": "Puntuación",
+    "tips": "Consejos"
   }
 }

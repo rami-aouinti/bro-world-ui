@@ -2329,6 +2329,33 @@
       "gameOver": "Crash detected",
       "score": "Score",
       "bestScore": "Best score"
+    },
+    "solitaire": {
+      "title": "Solitaire",
+      "stock": "Stock",
+      "waste": "Waste",
+      "foundations": "Foundations",
+      "tableau": "Tableau",
+      "moves": "Moves",
+      "hint": "Hint",
+      "auto": "Auto foundations",
+      "statusWon": "Game won"
+    },
+    "hearts": {
+      "title": "Hearts",
+      "heartsBroken": "Hearts broken",
+      "currentTrick": "Current trick",
+      "hand": "Hand",
+      "penalty": "Penalty",
+      "statusHandOver": "Hand complete"
+    },
+    "spades": {
+      "title": "Spades",
+      "spadesBroken": "Spades broken",
+      "bid": "Bid",
+      "tricksWon": "Tricks won",
+      "currentTrick": "Current trick",
+      "statusHandOver": "Hand complete"
     }
   },
   "common": {
@@ -2342,5 +2369,12 @@
       "medium": "Medium",
       "large": "Large"
     }
+  },
+  "gameCards": {
+    "color": "Color",
+    "trump": "Trump",
+    "trick": "Trick",
+    "score": "Score",
+    "tips": "Tips"
   }
 }

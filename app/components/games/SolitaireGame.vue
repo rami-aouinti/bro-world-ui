@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import type { GameAsidePanelState } from "~/components/games/types";
 import { useSolitaireEngine } from "~/composables/games/engines/useSolitaireEngine";
 
@@ -9,12 +9,27 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (event: "panel-state", payload: GameAsidePanelState): void;
+  (event: "finished", payload: { result: "win" | "lose" }): void;
 }>();
 
 const engine = useSolitaireEngine();
 
 const suggestedMove = computed(() => engine.suggestBestMove());
 const topWasteCard = computed(() => engine.waste.value.at(-1) ?? null);
+
+const finishedEmitted = ref(false);
+
+watch(() => engine.isWon.value, (isWon) => {
+  if (!isWon || finishedEmitted.value) return;
+  finishedEmitted.value = true;
+  emit("finished", { result: "win" });
+});
+
+watch(() => engine.moveCount.value, () => {
+  if (!engine.isWon.value) {
+    finishedEmitted.value = false;
+  }
+});
 
 const panelState = computed<GameAsidePanelState>(() => ({
   title: "Solitaire",

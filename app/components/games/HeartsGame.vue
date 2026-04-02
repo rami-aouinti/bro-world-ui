@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import type { GameAsidePanelState } from "~/components/games/types";
 import { useHeartsEngine } from "~/composables/games/engines/useHeartsEngine";
 
@@ -9,12 +9,29 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (event: "panel-state", payload: GameAsidePanelState): void;
+  (event: "finished", payload: { result: "win" | "lose" }): void;
 }>();
 
 const engine = useHeartsEngine();
 
 const humanPlayer = computed(() => engine.players.value[0]);
 const currentPlayer = computed(() => engine.players.value[engine.turnIndex.value]);
+
+const finishedEmitted = ref(false);
+
+watch(() => engine.isHandOver.value, (isOver) => {
+  if (!isOver || finishedEmitted.value) return;
+  const humanScore = engine.players.value[0]?.score ?? Number.POSITIVE_INFINITY;
+  const bestScore = Math.min(...engine.players.value.map(player => player.score));
+  finishedEmitted.value = true;
+  emit("finished", { result: humanScore === bestScore ? "win" : "lose" });
+});
+
+watch(() => engine.handNumber.value, () => {
+  if (!engine.isHandOver.value) {
+    finishedEmitted.value = false;
+  }
+});
 
 const playHumanCard = (cardId: string) => {
   engine.applyMove({ type: "play", playerIndex: 0, cardId });

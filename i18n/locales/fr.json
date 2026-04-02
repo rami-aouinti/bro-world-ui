@@ -2329,6 +2329,33 @@
       "gameOver": "Crash détecté",
       "score": "Score",
       "bestScore": "Record"
+    },
+    "solitaire": {
+      "title": "Solitaire",
+      "stock": "Pioche",
+      "waste": "Défausse",
+      "foundations": "Fondations",
+      "tableau": "Tableau",
+      "moves": "Coups",
+      "hint": "Suggestion",
+      "auto": "Auto fondations",
+      "statusWon": "Partie gagnée"
+    },
+    "hearts": {
+      "title": "Hearts",
+      "heartsBroken": "Cœurs cassés",
+      "currentTrick": "Pli en cours",
+      "hand": "Main",
+      "penalty": "Pénalité",
+      "statusHandOver": "Main terminée"
+    },
+    "spades": {
+      "title": "Spades",
+      "spadesBroken": "Atout activé",
+      "bid": "Enchère",
+      "tricksWon": "Plis gagnés",
+      "currentTrick": "Pli en cours",
+      "statusHandOver": "Main terminée"
     }
   },
   "common": {
@@ -2342,5 +2369,12 @@
       "medium": "Moyen",
       "large": "Grand"
     }
+  },
+  "gameCards": {
+    "color": "Couleur",
+    "trump": "Atout",
+    "trick": "Pli",
+    "score": "Score",
+    "tips": "Conseils"
   }
 }
