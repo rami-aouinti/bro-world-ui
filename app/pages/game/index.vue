@@ -11,6 +11,7 @@ import HiddenWordGame from "~/components/games/HiddenWordGame.vue";
 import SudokuGame from "~/components/games/SudokuGame.vue";
 import Game2048 from "~/components/games/Game2048.vue";
 import UnoGame from "~/components/games/UnoGame.vue";
+import GameConceptPreview from "~/components/games/GameConceptPreview.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
 import {
   useGameSessionsApi,
@@ -196,6 +197,11 @@ const localSupportedModes = computed<PlayMode[]>(() =>
 );
 const displayedLocalModes = computed<PlayMode[]>(() =>
   getDisplayModes(localSupportedModes.value),
+);
+const selectedGamePlannedModes = computed(() =>
+  selectedGame.value?.plannedModes?.length
+    ? selectedGame.value.plannedModes
+    : (selectedGame.value?.supportedModes ?? []),
 );
 
 const featuredGames = computed<GameEntry[]>(() => {
@@ -1132,6 +1138,23 @@ const handleLogin = async () => {
             </v-card>
           </v-col>
         </v-row>
+      </section>
+
+      <section
+        v-else-if="selectedGame && !isGameStarted && selectedGame.developmentStatus !== 'playable'"
+        class="mb-1 setup-section"
+      >
+        <GameConceptPreview
+          :name-key="selectedGame.nameKey"
+          :description-key="selectedGame.descriptionKey"
+          :planned-modes="selectedGamePlannedModes"
+          :difficulty-key="selectedGame.difficultyKey"
+          :features="selectedGame.features ?? []"
+          :tags="selectedGame.tags ?? []"
+          :art-direction="selectedGame.artDirection ?? null"
+          :average-duration="selectedGame.averageDuration ?? null"
+          :development-status="selectedGame.developmentStatus"
+        />
       </section>
 
       <section
