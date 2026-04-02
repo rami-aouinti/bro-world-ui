@@ -1,0 +1,223 @@
+:root {
+  --card-w: clamp(3.25rem, 6.8vw, 4.25rem);
+  --card-h: calc(var(--card-w) * 1.42);
+  --card-radius: 0.72rem;
+  --card-shadow: 0 6px 14px rgba(15, 23, 42, 0.22);
+  --card-shadow-raised: 0 12px 24px rgba(15, 23, 42, 0.32);
+  --card-red: #c1121f;
+  --card-black: #111827;
+  --card-valid-ring: #2563eb;
+  --card-disabled: #6b7280;
+  --card-win: #15803d;
+  --card-combo: #6d28d9;
+  --card-error: #dc2626;
+}
+
+.game-card {
+  width: var(--card-w);
+  height: var(--card-h);
+  border-radius: var(--card-radius);
+  border: 1px solid rgba(17, 24, 39, 0.25);
+  background: #fff;
+  color: var(--card-black);
+  box-shadow: var(--card-shadow);
+  padding: 0.3rem;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+  transform: translateX(var(--fan-shift, 0)) translateY(var(--fan-elevate, 0)) rotate(var(--fan-rotate, 0deg));
+  transition: transform 170ms ease, box-shadow 170ms ease, border-color 170ms ease, filter 170ms ease;
+}
+
+.game-card.is-hoverable:hover:not(:disabled),
+.game-card.is-selected {
+  transform: translateX(var(--fan-shift, 0)) translateY(calc(var(--fan-elevate, 0) - 10px)) rotate(var(--fan-rotate, 0deg));
+  box-shadow: var(--card-shadow-raised);
+}
+
+.game-card.is-playable {
+  border-color: color-mix(in srgb, var(--card-valid-ring) 58%, #ffffff);
+}
+
+.game-card.is-highlighted {
+  outline: 3px solid color-mix(in srgb, var(--card-valid-ring) 36%, transparent);
+  outline-offset: 1px;
+}
+
+.game-card.is-disabled {
+  opacity: 0.56;
+  filter: grayscale(0.1);
+  cursor: not-allowed;
+}
+
+.game-card.is-feedback-error {
+  animation: card-shake 300ms ease-in-out;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--card-error) 45%, transparent);
+}
+
+.game-card.is-feedback-combo {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--card-combo) 36%, transparent), var(--card-shadow-raised);
+}
+
+.game-card.is-feedback-won {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--card-win) 38%, transparent), var(--card-shadow-raised);
+}
+
+.game-card:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--card-valid-ring) 42%, transparent);
+  outline-offset: 2px;
+}
+
+.game-card--red {
+  color: var(--card-red);
+}
+
+.game-card--black {
+  color: var(--card-black);
+}
+
+.game-card__corner {
+  font-size: 0.66rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.game-card__corner--bottom {
+  align-self: flex-end;
+  transform: rotate(180deg);
+}
+
+.game-card__suit {
+  font-size: 1.35rem;
+  align-self: center;
+}
+
+.game-card.is-face-down {
+  background: linear-gradient(160deg, #1d4ed8, #1e3a8a);
+  color: #dbeafe;
+  border-color: rgba(219, 234, 254, 0.5);
+}
+
+.game-card__back-pattern {
+  position: absolute;
+  inset: 0.3rem;
+  border-radius: calc(var(--card-radius) - 0.24rem);
+  background-image: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.25) 2px, transparent 3px);
+  background-size: 0.5rem 0.5rem;
+}
+
+.card-fan-hand {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 0.65rem;
+}
+
+.card-fan-hand--horizontal .card-fan-hand__card + .card-fan-hand__card {
+  margin-left: -1.1rem;
+}
+
+.card-fan-hand--vertical {
+  flex-direction: column;
+  align-items: center;
+}
+
+.card-fan-hand--vertical .card-fan-hand__card + .card-fan-hand__card {
+  margin-top: -2.8rem;
+}
+
+.trick-pile {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(var(--card-w), 1fr));
+  grid-template-rows: repeat(3, minmax(var(--card-h), auto));
+  gap: 0.3rem;
+  align-items: center;
+  justify-items: center;
+}
+
+.trick-pile__slot--north { grid-column: 2; grid-row: 1; }
+.trick-pile__slot--east { grid-column: 3; grid-row: 2; }
+.trick-pile__slot--south { grid-column: 2; grid-row: 3; }
+.trick-pile__slot--west { grid-column: 1; grid-row: 2; }
+
+.trick-pile__empty {
+  width: var(--card-w);
+  height: var(--card-h);
+  border-radius: var(--card-radius);
+  border: 1px dashed rgba(148, 163, 184, 0.5);
+  display: grid;
+  place-items: center;
+  color: #64748b;
+}
+
+.deck-stack {
+  display: flex;
+  gap: 0.9rem;
+  align-items: center;
+}
+
+.deck-stack__draw {
+  position: relative;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.deck-stack__draw.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.deck-stack__card {
+  position: absolute;
+  left: calc(var(--stack-index, 0) * 2px);
+  top: calc(var(--stack-index, 0) * -2px);
+}
+
+.deck-stack__count {
+  position: absolute;
+  right: -0.35rem;
+  bottom: -0.4rem;
+  min-width: 1.3rem;
+  min-height: 1.3rem;
+  border-radius: 999px;
+  background: #0f172a;
+  color: #f8fafc;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+
+.deck-stack__discard {
+  margin-left: calc(var(--card-w) + 0.35rem);
+}
+
+@keyframes card-shake {
+  0%, 100% { transform: translateX(var(--fan-shift, 0)) translateY(var(--fan-elevate, 0)) rotate(var(--fan-rotate, 0deg)); }
+  25% { transform: translateX(calc(var(--fan-shift, 0) - 4px)) translateY(var(--fan-elevate, 0)) rotate(var(--fan-rotate, 0deg)); }
+  75% { transform: translateX(calc(var(--fan-shift, 0) + 4px)) translateY(var(--fan-elevate, 0)) rotate(var(--fan-rotate, 0deg)); }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --card-w: clamp(3.6rem, 19vw, 4.6rem);
+  }
+
+  .game-card {
+    min-height: calc(var(--card-h) + 0.4rem);
+    min-width: calc(var(--card-w) + 0.4rem);
+    padding: 0.42rem;
+  }
+
+  .card-fan-hand {
+    padding: 0.9rem;
+  }
+
+  .card-fan-hand--horizontal .card-fan-hand__card + .card-fan-hand__card {
+    margin-left: -1.35rem;
+  }
+}
