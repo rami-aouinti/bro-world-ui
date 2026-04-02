@@ -3,6 +3,7 @@ import { computed, ref, watch, watchEffect } from "vue";
 import GameTableScaffold from "./GameTableScaffold.vue";
 import type { GameAsidePanelState } from "./types";
 import { useChessEngine } from "~/composables/games/useChessEngine";
+import { useGameFeedback } from "~/composables/games/useGameFeedback";
 
 const props = defineProps<{
   selectedPlayMode: "ai" | "pvp";
@@ -13,6 +14,7 @@ const emit = defineEmits<{
 }>();
 const { t } = useI18n();
 const gameFinishedEmitted = ref(false);
+const { playUiSound, triggerVisualFeedback } = useGameFeedback();
 
 const {
   board,
@@ -123,11 +125,19 @@ watch(winner, (nextWinner) => {
   }
 
   gameFinishedEmitted.value = true;
+  playUiSound(nextWinner === "white" ? "win" : "lose");
+  triggerVisualFeedback(
+    "game-surface",
+    nextWinner === "white" ? "glow" : "shake",
+    620,
+  );
   emit("game-finished", { result: nextWinner === "white" ? "win" : "lose" });
 });
 
 const handleAsideAction = (actionId: string) => {
   if (actionId === "new-game") {
+    playUiSound("confirm");
+    triggerVisualFeedback("game-surface", "pulse");
     reset();
   }
 };

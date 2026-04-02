@@ -20,6 +20,7 @@ import {
   useGameSessionsApi,
   type SessionResult,
 } from "~/composables/api/useGameSessionsApi";
+import { useGameFeedback } from "~/composables/games/useGameFeedback";
 
 definePageMeta({
   splitShell: false,
@@ -33,12 +34,20 @@ const authSession = useAuthSessionStore();
 const { isAuthenticated, login } = useAuth();
 const { categories } = storeToRefs(gameCatalogStore);
 const { t, te } = useI18n();
+const {
+  audioEnabled,
+  setAudioEnabled,
+  playUiSound,
+  triggerVisualFeedback,
+  visualFeedbackClass,
+} = useGameFeedback();
 const finishLoading = ref(false);
 const liveGamePanel = ref<GameAsidePanelState | null>(null);
 const isLoginDialogOpen = ref(false);
 const isCoinsDialogOpen = ref(false);
 const isPaymentSoonSnackbarOpen = ref(false);
 const paymentSoonSnackbarText = ref("");
+const activeGameComponentRef = ref<{ handleAsideAction?: (actionId: string) => void } | null>(null);
 const usernameOrEmail = ref("");
 const password = ref("");
 const loginLoading = ref(false);
@@ -209,6 +218,8 @@ const onGameFinished = ({ result }: { result: SessionResult }) => {
     return;
   }
 
+  playUiSound(result === "win" ? "win" : "lose");
+  triggerVisualFeedback("game-surface", result === "win" ? "glow" : "shake", 620);
   void finishGame(result);
 };
 
@@ -245,6 +256,13 @@ const finishResultScore = computed<number | null>(() => {
 const resetToCategories = () => router.push("/game");
 const backToSubCategories = () => router.push("/game");
 const backToGames = () => router.push("/game");
+const gameSurfaceFeedbackClass = visualFeedbackClass("game-surface");
+
+const onAsideAction = (actionId: string) => {
+  activeGameComponentRef.value?.handleAsideAction?.(actionId);
+  playUiSound("confirm");
+  triggerVisualFeedback("game-surface", "pulse", 320);
+};
 
 const formatOfferPrice = (offer: (typeof coinOffers)[number]) =>
   typeof offer.priceEuro === "number"
@@ -371,6 +389,15 @@ onMounted(async () => {
           >{{ t(selectedGame.nameKey) }}</v-chip
         >
       </div>
+      <v-switch
+        :model-value="audioEnabled"
+        label="Audio des jeux"
+        color="primary"
+        hide-details
+        inset
+        class="mt-3"
+        @update:model-value="setAudioEnabled"
+      />
 
       <v-dialog v-model="isLoginDialogOpen" max-width="520">
         <v-card>
@@ -479,6 +506,7 @@ onMounted(async () => {
         :is-game-started="true"
         :game-panel-state="gamePanelState"
         :live-game-panel="liveGamePanel"
+        @action="onAsideAction"
       />
 
     </template>
@@ -504,14 +532,16 @@ onMounted(async () => {
       </v-btn>
     </div>
 
-    <component
-      :is="selectedComponent"
-      v-else-if="selectedComponent"
-      :selected-play-mode="selectedPlayMode"
-      :belote-mode="selectedBeloteMode"
-      @panel-state="onGamePanelState"
-      @game-finished="onGameFinished"
-    />
+    <div v-else-if="selectedComponent" :class="gameSurfaceFeedbackClass">
+      <component
+        :is="selectedComponent"
+        ref="activeGameComponentRef"
+        :selected-play-mode="selectedPlayMode"
+        :belote-mode="selectedBeloteMode"
+        @panel-state="onGamePanelState"
+        @game-finished="onGameFinished"
+      />
+    </div>
 
     <v-alert v-else type="warning" variant="tonal">
       {{ te("gamePage.status.none") ? t("gamePage.status.none") : "Game not found." }}
@@ -552,5 +582,38 @@ onMounted(async () => {
   to {
     transform: scale(1.1);
   }
+}
+
+.game-feedback--pulse {
+  animation: game-feedback-pulse 320ms ease-out;
+}
+
+.game-feedback--shake {
+  animation: game-feedback-shake 620ms ease-in-out;
+}
+
+.game-feedback--glow {
+  animation: game-feedback-glow 620ms ease-in-out;
+}
+
+@keyframes game-feedback-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.012); }
+  100% { transform: scale(1); }
+}
+
+@keyframes game-feedback-shake {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes game-feedback-glow {
+  0% { filter: drop-shadow(0 0 0 rgba(var(--v-theme-success), 0)); }
+  50% { filter: drop-shadow(0 0 20px rgba(var(--v-theme-success), 0.45)); }
+  100% { filter: drop-shadow(0 0 0 rgba(var(--v-theme-success), 0)); }
 }
 </style>

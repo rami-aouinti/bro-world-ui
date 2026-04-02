@@ -7,6 +7,7 @@ import {
   type UnoColor,
   useUnoEngine,
 } from "~/composables/games/useUnoEngine";
+import { useGameFeedback } from "~/composables/games/useGameFeedback";
 
 const props = defineProps<{
   selectedPlayMode: "ai" | "pvp";
@@ -50,6 +51,7 @@ const pendingWildCardId = ref<string | null>(null);
 const playedCardPulseId = ref<string | null>(null);
 const drawPulse = ref(false);
 const gameFinishedEmitted = ref(false);
+const { playUiSound, triggerVisualFeedback } = useGameFeedback();
 
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 let aiTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -350,6 +352,9 @@ const startTurnTimer = () => {
 };
 
 const handleAsideAction = (actionId: string) => {
+  playUiSound("confirm");
+  triggerVisualFeedback("game-surface", "pulse");
+
   if (actionId === "call-uno") {
     handleCallUno();
     return;
@@ -428,6 +433,12 @@ watch(gameWinnerIndex, (winnerIndex) => {
   }
 
   gameFinishedEmitted.value = true;
+  playUiSound(winnerIndex === 0 ? "win" : "lose");
+  triggerVisualFeedback(
+    "game-surface",
+    winnerIndex === 0 ? "glow" : "shake",
+    620,
+  );
   emit("game-finished", { result: winnerIndex === 0 ? "win" : "lose" });
 });
 
