@@ -13,6 +13,7 @@ import Game2048 from "~/components/games/Game2048.vue";
 import UnoGame from "~/components/games/UnoGame.vue";
 import GameConceptPreview from "~/components/games/GameConceptPreview.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
+import { useGameConcept } from "~/composables/useGameConcept";
 import {
   useGameSessionsApi,
   type GameLevel,
@@ -192,18 +193,13 @@ const selectedGame = computed(
       (game) => game.id === selectedGameId.value,
     ) ?? allGameEntries.value.find((game) => game.id === selectedGameId.value) ?? null,
 );
+const selectedGameConcept = useGameConcept(selectedGame);
 const localSupportedModes = computed<PlayMode[]>(() =>
   selectedGame.value?.availableModes ?? selectedGame.value?.supportedModes ?? [],
 );
 const displayedLocalModes = computed<PlayMode[]>(() =>
   getDisplayModes(localSupportedModes.value),
 );
-const selectedGamePlannedModes = computed(() =>
-  selectedGame.value?.plannedModes?.length
-    ? selectedGame.value.plannedModes
-    : (selectedGame.value?.supportedModes ?? []),
-);
-
 const featuredGames = computed<GameEntry[]>(() => {
   if (!featuredGamesItems.value.length) return [];
 
@@ -955,6 +951,29 @@ const handleLogin = async () => {
             </p>
           </div>
         </v-card>
+        <v-card variant="outlined" class="pa-4">
+          <h3 class="text-h6 mb-3">Concept Snapshot</h3>
+          <p class="text-caption text-medium-emphasis mb-1">Core loop</p>
+          <ul class="pl-5 mb-3">
+            <li
+              v-for="step in selectedGameConcept.coreLoop"
+              :key="`mode-selection-loop-${step}`"
+              class="mb-1"
+            >
+              {{ step }}
+            </li>
+          </ul>
+          <p class="text-caption text-medium-emphasis mb-1">Prochaines milestones</p>
+          <ul class="pl-5 mb-0">
+            <li
+              v-for="milestone in selectedGameConcept.milestones"
+              :key="`mode-selection-milestone-${milestone}`"
+              class="mb-1"
+            >
+              {{ milestone }}
+            </li>
+          </ul>
+        </v-card>
       </section>
       <section
         v-else
@@ -1007,6 +1026,18 @@ const handleLogin = async () => {
               >
                 {{ formatMetaChip(feature) }}
               </v-chip>
+            </div>
+            <div>
+              <p class="text-caption text-medium-emphasis mb-1">Résumé des règles</p>
+              <ul class="pl-5 mb-0">
+                <li
+                  v-for="rule in selectedGameConcept.rulesSummary"
+                  :key="`game-rule-${rule}`"
+                  class="mb-1"
+                >
+                  {{ rule }}
+                </li>
+              </ul>
             </div>
           </div>
         </v-card>
@@ -1145,15 +1176,13 @@ const handleLogin = async () => {
         class="mb-1 setup-section"
       >
         <GameConceptPreview
-          :name-key="selectedGame.nameKey"
-          :description-key="selectedGame.descriptionKey"
-          :planned-modes="selectedGamePlannedModes"
-          :difficulty-key="selectedGame.difficultyKey"
-          :features="selectedGame.features ?? []"
-          :tags="selectedGame.tags ?? []"
-          :art-direction="selectedGame.artDirection ?? null"
-          :average-duration="selectedGame.averageDuration ?? null"
-          :development-status="selectedGame.developmentStatus"
+          :title="selectedGameConcept.title"
+          :core-loop="selectedGameConcept.coreLoop"
+          :rules-summary="selectedGameConcept.rulesSummary"
+          :ux-mock-sections="selectedGameConcept.uxMockSections"
+          :planned-modes="selectedGameConcept.plannedModes"
+          :monetization-notes="selectedGameConcept.monetizationNotes"
+          :milestones="selectedGameConcept.milestones"
         />
       </section>
 
