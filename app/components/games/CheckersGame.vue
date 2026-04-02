@@ -9,6 +9,7 @@ import {
 } from "vue";
 import type { GameAsidePanelState } from "./types";
 import GameTableScaffold from "./GameTableScaffold.vue";
+import { useGameFeedback } from "~/composables/games/useGameFeedback";
 
 const props = defineProps<{
   selectedPlayMode: "ai" | "pvp";
@@ -18,6 +19,7 @@ const emit = defineEmits<{
   (event: "game-finished", payload: { result: "win" | "lose" }): void;
 }>();
 const { t } = useI18n();
+const { playUiSound, triggerVisualFeedback } = useGameFeedback();
 
 type Player = "red" | "black";
 
@@ -561,6 +563,12 @@ watch(winner, (nextWinner) => {
     return;
   }
 
+  playUiSound(nextWinner === "red" ? "win" : "lose");
+  triggerVisualFeedback(
+    "game-surface",
+    nextWinner === "red" ? "glow" : "shake",
+    620,
+  );
   emitGameFinished(nextWinner === "red" ? "win" : "lose");
 });
 
@@ -636,6 +644,8 @@ watchEffect(() => {
 
 const handleAsideAction = (actionId: string) => {
   if (actionId === "restart") {
+    playUiSound("confirm");
+    triggerVisualFeedback("game-surface", "pulse");
     reset();
   }
 };
