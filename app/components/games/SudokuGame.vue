@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch, watchEffect } from "vue";
 import type { GameAsidePanelState } from "./types";
 const { t } = useI18n();
 
@@ -8,6 +8,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   (event: "panel-state", payload: GameAsidePanelState): void;
+  (event: "game-finished", payload: { result: "win" | "lose" }): void;
 }>();
 
 type Difficulty = "easy" | "medium" | "hard";
@@ -34,6 +35,7 @@ const solutionGrid = ref<Grid>([]);
 const playerGrid = ref<Grid>([]);
 const fixedCells = ref<boolean[][]>([]);
 const hasWon = ref(false);
+const gameFinishedEmitted = ref(false);
 const mistakes = ref(0);
 const elapsedSeconds = ref(0);
 const timerId = ref<ReturnType<typeof setInterval> | null>(null);
@@ -224,6 +226,7 @@ const initGame = () => {
   mistakes.value = 0;
   elapsedSeconds.value = 0;
   hasWon.value = false;
+  gameFinishedEmitted.value = false;
   startTimer();
 };
 
@@ -270,6 +273,15 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   clearTimer();
+});
+
+watch(hasWon, (won) => {
+  if (!won || gameFinishedEmitted.value) {
+    return;
+  }
+
+  gameFinishedEmitted.value = true;
+  emit("game-finished", { result: "win" });
 });
 
 const panelState = computed<GameAsidePanelState>(() => ({

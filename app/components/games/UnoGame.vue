@@ -14,6 +14,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (event: "panel-state", payload: GameAsidePanelState): void;
+  (event: "game-finished", payload: { result: "win" | "lose" }): void;
 }>();
 
 
@@ -48,6 +49,7 @@ const isColorDialogOpen = ref(false);
 const pendingWildCardId = ref<string | null>(null);
 const playedCardPulseId = ref<string | null>(null);
 const drawPulse = ref(false);
+const gameFinishedEmitted = ref(false);
 
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 let aiTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -414,6 +416,20 @@ watch(
     }
   },
 );
+
+watch(gameWinnerIndex, (winnerIndex) => {
+  if (winnerIndex === null) {
+    gameFinishedEmitted.value = false;
+    return;
+  }
+
+  if (gameFinishedEmitted.value) {
+    return;
+  }
+
+  gameFinishedEmitted.value = true;
+  emit("game-finished", { result: winnerIndex === 0 ? "win" : "lose" });
+});
 
 startTurnTimer();
 

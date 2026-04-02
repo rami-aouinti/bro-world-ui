@@ -15,6 +15,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   (event: "panel-state", payload: GameAsidePanelState): void;
+  (event: "game-finished", payload: { result: "win" | "lose" }): void;
 }>();
 const { t } = useI18n();
 
@@ -88,6 +89,7 @@ const remainingSeconds = ref(TURN_SECONDS);
 const intervalId = ref<ReturnType<typeof setInterval> | null>(null);
 const forcedWinner = ref<Player | null>(null);
 const mustContinueCapture = ref(false);
+const gameFinishedEmitted = ref(false);
 
 const timerProgress = computed(() =>
   Math.max(0, (remainingSeconds.value / TURN_SECONDS) * 100),
@@ -480,6 +482,15 @@ const winner = computed(() => {
   return null;
 });
 
+const emitGameFinished = (result: "win" | "lose") => {
+  if (gameFinishedEmitted.value) {
+    return;
+  }
+
+  gameFinishedEmitted.value = true;
+  emit("game-finished", { result });
+};
+
 const clickCell = (row: number, col: number) => {
   if (
     winner.value ||
@@ -545,6 +556,14 @@ watch(currentPlayer, async (player) => {
   }
 });
 
+watch(winner, (nextWinner) => {
+  if (!nextWinner) {
+    return;
+  }
+
+  emitGameFinished(nextWinner === "red" ? "win" : "lose");
+});
+
 const reset = () => {
   board.value = createInitialBoard();
   currentPlayer.value = "red";
@@ -553,6 +572,7 @@ const reset = () => {
   updateTurnMessage();
   isThinking.value = false;
   forcedWinner.value = null;
+  gameFinishedEmitted.value = false;
   startTurnTimer();
 };
 

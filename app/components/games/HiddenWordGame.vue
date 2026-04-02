@@ -16,6 +16,7 @@ import {
 const { t } = useI18n();
 const emit = defineEmits<{
   (event: "panel-state", payload: GameAsidePanelState): void;
+  (event: "game-finished", payload: { result: "win" | "lose" }): void;
 }>();
 
 const MAX_ATTEMPTS = 6;
@@ -36,6 +37,7 @@ const evaluations = ref<LetterResult[][]>([]);
 const currentGuess = ref("");
 const gameMessage = ref(t("gameComponents.hiddenWord.messages.guessDaily"));
 const shareMessage = ref("");
+const gameFinishedEmitted = ref(false);
 
 const targetCharacters = computed(() => targetWord.value.split(""));
 const isWon = computed(() => guesses.value.includes(targetWord.value));
@@ -107,6 +109,7 @@ const resetGame = () => {
   currentGuess.value = "";
   gameMessage.value = t("gameComponents.hiddenWord.messages.guessDaily");
   shareMessage.value = "";
+  gameFinishedEmitted.value = false;
 };
 
 const evaluateGuess = (guess: string): LetterResult[] => {
@@ -275,6 +278,15 @@ const tileClass = (status: LetterStatus) => {
 };
 
 watch(wordLength, resetGame);
+
+watch(isFinished, (finished) => {
+  if (!finished || gameFinishedEmitted.value) {
+    return;
+  }
+
+  gameFinishedEmitted.value = true;
+  emit("game-finished", { result: isWon.value ? "win" : "lose" });
+});
 
 onMounted(() => {
   resetGame();

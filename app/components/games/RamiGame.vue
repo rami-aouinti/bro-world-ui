@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watchEffect } from "vue";
+import { computed, onBeforeUnmount, ref, watch, watchEffect } from "vue";
 import type { GameAsidePanelState } from "./types";
 import CardTableLayout from "./CardTableLayout.vue";
 
@@ -9,6 +9,7 @@ defineProps<{
 
 const emit = defineEmits<{
   (event: "panel-state", payload: GameAsidePanelState): void;
+  (event: "game-finished", payload: { result: "win" | "lose" }): void;
 }>();
 
 type Suit = "♠" | "♥" | "♦" | "♣";
@@ -117,6 +118,7 @@ const dragOverDiscardZone = ref(false);
 const throwingCardId = ref<string | null>(null);
 const throwAnimationOffset = ref<{ x: number; y: number }>({ x: 0, y: 0 });
 const discardDropZone = ref<HTMLElement | null>(null);
+const gameFinishedEmitted = ref(false);
 
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 let aiTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -327,6 +329,17 @@ const panelState = computed<GameAsidePanelState>(() => ({
 
 watchEffect(() => {
   emit("panel-state", panelState.value);
+});
+
+watch(winner, (nextWinner) => {
+  if (!nextWinner || gameFinishedEmitted.value) {
+    return;
+  }
+
+  gameFinishedEmitted.value = true;
+  emit("game-finished", {
+    result: nextWinner === "player" ? "win" : "lose",
+  });
 });
 
 const isSet = (cards: Card[]) => {
@@ -1123,6 +1136,7 @@ const startRound = () => {
   hasDrawn.value = false;
   timer.value = TURN_SECONDS;
   winner.value = null;
+  gameFinishedEmitted.value = false;
   message.value =
     roundIndex.value === 1
       ? t("gameComponents.rami.messages.newGameDetailed", {
