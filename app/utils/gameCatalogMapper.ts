@@ -3,6 +3,7 @@ import type {
   ApiGameEntry,
   ApiPlayMode,
   GameCategory,
+  GameDevelopmentStatus,
   GameEntry,
   PlayMode,
 } from "~/types/game";
@@ -19,16 +20,38 @@ const apiToUiPlayModeMap: Record<ApiPlayMode, PlayMode | null> = {
 export const mapApiPlayModeToUiMode = (mode: ApiPlayMode): PlayMode | null =>
   apiToUiPlayModeMap[mode] ?? null;
 
-const mapGameEntry = (game: ApiGameEntry): GameEntry => ({
-  ...game,
-  supportedModes: Array.from(
+const mapApiModesToUiModes = (modes: ApiPlayMode[] = []): PlayMode[] =>
+  Array.from(
     new Set(
-      game.supportedModes
+      modes
         .map((mode) => mapApiPlayModeToUiMode(mode))
         .filter((mode): mode is PlayMode => Boolean(mode)),
     ),
-  ),
-});
+  );
+
+const resolveDevelopmentStatus = (
+  game: ApiGameEntry,
+  mappedModes: PlayMode[],
+): GameDevelopmentStatus => {
+  if (game.developmentStatus) {
+    return game.developmentStatus;
+  }
+
+  return game.component && mappedModes.length ? "playable" : "coming_soon";
+};
+
+const mapGameEntry = (game: ApiGameEntry): GameEntry => {
+  const mappedModes = mapApiModesToUiModes(
+    game.availableModes?.length ? game.availableModes : game.supportedModes,
+  );
+
+  return {
+    ...game,
+    supportedModes: mappedModes,
+    availableModes: mappedModes,
+    developmentStatus: resolveDevelopmentStatus(game, mappedModes),
+  };
+};
 
 export const mapGameCatalogFromApi = (
   categories: ApiGameCategory[],

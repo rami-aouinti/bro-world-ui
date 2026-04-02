@@ -17,13 +17,11 @@ import {
   type GameLevel,
 } from "~/composables/api/useGameSessionsApi";
 import type {
-  ApiPlayMode,
   BeloteMode,
   GameCategory,
   GameEntry,
   PlayMode,
 } from "~/types/game";
-import { mapApiPlayModeToUiMode } from "~/utils/gameCatalogMapper";
 import type { GameAsidePanelState } from "~/components/games/types";
 import { useGameCatalogStore } from "~/stores/gameCatalog";
 import { useGamesStore } from "~/stores/games";
@@ -194,13 +192,7 @@ const selectedGame = computed(
     ) ?? allGameEntries.value.find((game) => game.id === selectedGameId.value) ?? null,
 );
 const localSupportedModes = computed<PlayMode[]>(() =>
-  Array.from(
-    new Set(
-      (selectedGame.value?.supportedModes ?? [])
-        .map((mode) => mapApiPlayModeToUiMode(mode as ApiPlayMode))
-        .filter((mode): mode is PlayMode => Boolean(mode)),
-    ),
-  ),
+  selectedGame.value?.availableModes ?? selectedGame.value?.supportedModes ?? [],
 );
 const displayedLocalModes = computed<PlayMode[]>(() =>
   getDisplayModes(localSupportedModes.value),
@@ -216,20 +208,16 @@ const featuredGames = computed<GameEntry[]>(() => {
 });
 
 const getPlayableModes = (game: GameEntry | null | undefined): PlayMode[] =>
-  Array.from(
-    new Set(
-      (game?.supportedModes ?? [])
-        .map((mode) => mapApiPlayModeToUiMode(mode as ApiPlayMode))
-        .filter((mode): mode is PlayMode => Boolean(mode)),
-    ),
-  );
+  game?.availableModes ?? game?.supportedModes ?? [];
 
 const orderedModes: PlayMode[] = ["ai", "pvp"];
 const getDisplayModes = (modes: PlayMode[]): PlayMode[] =>
   orderedModes.filter((mode) => modes.includes(mode));
 
-const hasSoonBadge = (game: GameEntry) =>
-  !game.component || !getPlayableModes(game).length;
+const hasSoonBadge = (game: GameEntry) => game.developmentStatus === "coming_soon";
+
+const isGameAvailableForLaunch = (game: GameEntry | null | undefined) =>
+  game?.developmentStatus === "playable";
 
 const selectQuickAccessGame = (game: GameEntry) => {
   const gameLocation = categories.value
@@ -254,7 +242,7 @@ const selectQuickAccessGame = (game: GameEntry) => {
 
 
 const canLaunchSelectedGame = computed(() => {
-  if (!selectedGame.value?.component) return false;
+  if (!selectedGame.value?.component || !isGameAvailableForLaunch(selectedGame.value)) return false;
 
   const hasPlayableMode =
     Boolean(selectedPlayMode.value) &&
@@ -273,12 +261,8 @@ const canLaunchSelectedGame = computed(() => {
   return true;
 });
 
-const modeLabel = (mode: PlayMode | ApiPlayMode) => {
-  if (mode === "ai" || mode === "solo") return t("gamePage.modes.vsComputer");
-  if (mode === "pvp" || mode === "versus") return t("gamePage.modes.vsPlayer");
-  if (mode === "online") return t("gamePage.status.soonHint");
-  return t("gamePage.status.soonHint");
-};
+const modeLabel = (mode: PlayMode) =>
+  mode === "ai" ? t("gamePage.modes.vsComputer") : t("gamePage.modes.vsPlayer");
 
 const modeImageMap: Record<PlayMode, string> = {
   ai: "/img/game/computer.png",
@@ -1134,7 +1118,7 @@ const handleLogin = async () => {
               <div class="w-100 pa-3">
                 <div
                     @click="openGame(game.id)"
-                    :disabled="!game.component || !game.supportedModes.length"
+                    :disabled="!isGameAvailableForLaunch(game)"
                     v-motion
                     :initial="imageMotion.initial"
                     :enter="imageMotion.enter"
@@ -1245,7 +1229,7 @@ const handleLogin = async () => {
 
         <v-alert
             v-if="
-              !localSupportedModes.length || !selectedGame.component
+              !isGameAvailableForLaunch(selectedGame)
             "
             type="info"
             variant="tonal"
