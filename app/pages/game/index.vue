@@ -1165,13 +1165,13 @@ const handleLogin = async () => {
                 :initial="cardMotion.initial"
                 :enter="cardMotion.enter"
                 :hovered="cardMotion.hovered"
-                class="mode-card h-100 d-flex align-center justify-center"
+                class="mode-card d-flex align-center justify-center"
                 :class="{ 'mode-card--active': selectedPlayMode === mode }"
                 :variant="selectedPlayMode === mode ? 'flat' : 'outlined'"
                 :color="
                   selectedPlayMode === mode
                     ? mode === 'ai'
-                      ? getLevelColor('mode')
+                      ? 'primary'
                       : getLevelColor('subCategory')
                     : undefined
                 "
@@ -1225,7 +1225,7 @@ const handleLogin = async () => {
             md="4"
           >
             <v-card
-              class="mode-card h-100 d-flex align-center justify-center"
+              class="mode-card d-flex align-center justify-center"
               :class="{ 'mode-card--active': selectedAiLevel === level }"
               :variant="selectedAiLevel === level ? 'flat' : 'outlined'"
               :color="selectedAiLevel === level ? 'primary' : undefined"
@@ -1467,8 +1467,6 @@ const handleLogin = async () => {
 
 .mode-card {
   cursor: pointer;
-  border: 1px solid
-    color-mix(in srgb, rgb(var(--v-theme-primary)) 35%, transparent);
   transition:
     transform 180ms ease,
     box-shadow 180ms ease,
