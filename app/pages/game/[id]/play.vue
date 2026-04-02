@@ -90,12 +90,19 @@ const selectedPlayMode = computed<PlayMode>(() =>
 const selectedBeloteMode = computed<BeloteMode>(() =>
   route.query.beloteMode === "free-for-all" ? "free-for-all" : "teams",
 );
-const selectedLevel = computed(() =>
-  typeof route.query.level === "string" ? route.query.level : null,
-);
 const sessionId = computed(() =>
   typeof route.query.sessionId === "string" ? route.query.sessionId : null,
 );
+const userGameResult = ref<SessionResult | null>(null);
+const hasFinishableSession = computed(() => Boolean(sessionId.value));
+const gameResultStorageKey = computed(() => {
+  const userId = authSession.profile?.id;
+  const currentGameId =
+    typeof route.params.id === "string" ? route.params.id : gameId.value;
+
+  if (!userId || !currentGameId) return null;
+  return `game-result:${userId}:${currentGameId}`;
+});
 
 const selectedCategory = computed(() => {
   if (!gameId.value) return null;
@@ -162,12 +169,25 @@ const gamePanelState = computed(() => ({
   resetToCategories: () => router.push("/game"),
 }));
 
+const persistGameResult = (result: SessionResult) => {
+  if (!import.meta.client || !gameResultStorageKey.value) return;
+  localStorage.setItem(gameResultStorageKey.value, result);
+};
+
+const loadStoredGameResult = () => {
+  if (!import.meta.client || !gameResultStorageKey.value) return;
+  const stored = localStorage.getItem(gameResultStorageKey.value);
+  userGameResult.value = stored === "win" || stored === "lose" ? stored : null;
+};
+
 const finishGame = async (result: SessionResult) => {
   if (!sessionId.value || finishLoading.value) return;
 
   finishLoading.value = true;
   try {
     const response = await gameSessionsApi.finishGameSession(sessionId.value, result);
+    userGameResult.value = result;
+    persistGameResult(result);
 
     if (authSession.profile) {
       authSession.profile = {
@@ -224,6 +244,7 @@ const handleLogin = async () => {
 
 onMounted(async () => {
   await gameCatalogStore.fetchCatalog();
+  loadStoredGameResult();
 });
 </script>
 
@@ -426,14 +447,21 @@ onMounted(async () => {
 
       <v-card variant="outlined" class="mt-4">
         <v-card-text class="d-flex flex-column ga-2">
-          <p class="text-caption text-medium-emphasis mb-0">
-            Session: {{ sessionId ?? "—" }}
-          </p>
-          <p class="text-caption text-medium-emphasis mb-0">
-            User game: {{ route.params.id }}
-          </p>
-          <p class="text-caption text-medium-emphasis mb-0">
-            Level: {{ selectedLevel ?? "—" }}
+          <v-chip
+            v-if="userGameResult"
+            :color="userGameResult === 'win' ? 'success' : 'error'"
+            variant="tonal"
+            size="small"
+            class="align-self-start"
+          >
+            {{
+              userGameResult === "win"
+                ? "Résultat: gagné"
+                : "Résultat: perdu"
+            }}
+          </v-chip>
+          <p v-else class="text-caption text-medium-emphasis mb-0">
+            Résultat: à définir
           </p>
 
           <div class="d-flex ga-2 mt-2">
@@ -441,19 +469,19 @@ onMounted(async () => {
               color="success"
               size="small"
               :loading="finishLoading"
-              :disabled="!sessionId"
+              :disabled="!hasFinishableSession"
               @click="finishGame('win')"
             >
-              Finish win
+              Marquer gagné
             </v-btn>
             <v-btn
               color="error"
               size="small"
               :loading="finishLoading"
-              :disabled="!sessionId"
+              :disabled="!hasFinishableSession"
               @click="finishGame('lose')"
             >
-              Finish lose
+              Marquer perdu
             </v-btn>
           </div>
         </v-card-text>
