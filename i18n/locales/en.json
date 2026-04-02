@@ -1720,6 +1720,25 @@
       "comingSoon": "Coming soon",
       "soonHint": "This game will be available soon. Check back shortly!"
     },
+    "comingSoon": {
+      "title": "Coming soon",
+      "description": "This game is currently in development. You can track its progress.",
+      "currentState": "Current status",
+      "timeline": {
+        "conception": "Conception",
+        "prototype": "Prototype",
+        "alpha": "Alpha",
+        "release": "Release"
+      },
+      "states": {
+        "conception": "Conception",
+        "prototype": "Prototype"
+      },
+      "actions": {
+        "notify": "Notify me",
+        "follow": "Follow this game"
+      }
+    },
     "steps": {
       "categories": {
         "title": "1) Categories",

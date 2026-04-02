@@ -3,6 +3,7 @@ import type { PropType } from "vue";
 import type {
   BeloteMode,
   GameCategory,
+  GameDevelopmentStatus,
   GameEntry,
   GameSubCategory,
   PlayMode,
@@ -57,6 +58,60 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 
+type ComingSoonStep = "conception" | "prototype" | "alpha" | "release";
+
+const comingSoonTimeline: Array<{ id: ComingSoonStep; labelKey: string }> = [
+  { id: "conception", labelKey: "gamePage.comingSoon.timeline.conception" },
+  { id: "prototype", labelKey: "gamePage.comingSoon.timeline.prototype" },
+  { id: "alpha", labelKey: "gamePage.comingSoon.timeline.alpha" },
+  { id: "release", labelKey: "gamePage.comingSoon.timeline.release" },
+];
+
+const comingSoonStepByStatus: Record<GameDevelopmentStatus, ComingSoonStep> = {
+  playable: "release",
+  prototype: "prototype",
+  coming_soon: "conception",
+};
+
+const resolveComingSoonStep = (
+  developmentStatus: GameDevelopmentStatus | null | undefined,
+): ComingSoonStep => {
+  if (!developmentStatus) return "conception";
+  return comingSoonStepByStatus[developmentStatus] ?? "conception";
+};
+
+const isTimelineStepDone = (
+  stepId: ComingSoonStep,
+  developmentStatus: GameDevelopmentStatus | null | undefined,
+) =>
+  comingSoonTimeline.findIndex((step) => step.id === stepId) <
+  comingSoonTimeline.findIndex(
+    (step) => step.id === resolveComingSoonStep(developmentStatus),
+  );
+
+const isTimelineStepCurrent = (
+  stepId: ComingSoonStep,
+  developmentStatus: GameDevelopmentStatus | null | undefined,
+) => stepId === resolveComingSoonStep(developmentStatus);
+
+const comingSoonActionLabel = (
+  developmentStatus: GameDevelopmentStatus | null | undefined,
+) =>
+  developmentStatus === "prototype"
+    ? t("gamePage.comingSoon.actions.follow")
+    : t("gamePage.comingSoon.actions.notify");
+
+const comingSoonActionId = (
+  developmentStatus: GameDevelopmentStatus | null | undefined,
+) => (developmentStatus === "prototype" ? "follow-game" : "notify-game");
+
+const comingSoonCurrentStateLabel = (
+  developmentStatus: GameDevelopmentStatus | null | undefined,
+) =>
+  developmentStatus === "prototype"
+    ? t("gamePage.comingSoon.states.prototype")
+    : t("gamePage.comingSoon.states.conception");
+
 const liveHintByGameId: Record<string, string> = {
   belote: "Belote · suivi des plis, score d'équipe, contrat actif",
   rami: "Rami · score des manches, cartes posées, état de la pioche",
@@ -91,6 +146,57 @@ const liveHintByGameId: Record<string, string> = {
       </v-btn>
     </div>
   </v-alert>
+
+  <div
+    v-else-if="
+      !isGameStarted &&
+      selectedGame.developmentStatus !== 'playable'
+    "
+    class="d-flex flex-column ga-3"
+  >
+    <v-chip color="warning" variant="tonal" prepend-icon="mdi-progress-clock">
+      {{ t("gamePage.comingSoon.title") }}
+    </v-chip>
+    <p class="text-body-2 mb-0">
+      {{ t("gamePage.comingSoon.description") }}
+    </p>
+    <v-chip color="info" variant="outlined">
+      {{ t("gamePage.comingSoon.currentState") }}:
+      {{ comingSoonCurrentStateLabel(selectedGame.developmentStatus) }}
+    </v-chip>
+    <div class="d-flex flex-wrap ga-2">
+      <v-chip
+        v-for="step in comingSoonTimeline"
+        :key="`coming-soon-step-${step.id}`"
+        :color="
+          isTimelineStepCurrent(step.id, selectedGame.developmentStatus)
+            ? 'primary'
+            : isTimelineStepDone(step.id, selectedGame.developmentStatus)
+              ? 'success'
+              : undefined
+        "
+        :variant="
+          isTimelineStepCurrent(step.id, selectedGame.developmentStatus)
+            ? 'flat'
+            : isTimelineStepDone(step.id, selectedGame.developmentStatus)
+              ? 'tonal'
+              : 'outlined'
+        "
+        size="small"
+      >
+        {{ t(step.labelKey) }}
+      </v-chip>
+    </div>
+    <v-btn
+      size="small"
+      color="primary"
+      variant="outlined"
+      prepend-icon="mdi-bell-ring-outline"
+      @click="emit('action', comingSoonActionId(selectedGame.developmentStatus))"
+    >
+      {{ comingSoonActionLabel(selectedGame.developmentStatus) }}
+    </v-btn>
+  </div>
 
   <div v-else-if="!isGameStarted" class="d-flex flex-column ga-3">
     <v-chip variant="outlined" :color="gamePanelState.getLevelColor('mode')">

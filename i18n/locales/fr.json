@@ -1720,6 +1720,25 @@
       "comingSoon": "Bientôt disponible",
       "soonHint": "Ce jeu sera disponible prochainement. Revenez bientôt !"
     },
+    "comingSoon": {
+      "title": "Coming soon",
+      "description": "Ce jeu est en cours de développement. Vous pouvez suivre son avancement.",
+      "currentState": "État actuel",
+      "timeline": {
+        "conception": "Conception",
+        "prototype": "Prototype",
+        "alpha": "Alpha",
+        "release": "Release"
+      },
+      "states": {
+        "conception": "Conception",
+        "prototype": "Prototype"
+      },
+      "actions": {
+        "notify": "Être notifié",
+        "follow": "Suivre ce jeu"
+      }
+    },
     "steps": {
       "categories": {
         "title": "1) Catégories",
