@@ -679,19 +679,20 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <PlatformSplitLayout>
-    <teleport v-if="isGameStarted && globalRestartAction" to="#app-bar-teleport-target-right">
-      <v-btn
+
+  <teleport v-if="isGameStarted && globalRestartAction" to="#app-bar-teleport-target-right">
+    <v-btn
         color="primary"
         variant="tonal"
         size="small"
         prepend-icon="mdi-refresh"
         :disabled="globalRestartAction.disabled"
         @click="onAsideAction(globalRestartAction.id)"
-      >
-        {{ globalRestartAction.label }}
-      </v-btn>
-    </teleport>
+    >
+      {{ globalRestartAction.label }}
+    </v-btn>
+  </teleport>
+  <PlatformSplitLayout>
     <template #sidebar>
       <div class="mb-4">
         <v-chip variant="outlined" prepend-icon="mdi-controller" class="mb-2">{{
