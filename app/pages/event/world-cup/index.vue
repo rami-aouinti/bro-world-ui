@@ -179,56 +179,58 @@ const formatMatchDate = (datetime: string) => {
       </v-card>
     </template>
 
-    <section>
-      <v-row class="groups-grid">
-        <v-col v-for="group in groupsWithStandings" :key="group.id" cols="12" md="6" xl="4">
-          <v-card class="pa-4 group-card" variant="tonal">
-            <div class="d-flex align-center justify-space-between mb-3">
-              <h3 class="text-subtitle-2 font-weight-bold mb-0">Classement — Groupe {{ group.id }}</h3>
-              <v-chip size="x-small" color="primary" variant="outlined">4 équipes</v-chip>
-            </div>
+    <template #default>
+      <section>
+        <v-row class="groups-grid">
+          <v-col v-for="group in groupsWithStandings" :key="group.id" cols="12" md="6" xl="4">
+            <v-card class="pa-4 group-card" variant="tonal">
+              <div class="d-flex align-center justify-space-between mb-3">
+                <h3 class="text-subtitle-2 font-weight-bold mb-0">Classement — Groupe {{ group.id }}</h3>
+                <v-chip size="x-small" color="primary" variant="outlined">4 équipes</v-chip>
+              </div>
 
-            <v-table density="compact" class="bg-transparent standings-table">
-              <thead>
-              <tr>
-                <th class="text-left">Équipe</th>
-                <th class="text-right">Pts</th>
-                <th class="text-right">Diff</th>
-                <th class="text-right">J</th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr v-for="row in group.standings" :key="row.teamCode">
-                <td>
-                  <div class="d-flex align-center ga-2">
-                    <template v-if="!isFlagUnavailable(row.teamCode)">
-                      <v-avatar size="20" rounded="sm">
-                        <v-img
-                            :src="getFlagPath(row.teamCode)!"
-                            :alt="`Drapeau ${getTeam(row.teamCode)?.name ?? row.teamCode}`"
-                            cover
-                            @error="markFlagAsUnavailable(row.teamCode)"
-                        />
-                      </v-avatar>
-                    </template>
-                    <template v-else>
-                      <v-avatar size="20" rounded="sm" class="flag-fallback-avatar">
-                        <span class="flag-fallback-text">{{ renderCountryCode(row.teamCode) }}</span>
-                      </v-avatar>
-                    </template>
-                    <span>{{ getTeam(row.teamCode)?.name ?? row.teamCode }}</span>
-                  </div>
-                </td>
-                <td class="text-right">{{ row.points }}</td>
-                <td class="text-right">{{ row.diff > 0 ? `+${row.diff}` : row.diff }}</td>
-                <td class="text-right">{{ row.matches }}</td>
-              </tr>
-              </tbody>
-            </v-table>
-          </v-card>
-        </v-col>
-      </v-row>
-    </section>
+              <v-table density="compact" class="bg-transparent standings-table">
+                <thead>
+                  <tr>
+                    <th class="text-left">Équipe</th>
+                    <th class="text-right">Pts</th>
+                    <th class="text-right">Diff</th>
+                    <th class="text-right">J</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="row in group.standings" :key="row.teamCode">
+                    <td>
+                      <div class="d-flex align-center ga-2">
+                        <template v-if="!isFlagUnavailable(row.teamCode)">
+                          <v-avatar size="20" rounded="sm">
+                            <v-img
+                              :src="getFlagPath(row.teamCode)!"
+                              :alt="`Drapeau ${getTeam(row.teamCode)?.name ?? row.teamCode}`"
+                              cover
+                              @error="markFlagAsUnavailable(row.teamCode)"
+                            />
+                          </v-avatar>
+                        </template>
+                        <template v-else>
+                          <v-avatar size="20" rounded="sm" class="flag-fallback-avatar">
+                            <span class="flag-fallback-text">{{ renderCountryCode(row.teamCode) }}</span>
+                          </v-avatar>
+                        </template>
+                        <span>{{ getTeam(row.teamCode)?.name ?? row.teamCode }}</span>
+                      </div>
+                    </td>
+                    <td class="text-right">{{ row.points }}</td>
+                    <td class="text-right">{{ row.diff > 0 ? `+${row.diff}` : row.diff }}</td>
+                    <td class="text-right">{{ row.matches }}</td>
+                  </tr>
+                </tbody>
+              </v-table>
+            </v-card>
+          </v-col>
+        </v-row>
+      </section>
+    </template>
 
     <template #aside>
       <v-card class="pa-4 upcoming-card" variant="tonal">
