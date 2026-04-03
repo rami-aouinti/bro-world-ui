@@ -2433,5 +2433,68 @@
     "trick": "Pli",
     "score": "Score",
     "tips": "Conseils"
+  },
+  "worldCup": {
+    "pageLabel": "Vue d'ensemble de la Coupe du monde FIFA",
+    "common": {
+      "notAvailable": "N/A",
+      "retry": "Réessayer"
+    },
+    "a11y": {
+      "flagAlt": "Drapeau de {team}",
+      "flagUnavailable": "Drapeau indisponible"
+    },
+    "filters": {
+      "group": "Groupe",
+      "team": "Équipe",
+      "date": "Date",
+      "allGroups": "Tous les groupes",
+      "allTeams": "Toutes les équipes",
+      "allDates": "Toutes les dates",
+      "groupLabel": "Groupe {group}"
+    },
+    "stadiums": {
+      "title": "Tous les stades",
+      "caption": "Stades de la Coupe du monde avec ville, pays et capacité",
+      "columns": {
+        "stadium": "Stade",
+        "city": "Ville",
+        "country": "Pays",
+        "capacity": "Capacité"
+      },
+      "status": {
+        "loading": "Chargement des stades...",
+        "error": "Impossible de charger les stades pour le moment.",
+        "empty": "Aucun stade disponible pour le moment."
+      }
+    },
+    "standings": {
+      "title": "Classements des groupes",
+      "caption": "Classement par groupe avec points, différence de buts et matchs joués",
+      "columns": {
+        "team": "Équipe",
+        "points": "Pts",
+        "diff": "Diff",
+        "matches": "MJ"
+      },
+      "status": {
+        "loading": "Chargement des classements...",
+        "error": "Impossible de charger les classements pour le moment.",
+        "empty": "Aucun classement disponible pour le moment."
+      }
+    },
+    "matches": {
+      "title": "Tous les matchs",
+      "refreshAction": "Rafraîchir",
+      "lastUpdated": "Dernière mise à jour : {date} UTC",
+      "neverUpdated": "pas encore synchronisé",
+      "versus": "vs",
+      "status": {
+        "pollingHint": "Les matchs se rafraîchissent automatiquement chaque minute. Vous pouvez aussi rafraîchir manuellement.",
+        "loading": "Chargement des matchs...",
+        "error": "Impossible de charger les matchs pour le moment.",
+        "empty": "Aucun match trouvé avec les filtres actuels."
+      }
+    }
   }
 }
