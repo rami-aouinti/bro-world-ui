@@ -1,3 +1,1 @@
-import { proxyMappedFifaRoute } from './_mapping'
-
-export default defineEventHandler(event => proxyMappedFifaRoute(event, 'standings'))
+export { default } from './stats/standings.get'

@@ -94,7 +94,16 @@ const normalizeQuery = (query: Record<string, unknown>): Record<string, string |
   }, {})
 }
 
-const REFERENCE_ENDPOINTS = new Set(['/teams', '/venues', '/leagues', '/countries'])
+const REFERENCE_ENDPOINTS = new Set([
+  '/timezone',
+  '/countries',
+  '/leagues',
+  '/leagues/seasons',
+  '/teams',
+  '/venues',
+  '/odds/bookmakers',
+  '/odds/bets',
+])
 
 const parsePositiveInteger = (value: unknown): number | null => {
   const parsed = Number(value)

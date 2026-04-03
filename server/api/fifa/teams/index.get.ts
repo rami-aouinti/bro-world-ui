@@ -1,14 +1,17 @@
-import { createFifaRouteHandler } from './_handler'
+import { createFifaRouteHandler } from '../_handler'
 
 export default defineEventHandler(createFifaRouteHandler({
-  route: '/venues',
-  upstreamEndpoint: '/venues',
+  route: '/teams',
+  upstreamEndpoint: '/teams',
   querySchema: {
     optional: {
       id: 'number',
       name: 'string',
-      city: 'string',
+      league: 'number',
+      season: 'number',
       country: 'string',
+      code: 'string',
+      venue: 'number',
       search: 'string',
     },
   },
