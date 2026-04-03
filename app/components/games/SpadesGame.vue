@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import CardTableLayout from "./CardTableLayout.vue";
+import CardFanHand from "./cards/CardFanHand.vue";
+import TrickPile from "./cards/TrickPile.vue";
 import type { GameAsidePanelState } from "~/components/games/types";
 import { useSpadesEngine } from "~/composables/games/engines/useSpadesEngine";
 
@@ -16,6 +19,57 @@ const engine = useSpadesEngine();
 
 const humanPlayer = computed(() => engine.players.value[0]);
 const currentPlayer = computed(() => engine.players.value[engine.turnIndex.value]);
+const tableSeatOrder = ["north", "east", "south", "west"] as const;
+type TableSeat = (typeof tableSeatOrder)[number];
+
+const tablePlayerIndexes = computed(() =>
+  tableSeatOrder.map((_, seatIndex) => (0 + ((seatIndex - 2 + 4) % 4)) % 4),
+);
+
+const tablePlayers = computed(() =>
+  tablePlayerIndexes.value.map((playerIndex) => {
+    const player = engine.players.value[playerIndex];
+    return {
+      id: player?.id ?? `seat-${playerIndex}`,
+      name: player?.name ?? `J${playerIndex + 1}`,
+      isAI: Boolean(player?.isAI),
+      isCurrentTurn: engine.turnIndex.value === playerIndex,
+    };
+  }),
+);
+
+const seatByPlayerIndex = computed(() =>
+  tablePlayerIndexes.value.reduce(
+    (mapping, playerIndex, seatIndex) => {
+      mapping[playerIndex] = tableSeatOrder[seatIndex] ?? tableSeatOrder[0];
+      return mapping;
+    },
+    {} as Record<number, TableSeat>,
+  ),
+);
+
+const trickCards = computed(() =>
+  engine.trick.value.flatMap((play) => {
+    const seat = seatByPlayerIndex.value[play.playerIndex];
+    if (!seat) return [];
+    return {
+      seat,
+      rank: play.card.rank,
+      suit: play.card.suit,
+      playerName: engine.players.value[play.playerIndex]?.name,
+    };
+  }),
+);
+
+const playableCardIds = computed(() =>
+  (humanPlayer.value?.hand ?? [])
+    .filter((card) => engine.canPlayCard(0, card))
+    .map((card) => card.id),
+);
+
+const disabledCardIds = computed(() =>
+  currentPlayer.value?.isAI ? (humanPlayer.value?.hand ?? []).map((card) => card.id) : [],
+);
 
 const finishedEmitted = ref(false);
 
@@ -106,31 +160,19 @@ defineExpose({
         </v-chip>
       </div>
 
-      <div>
-        <p class="text-subtitle-2 mb-2">Pli en cours</p>
-        <div class="d-flex ga-2 flex-wrap">
-          <v-chip v-for="play in engine.trick.value" :key="`${play.playerIndex}-${play.card.id}`" variant="outlined">
-            {{ engine.players.value[play.playerIndex]?.name }}: {{ play.card.rank }}{{ play.card.suit }}
-          </v-chip>
-          <v-chip v-if="engine.trick.value.length === 0" variant="outlined">Aucune carte jouée</v-chip>
-        </div>
-      </div>
-
-      <div>
-        <p class="text-subtitle-2 mb-2">Votre main</p>
-        <div class="d-flex ga-2 flex-wrap">
-          <v-btn
-            v-for="card in humanPlayer?.hand ?? []"
-            :key="card.id"
-            size="small"
-            variant="tonal"
-            :disabled="!engine.canPlayCard(0, card) || currentPlayer?.isAI"
-            @click="playHumanCard(card.id)"
-          >
-            {{ card.rank }}{{ card.suit }}
-          </v-btn>
-        </div>
-      </div>
+      <CardTableLayout :players="tablePlayers">
+        <template #center>
+          <TrickPile :trick="trickCards" />
+        </template>
+        <template #seat-south-hand>
+          <CardFanHand
+            :cards="humanPlayer?.hand ?? []"
+            :playable-card-ids="playableCardIds"
+            :disabled-card-ids="disabledCardIds"
+            @play-card="({ id }) => playHumanCard(id)"
+          />
+        </template>
+      </CardTableLayout>
 
       <div class="d-flex ga-2 flex-wrap">
         <v-btn variant="tonal" @click="runAiUntilHuman">Lancer IA</v-btn>
