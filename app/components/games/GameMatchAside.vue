@@ -124,6 +124,7 @@ const liveHintByGameId: Record<string, string> = {
   "game-2048": "2048 · score live, meilleure tuile, prochain objectif",
   "hidden-word": "Mot caché · essais restants, indice actif, série en cours",
   nonogram: "Nonogramme · progression ligne/colonne, erreurs, timer",
+  ludo: "Ludo · tour actif, dé courant, pions encore à rentrer",
 };
 
 const moodLabelMap: Record<GameMood, string> = {

@@ -14,6 +14,7 @@ import HiddenWordGame from "~/components/games/HiddenWordGame.vue";
 import SudokuGame from "~/components/games/SudokuGame.vue";
 import Game2048 from "~/components/games/Game2048.vue";
 import UnoGame from "~/components/games/UnoGame.vue";
+import LudoGame from "~/components/games/LudoGame.vue";
 import FlappyRocketGame from "~/components/games/FlappyRocketGame.vue";
 import GameConceptPreview from "~/components/games/GameConceptPreview.vue";
 import GameQuickAccessPanel from "~/components/games/lobby/GameQuickAccessPanel.vue";
@@ -131,6 +132,9 @@ const spadesGameRef = ref<{
   handleAsideAction: (actionId: string) => void;
 } | null>(null);
 const unoGameRef = ref<{
+  handleAsideAction: (actionId: string) => void;
+} | null>(null);
+const ludoGameRef = ref<{
   handleAsideAction: (actionId: string) => void;
 } | null>(null);
 const flappyRocketGameRef = ref<{
@@ -425,6 +429,7 @@ const onAsideAction = (actionId: string) => {
     hearts: heartsGameRef.value,
     spades: spadesGameRef.value,
     uno: unoGameRef.value,
+    ludo: ludoGameRef.value,
     "flappy-rocket": flappyRocketGameRef.value,
   };
 
@@ -1171,6 +1176,12 @@ const handleLogin = async () => {
         <UnoGame
           ref="unoGameRef"
           v-else-if="selectedGame.component === 'uno'"
+          :selected-play-mode="selectedPlayMode"
+          @panel-state="onGamePanelState"
+        />
+        <LudoGame
+          ref="ludoGameRef"
+          v-else-if="selectedGame.component === 'ludo'"
           :selected-play-mode="selectedPlayMode"
           @panel-state="onGamePanelState"
         />
