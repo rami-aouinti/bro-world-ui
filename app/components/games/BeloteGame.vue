@@ -305,6 +305,7 @@ defineExpose({
   <CardTableLayout
       :players="tablePlayers"
       :turn-timer-seconds="TURN_SECONDS"
+      table-theme="belote"
   >
     <template #seat-south-hand>
       <section v-if="displayHandPlayer" class="belote-seat-hand">

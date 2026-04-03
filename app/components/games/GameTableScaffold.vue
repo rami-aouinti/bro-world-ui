@@ -15,6 +15,7 @@ interface Props {
   turnTimerSeconds?: number;
   tableClass?: string;
   surfaceVariant?: "table" | "flat";
+  tableTheme?: "default" | "uno" | "belote" | "poker";
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -22,6 +23,7 @@ const props = withDefaults(defineProps<Props>(), {
   turnTimerSeconds: 120,
   tableClass: "",
   surfaceVariant: "table",
+  tableTheme: "default",
 });
 
 const seatPositions = computed(() => {
@@ -82,6 +84,7 @@ const getRingProgress = (secondsLeft: number) =>
         class="game-table-scaffold__table"
         :class="[
           tableClass,
+          `table-theme--${props.tableTheme}`,
           `game-table-scaffold__table--${props.surfaceVariant}`,
         ]"
       >
@@ -141,6 +144,21 @@ const getRingProgress = (secondsLeft: number) =>
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16), inset 0 0 0 14px rgba(0, 0, 0, 0.08), 0 18px 34px rgba(12, 31, 20, 0.28);
   overflow: hidden;
 }
+.game-table-scaffold__table.table-theme--uno {
+  background: radial-gradient(circle at center, #f7c948 0%, #b7791f 74%);
+  border-color: rgba(107, 70, 2, 0.8);
+  box-shadow: inset 0 0 0 1px rgba(255, 250, 224, 0.22), inset 0 0 0 14px rgba(74, 51, 10, 0.14), 0 18px 34px rgba(107, 70, 2, 0.3);
+}
+.game-table-scaffold__table.table-theme--belote {
+  background: radial-gradient(circle at center, #4d94d4 0%, #124a80 74%);
+  border-color: rgba(10, 33, 65, 0.78);
+  box-shadow: inset 0 0 0 1px rgba(235, 245, 255, 0.2), inset 0 0 0 14px rgba(12, 38, 72, 0.14), 0 18px 34px rgba(8, 31, 59, 0.32);
+}
+.game-table-scaffold__table.table-theme--poker {
+  background: radial-gradient(circle at center, #bf1e2e 0%, #5b1125 74%);
+  border-color: rgba(51, 9, 18, 0.85);
+  box-shadow: inset 0 0 0 1px rgba(255, 228, 230, 0.16), inset 0 0 0 14px rgba(33, 8, 14, 0.24), 0 18px 34px rgba(33, 8, 14, 0.46);
+}
 :global(body.theme-gaming) .game-table-scaffold__table {
   background:
     radial-gradient(circle at 50% 40%, rgba(0, 229, 255, 0.14), transparent 52%),
@@ -179,6 +197,12 @@ const getRingProgress = (secondsLeft: number) =>
   color: #fff;
   z-index: 4;
 }
+.game-table-scaffold__table.table-theme--uno .game-seat,
+.game-table-scaffold__table.table-theme--belote .game-seat,
+.game-table-scaffold__table.table-theme--poker .game-seat {
+  background: rgba(7, 12, 24, 0.54);
+  color: #fff;
+}
 :global(body.theme-gaming) .game-seat {
   background: rgba(5, 11, 24, 0.72);
   border-color: rgba(0, 229, 255, 0.45);
@@ -210,6 +234,21 @@ const getRingProgress = (secondsLeft: number) =>
   justify-content: center;
   padding: 14px;
   color: #fff;
+}
+.game-table-scaffold__table.table-theme--uno .game-table-scaffold__surface {
+  border-color: rgba(255, 252, 233, 0.58);
+  background: rgba(107, 70, 2, 0.34);
+  color: #fff8e8;
+}
+.game-table-scaffold__table.table-theme--belote .game-table-scaffold__surface {
+  border-color: rgba(227, 242, 255, 0.52);
+  background: rgba(9, 40, 74, 0.34);
+  color: #eff6ff;
+}
+.game-table-scaffold__table.table-theme--poker .game-table-scaffold__surface {
+  border-color: rgba(255, 228, 230, 0.5);
+  background: rgba(55, 10, 26, 0.4);
+  color: #fff1f2;
 }
 :global(body.theme-gaming) .game-table-scaffold__surface {
   border: 1px dashed rgba(0, 229, 255, 0.38);

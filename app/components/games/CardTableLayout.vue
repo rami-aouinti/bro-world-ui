@@ -18,6 +18,7 @@ interface Props {
   centerMelds?: string[][];
   meldsByPlayer?: Partial<Record<"player" | "aiTop" | "aiRight" | "aiLeft", string[][]>>;
   turnTimerSeconds?: number;
+  tableTheme?: "default" | "uno" | "belote" | "poker";
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -25,6 +26,7 @@ const props = withDefaults(defineProps<Props>(), {
   centerMelds: () => [],
   meldsByPlayer: () => ({}),
   turnTimerSeconds: 120,
+  tableTheme: "default",
 });
 
 const seatPositions = computed(() => {
@@ -62,7 +64,7 @@ const isRedSuit = (suit: string) => suit === "♥" || suit === "♦";
 </script>
 
 <template>
-  <GameTableScaffold :players="players" :turn-timer-seconds="turnTimerSeconds">
+  <GameTableScaffold :players="players" :turn-timer-seconds="turnTimerSeconds" :table-theme="tableTheme">
     <template #surface>
       <section
         v-for="player in playersWithSeats"
@@ -146,6 +148,9 @@ const isRedSuit = (suit: string) => suit === "♥" || suit === "♦";
 .meld-card--side { width: 22px; min-height: 20px; padding: 3px 4px; }
 .meld-card--red { color: #dc2626; }
 .meld-card--black { color: #111827; }
+.table-theme--uno .meld-card { border-color: rgba(146, 64, 14, 0.45); background: linear-gradient(165deg, #fff8dc, #fef3c7); }
+.table-theme--belote .meld-card { border-color: rgba(30, 64, 175, 0.32); background: linear-gradient(165deg, #eff6ff, #dbeafe); }
+.table-theme--poker .meld-card { border-color: rgba(127, 29, 29, 0.34); background: linear-gradient(165deg, #fff1f2, #ffe4e6); }
 .meld-card__corner { font-size: 0.5rem; font-weight: 700; letter-spacing: 0.01em; }
 .meld-card__corner--bottom { align-self: flex-end; transform: rotate(180deg); }
 .meld-card__center { align-self: center; font-size: 0.9rem; }
@@ -157,6 +162,9 @@ const isRedSuit = (suit: string) => suit === "♥" || suit === "♦";
 .center-fallback, .center-fallback__column { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .center-fallback__row { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
 .center-fallback__card { padding: 4px 8px; border-radius: 8px; background: rgba(255, 255, 255, 0.9); color: #1f2937; font-weight: 700; }
+.table-theme--uno .center-fallback__card { background: #fff8dc; color: #78350f; border: 1px solid rgba(146, 64, 14, 0.25); }
+.table-theme--belote .center-fallback__card { background: #eff6ff; color: #1e3a8a; border: 1px solid rgba(30, 64, 175, 0.3); }
+.table-theme--poker .center-fallback__card { background: #fff1f2; color: #7f1d1d; border: 1px solid rgba(127, 29, 29, 0.28); }
 :global(body.theme-gaming) .center-fallback__card {
   background: rgba(11, 16, 34, 0.88);
   color: #dbe9ff;

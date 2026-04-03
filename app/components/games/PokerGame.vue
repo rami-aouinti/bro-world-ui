@@ -398,6 +398,7 @@ onBeforeUnmount(() => {
   <CardTableLayout
       :players="tablePlayers"
       :center-cards="centerCards"
+      table-theme="poker"
       class="poker-table-layout"
   >
     <template #center>
