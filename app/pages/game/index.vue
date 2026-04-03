@@ -1286,6 +1286,7 @@ const handleLogin = async () => {
 
 .mode-card {
   cursor: pointer;
+  max-height: 250px;
   transition:
     transform 180ms ease,
     box-shadow 180ms ease,
