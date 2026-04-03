@@ -1913,6 +1913,14 @@
       }
     }
   },
+  "gameCatalog": {
+    "games": {
+      "ludo": {
+        "name": "Ludo",
+        "description": "Leve seus peões até a chegada com dados e capturas táticas."
+      }
+    }
+  },
   "gameComponents": {
     "belote": {
       "title": "Belote (versão rápida)",
@@ -2257,6 +2265,55 @@
       "tricksWon": "Vazas ganhas",
       "currentTrick": "Vaza atual",
       "statusHandOver": "Mão concluída"
+    },
+    "ludo": {
+      "title": "Ludo",
+      "currentPlayer": "Jogador atual: {player}",
+      "phase": {
+        "local": "Partida local",
+        "finished": "Partida finalizada"
+      },
+      "modes": {
+        "vsAi": "vs IA",
+        "playerVsPlayer": "Jogador contra jogador"
+      },
+      "actions": {
+        "rollDice": "Lançar dado",
+        "restart": "Recomeçar"
+      },
+      "kpi": {
+        "dice": "Dado",
+        "redRemaining": "Vermelhos restantes",
+        "blueRemaining": "Azuis restantes"
+      },
+      "highlights": {
+        "mode": "Modo: {mode}",
+        "diceCurrent": "Dado atual: {dice}",
+        "diceWaiting": "Dado pendente"
+      },
+      "pawn": {
+        "base": "Base",
+        "arrived": "Chegou",
+        "cell": "Casa {count}"
+      },
+      "players": {
+        "red": "Vermelho",
+        "blue": "Azul"
+      },
+      "messages": {
+        "rollToStart": "Lance o dado para começar.",
+        "turnStart": "Vez de {player}. Lance o dado.",
+        "diceResult": "{player} tirou {dice}. Escolha um peão.",
+        "noMoveAvailable": "Nenhuma jogada possível para {player} (dado: {dice}).",
+        "reroll": "{player} joga novamente (tirou 6).",
+        "victory": "{player} venceu a partida.",
+        "newGame": "Nova partida de Ludo. Vermelho começa."
+      },
+      "errors": {
+        "invalidMove": "Jogada inválida para este peão.",
+        "alreadyRolled": "Você já lançou o dado neste turno.",
+        "rollBeforeMove": "Lance o dado antes de mover um peão."
+      }
     }
   },
   "common": {

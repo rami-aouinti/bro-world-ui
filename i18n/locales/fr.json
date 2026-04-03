@@ -2012,6 +2012,14 @@
       }
     }
   },
+  "gameCatalog": {
+    "games": {
+      "ludo": {
+        "name": "Ludo",
+        "description": "Faites avancer vos pions jusqu’à l’arrivée avec les dés et les captures."
+      }
+    }
+  },
   "gameComponents": {
     "belote": {
       "title": "Belote (version rapide)",
@@ -2356,6 +2364,55 @@
       "tricksWon": "Plis gagnés",
       "currentTrick": "Pli en cours",
       "statusHandOver": "Main terminée"
+    },
+    "ludo": {
+      "title": "Ludo",
+      "currentPlayer": "Joueur courant : {player}",
+      "phase": {
+        "local": "Partie locale",
+        "finished": "Partie terminée"
+      },
+      "modes": {
+        "vsAi": "vs IA",
+        "playerVsPlayer": "Joueur contre joueur"
+      },
+      "actions": {
+        "rollDice": "Lancer le dé",
+        "restart": "Recommencer"
+      },
+      "kpi": {
+        "dice": "Dé",
+        "redRemaining": "Rouge restants",
+        "blueRemaining": "Bleu restants"
+      },
+      "highlights": {
+        "mode": "Mode : {mode}",
+        "diceCurrent": "Dé actuel : {dice}",
+        "diceWaiting": "Dé en attente"
+      },
+      "pawn": {
+        "base": "Base",
+        "arrived": "Arrivé",
+        "cell": "Case {count}"
+      },
+      "players": {
+        "red": "Rouge",
+        "blue": "Bleu"
+      },
+      "messages": {
+        "rollToStart": "Lancez le dé pour commencer.",
+        "turnStart": "Tour de {player}. Lancez le dé.",
+        "diceResult": "{player} a fait {dice}. Choisissez un pion.",
+        "noMoveAvailable": "Aucun coup possible pour {player} (dé : {dice}).",
+        "reroll": "{player} relance (6 obtenu).",
+        "victory": "{player} remporte la partie.",
+        "newGame": "Nouvelle partie de Ludo. Rouge commence."
+      },
+      "errors": {
+        "invalidMove": "Coup impossible pour ce pion.",
+        "alreadyRolled": "Vous avez déjà lancé le dé pour ce tour.",
+        "rollBeforeMove": "Lancez le dé avant de jouer un pion."
+      }
     }
   },
   "common": {

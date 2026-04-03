@@ -1913,6 +1913,14 @@
       }
     }
   },
+  "gameCatalog": {
+    "games": {
+      "ludo": {
+        "name": "Ludo",
+        "description": "Bringe deine Figuren mit Würfen und taktischem Schlagen ins Ziel."
+      }
+    }
+  },
   "gameComponents": {
     "belote": {
       "title": "Belote (Schnellversion)",
@@ -2257,6 +2265,55 @@
       "tricksWon": "Gewonnene Stiche",
       "currentTrick": "Laufender Stich",
       "statusHandOver": "Hand beendet"
+    },
+    "ludo": {
+      "title": "Ludo",
+      "currentPlayer": "Aktiver Spieler: {player}",
+      "phase": {
+        "local": "Lokales Spiel",
+        "finished": "Spiel beendet"
+      },
+      "modes": {
+        "vsAi": "gegen KI",
+        "playerVsPlayer": "Spieler gegen Spieler"
+      },
+      "actions": {
+        "rollDice": "Würfeln",
+        "restart": "Neustarten"
+      },
+      "kpi": {
+        "dice": "Würfel",
+        "redRemaining": "Rot verbleibend",
+        "blueRemaining": "Blau verbleibend"
+      },
+      "highlights": {
+        "mode": "Modus: {mode}",
+        "diceCurrent": "Aktueller Wurf: {dice}",
+        "diceWaiting": "Würfel ausstehend"
+      },
+      "pawn": {
+        "base": "Start",
+        "arrived": "Im Ziel",
+        "cell": "Feld {count}"
+      },
+      "players": {
+        "red": "Rot",
+        "blue": "Blau"
+      },
+      "messages": {
+        "rollToStart": "Würfeln, um zu starten.",
+        "turnStart": "{player} ist am Zug. Würfeln.",
+        "diceResult": "{player} hat {dice} gewürfelt. Wähle eine Figur.",
+        "noMoveAvailable": "Kein Zug für {player} möglich (Wurf: {dice}).",
+        "reroll": "{player} würfelt erneut (6 gewürfelt).",
+        "victory": "{player} gewinnt das Spiel.",
+        "newGame": "Neues Ludo-Spiel. Rot beginnt."
+      },
+      "errors": {
+        "invalidMove": "Ungültiger Zug für diese Figur.",
+        "alreadyRolled": "Für diesen Zug wurde bereits gewürfelt.",
+        "rollBeforeMove": "Würfle, bevor du eine Figur ziehst."
+      }
     }
   },
   "common": {

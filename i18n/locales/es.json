@@ -1913,6 +1913,14 @@
       }
     }
   },
+  "gameCatalog": {
+    "games": {
+      "ludo": {
+        "name": "Ludo",
+        "description": "Lleva tus fichas a la meta con tiradas de dados y capturas tácticas."
+      }
+    }
+  },
   "gameComponents": {
     "belote": {
       "title": "Belote (versión rápida)",
@@ -2257,6 +2265,55 @@
       "tricksWon": "Bazas ganadas",
       "currentTrick": "Baza actual",
       "statusHandOver": "Mano terminada"
+    },
+    "ludo": {
+      "title": "Ludo",
+      "currentPlayer": "Jugador actual: {player}",
+      "phase": {
+        "local": "Partida local",
+        "finished": "Partida terminada"
+      },
+      "modes": {
+        "vsAi": "vs IA",
+        "playerVsPlayer": "Jugador contra jugador"
+      },
+      "actions": {
+        "rollDice": "Lanzar dado",
+        "restart": "Reiniciar"
+      },
+      "kpi": {
+        "dice": "Dado",
+        "redRemaining": "Rojas restantes",
+        "blueRemaining": "Azules restantes"
+      },
+      "highlights": {
+        "mode": "Modo: {mode}",
+        "diceCurrent": "Dado actual: {dice}",
+        "diceWaiting": "Dado pendiente"
+      },
+      "pawn": {
+        "base": "Base",
+        "arrived": "Llegó",
+        "cell": "Casilla {count}"
+      },
+      "players": {
+        "red": "Rojo",
+        "blue": "Azul"
+      },
+      "messages": {
+        "rollToStart": "Lanza el dado para empezar.",
+        "turnStart": "Turno de {player}. Lanza el dado.",
+        "diceResult": "{player} sacó {dice}. Elige una ficha.",
+        "noMoveAvailable": "No hay jugada posible para {player} (dado: {dice}).",
+        "reroll": "{player} vuelve a lanzar (salió un 6).",
+        "victory": "{player} gana la partida.",
+        "newGame": "Nueva partida de Ludo. Empieza rojo."
+      },
+      "errors": {
+        "invalidMove": "Movimiento no válido para esta ficha.",
+        "alreadyRolled": "Ya lanzaste el dado en este turno.",
+        "rollBeforeMove": "Lanza el dado antes de mover una ficha."
+      }
     }
   },
   "common": {

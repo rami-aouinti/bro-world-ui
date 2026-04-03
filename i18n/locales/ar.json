@@ -1913,6 +1913,14 @@
       }
     }
   },
+  "gameCatalog": {
+    "games": {
+      "ludo": {
+        "name": "لودو",
+        "description": "أوصل قطعك إلى النهاية عبر رمي النرد والالتقاطات التكتيكية."
+      }
+    }
+  },
   "gameComponents": {
     "belote": {
       "title": "بلوت (نسخة سريعة)",
@@ -2257,6 +2265,55 @@
       "tricksWon": "لفات رابحة",
       "currentTrick": "اللفة الحالية",
       "statusHandOver": "انتهت اليد"
+    },
+    "ludo": {
+      "title": "لودو",
+      "currentPlayer": "اللاعب الحالي: {player}",
+      "phase": {
+        "local": "مباراة محلية",
+        "finished": "انتهت المباراة"
+      },
+      "modes": {
+        "vsAi": "ضد الذكاء الاصطناعي",
+        "playerVsPlayer": "لاعب ضد لاعب"
+      },
+      "actions": {
+        "rollDice": "ارمِ النرد",
+        "restart": "إعادة البدء"
+      },
+      "kpi": {
+        "dice": "النرد",
+        "redRemaining": "الأحمر المتبقي",
+        "blueRemaining": "الأزرق المتبقي"
+      },
+      "highlights": {
+        "mode": "النمط: {mode}",
+        "diceCurrent": "قيمة النرد الحالية: {dice}",
+        "diceWaiting": "بانتظار رمية النرد"
+      },
+      "pawn": {
+        "base": "القاعدة",
+        "arrived": "وصل",
+        "cell": "الخانة {count}"
+      },
+      "players": {
+        "red": "أحمر",
+        "blue": "أزرق"
+      },
+      "messages": {
+        "rollToStart": "ارمِ النرد للبدء.",
+        "turnStart": "دور {player}. ارمِ النرد.",
+        "diceResult": "حصل {player} على {dice}. اختر قطعة.",
+        "noMoveAvailable": "لا توجد نقلة ممكنة لـ {player} (النرد: {dice}).",
+        "reroll": "{player} يرمي مرة أخرى (حصل على 6).",
+        "victory": "{player} يفوز بالمباراة.",
+        "newGame": "لعبة لودو جديدة. يبدأ الأحمر."
+      },
+      "errors": {
+        "invalidMove": "نقلة غير صالحة لهذه القطعة.",
+        "alreadyRolled": "لقد رميت النرد بالفعل في هذا الدور.",
+        "rollBeforeMove": "ارمِ النرد قبل تحريك القطعة."
+      }
     }
   },
   "common": {
