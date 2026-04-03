@@ -363,7 +363,7 @@ watch(
       (_, offset) => previousVisible + offset,
     );
 
-    const baseDelay = nextStreet === "flop" ? 90 : 0;
+    const baseDelay = nextStreet === "flop" ? 120 : 0;
     newVisibleIndexes.forEach((index, sequencePosition) => {
       const delay = sequencePosition * baseDelay;
 
@@ -374,12 +374,12 @@ watch(
 
       const flipTimer = setTimeout(() => {
         boardCardAnimations.value[index] = "flip";
-      }, delay + 130);
+      }, delay + 180);
       boardAnimationTimers.push(flipTimer);
 
       const cleanupTimer = setTimeout(() => {
         boardCardAnimations.value[index] = "idle";
-      }, delay + 520);
+      }, delay + 600);
       boardAnimationTimers.push(cleanupTimer);
     });
   },
@@ -558,8 +558,11 @@ onBeforeUnmount(() => {
 }
 
 .board-row {
+  --card-width: 58px;
+  --card-height: 84px;
+  --card-gap: 8px;
   display: flex;
-  gap: 8px;
+  gap: var(--card-gap);
   flex-wrap: wrap;
 }
 
@@ -754,10 +757,12 @@ onBeforeUnmount(() => {
 }
 
 .card-back-row {
+  --card-back-gap: 6px;
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: var(--card-back-gap);
   justify-content: center;
+  min-height: calc(var(--card-height) + 2px);
 }
 
 .card-back-row--side {
@@ -768,11 +773,23 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 34px;
-  border-radius: 6px;
-  border: 1px solid rgba(30, 58, 138, 0.25);
-  background: rgba(30, 58, 138, 0.12);
+  width: var(--card-width);
+  height: var(--card-height);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(30, 58, 138, 0.85) 0 6px,
+      rgba(37, 99, 235, 0.88) 6px 12px
+    ),
+    linear-gradient(145deg, #172554 0%, #1e3a8a 100%);
+  color: rgba(229, 237, 255, 0.92);
+  box-shadow:
+    0 10px 18px rgba(8, 12, 24, 0.28),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  font-size: 1.2rem;
+  line-height: 1;
 }
 
 .action-feedback {
@@ -794,8 +811,8 @@ onBeforeUnmount(() => {
 
 .table-card {
   position: relative;
-  min-width: 58px;
-  min-height: 84px;
+  width: var(--card-width);
+  height: var(--card-height);
   border-radius: 12px;
   border: 1px solid rgba(15, 23, 42, 0.25);
   background: linear-gradient(180deg, #ffffff 0%, #f5f7ff 100%);
@@ -826,13 +843,18 @@ onBeforeUnmount(() => {
 }
 
 .table-card__rank {
-  font-size: 1.1rem;
-  line-height: 1;
+  font-size: 1.08rem;
+  line-height: 0.95;
+  letter-spacing: 0.015em;
+  font-weight: 850;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 .table-card__suit {
-  font-size: 1.2rem;
-  line-height: 1;
+  margin-top: 2px;
+  font-size: 1.15rem;
+  line-height: 0.95;
+  filter: saturate(1.08) contrast(1.08);
 }
 
 .table-card__back-pattern {
@@ -841,17 +863,17 @@ onBeforeUnmount(() => {
 }
 
 .table-card--dealing {
-  animation: tableCardDealing 160ms ease-out;
+  animation: tableCardDealing 210ms cubic-bezier(0.18, 0.82, 0.26, 1);
 }
 
 .table-card--flip {
-  animation: tableCardFlip 340ms cubic-bezier(0.2, 0.7, 0.15, 1);
+  animation: tableCardFlip 360ms cubic-bezier(0.22, 0.68, 0.26, 1);
 }
 
 @keyframes tableCardDealing {
   0% {
-    transform: translateY(-8px) scale(0.96);
-    filter: brightness(0.92);
+    transform: translateY(-5px) scale(0.985);
+    filter: brightness(0.95);
   }
 
   100% {
@@ -862,15 +884,15 @@ onBeforeUnmount(() => {
 
 @keyframes tableCardFlip {
   0% {
-    transform: perspective(500px) rotateY(0deg);
+    transform: perspective(560px) rotateY(0deg) translateY(-2px);
   }
 
   50% {
-    transform: perspective(500px) rotateY(90deg);
+    transform: perspective(560px) rotateY(88deg);
   }
 
   100% {
-    transform: perspective(500px) rotateY(0deg);
+    transform: perspective(560px) rotateY(0deg) translateY(0);
   }
 }
 
@@ -905,5 +927,51 @@ onBeforeUnmount(() => {
   letter-spacing: 0.04em;
   color: rgba(255, 255, 255, 0.86);
   text-transform: uppercase;
+}
+
+@media (max-width: 960px) {
+  .board-row {
+    --card-gap: 6px;
+  }
+
+  .card-back-row {
+    --card-back-gap: 5px;
+  }
+}
+
+@media (max-width: 640px) {
+  .board-row {
+    --card-width: 46px;
+    --card-height: 66px;
+    --card-gap: 5px;
+  }
+
+  .card-back-row {
+    --card-back-gap: 4px;
+    min-height: var(--card-height);
+  }
+
+  .board-row--center,
+  .card-back-row {
+    justify-content: center;
+  }
+
+  .seat-hand--side {
+    max-width: 100%;
+  }
+
+  .table-card__rank {
+    font-size: 0.94rem;
+  }
+
+  .table-card__suit {
+    font-size: 1rem;
+    margin-top: 1px;
+  }
+
+  .card-back {
+    border-radius: 10px;
+    font-size: 0.98rem;
+  }
 }
 </style>
