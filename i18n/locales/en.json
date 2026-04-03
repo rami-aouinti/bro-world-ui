@@ -2469,34 +2469,6 @@
         "error": "Unable to load stadiums right now.",
         "empty": "No stadium available yet."
       }
-    },
-    "standings": {
-      "title": "Group Standings",
-      "caption": "Standings by group with points, goal difference, and matches played",
-      "columns": {
-        "team": "Team",
-        "points": "Pts",
-        "diff": "Diff",
-        "matches": "MP"
-      },
-      "status": {
-        "loading": "Loading standings data...",
-        "error": "Unable to load standings right now.",
-        "empty": "No standings available yet."
-      }
-    },
-    "matches": {
-      "title": "All Matches",
-      "refreshAction": "Refresh",
-      "lastUpdated": "Last update: {date} UTC",
-      "neverUpdated": "not synced yet",
-      "versus": "vs",
-      "status": {
-        "pollingHint": "Matches auto-refresh every minute. You can also refresh manually.",
-        "loading": "Loading matches data...",
-        "error": "Unable to load matches right now.",
-        "empty": "No match found with the current filters."
-      }
     }
   }
 }

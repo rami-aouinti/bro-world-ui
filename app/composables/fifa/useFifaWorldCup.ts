@@ -1,27 +1,10 @@
 import {
   worldCupGroups,
-  worldCupStandings,
-  worldCupUpcomingMatches,
 } from '~/data/world-cup'
 
 export type FifaWorldCupTeam = {
   code: string
   name: string
-  group: string
-}
-
-export type FifaWorldCupStanding = {
-  group: string
-  teamCode: string
-  points: number
-  diff: number
-  matches: number
-}
-
-export type FifaWorldCupMatch = {
-  datetime: string
-  teamA: string
-  teamB: string
   group: string
 }
 
@@ -36,8 +19,6 @@ export type FifaWorldCupStadium = {
 const WORLD_CUP_ENDPOINTS = {
   teams: '/api/fifa/teams',
   stadiums: '/api/fifa/stadiums',
-  standings: '/api/fifa/standings',
-  matches: '/api/fifa/matches',
 } as const
 
 const extractArrayPayload = <T>(input: unknown): T[] => {
@@ -116,137 +97,8 @@ const normalizeStadiums = (payload: unknown): FifaWorldCupStadium[] => {
     .filter(entry => Boolean(entry.name))
 }
 
-const normalizeStandings = (payload: unknown): Record<string, FifaWorldCupStanding[]> => {
-  if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
-    const data = payload as Record<string, unknown>
-    const groups = Object.entries(data)
-      .filter(([key, value]) => key !== 'data' && key !== 'items' && Array.isArray(value))
-
-    if (groups.length) {
-      return groups.reduce<Record<string, FifaWorldCupStanding[]>>((acc, [group, rows]) => {
-        const groupId = normalizeGroupId(group)
-        acc[groupId] = normalizeStandingsRows(rows, groupId)
-        return acc
-      }, {})
-    }
-  }
-
-  const entries = extractArrayPayload<Record<string, unknown>>(payload)
-  return entries.reduce<Record<string, FifaWorldCupStanding[]>>((acc, row) => {
-    const rawGroup = row.group && typeof row.group === 'object' ? row.group as Record<string, unknown> : null
-    const group = normalizeGroupId(row.group ?? row.groupId ?? row.pool ?? rawGroup?.name)
-
-    if (!group) {
-      return acc
-    }
-
-    const normalizedRow = normalizeStandingRow(row, group)
-
-    if (!normalizedRow) {
-      return acc
-    }
-
-    acc[group] = [...(acc[group] ?? []), normalizedRow]
-    return acc
-  }, {})
-}
-
-const normalizeStandingsRows = (rows: unknown, group: string): FifaWorldCupStanding[] => {
-  return extractArrayPayload<Record<string, unknown>>(rows)
-    .map(row => normalizeStandingRow(row, group))
-    .filter((row): row is FifaWorldCupStanding => row !== null)
-}
-
-const normalizeStandingRow = (row: Record<string, unknown>, group: string): FifaWorldCupStanding | null => {
-  const rawTeam = row.team && typeof row.team === 'object' ? row.team as Record<string, unknown> : null
-  const teamCode = normalizeCountryCode(
-    row.teamCode
-    ?? row.code
-    ?? row.team
-    ?? rawTeam?.country_code
-    ?? rawTeam?.abbreviation,
-  )
-
-  if (!teamCode) {
-    return null
-  }
-
-  const points = Number(row.points ?? row.pts ?? 0)
-  const diff = Number(row.diff ?? row.goalDiff ?? row.goalDifference ?? row.goal_difference ?? 0)
-  const matches = Number(row.matches ?? row.played ?? row.games ?? 0)
-
-  return {
-    group,
-    teamCode,
-    points: Number.isFinite(points) ? points : 0,
-    diff: Number.isFinite(diff) ? diff : 0,
-    matches: Number.isFinite(matches) ? matches : 0,
-  }
-}
-
-const normalizeMatches = (payload: unknown): FifaWorldCupMatch[] => {
-  return extractArrayPayload<Record<string, unknown>>(payload)
-    .map((entry) => {
-      const homeTeam = entry.home_team && typeof entry.home_team === 'object' ? entry.home_team as Record<string, unknown> : null
-      const awayTeam = entry.away_team && typeof entry.away_team === 'object' ? entry.away_team as Record<string, unknown> : null
-      const group = entry.group && typeof entry.group === 'object' ? entry.group as Record<string, unknown> : null
-      const homeTeamSource = entry.home_team_source && typeof entry.home_team_source === 'object'
-        ? entry.home_team_source as Record<string, unknown>
-        : null
-      const awayTeamSource = entry.away_team_source && typeof entry.away_team_source === 'object'
-        ? entry.away_team_source as Record<string, unknown>
-        : null
-      const datetime = typeof (entry.datetime ?? entry.date ?? entry.kickoffAt) === 'string'
-        ? String(entry.datetime ?? entry.date ?? entry.kickoffAt)
-        : ''
-      const teamA = normalizeCountryCode(
-        entry.teamA
-        ?? entry.homeTeam
-        ?? entry.homeTeamCode
-        ?? homeTeam?.country_code
-        ?? homeTeam?.abbreviation
-        ?? homeTeamSource?.placeholder,
-      )
-      const teamB = normalizeCountryCode(
-        entry.teamB
-        ?? entry.awayTeam
-        ?? entry.awayTeamCode
-        ?? awayTeam?.country_code
-        ?? awayTeam?.abbreviation
-        ?? awayTeamSource?.placeholder,
-      )
-      const normalizedGroup = normalizeGroupId(
-        entry.group
-        ?? entry.groupId
-        ?? entry.pool
-        ?? group?.name
-        ?? '',
-      )
-
-      return {
-        datetime,
-        teamA,
-        teamB,
-        group: normalizedGroup || 'KO',
-      }
-    })
-    .filter(entry => Boolean(entry.datetime) && Boolean(entry.teamA) && Boolean(entry.teamB))
-    .sort((a, b) => a.datetime.localeCompare(b.datetime))
-}
-
 const fallbackTeams = (): FifaWorldCupTeam[] => {
   return Object.entries(worldCupGroups).flatMap(([group, teams]) => teams.map(team => ({ ...team, group })))
-}
-
-const fallbackStandings = (): Record<string, FifaWorldCupStanding[]> => {
-  return Object.entries(worldCupStandings).reduce<Record<string, FifaWorldCupStanding[]>>((acc, [group, rows]) => {
-    acc[group] = rows.map(row => ({ group, ...row }))
-    return acc
-  }, {})
-}
-
-const fallbackMatches = (): FifaWorldCupMatch[] => {
-  return worldCupUpcomingMatches.map(match => ({ ...match }))
 }
 
 const fallbackStadiums = (): FifaWorldCupStadium[] => []
@@ -297,13 +149,9 @@ const fetchAndNormalize = async <T>(
 export const useFifaWorldCup = () => {
   const getTeams = (options?: FetchOptions) => fetchAndNormalize(WORLD_CUP_ENDPOINTS.teams, normalizeTeams, fallbackTeams, options)
   const getStadiums = (options?: FetchOptions) => fetchAndNormalize(WORLD_CUP_ENDPOINTS.stadiums, normalizeStadiums, fallbackStadiums, options)
-  const getGroupStandings = (options?: FetchOptions) => fetchAndNormalize(WORLD_CUP_ENDPOINTS.standings, normalizeStandings, fallbackStandings, options)
-  const getMatches = (options?: FetchOptions) => fetchAndNormalize(WORLD_CUP_ENDPOINTS.matches, normalizeMatches, fallbackMatches, options)
 
   return {
     getTeams,
     getStadiums,
-    getGroupStandings,
-    getMatches,
   }
 }
