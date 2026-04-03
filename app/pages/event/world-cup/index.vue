@@ -9,6 +9,7 @@ import {
 definePageMeta({
   public: true,
   requiresAuth: false,
+  layout: false,
   skeleton: "card-grid",
 });
 
@@ -126,59 +127,71 @@ const formatMatchDate = (datetime: string) => {
 </script>
 
 <template>
-  <div class="world-cup-layout">
-    <aside class="world-cup-layout__sidebar">
-      <v-card class="pa-4 sidebar-card" variant="tonal">
-        <div class="d-flex align-center justify-space-between mb-3">
-          <h2 class="text-subtitle-1 font-weight-bold mb-0">Pays qualifiés</h2>
-          <v-chip size="small" color="primary" variant="tonal">48</v-chip>
-        </div>
-        <v-alert
+  <NuxtLayout name="default">
+    <template #layout-sidebar>
+      <div class="d-flex align-center justify-space-between mb-3">
+        <h2 class="text-subtitle-1 font-weight-bold mb-0">Pays qualifiés</h2>
+        <v-chip size="small" color="primary" variant="tonal">48</v-chip>
+      </div>
+      <v-alert
           v-if="missingFlagMappings.length"
           density="compact"
           type="warning"
           variant="tonal"
           class="mb-3"
-        >
-          Drapeaux manquants: {{ missingFlagMappings.join(', ').toUpperCase() }}
-        </v-alert>
+      >
+        Drapeaux manquants: {{ missingFlagMappings.join(', ').toUpperCase() }}
+      </v-alert>
+      <div class="group-list">
+        <section v-for="group in groupsWithStandings" :key="group.id" class="group-section">
+          <div class="d-flex align-center justify-space-between mb-2">
+            <h3 class="text-body-2 font-weight-bold mb-0">Groupe {{ group.id }}</h3>
+            <v-chip size="x-small" color="primary" variant="outlined">{{ group.teams.length }}</v-chip>
+          </div>
 
-        <div class="group-list">
-          <section v-for="group in groupsWithStandings" :key="group.id" class="group-section">
-            <div class="d-flex align-center justify-space-between mb-2">
-              <h3 class="text-body-2 font-weight-bold mb-0">Groupe {{ group.id }}</h3>
-              <v-chip size="x-small" color="primary" variant="outlined">{{ group.teams.length }}</v-chip>
-            </div>
-
-            <v-list density="compact" class="pa-0 bg-transparent">
-              <v-list-item v-for="team in group.teams" :key="team.code" class="px-0">
-                <template #prepend>
-                  <template v-if="!isFlagUnavailable(team.code)">
-                    <v-avatar size="24" rounded="sm" class="me-2">
-                      <v-img
+          <v-list density="compact" class="pa-0 bg-transparent">
+            <v-list-item v-for="team in group.teams" :key="team.code" class="px-0">
+              <template #prepend>
+                <template v-if="!isFlagUnavailable(team.code)">
+                  <v-avatar size="24" rounded="sm" class="me-2">
+                    <v-img
                         :src="getFlagPath(team.code)!"
                         :alt="`Drapeau ${team.name}`"
                         cover
                         @error="markFlagAsUnavailable(team.code)"
-                      />
-                    </v-avatar>
-                  </template>
-                  <template v-else>
-                    <v-avatar size="24" rounded="sm" class="me-2 flag-fallback-avatar">
-                      <span class="flag-fallback-text">{{ renderCountryCode(team.code) }}</span>
-                    </v-avatar>
-                  </template>
+                    />
+                  </v-avatar>
                 </template>
+                <template v-else>
+                  <v-avatar size="24" rounded="sm" class="me-2 flag-fallback-avatar">
+                    <span class="flag-fallback-text">{{ renderCountryCode(team.code) }}</span>
+                  </v-avatar>
+                </template>
+              </template>
 
-                <v-list-item-title class="text-body-2">{{ team.name }}</v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </section>
-        </div>
-      </v-card>
-    </aside>
+              <v-list-item-title class="text-body-2">{{ team.name }}</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </section>
+      </div>
+    </template>
+    <template #layout-aside>
+      <div class="d-flex align-center justify-space-between mb-3">
+        <h2 class="text-subtitle-1 font-weight-bold mb-0">Premiers matchs à jouer</h2>
+        <v-chip size="small" color="primary" variant="tonal">{{ worldCupUpcomingMatches.length }}</v-chip>
+      </div>
 
-    <section class="world-cup-layout__main">
+      <v-list class="pa-0 bg-transparent match-list" lines="two">
+        <v-list-item v-for="match in worldCupUpcomingMatches" :key="`${match.group}-${match.datetime}`" class="px-0">
+          <v-list-item-title class="d-flex align-center justify-space-between ga-2">
+            <span>{{ getTeam(match.teamA)?.name ?? match.teamA }} vs {{ getTeam(match.teamB)?.name ?? match.teamB }}</span>
+            <v-chip size="x-small" color="primary" variant="outlined">Groupe {{ match.group }}</v-chip>
+          </v-list-item-title>
+          <v-list-item-subtitle>{{ formatMatchDate(match.datetime) }} (UTC)</v-list-item-subtitle>
+        </v-list-item>
+      </v-list>
+    </template>
+    <main>
       <v-row class="groups-grid">
         <v-col v-for="group in groupsWithStandings" :key="group.id" cols="12" md="6" xl="4">
           <v-card class="pa-4 group-card" variant="tonal">
@@ -189,65 +202,46 @@ const formatMatchDate = (datetime: string) => {
 
             <v-table density="compact" class="bg-transparent standings-table">
               <thead>
-                <tr>
-                  <th class="text-left">Équipe</th>
-                  <th class="text-right">Pts</th>
-                  <th class="text-right">Diff</th>
-                  <th class="text-right">J</th>
-                </tr>
+              <tr>
+                <th class="text-left">Équipe</th>
+                <th class="text-right">Pts</th>
+                <th class="text-right">Diff</th>
+                <th class="text-right">J</th>
+              </tr>
               </thead>
               <tbody>
-                <tr v-for="row in group.standings" :key="row.teamCode">
-                  <td>
-                    <div class="d-flex align-center ga-2">
-                      <template v-if="!isFlagUnavailable(row.teamCode)">
-                        <v-avatar size="20" rounded="sm">
-                          <v-img
+              <tr v-for="row in group.standings" :key="row.teamCode">
+                <td>
+                  <div class="d-flex align-center ga-2">
+                    <template v-if="!isFlagUnavailable(row.teamCode)">
+                      <v-avatar size="20" rounded="sm">
+                        <v-img
                             :src="getFlagPath(row.teamCode)!"
                             :alt="`Drapeau ${getTeam(row.teamCode)?.name ?? row.teamCode}`"
                             cover
                             @error="markFlagAsUnavailable(row.teamCode)"
-                          />
-                        </v-avatar>
-                      </template>
-                      <template v-else>
-                        <v-avatar size="20" rounded="sm" class="flag-fallback-avatar">
-                          <span class="flag-fallback-text">{{ renderCountryCode(row.teamCode) }}</span>
-                        </v-avatar>
-                      </template>
-                      <span>{{ getTeam(row.teamCode)?.name ?? row.teamCode }}</span>
-                    </div>
-                  </td>
-                  <td class="text-right">{{ row.points }}</td>
-                  <td class="text-right">{{ row.diff > 0 ? `+${row.diff}` : row.diff }}</td>
-                  <td class="text-right">{{ row.matches }}</td>
-                </tr>
+                        />
+                      </v-avatar>
+                    </template>
+                    <template v-else>
+                      <v-avatar size="20" rounded="sm" class="flag-fallback-avatar">
+                        <span class="flag-fallback-text">{{ renderCountryCode(row.teamCode) }}</span>
+                      </v-avatar>
+                    </template>
+                    <span>{{ getTeam(row.teamCode)?.name ?? row.teamCode }}</span>
+                  </div>
+                </td>
+                <td class="text-right">{{ row.points }}</td>
+                <td class="text-right">{{ row.diff > 0 ? `+${row.diff}` : row.diff }}</td>
+                <td class="text-right">{{ row.matches }}</td>
+              </tr>
               </tbody>
             </v-table>
           </v-card>
         </v-col>
       </v-row>
-    </section>
-
-    <aside class="world-cup-layout__aside">
-      <v-card class="pa-4 upcoming-card" variant="tonal">
-        <div class="d-flex align-center justify-space-between mb-3">
-          <h2 class="text-subtitle-1 font-weight-bold mb-0">Premiers matchs à jouer</h2>
-          <v-chip size="small" color="primary" variant="tonal">{{ worldCupUpcomingMatches.length }}</v-chip>
-        </div>
-
-        <v-list class="pa-0 bg-transparent match-list" lines="two">
-          <v-list-item v-for="match in worldCupUpcomingMatches" :key="`${match.group}-${match.datetime}`" class="px-0">
-            <v-list-item-title class="d-flex align-center justify-space-between ga-2">
-              <span>{{ getTeam(match.teamA)?.name ?? match.teamA }} vs {{ getTeam(match.teamB)?.name ?? match.teamB }}</span>
-              <v-chip size="x-small" color="primary" variant="outlined">Groupe {{ match.group }}</v-chip>
-            </v-list-item-title>
-            <v-list-item-subtitle>{{ formatMatchDate(match.datetime) }} (UTC)</v-list-item-subtitle>
-          </v-list-item>
-        </v-list>
-      </v-card>
-    </aside>
-  </div>
+    </main>
+  </NuxtLayout>
 </template>
 
 <style scoped>
