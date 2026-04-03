@@ -191,6 +191,30 @@ const orderedLivePanelKpis = (kpis: GameAsidePanelChip[]) => [
   ...kpis.filter((chip) => isScoreKpi(chip)),
   ...kpis.filter((chip) => !isScoreKpi(chip)),
 ];
+
+const cleanGameLabelPrefix = (value: string, gameLabel: string) => {
+  if (!value) return "";
+  if (!gameLabel) return value.trim();
+  const normalizedValue = value.trim();
+  const normalizedLabel = gameLabel.trim();
+  if (!normalizedLabel) return normalizedValue;
+
+  const labelEscaped = normalizedLabel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const prefixMatcher = new RegExp(`^${labelEscaped}\\s*[·:—-]\\s*`, "i");
+  if (prefixMatcher.test(normalizedValue)) {
+    return normalizedValue.replace(prefixMatcher, "").trim();
+  }
+  if (normalizedValue.toLowerCase() === normalizedLabel.toLowerCase()) return "";
+  return normalizedValue;
+};
+
+const sanitizedLiveHighlights = (liveGamePanel: GameAsidePanelState) =>
+  liveGamePanel.highlights
+    .map((line) => cleanGameLabelPrefix(line, liveGamePanel.title))
+    .filter((line) => Boolean(line));
+
+const sanitizedLiveStatus = (liveGamePanel: GameAsidePanelState) =>
+  cleanGameLabelPrefix(liveGamePanel.status, liveGamePanel.title);
 </script>
 
 <template>
@@ -341,9 +365,6 @@ const orderedLivePanelKpis = (kpis: GameAsidePanelChip[]) => [
     <v-chip color="warning" variant="tonal" prepend-icon="mdi-timer-sand">
       Match en cours
     </v-chip>
-    <h3 class="text-subtitle-1 font-weight-bold mb-0">
-      {{ liveGamePanel.title }}
-    </h3>
     <div v-if="liveGamePanel.kpis.length" class="d-flex flex-wrap ga-2">
       <v-chip
           v-for="chip in orderedLivePanelKpis(liveGamePanel.kpis)"
@@ -359,14 +380,14 @@ const orderedLivePanelKpis = (kpis: GameAsidePanelChip[]) => [
       {{ liveGamePanel.phase }} · {{ liveGamePanel.turnLabel }}
     </p>
     <p
-        v-for="(line, lineIndex) in liveGamePanel.highlights"
+        v-for="(line, lineIndex) in sanitizedLiveHighlights(liveGamePanel)"
         :key="`panel-summary-${lineIndex}`"
         class="text-body-2 mb-0"
     >
       {{ line }}
     </p>
-    <p class="text-caption text-medium-emphasis mb-0">
-      {{ liveGamePanel.status }}
+    <p v-if="sanitizedLiveStatus(liveGamePanel)" class="text-caption text-medium-emphasis mb-0">
+      {{ sanitizedLiveStatus(liveGamePanel) }}
     </p>
 
     <div v-if="liveGamePanel.actions?.length" class="d-flex flex-wrap ga-2">
