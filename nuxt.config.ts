@@ -92,7 +92,7 @@ const sessionCookieName = resolveSessionCookieName()
 const sessionCookieSameSite = resolveSessionCookieSameSite()
 const sessionCookieSecure = parseBooleanEnv('SESSION_COOKIE_SECURE', !isDev)
 const useMockData = parseBooleanEnv('NUXT_PUBLIC_USE_MOCK_DATA', isDev)
-const worldCupUseLocalFallback = parseBooleanEnv('NUXT_PUBLIC_WORLD_CUP_USE_LOCAL_FALLBACK', useMockData)
+const worldCupUseLocalFallback = parseBooleanEnv('NUXT_PUBLIC_WORLD_CUP_USE_LOCAL_FALLBACK', false)
 
 if (!isDev && !sessionCookieSecure) {
   throw new Error('[session-config] SESSION_COOKIE_SECURE must be "true" outside development.')
