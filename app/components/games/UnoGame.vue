@@ -462,6 +462,7 @@ defineExpose({
   <CardTableLayout
       :players="tablePlayers"
       :turn-timer-seconds="TURN_SECONDS"
+      table-theme="uno"
   >
     <template #center>
       <div class="uno-center">
