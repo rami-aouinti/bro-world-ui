@@ -209,10 +209,15 @@ const shouldUseFallbackOnly = (): boolean => {
   return publicConfig.useMockData === true || publicConfig.worldCupUseLocalFallback === true
 }
 
+type FetchOptions = {
+  fallbackOnError?: boolean
+}
+
 const fetchAndNormalize = async <T>(
   endpoint: string,
   normalize: (payload: unknown) => T,
   fallback: () => T,
+  options: FetchOptions = {},
 ): Promise<T> => {
   if (shouldUseFallbackOnly()) {
     return fallback()
@@ -223,16 +228,20 @@ const fetchAndNormalize = async <T>(
     const normalized = normalize(payload)
     return normalized
   }
-  catch {
+  catch (error) {
+    if (options.fallbackOnError === false) {
+      throw error
+    }
+
     return fallback()
   }
 }
 
 export const useFifaWorldCup = () => {
-  const getTeams = () => fetchAndNormalize(WORLD_CUP_ENDPOINTS.teams, normalizeTeams, fallbackTeams)
-  const getStadiums = () => fetchAndNormalize(WORLD_CUP_ENDPOINTS.stadiums, normalizeStadiums, fallbackStadiums)
-  const getGroupStandings = () => fetchAndNormalize(WORLD_CUP_ENDPOINTS.standings, normalizeStandings, fallbackStandings)
-  const getMatches = () => fetchAndNormalize(WORLD_CUP_ENDPOINTS.matches, normalizeMatches, fallbackMatches)
+  const getTeams = (options?: FetchOptions) => fetchAndNormalize(WORLD_CUP_ENDPOINTS.teams, normalizeTeams, fallbackTeams, options)
+  const getStadiums = (options?: FetchOptions) => fetchAndNormalize(WORLD_CUP_ENDPOINTS.stadiums, normalizeStadiums, fallbackStadiums, options)
+  const getGroupStandings = (options?: FetchOptions) => fetchAndNormalize(WORLD_CUP_ENDPOINTS.standings, normalizeStandings, fallbackStandings, options)
+  const getMatches = (options?: FetchOptions) => fetchAndNormalize(WORLD_CUP_ENDPOINTS.matches, normalizeMatches, fallbackMatches, options)
 
   return {
     getTeams,
