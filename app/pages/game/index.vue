@@ -48,7 +48,7 @@ const { context: motionContext, flowTransitions } = useGameMotionPresets();
 
 definePageMeta({
   splitShell: false,
-  gamingTheme: true,
+  gamingTheme: false,
 });
 
 const gameCatalogStore = useGameCatalogStore();
