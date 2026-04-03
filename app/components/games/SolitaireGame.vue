@@ -19,10 +19,36 @@ const engine = useSolitaireEngine();
 
 const suggestedMove = computed(() => engine.suggestBestMove());
 const topWasteCard = computed(() => engine.waste.value.at(-1) ?? null);
+const suitFoundationIndex: Record<string, number> = { "♠": 0, "♥": 1, "♦": 2, "♣": 3 };
+
+const findCardById = (cardId?: string | null) => {
+  if (!cardId) return null;
+  const wasteCard = engine.waste.value.find((card) => card.id === cardId);
+  if (wasteCard) return wasteCard;
+
+  for (const pile of engine.tableau.value) {
+    const card = pile.find((item) => item.id === cardId);
+    if (card) return card;
+  }
+
+  return null;
+};
+
+const suggestedCardId = computed(() => suggestedMove.value?.cardId ?? null);
+const suggestedFoundationIndex = computed(() => {
+  const move = suggestedMove.value;
+  if (!move || !["waste-to-foundation", "tableau-to-foundation"].includes(move.type)) return null;
+  const card = findCardById(move.cardId);
+  if (!card) return null;
+  return suitFoundationIndex[card.suit] ?? null;
+});
+
+const cardFeedback = (cardId: string) => (suggestedCardId.value === cardId ? "combo" : "idle");
 
 const foundationSummaries = computed(() =>
   engine.foundations.value.map((pile, index) => ({
     id: `foundation-${index}`,
+    index,
     label: `Fondation ${index + 1}`,
     count: pile.length,
     topCard: pile.at(-1) ?? null,
@@ -129,12 +155,18 @@ defineExpose({
               :key="foundation.id"
               class="foundation-slot"
             >
-              <PlayingCard
-                v-if="foundation.topCard"
-                :rank="foundation.topCard.rank"
-                :suit="foundation.topCard.suit"
-                :playable="false"
-              />
+              <TransitionGroup name="solitaire-stack" tag="div" class="foundation-slot__cards">
+                <PlayingCard
+                  v-if="foundation.topCard"
+                  :key="foundation.topCard.id"
+                  :rank="foundation.topCard.rank"
+                  :suit="foundation.topCard.suit"
+                  :playable="false"
+                  :selected="suggestedCardId === foundation.topCard.id"
+                  :highlighted="suggestedFoundationIndex === foundation.index"
+                  :feedback="suggestedFoundationIndex === foundation.index ? 'won' : cardFeedback(foundation.topCard.id)"
+                />
+              </TransitionGroup>
               <div v-else class="foundation-slot__empty">A</div>
               <p class="foundation-slot__label mb-0">{{ foundation.label }}</p>
             </article>
@@ -148,7 +180,7 @@ defineExpose({
             class="tableau-column"
           >
             <p class="tableau-column__label">Col {{ pileIndex + 1 }}</p>
-            <div class="tableau-column__cards">
+            <TransitionGroup name="solitaire-stack" tag="div" class="tableau-column__cards">
               <PlayingCard
                 v-for="(card, cardIndex) in pile"
                 :key="card.id"
@@ -156,9 +188,12 @@ defineExpose({
                 :suit="card.suit"
                 :face-down="!card.faceUp"
                 :playable="card.faceUp"
+                :selected="suggestedCardId === card.id"
+                :highlighted="suggestedCardId === card.id"
+                :feedback="cardFeedback(card.id)"
                 :style="{ marginTop: cardIndex === 0 ? '0' : '-56px' }"
               />
-            </div>
+            </TransitionGroup>
             <div v-if="pile.length === 0" class="tableau-column__empty">K</div>
           </article>
         </div>
@@ -233,6 +268,12 @@ defineExpose({
   background: rgba(var(--v-theme-surface), 0.75);
 }
 
+.foundation-slot__cards {
+  min-height: var(--card-h);
+  display: grid;
+  place-items: center;
+}
+
 .foundation-slot__empty {
   width: 60px;
   height: 88px;
@@ -279,6 +320,18 @@ defineExpose({
   flex-direction: column;
   align-items: center;
   padding-top: 2px;
+}
+
+.solitaire-stack-enter-active,
+.solitaire-stack-leave-active,
+.solitaire-stack-move {
+  transition: transform 200ms ease, opacity 200ms ease;
+}
+
+.solitaire-stack-enter-from,
+.solitaire-stack-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
 }
 
 .tableau-column__empty {

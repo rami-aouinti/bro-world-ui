@@ -53,6 +53,7 @@ const trickCards = computed(() =>
     const seat = seatByPlayerIndex.value[play.playerIndex];
     if (!seat) return [];
     return {
+      id: play.card.id,
       seat,
       rank: play.card.rank,
       suit: play.card.suit,
@@ -60,6 +61,11 @@ const trickCards = computed(() =>
     };
   }),
 );
+
+const winnerSeat = computed(() => {
+  if (trickCards.value.length === 0) return null;
+  return seatByPlayerIndex.value[engine.leaderIndex.value] ?? null;
+});
 
 const playableCardIds = computed(() =>
   (humanPlayer.value?.hand ?? [])
@@ -162,7 +168,7 @@ defineExpose({
 
       <CardTableLayout :players="tablePlayers">
         <template #center>
-          <TrickPile :trick="trickCards" />
+          <TrickPile :trick="trickCards" :winner-seat="winnerSeat" />
         </template>
         <template #seat-south-hand>
           <CardFanHand

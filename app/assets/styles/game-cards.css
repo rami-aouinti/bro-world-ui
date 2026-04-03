@@ -115,7 +115,13 @@
   padding: 0.65rem;
 }
 
-.card-fan-hand--horizontal .card-fan-hand__card + .card-fan-hand__card {
+.card-fan-hand__cards {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.card-fan-hand--horizontal .card-fan-hand__cards .card-fan-hand__card + .card-fan-hand__card {
   margin-left: -1.1rem;
 }
 
@@ -124,17 +130,41 @@
   align-items: center;
 }
 
-.card-fan-hand--vertical .card-fan-hand__card + .card-fan-hand__card {
+.card-fan-hand--vertical .card-fan-hand__cards {
+  flex-direction: column;
+  align-items: center;
+}
+
+.card-fan-hand--vertical .card-fan-hand__cards .card-fan-hand__card + .card-fan-hand__card {
   margin-top: -2.8rem;
 }
 
+.fan-card-enter-active,
+.fan-card-leave-active,
+.fan-card-move {
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+
+.fan-card-enter-from,
+.fan-card-leave-to {
+  opacity: 0;
+  transform: translateY(8px) scale(0.98);
+}
+
 .trick-pile {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(3, minmax(var(--card-w), 1fr));
   grid-template-rows: repeat(3, minmax(var(--card-h), auto));
   gap: 0.3rem;
   align-items: center;
   justify-items: center;
+}
+
+.trick-pile__plays {
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  display: contents;
 }
 
 .trick-pile__slot--north { grid-column: 2; grid-row: 1; }
@@ -150,6 +180,17 @@
   display: grid;
   place-items: center;
   color: #64748b;
+}
+
+.trick-card-enter-active,
+.trick-card-leave-active {
+  transition: transform 190ms ease, opacity 190ms ease;
+}
+
+.trick-card-enter-from,
+.trick-card-leave-to {
+  opacity: 0;
+  transform: translateY(10px) scale(0.96);
 }
 
 .deck-stack {
@@ -217,7 +258,7 @@
     padding: 0.9rem;
   }
 
-  .card-fan-hand--horizontal .card-fan-hand__card + .card-fan-hand__card {
+  .card-fan-hand--horizontal .card-fan-hand__cards .card-fan-hand__card + .card-fan-hand__card {
     margin-left: -1.35rem;
   }
 }

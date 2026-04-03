@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, TransitionGroup } from 'vue'
 import PlayingCard from './PlayingCard.vue'
 
 interface HandCard {
@@ -57,20 +57,22 @@ const isPlayable = (id: string) => props.playableCardIds.length === 0 || props.p
 
 <template>
   <div class="card-fan-hand" :class="`card-fan-hand--${orientation}`">
-    <PlayingCard
-      v-for="(card, index) in cards"
-      :key="card.id"
-      class="card-fan-hand__card"
-      :style="cardStyle(index)"
-      :rank="card.rank"
-      :suit="card.suit"
-      :face-down="card.faceDown"
-      :selected="selectedCardIds.includes(card.id)"
-      :playable="isPlayable(card.id)"
-      :disabled="disabledCardIds.includes(card.id)"
-      :highlighted="highlightedCardIds.includes(card.id)"
-      :feedback="feedbackByCardId[card.id] ?? 'idle'"
-      @select="emit('play-card', { id: card.id })"
-    />
+    <TransitionGroup name="fan-card" tag="div" class="card-fan-hand__cards">
+      <PlayingCard
+        v-for="(card, index) in cards"
+        :key="card.id"
+        class="card-fan-hand__card"
+        :style="cardStyle(index)"
+        :rank="card.rank"
+        :suit="card.suit"
+        :face-down="card.faceDown"
+        :selected="selectedCardIds.includes(card.id)"
+        :playable="isPlayable(card.id)"
+        :disabled="disabledCardIds.includes(card.id)"
+        :highlighted="highlightedCardIds.includes(card.id)"
+        :feedback="feedbackByCardId[card.id] ?? 'idle'"
+        @select="emit('play-card', { id: card.id })"
+      />
+    </TransitionGroup>
   </div>
 </template>

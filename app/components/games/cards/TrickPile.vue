@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import PlayingCard from './PlayingCard.vue'
 
 interface TrickPlay {
+  id?: string
   seat: 'north' | 'east' | 'south' | 'west'
   rank: string
   suit: string
@@ -18,24 +20,39 @@ const props = withDefaults(defineProps<{
 
 const slotsOrder: TrickPlay['seat'][] = ['north', 'east', 'south', 'west']
 
-const playBySeat = (seat: TrickPlay['seat']) => props.trick.find((play) => play.seat === seat)
+const occupiedSeats = computed(() => new Set(props.trick.map(play => play.seat)))
 </script>
 
 <template>
   <div class="trick-pile" role="group" aria-label="Pli central">
-    <div v-for="seat in slotsOrder" :key="seat" class="trick-pile__slot" :class="`trick-pile__slot--${seat}`">
-      <PlayingCard
-        v-if="playBySeat(seat)"
-        :rank="playBySeat(seat)?.rank"
-        :suit="playBySeat(seat)?.suit"
-        :highlighted="winnerSeat === seat"
-        :feedback="winnerSeat === seat ? 'won' : 'idle'"
-        :playable="false"
-        :disabled="true"
-        :hoverable="false"
-        :label="`${playBySeat(seat)?.playerName ?? seat} ${playBySeat(seat)?.rank}${playBySeat(seat)?.suit}`"
-      />
-      <div v-else class="trick-pile__empty" aria-hidden="true">—</div>
+    <TransitionGroup name="trick-card" tag="div" class="trick-pile__plays">
+      <div
+        v-for="play in trick"
+        :key="play.id ?? `${play.seat}-${play.rank}-${play.suit}`"
+        class="trick-pile__slot"
+        :class="`trick-pile__slot--${play.seat}`"
+      >
+        <PlayingCard
+          :rank="play.rank"
+          :suit="play.suit"
+          :selected="winnerSeat === play.seat"
+          :highlighted="winnerSeat === play.seat"
+          :feedback="winnerSeat === play.seat || play.won ? 'won' : 'idle'"
+          :playable="false"
+          :disabled="true"
+          :hoverable="false"
+          :label="`${play.playerName ?? play.seat} ${play.rank}${play.suit}`"
+        />
+      </div>
+    </TransitionGroup>
+
+    <div
+      v-for="seat in slotsOrder"
+      :key="`empty-${seat}`"
+      class="trick-pile__slot"
+      :class="`trick-pile__slot--${seat}`"
+    >
+      <div v-if="!occupiedSeats.has(seat)" class="trick-pile__empty" aria-hidden="true">—</div>
     </div>
   </div>
 </template>
