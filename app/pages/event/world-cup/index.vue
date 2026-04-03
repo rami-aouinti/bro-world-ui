@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
+import AppSplitShell from '~/components/layout/AppSplitShell.vue'
 import {
   worldCupGroups,
   worldCupStandings,
@@ -127,8 +127,8 @@ const formatMatchDate = (datetime: string) => {
 </script>
 
 <template>
-  <PlatformSplitLayout>
-    <template #sidebar>
+  <AppSplitShell>
+    <template #left>
       <v-card class="pa-4 sidebar-card" variant="tonal">
         <div class="d-flex align-center justify-space-between mb-3">
           <h2 class="text-subtitle-1 font-weight-bold mb-0">Pays qualifiés</h2>
@@ -250,7 +250,7 @@ const formatMatchDate = (datetime: string) => {
         </v-list>
       </v-card>
     </template>
-  </PlatformSplitLayout>
+  </AppSplitShell>
 </template>
 
 <style scoped>
