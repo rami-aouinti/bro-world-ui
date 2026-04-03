@@ -118,35 +118,29 @@ const resolveEndpointCacheProfile = (endpoint: string): EndpointCacheProfile => 
 
 const readFifaConfig = () => {
   const config = useRuntimeConfig()
-  const apiBase = config.fifa?.apiBase?.trim()
-  const apiKey = config.fifa?.apiKey?.trim()
-  const accessMode = (config.fifa?.accessMode || '').toLowerCase()
-  const timeoutMs = Number(config.fifa?.timeoutMs)
-  const retryCount = Number(config.fifa?.retryCount)
-  const referenceCacheTtlSeconds = parsePositiveInteger(config.fifa?.cacheTtlSeconds)
-    ?? parsePositiveInteger(process.env.FOOTBALL_CACHE_TTL_SECONDS)
+  const baseUrl = config.footballApi?.baseUrl?.trim()
+  const apiKey = config.footballApi?.apiKey?.trim()
+  const referenceCacheTtlSeconds = parsePositiveInteger(config.footballApi?.cacheTtlSeconds)
     ?? DEFAULT_FOOTBALL_CACHE_TTL_SECONDS
-  const liveCacheTtlSeconds = parsePositiveInteger(config.fifa?.liveCacheTtlSeconds)
-    ?? parsePositiveInteger(process.env.FOOTBALL_LIVE_CACHE_TTL_SECONDS)
+  const liveCacheTtlSeconds = parsePositiveInteger(process.env.FOOTBALL_LIVE_CACHE_TTL_SECONDS)
     ?? DEFAULT_FOOTBALL_LIVE_CACHE_TTL_SECONDS
-  const useRapidApi = accessMode === 'rapidapi'
-    || apiBase?.includes('rapidapi.com')
+  const useRapidApi = baseUrl?.includes('rapidapi.com')
 
-  if (!apiBase || !apiKey) {
+  if (!baseUrl || !apiKey) {
     throw createFifaProxyError(
       500,
       'FIFA_PROXY_API_SPORTS_MISCONFIGURED',
       'API-Football (API-Sports) proxy is not configured on the server.',
-      { missingApiBase: !apiBase, missingApiKey: !apiKey },
+      { missingApiBase: !baseUrl, missingApiKey: !apiKey },
     )
   }
 
   return {
-    apiBase,
+    apiBase: baseUrl,
     apiKey,
     useRapidApi,
-    timeoutMs: Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : DEFAULT_FIFA_TIMEOUT_MS,
-    retryCount: Number.isFinite(retryCount) && retryCount >= 0 ? Math.floor(retryCount) : DEFAULT_FIFA_RETRY_COUNT,
+    timeoutMs: DEFAULT_FIFA_TIMEOUT_MS,
+    retryCount: DEFAULT_FIFA_RETRY_COUNT,
     referenceCacheTtlSeconds,
     liveCacheTtlSeconds,
   }
