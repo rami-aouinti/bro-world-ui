@@ -829,7 +829,7 @@ const handleLogin = async () => {
             v-for="subCategory in selectedCategory.subCategories"
             :key="subCategory.id"
             cols="12"
-            md="4"
+            md="6"
           >
             <v-card
                 v-motion
@@ -840,7 +840,7 @@ const handleLogin = async () => {
                 class="h-100 card-category-game"
                 variant="text"
             >
-              <v-card-subtitle class="text-center">{{ t(subCategory?.nameKey) }}</v-card-subtitle>
+              <v-card-title class="text-center">{{ t(subCategory?.nameKey) }}</v-card-title>
               <div class="w-100 pa-3">
                 <div
                     @click="openSubCategory(subCategory.id)"
