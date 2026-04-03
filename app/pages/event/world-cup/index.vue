@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import PlatformSplitLayout from '~/components/platform/PlatformSplitLayout.vue'
 import {
   worldCupGroups,
   worldCupStandings,
@@ -127,8 +126,8 @@ const formatMatchDate = (datetime: string) => {
 </script>
 
 <template>
-  <PlatformSplitLayout>
-    <template #sidebar>
+  <div class="world-cup-layout">
+    <aside class="world-cup-layout__sidebar">
       <v-card class="pa-4 sidebar-card" variant="tonal">
         <div class="d-flex align-center justify-space-between mb-3">
           <h2 class="text-subtitle-1 font-weight-bold mb-0">Pays qualifiés</h2>
@@ -177,9 +176,9 @@ const formatMatchDate = (datetime: string) => {
           </section>
         </div>
       </v-card>
-    </template>
+    </aside>
 
-    <section>
+    <section class="world-cup-layout__main">
       <v-row class="groups-grid">
         <v-col v-for="group in groupsWithStandings" :key="group.id" cols="12" md="6" xl="4">
           <v-card class="pa-4 group-card" variant="tonal">
@@ -190,39 +189,39 @@ const formatMatchDate = (datetime: string) => {
 
             <v-table density="compact" class="bg-transparent standings-table">
               <thead>
-              <tr>
-                <th class="text-left">Équipe</th>
-                <th class="text-right">Pts</th>
-                <th class="text-right">Diff</th>
-                <th class="text-right">J</th>
-              </tr>
+                <tr>
+                  <th class="text-left">Équipe</th>
+                  <th class="text-right">Pts</th>
+                  <th class="text-right">Diff</th>
+                  <th class="text-right">J</th>
+                </tr>
               </thead>
               <tbody>
-              <tr v-for="row in group.standings" :key="row.teamCode">
-                <td>
-                  <div class="d-flex align-center ga-2">
-                    <template v-if="!isFlagUnavailable(row.teamCode)">
-                      <v-avatar size="20" rounded="sm">
-                        <v-img
+                <tr v-for="row in group.standings" :key="row.teamCode">
+                  <td>
+                    <div class="d-flex align-center ga-2">
+                      <template v-if="!isFlagUnavailable(row.teamCode)">
+                        <v-avatar size="20" rounded="sm">
+                          <v-img
                             :src="getFlagPath(row.teamCode)!"
                             :alt="`Drapeau ${getTeam(row.teamCode)?.name ?? row.teamCode}`"
                             cover
                             @error="markFlagAsUnavailable(row.teamCode)"
-                        />
-                      </v-avatar>
-                    </template>
-                    <template v-else>
-                      <v-avatar size="20" rounded="sm" class="flag-fallback-avatar">
-                        <span class="flag-fallback-text">{{ renderCountryCode(row.teamCode) }}</span>
-                      </v-avatar>
-                    </template>
-                    <span>{{ getTeam(row.teamCode)?.name ?? row.teamCode }}</span>
-                  </div>
-                </td>
-                <td class="text-right">{{ row.points }}</td>
-                <td class="text-right">{{ row.diff > 0 ? `+${row.diff}` : row.diff }}</td>
-                <td class="text-right">{{ row.matches }}</td>
-              </tr>
+                          />
+                        </v-avatar>
+                      </template>
+                      <template v-else>
+                        <v-avatar size="20" rounded="sm" class="flag-fallback-avatar">
+                          <span class="flag-fallback-text">{{ renderCountryCode(row.teamCode) }}</span>
+                        </v-avatar>
+                      </template>
+                      <span>{{ getTeam(row.teamCode)?.name ?? row.teamCode }}</span>
+                    </div>
+                  </td>
+                  <td class="text-right">{{ row.points }}</td>
+                  <td class="text-right">{{ row.diff > 0 ? `+${row.diff}` : row.diff }}</td>
+                  <td class="text-right">{{ row.matches }}</td>
+                </tr>
               </tbody>
             </v-table>
           </v-card>
@@ -230,7 +229,7 @@ const formatMatchDate = (datetime: string) => {
       </v-row>
     </section>
 
-    <template #aside>
+    <aside class="world-cup-layout__aside">
       <v-card class="pa-4 upcoming-card" variant="tonal">
         <div class="d-flex align-center justify-space-between mb-3">
           <h2 class="text-subtitle-1 font-weight-bold mb-0">Premiers matchs à jouer</h2>
@@ -247,11 +246,40 @@ const formatMatchDate = (datetime: string) => {
           </v-list-item>
         </v-list>
       </v-card>
-    </template>
-  </PlatformSplitLayout>
+    </aside>
+  </div>
 </template>
 
 <style scoped>
+.world-cup-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr) minmax(260px, 320px);
+  gap: 1rem;
+  align-items: start;
+  padding: 1.25rem;
+}
+
+.world-cup-layout__sidebar,
+.world-cup-layout__aside {
+  position: sticky;
+  top: 84px;
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+}
+
+@media (max-width: 1120px) {
+  .world-cup-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .world-cup-layout__sidebar,
+  .world-cup-layout__aside {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+}
+
 .sidebar-card,
 .group-card,
 .upcoming-card {
