@@ -17,6 +17,20 @@ Le chiffrement de session (`nuxt-auth-utils`) nécessite un secret:
 - `NUXT_SESSION_PASSWORD`: secret long aléatoire (minimum 32 caractères en production).
 - En local, un mot de passe de dev interne est utilisé si la variable n'est pas définie.
 
+### API-Football (API-Sports)
+
+Le proxy serveur (`server/utils/fifaProxy.ts`) lit sa configuration depuis:
+
+- `API_FOOTBALL_BASE_URL` (exemple v3: `https://v3.football.api-sports.io`),
+- `API_FOOTBALL_KEY` (clé API privée côté serveur uniquement),
+- `FOOTBALL_CACHE_TTL_SECONDS` (TTL cache Redis pour les endpoints de référence).
+
+Bonnes pratiques:
+
+- Renseigner la clé dans vos secrets de déploiement (CI/CD, plateforme cloud), **pas** dans le code ni dans les variables publiques `NUXT_PUBLIC_*`.
+- En local, copier `.env.example` vers `.env` puis définir `API_FOOTBALL_KEY`.
+- Surveiller le quota API-Sports: en cas de dépassement, le proxy peut retourner des erreurs de limitation (HTTP upstream `429`, exposé en erreur applicative côté serveur). Ajuster le TTL cache et la fréquence d'appel pour réduire la consommation.
+
 ### Session security minimums
 
 Au démarrage, l'application valide la configuration session/cookie et échoue si les minimums ne sont pas respectés:

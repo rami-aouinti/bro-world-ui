@@ -215,14 +215,10 @@ export default defineNuxtConfig({
     cacheVersion: process.env.CACHE_VERSION || 'v1',
     aiGatewayApiKey: process.env.AI_GATEWAY_API_KEY || '',
     aiGatewayModel: process.env.AI_GATEWAY_MODEL || 'openai/gpt-4o-mini',
-    fifa: {
-      apiBase: process.env.FIFA_API_BASE || '',
-      apiKey: process.env.FIFA_API_KEY || '',
-      accessMode: process.env.FIFA_ACCESS_MODE || '',
-      timeoutMs: Number(process.env.FIFA_TIMEOUT_MS || '') || 6000,
-      retryCount: Number(process.env.FIFA_RETRY_COUNT || '') || 0,
+    footballApi: {
+      baseUrl: process.env.API_FOOTBALL_BASE_URL || '',
+      apiKey: process.env.API_FOOTBALL_KEY || '',
       cacheTtlSeconds: Number(process.env.FOOTBALL_CACHE_TTL_SECONDS || '') || 86_400,
-      liveCacheTtlSeconds: Number(process.env.FOOTBALL_LIVE_CACHE_TTL_SECONDS || '') || 60,
     },
     session: {
       name: 'nuxt-session',
