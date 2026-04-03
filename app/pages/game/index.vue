@@ -18,7 +18,6 @@ import LudoGame from "~/components/games/LudoGame.vue";
 import FlappyRocketGame from "~/components/games/FlappyRocketGame.vue";
 import GameConceptPreview from "~/components/games/GameConceptPreview.vue";
 import GameQuickAccessPanel from "~/components/games/lobby/GameQuickAccessPanel.vue";
-import GameModeSelectionPanel from "~/components/games/lobby/GameModeSelectionPanel.vue";
 import GameDetailsPanel from "~/components/games/lobby/GameDetailsPanel.vue";
 import PlatformSplitLayout from "~/components/platform/PlatformSplitLayout.vue";
 import { useGameConcept } from "~/composables/useGameConcept";
@@ -143,7 +142,7 @@ const flappyRocketGameRef = ref<{
 type AsideActionHandler = {
   handleAsideAction: (actionId: string) => void;
 };
-type RightPanelState = "quick-access" | "mode-selection" | "in-game-details";
+type RightPanelState = "quick-access" | "in-game-details";
 const aiLevels: GameLevel[] = ["easy", "medium", "hard"];
 const getGameBusinessKey = (game: GameEntry | null | undefined) =>
   game?.key ?? game?.id ?? null;
@@ -327,10 +326,6 @@ const selectedGameSetupStyle = computed(() => {
 const rightPanelState = computed<RightPanelState>(() => {
   if (isGameStarted.value && selectedGame.value) {
     return "in-game-details";
-  }
-
-  if (selectedGame.value) {
-    return "mode-selection";
   }
 
   return "quick-access";
@@ -763,30 +758,6 @@ const handleLogin = async () => {
             :game-name-label="(game) => t(game.nameKey)"
             @select-game="selectQuickAccessGame"
             @select-mode="selectPlayMode"
-          />
-          <GameModeSelectionPanel
-            v-else-if="rightPanelState === 'mode-selection' && selectedGame"
-            :selected-game="selectedGame"
-            :selected-play-mode="selectedPlayMode"
-            :selected-ai-level="selectedAiLevel"
-            :selected-belote-mode="selectedBeloteMode"
-            :displayed-local-modes="displayedLocalModes"
-            :ai-levels="aiLevels"
-            :is-launching-session="isLaunchingSession"
-            :can-launch-selected-game="canLaunchSelectedGame"
-            :mode-image-map="modeImageMap"
-            :level-image-map="levelImageMap"
-            :mode-label="modeLabel"
-            :is-game-available-for-launch="isGameAvailableForLaunch"
-            :get-game-business-key="getGameBusinessKey"
-            :belote-teams-label="t('gamePage.labels.beloteTeams')"
-            :belote-free-for-all-label="t('gamePage.labels.beloteFreeForAll')"
-            :soon-hint-label="t('gamePage.status.soonHint')"
-            :launch-game-label="t('gamePage.actions.launchGame')"
-            @select-play-mode="selectPlayMode"
-            @select-ai-level="selectAiLevel"
-            @select-belote-mode="selectBeloteMode"
-            @launch-game="launchGame"
           />
           <GameDetailsPanel
             v-else-if="selectedGame"
