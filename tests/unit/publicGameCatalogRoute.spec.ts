@@ -34,12 +34,38 @@ describe('public game catalog route', () => {
       'solitaire',
       'hearts',
       'spades',
+      'ludo',
     ])
-    expect(cardsSubCategory.games.every((game: any) => game.developmentStatus === 'playable')).toBe(true)
     expect(cardsSubCategory.games.map((game: any) => game.supportedModes)).toEqual([
       ['ai'],
       ['ai'],
       ['ai'],
+      ['pvp'],
     ])
+    expect(cardsSubCategory.games.map((game: any) => game.developmentStatus)).toEqual([
+      'playable',
+      'playable',
+      'playable',
+      'coming_soon',
+    ])
+  })
+
+  it('retourne ludo avec les modes et le statut attendus', async () => {
+    ;(globalThis as any).defineEventHandler = (handler: unknown) => handler
+
+    const module = await import('~/server/api/v1/public/game-catalog.get')
+    const handler = module.default as () => any[]
+    const payload = handler()
+
+    const games = payload.flatMap(category =>
+      category.subCategories.flatMap((subCategory: any) => subCategory.games),
+    )
+    const ludo = games.find((game: any) => game.id === 'ludo')
+
+    expect(ludo).toBeTruthy()
+    expect(ludo.key).toBe('ludo')
+    expect(ludo.component).toBe('ludo')
+    expect(ludo.supportedModes).toEqual(['pvp'])
+    expect(ludo.developmentStatus).toBe('coming_soon')
   })
 })

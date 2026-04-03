@@ -40,6 +40,7 @@ export interface GameEntry {
     | "hidden-word"
     | "nonogram"
     | "uno"
+    | "ludo"
     | "flappy-rocket"
     | null;
   supportedModes: PlayMode[];
