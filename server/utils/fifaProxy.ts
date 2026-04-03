@@ -2,16 +2,17 @@ import type { H3Event } from 'h3'
 import { buildCacheKey } from '~~/server/utils/cacheKeyBuilder'
 import { getRedisClient } from '~~/server/utils/redis'
 
-const DEFAULT_FIFA_TIMEOUT_MS = 8000
+const DEFAULT_FIFA_TIMEOUT_MS = 6000
+const DEFAULT_FIFA_RETRY_COUNT = 0
 const FIFA_CACHE_TTL_SECONDS = 60
 
 type FifaProxyErrorCode =
-  | 'FIFA_PROXY_MISCONFIGURED'
-  | 'FIFA_PROXY_TIMEOUT'
-  | 'FIFA_PROXY_RATE_LIMITED'
-  | 'FIFA_PROXY_UNAUTHORIZED'
-  | 'FIFA_PROXY_FORBIDDEN'
-  | 'FIFA_PROXY_UPSTREAM_ERROR'
+  | 'FIFA_PROXY_API_SPORTS_MISCONFIGURED'
+  | 'FIFA_PROXY_API_SPORTS_TIMEOUT'
+  | 'FIFA_PROXY_API_SPORTS_RATE_LIMITED'
+  | 'FIFA_PROXY_API_SPORTS_UNAUTHORIZED'
+  | 'FIFA_PROXY_API_SPORTS_FORBIDDEN'
+  | 'FIFA_PROXY_API_SPORTS_UPSTREAM_ERROR'
 
 const toStatusCode = (error: unknown): number | undefined => {
   if (!error || typeof error !== 'object') {
@@ -94,17 +95,28 @@ const readFifaConfig = () => {
   const config = useRuntimeConfig()
   const apiBase = config.fifa?.apiBase?.trim()
   const apiKey = config.fifa?.apiKey?.trim()
+  const accessMode = (config.fifa?.accessMode || '').toLowerCase()
+  const timeoutMs = Number(config.fifa?.timeoutMs)
+  const retryCount = Number(config.fifa?.retryCount)
+  const useRapidApi = accessMode === 'rapidapi'
+    || apiBase?.includes('rapidapi.com')
 
   if (!apiBase || !apiKey) {
     throw createFifaProxyError(
       500,
-      'FIFA_PROXY_MISCONFIGURED',
-      'FIFA proxy is not configured on the server.',
+      'FIFA_PROXY_API_SPORTS_MISCONFIGURED',
+      'API-Football (API-Sports) proxy is not configured on the server.',
       { missingApiBase: !apiBase, missingApiKey: !apiKey },
     )
   }
 
-  return { apiBase, apiKey }
+  return {
+    apiBase,
+    apiKey,
+    useRapidApi,
+    timeoutMs: Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : DEFAULT_FIFA_TIMEOUT_MS,
+    retryCount: Number.isFinite(retryCount) && retryCount >= 0 ? Math.floor(retryCount) : DEFAULT_FIFA_RETRY_COUNT,
+  }
 }
 
 const buildFifaCacheKey = (endpoint: string, query: Record<string, string | number | boolean | Array<string | number | boolean>>) => {
@@ -142,7 +154,7 @@ const writeToRedisCache = async (cacheKey: string, payload: unknown) => {
 }
 
 export const proxyFifaRequest = async <T>(event: H3Event, endpoint: string): Promise<T> => {
-  const { apiBase, apiKey } = readFifaConfig()
+  const { apiBase, apiKey, useRapidApi, timeoutMs, retryCount } = readFifaConfig()
   const query = normalizeQuery(getQuery(event))
   const shouldBypassCache = getHeader(event, 'x-fifa-refresh') === '1'
   const cacheKey = buildFifaCacheKey(endpoint, query)
@@ -158,10 +170,11 @@ export const proxyFifaRequest = async <T>(event: H3Event, endpoint: string): Pro
     const payload = await $fetch<T>(endpoint, {
       baseURL: apiBase,
       query,
-      retry: 1,
-      timeout: DEFAULT_FIFA_TIMEOUT_MS,
+      retry: retryCount,
+      timeout: timeoutMs,
       headers: {
-        Authorization: apiKey,
+        'x-apisports-key': apiKey,
+        ...(useRapidApi ? { 'x-rapidapi-host': 'v3.football.api-sports.io' } : {}),
       },
     })
 
@@ -170,7 +183,7 @@ export const proxyFifaRequest = async <T>(event: H3Event, endpoint: string): Pro
   }
   catch (error) {
     if (isTimeoutError(error)) {
-      throw createFifaProxyError(504, 'FIFA_PROXY_TIMEOUT', 'FIFA provider timeout reached.')
+      throw createFifaProxyError(504, 'FIFA_PROXY_API_SPORTS_TIMEOUT', 'API-Football (API-Sports) timeout reached.')
     }
 
     const statusCode = toStatusCode(error)
@@ -180,21 +193,21 @@ export const proxyFifaRequest = async <T>(event: H3Event, endpoint: string): Pro
     }
 
     if (statusCode === 429) {
-      throw createFifaProxyError(503, 'FIFA_PROXY_RATE_LIMITED', 'FIFA provider rate limit reached.')
+      throw createFifaProxyError(503, 'FIFA_PROXY_API_SPORTS_RATE_LIMITED', 'API-Football (API-Sports) rate limit reached.')
     }
 
     if (statusCode === 401) {
-      throw createFifaProxyError(502, 'FIFA_PROXY_UNAUTHORIZED', 'FIFA provider rejected the API key.')
+      throw createFifaProxyError(502, 'FIFA_PROXY_API_SPORTS_UNAUTHORIZED', 'API-Football (API-Sports) rejected the API key.')
     }
 
     if (statusCode === 403) {
-      throw createFifaProxyError(502, 'FIFA_PROXY_FORBIDDEN', 'FIFA provider refused the request.')
+      throw createFifaProxyError(502, 'FIFA_PROXY_API_SPORTS_FORBIDDEN', 'API-Football (API-Sports) refused the request.')
     }
 
     throw createFifaProxyError(
       502,
-      'FIFA_PROXY_UPSTREAM_ERROR',
-      'FIFA provider request failed.',
+      'FIFA_PROXY_API_SPORTS_UPSTREAM_ERROR',
+      'API-Football (API-Sports) request failed.',
       statusCode ? { upstreamStatusCode: statusCode } : undefined,
     )
   }
