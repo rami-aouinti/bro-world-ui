@@ -308,18 +308,8 @@ const selectedGameSetupStyle = computed(() => {
     ? `url(${game.lobbyBackground})`
     : "radial-gradient(circle at top right, rgba(99,102,241,.20), transparent 50%)";
 
-  if (game.visualStyle === "minimal") {
-    return {
-      backgroundImage: `linear-gradient(140deg, rgba(15,23,42,.02), rgba(15,23,42,.08)), ${texture}`,
-    };
-  }
-  if (game.visualStyle === "classic") {
-    return {
-      backgroundImage: `linear-gradient(140deg, rgba(120,53,15,.12), rgba(251,191,36,.12)), ${texture}`,
-    };
-  }
   return {
-    backgroundImage: `linear-gradient(140deg, rgba(6,182,212,.15), rgba(168,85,247,.15)), ${texture}`,
+    backgroundImage: 'transparent',
   };
 });
 
@@ -617,7 +607,7 @@ const handleLogin = async () => {
         <v-chip v-if="selectedPlayMode">{{
           selectedPlayMode ? modeLabel(selectedPlayMode) : "—"
         }}</v-chip>
-        <v-chip v-if="gameStatusLabel">{{ gameStatusLabel }}</v-chip>
+        <v-chip v-if="gameStatusLabel && selectedCategory">{{ gameStatusLabel }}</v-chip>
         <v-chip
           v-if="selectedCategory"
           prepend-icon="mdi-folder-open-outline"

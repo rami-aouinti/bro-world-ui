@@ -64,13 +64,15 @@ const hasSoonBadge = (game: GameEntry) => game.developmentStatus === "coming_soo
           >
             Soon
           </v-chip>
-          <v-btn
-            v-else
-            variant="text"
-            color="primary"
-            icon="mdi-play"
-            @click="emit('selectGame', game)"
-          />
+          <v-chip
+              v-else
+              size="small"
+              color="success"
+              variant="outlined"
+              @click="emit('selectGame', game)"
+          >
+            Play
+          </v-chip>
         </div>
 
         <div
