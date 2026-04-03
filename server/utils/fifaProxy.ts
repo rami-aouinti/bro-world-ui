@@ -4,7 +4,10 @@ import { getRedisClient } from '~~/server/utils/redis'
 
 const DEFAULT_FIFA_TIMEOUT_MS = 6000
 const DEFAULT_FIFA_RETRY_COUNT = 0
-const FIFA_CACHE_TTL_SECONDS = 60
+const DEFAULT_FOOTBALL_CACHE_TTL_SECONDS = 86_400
+const DEFAULT_FOOTBALL_LIVE_CACHE_TTL_SECONDS = 60
+
+type EndpointCacheProfile = 'reference' | 'live'
 
 type FifaProxyErrorCode =
   | 'FIFA_PROXY_API_SPORTS_MISCONFIGURED'
@@ -91,6 +94,28 @@ const normalizeQuery = (query: Record<string, unknown>): Record<string, string |
   }, {})
 }
 
+const REFERENCE_ENDPOINTS = new Set(['/teams', '/venues', '/leagues', '/countries'])
+
+const parsePositiveInteger = (value: unknown): number | null => {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return null
+  }
+
+  return Math.floor(parsed)
+}
+
+const normalizeEndpointForCache = (endpoint: string) => {
+  const withLeadingSlash = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
+  const sanitized = withLeadingSlash.split('?')[0]?.replace(/\/+$/, '') || '/'
+  return sanitized === '' ? '/' : sanitized
+}
+
+const resolveEndpointCacheProfile = (endpoint: string): EndpointCacheProfile => {
+  const normalizedEndpoint = normalizeEndpointForCache(endpoint)
+  return REFERENCE_ENDPOINTS.has(normalizedEndpoint) ? 'reference' : 'live'
+}
+
 const readFifaConfig = () => {
   const config = useRuntimeConfig()
   const apiBase = config.fifa?.apiBase?.trim()
@@ -98,6 +123,12 @@ const readFifaConfig = () => {
   const accessMode = (config.fifa?.accessMode || '').toLowerCase()
   const timeoutMs = Number(config.fifa?.timeoutMs)
   const retryCount = Number(config.fifa?.retryCount)
+  const referenceCacheTtlSeconds = parsePositiveInteger(config.fifa?.cacheTtlSeconds)
+    ?? parsePositiveInteger(process.env.FOOTBALL_CACHE_TTL_SECONDS)
+    ?? DEFAULT_FOOTBALL_CACHE_TTL_SECONDS
+  const liveCacheTtlSeconds = parsePositiveInteger(config.fifa?.liveCacheTtlSeconds)
+    ?? parsePositiveInteger(process.env.FOOTBALL_LIVE_CACHE_TTL_SECONDS)
+    ?? DEFAULT_FOOTBALL_LIVE_CACHE_TTL_SECONDS
   const useRapidApi = accessMode === 'rapidapi'
     || apiBase?.includes('rapidapi.com')
 
@@ -116,11 +147,17 @@ const readFifaConfig = () => {
     useRapidApi,
     timeoutMs: Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : DEFAULT_FIFA_TIMEOUT_MS,
     retryCount: Number.isFinite(retryCount) && retryCount >= 0 ? Math.floor(retryCount) : DEFAULT_FIFA_RETRY_COUNT,
+    referenceCacheTtlSeconds,
+    liveCacheTtlSeconds,
   }
 }
 
-const buildFifaCacheKey = (endpoint: string, query: Record<string, string | number | boolean | Array<string | number | boolean>>) => {
-  const identifier = endpoint.replace(/^\//, '') || 'root'
+const buildFifaCacheKey = (
+  endpoint: string,
+  profile: EndpointCacheProfile,
+  query: Record<string, string | number | boolean | Array<string | number | boolean>>,
+) => {
+  const identifier = `${profile}.${normalizeEndpointForCache(endpoint).replace(/^\//, '').replace(/\//g, '.') || 'root'}`
   return buildCacheKey({
     scope: 'public',
     resource: 'fifa',
@@ -144,20 +181,31 @@ const readFromRedisCache = async <T>(cacheKey: string): Promise<T | null> => {
   }
 }
 
-const writeToRedisCache = async (cacheKey: string, payload: unknown) => {
+const writeToRedisCache = async (cacheKey: string, payload: unknown, ttlSeconds: number) => {
   try {
     const redis = await getRedisClient()
-    await redis.setEx(cacheKey, FIFA_CACHE_TTL_SECONDS, JSON.stringify(payload))
+    await redis.setEx(cacheKey, ttlSeconds, JSON.stringify(payload))
   } catch {
     // graceful fallback when redis is unavailable
   }
 }
 
 export const proxyFifaRequest = async <T>(event: H3Event, endpoint: string): Promise<T> => {
-  const { apiBase, apiKey, useRapidApi, timeoutMs, retryCount } = readFifaConfig()
+  const {
+    apiBase,
+    apiKey,
+    useRapidApi,
+    timeoutMs,
+    retryCount,
+    referenceCacheTtlSeconds,
+    liveCacheTtlSeconds,
+  } = readFifaConfig()
   const query = normalizeQuery(getQuery(event))
-  const shouldBypassCache = getHeader(event, 'x-fifa-refresh') === '1'
-  const cacheKey = buildFifaCacheKey(endpoint, query)
+  // Manual cache bypass: accept legacy x-fifa-refresh and preferred x-football-refresh.
+  const shouldBypassCache = getHeader(event, 'x-football-refresh') === '1' || getHeader(event, 'x-fifa-refresh') === '1'
+  const cacheProfile = resolveEndpointCacheProfile(endpoint)
+  const cacheTtlSeconds = cacheProfile === 'reference' ? referenceCacheTtlSeconds : liveCacheTtlSeconds
+  const cacheKey = buildFifaCacheKey(endpoint, cacheProfile, query)
   const cached = await readFromRedisCache<T>(cacheKey)
 
   if (!shouldBypassCache) {
@@ -178,7 +226,7 @@ export const proxyFifaRequest = async <T>(event: H3Event, endpoint: string): Pro
       },
     })
 
-    await writeToRedisCache(cacheKey, payload)
+    await writeToRedisCache(cacheKey, payload, cacheTtlSeconds)
     return payload
   }
   catch (error) {

@@ -221,6 +221,8 @@ export default defineNuxtConfig({
       accessMode: process.env.FIFA_ACCESS_MODE || '',
       timeoutMs: Number(process.env.FIFA_TIMEOUT_MS || '') || 6000,
       retryCount: Number(process.env.FIFA_RETRY_COUNT || '') || 0,
+      cacheTtlSeconds: Number(process.env.FOOTBALL_CACHE_TTL_SECONDS || '') || 86_400,
+      liveCacheTtlSeconds: Number(process.env.FOOTBALL_LIVE_CACHE_TTL_SECONDS || '') || 60,
     },
     session: {
       name: 'nuxt-session',

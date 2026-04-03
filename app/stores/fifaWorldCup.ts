@@ -4,7 +4,7 @@ import type {
 } from '~/composables/fifa/useFifaWorldCup'
 import { useFifaWorldCup } from '~/composables/fifa/useFifaWorldCup'
 
-const WORLD_CUP_CACHE_TTL_MS = 60_000
+const WORLD_CUP_CACHE_TTL_MS = 86_400_000
 
 type ResourceKey = 'teams' | 'stadiums'
 
