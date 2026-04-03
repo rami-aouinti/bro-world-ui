@@ -8,6 +8,7 @@ const FIFA_CACHE_TTL_SECONDS = 60
 type FifaProxyErrorCode =
   | 'FIFA_PROXY_MISCONFIGURED'
   | 'FIFA_PROXY_TIMEOUT'
+  | 'FIFA_PROXY_RATE_LIMITED'
   | 'FIFA_PROXY_UNAUTHORIZED'
   | 'FIFA_PROXY_FORBIDDEN'
   | 'FIFA_PROXY_UPSTREAM_ERROR'
@@ -145,10 +146,9 @@ export const proxyFifaRequest = async <T>(event: H3Event, endpoint: string): Pro
   const query = normalizeQuery(getQuery(event))
   const shouldBypassCache = getHeader(event, 'x-fifa-refresh') === '1'
   const cacheKey = buildFifaCacheKey(endpoint, query)
+  const cached = await readFromRedisCache<T>(cacheKey)
 
   if (!shouldBypassCache) {
-    const cached = await readFromRedisCache<T>(cacheKey)
-
     if (cached !== null) {
       return cached
     }
@@ -158,7 +158,7 @@ export const proxyFifaRequest = async <T>(event: H3Event, endpoint: string): Pro
     const payload = await $fetch<T>(endpoint, {
       baseURL: apiBase,
       query,
-      retry: 0,
+      retry: 1,
       timeout: DEFAULT_FIFA_TIMEOUT_MS,
       headers: {
         Authorization: apiKey,
@@ -174,6 +174,14 @@ export const proxyFifaRequest = async <T>(event: H3Event, endpoint: string): Pro
     }
 
     const statusCode = toStatusCode(error)
+
+    if (cached !== null) {
+      return cached
+    }
+
+    if (statusCode === 429) {
+      throw createFifaProxyError(503, 'FIFA_PROXY_RATE_LIMITED', 'FIFA provider rate limit reached.')
+    }
 
     if (statusCode === 401) {
       throw createFifaProxyError(502, 'FIFA_PROXY_UNAUTHORIZED', 'FIFA provider rejected the API key.')
