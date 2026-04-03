@@ -520,7 +520,7 @@ defineExpose({
           </button>
         </TransitionGroup>
 
-        <div class="table-actions">
+        <div class="uno-local-hand__actions">
           <v-btn
             v-for="action in tableActions"
             :key="`uno-action-${action.id}`"
@@ -582,9 +582,12 @@ defineExpose({
 
 <style scoped>
 .uno-center {
+  --uno-card-width: clamp(62px, 7vw, 82px);
+  --uno-card-height: calc(var(--uno-card-width) * 1.44);
+  --uno-card-radius: clamp(10px, 1.2vw, 14px);
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: minmax(104px, 1fr) minmax(110px, 1fr) minmax(124px, 1fr);
+  gap: clamp(10px, 2vw, 18px);
   width: 100%;
   align-items: center;
 }
@@ -599,15 +602,17 @@ defineExpose({
 
 .uno-pile__card-back,
 .uno-card {
-  width: 70px;
-  height: 102px;
-  border-radius: 12px;
+  width: var(--uno-card-width);
+  height: var(--uno-card-height);
+  border-radius: var(--uno-card-radius);
   display: grid;
   place-items: center;
   border: 2px solid rgba(255, 255, 255, 0.7);
   box-shadow: 0 8px 14px rgba(0, 0, 0, 0.22);
   color: #fff;
   font-weight: 800;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .uno-pile__card-back {
@@ -630,7 +635,7 @@ defineExpose({
 }
 
 .uno-card__value {
-  font-size: 1.1rem;
+  font-size: clamp(0.95rem, 1.9vw, 1.15rem);
   letter-spacing: 0.02em;
 }
 
@@ -642,7 +647,14 @@ defineExpose({
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  min-width: 0;
+}
+
+.uno-pile .text-caption,
+.uno-discard .text-caption,
+.uno-state-column :deep(.v-chip__content) {
+  white-space: nowrap;
 }
 
 .uno-color-badge {
@@ -656,25 +668,50 @@ defineExpose({
 .uno-local-hand {
   display: grid;
   gap: 10px;
+  position: relative;
+  width: min(100%, 980px);
+  margin-inline: auto;
+  padding-top: 10px;
 }
 
 .uno-local-hand__cards {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
+  padding: 4px 10px 8px;
 }
 
-.table-actions {
+.uno-local-hand__actions {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(8, 25, 42, 0.6);
+  backdrop-filter: blur(3px);
+  width: fit-content;
+  margin-inline: auto;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.26);
+}
+
+.uno-local-hand__actions :deep(.v-btn) {
+  min-height: 40px;
+  padding-inline: 14px;
+}
+
+.uno-local-hand__actions :deep(.v-selection-control) {
+  min-height: 40px;
 }
 
 .uno-card--playable {
   cursor: pointer;
+  border-color: rgba(255, 255, 255, 0.96);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.66),
+    0 10px 18px rgba(0, 0, 0, 0.35);
 }
 
 .uno-card--playable:hover {
@@ -683,8 +720,10 @@ defineExpose({
 }
 
 .uno-card--disabled {
-  filter: grayscale(0.75);
-  opacity: 0.62;
+  filter: grayscale(0.92) brightness(0.72);
+  opacity: 0.54;
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.22);
   cursor: not-allowed;
 }
 
@@ -737,14 +776,50 @@ defineExpose({
 
 @media (max-width: 960px) {
   .uno-center {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "pile discard"
+      "state state";
     text-align: center;
   }
 
-  .uno-card,
-  .uno-pile__card-back {
-    width: 62px;
-    height: 92px;
+  .uno-pile {
+    grid-area: pile;
+  }
+
+  .uno-discard {
+    grid-area: discard;
+  }
+
+  .uno-state-column {
+    grid-area: state;
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 680px) {
+  .uno-center {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "pile"
+      "discard"
+      "state";
+    gap: 10px;
+  }
+
+  .uno-local-hand {
+    gap: 8px;
+  }
+
+  .uno-local-hand__actions {
+    width: 100%;
+    border-radius: 14px;
+  }
+
+  .uno-local-hand__actions :deep(.v-btn) {
+    min-width: 126px;
   }
 }
 </style>
