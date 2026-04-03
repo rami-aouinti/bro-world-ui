@@ -4,6 +4,7 @@ import type {
   FifaWorldCupStadium,
   FifaWorldCupTeam,
 } from '~/composables/fifa/useFifaWorldCup'
+import { useFifaWorldCup } from '~/composables/fifa/useFifaWorldCup'
 
 const WORLD_CUP_CACHE_TTL_MS = 60_000
 
