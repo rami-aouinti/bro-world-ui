@@ -146,47 +146,29 @@ defineExpose({
 </script>
 
 <template>
-  <v-card class="pa-6">
-    <v-card-title class="text-h5 d-flex justify-space-between align-center">
-      <span>Hearts</span>
-      <v-chip :color="engine.heartsBroken.value ? 'warning' : 'default'" size="small">
-        Hearts {{ engine.heartsBroken.value ? "cassé" : "non cassé" }}
-      </v-chip>
-    </v-card-title>
-
-    <v-card-text class="d-flex flex-column ga-4">
-      <div class="d-flex ga-2 flex-wrap">
+  <CardTableLayout :players="tablePlayers">
+    <template #aside>
+      <div class="d-flex ga-2 flex-wrap text-center">
         <v-chip
-          v-for="(player, index) in engine.players.value"
-          :key="player.id"
-          :color="index === engine.turnIndex.value ? 'primary' : undefined"
-          size="small"
+            v-for="(player, index) in engine.players.value"
+            :key="player.id"
+            :color="index === engine.turnIndex.value ? 'primary' : undefined"
+            size="small"
         >
-          {{ player.name }} · Score {{ player.score }} · Plis {{ player.tricksWon }}
+          {{ player.name }} · Score {{ player.score }}
         </v-chip>
       </div>
-
-      <CardTableLayout :players="tablePlayers">
-        <template #center>
-          <TrickPile :trick="trickCards" :winner-seat="winnerSeat" />
-        </template>
-        <template #seat-south-hand>
-          <CardFanHand
-            :cards="humanPlayer?.hand ?? []"
-            :playable-card-ids="playableCardIds"
-            :disabled-card-ids="disabledCardIds"
-            @play-card="({ id }) => playHumanCard(id)"
-          />
-        </template>
-      </CardTableLayout>
-
-      <div class="d-flex ga-2 flex-wrap">
-        <v-btn variant="tonal" @click="runAiUntilHuman">Lancer IA</v-btn>
-        <v-btn variant="tonal" @click="engine.startNewHand">Nouvelle manche</v-btn>
-        <v-btn variant="text" @click="engine.undo">Undo</v-btn>
-      </div>
-
-      <p class="text-body-2 mb-0">{{ engine.message.value }}</p>
-    </v-card-text>
-  </v-card>
+    </template>
+    <template #center>
+      <TrickPile :trick="trickCards" :winner-seat="winnerSeat" />
+    </template>
+    <template #seat-south-hand>
+      <CardFanHand
+          :cards="humanPlayer?.hand ?? []"
+          :playable-card-ids="playableCardIds"
+          :disabled-card-ids="disabledCardIds"
+          @play-card="({ id }) => playHumanCard(id)"
+      />
+    </template>
+  </CardTableLayout>
 </template>

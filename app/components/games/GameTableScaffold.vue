@@ -155,7 +155,7 @@ const getRingProgress = (secondsLeft: number) =>
   min-height: auto;
   min-width: 0;
   border-radius: 20px;
-  background: color-mix(in srgb, rgb(var(--v-theme-surface)) 97%, rgb(var(--v-theme-on-surface)) 3%);
+  background: transparent;
   border: 1px solid rgba(var(--v-theme-on-surface), 0.1);
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.12);
   padding: 1rem;

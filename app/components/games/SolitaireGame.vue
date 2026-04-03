@@ -137,7 +137,6 @@ defineExpose({
     <template #surface>
       <section class="solitaire-surface">
         <header class="solitaire-header">
-          <h3 class="text-h6 mb-0">Solitaire</h3>
           <v-chip v-if="engine.isWon.value" color="success" size="small">Victoire</v-chip>
         </header>
 
