@@ -218,6 +218,9 @@ export default defineNuxtConfig({
     fifa: {
       apiBase: process.env.FIFA_API_BASE || '',
       apiKey: process.env.FIFA_API_KEY || '',
+      accessMode: process.env.FIFA_ACCESS_MODE || '',
+      timeoutMs: Number(process.env.FIFA_TIMEOUT_MS || '') || 6000,
+      retryCount: Number(process.env.FIFA_RETRY_COUNT || '') || 0,
     },
     session: {
       name: 'nuxt-session',
