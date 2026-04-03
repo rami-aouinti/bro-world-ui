@@ -205,12 +205,18 @@ const fallbackStadiums = (): FifaWorldCupStadium[] => []
 const shouldUseFallbackOnly = (): boolean => {
   const runtimeConfig = useRuntimeConfig()
   const publicConfig = runtimeConfig.public as Record<string, unknown>
+  const worldCupFallback = publicConfig.worldCupUseLocalFallback
 
-  return publicConfig.useMockData === true || publicConfig.worldCupUseLocalFallback === true
+  if (typeof worldCupFallback === 'boolean') {
+    return worldCupFallback
+  }
+
+  return publicConfig.useMockData === true
 }
 
 type FetchOptions = {
   fallbackOnError?: boolean
+  bypassCache?: boolean
 }
 
 const fetchAndNormalize = async <T>(
@@ -224,7 +230,9 @@ const fetchAndNormalize = async <T>(
   }
 
   try {
-    const payload = await $fetch<unknown>(endpoint)
+    const payload = await $fetch<unknown>(endpoint, {
+      headers: options.bypassCache ? { 'x-fifa-refresh': '1' } : undefined,
+    })
     const normalized = normalize(payload)
     return normalized
   }

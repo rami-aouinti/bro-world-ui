@@ -6,6 +6,7 @@ interface NavItem {
   key: string
   to?: string
   icon: string
+  children?: ActionNavItem[]
 }
 
 interface ActionNavItem extends NavItem {
@@ -25,6 +26,13 @@ const AppBarProfileMenu = defineAsyncComponent(() => import('~/components/layout
 
 const mainHeaderItems = computed<NavItem[]>(() => [
   { key: 'app.navigation.platform', to: '/platform', icon: 'mdi-view-grid-outline' },
+  {
+    key: 'app.navigation.event',
+    icon: 'mdi-calendar-star',
+    children: [
+      { key: 'app.navigation.worldCup', to: '/event/world-cup', icon: 'mdi-trophy-outline' },
+    ],
+  },
   { key: 'app.navigation.blog', to: '/blog', icon: 'mdi-post-outline' },
   { key: 'app.navigation.quiz', to: '/quiz', icon: 'mdi-help-circle-outline' },
   { key: 'app.navigation.game', to: '/game', icon: 'mdi-controller-classic-outline' }
@@ -127,17 +135,43 @@ const signOut = async () => {
 
     <template v-if="isDesktop">
       <div class="d-flex align-center ga-1 ga-sm-2 mx-auto app-bar__center-links">
-        <v-btn
-          v-for="item in headerItems"
-          :key="item.key"
-          :to="item.to"
-          size="large"
-          variant="text"
-          class="text-none app-bar__link-btn"
-          :prepend-icon="item.icon"
-        >
-          {{ te(item.key) ? t(item.key) : item.key }}
-        </v-btn>
+        <template v-for="item in headerItems" :key="item.key">
+          <v-menu v-if="item.children?.length" location="bottom">
+            <template #activator="{ props }">
+              <v-btn
+                size="large"
+                variant="text"
+                class="text-none app-bar__link-btn"
+                :prepend-icon="item.icon"
+                append-icon="mdi-chevron-down"
+                v-bind="props"
+              >
+                {{ te(item.key) ? t(item.key) : item.key }}
+              </v-btn>
+            </template>
+            <v-list class="py-1 app-bar__menu" min-width="220">
+              <v-list-item
+                v-for="child in item.children"
+                :key="child.key"
+                :to="child.to"
+                :title="te(child.key) ? t(child.key) : child.key"
+                :prepend-icon="child.icon"
+                rounded="lg"
+                class="mx-2 my-1"
+              />
+            </v-list>
+          </v-menu>
+          <v-btn
+            v-else
+            :to="item.to"
+            size="large"
+            variant="text"
+            class="text-none app-bar__link-btn"
+            :prepend-icon="item.icon"
+          >
+            {{ te(item.key) ? t(item.key) : item.key }}
+          </v-btn>
+        </template>
         <div id="app-bar-teleport-target-right"/>
       </div>
       <v-spacer />
@@ -291,15 +325,36 @@ const signOut = async () => {
         </template>
 
         <v-list class="py-1">
-          <v-list-item
-            v-for="item in headerItems"
-            :key="item.key"
-            :to="item.to"
-            :title="te(item.key) ? t(item.key) : item.key"
-            :prepend-icon="item.icon"
-            rounded="lg"
-            class="mx-2 my-1"
-          />
+          <template v-for="item in headerItems" :key="item.key">
+            <v-list-group v-if="item.children?.length" :value="item.key">
+              <template #activator="{ props }">
+                <v-list-item
+                  v-bind="props"
+                  :title="te(item.key) ? t(item.key) : item.key"
+                  :prepend-icon="item.icon"
+                  rounded="lg"
+                  class="mx-2 my-1"
+                />
+              </template>
+              <v-list-item
+                v-for="child in item.children"
+                :key="`mobile-${child.key}`"
+                :to="child.to"
+                :title="te(child.key) ? t(child.key) : child.key"
+                :prepend-icon="child.icon"
+                rounded="lg"
+                class="mx-4 my-1"
+              />
+            </v-list-group>
+            <v-list-item
+              v-else
+              :to="item.to"
+              :title="te(item.key) ? t(item.key) : item.key"
+              :prepend-icon="item.icon"
+              rounded="lg"
+              class="mx-2 my-1"
+            />
+          </template>
           <v-list-item
             v-for="action in actionItems"
             :key="`mobile-${action.key}`"
