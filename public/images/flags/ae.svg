@@ -1,11 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 64" role="img" aria-label="Flag AE">
-  <defs>
-    <linearGradient id="bg-ae" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1e293b"/>
-      <stop offset="100%" stop-color="#0f172a"/>
-    </linearGradient>
-  </defs>
-  <rect width="96" height="64" rx="8" fill="url(#bg-ae)"/>
-  <rect x="4" y="4" width="88" height="56" rx="6" fill="none" stroke="#f8fafc" stroke-opacity="0.28"/>
-  <text x="48" y="40" fill="#f8fafc" font-size="22" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle">AE</text>
+  <rect width="96" height="64" fill="#FFFFFF"/>
+  <rect x="24" width="72" height="21.333" fill="#00732F"/>
+  <rect x="24" y="21.333" width="72" height="21.333" fill="#FFFFFF"/>
+  <rect x="24" y="42.666" width="72" height="21.334" fill="#000000"/>
+  <rect width="24" height="64" fill="#FF0000"/>
 </svg>

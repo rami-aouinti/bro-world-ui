@@ -1,11 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 64" role="img" aria-label="Flag US">
-  <defs>
-    <linearGradient id="bg-us" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1e293b"/>
-      <stop offset="100%" stop-color="#0f172a"/>
-    </linearGradient>
-  </defs>
-  <rect width="96" height="64" rx="8" fill="url(#bg-us)"/>
-  <rect x="4" y="4" width="88" height="56" rx="6" fill="none" stroke="#f8fafc" stroke-opacity="0.28"/>
-  <text x="48" y="40" fill="#f8fafc" font-size="22" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle">US</text>
+  <rect width="96" height="64" fill="#B22234"/>
+  <g fill="#FFFFFF">
+    <rect y="4.9" width="96" height="4.9"/><rect y="14.7" width="96" height="4.9"/><rect y="24.5" width="96" height="4.9"/>
+    <rect y="34.3" width="96" height="4.9"/><rect y="44.1" width="96" height="4.9"/><rect y="53.9" width="96" height="4.9"/>
+  </g>
+  <rect width="38" height="34.3" fill="#3C3B6E"/>
+  <circle cx="19" cy="17" r="4" fill="#FFFFFF"/>
 </svg>
