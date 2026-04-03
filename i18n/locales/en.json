@@ -2433,5 +2433,68 @@
     "trick": "Trick",
     "score": "Score",
     "tips": "Tips"
+  },
+  "worldCup": {
+    "pageLabel": "FIFA World Cup overview",
+    "common": {
+      "notAvailable": "N/A",
+      "retry": "Retry"
+    },
+    "a11y": {
+      "flagAlt": "Flag of {team}",
+      "flagUnavailable": "Flag unavailable"
+    },
+    "filters": {
+      "group": "Group",
+      "team": "Team",
+      "date": "Date",
+      "allGroups": "All groups",
+      "allTeams": "All teams",
+      "allDates": "All dates",
+      "groupLabel": "Group {group}"
+    },
+    "stadiums": {
+      "title": "All Stadiums",
+      "caption": "World Cup stadiums with city, country, and capacity",
+      "columns": {
+        "stadium": "Stadium",
+        "city": "City",
+        "country": "Country",
+        "capacity": "Capacity"
+      },
+      "status": {
+        "loading": "Loading stadiums data...",
+        "error": "Unable to load stadiums right now.",
+        "empty": "No stadium available yet."
+      }
+    },
+    "standings": {
+      "title": "Group Standings",
+      "caption": "Standings by group with points, goal difference, and matches played",
+      "columns": {
+        "team": "Team",
+        "points": "Pts",
+        "diff": "Diff",
+        "matches": "MP"
+      },
+      "status": {
+        "loading": "Loading standings data...",
+        "error": "Unable to load standings right now.",
+        "empty": "No standings available yet."
+      }
+    },
+    "matches": {
+      "title": "All Matches",
+      "refreshAction": "Refresh",
+      "lastUpdated": "Last update: {date} UTC",
+      "neverUpdated": "not synced yet",
+      "versus": "vs",
+      "status": {
+        "pollingHint": "Matches auto-refresh every minute. You can also refresh manually.",
+        "loading": "Loading matches data...",
+        "error": "Unable to load matches right now.",
+        "empty": "No match found with the current filters."
+      }
+    }
   }
 }

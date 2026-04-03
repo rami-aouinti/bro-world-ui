@@ -5,6 +5,7 @@ import type {
   FifaWorldCupStadium,
   FifaWorldCupTeam,
 } from '~/composables/fifa/useFifaWorldCup'
+import { useFifaWorldCup } from '~/composables/fifa/useFifaWorldCup'
 import { iso3ToIso2 } from '~/utils/countryCode'
 
 definePageMeta({
@@ -15,6 +16,8 @@ definePageMeta({
 })
 
 const { getTeams, getStadiums, getGroupStandings, getMatches } = useFifaWorldCup()
+const { t, locale } = useI18n()
+const { smAndDown } = useDisplay()
 
 const {
   data: teams,
@@ -103,6 +106,9 @@ const sortedSelectedGroupStandings = computed(() => {
 const selectedMatchGroup = ref<'ALL' | string>('ALL')
 const selectedMatchTeam = ref<'ALL' | string>('ALL')
 const selectedMatchDate = ref<'ALL' | string>('ALL')
+const manualMatchesRefreshPending = ref(false)
+const matchesLastUpdatedAt = ref<Date | null>(null)
+let matchesPollingInterval: ReturnType<typeof setInterval> | null = null
 
 const matchTeamOptions = computed(() => {
   const uniqueTeamCodes = new Set<string>()
@@ -124,6 +130,19 @@ const matchDateOptions = computed(() => {
   const dates = new Set(matches.value.map(match => match.datetime.slice(0, 10)))
   return [...dates].sort((a, b) => a.localeCompare(b))
 })
+
+const matchGroupOptions = computed(() => {
+  return [
+    { value: 'ALL', label: t('worldCup.filters.allGroups') },
+    ...groupOptions.value.map(group => ({
+      value: group,
+      label: t('worldCup.filters.groupLabel', { group }),
+    })),
+  ]
+})
+
+const tableDensity = computed(() => (smAndDown.value ? 'comfortable' : 'compact'))
+const sectionChipSize = computed(() => (smAndDown.value ? 'x-small' : 'small'))
 
 const filteredMatches = computed(() => {
   return [...matches.value]
@@ -189,14 +208,14 @@ const markFlagAsUnavailable = (countryCode: string) => {
 
 const formatCapacity = (capacity: number | null): string => {
   if (capacity === null) {
-    return 'N/A'
+    return t('worldCup.common.notAvailable')
   }
 
-  return new Intl.NumberFormat('fr-FR').format(capacity)
+  return new Intl.NumberFormat(locale.value === 'fr' ? 'fr-FR' : 'en-US').format(capacity)
 }
 
 const formatMatchDate = (datetime: string) => {
-  return new Date(datetime).toLocaleString('fr-FR', {
+  return new Date(datetime).toLocaleString(locale.value === 'fr' ? 'fr-FR' : 'en-US', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -207,53 +226,103 @@ const formatMatchDate = (datetime: string) => {
 }
 
 const getTeamName = (code: string) => teamsByCode.value[code]?.name ?? code.toUpperCase()
+
+const formatLastUpdated = (date: Date | null) => {
+  if (!date) {
+    return t('worldCup.matches.neverUpdated')
+  }
+
+  return new Intl.DateTimeFormat(locale.value === 'fr' ? 'fr-FR' : 'en-US', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    timeZone: 'UTC',
+  }).format(date)
+}
+
+const refreshMatchesData = async (isManual = false) => {
+  if (isManual) {
+    manualMatchesRefreshPending.value = true
+  }
+
+  await Promise.all([refreshMatches(), refreshTeams()])
+  matchesLastUpdatedAt.value = new Date()
+  manualMatchesRefreshPending.value = false
+}
+
+watch([matches, teams], () => {
+  if (matches.value.length && teams.value.length && !matchesLoading.value && !teamsLoading.value) {
+    matchesLastUpdatedAt.value = matchesLastUpdatedAt.value ?? new Date()
+  }
+})
+
+onMounted(() => {
+  matchesPollingInterval = setInterval(() => refreshMatchesData(), 60000)
+})
+
+onBeforeUnmount(() => {
+  if (matchesPollingInterval) {
+    clearInterval(matchesPollingInterval)
+  }
+})
 </script>
 
 <template>
   <NuxtLayout name="default">
-    <main class="world-cup-page">
-      <v-card class="pa-4 section-card" variant="tonal">
+    <main class="world-cup-page" :aria-label="t('worldCup.pageLabel')">
+      <v-card class="pa-4 pa-md-5 section-card" variant="tonal">
+        <section aria-labelledby="stadiums-title">
         <div class="d-flex align-center justify-space-between mb-3">
-          <h2 class="text-h6 mb-0">All Stadiums</h2>
-          <v-chip size="small" color="primary" variant="tonal">{{ stadiums.length }}</v-chip>
+          <h2 id="stadiums-title" class="text-h6 mb-0">{{ t('worldCup.stadiums.title') }}</h2>
+          <v-chip :size="sectionChipSize" color="primary" variant="outlined" class="section-chip">{{ stadiums.length }}</v-chip>
         </div>
 
-        <v-progress-linear v-if="stadiumsLoading" indeterminate color="primary" class="mb-3" />
+        <div v-if="stadiumsLoading" class="mb-3">
+          <v-skeleton-loader type="table-heading, table-row-divider@4" />
+          <v-alert type="info" variant="tonal" class="mt-2">
+            {{ t('worldCup.stadiums.status.loading') }}
+          </v-alert>
+        </div>
 
         <v-alert v-else-if="stadiumsError" type="error" variant="tonal" class="mb-2">
-          Impossible de charger les stades.
+          {{ t('worldCup.stadiums.status.error') }}
           <template #append>
-            <v-btn size="small" variant="text" @click="refreshStadiums">Réessayer</v-btn>
+            <v-btn size="small" variant="text" @click="refreshStadiums">{{ t('worldCup.common.retry') }}</v-btn>
           </template>
         </v-alert>
 
         <v-alert v-else-if="!stadiums.length" type="info" variant="tonal">
-          Aucun stade disponible.
+          {{ t('worldCup.stadiums.status.empty') }}
         </v-alert>
 
-        <v-table v-else density="compact" class="bg-transparent">
+        <v-table v-else :density="tableDensity" class="bg-transparent world-cup-table">
+          <caption class="sr-only">{{ t('worldCup.stadiums.caption') }}</caption>
           <thead>
             <tr>
-              <th class="text-left">Stadium</th>
-              <th class="text-left">City</th>
-              <th class="text-left">Country</th>
-              <th class="text-right">Capacity</th>
+              <th scope="col" class="text-left">{{ t('worldCup.stadiums.columns.stadium') }}</th>
+              <th scope="col" class="text-left">{{ t('worldCup.stadiums.columns.city') }}</th>
+              <th scope="col" class="text-left">{{ t('worldCup.stadiums.columns.country') }}</th>
+              <th scope="col" class="text-right">{{ t('worldCup.stadiums.columns.capacity') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="stadium in stadiums" :key="stadium.id">
               <td>{{ stadium.name }}</td>
-              <td>{{ stadium.city || 'N/A' }}</td>
-              <td>{{ stadium.country || 'N/A' }}</td>
+              <td>{{ stadium.city || t('worldCup.common.notAvailable') }}</td>
+              <td>{{ stadium.country || t('worldCup.common.notAvailable') }}</td>
               <td class="text-right">{{ formatCapacity(stadium.capacity) }}</td>
             </tr>
           </tbody>
         </v-table>
+        </section>
       </v-card>
 
-      <v-card class="pa-4 section-card" variant="tonal">
+      <v-card class="pa-4 pa-md-5 section-card" variant="tonal">
+        <section aria-labelledby="standings-title">
         <div class="d-flex align-center justify-space-between mb-3">
-          <h2 class="text-h6 mb-0">Group Standings</h2>
+          <h2 id="standings-title" class="text-h6 mb-0">{{ t('worldCup.standings.title') }}</h2>
           <div class="selectors-grid">
             <v-select
               v-model="selectedStandingGroup"
@@ -261,37 +330,49 @@ const getTeamName = (code: string) => teamsByCode.value[code]?.name ?? code.toUp
               hide-details
               variant="outlined"
               :items="groupOptions"
-              label="Group"
+              :label="t('worldCup.filters.group')"
               style="min-width: 140px"
             />
           </div>
         </div>
 
-        <v-progress-linear v-if="standingsLoading || teamsLoading" indeterminate color="primary" class="mb-3" />
+        <div v-if="standingsLoading || teamsLoading" class="mb-3">
+          <v-skeleton-loader type="table-heading, table-row-divider@4" />
+          <v-alert type="info" variant="tonal" class="mt-2">
+            {{ t('worldCup.standings.status.loading') }}
+          </v-alert>
+        </div>
 
         <v-alert v-else-if="standingsError || teamsError" type="error" variant="tonal" class="mb-2">
-          Impossible de charger les classements.
+          {{ t('worldCup.standings.status.error') }}
           <template #append>
-            <v-btn size="small" variant="text" @click="() => { refreshStandings(); refreshTeams() }">Réessayer</v-btn>
+            <v-btn size="small" variant="text" @click="() => { refreshStandings(); refreshTeams() }">{{ t('worldCup.common.retry') }}</v-btn>
           </template>
         </v-alert>
 
         <v-alert v-else-if="!groupOptions.length || !sortedSelectedGroupStandings.length" type="info" variant="tonal">
-          Aucun classement disponible.
+          {{ t('worldCup.standings.status.empty') }}
         </v-alert>
 
-        <v-table v-else density="compact" class="bg-transparent">
+        <v-table v-else :density="tableDensity" class="bg-transparent world-cup-table">
+          <caption class="sr-only">{{ t('worldCup.standings.caption') }}</caption>
           <thead>
             <tr>
-              <th class="text-left">Équipe</th>
-              <th class="text-right sortable-cell" @click="toggleStandingsSort('points')">
-                Pts {{ renderSortLabel('points') }}
+              <th scope="col" class="text-left">{{ t('worldCup.standings.columns.team') }}</th>
+              <th scope="col" class="text-right">
+                <button class="sort-button" type="button" @click="toggleStandingsSort('points')">
+                  {{ t('worldCup.standings.columns.points') }} {{ renderSortLabel('points') }}
+                </button>
               </th>
-              <th class="text-right sortable-cell" @click="toggleStandingsSort('diff')">
-                Diff {{ renderSortLabel('diff') }}
+              <th scope="col" class="text-right">
+                <button class="sort-button" type="button" @click="toggleStandingsSort('diff')">
+                  {{ t('worldCup.standings.columns.diff') }} {{ renderSortLabel('diff') }}
+                </button>
               </th>
-              <th class="text-right sortable-cell" @click="toggleStandingsSort('matches')">
-                J {{ renderSortLabel('matches') }}
+              <th scope="col" class="text-right">
+                <button class="sort-button" type="button" @click="toggleStandingsSort('matches')">
+                  {{ t('worldCup.standings.columns.matches') }} {{ renderSortLabel('matches') }}
+                </button>
               </th>
             </tr>
           </thead>
@@ -303,14 +384,14 @@ const getTeamName = (code: string) => teamsByCode.value[code]?.name ?? code.toUp
                     <v-avatar size="20" rounded="sm">
                       <v-img
                         :src="getFlagPath(row.teamCode)!"
-                        :alt="`Drapeau ${getTeamName(row.teamCode)}`"
+                        :alt="t('worldCup.a11y.flagAlt', { team: getTeamName(row.teamCode) })"
                         cover
                         @error="markFlagAsUnavailable(row.teamCode)"
                       />
                     </v-avatar>
                   </template>
                   <template v-else>
-                    <v-avatar size="20" rounded="sm" class="flag-fallback-avatar">
+                    <v-avatar size="20" rounded="sm" class="flag-fallback-avatar" :aria-label="t('worldCup.a11y.flagUnavailable')">
                       <span class="flag-fallback-text">{{ row.teamCode.toUpperCase() }}</span>
                     </v-avatar>
                   </template>
@@ -323,19 +404,28 @@ const getTeamName = (code: string) => teamsByCode.value[code]?.name ?? code.toUp
             </tr>
           </tbody>
         </v-table>
+        </section>
       </v-card>
 
-      <v-card class="pa-4 section-card" variant="tonal">
+      <v-card class="pa-4 pa-md-5 section-card" variant="tonal">
+        <section aria-labelledby="matches-title">
         <div class="d-flex align-center justify-space-between mb-3 flex-wrap ga-3">
-          <h2 class="text-h6 mb-0">All Matches</h2>
+          <div class="d-flex flex-column">
+            <h2 id="matches-title" class="text-h6 mb-0">{{ t('worldCup.matches.title') }}</h2>
+            <span class="text-caption text-medium-emphasis">
+              {{ t('worldCup.matches.lastUpdated', { date: formatLastUpdated(matchesLastUpdatedAt) }) }}
+            </span>
+          </div>
           <div class="selectors-grid">
             <v-select
               v-model="selectedMatchGroup"
               density="compact"
               hide-details
               variant="outlined"
-              :items="['ALL', ...groupOptions]"
-              label="Group"
+              :items="matchGroupOptions"
+              item-title="label"
+              item-value="value"
+              :label="t('worldCup.filters.group')"
               style="min-width: 140px"
             />
             <v-select
@@ -343,10 +433,10 @@ const getTeamName = (code: string) => teamsByCode.value[code]?.name ?? code.toUp
               density="compact"
               hide-details
               variant="outlined"
-              :items="[{ value: 'ALL', label: 'All teams' }, ...matchTeamOptions]"
+              :items="[{ value: 'ALL', label: t('worldCup.filters.allTeams') }, ...matchTeamOptions]"
               item-title="label"
               item-value="value"
-              label="Team"
+              :label="t('worldCup.filters.team')"
               style="min-width: 190px"
             />
             <v-select
@@ -354,35 +444,56 @@ const getTeamName = (code: string) => teamsByCode.value[code]?.name ?? code.toUp
               density="compact"
               hide-details
               variant="outlined"
-              :items="['ALL', ...matchDateOptions]"
-              label="Date"
+              :items="[{ value: 'ALL', label: t('worldCup.filters.allDates') }, ...matchDateOptions.map(date => ({ value: date, label: date }))]"
+              item-title="label"
+              item-value="value"
+              :label="t('worldCup.filters.date')"
               style="min-width: 150px"
             />
+            <v-btn
+              color="primary"
+              variant="outlined"
+              prepend-icon="mdi-refresh"
+              :loading="manualMatchesRefreshPending"
+              @click="refreshMatchesData(true)"
+            >
+              {{ t('worldCup.matches.refreshAction') }}
+            </v-btn>
           </div>
         </div>
 
-        <v-progress-linear v-if="matchesLoading || teamsLoading" indeterminate color="primary" class="mb-3" />
+        <v-alert type="info" variant="tonal" density="compact" class="mb-3">
+          {{ t('worldCup.matches.status.pollingHint') }}
+        </v-alert>
+
+        <div v-if="matchesLoading || teamsLoading" class="mb-3">
+          <v-skeleton-loader type="list-item-avatar-two-line@4" />
+          <v-alert type="info" variant="tonal" class="mt-2">
+            {{ t('worldCup.matches.status.loading') }}
+          </v-alert>
+        </div>
 
         <v-alert v-else-if="matchesError || teamsError" type="error" variant="tonal" class="mb-2">
-          Impossible de charger les matchs.
+          {{ t('worldCup.matches.status.error') }}
           <template #append>
-            <v-btn size="small" variant="text" @click="() => { refreshMatches(); refreshTeams() }">Réessayer</v-btn>
+            <v-btn size="small" variant="text" @click="refreshMatchesData(true)">{{ t('worldCup.common.retry') }}</v-btn>
           </template>
         </v-alert>
 
         <v-alert v-else-if="!filteredMatches.length" type="info" variant="tonal">
-          Aucun match trouvé avec ces filtres.
+          {{ t('worldCup.matches.status.empty') }}
         </v-alert>
 
         <v-list v-else class="pa-0 bg-transparent" lines="two">
           <v-list-item v-for="match in filteredMatches" :key="`${match.group}-${match.datetime}-${match.teamA}-${match.teamB}`" class="px-0">
             <v-list-item-title class="d-flex align-center justify-space-between ga-2 flex-wrap">
-              <span>{{ getTeamName(match.teamA) }} vs {{ getTeamName(match.teamB) }}</span>
-              <v-chip size="x-small" color="primary" variant="outlined">Group {{ match.group }}</v-chip>
+              <span>{{ getTeamName(match.teamA) }} {{ t('worldCup.matches.versus') }} {{ getTeamName(match.teamB) }}</span>
+              <v-chip size="x-small" color="primary" variant="outlined">{{ t('worldCup.filters.groupLabel', { group: match.group }) }}</v-chip>
             </v-list-item-title>
             <v-list-item-subtitle>{{ formatMatchDate(match.datetime) }} (UTC)</v-list-item-subtitle>
           </v-list-item>
         </v-list>
+        </section>
       </v-card>
     </main>
   </NuxtLayout>
@@ -391,7 +502,7 @@ const getTeamName = (code: string) => teamsByCode.value[code]?.name ?? code.toUp
 <style scoped>
 .world-cup-page {
   display: grid;
-  gap: 16px;
+  gap: 20px;
 }
 
 .section-card {
@@ -399,14 +510,20 @@ const getTeamName = (code: string) => teamsByCode.value[code]?.name ?? code.toUp
 }
 
 .selectors-grid {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(132px, auto));
+  gap: 10px;
+  align-items: center;
 }
 
-.sortable-cell {
+.sort-button {
+  color: inherit;
+  font-weight: 700;
   cursor: pointer;
   user-select: none;
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 
 .flag-fallback-avatar {
@@ -418,5 +535,46 @@ const getTeamName = (code: string) => teamsByCode.value[code]?.name ?? code.toUp
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.04em;
+}
+
+.world-cup-table :deep(th),
+.world-cup-table :deep(td) {
+  white-space: nowrap;
+}
+
+.section-chip {
+  font-weight: 700;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+@media (max-width: 959px) {
+  .selectors-grid {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+
+  .world-cup-page {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 599px) {
+  .selectors-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .world-cup-table :deep(th),
+  .world-cup-table :deep(td) {
+    font-size: 0.8rem;
+  }
 }
 </style>
