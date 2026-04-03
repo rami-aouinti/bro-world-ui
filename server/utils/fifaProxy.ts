@@ -161,7 +161,7 @@ export const proxyFifaRequest = async <T>(event: H3Event, endpoint: string): Pro
       retry: 0,
       timeout: DEFAULT_FIFA_TIMEOUT_MS,
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: apiKey,
       },
     })
 

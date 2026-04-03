@@ -73,21 +73,28 @@ const normalizeGroupId = (value: unknown): string => {
     return ''
   }
 
-  return value.trim().toUpperCase()
+  return value.trim().toUpperCase().replace(/^GROUP\s+/, '')
 }
 
 const normalizeTeams = (payload: unknown): FifaWorldCupTeam[] => {
   return extractArrayPayload<Record<string, unknown>>(payload)
     .map((entry) => {
-      const code = normalizeCountryCode(entry.code ?? entry.teamCode ?? entry.fifaCode ?? entry.countryCode)
+      const code = normalizeCountryCode(
+        entry.code
+        ?? entry.teamCode
+        ?? entry.fifaCode
+        ?? entry.countryCode
+        ?? entry.country_code
+        ?? entry.abbreviation,
+      )
       const name = typeof (entry.name ?? entry.teamName ?? entry.countryName) === 'string'
         ? String(entry.name ?? entry.teamName ?? entry.countryName).trim()
         : ''
-      const group = normalizeGroupId(entry.group ?? entry.groupId ?? entry.pool)
+      const group = normalizeGroupId(entry.group ?? entry.groupId ?? entry.pool ?? '')
 
       return { code, name, group }
     })
-    .filter(entry => Boolean(entry.code) && Boolean(entry.name) && Boolean(entry.group))
+    .filter(entry => Boolean(entry.code) && Boolean(entry.name))
 }
 
 const normalizeStadiums = (payload: unknown): FifaWorldCupStadium[] => {
@@ -126,7 +133,8 @@ const normalizeStandings = (payload: unknown): Record<string, FifaWorldCupStandi
 
   const entries = extractArrayPayload<Record<string, unknown>>(payload)
   return entries.reduce<Record<string, FifaWorldCupStanding[]>>((acc, row) => {
-    const group = normalizeGroupId(row.group ?? row.groupId ?? row.pool)
+    const rawGroup = row.group && typeof row.group === 'object' ? row.group as Record<string, unknown> : null
+    const group = normalizeGroupId(row.group ?? row.groupId ?? row.pool ?? rawGroup?.name)
 
     if (!group) {
       return acc
@@ -150,14 +158,21 @@ const normalizeStandingsRows = (rows: unknown, group: string): FifaWorldCupStand
 }
 
 const normalizeStandingRow = (row: Record<string, unknown>, group: string): FifaWorldCupStanding | null => {
-  const teamCode = normalizeCountryCode(row.teamCode ?? row.code ?? row.team)
+  const rawTeam = row.team && typeof row.team === 'object' ? row.team as Record<string, unknown> : null
+  const teamCode = normalizeCountryCode(
+    row.teamCode
+    ?? row.code
+    ?? row.team
+    ?? rawTeam?.country_code
+    ?? rawTeam?.abbreviation,
+  )
 
   if (!teamCode) {
     return null
   }
 
   const points = Number(row.points ?? row.pts ?? 0)
-  const diff = Number(row.diff ?? row.goalDiff ?? row.goalDifference ?? 0)
+  const diff = Number(row.diff ?? row.goalDiff ?? row.goalDifference ?? row.goal_difference ?? 0)
   const matches = Number(row.matches ?? row.played ?? row.games ?? 0)
 
   return {
@@ -172,16 +187,50 @@ const normalizeStandingRow = (row: Record<string, unknown>, group: string): Fifa
 const normalizeMatches = (payload: unknown): FifaWorldCupMatch[] => {
   return extractArrayPayload<Record<string, unknown>>(payload)
     .map((entry) => {
+      const homeTeam = entry.home_team && typeof entry.home_team === 'object' ? entry.home_team as Record<string, unknown> : null
+      const awayTeam = entry.away_team && typeof entry.away_team === 'object' ? entry.away_team as Record<string, unknown> : null
+      const group = entry.group && typeof entry.group === 'object' ? entry.group as Record<string, unknown> : null
+      const homeTeamSource = entry.home_team_source && typeof entry.home_team_source === 'object'
+        ? entry.home_team_source as Record<string, unknown>
+        : null
+      const awayTeamSource = entry.away_team_source && typeof entry.away_team_source === 'object'
+        ? entry.away_team_source as Record<string, unknown>
+        : null
       const datetime = typeof (entry.datetime ?? entry.date ?? entry.kickoffAt) === 'string'
         ? String(entry.datetime ?? entry.date ?? entry.kickoffAt)
         : ''
-      const teamA = normalizeCountryCode(entry.teamA ?? entry.homeTeam ?? entry.homeTeamCode)
-      const teamB = normalizeCountryCode(entry.teamB ?? entry.awayTeam ?? entry.awayTeamCode)
-      const group = normalizeGroupId(entry.group ?? entry.groupId ?? entry.pool)
+      const teamA = normalizeCountryCode(
+        entry.teamA
+        ?? entry.homeTeam
+        ?? entry.homeTeamCode
+        ?? homeTeam?.country_code
+        ?? homeTeam?.abbreviation
+        ?? homeTeamSource?.placeholder,
+      )
+      const teamB = normalizeCountryCode(
+        entry.teamB
+        ?? entry.awayTeam
+        ?? entry.awayTeamCode
+        ?? awayTeam?.country_code
+        ?? awayTeam?.abbreviation
+        ?? awayTeamSource?.placeholder,
+      )
+      const normalizedGroup = normalizeGroupId(
+        entry.group
+        ?? entry.groupId
+        ?? entry.pool
+        ?? group?.name
+        ?? '',
+      )
 
-      return { datetime, teamA, teamB, group }
+      return {
+        datetime,
+        teamA,
+        teamB,
+        group: normalizedGroup || 'KO',
+      }
     })
-    .filter(entry => Boolean(entry.datetime) && Boolean(entry.teamA) && Boolean(entry.teamB) && Boolean(entry.group))
+    .filter(entry => Boolean(entry.datetime) && Boolean(entry.teamA) && Boolean(entry.teamB))
     .sort((a, b) => a.datetime.localeCompare(b.datetime))
 }
 
