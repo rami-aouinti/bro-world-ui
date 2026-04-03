@@ -390,18 +390,6 @@ const sanitizedLiveStatus = (liveGamePanel: GameAsidePanelState) =>
       {{ sanitizedLiveStatus(liveGamePanel) }}
     </p>
 
-    <div v-if="liveGamePanel.actions?.length" class="d-flex flex-wrap ga-2">
-      <v-btn
-          v-for="action in liveGamePanel.actions"
-          :key="`panel-action-${action.id}`"
-          size="small"
-          variant="outlined"
-          :disabled="action.disabled"
-          @click="emit('action', action.id)"
-      >
-        {{ action.label }}
-      </v-btn>
-    </div>
   </div>
 
   <div v-else class="d-flex flex-column ga-3" :style="getAsideSurfaceStyle(selectedGame)">
