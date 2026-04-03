@@ -551,7 +551,7 @@ const handleLogin = async () => {
       {{ globalRestartAction.label }}
     </v-btn>
   </teleport>
-  <PlatformSplitLayout class="game-lobby-layout">
+  <PlatformSplitLayout>
     <template #sidebar>
       <div class="mb-4">
         <v-chip variant="outlined" prepend-icon="mdi-gamepad" class="mb-2">{{
@@ -1188,29 +1188,6 @@ const handleLogin = async () => {
 </template>
 
 <style scoped>
-.game-lobby-layout {
-  --game-lobby-title-font: inherit;
-  --game-lobby-surface-bg: linear-gradient(
-    160deg,
-    rgba(255, 255, 255, 0.08),
-    rgba(255, 255, 255, 0)
-  );
-  --game-lobby-surface-border: color-mix(in srgb, rgb(var(--v-theme-primary)) 20%, transparent);
-  --game-lobby-hover-lift: -2px;
-  --game-lobby-hover-shadow: 0 14px 28px rgba(15, 23, 42, 0.12);
-}
-
-:global(body.theme-gaming) .game-lobby-layout {
-  --game-lobby-title-font: "Orbitron", "Rajdhani", "Plus Jakarta Sans", system-ui, sans-serif;
-  --game-lobby-surface-bg:
-    radial-gradient(circle at top, rgba(0, 229, 255, 0.16), transparent 58%),
-    linear-gradient(145deg, rgba(11, 16, 34, 0.96), rgba(6, 8, 20, 0.94));
-  --game-lobby-surface-border: rgba(0, 229, 255, 0.45);
-  --game-lobby-hover-lift: -4px;
-  --game-lobby-hover-shadow:
-    0 0 0 1px rgba(0, 229, 255, 0.2),
-    0 0 24px rgba(139, 92, 246, 0.25);
-}
 
 .card-category-game {
   padding: 10px;
@@ -1232,8 +1209,8 @@ const handleLogin = async () => {
 .unified-shell,
 .unified-card {
   border-radius: 18px;
-  border: 1px solid var(--game-lobby-surface-border);
-  background: var(--game-lobby-surface-bg);
+  border: 1px solid var(--game-lobby-surface-border, color-mix(in srgb, rgb(var(--v-theme-primary)) 20%, transparent));
+  background: var(--game-lobby-surface-bg, linear-gradient(160deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)));
   box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
 }
 
@@ -1245,8 +1222,8 @@ const handleLogin = async () => {
 }
 
 .interactive-card:hover {
-  transform: translateY(var(--game-lobby-hover-lift));
-  box-shadow: var(--game-lobby-hover-shadow);
+  transform: translateY(var(--game-lobby-hover-lift, -2px));
+  box-shadow: var(--game-lobby-hover-shadow, 0 14px 28px rgba(15, 23, 42, 0.12));
 }
 
 .interactive-card:focus-within {
@@ -1256,7 +1233,7 @@ const handleLogin = async () => {
 }
 
 .page-title {
-  font-family: var(--game-lobby-title-font);
+  font-family: var(--game-lobby-title-font, inherit);
   font-size: clamp(1.6rem, 1.2rem + 1vw, 2.1rem);
   line-height: 1.2;
   font-weight: 800;
@@ -1265,7 +1242,7 @@ const handleLogin = async () => {
 }
 
 .section-title {
-  font-family: var(--game-lobby-title-font);
+  font-family: var(--game-lobby-title-font, inherit);
   font-size: clamp(1.1rem, 1rem + 0.4vw, 1.35rem);
   line-height: 1.3;
   font-weight: 700;
@@ -1344,8 +1321,8 @@ const handleLogin = async () => {
 }
 
 .mode-card:hover {
-  transform: translateY(var(--game-lobby-hover-lift));
-  box-shadow: var(--game-lobby-hover-shadow);
+  transform: translateY(var(--game-lobby-hover-lift, -2px));
+  box-shadow: var(--game-lobby-hover-shadow, 0 14px 28px rgba(15, 23, 42, 0.12));
 }
 
 .mode-card--active {
