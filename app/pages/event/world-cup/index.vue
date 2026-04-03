@@ -5,6 +5,7 @@ import type {
   FifaWorldCupStadium,
   FifaWorldCupTeam,
 } from '~/composables/fifa/useFifaWorldCup'
+import { useFifaWorldCup } from '~/composables/fifa/useFifaWorldCup'
 import { iso3ToIso2 } from '~/utils/countryCode'
 
 definePageMeta({
