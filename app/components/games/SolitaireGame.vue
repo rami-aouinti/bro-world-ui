@@ -155,9 +155,13 @@ defineExpose({
               :key="foundation.id"
               class="foundation-slot"
             >
-              <TransitionGroup name="solitaire-stack" tag="div" class="foundation-slot__cards">
+              <TransitionGroup
+                v-if="foundation.topCard"
+                name="solitaire-stack"
+                tag="div"
+                class="foundation-slot__cards"
+              >
                 <PlayingCard
-                  v-if="foundation.topCard"
                   :key="foundation.topCard.id"
                   :rank="foundation.topCard.rank"
                   :suit="foundation.topCard.suit"
