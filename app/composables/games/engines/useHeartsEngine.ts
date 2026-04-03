@@ -298,6 +298,7 @@ export const useHeartsEngine = () => {
     players,
     trick,
     turnIndex,
+    leaderIndex,
     heartsBroken,
     handNumber,
     message,

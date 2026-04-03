@@ -309,6 +309,7 @@ export const useSpadesEngine = () => {
     players,
     trick,
     turnIndex,
+    leaderIndex,
     handNumber,
     spadesBroken,
     message,
