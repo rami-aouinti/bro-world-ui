@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FifaWorldCupStanding, FifaWorldCupTeam } from '~/composables/fifa/useFifaWorldCup'
+import { iso3ToIso2 } from '~/utils/countryCode'
 
 definePageMeta({
   public: true,
@@ -68,16 +69,38 @@ const teamsByCode = computed(() => {
 
 const imageLoadErrorByCode = ref<Record<string, boolean>>({})
 
-const getFlagPath = (countryCode: string) => {
-  return `/images/flags/${countryCode}.svg`
+const getFlagCountryCode = (countryCode: string): string | null => {
+  return iso3ToIso2(countryCode)
+}
+
+const getFlagPath = (countryCode: string): string | null => {
+  const iso2Code = getFlagCountryCode(countryCode)
+
+  if (!iso2Code) {
+    return null
+  }
+
+  return `/images/flags/${iso2Code}.svg`
 }
 
 const isFlagUnavailable = (countryCode: string) => {
-  return !getFlagPath(countryCode) || imageLoadErrorByCode.value[countryCode] === true
+  const iso2Code = getFlagCountryCode(countryCode)
+
+  if (!iso2Code) {
+    return true
+  }
+
+  return imageLoadErrorByCode.value[iso2Code] === true
 }
 
 const markFlagAsUnavailable = (countryCode: string) => {
-  imageLoadErrorByCode.value[countryCode] = true
+  const iso2Code = getFlagCountryCode(countryCode)
+
+  if (!iso2Code) {
+    return
+  }
+
+  imageLoadErrorByCode.value[iso2Code] = true
 }
 
 const renderCountryCode = (countryCode: string) => countryCode.toUpperCase()
