@@ -238,7 +238,81 @@ const sortedUpcomingMatches = computed(() => {
   return [...upcomingMatches].sort((a, b) => a.datetime.localeCompare(b.datetime))
 })
 
-const flagPath = (code: string) => `/images/flags/${code}.svg`
+const FLAG_FILE_BY_COUNTRY_CODE: Record<string, string> = {
+  ae: 'ae.svg',
+  ar: 'ar.svg',
+  au: 'au.svg',
+  be: 'be.svg',
+  bo: 'bo.svg',
+  br: 'br.svg',
+  ca: 'ca.svg',
+  ci: 'ci.svg',
+  cl: 'cl.svg',
+  cm: 'cm.svg',
+  co: 'co.svg',
+  cr: 'cr.svg',
+  de: 'de.svg',
+  dk: 'dk.svg',
+  dz: 'dz.svg',
+  ec: 'ec.svg',
+  eg: 'eg.svg',
+  es: 'es.svg',
+  fr: 'fr.svg',
+  gb: 'gb.svg',
+  gh: 'gh.svg',
+  hr: 'hr.svg',
+  iq: 'iq.svg',
+  ir: 'ir.svg',
+  it: 'it.svg',
+  jp: 'jp.svg',
+  kr: 'kr.svg',
+  ma: 'ma.svg',
+  mx: 'mx.svg',
+  ng: 'ng.svg',
+  nl: 'nl.svg',
+  nz: 'nz.svg',
+  pe: 'pe.svg',
+  pl: 'pl.svg',
+  pt: 'pt.svg',
+  py: 'py.svg',
+  qa: 'qa.svg',
+  rs: 'rs.svg',
+  sa: 'sa.svg',
+  se: 'se.svg',
+  sn: 'sn.svg',
+  tn: 'tn.svg',
+  tr: 'tr.svg',
+  ua: 'ua.svg',
+  us: 'us.svg',
+  uy: 'uy.svg',
+  vi: 'vi.svg',
+  za: 'za.svg',
+}
+
+const imageLoadErrorByCode = ref<Record<string, boolean>>({})
+
+const getFlagPath = (countryCode: string) => {
+  const file = FLAG_FILE_BY_COUNTRY_CODE[countryCode]
+  return file ? `/images/flags/${file}` : null
+}
+
+const isFlagUnavailable = (countryCode: string) => {
+  return !getFlagPath(countryCode) || imageLoadErrorByCode.value[countryCode] === true
+}
+
+const markFlagAsUnavailable = (countryCode: string) => {
+  imageLoadErrorByCode.value[countryCode] = true
+}
+
+const renderCountryCode = (countryCode: string) => countryCode.toUpperCase()
+
+const missingFlagMappings = computed(() => {
+  return worldCupGroups.flatMap((group) =>
+    group.teams
+      .filter((team) => !FLAG_FILE_BY_COUNTRY_CODE[team.code])
+      .map((team) => team.code),
+  )
+})
 
 const getTeam = (code: string) => teamsByCode.value[code]
 
@@ -261,6 +335,15 @@ const formatMatchDate = (datetime: string) => {
           <h2 class="text-subtitle-1 font-weight-bold mb-0">Pays qualifiés</h2>
           <v-chip size="small" color="primary" variant="tonal">48</v-chip>
         </div>
+        <v-alert
+          v-if="missingFlagMappings.length"
+          density="compact"
+          type="warning"
+          variant="tonal"
+          class="mb-3"
+        >
+          Drapeaux manquants: {{ missingFlagMappings.join(', ').toUpperCase() }}
+        </v-alert>
 
         <div class="group-list">
           <section v-for="group in worldCupGroups" :key="group.id" class="group-section">
@@ -272,9 +355,21 @@ const formatMatchDate = (datetime: string) => {
             <v-list density="compact" class="pa-0 bg-transparent">
               <v-list-item v-for="team in group.teams" :key="team.code" class="px-0">
                 <template #prepend>
-                  <v-avatar size="24" rounded="sm" class="me-2">
-                    <v-img :src="flagPath(team.code)" :alt="`Drapeau ${team.name}`" cover />
-                  </v-avatar>
+                  <template v-if="!isFlagUnavailable(team.code)">
+                    <v-avatar size="24" rounded="sm" class="me-2">
+                      <v-img
+                        :src="getFlagPath(team.code)!"
+                        :alt="`Drapeau ${team.name}`"
+                        cover
+                        @error="markFlagAsUnavailable(team.code)"
+                      />
+                    </v-avatar>
+                  </template>
+                  <template v-else>
+                    <v-avatar size="24" rounded="sm" class="me-2 flag-fallback-avatar">
+                      <span class="flag-fallback-text">{{ renderCountryCode(team.code) }}</span>
+                    </v-avatar>
+                  </template>
                 </template>
 
                 <v-list-item-title class="text-body-2">{{ team.name }}</v-list-item-title>
@@ -306,9 +401,21 @@ const formatMatchDate = (datetime: string) => {
               <tr v-for="row in group.standings" :key="row.teamCode">
                 <td>
                   <div class="d-flex align-center ga-2">
-                    <v-avatar size="20" rounded="sm">
-                      <v-img :src="flagPath(row.teamCode)" :alt="`Drapeau ${getTeam(row.teamCode)?.name ?? row.teamCode}`" cover />
-                    </v-avatar>
+                    <template v-if="!isFlagUnavailable(row.teamCode)">
+                      <v-avatar size="20" rounded="sm">
+                        <v-img
+                          :src="getFlagPath(row.teamCode)!"
+                          :alt="`Drapeau ${getTeam(row.teamCode)?.name ?? row.teamCode}`"
+                          cover
+                          @error="markFlagAsUnavailable(row.teamCode)"
+                        />
+                      </v-avatar>
+                    </template>
+                    <template v-else>
+                      <v-avatar size="20" rounded="sm" class="flag-fallback-avatar">
+                        <span class="flag-fallback-text">{{ renderCountryCode(row.teamCode) }}</span>
+                      </v-avatar>
+                    </template>
                     <span>{{ getTeam(row.teamCode)?.name ?? row.teamCode }}</span>
                   </div>
                 </td>
@@ -364,5 +471,16 @@ const formatMatchDate = (datetime: string) => {
 
 .match-list :deep(.v-list-item + .v-list-item) {
   border-top: 1px solid rgba(var(--v-theme-on-surface), 0.08);
+}
+
+.flag-fallback-avatar {
+  background: rgba(var(--v-theme-primary), 0.16);
+  border: 1px solid rgba(var(--v-theme-primary), 0.32);
+}
+
+.flag-fallback-text {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 </style>
