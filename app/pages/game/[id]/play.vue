@@ -18,7 +18,6 @@ import Game2048 from "~/components/games/Game2048.vue";
 import UnoGame from "~/components/games/UnoGame.vue";
 import LudoGame from "~/components/games/LudoGame.vue";
 import FlappyRocketGame from "~/components/games/FlappyRocketGame.vue";
-import GameTableActions from "~/components/games/GameTableActions.vue";
 import type { GameAsidePanelState } from "~/components/games/types";
 import { useGameCatalogStore } from "~/stores/gameCatalog";
 import type { BeloteMode, GameEntry, PlayMode } from "~/types/game";
@@ -53,10 +52,6 @@ const isLoginDialogOpen = ref(false);
 const isCoinsDialogOpen = ref(false);
 const isPaymentSoonSnackbarOpen = ref(false);
 const paymentSoonSnackbarText = ref("");
-const activeGameComponentRef = ref<{
-  handleAsideAction?: (actionId: string) => void;
-  handleGameAction?: (actionId: string) => void;
-} | null>(null);
 const usernameOrEmail = ref("");
 const password = ref("");
 const loginLoading = ref(false);
@@ -271,13 +266,6 @@ const resetToCategories = () => router.push("/game");
 const backToSubCategories = () => router.push("/game");
 const backToGames = () => router.push("/game");
 const gameSurfaceFeedbackClass = visualFeedbackClass("game-surface");
-
-const onGameAction = (actionId: string) => {
-  activeGameComponentRef.value?.handleGameAction?.(actionId)
-    ?? activeGameComponentRef.value?.handleAsideAction?.(actionId);
-  playUiSound("confirm");
-  triggerVisualFeedback("game-surface", "pulse", 320);
-};
 
 const formatOfferPrice = (offer: (typeof coinOffers)[number]) =>
   typeof offer.priceEuro === "number"
@@ -549,16 +537,10 @@ onMounted(async () => {
     <div v-else-if="selectedComponent" :class="['game-surface-layout', gameSurfaceFeedbackClass]">
       <component
         :is="selectedComponent"
-        ref="activeGameComponentRef"
         :selected-play-mode="selectedPlayMode"
         :belote-mode="selectedBeloteMode"
         @panel-state="onGamePanelState"
         @game-finished="onGameFinished"
-      />
-      <GameTableActions
-        class="mt-4"
-        :actions="liveGamePanel?.actions ?? []"
-        @action="onGameAction"
       />
     </div>
 

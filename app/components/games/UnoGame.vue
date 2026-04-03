@@ -176,21 +176,24 @@ const panelState = computed<GameAsidePanelState>(() => ({
     `Couleur active: ${colorLabelMap[roundState.value.currentColor]}`,
     `Effet: ${activeEffectLabel.value}`,
   ],
-  actions: [
-    { id: "call-uno", label: "UNO", disabled: !canCallUno.value },
-    { id: "draw", label: "Piocher", disabled: !canLocalDraw.value },
-    {
-      id: primaryRoundAction.value.id,
-      label: primaryRoundAction.value.label,
-      disabled: !canRestartRound.value,
-    },
-    {
-      id: "choose-color-auto",
-      label: "Couleur auto",
-      disabled: !canResolveColorChoice.value,
-    },
-  ],
 }));
+
+const tableActions = computed(() => [
+  { id: "draw", label: "Piocher", disabled: !canLocalDraw.value, icon: "mdi-cards-playing-outline" },
+  { id: "call-uno", label: "UNO", disabled: !canCallUno.value, icon: "mdi-bullhorn" },
+  {
+    id: primaryRoundAction.value.id,
+    label: primaryRoundAction.value.label,
+    disabled: !canRestartRound.value,
+    icon: "mdi-refresh",
+  },
+  {
+    id: "choose-color-auto",
+    label: "Couleur auto",
+    disabled: !canResolveColorChoice.value,
+    icon: "mdi-palette-outline",
+  },
+]);
 
 const cardValueLabel = (value: UnoCard["value"]) => {
   if (value === "draw-two") return "+2";
@@ -516,23 +519,18 @@ defineExpose({
           </button>
         </TransitionGroup>
 
-        <div class="uno-local-hand__actions">
+        <div class="table-actions">
           <v-btn
-              color="primary"
-              prepend-icon="mdi-cards-playing-outline"
-              :disabled="!canLocalDraw"
-              @click="handleDrawCard"
+            v-for="action in tableActions"
+            :key="`uno-action-${action.id}`"
+            size="small"
+            color="primary"
+            :variant="action.id === 'call-uno' ? 'outlined' : 'flat'"
+            :prepend-icon="action.icon"
+            :disabled="action.disabled"
+            @click="handleAsideAction(action.id)"
           >
-            Piocher
-          </v-btn>
-          <v-btn
-              color="error"
-              variant="outlined"
-              prepend-icon="mdi-bullhorn"
-              :disabled="!canCallUno"
-              @click="handleCallUno"
-          >
-            UNO
+            {{ action.label }}
           </v-btn>
           <v-switch
               v-model="autoUnoEnabled"
@@ -666,7 +664,7 @@ defineExpose({
   gap: 8px;
 }
 
-.uno-local-hand__actions {
+.table-actions {
   display: flex;
   justify-content: center;
   align-items: center;

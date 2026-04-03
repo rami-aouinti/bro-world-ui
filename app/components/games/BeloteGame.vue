@@ -246,9 +246,6 @@ const panelState = computed<GameAsidePanelState>(() => ({
       ? `${t("gameComponents.belote.contract")}: ${players.value[contract.value.takerIndex]?.name} · ${contract.value.trumpSuit}`
       : t("gameComponents.belote.actions.newDeal"),
   ],
-  actions: [
-    { id: "new-deal", label: t("gameComponents.belote.actions.newDeal") },
-  ],
 }));
 
 watchEffect(() => {
@@ -338,6 +335,16 @@ defineExpose({
           "
           @play-card="handlePlayCard"
         />
+        <div class="table-actions">
+          <v-btn
+            size="small"
+            color="primary"
+            prepend-icon="mdi-cards"
+            @click="handleAsideAction('new-deal')"
+          >
+            {{ t("gameComponents.belote.actions.newDeal") }}
+          </v-btn>
+        </div>
       </section>
     </template>
 
@@ -503,6 +510,12 @@ defineExpose({
 .belote-seat-hand {
   width: min(520px, calc(100% - 24px));
   margin: 0 auto;
+}
+
+.table-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
 }
 
 .belote-seat-hand__title {

@@ -177,38 +177,36 @@ const panelState = computed<GameAsidePanelState>(() => ({
       variant: "tonal",
     },
   ],
-  actions: [
-    {
-      id: "fold",
-      label: t("gameComponents.poker.actions.fold"),
-      disabled: !isHumanTurn.value || street.value === "hand-over",
-    },
-    {
-      id: "check",
-      label: t("gameComponents.poker.actions.check"),
-      disabled:
-        !isHumanTurn.value || !canCheck.value || street.value === "hand-over",
-    },
-    {
-      id: "call",
-      label:
-        `${t("gameComponents.poker.actions.call")} ${canCall.value ? `(${playerCallAmount.value})` : ""}`.trim(),
-      disabled:
-        !isHumanTurn.value || !canCall.value || street.value === "hand-over",
-    },
-    {
-      id: "raise",
-      label: t("gameComponents.poker.actions.raise"),
-      disabled:
-        !isHumanTurn.value || !canRaise.value || street.value === "hand-over",
-    },
-    {
-      id: "next-hand",
-      label: t("gameComponents.poker.actions.nextHand"),
-      disabled: street.value !== "hand-over",
-    },
-  ],
 }));
+
+const tableActions = computed(() => [
+  {
+    id: "fold",
+    label: t("gameComponents.poker.actions.fold"),
+    disabled: !isHumanTurn.value || street.value === "hand-over",
+  },
+  {
+    id: "check",
+    label: t("gameComponents.poker.actions.check"),
+    disabled: !isHumanTurn.value || !canCheck.value || street.value === "hand-over",
+  },
+  {
+    id: "call",
+    label:
+      `${t("gameComponents.poker.actions.call")} ${canCall.value ? `(${playerCallAmount.value})` : ""}`.trim(),
+    disabled: !isHumanTurn.value || !canCall.value || street.value === "hand-over",
+  },
+  {
+    id: "raise",
+    label: t("gameComponents.poker.actions.raise"),
+    disabled: !isHumanTurn.value || !canRaise.value || street.value === "hand-over",
+  },
+  {
+    id: "next-hand",
+    label: t("gameComponents.poker.actions.nextHand"),
+    disabled: street.value !== "hand-over",
+  },
+]);
 
 watchEffect(() => {
   emit("panel-state", panelState.value);
@@ -505,6 +503,19 @@ onBeforeUnmount(() => {
           {{ t("gameComponents.poker.yourCards") }} ·
           {{ humanPlayer?.stack ?? 0 }}
         </p>
+        <div class="table-actions">
+          <v-btn
+            v-for="action in tableActions"
+            :key="`poker-action-${action.id}`"
+            size="small"
+            color="primary"
+            variant="outlined"
+            :disabled="action.disabled"
+            @click="handleAsideAction(action.id)"
+          >
+            {{ action.label }}
+          </v-btn>
+        </div>
         <div class="board-row board-row--center">
             <span
                 v-for="card in humanPlayer?.hand ?? []"
@@ -727,6 +738,14 @@ onBeforeUnmount(() => {
 
 .seat-hand--player {
   width: min(100%, 620px);
+}
+
+.table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 8px;
 }
 
 .seat-hand--side {
