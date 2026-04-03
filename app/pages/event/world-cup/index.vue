@@ -37,62 +37,10 @@ const teamsByCode = computed(() => {
   }, {})
 })
 
-const FLAG_FILE_BY_COUNTRY_CODE: Record<string, string> = {
-  ae: 'ae.svg',
-  ar: 'ar.svg',
-  au: 'au.svg',
-  be: 'be.svg',
-  bo: 'bo.svg',
-  br: 'br.svg',
-  ca: 'ca.svg',
-  ci: 'ci.svg',
-  cl: 'cl.svg',
-  cm: 'cm.svg',
-  co: 'co.svg',
-  cr: 'cr.svg',
-  de: 'de.svg',
-  dk: 'dk.svg',
-  dz: 'dz.svg',
-  ec: 'ec.svg',
-  eg: 'eg.svg',
-  es: 'es.svg',
-  fr: 'fr.svg',
-  gb: 'gb.svg',
-  gh: 'gh.svg',
-  hr: 'hr.svg',
-  iq: 'iq.svg',
-  ir: 'ir.svg',
-  it: 'it.svg',
-  jp: 'jp.svg',
-  kr: 'kr.svg',
-  ma: 'ma.svg',
-  mx: 'mx.svg',
-  ng: 'ng.svg',
-  nl: 'nl.svg',
-  nz: 'nz.svg',
-  pe: 'pe.svg',
-  pl: 'pl.svg',
-  pt: 'pt.svg',
-  py: 'py.svg',
-  qa: 'qa.svg',
-  rs: 'rs.svg',
-  sa: 'sa.svg',
-  se: 'se.svg',
-  sn: 'sn.svg',
-  tn: 'tn.svg',
-  tr: 'tr.svg',
-  ua: 'ua.svg',
-  us: 'us.svg',
-  uy: 'uy.svg',
-  vi: 'vi.svg',
-  za: 'za.svg',
-}
-
 const imageLoadErrorByCode = ref<Record<string, boolean>>({})
 
 const getFlagPath = (countryCode: string) => {
-  const file = FLAG_FILE_BY_COUNTRY_CODE[countryCode]
-  return file ? `/images/flags/${file}` : null
+  return `/images/flags/${countryCode}.svg`
 }
 
 const isFlagUnavailable = (countryCode: string) => {
@@ -104,14 +52,6 @@ const markFlagAsUnavailable = (countryCode: string) => {
 }
 
 const renderCountryCode = (countryCode: string) => countryCode.toUpperCase()
-
-const missingFlagMappings = computed(() => {
-  return groupsWithStandings.value.flatMap((group) =>
-    group.teams
-      .filter((team) => !FLAG_FILE_BY_COUNTRY_CODE[team.code])
-      .map((team) => team.code),
-  )
-})
 
 const getTeam = (code: string) => teamsByCode.value[code]
 
@@ -133,15 +73,6 @@ const formatMatchDate = (datetime: string) => {
         <h2 class="text-subtitle-1 font-weight-bold mb-0">Pays qualifiés</h2>
         <v-chip size="small" color="primary" variant="tonal">48</v-chip>
       </div>
-      <v-alert
-          v-if="missingFlagMappings.length"
-          density="compact"
-          type="warning"
-          variant="tonal"
-          class="mb-3"
-      >
-        Drapeaux manquants: {{ missingFlagMappings.join(', ').toUpperCase() }}
-      </v-alert>
       <div class="group-list">
         <section v-for="group in groupsWithStandings" :key="group.id" class="group-section">
           <div class="d-flex align-center justify-space-between mb-2">
