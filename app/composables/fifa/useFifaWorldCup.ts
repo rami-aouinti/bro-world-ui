@@ -1,27 +1,10 @@
 import {
   worldCupGroups,
-  worldCupStandings,
-  worldCupUpcomingMatches,
 } from '~/data/world-cup'
 
 export type FifaWorldCupTeam = {
   code: string
   name: string
-  group: string
-}
-
-export type FifaWorldCupStanding = {
-  group: string
-  teamCode: string
-  points: number
-  diff: number
-  matches: number
-}
-
-export type FifaWorldCupMatch = {
-  datetime: string
-  teamA: string
-  teamB: string
   group: string
 }
 
@@ -36,8 +19,6 @@ export type FifaWorldCupStadium = {
 const WORLD_CUP_ENDPOINTS = {
   teams: '/api/fifa/teams',
   stadiums: '/api/fifa/stadiums',
-  standings: '/api/fifa/standings',
-  matches: '/api/fifa/matches',
 } as const
 
 const extractArrayPayload = <T>(input: unknown): T[] => {
@@ -73,21 +54,28 @@ const normalizeGroupId = (value: unknown): string => {
     return ''
   }
 
-  return value.trim().toUpperCase()
+  return value.trim().toUpperCase().replace(/^GROUP\s+/, '')
 }
 
 const normalizeTeams = (payload: unknown): FifaWorldCupTeam[] => {
   return extractArrayPayload<Record<string, unknown>>(payload)
     .map((entry) => {
-      const code = normalizeCountryCode(entry.code ?? entry.teamCode ?? entry.fifaCode ?? entry.countryCode)
+      const code = normalizeCountryCode(
+        entry.code
+        ?? entry.teamCode
+        ?? entry.fifaCode
+        ?? entry.countryCode
+        ?? entry.country_code
+        ?? entry.abbreviation,
+      )
       const name = typeof (entry.name ?? entry.teamName ?? entry.countryName) === 'string'
         ? String(entry.name ?? entry.teamName ?? entry.countryName).trim()
         : ''
-      const group = normalizeGroupId(entry.group ?? entry.groupId ?? entry.pool)
+      const group = normalizeGroupId(entry.group ?? entry.groupId ?? entry.pool ?? '')
 
       return { code, name, group }
     })
-    .filter(entry => Boolean(entry.code) && Boolean(entry.name) && Boolean(entry.group))
+    .filter(entry => Boolean(entry.code) && Boolean(entry.name))
 }
 
 const normalizeStadiums = (payload: unknown): FifaWorldCupStadium[] => {
@@ -109,95 +97,8 @@ const normalizeStadiums = (payload: unknown): FifaWorldCupStadium[] => {
     .filter(entry => Boolean(entry.name))
 }
 
-const normalizeStandings = (payload: unknown): Record<string, FifaWorldCupStanding[]> => {
-  if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
-    const data = payload as Record<string, unknown>
-    const groups = Object.entries(data)
-      .filter(([key, value]) => key !== 'data' && key !== 'items' && Array.isArray(value))
-
-    if (groups.length) {
-      return groups.reduce<Record<string, FifaWorldCupStanding[]>>((acc, [group, rows]) => {
-        const groupId = normalizeGroupId(group)
-        acc[groupId] = normalizeStandingsRows(rows, groupId)
-        return acc
-      }, {})
-    }
-  }
-
-  const entries = extractArrayPayload<Record<string, unknown>>(payload)
-  return entries.reduce<Record<string, FifaWorldCupStanding[]>>((acc, row) => {
-    const group = normalizeGroupId(row.group ?? row.groupId ?? row.pool)
-
-    if (!group) {
-      return acc
-    }
-
-    const normalizedRow = normalizeStandingRow(row, group)
-
-    if (!normalizedRow) {
-      return acc
-    }
-
-    acc[group] = [...(acc[group] ?? []), normalizedRow]
-    return acc
-  }, {})
-}
-
-const normalizeStandingsRows = (rows: unknown, group: string): FifaWorldCupStanding[] => {
-  return extractArrayPayload<Record<string, unknown>>(rows)
-    .map(row => normalizeStandingRow(row, group))
-    .filter((row): row is FifaWorldCupStanding => row !== null)
-}
-
-const normalizeStandingRow = (row: Record<string, unknown>, group: string): FifaWorldCupStanding | null => {
-  const teamCode = normalizeCountryCode(row.teamCode ?? row.code ?? row.team)
-
-  if (!teamCode) {
-    return null
-  }
-
-  const points = Number(row.points ?? row.pts ?? 0)
-  const diff = Number(row.diff ?? row.goalDiff ?? row.goalDifference ?? 0)
-  const matches = Number(row.matches ?? row.played ?? row.games ?? 0)
-
-  return {
-    group,
-    teamCode,
-    points: Number.isFinite(points) ? points : 0,
-    diff: Number.isFinite(diff) ? diff : 0,
-    matches: Number.isFinite(matches) ? matches : 0,
-  }
-}
-
-const normalizeMatches = (payload: unknown): FifaWorldCupMatch[] => {
-  return extractArrayPayload<Record<string, unknown>>(payload)
-    .map((entry) => {
-      const datetime = typeof (entry.datetime ?? entry.date ?? entry.kickoffAt) === 'string'
-        ? String(entry.datetime ?? entry.date ?? entry.kickoffAt)
-        : ''
-      const teamA = normalizeCountryCode(entry.teamA ?? entry.homeTeam ?? entry.homeTeamCode)
-      const teamB = normalizeCountryCode(entry.teamB ?? entry.awayTeam ?? entry.awayTeamCode)
-      const group = normalizeGroupId(entry.group ?? entry.groupId ?? entry.pool)
-
-      return { datetime, teamA, teamB, group }
-    })
-    .filter(entry => Boolean(entry.datetime) && Boolean(entry.teamA) && Boolean(entry.teamB) && Boolean(entry.group))
-    .sort((a, b) => a.datetime.localeCompare(b.datetime))
-}
-
 const fallbackTeams = (): FifaWorldCupTeam[] => {
   return Object.entries(worldCupGroups).flatMap(([group, teams]) => teams.map(team => ({ ...team, group })))
-}
-
-const fallbackStandings = (): Record<string, FifaWorldCupStanding[]> => {
-  return Object.entries(worldCupStandings).reduce<Record<string, FifaWorldCupStanding[]>>((acc, [group, rows]) => {
-    acc[group] = rows.map(row => ({ group, ...row }))
-    return acc
-  }, {})
-}
-
-const fallbackMatches = (): FifaWorldCupMatch[] => {
-  return worldCupUpcomingMatches.map(match => ({ ...match }))
 }
 
 const fallbackStadiums = (): FifaWorldCupStadium[] => []
@@ -205,12 +106,18 @@ const fallbackStadiums = (): FifaWorldCupStadium[] => []
 const shouldUseFallbackOnly = (): boolean => {
   const runtimeConfig = useRuntimeConfig()
   const publicConfig = runtimeConfig.public as Record<string, unknown>
+  const worldCupFallback = publicConfig.worldCupUseLocalFallback
 
-  return publicConfig.useMockData === true || publicConfig.worldCupUseLocalFallback === true
+  if (typeof worldCupFallback === 'boolean') {
+    return worldCupFallback
+  }
+
+  return publicConfig.useMockData === true
 }
 
 type FetchOptions = {
   fallbackOnError?: boolean
+  bypassCache?: boolean
 }
 
 const fetchAndNormalize = async <T>(
@@ -224,7 +131,9 @@ const fetchAndNormalize = async <T>(
   }
 
   try {
-    const payload = await $fetch<unknown>(endpoint)
+    const payload = await $fetch<unknown>(endpoint, {
+      headers: options.bypassCache ? { 'x-fifa-refresh': '1' } : undefined,
+    })
     const normalized = normalize(payload)
     return normalized
   }
@@ -240,13 +149,9 @@ const fetchAndNormalize = async <T>(
 export const useFifaWorldCup = () => {
   const getTeams = (options?: FetchOptions) => fetchAndNormalize(WORLD_CUP_ENDPOINTS.teams, normalizeTeams, fallbackTeams, options)
   const getStadiums = (options?: FetchOptions) => fetchAndNormalize(WORLD_CUP_ENDPOINTS.stadiums, normalizeStadiums, fallbackStadiums, options)
-  const getGroupStandings = (options?: FetchOptions) => fetchAndNormalize(WORLD_CUP_ENDPOINTS.standings, normalizeStandings, fallbackStandings, options)
-  const getMatches = (options?: FetchOptions) => fetchAndNormalize(WORLD_CUP_ENDPOINTS.matches, normalizeMatches, fallbackMatches, options)
 
   return {
     getTeams,
     getStadiums,
-    getGroupStandings,
-    getMatches,
   }
 }
