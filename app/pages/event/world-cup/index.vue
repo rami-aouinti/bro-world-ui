@@ -1,10 +1,5 @@
 <script setup lang="ts">
-import {
-  worldCupGroups,
-  worldCupStandings,
-  worldCupUpcomingMatches,
-  type WorldCupCountry,
-} from '~/data/world-cup'
+import type { FifaWorldCupStanding, FifaWorldCupTeam } from '~/composables/fifa/useFifaWorldCup'
 
 definePageMeta({
   public: true,
@@ -15,24 +10,58 @@ definePageMeta({
 
 type WorldCupGroup = {
   id: string
-  teams: WorldCupCountry[]
-  standings: (typeof worldCupStandings)[string]
+  teams: FifaWorldCupTeam[]
+  standings: FifaWorldCupStanding[]
 }
 
-const groupsWithStandings = computed<WorldCupGroup[]>(() => {
-  return Object.entries(worldCupGroups).map(([id, teams]) => ({
-    id,
+const { getTeams, getStadiums, getGroupStandings, getMatches } = useFifaWorldCup()
+
+const { data: worldCupData } = await useAsyncData('fifa-world-cup-data', async () => {
+  const [teams, stadiums, standingsByGroup, matches] = await Promise.all([
+    getTeams(),
+    getStadiums(),
+    getGroupStandings(),
+    getMatches(),
+  ])
+
+  return {
     teams,
-    standings: worldCupStandings[id] ?? [],
-  }))
+    stadiums,
+    standingsByGroup,
+    matches,
+  }
+}, {
+  default: () => ({
+    teams: [],
+    stadiums: [],
+    standingsByGroup: {},
+    matches: [],
+  }),
+})
+
+const groupsWithStandings = computed<WorldCupGroup[]>(() => {
+  const groupedTeams = worldCupData.value.teams.reduce<Record<string, FifaWorldCupTeam[]>>((lookup, team) => {
+    lookup[team.group] = [...(lookup[team.group] ?? []), team]
+    return lookup
+  }, {})
+
+  const availableGroups = new Set([
+    ...Object.keys(groupedTeams),
+    ...Object.keys(worldCupData.value.standingsByGroup),
+  ])
+
+  return [...availableGroups]
+    .sort((a, b) => a.localeCompare(b))
+    .map(groupId => ({
+      id: groupId,
+      teams: groupedTeams[groupId] ?? [],
+      standings: worldCupData.value.standingsByGroup[groupId] ?? [],
+    }))
 })
 
 const teamsByCode = computed(() => {
-  return groupsWithStandings.value.reduce<Record<string, WorldCupCountry>>((lookup, group) => {
-    group.teams.forEach((team) => {
-      lookup[team.code] = team
-    })
-
+  return worldCupData.value.teams.reduce<Record<string, FifaWorldCupTeam>>((lookup, team) => {
+    lookup[team.code] = team
     return lookup
   }, {})
 })
@@ -71,7 +100,7 @@ const formatMatchDate = (datetime: string) => {
     <template #layout-sidebar>
       <div class="d-flex align-center justify-space-between mb-3">
         <h2 class="text-subtitle-1 font-weight-bold mb-0">Pays qualifiés</h2>
-        <v-chip size="small" color="primary" variant="tonal">48</v-chip>
+        <v-chip size="small" color="primary" variant="tonal">{{ worldCupData.teams.length }}</v-chip>
       </div>
       <div class="group-list">
         <section v-for="group in groupsWithStandings" :key="group.id" class="group-section">
@@ -109,11 +138,11 @@ const formatMatchDate = (datetime: string) => {
     <template #layout-aside>
       <div class="d-flex align-center justify-space-between mb-3">
         <h2 class="text-subtitle-1 font-weight-bold mb-0">Premiers matchs à jouer</h2>
-        <v-chip size="small" color="primary" variant="tonal">{{ worldCupUpcomingMatches.length }}</v-chip>
+        <v-chip size="small" color="primary" variant="tonal">{{ worldCupData.matches.length }}</v-chip>
       </div>
 
       <v-list class="pa-0 bg-transparent match-list" lines="two">
-        <v-list-item v-for="match in worldCupUpcomingMatches" :key="`${match.group}-${match.datetime}`" class="px-0">
+        <v-list-item v-for="match in worldCupData.matches" :key="`${match.group}-${match.datetime}`" class="px-0">
           <v-list-item-title class="d-flex align-center justify-space-between ga-2">
             <span>{{ getTeam(match.teamA)?.name ?? match.teamA }} vs {{ getTeam(match.teamB)?.name ?? match.teamB }}</span>
             <v-chip size="x-small" color="primary" variant="outlined">Groupe {{ match.group }}</v-chip>
