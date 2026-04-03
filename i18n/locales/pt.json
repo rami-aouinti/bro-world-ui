@@ -26,7 +26,9 @@
       "register": "Cadastro",
       "blog": "Blog",
       "quiz": "Quiz",
-      "game": "Jogo"
+      "game": "Jogo",
+      "event": "Eventos",
+      "worldCup": "Copa do Mundo"
     },
     "common": {
       "showAll": "Ver tudo"

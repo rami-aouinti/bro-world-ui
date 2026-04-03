@@ -1,11 +1,6 @@
 <script setup lang="ts">
-import type {
-  FifaWorldCupMatch,
-  FifaWorldCupStanding,
-  FifaWorldCupStadium,
-  FifaWorldCupTeam,
-} from '~/composables/fifa/useFifaWorldCup'
-import { useFifaWorldCup } from '~/composables/fifa/useFifaWorldCup'
+import { storeToRefs } from 'pinia'
+import type { FifaWorldCupTeam } from '~/composables/fifa/useFifaWorldCup'
 import { iso3ToIso2 } from '~/utils/countryCode'
 
 definePageMeta({
@@ -15,49 +10,31 @@ definePageMeta({
   skeleton: 'card-grid',
 })
 
-const { getTeams, getStadiums, getGroupStandings, getMatches } = useFifaWorldCup()
 const { t, locale } = useI18n()
 const { smAndDown } = useDisplay()
-
+const fifaWorldCupStore = useFifaWorldCupStore()
 const {
-  data: teams,
-  pending: teamsLoading,
-  error: teamsError,
-  refresh: refreshTeams,
-} = useAsyncData<FifaWorldCupTeam[]>('fifa-world-cup-teams', () => getTeams({ fallbackOnError: false }), {
-  default: () => [],
-})
+  teams,
+  stadiums,
+  standingsByGroup,
+  matches,
+  loading,
+  error,
+  lastUpdatedAt,
+} = storeToRefs(fifaWorldCupStore)
 
-const {
-  data: stadiums,
-  pending: stadiumsLoading,
-  error: stadiumsError,
-  refresh: refreshStadiums,
-} = useAsyncData<FifaWorldCupStadium[]>('fifa-world-cup-stadiums', () => getStadiums({ fallbackOnError: false }), {
-  default: () => [],
-})
-
-const {
-  data: standingsByGroup,
-  pending: standingsLoading,
-  error: standingsError,
-  refresh: refreshStandings,
-} = useAsyncData<Record<string, FifaWorldCupStanding[]>>(
-  'fifa-world-cup-standings',
-  () => getGroupStandings({ fallbackOnError: false }),
-  {
-    default: () => ({}),
-  },
-)
-
-const {
-  data: matches,
-  pending: matchesLoading,
-  error: matchesError,
-  refresh: refreshMatches,
-} = useAsyncData<FifaWorldCupMatch[]>('fifa-world-cup-matches', () => getMatches({ fallbackOnError: false }), {
-  default: () => [],
-})
+const teamsLoading = computed(() => loading.value.teams)
+const stadiumsLoading = computed(() => loading.value.stadiums)
+const standingsLoading = computed(() => loading.value.standings)
+const matchesLoading = computed(() => loading.value.matches)
+const teamsError = computed(() => error.value.teams)
+const stadiumsError = computed(() => error.value.stadiums)
+const standingsError = computed(() => error.value.standings)
+const matchesError = computed(() => error.value.matches)
+const refreshTeams = () => fifaWorldCupStore.fetchTeams(true)
+const refreshStadiums = () => fifaWorldCupStore.fetchStadiums(true)
+const refreshStandings = () => fifaWorldCupStore.fetchStandings(true)
+const refreshMatches = () => fifaWorldCupStore.fetchMatches(true)
 
 const teamsByCode = computed(() => {
   return teams.value.reduce<Record<string, FifaWorldCupTeam>>((lookup, team) => {
@@ -247,9 +224,12 @@ const refreshMatchesData = async (isManual = false) => {
     manualMatchesRefreshPending.value = true
   }
 
-  await Promise.all([refreshMatches(), refreshTeams()])
-  matchesLastUpdatedAt.value = new Date()
-  manualMatchesRefreshPending.value = false
+  try {
+    await Promise.all([refreshMatches(), refreshTeams()])
+    matchesLastUpdatedAt.value = new Date()
+  } finally {
+    manualMatchesRefreshPending.value = false
+  }
 }
 
 watch([matches, teams], () => {
@@ -259,6 +239,10 @@ watch([matches, teams], () => {
 })
 
 onMounted(() => {
+  void fifaWorldCupStore.fetchAll()
+  if (lastUpdatedAt.value.matches) {
+    matchesLastUpdatedAt.value = new Date(lastUpdatedAt.value.matches)
+  }
   matchesPollingInterval = setInterval(() => refreshMatchesData(), 60000)
 })
 

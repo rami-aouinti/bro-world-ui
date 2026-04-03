@@ -26,7 +26,9 @@
       "register": "Register",
       "blog": "Blog",
       "quiz": "Quiz",
-      "game": "Game"
+      "game": "Game",
+      "event": "Event",
+      "worldCup": "World Cup"
     },
     "common": {
       "showAll": "View all"
