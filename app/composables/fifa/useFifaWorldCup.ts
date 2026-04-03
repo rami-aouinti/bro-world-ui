@@ -34,10 +34,10 @@ export type FifaWorldCupStadium = {
 }
 
 const WORLD_CUP_ENDPOINTS = {
-  teams: '/api/v1/public/fifa/world-cup/teams',
-  stadiums: '/api/v1/public/fifa/world-cup/stadiums',
-  standings: '/api/v1/public/fifa/world-cup/standings',
-  matches: '/api/v1/public/fifa/world-cup/matches',
+  teams: '/api/fifa/teams',
+  stadiums: '/api/fifa/stadiums',
+  standings: '/api/fifa/standings',
+  matches: '/api/fifa/matches',
 } as const
 
 const extractArrayPayload = <T>(input: unknown): T[] => {

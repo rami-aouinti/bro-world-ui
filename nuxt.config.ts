@@ -214,6 +214,10 @@ export default defineNuxtConfig({
     cacheVersion: process.env.CACHE_VERSION || 'v1',
     aiGatewayApiKey: process.env.AI_GATEWAY_API_KEY || '',
     aiGatewayModel: process.env.AI_GATEWAY_MODEL || 'openai/gpt-4o-mini',
+    fifa: {
+      apiBase: process.env.FIFA_API_BASE || '',
+      apiKey: process.env.FIFA_API_KEY || '',
+    },
     session: {
       name: 'nuxt-session',
       password: sessionPassword,
