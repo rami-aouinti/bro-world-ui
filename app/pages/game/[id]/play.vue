@@ -18,6 +18,7 @@ import Game2048 from "~/components/games/Game2048.vue";
 import UnoGame from "~/components/games/UnoGame.vue";
 import LudoGame from "~/components/games/LudoGame.vue";
 import FlappyRocketGame from "~/components/games/FlappyRocketGame.vue";
+import GameTableActions from "~/components/games/GameTableActions.vue";
 import type { GameAsidePanelState } from "~/components/games/types";
 import { useGameCatalogStore } from "~/stores/gameCatalog";
 import type { BeloteMode, GameEntry, PlayMode } from "~/types/game";
@@ -52,7 +53,10 @@ const isLoginDialogOpen = ref(false);
 const isCoinsDialogOpen = ref(false);
 const isPaymentSoonSnackbarOpen = ref(false);
 const paymentSoonSnackbarText = ref("");
-const activeGameComponentRef = ref<{ handleAsideAction?: (actionId: string) => void } | null>(null);
+const activeGameComponentRef = ref<{
+  handleAsideAction?: (actionId: string) => void;
+  handleGameAction?: (actionId: string) => void;
+} | null>(null);
 const usernameOrEmail = ref("");
 const password = ref("");
 const loginLoading = ref(false);
@@ -268,8 +272,9 @@ const backToSubCategories = () => router.push("/game");
 const backToGames = () => router.push("/game");
 const gameSurfaceFeedbackClass = visualFeedbackClass("game-surface");
 
-const onAsideAction = (actionId: string) => {
-  activeGameComponentRef.value?.handleAsideAction?.(actionId);
+const onGameAction = (actionId: string) => {
+  activeGameComponentRef.value?.handleGameAction?.(actionId)
+    ?? activeGameComponentRef.value?.handleAsideAction?.(actionId);
   playUiSound("confirm");
   triggerVisualFeedback("game-surface", "pulse", 320);
 };
@@ -516,7 +521,6 @@ onMounted(async () => {
         :is-game-started="true"
         :game-panel-state="gamePanelState"
         :live-game-panel="liveGamePanel"
-        @action="onAsideAction"
       />
 
     </template>
@@ -542,7 +546,7 @@ onMounted(async () => {
       </v-btn>
     </div>
 
-    <div v-else-if="selectedComponent" :class="gameSurfaceFeedbackClass">
+    <div v-else-if="selectedComponent" :class="['game-surface-layout', gameSurfaceFeedbackClass]">
       <component
         :is="selectedComponent"
         ref="activeGameComponentRef"
@@ -550,6 +554,11 @@ onMounted(async () => {
         :belote-mode="selectedBeloteMode"
         @panel-state="onGamePanelState"
         @game-finished="onGameFinished"
+      />
+      <GameTableActions
+        class="mt-4"
+        :actions="liveGamePanel?.actions ?? []"
+        @action="onGameAction"
       />
     </div>
 
@@ -604,6 +613,25 @@ onMounted(async () => {
 
 .game-feedback--glow {
   animation: game-feedback-glow 620ms ease-in-out;
+}
+
+.game-surface-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.game-surface-layout :deep(.game-table-actions .v-btn:focus-visible) {
+  outline: 2px solid rgba(var(--v-theme-primary), 0.9);
+  outline-offset: 2px;
+}
+
+@media (max-width: 960px) {
+  .game-surface-layout {
+    gap: 0.5rem;
+  }
 }
 
 @keyframes game-feedback-pulse {
