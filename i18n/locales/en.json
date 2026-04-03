@@ -2012,6 +2012,14 @@
       }
     }
   },
+  "gameCatalog": {
+    "games": {
+      "ludo": {
+        "name": "Ludo",
+        "description": "Race your pawns home with dice rolls and tactical captures."
+      }
+    }
+  },
   "gameComponents": {
     "belote": {
       "title": "Belote (quick mode)",
@@ -2356,6 +2364,55 @@
       "tricksWon": "Tricks won",
       "currentTrick": "Current trick",
       "statusHandOver": "Hand complete"
+    },
+    "ludo": {
+      "title": "Ludo",
+      "currentPlayer": "Current player: {player}",
+      "phase": {
+        "local": "Local match",
+        "finished": "Game finished"
+      },
+      "modes": {
+        "vsAi": "vs AI",
+        "playerVsPlayer": "Player vs player"
+      },
+      "actions": {
+        "rollDice": "Roll dice",
+        "restart": "Restart"
+      },
+      "kpi": {
+        "dice": "Dice",
+        "redRemaining": "Red remaining",
+        "blueRemaining": "Blue remaining"
+      },
+      "highlights": {
+        "mode": "Mode: {mode}",
+        "diceCurrent": "Current dice: {dice}",
+        "diceWaiting": "Dice pending"
+      },
+      "pawn": {
+        "base": "Base",
+        "arrived": "Arrived",
+        "cell": "Cell {count}"
+      },
+      "players": {
+        "red": "Red",
+        "blue": "Blue"
+      },
+      "messages": {
+        "rollToStart": "Roll the dice to begin.",
+        "turnStart": "{player}'s turn. Roll the dice.",
+        "diceResult": "{player} rolled {dice}. Choose a pawn.",
+        "noMoveAvailable": "No move available for {player} (dice: {dice}).",
+        "reroll": "{player} rolls again (got a 6).",
+        "victory": "{player} wins the game.",
+        "newGame": "New Ludo game. Red starts."
+      },
+      "errors": {
+        "invalidMove": "Invalid move for this pawn.",
+        "alreadyRolled": "You have already rolled for this turn.",
+        "rollBeforeMove": "Roll the dice before moving a pawn."
+      }
     }
   },
   "common": {

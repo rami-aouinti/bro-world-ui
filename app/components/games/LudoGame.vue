@@ -3,6 +3,7 @@ import { computed, ref, watch, watchEffect } from "vue";
 import GameTableScaffold from "./GameTableScaffold.vue";
 import type { GameAsidePanelState } from "./types";
 import { useGameFeedback } from "~/composables/games/useGameFeedback";
+const { t } = useI18n();
 
 const props = defineProps<{
   selectedPlayMode: "ai" | "pvp";
@@ -66,8 +67,8 @@ const PLAYER_START_STEP: Record<PlayerColor, number> = {
 };
 
 const players = ref<PlayerState[]>([
-  { id: "red", name: "Rouge", isAi: false },
-  { id: "blue", name: "Bleu", isAi: props.selectedPlayMode === "ai" },
+  { id: "red", name: t("gameComponents.ludo.players.red"), isAi: false },
+  { id: "blue", name: t("gameComponents.ludo.players.blue"), isAi: props.selectedPlayMode === "ai" },
 ]);
 
 const pawns = ref<Pawn[]>([
@@ -81,7 +82,7 @@ const currentPlayerIndex = ref(0);
 const diceValue = ref<number | null>(null);
 const hasRolled = ref(false);
 const selectedPawnId = ref<string | null>(null);
-const statusMessage = ref("Lancez le dé pour commencer.");
+const statusMessage = ref(t("gameComponents.ludo.messages.rollToStart"));
 const finishedPlayer = ref<PlayerColor | null>(null);
 const gameFinishedEmitted = ref(false);
 
@@ -137,7 +138,9 @@ const changeTurn = () => {
   diceValue.value = null;
   selectedPawnId.value = null;
   currentPlayerIndex.value = (currentPlayerIndex.value + 1) % players.value.length;
-  statusMessage.value = `Tour de ${currentPlayer.value.name}. Lancez le dé.`;
+  statusMessage.value = t("gameComponents.ludo.messages.turnStart", {
+    player: currentPlayer.value.name,
+  });
 };
 
 const movePawn = (pawnId: string) => {
@@ -147,7 +150,7 @@ const movePawn = (pawnId: string) => {
   if (!pawn || !diceValue.value) return;
 
   if (!playablePawnIds.value.has(pawnId)) {
-    statusMessage.value = "Coup impossible pour ce pion.";
+    statusMessage.value = t("gameComponents.ludo.errors.invalidMove");
     triggerVisualFeedback("game-surface", "shake", 420);
     playUiSound("alert");
     return;
@@ -173,7 +176,9 @@ const movePawn = (pawnId: string) => {
 
   if (hasWon) {
     finishedPlayer.value = pawn.player;
-    statusMessage.value = `${currentPlayer.value.name} remporte la partie.`;
+    statusMessage.value = t("gameComponents.ludo.messages.victory", {
+      player: currentPlayer.value.name,
+    });
     return;
   }
 
@@ -181,7 +186,9 @@ const movePawn = (pawnId: string) => {
     hasRolled.value = false;
     diceValue.value = null;
     selectedPawnId.value = null;
-    statusMessage.value = `${currentPlayer.value.name} relance (6 obtenu).`;
+    statusMessage.value = t("gameComponents.ludo.messages.reroll", {
+      player: currentPlayer.value.name,
+    });
     return;
   }
 
@@ -191,7 +198,7 @@ const movePawn = (pawnId: string) => {
 const rollDice = () => {
   if (finishedPlayer.value) return;
   if (hasRolled.value) {
-    statusMessage.value = "Vous avez déjà lancé le dé pour ce tour.";
+    statusMessage.value = t("gameComponents.ludo.errors.alreadyRolled");
     return;
   }
 
@@ -200,7 +207,10 @@ const rollDice = () => {
   playUiSound("confirm");
 
   if (playablePawnIds.value.size === 0) {
-    statusMessage.value = `Aucun coup possible pour ${currentPlayer.value.name} (dé: ${diceValue.value}).`;
+    statusMessage.value = t("gameComponents.ludo.messages.noMoveAvailable", {
+      player: currentPlayer.value.name,
+      dice: diceValue.value,
+    });
     triggerVisualFeedback("game-surface", "shake", 380);
     setTimeout(() => {
       if (!finishedPlayer.value) {
@@ -210,14 +220,17 @@ const rollDice = () => {
     return;
   }
 
-  statusMessage.value = `${currentPlayer.value.name} a fait ${diceValue.value}. Choisissez un pion.`;
+  statusMessage.value = t("gameComponents.ludo.messages.diceResult", {
+    player: currentPlayer.value.name,
+    dice: diceValue.value,
+  });
 };
 
 const onPawnClick = (pawn: Pawn) => {
   if (finishedPlayer.value) return;
 
   if (!hasRolled.value || diceValue.value === null) {
-    statusMessage.value = "Lancez le dé avant de jouer un pion.";
+    statusMessage.value = t("gameComponents.ludo.errors.rollBeforeMove");
     return;
   }
 
@@ -237,7 +250,7 @@ const resetGame = () => {
   selectedPawnId.value = null;
   finishedPlayer.value = null;
   gameFinishedEmitted.value = false;
-  statusMessage.value = "Nouvelle partie de Ludo. Joueur Rouge commence.";
+  statusMessage.value = t("gameComponents.ludo.messages.newGame");
 };
 
 const runAiTurn = () => {
@@ -256,31 +269,40 @@ const runAiTurn = () => {
 
 const panelState = computed<GameAsidePanelState>(() => ({
   gameKey: "ludo",
-  title: "Ludo",
-  phase: finishedPlayer.value ? "Partie terminée" : "Partie locale",
+  title: t("gameComponents.ludo.title"),
+  phase: finishedPlayer.value
+    ? t("gameComponents.ludo.phase.finished")
+    : t("gameComponents.ludo.phase.local"),
   turnLabel: currentPlayer.value.name,
   status: statusMessage.value,
   highlights: [
-    `Mode: ${props.selectedPlayMode === "ai" ? "vs IA" : "Joueur vs joueur"}`,
-    hasRolled.value && diceValue.value ? `Dé actuel: ${diceValue.value}` : "Dé en attente",
+    t("gameComponents.ludo.highlights.mode", {
+      mode:
+        props.selectedPlayMode === "ai"
+          ? t("gameComponents.ludo.modes.vsAi")
+          : t("gameComponents.ludo.modes.playerVsPlayer"),
+    }),
+    hasRolled.value && diceValue.value
+      ? t("gameComponents.ludo.highlights.diceCurrent", { dice: diceValue.value })
+      : t("gameComponents.ludo.highlights.diceWaiting"),
   ],
   kpis: [
     {
       id: "dice",
-      label: "Dé",
+      label: t("gameComponents.ludo.kpi.dice"),
       value: diceValue.value ?? "—",
       color: "primary",
       variant: "tonal",
     },
     {
       id: "red-remaining",
-      label: "Rouge restants",
+      label: t("gameComponents.ludo.kpi.redRemaining"),
       value: remainingToGoal("red"),
       variant: "outlined",
     },
     {
       id: "blue-remaining",
-      label: "Bleu restants",
+      label: t("gameComponents.ludo.kpi.blueRemaining"),
       value: remainingToGoal("blue"),
       variant: "outlined",
     },
@@ -288,12 +310,12 @@ const panelState = computed<GameAsidePanelState>(() => ({
   actions: [
     {
       id: "roll",
-      label: "Lancer le dé",
+      label: t("gameComponents.ludo.actions.rollDice"),
       disabled: hasRolled.value || Boolean(finishedPlayer.value),
     },
     {
       id: "restart",
-      label: "Recommencer",
+      label: t("gameComponents.ludo.actions.restart"),
       disabled: false,
     },
   ],
@@ -378,8 +400,10 @@ defineExpose({
     </template>
 
     <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-1">
-      <h3 class="game-shell-title mb-0">Ludo</h3>
-      <v-chip color="primary" variant="tonal">Joueur courant: {{ currentPlayer.name }}</v-chip>
+      <h3 class="game-shell-title mb-0">{{ t("gameComponents.ludo.title") }}</h3>
+      <v-chip color="primary" variant="tonal">
+        {{ t("gameComponents.ludo.currentPlayer", { player: currentPlayer.name }) }}
+      </v-chip>
     </div>
 
     <p class="game-shell-subtitle mb-3">{{ statusMessage }}</p>
@@ -392,9 +416,11 @@ defineExpose({
           :disabled="hasRolled || Boolean(finishedPlayer) || isAiTurn"
           @click="rollDice"
         >
-          Lancer le dé
+          {{ t("gameComponents.ludo.actions.rollDice") }}
         </v-btn>
-        <v-chip variant="outlined">Dé: {{ diceValue ?? "—" }}</v-chip>
+        <v-chip variant="outlined">
+          {{ t("gameComponents.ludo.kpi.dice") }}: {{ diceValue ?? "—" }}
+        </v-chip>
       </div>
 
       <div class="pawn-pool mt-3">
@@ -413,7 +439,15 @@ defineExpose({
           @click="onPawnClick(pawn)"
         >
           {{ pawn.id }}
-          <span class="pawn-state">{{ pawn.steps < 0 ? "Base" : pawn.steps >= PATH.length - 1 ? "Arrivé" : `Case ${pawn.steps + 1}` }}</span>
+          <span class="pawn-state">
+            {{
+              pawn.steps < 0
+                ? t("gameComponents.ludo.pawn.base")
+                : pawn.steps >= PATH.length - 1
+                  ? t("gameComponents.ludo.pawn.arrived")
+                  : t("gameComponents.ludo.pawn.cell", { count: pawn.steps + 1 })
+            }}
+          </span>
         </button>
       </div>
     </aside>
