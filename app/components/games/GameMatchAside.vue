@@ -10,7 +10,7 @@ import type {
   GameSubCategory,
   PlayMode,
 } from "~/types/game";
-import type { GameAsidePanelState } from "./types";
+import type { GameAsidePanelChip, GameAsidePanelState } from "./types";
 
 type PanelLevel = "category" | "subCategory" | "game" | "mode" | "info";
 
@@ -183,6 +183,14 @@ const getStatusToneLabel = (game: GameEntry | null | undefined, started: boolean
   if (game.mood === "arcade") return "Prêt pour une montée d'adrénaline";
   return "Session en préparation";
 };
+
+const isScoreKpi = (chip: GameAsidePanelChip) =>
+  chip.id.toLowerCase().includes("score");
+
+const orderedLivePanelKpis = (kpis: GameAsidePanelChip[]) => [
+  ...kpis.filter((chip) => isScoreKpi(chip)),
+  ...kpis.filter((chip) => !isScoreKpi(chip)),
+];
 </script>
 
 <template>
@@ -336,6 +344,17 @@ const getStatusToneLabel = (game: GameEntry | null | undefined, started: boolean
     <h3 class="text-subtitle-1 font-weight-bold mb-0">
       {{ liveGamePanel.title }}
     </h3>
+    <div v-if="liveGamePanel.kpis.length" class="d-flex flex-wrap ga-2">
+      <v-chip
+          v-for="chip in orderedLivePanelKpis(liveGamePanel.kpis)"
+          :key="`panel-chip-${chip.id}`"
+          :color="chip.color"
+          :variant="chip.variant ?? 'outlined'"
+          :prepend-icon="chip.icon"
+      >
+        {{ chip.label }}: {{ chip.value }}
+      </v-chip>
+    </div>
     <p class="text-body-2 mb-0">
       {{ liveGamePanel.phase }} · {{ liveGamePanel.turnLabel }}
     </p>
@@ -349,18 +368,6 @@ const getStatusToneLabel = (game: GameEntry | null | undefined, started: boolean
     <p class="text-caption text-medium-emphasis mb-0">
       {{ liveGamePanel.status }}
     </p>
-
-    <div v-if="liveGamePanel.kpis.length" class="d-flex flex-wrap ga-2">
-      <v-chip
-          v-for="chip in liveGamePanel.kpis"
-          :key="`panel-chip-${chip.id}`"
-          :color="chip.color"
-          :variant="chip.variant ?? 'outlined'"
-          :prepend-icon="chip.icon"
-      >
-        {{ chip.label }}: {{ chip.value }}
-      </v-chip>
-    </div>
 
     <div v-if="liveGamePanel.actions?.length" class="d-flex flex-wrap ga-2">
       <v-btn
