@@ -1,3 +1,3 @@
-import { proxyFifaRequest } from '~~/server/utils/fifaProxy'
+import { proxyMappedFifaRoute } from './_mapping'
 
-export default defineEventHandler(event => proxyFifaRequest(event, '/teams'))
+export default defineEventHandler(event => proxyMappedFifaRoute(event, 'teams'))
