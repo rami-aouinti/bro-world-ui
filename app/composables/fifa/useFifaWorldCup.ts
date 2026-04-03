@@ -132,7 +132,12 @@ const fetchAndNormalize = async <T>(
 
   try {
     const payload = await $fetch<unknown>(endpoint, {
-      headers: options.bypassCache ? { 'x-fifa-refresh': '1' } : undefined,
+      headers: options.bypassCache
+        ? {
+            'x-football-refresh': '1',
+            'x-fifa-refresh': '1',
+          }
+        : undefined,
     })
     const normalized = normalize(payload)
     return normalized

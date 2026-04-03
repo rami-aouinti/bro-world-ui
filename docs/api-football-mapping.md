@@ -23,8 +23,21 @@ Le mapping runtime est défini dans `server/api/fifa/_mapping.ts`.
 - Si un paramètre requis est manquant, l'API Nuxt renvoie une `400` avec le code `FIFA_PROXY_INVALID_QUERY`.
 - Les paramètres métiers sont conservés tels quels (pas de transformation destructive) par le proxy, y compris `page` sur les endpoints paginés.
 
+## Stratégie de cache proxy FIFA
+
+- Les clés Redis FIFA sont construites via `buildCacheKey` avec une clé stable basée sur:
+  - le profil de cache (`reference` ou `live`),
+  - l'endpoint upstream normalisé,
+  - le hash des query params.
+- TTL **référence** (équipes, stades, etc.): `FOOTBALL_CACHE_TTL_SECONDS` (défaut `86400`).
+- TTL **live** (fixtures, standings, players, odds): `FOOTBALL_LIVE_CACHE_TTL_SECONDS` (défaut `60`).
+- Bypass manuel conservé:
+  - header recommandé: `x-football-refresh: 1`,
+  - header legacy toujours accepté: `x-fifa-refresh: 1`.
+
 ## Recommandations front/composables/stores
 
 - Utiliser exclusivement les routes Nuxt listées ci-dessus (et non les endpoints API-Sports directement).
 - Pour les pages `players` et `odds`, transmettre `page` côté composable/store pour piloter la pagination sans logique serveur additionnelle.
+- Pour forcer un refresh depuis le front (sans attendre l'expiration TTL), envoyer `x-football-refresh: 1` (ou `x-fifa-refresh: 1` pour compatibilité legacy).
 - En cas d'ajout d'une nouvelle route FIFA, mettre à jour **d'abord** `server/api/fifa/_mapping.ts`, puis ce document.
