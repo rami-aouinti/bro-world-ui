@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { getSportContext } from '~/components/sport/sportContext'
 import { buildApiSportsQuery } from '~~/lib/apisportsFilters'
 import type { SportPlayerItem } from '~/components/sport/types'
+import { useSportDashboardStore } from '~/stores/sportDashboard'
 
 definePageMeta({
   public: true,
@@ -52,8 +53,12 @@ const { t, te } = useI18n()
 const sportSlug = computed(() => String(route.params.sport ?? 'sport'))
 const sport = computed(() => getSportContext(sportSlug.value, t, te))
 
-const leagueFilter = ref(typeof route.query.league === 'string' ? route.query.league : '')
-const teamFilter = ref(typeof route.query.team === 'string' ? route.query.team : '')
+const dashboardStore = useSportDashboardStore()
+const dashboardSelection = computed(() => dashboardStore.ensureSportSelection(sportSlug.value))
+
+const leagueFilter = ref(typeof route.query.league === 'string' ? route.query.league : (dashboardSelection.value.leagueId || ''))
+const teamFilter = ref(typeof route.query.team === 'string' ? route.query.team : (dashboardSelection.value.teamId || ''))
+const seasonFilter = ref(typeof route.query.season === 'string' ? route.query.season : (dashboardSelection.value.season ? String(dashboardSelection.value.season) : ''))
 const searchFilter = ref(typeof route.query.search === 'string' ? route.query.search : '')
 const page = ref(Number.parseInt(typeof route.query.page === 'string' ? route.query.page : '1', 10) || 1)
 const selectedPlayerId = ref<string | null>(null)
@@ -65,6 +70,7 @@ const playersFiltersMatrix = {
     league: 'number',
     team: 'number',
     search: 'string',
+    season: 'number',
     page: 'number',
   },
 } as const
@@ -74,6 +80,7 @@ const apiQuery = computed(() => {
     league: leagueFilter.value,
     team: teamFilter.value,
     search: searchFilter.value,
+    season: seasonFilter.value,
     page: Math.max(1, page.value),
   })
 })
@@ -84,6 +91,7 @@ watch(
     leagueFilter.value = typeof query.league === 'string' ? query.league : ''
     teamFilter.value = typeof query.team === 'string' ? query.team : ''
     searchFilter.value = typeof query.search === 'string' ? query.search : ''
+    seasonFilter.value = typeof query.season === 'string' ? query.season : (dashboardSelection.value.season ? String(dashboardSelection.value.season) : '')
     page.value = Number.parseInt(typeof query.page === 'string' ? query.page : '1', 10) || 1
   },
 )
@@ -92,6 +100,7 @@ watch([
   leagueFilter,
   teamFilter,
   searchFilter,
+  seasonFilter,
   page,
 ], () => {
   const nextQuery: Record<string, string> = {}
@@ -108,12 +117,16 @@ watch([
     nextQuery.search = searchFilter.value.trim()
   }
 
+  if (seasonFilter.value.trim()) {
+    nextQuery.season = seasonFilter.value.trim()
+  }
+
   if (page.value > 1) {
     nextQuery.page = String(page.value)
   }
 
   const currentQuery = route.query
-  const hasChanged = ['league', 'team', 'search', 'page'].some(key => String(currentQuery[key] || '') !== String(nextQuery[key] || ''))
+  const hasChanged = ['league', 'team', 'search', 'season', 'page'].some(key => String(currentQuery[key] || '') !== String(nextQuery[key] || ''))
 
   if (hasChanged) {
     router.replace({ query: nextQuery })
@@ -176,6 +189,15 @@ const selectedPlayer = computed(() => {
   }
 
   return players.value.find(player => player.id === selectedPlayerId.value) || players.value[0] || null
+})
+
+
+watch([leagueFilter, teamFilter, seasonFilter], () => {
+  dashboardStore.setSelection(sportSlug.value, {
+    leagueId: leagueFilter.value.trim() || null,
+    teamId: teamFilter.value.trim() || null,
+    season: seasonFilter.value.trim() ? Number(seasonFilter.value) : null,
+  })
 })
 
 watch(players, (nextPlayers) => {

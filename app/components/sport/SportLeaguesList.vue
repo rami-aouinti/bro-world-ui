@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const props = defineProps<{
-  leagues: string[]
+  leagues: Array<{ id: string, label: string }>
   selectedLeague: string
   selectedStatus: string
   selectedDate: string
@@ -36,12 +36,12 @@ const statusOptions = computed(() => [
         <v-chip value="all" filter variant="outlined">{{ t('sport.filters.allLeagues') }}</v-chip>
         <v-chip
           v-for="league in props.leagues"
-          :key="league"
-          :value="league"
+          :key="league.id"
+          :value="league.id"
           filter
           variant="outlined"
         >
-          {{ league }}
+          {{ league.label }}
         </v-chip>
       </v-chip-group>
     </div>

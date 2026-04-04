@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { getSportContext } from '~/components/sport/sportContext'
 import type { SportTeamItem } from '~/components/sport/types'
+import { useSportDashboardStore } from '~/stores/sportDashboard'
 
 definePageMeta({
   public: true,
@@ -37,6 +38,9 @@ const sportSlug = computed(() => String(route.params.sport ?? 'sport'))
 const sport = computed(() => getSportContext(sportSlug.value, t, te))
 const selectedTeamId = ref<string | null>(null)
 
+const dashboardStore = useSportDashboardStore()
+const dashboardSelection = computed(() => dashboardStore.ensureSportSelection(sportSlug.value))
+
 const normalizeTeams = (payload: ApiSportsTeamsResponse | null | undefined): SportTeamItem[] => {
   return (payload?.response || [])
     .map((entry) => {
@@ -68,8 +72,14 @@ const normalizeTeams = (payload: ApiSportsTeamsResponse | null | undefined): Spo
 }
 
 const { data, pending, error, refresh } = await useAsyncData(
-  () => `sport-teams-${sportSlug.value}`,
-  () => $fetch<ApiSportsTeamsResponse>(`/api/apisports/${sportSlug.value}/teams`),
+  () => `sport-teams-${sportSlug.value}-${dashboardSelection.value.teamId || dashboardSelection.value.leagueId || 'all'}-${dashboardSelection.value.season || 'na'}`,
+  () => $fetch<ApiSportsTeamsResponse>(`/api/apisports/${sportSlug.value}/teams`, {
+    query: {
+      ...(dashboardSelection.value.teamId ? { id: dashboardSelection.value.teamId } : {}),
+      ...(dashboardSelection.value.leagueId ? { league: dashboardSelection.value.leagueId } : {}),
+      ...(dashboardSelection.value.season ? { season: dashboardSelection.value.season } : {}),
+    },
+  }),
   {
     server: true,
     default: () => ({ response: [] }),
@@ -88,7 +98,20 @@ const selectedTeam = computed(() => {
 
 const onSelectTeam = (teamId: string) => {
   selectedTeamId.value = teamId
+  dashboardStore.setSelection(sportSlug.value, { teamId })
 }
+
+watch(teams, (nextTeams) => {
+  const teamFromDashboard = dashboardSelection.value.teamId
+  if (teamFromDashboard && nextTeams.some(team => team.id === teamFromDashboard)) {
+    selectedTeamId.value = teamFromDashboard
+    return
+  }
+
+  if (!selectedTeamId.value && nextTeams.length) {
+    selectedTeamId.value = nextTeams[0].id
+  }
+}, { immediate: true })
 </script>
 
 <template>

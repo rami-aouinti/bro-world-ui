@@ -1,5 +1,6 @@
 import { computed, ref, watch, type Ref } from 'vue'
 import type { SportGameCardItem } from './types'
+import { useSportDashboardStore } from '~/stores/sportDashboard'
 
 export type SportRightPanelTab = 'game' | 'team' | 'standings'
 
@@ -8,24 +9,38 @@ export function useSportGamesDashboard(options: {
   games: Ref<SportGameCardItem[]>
   initialDate?: string
 }) {
+  const dashboardStore = useSportDashboardStore()
+
   const league = ref('all')
   const status = ref('all')
   const date = ref(options.initialDate || '')
   const search = ref('')
 
   const selectedGameId = ref<string | null>(null)
-  const selectedTeamId = ref<string | null>(null)
+  const selectedTeamId = ref<'home' | 'away' | null>(null)
   const rightPanelTab = ref<SportRightPanelTab>('game')
 
   const availableLeagues = computed(() => {
-    return [...new Set(options.games.value.map(game => game.league))].sort((a, b) => a.localeCompare(b))
+    const byLeague = new Map<string, string>()
+
+    for (const game of options.games.value) {
+      const leagueId = game.leagueId || game.league
+      if (!byLeague.has(leagueId)) {
+        byLeague.set(leagueId, game.league)
+      }
+    }
+
+    return [...byLeague.entries()]
+      .map(([id, label]) => ({ id, label }))
+      .sort((a, b) => a.label.localeCompare(b.label))
   })
 
   const filteredGames = computed(() => {
     const searchValue = search.value.trim().toLowerCase()
 
     return options.games.value.filter((game) => {
-      const matchesLeague = league.value === 'all' || game.league === league.value
+      const gameLeagueId = game.leagueId || game.league
+      const matchesLeague = league.value === 'all' || gameLeagueId === league.value
       const matchesStatus = status.value === 'all' || game.status.toLowerCase() === status.value
       const matchesDate = !date.value || game.time.includes(date.value)
       const matchesSearch = !searchValue
@@ -44,22 +59,28 @@ export function useSportGamesDashboard(options: {
   })
 
   const selectedTeam = computed(() => {
-    if (!selectedGame.value) {
+    if (!selectedGame.value || !selectedTeamId.value) {
       return null
     }
 
     if (selectedTeamId.value === 'away') {
       return {
-        id: 'away',
+        id: selectedGame.value.awayTeamId || 'away',
         name: selectedGame.value.away,
       }
     }
 
     return {
-      id: 'home',
+      id: selectedGame.value.homeTeamId || 'home',
       name: selectedGame.value.home,
     }
   })
+
+  watch(() => options.sport.value, (sport) => {
+    const selection = dashboardStore.ensureSportSelection(sport)
+    league.value = selection.leagueId || 'all'
+    selectedGameId.value = selection.gameId
+  }, { immediate: true })
 
   watch(filteredGames, (games) => {
     if (!games.length) {
@@ -77,15 +98,50 @@ export function useSportGamesDashboard(options: {
     }
   }, { immediate: true })
 
+  watch([league, selectedGame], () => {
+    const game = selectedGame.value
+    dashboardStore.setSelection(options.sport.value, {
+      leagueId: league.value === 'all' ? null : league.value,
+      gameId: game?.gameId || null,
+      homeTeamId: game?.homeTeamId || null,
+      awayTeamId: game?.awayTeamId || null,
+      season: game?.season ?? null,
+    })
+  })
+
   function setSelectedGame(gameId: string) {
     selectedGameId.value = gameId
     selectedTeamId.value = 'home'
     rightPanelTab.value = 'game'
+
+    const game = options.games.value.find(entry => entry.id === gameId)
+    dashboardStore.setSelection(options.sport.value, {
+      gameId: game?.gameId || null,
+      leagueId: game?.leagueId || null,
+      homeTeamId: game?.homeTeamId || null,
+      awayTeamId: game?.awayTeamId || null,
+      season: game?.season ?? null,
+    })
   }
 
   function setSelectedTeam(teamId: 'home' | 'away') {
     selectedTeamId.value = teamId
     rightPanelTab.value = 'team'
+
+    const game = selectedGame.value
+    dashboardStore.setSelection(options.sport.value, {
+      teamId: teamId === 'home' ? game?.homeTeamId || null : game?.awayTeamId || null,
+      leagueId: game?.leagueId || null,
+      season: game?.season ?? null,
+    })
+  }
+
+  function setLeague(leagueId: string) {
+    league.value = leagueId
+    dashboardStore.setSelection(options.sport.value, {
+      leagueId: leagueId === 'all' ? null : leagueId,
+    })
+    rightPanelTab.value = 'standings'
   }
 
   return {
@@ -101,6 +157,7 @@ export function useSportGamesDashboard(options: {
     rightPanelTab,
     selectedGame,
     selectedTeam,
+    setLeague,
     setSelectedGame,
     setSelectedTeam,
   }

@@ -7,7 +7,9 @@ type ApiSportsFixtureTeam = {
 }
 
 type ApiSportsFixtureLeague = {
+  id?: number
   name?: string
+  season?: number
 }
 
 type ApiSportsFixtureStatus = {
@@ -47,6 +49,11 @@ type ApiSportsFixtureEnvelope = {
 
 type SportGameItem = {
   id: string
+  gameId: string
+  leagueId: string | null
+  homeTeamId: string | null
+  awayTeamId: string | null
+  season: number | null
   status: string
   home: string
   away: string
@@ -91,6 +98,11 @@ const toUiModelFromFixture = (item: ApiSportsFixtureResponseItem): SportGameItem
 
   return {
     id: String(fixtureId),
+    gameId: String(fixtureId),
+    leagueId: item.league?.id ? String(item.league.id) : null,
+    homeTeamId: item.teams?.home?.id ? String(item.teams.home.id) : null,
+    awayTeamId: item.teams?.away?.id ? String(item.teams.away.id) : null,
+    season: item.league?.season ?? null,
     status: item.fixture?.status?.short || item.fixture?.status?.long || 'TBD',
     home: item.teams?.home?.name || 'Home team',
     away: item.teams?.away?.name || 'Away team',
@@ -104,10 +116,80 @@ const toUiModelFromFixture = (item: ApiSportsFixtureResponseItem): SportGameItem
   }
 }
 
+type ApiSportsGameResponseItem = {
+  id?: number
+  date?: string
+  status?: {
+    short?: string
+    long?: string
+  }
+  league?: {
+    id?: number
+    name?: string
+    season?: number
+  }
+  teams?: {
+    home?: {
+      id?: number
+      name?: string
+    }
+    away?: {
+      id?: number
+      name?: string
+    }
+  }
+  scores?: {
+    home?: {
+      total?: number | null
+    }
+    away?: {
+      total?: number | null
+    }
+  }
+}
+
+type ApiSportsGamesEnvelope = {
+  response?: ApiSportsGameResponseItem[]
+}
+
+const toUiModelFromGame = (item: ApiSportsGameResponseItem): SportGameItem | null => {
+  const gameId = item.id
+
+  if (!gameId) {
+    return null
+  }
+
+  return {
+    id: String(gameId),
+    gameId: String(gameId),
+    leagueId: item.league?.id ? String(item.league.id) : null,
+    homeTeamId: item.teams?.home?.id ? String(item.teams.home.id) : null,
+    awayTeamId: item.teams?.away?.id ? String(item.teams.away.id) : null,
+    season: item.league?.season ?? null,
+    status: item.status?.short || item.status?.long || 'TBD',
+    home: item.teams?.home?.name || 'Home team',
+    away: item.teams?.away?.name || 'Away team',
+    scores: {
+      home: item.scores?.home?.total ?? null,
+      away: item.scores?.away?.total ?? null,
+    },
+    league: item.league?.name || 'Unknown league',
+    venue: 'Unknown venue',
+    time: item.date || '',
+  }
+}
+
 const normalizeFootballGames = (payload: unknown): SportGameItem[] => {
   const envelope = payload as ApiSportsFixtureEnvelope
   return (envelope.response || [])
     .map(toUiModelFromFixture)
+    .filter((entry): entry is SportGameItem => Boolean(entry))
+}
+
+const normalizeGamesWithSharedShape = (payload: unknown): SportGameItem[] => {
+  const envelope = payload as ApiSportsGamesEnvelope
+  return (envelope.response || [])
+    .map(toUiModelFromGame)
     .filter((entry): entry is SportGameItem => Boolean(entry))
 }
 
@@ -116,6 +198,11 @@ const TODAY_GAMES_BY_SPORT: Record<string, TodayGamesResolver> = {
     endpoint: 'fixtures',
     query: (date, timezone) => ({ date, timezone }),
     normalize: normalizeFootballGames,
+  },
+  baseball: {
+    endpoint: 'games',
+    query: (date) => ({ date }),
+    normalize: normalizeGamesWithSharedShape,
   },
 }
 
