@@ -17,6 +17,9 @@ export const useFifaOddsStore = defineStore('fifaOdds', () => {
   const error = ref<Record<OddsResource, Error | null>>({
     odds: null, live: null, bookmakers: null, bets: null, liveBets: null,
   })
+  const lastPaging = ref<Record<OddsResource, { current: number, total: number } | null>>({
+    odds: null, live: null, bookmakers: null, bets: null, liveBets: null,
+  })
 
   const fetchResource = async (resource: OddsResource, loader: () => Promise<{ items: unknown[] }>) => {
     loading.value[resource] = true
@@ -24,6 +27,7 @@ export const useFifaOddsStore = defineStore('fifaOdds', () => {
     try {
       const result = await loader()
       byResource.value[resource] = result.items
+      lastPaging.value[resource] = result.paging
       return byResource.value[resource]
     }
     catch (err) {
@@ -39,6 +43,7 @@ export const useFifaOddsStore = defineStore('fifaOdds', () => {
     byResource,
     loading,
     error,
+    lastPaging,
     cacheTtlMs: FIFA_ODDS_TTL_MS,
     fetchOdds: (query: FifaQueryParams = {}) => fetchResource('odds', () => api.getOdds(query)),
     fetchLiveOdds: (query: FifaQueryParams = {}) => fetchResource('live', () => api.getLiveOdds(query)),
