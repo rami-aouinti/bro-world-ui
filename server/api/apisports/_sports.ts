@@ -1,9 +1,11 @@
 import type { ApiSportsRouteQuerySchema } from './_schema'
+import type { ApiSportsEndpointFilterMatrix } from '~~/lib/apisportsFilters'
 import type { ApiSportsSportConfig } from '~~/server/utils/apisportsProxy'
 import { readApiSportsRegistrySport } from '~~/server/utils/apisportsRegistry'
 
 export type ApiSportsEndpointConfig = {
   upstreamEndpoint: string
+  filters: ApiSportsEndpointFilterMatrix
   querySchema: ApiSportsRouteQuerySchema
 }
 
@@ -66,4 +68,16 @@ export const readApiSportsDefinition = (sport: string): ApiSportsDefinition | nu
     },
     endpoints: registrySport.endpoints,
   }
+}
+
+
+export const readApiSportsEndpointFilters = (sport: string, endpoint: string): ApiSportsEndpointFilterMatrix | null => {
+  const definition = readApiSportsDefinition(sport)
+
+  if (!definition) {
+    return null
+  }
+
+  const normalizedEndpoint = endpoint.replace(/^\/+|\/+$/g, '')
+  return definition.endpoints[normalizedEndpoint]?.filters ?? null
 }

@@ -8,6 +8,8 @@ export type ApiSportsRouteQuerySchema = {
   optional?: Record<string, ApiSportsQueryPrimitiveType>
   atLeastOneOf?: string[]
   atLeastOneOfGroups?: string[][]
+  atLeastOneGroup?: string[][]
+  mutuallyExclusive?: string[][]
 }
 
 const collectAllowedKeys = (schema: ApiSportsRouteQuerySchema): Set<string> => {
@@ -25,7 +27,7 @@ const collectAllowedKeys = (schema: ApiSportsRouteQuerySchema): Set<string> => {
     allowed.add(key)
   }
 
-  for (const group of schema.atLeastOneOfGroups ?? []) {
+  for (const group of (schema.atLeastOneOfGroups ?? schema.atLeastOneGroup) ?? []) {
     for (const key of group) {
       allowed.add(key)
     }
@@ -156,16 +158,35 @@ export const validateApiSportsRouteQuery = (
     }
   }
 
-  if (schema.atLeastOneOfGroups?.length) {
-    const hasAtLeastOneGroup = schema.atLeastOneOfGroups.some(group => group.every(key => isProvided(query[key])))
+  const atLeastOneGroups = schema.atLeastOneOfGroups ?? schema.atLeastOneGroup
+
+  if (atLeastOneGroups?.length) {
+    const hasAtLeastOneGroup = atLeastOneGroups.some(group => group.every(key => isProvided(query[key])))
 
     if (!hasAtLeastOneGroup) {
-      const serializedGroups = schema.atLeastOneOfGroups.map(group => group.join('+'))
+      const serializedGroups = atLeastOneGroups.map(group => group.join('+'))
       throw createValidationError(
         sport,
         route,
         `At least one API-Sports query filter group is required: ${serializedGroups.join(' | ')}`,
-        { atLeastOneOfGroups: schema.atLeastOneOfGroups },
+        { atLeastOneOfGroups: atLeastOneGroups },
+      )
+    }
+  }
+
+  if (schema.mutuallyExclusive?.length) {
+    const conflictingGroups = schema.mutuallyExclusive
+      .map(group => group.filter(key => isProvided(query[key])))
+      .filter(group => group.length > 1)
+
+    if (conflictingGroups.length > 0) {
+      const serializedGroups = conflictingGroups.map(group => group.join(' + '))
+
+      throw createValidationError(
+        sport,
+        route,
+        `Mutually exclusive API-Sports query parameter(s) provided: ${serializedGroups.join(' | ')}`,
+        { mutuallyExclusive: schema.mutuallyExclusive, conflicts: conflictingGroups },
       )
     }
   }

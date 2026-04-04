@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { getSportContext } from '~/components/sport/sportContext'
+import { buildApiSportsQuery } from '~~/lib/apisportsFilters'
 import type { SportPlayerItem } from '~/components/sport/types'
 
 definePageMeta({
@@ -59,24 +60,22 @@ const selectedPlayerId = ref<string | null>(null)
 
 const isSupportedSport = computed(() => PLAYERS_WHITELIST.includes(sportSlug.value))
 
+const playersFiltersMatrix = {
+  optional: {
+    league: 'number',
+    team: 'number',
+    search: 'string',
+    page: 'number',
+  },
+} as const
+
 const apiQuery = computed(() => {
-  const query: Record<string, string | number> = {
+  return buildApiSportsQuery(playersFiltersMatrix, {
+    league: leagueFilter.value,
+    team: teamFilter.value,
+    search: searchFilter.value,
     page: Math.max(1, page.value),
-  }
-
-  if (leagueFilter.value.trim()) {
-    query.league = leagueFilter.value.trim()
-  }
-
-  if (teamFilter.value.trim()) {
-    query.team = teamFilter.value.trim()
-  }
-
-  if (searchFilter.value.trim()) {
-    query.search = searchFilter.value.trim()
-  }
-
-  return query
+  })
 })
 
 watch(

@@ -1,7 +1,10 @@
 import type { ApiSportsRouteQuerySchema } from '~~/server/api/apisports/_schema'
+import type { ApiSportsEndpointFilterMatrix } from '~~/lib/apisportsFilters'
+import { toApiSportsRouteQuerySchema } from '~~/lib/apisportsFilters'
 
 export type ApiSportsRegistryEndpoint = {
   upstreamEndpoint: string
+  filters: ApiSportsEndpointFilterMatrix
   querySchema: ApiSportsRouteQuerySchema
 }
 
@@ -143,18 +146,25 @@ export const buildApiSportsRegistry = (): ApiSportsRegistry => {
     football: buildSportRegistryEntry(runtimeConfig, 'football', 'fifa', {
       countries: {
         upstreamEndpoint: '/countries',
-        querySchema: {
+        filters: {
           optional: {
             name: 'string',
             code: 'string',
             search: 'string',
           },
         },
+        querySchema: toApiSportsRouteQuerySchema({
+          optional: {
+            name: 'string',
+            code: 'string',
+            search: 'string',
+          },
+        }),
       },
       fixtures: {
         upstreamEndpoint: '/fixtures',
-        querySchema: {
-          atLeastOneOfGroups: [
+        filters: {
+          atLeastOneGroup: [
             ['id'],
             ['ids'],
             ['date'],
@@ -183,11 +193,41 @@ export const buildApiSportsRegistry = (): ApiSportsRegistry => {
             timezone: 'string',
           },
         },
+        querySchema: toApiSportsRouteQuerySchema({
+          atLeastOneGroup: [
+            ['id'],
+            ['ids'],
+            ['date'],
+            ['league', 'season'],
+            ['team'],
+            ['live'],
+            ['last'],
+            ['next'],
+            ['from', 'to'],
+          ],
+          optional: {
+            id: 'number',
+            ids: 'string',
+            live: 'string',
+            date: 'string',
+            league: 'number',
+            season: 'number',
+            team: 'number',
+            last: 'number',
+            next: 'number',
+            from: 'string',
+            to: 'string',
+            round: 'string',
+            status: 'string',
+            venue: 'number',
+            timezone: 'string',
+          },
+        }),
       },
       teams: {
         upstreamEndpoint: '/teams',
-        querySchema: {
-          atLeastOneOf: ['id', 'name', 'league', 'season', 'country', 'code', 'venue', 'search'],
+        filters: {
+          atLeastOneGroup: [['id'], ['name'], ['league', 'season'], ['country'], ['code'], ['venue'], ['search']],
           optional: {
             id: 'number',
             name: 'string',
@@ -199,10 +239,23 @@ export const buildApiSportsRegistry = (): ApiSportsRegistry => {
             search: 'string',
           },
         },
+        querySchema: toApiSportsRouteQuerySchema({
+          atLeastOneGroup: [['id'], ['name'], ['league', 'season'], ['country'], ['code'], ['venue'], ['search']],
+          optional: {
+            id: 'number',
+            name: 'string',
+            league: 'number',
+            season: 'number',
+            country: 'string',
+            code: 'string',
+            venue: 'number',
+            search: 'string',
+          },
+        }),
       },
       players: {
         upstreamEndpoint: '/players',
-        querySchema: {
+        filters: {
           optional: {
             id: 'number',
             team: 'number',
@@ -212,6 +265,16 @@ export const buildApiSportsRegistry = (): ApiSportsRegistry => {
             page: 'number',
           },
         },
+        querySchema: toApiSportsRouteQuerySchema({
+          optional: {
+            id: 'number',
+            team: 'number',
+            league: 'number',
+            season: 'number',
+            search: 'string',
+            page: 'number',
+          },
+        }),
       },
     }, [
       '/timezone',
@@ -224,7 +287,67 @@ export const buildApiSportsRegistry = (): ApiSportsRegistry => {
       '/odds/bets',
     ]),
     basketball: buildSportRegistryEntry(runtimeConfig, 'basketball', 'basketball', {}),
-    baseball: buildSportRegistryEntry(runtimeConfig, 'baseball', 'baseball', {}),
+    baseball: buildSportRegistryEntry(runtimeConfig, 'baseball', 'baseball', {
+      games: {
+        upstreamEndpoint: '/games',
+        filters: {
+          atLeastOneGroup: [['date'], ['league', 'season'], ['team']],
+          optional: {
+            date: 'string',
+            league: 'number',
+            season: 'number',
+            team: 'number',
+          },
+        },
+        querySchema: toApiSportsRouteQuerySchema({
+          atLeastOneGroup: [['date'], ['league', 'season'], ['team']],
+          optional: {
+            date: 'string',
+            league: 'number',
+            season: 'number',
+            team: 'number',
+          },
+        }),
+      },
+      teams: {
+        upstreamEndpoint: '/teams',
+        filters: {
+          atLeastOneGroup: [['league', 'season'], ['id'], ['name']],
+          optional: {
+            league: 'number',
+            season: 'number',
+            id: 'number',
+            name: 'string',
+          },
+        },
+        querySchema: toApiSportsRouteQuerySchema({
+          atLeastOneGroup: [['league', 'season'], ['id'], ['name']],
+          optional: {
+            league: 'number',
+            season: 'number',
+            id: 'number',
+            name: 'string',
+          },
+        }),
+      },
+      leagues: {
+        upstreamEndpoint: '/leagues',
+        filters: {
+          optional: {
+            id: 'number',
+            name: 'string',
+            country: 'string',
+          },
+        },
+        querySchema: toApiSportsRouteQuerySchema({
+          optional: {
+            id: 'number',
+            name: 'string',
+            country: 'string',
+          },
+        }),
+      },
+    }),
     hockey: buildSportRegistryEntry(runtimeConfig, 'hockey', 'hockey', {}),
     rugby: buildSportRegistryEntry(runtimeConfig, 'rugby', 'rugby', {}),
     handball: buildSportRegistryEntry(runtimeConfig, 'handball', 'handball', {}),
