@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FootballAvatar from './FootballAvatar.vue'
 import type { MatchPlayersByTeam } from './types'
 
 const props = defineProps<{
@@ -12,12 +13,13 @@ const rows = computed(() => {
     key: string
     team: string
     player: string
+    photo: string | null | undefined
+    number: number | null | undefined
+    position: string | null | undefined
     rating: string | number | null | undefined
     minutes: number | null | undefined
     goals: number | null | undefined
     assists: number | null | undefined
-    shots: number | null | undefined
-    duels: number | null | undefined
   }> = []
 
   for (const teamBlock of props.players) {
@@ -29,12 +31,13 @@ const rows = computed(() => {
         key: `${teamBlock?.team?.id || teamName}-${player?.player?.id || player?.player?.name || output.length}`,
         team: teamName,
         player: player?.player?.name || placeholder,
+        photo: player?.player?.photo,
+        number: player?.player?.number,
+        position: stats?.games?.position,
         rating: stats?.games?.rating,
         minutes: stats?.games?.minutes,
         goals: stats?.goals?.total,
         assists: stats?.goals?.assists,
-        shots: stats?.shots?.total,
-        duels: stats?.duels?.total,
       })
     }
   }
@@ -58,24 +61,26 @@ const showValue = (value: string | number | null | undefined) => value ?? placeh
         <tr>
           <th>Équipe</th>
           <th>Joueur</th>
-          <th>Note</th>
           <th>Min</th>
           <th>Buts</th>
           <th>Passes</th>
-          <th>Tirs</th>
-          <th>Duels</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="row in rows" :key="row.key">
           <td>{{ row.team }}</td>
-          <td>{{ row.player }}</td>
-          <td>{{ showValue(row.rating) }}</td>
+          <td>
+            <div class="d-flex align-center ga-2 player-row">
+              <FootballAvatar :src="row.photo" :alt="`Photo ${row.player}`" :size="24" icon="mdi-account" />
+              <span class="text-body-2">{{ row.player }}</span>
+              <v-chip size="x-small" label variant="tonal">#{{ showValue(row.number) }}</v-chip>
+              <v-chip size="x-small" label variant="outlined">{{ showValue(row.position) }}</v-chip>
+              <v-chip size="x-small" color="primary" label>{{ showValue(row.rating) }}</v-chip>
+            </div>
+          </td>
           <td>{{ showValue(row.minutes) }}</td>
           <td>{{ showValue(row.goals) }}</td>
           <td>{{ showValue(row.assists) }}</td>
-          <td>{{ showValue(row.shots) }}</td>
-          <td>{{ showValue(row.duels) }}</td>
         </tr>
       </tbody>
     </v-table>
@@ -86,5 +91,9 @@ const showValue = (value: string | number | null | undefined) => value ?? placeh
 .players-table :deep(th),
 .players-table :deep(td) {
   white-space: nowrap;
+}
+
+.player-row {
+  min-height: 28px;
 }
 </style>
