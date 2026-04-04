@@ -148,7 +148,11 @@ const signOut = async () => {
                 {{ te(item.key) ? t(item.key) : item.key }}
               </v-btn>
             </template>
-            <v-list class="py-1 app-bar__menu" min-width="220">
+            <v-list
+              class="py-1 app-bar__menu"
+              :class="{ 'app-bar__sports-menu': item.key === 'app.navigation.sport' }"
+              min-width="220"
+            >
               <v-list-item
                 v-for="child in item.children"
                 :key="child.key"
@@ -157,6 +161,7 @@ const signOut = async () => {
                 :prepend-icon="child.icon"
                 rounded="lg"
                 class="mx-2 my-1"
+                :class="{ 'app-bar__sports-menu-item': item.key === 'app.navigation.sport' }"
               />
             </v-list>
           </v-menu>
@@ -646,6 +651,17 @@ const signOut = async () => {
 
 .app-bar__option-pill--active {
   background: rgba(var(--v-theme-primary), 0.2);
+}
+
+.app-bar__sports-menu {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.375rem;
+  min-width: 640px;
+}
+
+.app-bar__sports-menu-item {
+  margin: 0 !important;
 }
 
 .app-bar__locale-flag {
