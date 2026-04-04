@@ -21,13 +21,14 @@ export const readApiSportsDefinition = (sport: string): ApiSportsDefinition | nu
 
   return {
     proxy: {
-      sport,
-      baseUrl: registrySport.upstream.baseUrl,
-      apiKey: registrySport.upstream.apiKey,
-      host: registrySport.upstream.host,
-      cacheTtlSeconds: registrySport.cacheRules.reference,
-      scheduleCacheTtlSeconds: registrySport.cacheRules.schedule,
-      liveCacheTtlSeconds: registrySport.cacheRules.live,
+      sport: registrySport.sport,
+      // Force sport-specific upstream resolution and disallow any global base URL fallback.
+      baseUrl: registrySport.baseUrl,
+      apiKey: registrySport.apiKey,
+      host: registrySport.host,
+      cacheTtlSeconds: registrySport.cacheStrategy.reference,
+      scheduleCacheTtlSeconds: registrySport.cacheStrategy.schedule,
+      liveCacheTtlSeconds: registrySport.cacheStrategy.live,
       cacheResource: registrySport.cacheResource,
       referenceEndpoints: registrySport.referenceEndpoints,
     },
