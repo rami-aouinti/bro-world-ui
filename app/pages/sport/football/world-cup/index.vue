@@ -29,7 +29,7 @@ const tab = ref('one')
 const WORLD_CUP_LEAGUE_ID = 1
 const fallbackSeason = 2022
 
-const { locale } = useI18n()
+const { locale, t } = useI18n()
 const { smAndDown } = useDisplay()
 
 const worldCupStore = useFifaWorldCupStore()
@@ -52,7 +52,7 @@ const tableDensity = computed(() => (smAndDown.value ? 'comfortable' : 'compact'
 const sectionChipSize = computed(() => (smAndDown.value ? 'x-small' : 'small'))
 
 const selectedSeason = ref<number>(fallbackSeason)
-const selectedStandingsGroup = ref('Group A')
+const selectedStandingsGroup = ref('A')
 const fixtureFilters = reactive({
   date: '',
   status: '',
@@ -76,7 +76,7 @@ const isQuotaError = (err: unknown) => {
   return candidate?.data?.error?.code === 'FIFA_PROXY_API_SPORTS_RATE_LIMITED' || candidate?.statusCode === 503
 }
 
-const quotaMessage = 'Limite de quota API atteinte. Réessayez plus tard ou réduisez le volume de requêtes.'
+const quotaMessage = computed(() => t('sport.worldCup.states.quotaLimit'))
 const flagPlaceholderSrc = '/images/placeholders/platform-media-fallback.svg'
 
 const TEAM_NAME_TO_ISO3: Record<string, string> = {
@@ -126,7 +126,7 @@ const TEAM_NAME_TO_ISO3: Record<string, string> = {
 
 const groupedTeams = computed(() => {
   return teams.value.reduce<Record<string, typeof teams.value>>((acc, team) => {
-    const key = team.group || 'Sans groupe'
+    const key = team.group || t('sport.fallback.noGroup')
     acc[key] = acc[key] || []
     acc[key].push(team)
     return acc
@@ -212,11 +212,11 @@ const groupedStandings = computed<Record<string, Array<{
     for (const groupRows of groups) {
       for (const row of groupRows || []) {
         rows.push({
-          group: String(row?.group || 'Sans groupe'),
+          group: String(row?.group || t('sport.fallback.noGroup')),
           rank: toNumber(row?.rank),
           team: {
             id: row?.team?.id != null ? toNumber(row.team.id, 0) : null,
-            name: String(row?.team?.name || '-'),
+            name: String(row?.team?.name || t('sport.fallback.unknownTeam')),
             logo: String(row?.team?.logo || ''),
           },
           points: toNumber(row?.points),
@@ -286,7 +286,7 @@ const selectedFixture = computed(() => {
 
 const formatDate = (date?: string) => {
   if (!date) {
-    return 'N/A'
+    return t('sport.fallback.notAvailable')
   }
 
   const parsed = new Date(date)
@@ -411,9 +411,9 @@ const selectFixture = (fixture: FixtureItem) => {
     if (homeTeam?.id != null) {
       selectedTeam.value = {
         id: toNumber(homeTeam.id),
-        name: String(homeTeam?.name || 'N/A'),
+        name: String(homeTeam?.name || t('sport.fallback.unknownTeam')),
         logo: String(homeTeam?.logo || ''),
-        group: selectedTeam.value?.group || '-',
+        group: selectedTeam.value?.group || t('sport.fallback.noGroup'),
       }
     }
   }
@@ -475,16 +475,18 @@ onMounted(async () => {
 <template>
   <NuxtLayout name="default">
     <template #layout-sidebar>
-      <v-alert v-if="standingsLoading.standings || referenceLoading.seasons" type="info" variant="tonal">Loading...</v-alert>
+      <v-alert v-if="standingsLoading.standings || referenceLoading.seasons" type="info" variant="tonal">
+        {{ t('sport.states.loading') }}
+      </v-alert>
       <v-alert v-else-if="standingsError.standings || referenceError.seasons" type="error" variant="tonal">
-        {{ isQuotaError(standingsError.standings || referenceError.seasons) ? quotaMessage : 'Impossible de charger le classement.' }}
+        {{ isQuotaError(standingsError.standings || referenceError.seasons) ? quotaMessage : t('sport.worldCup.states.unableToLoadStandings') }}
       </v-alert>
 
       <div v-else class="standings-grid">
         <v-select
           v-model="selectedStandingsGroup"
           :items="standingsGroupOptions"
-          label="Group"
+          :label="t('sport.worldCup.labels.group')"
           density="compact"
           variant="outlined"
           hide-details
@@ -495,8 +497,8 @@ onMounted(async () => {
             <thead>
             <tr>
               <th>#</th>
-              <th>Team</th>
-              <th>Pts</th>
+              <th>{{ t('sport.labels.team') }}</th>
+              <th>{{ t('sport.labels.pointsShort') }}</th>
             </tr>
             </thead>
             <tbody>
@@ -522,9 +524,9 @@ onMounted(async () => {
     </template>
     <template #layout-aside>
       <div class="d-flex align-center ga-2 flex-wrap">
-        <FootballAvatar :src="selectedTeam?.logo" :alt="`Logo ${selectedTeam?.name}`" :size="72" icon="mdi-shield-outline" class="mr-4" />
+        <FootballAvatar :src="selectedTeam?.logo" :alt="t('sport.worldCup.labels.teamLogoAlt', { team: selectedTeam?.name || t('sport.fallback.unknownTeam') })" :size="72" icon="mdi-shield-outline" class="mr-4" />
         <div>
-          <div class="text-body-1 font-weight-medium">{{ selectedTeam?.name || 'Aucune équipe sélectionnée' }}</div>
+          <div class="text-body-1 font-weight-medium">{{ selectedTeam?.name || t('sport.empty.noTeamSelectedTitle') }}</div>
           <div v-if="selectedTeam" class="text-caption text-medium-emphasis">{{ selectedTeam.group }}</div>
         </div>
       </div>
@@ -537,55 +539,55 @@ onMounted(async () => {
             @click="selectFixture(fixture)"
         >
           <template #prepend>
-            <FootballAvatar :src="teamFlagSrc(fixture?.teams?.home?.name, fixture?.teams?.home?.logo)" :alt="`Drapeau équipe domicile ${fixture?.teams?.home?.name || 'Home'}`" :size="28" icon="mdi-shield-outline" />
+            <FootballAvatar :src="teamFlagSrc(fixture?.teams?.home?.name, fixture?.teams?.home?.logo)" :alt="t('sport.worldCup.labels.homeFlagAlt', { team: fixture?.teams?.home?.name || t('sport.fallback.homeTeam') })" :size="28" icon="mdi-shield-outline" />
           </template>
           <div class="aside-fixture-item__content">
             <div class="text-body-2 font-weight-medium">
-              {{ `${fixture?.teams?.home?.name || 'N/A'} vs ${fixture?.teams?.away?.name || 'N/A'}` }}
+              {{ `${fixture?.teams?.home?.name || t('sport.fallback.unknownTeam')} vs ${fixture?.teams?.away?.name || t('sport.fallback.unknownTeam')}` }}
             </div>
             <div class="text-caption text-medium-emphasis text-sm">{{ formatDate(fixture?.fixture?.date) }}</div>
           </div>
           <template #append>
-            <FootballAvatar :src="teamFlagSrc(fixture?.teams?.away?.name, fixture?.teams?.away?.logo)" :alt="`Drapeau équipe extérieur ${fixture?.teams?.away?.name || 'Away'}`" :size="28" icon="mdi-shield-outline" />
+            <FootballAvatar :src="teamFlagSrc(fixture?.teams?.away?.name, fixture?.teams?.away?.logo)" :alt="t('sport.worldCup.labels.awayFlagAlt', { team: fixture?.teams?.away?.name || t('sport.fallback.awayTeam') })" :size="28" icon="mdi-shield-outline" />
           </template>
         </v-list-item>
       </v-list>
     </template>
-    <main  aria-label="World Cup dashboard">
+    <main  :aria-label="t('sport.worldCup.labels.dashboardAria')">
 
       <div class="aside-header mb-4">
         <v-card variant="outlined" class="pa-3">
           <div class="text-body-2 d-flex text-center justify-center">{{ formatDate(selectedFixture?.fixture?.date) }}</div>
           <div class="text-body-2 font-weight-medium d-flex align-center ga-2 flex-wrap">
-            <FootballAvatar :src="selectedFixture?.teams?.home?.logo" :alt="`Logo ${selectedFixture?.teams?.home?.name || 'Home'}`" :size="28" icon="mdi-shield-outline" />
-            <h1>{{ selectedFixture?.teams?.home?.name || 'N/A' }}</h1>
+            <FootballAvatar :src="selectedFixture?.teams?.home?.logo" :alt="t('sport.worldCup.labels.teamLogoAlt', { team: selectedFixture?.teams?.home?.name || t('sport.fallback.homeTeam') })" :size="28" icon="mdi-shield-outline" />
+            <h1>{{ selectedFixture?.teams?.home?.name || t('sport.fallback.unknownTeam') }}</h1>
             <h1>{{ selectedFixture?.goals?.home ?? '-' }} </h1>
             <v-spacer></v-spacer>
             <h1>{{ selectedFixture?.goals?.away ?? '-' }}</h1>
-            <h1>{{ selectedFixture?.teams?.away?.name || 'N/A' }}</h1>
-            <FootballAvatar :src="selectedFixture?.teams?.away?.logo" :alt="`Logo ${selectedFixture?.teams?.away?.name || 'Away'}`" :size="28" icon="mdi-shield-outline" />
+            <h1>{{ selectedFixture?.teams?.away?.name || t('sport.fallback.unknownTeam') }}</h1>
+            <FootballAvatar :src="selectedFixture?.teams?.away?.logo" :alt="t('sport.worldCup.labels.teamLogoAlt', { team: selectedFixture?.teams?.away?.name || t('sport.fallback.awayTeam') })" :size="28" icon="mdi-shield-outline" />
           </div>
-          <div class="text-caption d-flex text-center justify-center">{{ selectedFixture?.fixture?.status?.short || 'N/A' }}</div>
+          <div class="text-caption d-flex text-center justify-center">{{ selectedFixture?.fixture?.status?.short || t('sport.fallback.notAvailable') }}</div>
         </v-card>
       </div>
 
       <v-alert v-if="fixturesLoading.events || fixturesLoading.lineups || fixturesLoading.statistics || fixturesLoading.players" type="info" variant="tonal">
-        Chargement des détails du match...
+        {{ t('sport.worldCup.states.loadingMatchDetails') }}
       </v-alert>
       <v-alert
           v-else-if="fixturesError.events || fixturesError.lineups || fixturesError.statistics || fixturesError.players"
           type="error"
           variant="tonal"
       >
-        {{ isQuotaError(fixturesError.events || fixturesError.lineups || fixturesError.statistics || fixturesError.players) ? quotaMessage : 'Impossible de charger les détails du match.' }}
+        {{ isQuotaError(fixturesError.events || fixturesError.lineups || fixturesError.statistics || fixturesError.players) ? quotaMessage : t('sport.worldCup.states.unableToLoadMatchDetails') }}
       </v-alert>
 
       <v-sheet v-else elevation="2">
         <v-tabs v-model="tab" color="primary" grow>
-          <v-tab value="one">Timeline</v-tab>
-          <v-tab value="two">Lineups</v-tab>
-          <v-tab value="three">Statistics</v-tab>
-          <v-tab value="four">Players</v-tab>
+          <v-tab value="one">{{ t('sport.worldCup.tabs.timeline') }}</v-tab>
+          <v-tab value="two">{{ t('sport.worldCup.tabs.lineups') }}</v-tab>
+          <v-tab value="three">{{ t('sport.worldCup.tabs.statistics') }}</v-tab>
+          <v-tab value="four">{{ t('sport.worldCup.tabs.players') }}</v-tab>
         </v-tabs>
 
         <v-divider></v-divider>

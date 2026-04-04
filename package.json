@@ -10,6 +10,7 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "validate:i18n": "node scripts/validate-i18n.mjs",
+    "lint:sport-i18n": "node scripts/lint-sport-i18n.mjs",
     "test": "vitest run",
     "test:unit": "vitest run tests/unit",
     "perf:bundle": "node scripts/check-bundle-budget.mjs --enforce",

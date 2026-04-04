@@ -5,6 +5,7 @@ import type { SportGameCardItem } from './types'
 const props = defineProps<{
   games: SportGameCardItem[]
 }>()
+const { t } = useI18n()
 
 const pseudoStandings = computed(() => {
   const table = new Map<string, { name: string, points: number }>()
@@ -30,13 +31,13 @@ const pseudoStandings = computed(() => {
 
 <template>
   <v-card variant="tonal" class="pa-4">
-    <p class="text-overline mb-2">Standings (snapshot)</p>
+    <p class="text-overline mb-2">{{ t('sport.panels.standingsSnapshot') }}</p>
     <v-table density="comfortable">
       <thead>
         <tr>
           <th>#</th>
-          <th>Équipe</th>
-          <th class="text-right">Points</th>
+          <th>{{ t('sport.labels.team') }}</th>
+          <th class="text-right">{{ t('sport.labels.points') }}</th>
         </tr>
       </thead>
       <tbody>
