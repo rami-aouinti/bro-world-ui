@@ -1,6 +1,17 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import type { MatchEvent, MatchLineup, MatchPlayersByTeam, MatchStatisticTeam } from '~/components/football/types'
+import type { MatchPlayersByTeam } from '~/components/football/types'
+import {
+  asArray,
+  normalizeFixtureStatistics,
+  toNumber,
+  type FixtureEvent,
+  type FixtureItem,
+  type FixtureLineup,
+  type FixturePlayersResponse,
+  type FixtureStandingsBlock,
+  type FixtureStatistics,
+} from '~/types/fifa'
 
 definePageMeta({
   public: true,
@@ -8,8 +19,6 @@ definePageMeta({
   layout: false,
   skeleton: 'card-grid',
 })
-
-type GenericRecord = Record<string, any>
 
 const WORLD_CUP_LEAGUE_ID = 1
 const fallbackSeason = 2022
@@ -56,7 +65,7 @@ const oddsMeta = ref({ current: 1, total: 1 })
 const showOddsAndPredictions = ref(false)
 
 const isQuotaError = (err: unknown) => {
-  const candidate = err as GenericRecord | null
+  const candidate = err as { data?: { error?: { code?: string } }, statusCode?: number } | null
   return candidate?.data?.error?.code === 'FIFA_PROXY_API_SPORTS_RATE_LIMITED' || candidate?.statusCode === 503
 }
 
@@ -74,7 +83,7 @@ const groupedTeams = computed(() => {
 const groupOptions = computed(() => ['all', ...Object.keys(groupedTeams.value)])
 
 const teamOptions = computed(() => {
-  const fixtureItems = fixturesByResource.value.fixtures as GenericRecord[]
+  const fixtureItems = asArray<FixtureItem>(fixturesByResource.value.fixtures)
   const seen = new Map<number, string>()
 
   for (const item of fixtureItems) {
@@ -93,14 +102,14 @@ const teamOptions = computed(() => {
 })
 
 const matchDetails = computed(() => ({
-  events: fixturesByResource.value.events as MatchEvent[],
-  lineups: fixturesByResource.value.lineups as MatchLineup[],
-  statistics: fixturesByResource.value.statistics as MatchStatisticTeam[],
-  players: fixturesByResource.value.players as MatchPlayersByTeam[],
+  events: asArray<FixtureEvent>(fixturesByResource.value.events),
+  lineups: asArray<FixtureLineup>(fixturesByResource.value.lineups),
+  statistics: normalizeFixtureStatistics(asArray<FixtureStatistics>(fixturesByResource.value.statistics)),
+  players: asArray<FixturePlayersResponse>(fixturesByResource.value.players) as MatchPlayersByTeam[],
 }))
 
 const fixturesList = computed(() => {
-  const fixtureItems = fixturesByResource.value.fixtures as GenericRecord[]
+  const fixtureItems = asArray<FixtureItem>(fixturesByResource.value.fixtures)
   const selectedGroupTeams = fixtureFilters.group !== 'all'
     ? new Set((groupedTeams.value[fixtureFilters.group] || []).map(team => team.name.toLowerCase()))
     : null
@@ -117,7 +126,13 @@ const fixturesList = computed(() => {
   })
 })
 
-const groupedStandings = computed(() => {
+const groupedStandings = computed<Record<string, Array<{
+  group: string
+  rank: number
+  team: { id: number | null, name: string, logo: string }
+  points: number
+  played: number
+}>>>(() => {
   const rows: Array<{
     group: string
     rank: number
@@ -126,20 +141,20 @@ const groupedStandings = computed(() => {
     played: number
   }> = []
 
-  for (const block of standings.value as GenericRecord[]) {
+  for (const block of asArray<FixtureStandingsBlock>(standings.value)) {
     const groups = block?.league?.standings || []
     for (const groupRows of groups) {
       for (const row of groupRows || []) {
         rows.push({
           group: String(row?.group || 'Sans groupe'),
-          rank: Number(row?.rank || 0),
+          rank: toNumber(row?.rank),
           team: {
-            id: row?.team?.id ? Number(row.team.id) : null,
+            id: row?.team?.id != null ? toNumber(row.team.id, 0) : null,
             name: String(row?.team?.name || '-'),
             logo: String(row?.team?.logo || ''),
           },
-          points: Number(row?.points || 0),
-          played: Number(row?.all?.played || 0),
+          points: toNumber(row?.points),
+          played: toNumber(row?.all?.played),
         })
       }
     }
@@ -158,15 +173,15 @@ const selectedTeamFixtures = computed(() => {
   }
 
   return fixturesList.value.filter((fixture) => {
-    const homeId = Number(fixture?.teams?.home?.id || 0)
-    const awayId = Number(fixture?.teams?.away?.id || 0)
+    const homeId = toNumber(fixture?.teams?.home?.id)
+    const awayId = toNumber(fixture?.teams?.away?.id)
     return homeId === selectedTeam.value?.id || awayId === selectedTeam.value?.id
   })
 })
 
 const selectedFixture = computed(() => {
-  const allFixtures = fixturesByResource.value.fixtures as GenericRecord[]
-  return allFixtures.find(fixture => Number(fixture?.fixture?.id || fixture?.id) === selectedFixtureId.value) || null
+  const allFixtures = asArray<FixtureItem>(fixturesByResource.value.fixtures)
+  return allFixtures.find(fixture => toNumber(fixture?.fixture?.id ?? fixture?.id) === selectedFixtureId.value) || null
 })
 
 const formatDate = (date?: string) => {
@@ -221,8 +236,8 @@ const fetchPlayersPage = async (force = true) => {
     season: selectedSeason.value,
     page: playersPage.value,
   }, force)
-  const payload = result as GenericRecord[]
-  const paging = (playersStore as unknown as GenericRecord).lastPaging?.players
+  const payload = asArray<MatchPlayersByTeam>(result)
+  const paging = (playersStore as unknown as { lastPaging?: { players?: { current?: number, total?: number } } }).lastPaging?.players
   playersMeta.value = {
     current: paging?.current || playersPage.value,
     total: paging?.total || Math.max(1, playersPage.value),
@@ -236,8 +251,8 @@ const fetchOddsPage = async () => {
     season: selectedSeason.value,
     page: oddsPage.value,
   })
-  const payload = result as GenericRecord[]
-  const paging = (oddsStore as unknown as GenericRecord).lastPaging?.odds
+  const payload = asArray<Record<string, unknown>>(result)
+  const paging = (oddsStore as unknown as { lastPaging?: { odds?: { current?: number, total?: number } } }).lastPaging?.odds
   oddsMeta.value = {
     current: paging?.current || oddsPage.value,
     total: paging?.total || Math.max(1, oddsPage.value),
@@ -266,16 +281,16 @@ const loadPredictions = async () => {
   await predictionsStore.fetchPredictions({ fixture: selectedFixtureId.value }, true)
 }
 
-const selectFixture = (fixture: GenericRecord) => {
-  selectedFixtureId.value = Number(fixture?.fixture?.id || fixture?.id)
+const selectFixture = (fixture: FixtureItem) => {
+  selectedFixtureId.value = toNumber(fixture?.fixture?.id ?? fixture?.id)
 
   const homeTeam = fixture?.teams?.home
   const awayTeam = fixture?.teams?.away
 
-  if (!selectedTeam.value || (selectedTeam.value.id !== Number(homeTeam?.id || 0) && selectedTeam.value.id !== Number(awayTeam?.id || 0))) {
-    if (homeTeam?.id) {
+  if (!selectedTeam.value || (selectedTeam.value.id !== toNumber(homeTeam?.id) && selectedTeam.value.id !== toNumber(awayTeam?.id))) {
+    if (homeTeam?.id != null) {
       selectedTeam.value = {
-        id: Number(homeTeam.id),
+        id: toNumber(homeTeam.id),
         name: String(homeTeam?.name || 'N/A'),
         logo: String(homeTeam?.logo || ''),
         group: selectedTeam.value?.group || '-',
