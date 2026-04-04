@@ -1,4 +1,5 @@
 import { getQuery } from 'h3'
+import { readApiSportsRegistrySport } from '~~/server/utils/apisportsRegistry'
 
 type ApiSportsFixtureTeam = {
   id?: number
@@ -58,6 +59,12 @@ type SportGameItem = {
   time: string
 }
 
+type TodayGamesResolver = {
+  endpoint: string
+  query: (date: string, timezone: string) => Record<string, string>
+  normalize: (payload: unknown) => SportGameItem[]
+}
+
 const isValidTimeZone = (value: string) => {
   try {
     Intl.DateTimeFormat('en-US', { timeZone: value })
@@ -75,7 +82,7 @@ const resolveDateForTimeZone = (timeZone: string) => new Intl.DateTimeFormat('en
   day: '2-digit',
 }).format(new Date())
 
-const toUiModel = (item: ApiSportsFixtureResponseItem): SportGameItem | null => {
+const toUiModelFromFixture = (item: ApiSportsFixtureResponseItem): SportGameItem | null => {
   const fixtureId = item.fixture?.id
 
   if (!fixtureId) {
@@ -97,6 +104,42 @@ const toUiModel = (item: ApiSportsFixtureResponseItem): SportGameItem | null => 
   }
 }
 
+const normalizeFootballGames = (payload: unknown): SportGameItem[] => {
+  const envelope = payload as ApiSportsFixtureEnvelope
+  return (envelope.response || [])
+    .map(toUiModelFromFixture)
+    .filter((entry): entry is SportGameItem => Boolean(entry))
+}
+
+const TODAY_GAMES_BY_SPORT: Record<string, TodayGamesResolver> = {
+  football: {
+    endpoint: 'fixtures',
+    query: (date, timezone) => ({ date, timezone }),
+    normalize: normalizeFootballGames,
+  },
+}
+
+const createUnsupportedSportError = (sport: string) => createError({
+  statusCode: 404,
+  statusMessage: `Sport not declared for daily games: ${sport}`,
+  data: {
+    code: 'SPORT_GAMES_UNSUPPORTED_SPORT',
+    sport,
+    allowed: Object.keys(TODAY_GAMES_BY_SPORT),
+  },
+})
+
+const createUnsupportedEndpointError = (sport: string, endpoint: string, allowed: string[]) => createError({
+  statusCode: 400,
+  statusMessage: `Endpoint not declared for sport "${sport}": ${endpoint}`,
+  data: {
+    code: 'SPORT_GAMES_UNSUPPORTED_ENDPOINT',
+    sport,
+    endpoint,
+    allowed,
+  },
+})
+
 export default defineEventHandler(async event => {
   const sport = getRouterParam(event, 'sport')?.toLowerCase() || ''
   const query = getQuery(event)
@@ -104,30 +147,32 @@ export default defineEventHandler(async event => {
   const timezonePolicy = timezoneInput && isValidTimeZone(timezoneInput) ? timezoneInput : 'UTC'
   const date = resolveDateForTimeZone(timezonePolicy)
 
-  if (sport !== 'football') {
-    throw createError({
-      statusCode: 400,
-      statusMessage: `Sport not yet supported for daily games: ${sport}`,
-      data: {
-        code: 'SPORT_GAMES_UNSUPPORTED_SPORT',
-        sport,
-      },
-    })
+  const resolver = TODAY_GAMES_BY_SPORT[sport]
+
+  if (!resolver) {
+    throw createUnsupportedSportError(sport)
   }
 
-  const payload = await $fetch<ApiSportsFixtureEnvelope>('/api/apisports/football/fixtures', {
-    query: {
-      date,
-      timezone: timezonePolicy,
-    },
-  })
+  const registrySport = readApiSportsRegistrySport(sport)
 
-  const games = (payload.response || []).map(toUiModel).filter((entry): entry is SportGameItem => Boolean(entry))
+  if (!registrySport) {
+    throw createUnsupportedSportError(sport)
+  }
+
+  const isWhitelistedEndpoint = Boolean(registrySport.endpoints[resolver.endpoint])
+
+  if (!isWhitelistedEndpoint) {
+    throw createUnsupportedEndpointError(sport, resolver.endpoint, Object.keys(registrySport.endpoints))
+  }
+
+  const payload = await $fetch<unknown>(`/api/apisports/${sport}/${resolver.endpoint}`, {
+    query: resolver.query(date, timezonePolicy),
+  })
 
   return {
     sport,
     date,
     timezonePolicy,
-    games,
+    games: resolver.normalize(payload),
   }
 })
