@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
+import type { MatchEvent, MatchLineup, MatchPlayersByTeam, MatchStatisticTeam } from '~/components/football/types'
 
 definePageMeta({
   public: true,
@@ -92,10 +93,10 @@ const teamOptions = computed(() => {
 })
 
 const matchDetails = computed(() => ({
-  events: fixturesByResource.value.events as GenericRecord[],
-  lineups: fixturesByResource.value.lineups as GenericRecord[],
-  statistics: fixturesByResource.value.statistics as GenericRecord[],
-  players: fixturesByResource.value.players as GenericRecord[],
+  events: fixturesByResource.value.events as MatchEvent[],
+  lineups: fixturesByResource.value.lineups as MatchLineup[],
+  statistics: fixturesByResource.value.statistics as MatchStatisticTeam[],
+  players: fixturesByResource.value.players as MatchPlayersByTeam[],
 }))
 
 const fixturesList = computed(() => {
@@ -499,10 +500,10 @@ onMounted(async () => {
             </v-alert>
 
             <div v-else class="details-grid">
-              <v-card variant="outlined" class="pa-3"><div class="text-subtitle-2 mb-2">Events</div><pre>{{ JSON.stringify(matchDetails.events, null, 2) }}</pre></v-card>
-              <v-card variant="outlined" class="pa-3"><div class="text-subtitle-2 mb-2">Lineups</div><pre>{{ JSON.stringify(matchDetails.lineups, null, 2) }}</pre></v-card>
-              <v-card variant="outlined" class="pa-3"><div class="text-subtitle-2 mb-2">Statistics</div><pre>{{ JSON.stringify(matchDetails.statistics, null, 2) }}</pre></v-card>
-              <v-card variant="outlined" class="pa-3"><div class="text-subtitle-2 mb-2">Players</div><pre>{{ JSON.stringify(matchDetails.players, null, 2) }}</pre></v-card>
+              <MatchEventsTimeline :events="matchDetails.events" />
+              <MatchLineupsBoard :lineups="matchDetails.lineups" />
+              <MatchStatisticsCompare :statistics="matchDetails.statistics" />
+              <MatchPlayersTable :players="matchDetails.players" />
             </div>
 
             <v-alert v-if="selectedTeam" type="info" variant="tonal" class="mt-3">Fixtures filtrées pour l’équipe sélectionnée.</v-alert>
