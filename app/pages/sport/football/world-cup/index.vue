@@ -562,7 +562,13 @@ onMounted(async () => {
 
         <v-tabs-window v-model="tab">
           <v-tabs-window-item value="one">
-            <MatchEventsTimeline :events="matchDetails.events" />
+            <MatchEventsTimeline
+              :events="matchDetails.events"
+              :home-team-id="selectedFixture?.teams?.home?.id != null ? toNumber(selectedFixture?.teams?.home?.id) : null"
+              :away-team-id="selectedFixture?.teams?.away?.id != null ? toNumber(selectedFixture?.teams?.away?.id) : null"
+              :home-team-name="selectedFixture?.teams?.home?.name"
+              :away-team-name="selectedFixture?.teams?.away?.name"
+            />
           </v-tabs-window-item>
           <v-tabs-window-item value="two">
             <MatchLineupsBoard :lineups="matchDetails.lineups" />
