@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent } from 'vue'
 import { useDisplay } from 'vuetify'
+import { sportNavigationItems } from '~/data/sports'
 
 interface NavItem {
   key: string
@@ -29,10 +30,7 @@ const mainHeaderItems = computed<NavItem[]>(() => [
   {
     key: 'app.navigation.sport',
     icon: 'mdi-trophy-outline',
-    children: [
-      { key: 'app.navigation.football', to: '/sport/football', icon: 'mdi-soccer' },
-      { key: 'app.navigation.baseball', to: '/sport/baseball', icon: 'mdi-baseball' },
-    ],
+    children: sportNavigationItems,
   },
   { key: 'app.navigation.blog', to: '/blog', icon: 'mdi-post-outline' },
   { key: 'app.navigation.quiz', to: '/quiz', icon: 'mdi-help-circle-outline' },
