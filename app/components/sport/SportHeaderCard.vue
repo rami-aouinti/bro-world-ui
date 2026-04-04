@@ -9,6 +9,8 @@ defineProps<{
   sportIcon: string
   metrics: SportMetric[]
 }>()
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -23,7 +25,7 @@ defineProps<{
             {{ sportName }}
           </h2>
           <p class="text-body-2 text-medium-emphasis mb-0">
-            Sport overview dashboard
+            {{ t('sport.overviewDashboard') }}
           </p>
         </div>
       </div>

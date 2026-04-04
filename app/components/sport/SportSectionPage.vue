@@ -16,18 +16,18 @@ const showWorldCupCta = computed(() => props.section === 'overview' && sport.val
 
 const sectionCopy = computed(() => {
   if (props.section === 'players') {
-    return 'Explore player stats, profiles, and highlights.'
+    return t('sport.sectionCopy.players')
   }
 
   if (props.section === 'games') {
-    return 'Track schedules, live momentum, and final scores.'
+    return t('sport.sectionCopy.games')
   }
 
   if (props.section === 'teams') {
-    return 'Compare teams, rosters, and standings at a glance.'
+    return t('sport.sectionCopy.teams')
   }
 
-  return 'Navigate a consistent sports workspace across all disciplines.'
+  return t('sport.sectionCopy.overview')
 })
 </script>
 
@@ -57,7 +57,7 @@ const sectionCopy = computed(() => {
           variant="flat"
           prepend-icon="mdi-trophy-outline"
         >
-          {{ t('worldCup.stadiums.title') }}
+          {{ t('sport.worldCup') }}
         </v-btn>
       </v-card>
     </div>

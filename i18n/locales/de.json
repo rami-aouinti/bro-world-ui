@@ -39,7 +39,10 @@
       "nba": "NBA",
       "nfl": "NFL",
       "rugby": "Rugby",
-      "volleyball": "Volleyball"
+      "volleyball": "Volleyball",
+      "players": "Spieler",
+      "games": "Spiele",
+      "teams": "Teams"
     },
     "common": {
       "showAll": "Alle anzeigen"
@@ -2347,5 +2350,23 @@
     "trick": "Stich",
     "score": "Punktzahl",
     "tips": "Tipps"
+  },
+  "sport": {
+    "overviewDashboard": "Sport-Übersichts-Dashboard",
+    "todayGames": "Heutige Spiele",
+    "noGamesToday": "Heute keine Spiele",
+    "loadingGames": "Heutige Spiele werden geladen ...",
+    "retry": "Erneut versuchen",
+    "noGamesTodayDescription": "Für dieses Datum wurden keine Ereignisse gemeldet.",
+    "unableToLoadGames": "Heutige Spiele konnten nicht geladen werden.",
+    "timezone": "Zeitzone",
+    "kickoffTbd": "Anstoß offen",
+    "sectionCopy": {
+      "overview": "Nutze einen konsistenten Sport-Arbeitsbereich für alle Disziplinen.",
+      "players": "Entdecke Spielerstatistiken, Profile und Highlights.",
+      "games": "Verfolge Spielpläne, Live-Dynamik und Endergebnisse.",
+      "teams": "Vergleiche Teams, Kader und Tabellen auf einen Blick."
+    },
+    "worldCup": "Weltmeisterschaft"
   }
 }

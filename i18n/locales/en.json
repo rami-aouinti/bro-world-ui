@@ -39,7 +39,10 @@
       "nba": "NBA",
       "nfl": "NFL",
       "rugby": "Rugby",
-      "volleyball": "Volleyball"
+      "volleyball": "Volleyball",
+      "players": "Players",
+      "games": "Games",
+      "teams": "Teams"
     },
     "common": {
       "showAll": "View all"
@@ -2481,5 +2484,23 @@
         "empty": "No stadium available yet."
       }
     }
+  },
+  "sport": {
+    "overviewDashboard": "Sport overview dashboard",
+    "todayGames": "Today games",
+    "noGamesToday": "No games today",
+    "loadingGames": "Loading today games...",
+    "retry": "Retry",
+    "noGamesTodayDescription": "No event was returned for this date.",
+    "unableToLoadGames": "Unable to load today games.",
+    "timezone": "Timezone",
+    "kickoffTbd": "Kickoff TBD",
+    "sectionCopy": {
+      "overview": "Navigate a consistent sports workspace across all disciplines.",
+      "players": "Explore player stats, profiles, and highlights.",
+      "games": "Track schedules, live momentum, and final scores.",
+      "teams": "Compare teams, rosters, and standings at a glance."
+    },
+    "worldCup": "World Cup"
   }
 }

@@ -39,7 +39,10 @@
       "nba": "NBA",
       "nfl": "NFL",
       "rugby": "Rugby",
-      "volleyball": "Volleyball"
+      "volleyball": "Volleyball",
+      "players": "اللاعبون",
+      "games": "المباريات",
+      "teams": "الفرق"
     },
     "common": {
       "showAll": "عرض الكل"
@@ -2347,5 +2350,23 @@
     "trick": "اللفة",
     "score": "النتيجة",
     "tips": "نصائح"
+  },
+  "sport": {
+    "overviewDashboard": "لوحة نظرة عامة رياضية",
+    "todayGames": "مباريات اليوم",
+    "noGamesToday": "لا توجد مباريات اليوم",
+    "loadingGames": "جارٍ تحميل مباريات اليوم...",
+    "retry": "إعادة المحاولة",
+    "noGamesTodayDescription": "لم يتم إرجاع أي حدث لهذا التاريخ.",
+    "unableToLoadGames": "تعذر تحميل مباريات اليوم.",
+    "timezone": "المنطقة الزمنية",
+    "kickoffTbd": "موعد البداية غير محدد",
+    "sectionCopy": {
+      "overview": "تنقّل في مساحة رياضية موحّدة عبر جميع الرياضات.",
+      "players": "استكشف إحصاءات اللاعبين وملفاتهم وأبرز لقطاتهم.",
+      "games": "تابع الجداول والزخم المباشر والنتائج النهائية.",
+      "teams": "قارن بين الفرق والتشكيلات والترتيب بسرعة."
+    },
+    "worldCup": "كأس العالم"
   }
 }

@@ -7,10 +7,12 @@ const props = defineProps<{
   activeSection: SportSection
 }>()
 
+const { t } = useI18n()
+
 const tabs = computed(() => [
-  { label: 'Players', section: 'players' as const },
-  { label: 'Games', section: 'games' as const },
-  { label: 'Teams', section: 'teams' as const },
+  { label: t('app.navigation.players'), section: 'players' as const },
+  { label: t('app.navigation.games'), section: 'games' as const },
+  { label: t('app.navigation.teams'), section: 'teams' as const },
 ])
 </script>
 
