@@ -419,7 +419,7 @@ onMounted(async () => {
           <FootballAvatar :src="selectedTeam?.logo" :alt="`Logo ${selectedTeam?.name}`" :size="36" icon="mdi-shield-outline" class="mr-3" />
           <div>
             <div class="text-body-1 font-weight-medium">{{ selectedTeam?.name || 'Aucune équipe sélectionnée' }}</div>
-            <div v-if="selectedTeam" class="text-caption text-medium-emphasis">Group {{ selectedTeam.group }}</div>
+            <div v-if="selectedTeam" class="text-caption text-medium-emphasis">{{ selectedTeam.group }}</div>
           </div>
         </div>
 

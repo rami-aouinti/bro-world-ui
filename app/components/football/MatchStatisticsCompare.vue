@@ -54,7 +54,7 @@ const rows = computed(() => {
 </script>
 
 <template>
-  <div class="pa-3">
+  <div class="pa-4">
     <v-alert v-if="!rows.length" type="info" variant="tonal" density="comfortable">
       Aucune statistique disponible.
     </v-alert>
