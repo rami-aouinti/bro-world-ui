@@ -27,8 +27,9 @@
       "blog": "Blog",
       "quiz": "Quiz",
       "game": "Spiel",
-      "event": "Events",
-      "worldCup": "Weltmeisterschaft"
+      "sport": "Sport",
+      "football": "Fußball",
+      "baseball": "Baseball"
     },
     "common": {
       "showAll": "Alle anzeigen"
