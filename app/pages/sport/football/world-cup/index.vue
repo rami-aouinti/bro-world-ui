@@ -45,7 +45,6 @@ const fixtureFilters = reactive({
 
 const selectedFixtureId = ref<number | null>(null)
 const selectedTeam = ref<{ id: number, name: string, logo: string, group: string } | null>(null)
-const showTeamDetailsPanel = ref(false)
 
 const playersPage = ref(1)
 const playersMeta = ref({ current: 1, total: 1 })
@@ -164,6 +163,11 @@ const selectedTeamFixtures = computed(() => {
   })
 })
 
+const selectedFixture = computed(() => {
+  const allFixtures = fixturesByResource.value.fixtures as GenericRecord[]
+  return allFixtures.find(fixture => Number(fixture?.fixture?.id || fixture?.id) === selectedFixtureId.value) || null
+})
+
 const formatDate = (date?: string) => {
   if (!date) {
     return 'N/A'
@@ -261,6 +265,24 @@ const loadPredictions = async () => {
   await predictionsStore.fetchPredictions({ fixture: selectedFixtureId.value }, true)
 }
 
+const selectFixture = (fixture: GenericRecord) => {
+  selectedFixtureId.value = Number(fixture?.fixture?.id || fixture?.id)
+
+  const homeTeam = fixture?.teams?.home
+  const awayTeam = fixture?.teams?.away
+
+  if (!selectedTeam.value || (selectedTeam.value.id !== Number(homeTeam?.id || 0) && selectedTeam.value.id !== Number(awayTeam?.id || 0))) {
+    if (homeTeam?.id) {
+      selectedTeam.value = {
+        id: Number(homeTeam.id),
+        name: String(homeTeam?.name || 'N/A'),
+        logo: String(homeTeam?.logo || ''),
+        group: selectedTeam.value?.group || '-',
+      }
+    }
+  }
+}
+
 const refreshOddsAndPredictions = async () => {
   if (!showOddsAndPredictions.value) {
     return
@@ -284,7 +306,6 @@ const selectStandingTeam = async (payload: { id: number | null, name: string, lo
     logo: payload.logo,
     group: payload.group,
   }
-  showTeamDetailsPanel.value = true
   await fetchFixtures(true)
 }
 
@@ -339,9 +360,60 @@ onMounted(async () => {
         </div>
       </v-card>
 
-      <v-card class="pa-4 pa-md-5 section-card" variant="tonal">
-        <div class="d-flex align-center justify-space-between mb-3">
-          <h2 class="text-h6 mb-0">2) Fixtures + filtres</h2>
+      <div class="world-cup-main-layout" :class="{ 'is-mobile': smAndDown }">
+        <div class="world-cup-left-column">
+          <v-card class="pa-4 pa-md-5 section-card" variant="tonal">
+            <div class="d-flex align-center justify-space-between mb-3">
+              <h2 class="text-h6 mb-0">3) Standings par groupe</h2>
+              <v-btn size="small" variant="text" @click="fetchStandings(true)">Actualiser</v-btn>
+            </div>
+
+            <v-alert v-if="standingsLoading.standings || referenceLoading.seasons" type="info" variant="tonal">Chargement du classement...</v-alert>
+            <v-alert v-else-if="standingsError.standings || referenceError.seasons" type="error" variant="tonal">
+              {{ isQuotaError(standingsError.standings || referenceError.seasons) ? quotaMessage : 'Impossible de charger le classement.' }}
+            </v-alert>
+
+            <div v-else class="standings-grid">
+              <v-card v-for="(rows, groupName) in groupedStandings" :key="groupName" variant="outlined" class="pa-3">
+                <div class="text-subtitle-1 font-weight-bold mb-2">{{ groupName }}</div>
+                <v-table :density="tableDensity" class="bg-transparent">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Équipe</th>
+                      <th>Pts</th>
+                      <th>J</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="row in rows" :key="`${groupName}-${row.rank}-${row.team.id || row.team.name}`">
+                      <td>{{ row.rank }}</td>
+                      <td>
+                        <v-btn
+                          variant="text"
+                          density="comfortable"
+                          class="team-link px-0 text-none"
+                          @click="selectStandingTeam({ id: row.team.id, name: row.team.name, logo: row.team.logo, group: String(groupName) })"
+                        >
+                          <v-avatar size="24" class="mr-2">
+                            <v-img v-if="row.team.logo" :src="row.team.logo" :alt="`Logo ${row.team.name}`" cover />
+                            <span v-else class="text-caption">{{ row.team.name?.slice(0, 1) || '?' }}</span>
+                          </v-avatar>
+                          <span>{{ row.team.name }}</span>
+                        </v-btn>
+                      </td>
+                      <td>{{ row.points }}</td>
+                      <td>{{ row.played }}</td>
+                    </tr>
+                  </tbody>
+                </v-table>
+              </v-card>
+            </div>
+          </v-card>
+
+          <v-card class="pa-4 pa-md-5 section-card" variant="tonal">
+            <div class="d-flex align-center justify-space-between mb-3">
+              <h2 class="text-h6 mb-0">2) Fixtures + filtres</h2>
           <v-chip :size="sectionChipSize" color="primary" variant="outlined">{{ fixturesList.length }}</v-chip>
         </div>
 
@@ -376,7 +448,7 @@ onMounted(async () => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="fixture in fixturesList" :key="fixture?.fixture?.id || fixture?.id" @click="selectedFixtureId = Number(fixture?.fixture?.id || fixture?.id)">
+            <tr v-for="fixture in fixturesList" :key="fixture?.fixture?.id || fixture?.id" @click="selectFixture(fixture)">
               <td>{{ formatDate(fixture?.fixture?.date) }}</td>
               <td>{{ fixture?.teams?.home?.name || 'N/A' }} vs {{ fixture?.teams?.away?.name || 'N/A' }}</td>
               <td>{{ fixture?.fixture?.status?.short || 'N/A' }}</td>
@@ -384,121 +456,68 @@ onMounted(async () => {
             </tr>
           </tbody>
         </v-table>
-      </v-card>
-
-      <v-card class="pa-4 pa-md-5 section-card" variant="tonal">
-        <div class="d-flex align-center justify-space-between mb-3">
-          <h2 class="text-h6 mb-0">3) Standings par groupe</h2>
-          <v-btn size="small" variant="text" @click="fetchStandings(true)">Actualiser</v-btn>
-        </div>
-
-        <v-alert v-if="standingsLoading.standings || referenceLoading.seasons" type="info" variant="tonal">Chargement du classement...</v-alert>
-        <v-alert v-else-if="standingsError.standings || referenceError.seasons" type="error" variant="tonal">
-          {{ isQuotaError(standingsError.standings || referenceError.seasons) ? quotaMessage : 'Impossible de charger le classement.' }}
-        </v-alert>
-
-        <div v-else class="standings-grid">
-          <v-card v-for="(rows, groupName) in groupedStandings" :key="groupName" variant="outlined" class="pa-3">
-            <div class="text-subtitle-1 font-weight-bold mb-2">{{ groupName }}</div>
-            <v-table :density="tableDensity" class="bg-transparent">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Équipe</th>
-                  <th>Pts</th>
-                  <th>J</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="row in rows" :key="`${groupName}-${row.rank}-${row.team.id || row.team.name}`">
-                  <td>{{ row.rank }}</td>
-                  <td>
-                    <v-btn
-                      variant="text"
-                      density="comfortable"
-                      class="team-link px-0 text-none"
-                      @click="selectStandingTeam({ id: row.team.id, name: row.team.name, logo: row.team.logo, group: String(groupName) })"
-                    >
-                      <v-avatar size="24" class="mr-2">
-                        <v-img v-if="row.team.logo" :src="row.team.logo" :alt="`Logo ${row.team.name}`" cover />
-                        <span v-else class="text-caption">{{ row.team.name?.slice(0, 1) || '?' }}</span>
-                      </v-avatar>
-                      <span>{{ row.team.name }}</span>
-                    </v-btn>
-                  </td>
-                  <td>{{ row.points }}</td>
-                  <td>{{ row.played }}</td>
-                </tr>
-              </tbody>
-            </v-table>
           </v-card>
         </div>
-      </v-card>
 
-      <v-navigation-drawer
-        v-model="showTeamDetailsPanel"
-        location="right"
-        temporary
-        width="420"
-      >
-        <div class="pa-4">
-          <div class="d-flex align-center justify-space-between mb-3">
-            <div class="text-subtitle-1 font-weight-bold">Détails équipe active</div>
-            <v-btn icon="mdi-close" variant="text" size="small" @click="showTeamDetailsPanel = false" />
-          </div>
+        <aside class="world-cup-aside">
+          <v-card class="pa-4 section-card aside-sticky" variant="tonal">
+            <div class="text-subtitle-1 font-weight-bold mb-3">Détails</div>
 
-          <template v-if="selectedTeam">
-            <div class="d-flex align-center mb-3">
-              <v-avatar size="36" class="mr-3">
-                <v-img v-if="selectedTeam.logo" :src="selectedTeam.logo" :alt="`Logo ${selectedTeam.name}`" cover />
-                <span v-else class="text-caption">{{ selectedTeam.name.slice(0, 1) }}</span>
-              </v-avatar>
-              <div>
-                <div class="text-body-1 font-weight-medium">{{ selectedTeam.name }}</div>
-                <div class="text-caption text-medium-emphasis">ID {{ selectedTeam.id }} · Groupe {{ selectedTeam.group }}</div>
+            <div class="aside-header mb-4">
+              <div class="d-flex align-center mb-2">
+                <v-avatar size="36" class="mr-3">
+                  <v-img v-if="selectedTeam?.logo" :src="selectedTeam.logo" :alt="`Logo ${selectedTeam.name}`" cover />
+                  <span v-else class="text-caption">{{ selectedTeam?.name?.slice(0, 1) || '?' }}</span>
+                </v-avatar>
+                <div>
+                  <div class="text-body-1 font-weight-medium">{{ selectedTeam?.name || 'Aucune équipe sélectionnée' }}</div>
+                  <div v-if="selectedTeam" class="text-caption text-medium-emphasis">ID {{ selectedTeam.id }} · Groupe {{ selectedTeam.group }}</div>
+                </div>
               </div>
+
+              <v-card variant="outlined" class="pa-3">
+                <div class="text-caption text-medium-emphasis">Fixture sélectionnée</div>
+                <div class="text-body-2">{{ formatDate(selectedFixture?.fixture?.date) }}</div>
+                <div class="text-body-2 font-weight-medium">
+                  {{ selectedFixture?.teams?.home?.name || 'N/A' }} {{ selectedFixture?.goals?.home ?? '-' }} - {{ selectedFixture?.goals?.away ?? '-' }} {{ selectedFixture?.teams?.away?.name || 'N/A' }}
+                </div>
+                <div class="text-caption">Statut: {{ selectedFixture?.fixture?.status?.short || 'N/A' }} · ID {{ selectedFixtureId || 'N/A' }}</div>
+              </v-card>
             </div>
-            <v-alert type="info" variant="tonal" class="mb-3">
-              Fixtures filtrées pour l’équipe sélectionnée.
+
+            <v-text-field v-model.number="selectedFixtureId" type="number" label="Fixture ID" density="compact" hide-details class="mb-3" />
+
+            <v-alert v-if="fixturesLoading.events || fixturesLoading.lineups || fixturesLoading.statistics || fixturesLoading.players" type="info" variant="tonal">
+              Chargement des détails du match...
             </v-alert>
-            <v-list density="compact">
+            <v-alert
+              v-else-if="fixturesError.events || fixturesError.lineups || fixturesError.statistics || fixturesError.players"
+              type="error"
+              variant="tonal"
+            >
+              {{ isQuotaError(fixturesError.events || fixturesError.lineups || fixturesError.statistics || fixturesError.players) ? quotaMessage : 'Impossible de charger les détails du match.' }}
+            </v-alert>
+
+            <div v-else class="details-grid">
+              <v-card variant="outlined" class="pa-3"><div class="text-subtitle-2 mb-2">Events</div><pre>{{ JSON.stringify(matchDetails.events, null, 2) }}</pre></v-card>
+              <v-card variant="outlined" class="pa-3"><div class="text-subtitle-2 mb-2">Lineups</div><pre>{{ JSON.stringify(matchDetails.lineups, null, 2) }}</pre></v-card>
+              <v-card variant="outlined" class="pa-3"><div class="text-subtitle-2 mb-2">Statistics</div><pre>{{ JSON.stringify(matchDetails.statistics, null, 2) }}</pre></v-card>
+              <v-card variant="outlined" class="pa-3"><div class="text-subtitle-2 mb-2">Players</div><pre>{{ JSON.stringify(matchDetails.players, null, 2) }}</pre></v-card>
+            </div>
+
+            <v-alert v-if="selectedTeam" type="info" variant="tonal" class="mt-3">Fixtures filtrées pour l’équipe sélectionnée.</v-alert>
+            <v-list v-if="selectedTeam" density="compact">
               <v-list-item
                 v-for="fixture in selectedTeamFixtures"
                 :key="fixture?.fixture?.id || fixture?.id"
                 :title="`${fixture?.teams?.home?.name || 'N/A'} vs ${fixture?.teams?.away?.name || 'N/A'}`"
                 :subtitle="formatDate(fixture?.fixture?.date)"
-                @click="selectedFixtureId = Number(fixture?.fixture?.id || fixture?.id)"
+                @click="selectFixture(fixture)"
               />
             </v-list>
-          </template>
-          <v-alert v-else type="info" variant="tonal">Sélectionnez une équipe depuis le classement.</v-alert>
-        </div>
-      </v-navigation-drawer>
-
-      <v-card class="pa-4 pa-md-5 section-card" variant="tonal">
-        <div class="d-flex align-center justify-space-between mb-3">
-          <h2 class="text-h6 mb-0">4) Détails de match par fixture id</h2>
-          <v-text-field v-model.number="selectedFixtureId" type="number" label="Fixture ID" density="compact" hide-details style="max-width: 220px" />
-        </div>
-
-        <v-alert v-if="fixturesLoading.events || fixturesLoading.lineups || fixturesLoading.statistics || fixturesLoading.players" type="info" variant="tonal">
-          Chargement des détails du match...
-        </v-alert>
-        <v-alert
-          v-else-if="fixturesError.events || fixturesError.lineups || fixturesError.statistics || fixturesError.players"
-          type="error"
-          variant="tonal"
-        >
-          {{ isQuotaError(fixturesError.events || fixturesError.lineups || fixturesError.statistics || fixturesError.players) ? quotaMessage : 'Impossible de charger les détails du match.' }}
-        </v-alert>
-
-        <div v-else class="details-grid">
-          <v-card variant="outlined" class="pa-3"><div class="text-subtitle-2 mb-2">Events</div><pre>{{ JSON.stringify(matchDetails.events, null, 2) }}</pre></v-card>
-          <v-card variant="outlined" class="pa-3"><div class="text-subtitle-2 mb-2">Lineups</div><pre>{{ JSON.stringify(matchDetails.lineups, null, 2) }}</pre></v-card>
-          <v-card variant="outlined" class="pa-3"><div class="text-subtitle-2 mb-2">Statistics</div><pre>{{ JSON.stringify(matchDetails.statistics, null, 2) }}</pre></v-card>
-          <v-card variant="outlined" class="pa-3"><div class="text-subtitle-2 mb-2">Players</div><pre>{{ JSON.stringify(matchDetails.players, null, 2) }}</pre></v-card>
-        </div>
-      </v-card>
+          </v-card>
+        </aside>
+      </div>
 
       <v-card class="pa-4 pa-md-5 section-card" variant="tonal">
         <div class="d-flex align-center justify-space-between mb-3">
@@ -558,6 +577,22 @@ onMounted(async () => {
   border-radius: 16px;
 }
 
+.world-cup-main-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+  gap: 20px;
+}
+
+.world-cup-left-column {
+  display: grid;
+  gap: 20px;
+}
+
+.aside-sticky {
+  position: sticky;
+  top: 20px;
+}
+
 .team-groups-grid,
 .filters-grid,
 .standings-grid,
@@ -600,5 +635,13 @@ pre {
 
 .team-link {
   justify-content: flex-start;
+}
+
+.world-cup-main-layout.is-mobile {
+  grid-template-columns: 1fr;
+}
+
+.world-cup-main-layout.is-mobile .aside-sticky {
+  position: static;
 }
 </style>
