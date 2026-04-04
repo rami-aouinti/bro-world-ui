@@ -10,6 +10,43 @@
 | `events` | 15 minutes (moyen) | event CRUD (`POST`/`PATCH`/`PUT`/`DELETE` sur `/api/v1/events*`) |
 | `blog` (private/public) | 10 minutes | publish/update/delete (`POST`/`PATCH`/`PUT`/`DELETE` sur `/api/v1/blogs*`) |
 
+## API-Football: TTL, quotas et refresh forcé
+
+### TTL recommandés par type de données
+
+- **Référentiels** (pays, ligues, équipes, stades, saisons): **24h**  
+  Données peu volatiles, impact quota élevé si refetch trop fréquent.
+- **Standings / fixtures non-live**: **1h** (ou valeur produit explicitement retenue)  
+  Compromis fraîcheur/coût acceptable hors fenêtre live.
+- **Live / events / odds live**: **15 à 60 secondes**  
+  TTL court pour limiter la latence perçue en match tout en protégeant le quota.
+
+### Paramètres de configuration
+
+- `FOOTBALL_CACHE_TTL_SECONDS`  
+  TTL par défaut pour les endpoints non-live API-Football (ex: standings, fixtures pré-match, référence si non surchargée).
+- `FOOTBALL_LIVE_CACHE_TTL_SECONDS`  
+  TTL spécifique live (match en cours, événements live, cotes live), attendu entre **15s** et **60s** selon la sensibilité écran.
+
+### Refresh forcé (bypass cache)
+
+Les mécanismes suivants doivent être explicitement supportés/documentés pour forcer un refetch API-Football :
+
+- Header **`x-football-refresh: 1`** (mécanisme principal).
+- Header legacy **`x-fifa-refresh: 1`** (compatibilité descendante).
+- Côté actions/store: option **`force=true`** pour propager l’intention de bypass cache.
+
+### Matrice endpoint -> TTL -> justification produit/quota
+
+| Endpoint API-Football (type) | TTL recommandé | Justification produit / quota |
+| --- | --- | --- |
+| `reference/*` (pays, ligues, équipes, stades, saisons) | 24h | Données stables ; minimiser les appels répétitifs coûteux en quota. |
+| `standings` (hors live) | 1h | Le classement évolue peu hors fenêtre live ; 1h évite un refresh agressif sans impact UX majeur. |
+| `fixtures` (pré-match / non-live) | 1h | Suffisant pour pages calendrier/pré-match ; réduit la pression sur quota en navigation répétée. |
+| `fixtures/live` | 15–60s | Rafraîchissement quasi temps réel attendu par l’utilisateur pendant match. |
+| `events/live` | 15–30s | Les événements (buts/cartons/remplacements) sont critiques UX ; TTL très court. |
+| `odds/live` | 30–60s | Variations fréquentes mais pas nécessairement seconde par seconde ; compromis coût/pertinence. |
+
 ## Mapping événements métier -> clés invalidées
 
 - `profile.update`
