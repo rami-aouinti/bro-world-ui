@@ -31,6 +31,16 @@ Bonnes pratiques:
 - En local, copier `.env.example` vers `.env` puis définir `API_FOOTBALL_KEY`.
 - Surveiller le quota API-Sports: en cas de dépassement, le proxy peut retourner des erreurs de limitation (HTTP upstream `429`, exposé en erreur applicative côté serveur). Ajuster le TTL cache et la fréquence d'appel pour réduire la consommation.
 
+### API-Sports multi-sport (runtimeConfig)
+
+Le `runtimeConfig` Nuxt expose désormais un bloc dédié par sport:
+
+- `runtimeConfig.footballApi.{baseUrl, apiKey, cacheTtlSeconds}`,
+- `runtimeConfig.basketballApi.{baseUrl, apiKey, cacheTtlSeconds}`,
+- `runtimeConfig.baseballApi.{baseUrl, apiKey, cacheTtlSeconds}`.
+
+Lors d'un appel `/api/apisports/:sport/...`, la config du sport demandé est validée: si `baseUrl` ou `apiKey` manque, l'API renvoie une erreur explicite (`API_SPORTS_PROXY_MISCONFIGURED`) avec les clés `runtimeConfig.*` manquantes.
+
 ### Session security minimums
 
 Au démarrage, l'application valide la configuration session/cookie et échoue si les minimums ne sont pas respectés:
