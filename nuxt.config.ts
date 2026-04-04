@@ -218,6 +218,23 @@ export default defineNuxtConfig({
     cacheVersion: process.env.CACHE_VERSION || 'v1',
     aiGatewayApiKey: process.env.AI_GATEWAY_API_KEY || '',
     aiGatewayModel: process.env.AI_GATEWAY_MODEL || 'openai/gpt-4o-mini',
+    apiSports: {
+      apiKey: process.env.API_SPORTS_KEY || '',
+      cacheTtlSeconds: Number(process.env.API_SPORTS_CACHE_TTL_SECONDS || '') || 86_400,
+      baseUrls: {
+        football: process.env.API_FOOTBALL_BASE_URL || 'https://v3.football.api-sports.io',
+        basketball: process.env.API_BASKETBALL_BASE_URL || 'https://v1.basketball.api-sports.io',
+        baseball: process.env.API_BASEBALL_BASE_URL || 'https://v1.baseball.api-sports.io',
+        hockey: process.env.API_HOCKEY_BASE_URL || 'https://v1.hockey.api-sports.io',
+        rugby: process.env.API_RUGBY_BASE_URL || 'https://v1.rugby.api-sports.io',
+        handball: process.env.API_HANDBALL_BASE_URL || 'https://v1.handball.api-sports.io',
+        volleyball: process.env.API_VOLLEYBALL_BASE_URL || 'https://v1.volleyball.api-sports.io',
+        'american-football': process.env.API_AMERICAN_FOOTBALL_BASE_URL || 'https://v1.american-football.api-sports.io',
+        cricket: process.env.API_CRICKET_BASE_URL || 'https://v1.cricket.api-sports.io',
+        'formula-1': process.env.API_FORMULA_1_BASE_URL || 'https://v1.formula-1.api-sports.io',
+        'moto-gp': process.env.API_MOTO_GP_BASE_URL || 'https://v1.moto-gp.api-sports.io',
+      },
+    },
     footballApi: {
       baseUrl: process.env.API_FOOTBALL_BASE_URL || '',
       apiKey: process.env.API_FOOTBALL_KEY || '',
