@@ -2,7 +2,7 @@ import type { ApiSportsRouteQuerySchema } from '~~/server/api/apisports/_schema'
 
 export type ApiSportsRegistryEndpoint = {
   upstreamEndpoint: string
-  querySchema?: ApiSportsRouteQuerySchema
+  querySchema: ApiSportsRouteQuerySchema
 }
 
 export type ApiSportsRegistryCacheStrategy = {
