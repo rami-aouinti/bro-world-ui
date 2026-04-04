@@ -51,6 +51,7 @@ const tableDensity = computed(() => (smAndDown.value ? 'comfortable' : 'compact'
 const sectionChipSize = computed(() => (smAndDown.value ? 'x-small' : 'small'))
 
 const selectedSeason = ref<number>(fallbackSeason)
+const selectedStandingsGroup = ref('Group A')
 const fixtureFilters = reactive({
   date: '',
   status: '',
@@ -229,6 +230,40 @@ const groupedStandings = computed<Record<string, Array<{
     acc[row.group].push(row)
     return acc
   }, {})
+})
+
+const standingsGroupOptions = computed(() => Object.keys(groupedStandings.value))
+
+const normalizeStandingsGroupKey = (value?: string) => {
+  const normalized = String(value || '').trim()
+  if (!normalized) {
+    return ''
+  }
+
+  const groupLabelMatch = normalized.match(/^group\s+([a-z])$/i)
+  if (groupLabelMatch?.[1]) {
+    return groupLabelMatch[1].toUpperCase()
+  }
+
+  if (normalized.length === 1) {
+    return normalized.toUpperCase()
+  }
+
+  return normalized.toUpperCase()
+}
+
+const filteredStandings = computed(() => {
+  const entries = Object.entries(groupedStandings.value)
+  if (!entries.length) {
+    return {}
+  }
+
+  const selectedNormalized = normalizeStandingsGroupKey(selectedStandingsGroup.value)
+  const selectedEntry = entries.find(([groupName]) => normalizeStandingsGroupKey(groupName) === selectedNormalized)
+  const groupAEntry = entries.find(([groupName]) => normalizeStandingsGroupKey(groupName) === 'A')
+  const [groupName, rows] = selectedEntry || groupAEntry || entries[0]
+
+  return { [groupName]: rows }
 })
 
 const selectedTeamFixtures = computed(() => {
@@ -449,7 +484,15 @@ onMounted(async () => {
       </v-alert>
 
       <div v-else class="standings-grid">
-        <v-card v-for="(rows, groupName) in groupedStandings" :key="groupName" variant="outlined" class="pa-1">
+        <v-select
+          v-model="selectedStandingsGroup"
+          :items="standingsGroupOptions"
+          label="Groupe"
+          density="compact"
+          variant="outlined"
+          hide-details
+        />
+        <v-card v-for="(rows, groupName) in filteredStandings" :key="groupName" variant="outlined" class="pa-1">
           <div class="text-subtitle-1 font-weight-bold mb-2">{{ groupName }}</div>
           <v-table :density="tableDensity" class="bg-transparent">
             <thead>
