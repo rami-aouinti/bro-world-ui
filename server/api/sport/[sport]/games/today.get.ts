@@ -68,7 +68,7 @@ type SportGameItem = {
 
 type TodayGamesResolver = {
   endpoint: string
-  query: (date: string, timezone: string) => Record<string, string>
+  query: (date: string, timezone: string) => Record<string, string | undefined>
   normalize: (payload: unknown) => SportGameItem[]
 }
 
@@ -201,9 +201,33 @@ const TODAY_GAMES_BY_SPORT: Record<string, TodayGamesResolver> = {
   },
   baseball: {
     endpoint: 'games',
-    query: (date) => ({ date }),
+    query: (date, timezone) => ({ date, timezone }),
     normalize: normalizeGamesWithSharedShape,
   },
+}
+
+const createGamesResolverFromRegistry = (canonicalSport: string, registrySport: NonNullable<ReturnType<typeof readApiSportsRegistrySport>>): TodayGamesResolver | null => {
+  if (TODAY_GAMES_BY_SPORT[canonicalSport]) {
+    return TODAY_GAMES_BY_SPORT[canonicalSport]
+  }
+
+  if (registrySport.endpoints.games) {
+    return {
+      endpoint: 'games',
+      query: (date, timezone) => ({ date, timezone }),
+      normalize: normalizeGamesWithSharedShape,
+    }
+  }
+
+  if (registrySport.endpoints.fixtures) {
+    return {
+      endpoint: 'fixtures',
+      query: (date, timezone) => ({ date, timezone }),
+      normalize: normalizeFootballGames,
+    }
+  }
+
+  return null
 }
 
 const createUnsupportedSportError = (sport: string) => createError({
@@ -240,15 +264,15 @@ export default defineEventHandler(async event => {
     throw createUnsupportedSportError(requestedSport)
   }
 
-  const resolver = TODAY_GAMES_BY_SPORT[canonicalSport]
-
-  if (!resolver) {
-    throw createUnsupportedSportError(requestedSport)
-  }
-
   const registrySport = readApiSportsRegistrySport(canonicalSport)
 
   if (!registrySport) {
+    throw createUnsupportedSportError(requestedSport)
+  }
+
+  const resolver = createGamesResolverFromRegistry(canonicalSport, registrySport)
+
+  if (!resolver) {
     throw createUnsupportedSportError(requestedSport)
   }
 
