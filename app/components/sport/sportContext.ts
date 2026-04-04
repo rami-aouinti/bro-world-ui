@@ -31,15 +31,15 @@ export const getSportContext = (sportSlug: string, t: Translator, te: Translatio
     icon: item?.icon ?? 'mdi-trophy-outline',
     metrics: [
       {
-        label: 'Players',
+        label: te('app.navigation.players') ? t('app.navigation.players') : 'Players',
         value: `${120 + (seed % 180)}`,
       },
       {
-        label: 'Games',
+        label: te('app.navigation.games') ? t('app.navigation.games') : 'Games',
         value: `${20 + (seed % 60)}`,
       },
       {
-        label: 'Teams',
+        label: te('app.navigation.teams') ? t('app.navigation.teams') : 'Teams',
         value: `${8 + (seed % 24)}`,
       },
     ],

@@ -39,7 +39,10 @@
       "nba": "NBA",
       "nfl": "NFL",
       "rugby": "Rugby",
-      "volleyball": "Volleyball"
+      "volleyball": "Volleyball",
+      "players": "Joueurs",
+      "games": "Matchs",
+      "teams": "Équipes"
     },
     "common": {
       "showAll": "Tout afficher"
@@ -2481,5 +2484,23 @@
         "empty": "Aucun stade disponible pour le moment."
       }
     }
+  },
+  "sport": {
+    "overviewDashboard": "Tableau de bord sportif",
+    "todayGames": "Matchs du jour",
+    "noGamesToday": "Aucun match aujourd'hui",
+    "loadingGames": "Chargement des matchs du jour...",
+    "retry": "Réessayer",
+    "noGamesTodayDescription": "Aucun événement n'a été remonté pour cette date.",
+    "unableToLoadGames": "Impossible de charger les matchs du jour.",
+    "timezone": "Fuseau horaire",
+    "kickoffTbd": "Coup d’envoi à définir",
+    "sectionCopy": {
+      "overview": "Naviguez dans un espace sport cohérent pour toutes les disciplines.",
+      "players": "Explorez les statistiques, profils et temps forts des joueurs.",
+      "games": "Suivez les calendriers, la dynamique en direct et les scores finaux.",
+      "teams": "Comparez équipes, effectifs et classements en un coup d’œil."
+    },
+    "worldCup": "Coupe du monde"
   }
 }

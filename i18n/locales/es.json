@@ -39,7 +39,10 @@
       "nba": "NBA",
       "nfl": "NFL",
       "rugby": "Rugby",
-      "volleyball": "Volleyball"
+      "volleyball": "Volleyball",
+      "players": "Jugadores",
+      "games": "Partidos",
+      "teams": "Equipos"
     },
     "common": {
       "showAll": "Ver todo"
@@ -2347,5 +2350,23 @@
     "trick": "Baza",
     "score": "Puntuación",
     "tips": "Consejos"
+  },
+  "sport": {
+    "overviewDashboard": "Panel general de deportes",
+    "todayGames": "Partidos de hoy",
+    "noGamesToday": "No hay partidos hoy",
+    "loadingGames": "Cargando partidos de hoy...",
+    "retry": "Reintentar",
+    "noGamesTodayDescription": "No se devolvió ningún evento para esta fecha.",
+    "unableToLoadGames": "No se pudieron cargar los partidos de hoy.",
+    "timezone": "Zona horaria",
+    "kickoffTbd": "Inicio por confirmar",
+    "sectionCopy": {
+      "overview": "Navega por un espacio deportivo coherente en todas las disciplinas.",
+      "players": "Explora estadísticas, perfiles y momentos destacados de jugadores.",
+      "games": "Sigue calendarios, impulso en vivo y marcadores finales.",
+      "teams": "Compara equipos, plantillas y clasificaciones de un vistazo."
+    },
+    "worldCup": "Copa del Mundo"
   }
 }

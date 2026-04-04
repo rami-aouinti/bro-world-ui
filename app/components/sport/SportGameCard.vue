@@ -5,11 +5,13 @@ const props = defineProps<{
   game: SportGameCardItem
 }>()
 
+const { t } = useI18n()
+
 const formatScore = (value: number | null) => value === null ? '-' : String(value)
 
 const kickoffLabel = computed(() => {
   if (!props.game.time) {
-    return 'Kickoff TBD'
+    return t('sport.kickoffTbd')
   }
 
   const date = new Date(props.game.time)
