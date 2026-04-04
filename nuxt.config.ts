@@ -118,6 +118,9 @@ export default defineNuxtConfig({
       ],
     },
   },
+  routeRules: {
+    '/event/world-cup': { redirect: { to: '/sport/football/world-cup', statusCode: 301 } },
+  },
   modules: [
     'vuetify-nuxt-module',
     '@nuxtjs/i18n',

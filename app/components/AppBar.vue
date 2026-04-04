@@ -27,10 +27,11 @@ const AppBarProfileMenu = defineAsyncComponent(() => import('~/components/layout
 const mainHeaderItems = computed<NavItem[]>(() => [
   { key: 'app.navigation.platform', to: '/platform', icon: 'mdi-view-grid-outline' },
   {
-    key: 'app.navigation.event',
-    icon: 'mdi-calendar-star',
+    key: 'app.navigation.sport',
+    icon: 'mdi-trophy-outline',
     children: [
-      { key: 'app.navigation.worldCup', to: '/event/world-cup', icon: 'mdi-trophy-outline' },
+      { key: 'app.navigation.football', to: '/sport/football', icon: 'mdi-soccer' },
+      { key: 'app.navigation.baseball', to: '/sport/baseball', icon: 'mdi-baseball' },
     ],
   },
   { key: 'app.navigation.blog', to: '/blog', icon: 'mdi-post-outline' },
