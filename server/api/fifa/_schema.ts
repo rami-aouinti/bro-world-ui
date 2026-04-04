@@ -7,6 +7,7 @@ export type FifaRouteQuerySchema = {
   required?: string[]
   optional?: Record<string, FifaQueryPrimitiveType>
   atLeastOneOf?: string[]
+  atLeastOneOfGroups?: string[][]
 }
 
 const readFirstQueryValue = (value: unknown): unknown => {
@@ -87,6 +88,19 @@ export const validateFifaRouteQuery = (event: H3Event, route: string, schema: Fi
         route,
         `At least one FIFA query parameter is required: ${schema.atLeastOneOf.join(', ')}`,
         { atLeastOneOf: schema.atLeastOneOf },
+      )
+    }
+  }
+
+  if (schema.atLeastOneOfGroups?.length) {
+    const hasAtLeastOneGroup = schema.atLeastOneOfGroups.some(group => group.every(key => isProvided(query[key])))
+
+    if (!hasAtLeastOneGroup) {
+      const serializedGroups = schema.atLeastOneOfGroups.map(group => group.join('+'))
+      throw createValidationError(
+        route,
+        `At least one FIFA query filter group is required: ${serializedGroups.join(' | ')}`,
+        { atLeastOneOfGroups: schema.atLeastOneOfGroups },
       )
     }
   }

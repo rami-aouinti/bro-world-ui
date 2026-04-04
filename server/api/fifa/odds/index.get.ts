@@ -4,6 +4,11 @@ export default defineEventHandler(createFifaRouteHandler({
   route: '/odds',
   upstreamEndpoint: '/odds',
   querySchema: {
+    atLeastOneOfGroups: [
+      ['fixture'],
+      ['date'],
+      ['league', 'season'],
+    ],
     optional: {
       fixture: 'number',
       league: 'number',

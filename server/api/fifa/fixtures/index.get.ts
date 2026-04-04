@@ -4,6 +4,17 @@ export default defineEventHandler(createFifaRouteHandler({
   route: '/fixtures',
   upstreamEndpoint: '/fixtures',
   querySchema: {
+    atLeastOneOfGroups: [
+      ['id'],
+      ['ids'],
+      ['date'],
+      ['league', 'season'],
+      ['team'],
+      ['live'],
+      ['last'],
+      ['next'],
+      ['from', 'to'],
+    ],
     optional: {
       id: 'number',
       ids: 'string',
