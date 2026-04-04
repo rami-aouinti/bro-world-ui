@@ -67,11 +67,13 @@ npm run generate
 
 ```bash
 npm run validate:i18n
+npm run lint:sport-i18n
 npm run test
 npm run test:unit
 ```
 
 - `validate:i18n`: exécute `scripts/validate-i18n.mjs` et vérifie que toutes les locales ont les mêmes clés que `en.json`, que les namespaces requis existent (`about`, `contact`, `faq`, `home`) et que le fallback EN fonctionne.
+- `lint:sport-i18n`: interdit les nouvelles strings UI hardcodées/fallbacks lisibles utilisateur dans `app/pages/sport/**` et `app/components/sport/**` (forcer `t('...')`).
 - `test`: lance toute la suite Vitest (`vitest run`).
 - `test:unit`: lance uniquement les tests unitaires dans `tests/unit`.
 

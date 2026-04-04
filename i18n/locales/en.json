@@ -2501,6 +2501,78 @@
       "games": "Track schedules, live momentum, and final scores.",
       "teams": "Compare teams, rosters, and standings at a glance."
     },
-    "worldCup": "World Cup"
+    "worldCup": {
+      "title": "World Cup",
+      "tabs": {
+        "timeline": "Timeline",
+        "lineups": "Lineups",
+        "statistics": "Statistics",
+        "players": "Players"
+      },
+      "labels": {
+        "group": "Group",
+        "dashboardAria": "World Cup dashboard",
+        "teamLogoAlt": "Logo {team}",
+        "homeFlagAlt": "Home team flag {team}",
+        "awayFlagAlt": "Away team flag {team}"
+      },
+      "states": {
+        "quotaLimit": "API quota limit reached. Try again later or reduce request volume.",
+        "unableToLoadStandings": "Unable to load standings.",
+        "loadingMatchDetails": "Loading match details...",
+        "unableToLoadMatchDetails": "Unable to load match details."
+      }
+    },
+    "tabs": {
+      "game": "Game",
+      "team": "Team",
+      "standings": "Standings"
+    },
+    "panels": {
+      "gameDetails": "Game details",
+      "teamPanel": "Team panel",
+      "standingsSnapshot": "Standings (snapshot)"
+    },
+    "labels": {
+      "venue": "Venue",
+      "team": "Team",
+      "points": "Points",
+      "pointsShort": "Pts",
+      "matchStatus": "Match status",
+      "currentScore": "Current score",
+      "opponent": "Opponent"
+    },
+    "filters": {
+      "title": "Filters",
+      "leagues": "Leagues",
+      "allLeagues": "All",
+      "search": "Search",
+      "date": "Date",
+      "status": "Status",
+      "statusAll": "All",
+      "statusScheduled": "Scheduled",
+      "statusLive": "Live",
+      "statusFinal": "Final"
+    },
+    "states": {
+      "loading": "Loading..."
+    },
+    "empty": {
+      "noGameSelectedTitle": "No game selected",
+      "noGameSelectedDescription": "Select a game to display details.",
+      "noTeamSelectedTitle": "No team selected",
+      "noTeamSelectedDescription": "Click a team in the list to display this panel."
+    },
+    "fallback": {
+      "unknownSport": "{sport}",
+      "unknownDate": "--/--/----",
+      "unknownTimezone": "UTC",
+      "unknownTeam": "Unknown team",
+      "unknownLeague": "Unknown league",
+      "notAvailable": "N/A",
+      "homeTeam": "Home",
+      "awayTeam": "Away",
+      "noGroup": "No group"
+    }
   }
 }

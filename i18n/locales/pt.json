@@ -2352,21 +2352,93 @@
     "tips": "Dicas"
   },
   "sport": {
-    "overviewDashboard": "Painel geral de esportes",
-    "todayGames": "Jogos de hoje",
-    "noGamesToday": "Sem jogos hoje",
-    "loadingGames": "Carregando jogos de hoje...",
-    "retry": "Tentar novamente",
-    "noGamesTodayDescription": "Nenhum evento foi retornado para esta data.",
-    "unableToLoadGames": "Não foi possível carregar os jogos de hoje.",
-    "timezone": "Fuso horário",
-    "kickoffTbd": "Início a definir",
+    "overviewDashboard": "Sport overview dashboard",
+    "todayGames": "Today games",
+    "noGamesToday": "No games today",
+    "loadingGames": "Loading today games...",
+    "retry": "Retry",
+    "noGamesTodayDescription": "No event was returned for this date.",
+    "unableToLoadGames": "Unable to load today games.",
+    "timezone": "Timezone",
+    "kickoffTbd": "Kickoff TBD",
     "sectionCopy": {
-      "overview": "Navegue em um espaço esportivo consistente em todas as modalidades.",
-      "players": "Explore estatísticas, perfis e destaques de jogadores.",
-      "games": "Acompanhe calendários, dinâmica ao vivo e placares finais.",
-      "teams": "Compare times, elencos e classificações rapidamente."
+      "overview": "Navigate a consistent sports workspace across all disciplines.",
+      "players": "Explore player stats, profiles, and highlights.",
+      "games": "Track schedules, live momentum, and final scores.",
+      "teams": "Compare teams, rosters, and standings at a glance."
     },
-    "worldCup": "Copa do Mundo"
+    "worldCup": {
+      "title": "World Cup",
+      "tabs": {
+        "timeline": "Timeline",
+        "lineups": "Lineups",
+        "statistics": "Statistics",
+        "players": "Players"
+      },
+      "labels": {
+        "group": "Group",
+        "dashboardAria": "World Cup dashboard",
+        "teamLogoAlt": "Logo {team}",
+        "homeFlagAlt": "Home team flag {team}",
+        "awayFlagAlt": "Away team flag {team}"
+      },
+      "states": {
+        "quotaLimit": "API quota limit reached. Try again later or reduce request volume.",
+        "unableToLoadStandings": "Unable to load standings.",
+        "loadingMatchDetails": "Loading match details...",
+        "unableToLoadMatchDetails": "Unable to load match details."
+      }
+    },
+    "tabs": {
+      "game": "Game",
+      "team": "Team",
+      "standings": "Standings"
+    },
+    "panels": {
+      "gameDetails": "Game details",
+      "teamPanel": "Team panel",
+      "standingsSnapshot": "Standings (snapshot)"
+    },
+    "labels": {
+      "venue": "Venue",
+      "team": "Team",
+      "points": "Points",
+      "pointsShort": "Pts",
+      "matchStatus": "Match status",
+      "currentScore": "Current score",
+      "opponent": "Opponent"
+    },
+    "filters": {
+      "title": "Filters",
+      "leagues": "Leagues",
+      "allLeagues": "All",
+      "search": "Search",
+      "date": "Date",
+      "status": "Status",
+      "statusAll": "All",
+      "statusScheduled": "Scheduled",
+      "statusLive": "Live",
+      "statusFinal": "Final"
+    },
+    "states": {
+      "loading": "Loading..."
+    },
+    "empty": {
+      "noGameSelectedTitle": "No game selected",
+      "noGameSelectedDescription": "Select a game to display details.",
+      "noTeamSelectedTitle": "No team selected",
+      "noTeamSelectedDescription": "Click a team in the list to display this panel."
+    },
+    "fallback": {
+      "unknownSport": "{sport}",
+      "unknownDate": "--/--/----",
+      "unknownTimezone": "UTC",
+      "unknownTeam": "Unknown team",
+      "unknownLeague": "Unknown league",
+      "notAvailable": "N/A",
+      "homeTeam": "Home",
+      "awayTeam": "Away",
+      "noGroup": "No group"
+    }
   }
 }

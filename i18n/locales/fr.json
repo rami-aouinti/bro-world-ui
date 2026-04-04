@@ -2501,6 +2501,78 @@
       "games": "Suivez les calendriers, la dynamique en direct et les scores finaux.",
       "teams": "Comparez équipes, effectifs et classements en un coup d’œil."
     },
-    "worldCup": "Coupe du monde"
+    "worldCup": {
+      "title": "Coupe du monde",
+      "tabs": {
+        "timeline": "Chronologie",
+        "lineups": "Compositions",
+        "statistics": "Statistiques",
+        "players": "Joueurs"
+      },
+      "labels": {
+        "group": "Groupe",
+        "dashboardAria": "Tableau de bord Coupe du monde",
+        "teamLogoAlt": "Logo {team}",
+        "homeFlagAlt": "Drapeau domicile {team}",
+        "awayFlagAlt": "Drapeau extérieur {team}"
+      },
+      "states": {
+        "quotaLimit": "Limite de quota API atteinte. Réessayez plus tard ou réduisez le volume de requêtes.",
+        "unableToLoadStandings": "Impossible de charger le classement.",
+        "loadingMatchDetails": "Chargement des détails du match...",
+        "unableToLoadMatchDetails": "Impossible de charger les détails du match."
+      }
+    },
+    "tabs": {
+      "game": "Match",
+      "team": "Équipe",
+      "standings": "Classement"
+    },
+    "panels": {
+      "gameDetails": "Détails du match",
+      "teamPanel": "Panneau équipe",
+      "standingsSnapshot": "Classement (instantané)"
+    },
+    "labels": {
+      "venue": "Lieu",
+      "team": "Équipe",
+      "points": "Points",
+      "pointsShort": "Pts",
+      "matchStatus": "Statut du match",
+      "currentScore": "Score actuel",
+      "opponent": "Adversaire"
+    },
+    "filters": {
+      "title": "Filtres",
+      "leagues": "Ligues",
+      "allLeagues": "Toutes",
+      "search": "Recherche",
+      "date": "Date",
+      "status": "Statut",
+      "statusAll": "Tous",
+      "statusScheduled": "Programmé",
+      "statusLive": "En cours",
+      "statusFinal": "Terminé"
+    },
+    "states": {
+      "loading": "Chargement..."
+    },
+    "empty": {
+      "noGameSelectedTitle": "Aucun match sélectionné",
+      "noGameSelectedDescription": "Sélectionnez un match pour afficher les détails.",
+      "noTeamSelectedTitle": "Aucune équipe sélectionnée",
+      "noTeamSelectedDescription": "Cliquez sur une équipe dans la liste pour afficher ce panneau."
+    },
+    "fallback": {
+      "unknownSport": "{sport}",
+      "unknownDate": "--/--/----",
+      "unknownTimezone": "UTC",
+      "unknownTeam": "Équipe inconnue",
+      "unknownLeague": "Ligue inconnue",
+      "notAvailable": "N/D",
+      "homeTeam": "Domicile",
+      "awayTeam": "Extérieur",
+      "noGroup": "Sans groupe"
+    }
   }
 }

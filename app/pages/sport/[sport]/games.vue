@@ -90,10 +90,10 @@ watch(() => data.value?.date, (dateValue) => {
           <v-card variant="tonal" class="pa-4">
             <div class="d-flex flex-wrap justify-space-between align-center ga-2 mb-4">
               <p class="text-body-1 mb-0">
-                {{ t('sport.todayGames') }} — {{ data?.date || '----/--/--' }}
+                {{ t('sport.todayGames') }} — {{ data?.date || t('sport.fallback.unknownDate') }}
               </p>
               <v-chip size="small" variant="outlined">
-                {{ t('sport.timezone') }}: {{ data?.timezonePolicy || 'UTC' }}
+                {{ t('sport.timezone') }}: {{ data?.timezonePolicy || t('sport.fallback.unknownTimezone') }}
               </v-chip>
             </div>
 
@@ -143,9 +143,9 @@ watch(() => data.value?.date, (dateValue) => {
             color="primary"
             class="mb-3"
           >
-            <v-tab value="game">Game</v-tab>
-            <v-tab value="team">Team</v-tab>
-            <v-tab value="standings">Standings</v-tab>
+            <v-tab value="game">{{ t('sport.tabs.game') }}</v-tab>
+            <v-tab value="team">{{ t('sport.tabs.team') }}</v-tab>
+            <v-tab value="standings">{{ t('sport.tabs.standings') }}</v-tab>
           </v-tabs>
 
           <SportGameDetailsPanel

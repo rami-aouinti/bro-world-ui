@@ -3,7 +3,7 @@ import { sportNavigationItems } from '~/data/sports'
 export type SportSection = 'overview' | 'players' | 'games' | 'teams'
 
 interface Translator {
-  (key: string): string
+  (key: string, params?: Record<string, unknown>): string
 }
 
 interface TranslationChecker {
@@ -22,7 +22,9 @@ const metricSeed = (value: string) => value
 
 export const getSportContext = (sportSlug: string, t: Translator, te: TranslationChecker) => {
   const item = sportNavigationItems.find(entry => entry.to === `/sport/${sportSlug}`)
-  const label = item && te(item.key) ? t(item.key) : fallbackLabel(sportSlug)
+  const label = item && te(item.key)
+    ? t(item.key)
+    : t('sport.fallback.unknownSport', { sport: fallbackLabel(sportSlug) })
   const seed = metricSeed(sportSlug)
 
   return {
@@ -31,15 +33,15 @@ export const getSportContext = (sportSlug: string, t: Translator, te: Translatio
     icon: item?.icon ?? 'mdi-trophy-outline',
     metrics: [
       {
-        label: te('app.navigation.players') ? t('app.navigation.players') : 'Players',
+        label: t('app.navigation.players'),
         value: `${120 + (seed % 180)}`,
       },
       {
-        label: te('app.navigation.games') ? t('app.navigation.games') : 'Games',
+        label: t('app.navigation.games'),
         value: `${20 + (seed % 60)}`,
       },
       {
-        label: te('app.navigation.teams') ? t('app.navigation.teams') : 'Teams',
+        label: t('app.navigation.teams'),
         value: `${8 + (seed % 24)}`,
       },
     ],

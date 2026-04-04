@@ -57,7 +57,7 @@ const sectionCopy = computed(() => {
           variant="flat"
           prepend-icon="mdi-trophy-outline"
         >
-          {{ t('sport.worldCup') }}
+          {{ t('sport.worldCup.title') }}
         </v-btn>
       </v-card>
     </div>
