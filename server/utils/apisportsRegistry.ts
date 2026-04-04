@@ -57,7 +57,7 @@ export const API_SPORTS_DEFAULT_BASE_URLS: Record<ApiSportsCanonicalSport, strin
 
 const API_SPORTS_ALIASES: Record<string, ApiSportsCanonicalSport> = {
   soccer: 'football',
-  football-soccer: 'football',
+  'football-soccer': 'football',
   nba: 'basketball',
   nfl: 'american-football',
   americanfootball: 'american-football',
