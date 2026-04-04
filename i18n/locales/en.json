@@ -29,7 +29,17 @@
       "game": "Game",
       "sport": "Sport",
       "football": "Football",
-      "baseball": "Baseball"
+      "baseball": "Baseball",
+      "afl": "AFL",
+      "basketball": "Basketball",
+      "formula1": "Formula 1",
+      "handball": "Handball",
+      "hockey": "Hockey",
+      "mma": "MMA",
+      "nba": "NBA",
+      "nfl": "NFL",
+      "rugby": "Rugby",
+      "volleyball": "Volleyball"
     },
     "common": {
       "showAll": "View all"
