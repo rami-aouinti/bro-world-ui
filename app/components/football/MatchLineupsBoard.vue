@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FootballAvatar from './FootballAvatar.vue'
 import type { LineupEntry, MatchLineup } from './types'
 
 const props = defineProps<{
@@ -27,8 +28,18 @@ const playerLabel = (entry: LineupEntry) => {
     <div v-else class="lineups-grid">
       <v-card v-for="(lineup, index) in props.lineups" :key="`${lineup?.team?.id || index}`" variant="tonal" class="pa-3">
         <div class="d-flex align-center justify-space-between mb-2">
-          <div class="text-body-2 font-weight-bold">{{ lineup?.team?.name || placeholder }}</div>
+          <div class="d-flex align-center ga-2 min-w-0">
+            <FootballAvatar :src="lineup?.team?.logo" :alt="`Logo ${lineup?.team?.name || 'Équipe'}`" :size="24" icon="mdi-shield-outline" />
+            <div class="text-body-2 font-weight-bold text-truncate">{{ lineup?.team?.name || placeholder }}</div>
+          </div>
           <v-chip size="x-small" label>{{ lineup?.formation || placeholder }}</v-chip>
+        </div>
+
+        <div class="d-flex align-center ga-2 mb-2 coach-row">
+          <FootballAvatar :src="lineup?.coach?.photo" :alt="`Coach ${lineup?.coach?.name || placeholder}`" :size="28" icon="mdi-account-tie" />
+          <div class="text-caption text-medium-emphasis">
+            Coach: <strong>{{ lineup?.coach?.name || placeholder }}</strong> · Formation {{ lineup?.formation || placeholder }}
+          </div>
         </div>
 
         <div class="text-caption text-medium-emphasis mb-1">XI titulaires</div>
@@ -62,5 +73,9 @@ const playerLabel = (entry: LineupEntry) => {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.coach-row {
+  min-height: 32px;
 }
 </style>

@@ -396,10 +396,7 @@ onMounted(async () => {
                           class="team-link px-0 text-none"
                           @click="selectStandingTeam({ id: row.team.id, name: row.team.name, logo: row.team.logo, group: String(groupName) })"
                         >
-                          <v-avatar size="24" class="mr-2">
-                            <v-img v-if="row.team.logo" :src="row.team.logo" :alt="`Logo ${row.team.name}`" cover />
-                            <span v-else class="text-caption">{{ row.team.name?.slice(0, 1) || '?' }}</span>
-                          </v-avatar>
+                          <FootballAvatar :src="row.team.logo" :alt="`Logo ${row.team.name}`" :size="24" icon="mdi-shield-outline" class="mr-2" />
                           <span>{{ row.team.name }}</span>
                         </v-btn>
                       </td>
@@ -451,7 +448,15 @@ onMounted(async () => {
           <tbody>
             <tr v-for="fixture in fixturesList" :key="fixture?.fixture?.id || fixture?.id" @click="selectFixture(fixture)">
               <td>{{ formatDate(fixture?.fixture?.date) }}</td>
-              <td>{{ fixture?.teams?.home?.name || 'N/A' }} vs {{ fixture?.teams?.away?.name || 'N/A' }}</td>
+              <td>
+                <div class="d-flex align-center ga-2">
+                  <FootballAvatar :src="fixture?.teams?.home?.logo" :alt="`Logo ${fixture?.teams?.home?.name || 'Home'}`" :size="20" icon="mdi-shield-outline" />
+                  <span class="text-body-2">{{ fixture?.teams?.home?.name || 'N/A' }}</span>
+                  <span class="text-medium-emphasis">vs</span>
+                  <FootballAvatar :src="fixture?.teams?.away?.logo" :alt="`Logo ${fixture?.teams?.away?.name || 'Away'}`" :size="20" icon="mdi-shield-outline" />
+                  <span class="text-body-2">{{ fixture?.teams?.away?.name || 'N/A' }}</span>
+                </div>
+              </td>
               <td>{{ fixture?.fixture?.status?.short || 'N/A' }}</td>
               <td>{{ fixture?.fixture?.id || 'N/A' }}</td>
             </tr>
@@ -466,10 +471,7 @@ onMounted(async () => {
 
             <div class="aside-header mb-4">
               <div class="d-flex align-center mb-2">
-                <v-avatar size="36" class="mr-3">
-                  <v-img v-if="selectedTeam?.logo" :src="selectedTeam.logo" :alt="`Logo ${selectedTeam.name}`" cover />
-                  <span v-else class="text-caption">{{ selectedTeam?.name?.slice(0, 1) || '?' }}</span>
-                </v-avatar>
+                <FootballAvatar :src="selectedTeam?.logo" :alt="`Logo ${selectedTeam?.name}`" :size="36" icon="mdi-shield-outline" class="mr-3" />
                 <div>
                   <div class="text-body-1 font-weight-medium">{{ selectedTeam?.name || 'Aucune équipe sélectionnée' }}</div>
                   <div v-if="selectedTeam" class="text-caption text-medium-emphasis">ID {{ selectedTeam.id }} · Groupe {{ selectedTeam.group }}</div>
@@ -479,8 +481,12 @@ onMounted(async () => {
               <v-card variant="outlined" class="pa-3">
                 <div class="text-caption text-medium-emphasis">Fixture sélectionnée</div>
                 <div class="text-body-2">{{ formatDate(selectedFixture?.fixture?.date) }}</div>
-                <div class="text-body-2 font-weight-medium">
-                  {{ selectedFixture?.teams?.home?.name || 'N/A' }} {{ selectedFixture?.goals?.home ?? '-' }} - {{ selectedFixture?.goals?.away ?? '-' }} {{ selectedFixture?.teams?.away?.name || 'N/A' }}
+                <div class="text-body-2 font-weight-medium d-flex align-center ga-2 flex-wrap">
+                  <FootballAvatar :src="selectedFixture?.teams?.home?.logo" :alt="`Logo ${selectedFixture?.teams?.home?.name || 'Home'}`" :size="18" icon="mdi-shield-outline" />
+                  <span>{{ selectedFixture?.teams?.home?.name || 'N/A' }}</span>
+                  <span>{{ selectedFixture?.goals?.home ?? '-' }} - {{ selectedFixture?.goals?.away ?? '-' }}</span>
+                  <FootballAvatar :src="selectedFixture?.teams?.away?.logo" :alt="`Logo ${selectedFixture?.teams?.away?.name || 'Away'}`" :size="18" icon="mdi-shield-outline" />
+                  <span>{{ selectedFixture?.teams?.away?.name || 'N/A' }}</span>
                 </div>
                 <div class="text-caption">Statut: {{ selectedFixture?.fixture?.status?.short || 'N/A' }} · ID {{ selectedFixtureId || 'N/A' }}</div>
               </v-card>

@@ -37,6 +37,11 @@ export type LineupEntry = {
 
 export type MatchLineup = {
   team?: FootballTeamRef
+  coach?: {
+    id?: Nullable<number>
+    name?: Nullable<string>
+    photo?: Nullable<string>
+  }
   formation?: Nullable<string>
   startXI?: Nullable<LineupEntry[]>
   substitutes?: Nullable<LineupEntry[]>
@@ -56,6 +61,7 @@ export type MatchPlayerStats = {
   games?: {
     minutes?: Nullable<number>
     rating?: Nullable<string | number>
+    position?: Nullable<string>
   }
   goals?: {
     total?: Nullable<number>
@@ -73,6 +79,8 @@ export type MatchPlayerRow = {
   player?: {
     id?: Nullable<number>
     name?: Nullable<string>
+    number?: Nullable<number>
+    photo?: Nullable<string>
   }
   statistics?: Nullable<MatchPlayerStats[]>
 }
