@@ -54,9 +54,7 @@ const rows = computed(() => {
 </script>
 
 <template>
-  <v-card variant="outlined" class="pa-3">
-    <div class="text-subtitle-2 mb-2">Statistics compare</div>
-
+  <div class="pa-3">
     <v-alert v-if="!rows.length" type="info" variant="tonal" density="comfortable">
       Aucune statistique disponible.
     </v-alert>
@@ -75,7 +73,7 @@ const rows = computed(() => {
         </div>
       </div>
     </div>
-  </v-card>
+  </div>
 </template>
 
 <style scoped>

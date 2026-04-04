@@ -12,6 +12,10 @@ import {
   type FixtureStandingsBlock,
   type FixtureStatistics,
 } from '~/types/fifa'
+import MatchEventsTimeline from "~/components/football/MatchEventsTimeline.vue";
+import MatchLineupsBoard from "~/components/football/MatchLineupsBoard.vue";
+import MatchStatisticsCompare from "~/components/football/MatchStatisticsCompare.vue";
+import MatchPlayersTable from "~/components/football/MatchPlayersTable.vue";
 
 definePageMeta({
   public: true,
@@ -19,7 +23,7 @@ definePageMeta({
   layout: false,
   skeleton: 'card-grid',
 })
-
+const tab = ref('one')
 const WORLD_CUP_LEAGUE_ID = 1
 const fallbackSeason = 2022
 
@@ -354,237 +358,122 @@ onMounted(async () => {
 
 <template>
   <NuxtLayout name="default">
-    <main class="world-cup-page" aria-label="World Cup dashboard">
-      <v-card class="pa-4 pa-md-5 section-card" variant="tonal">
-        <div class="d-flex align-center justify-space-between mb-3">
-          <h2 class="text-h6 mb-0">1) Équipes + groupes</h2>
-          <v-chip :size="sectionChipSize" color="primary" variant="outlined">{{ teams.length }}</v-chip>
-        </div>
-
-        <v-alert v-if="worldCupStore.loading.teams" type="info" variant="tonal">Chargement des équipes...</v-alert>
-        <v-alert v-else-if="worldCupStore.error.teams" type="error" variant="tonal">
-          {{ isQuotaError(worldCupStore.error.teams) ? quotaMessage : 'Impossible de charger les équipes.' }}
-        </v-alert>
-
-        <div v-else class="team-groups-grid">
-          <v-card v-for="(groupTeams, groupName) in groupedTeams" :key="groupName" variant="outlined" class="pa-3">
-            <div class="text-subtitle-1 font-weight-bold mb-2">Groupe {{ groupName }}</div>
-            <v-list density="compact" class="py-0 bg-transparent">
-              <v-list-item v-for="team in groupTeams" :key="team.code" :title="team.name" :subtitle="team.code.toUpperCase()" />
-            </v-list>
-          </v-card>
-        </div>
-      </v-card>
-
-      <div class="world-cup-main-layout" :class="{ 'is-mobile': smAndDown }">
-        <div class="world-cup-left-column">
-          <v-card class="pa-4 pa-md-5 section-card" variant="tonal">
-            <div class="d-flex align-center justify-space-between mb-3">
-              <h2 class="text-h6 mb-0">3) Standings par groupe</h2>
-              <v-btn size="small" variant="text" @click="fetchStandings(true)">Actualiser</v-btn>
-            </div>
-
-            <v-alert v-if="standingsLoading.standings || referenceLoading.seasons" type="info" variant="tonal">Chargement du classement...</v-alert>
-            <v-alert v-else-if="standingsError.standings || referenceError.seasons" type="error" variant="tonal">
-              {{ isQuotaError(standingsError.standings || referenceError.seasons) ? quotaMessage : 'Impossible de charger le classement.' }}
-            </v-alert>
-
-            <div v-else class="standings-grid">
-              <v-card v-for="(rows, groupName) in groupedStandings" :key="groupName" variant="outlined" class="pa-3">
-                <div class="text-subtitle-1 font-weight-bold mb-2">{{ groupName }}</div>
-                <v-table :density="tableDensity" class="bg-transparent">
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Équipe</th>
-                      <th>Pts</th>
-                      <th>J</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="row in rows" :key="`${groupName}-${row.rank}-${row.team.id || row.team.name}`">
-                      <td>{{ row.rank }}</td>
-                      <td>
-                        <v-btn
-                          variant="text"
-                          density="comfortable"
-                          class="team-link px-0 text-none"
-                          @click="selectStandingTeam({ id: row.team.id, name: row.team.name, logo: row.team.logo, group: String(groupName) })"
-                        >
-                          <FootballAvatar :src="row.team.logo" :alt="`Logo ${row.team.name}`" :size="24" icon="mdi-shield-outline" class="mr-2" />
-                          <span>{{ row.team.name }}</span>
-                        </v-btn>
-                      </td>
-                      <td>{{ row.points }}</td>
-                      <td>{{ row.played }}</td>
-                    </tr>
-                  </tbody>
-                </v-table>
-              </v-card>
-            </div>
-          </v-card>
-
-          <v-card class="pa-4 pa-md-5 section-card" variant="tonal">
-            <div class="d-flex align-center justify-space-between mb-3">
-              <h2 class="text-h6 mb-0">2) Fixtures + filtres</h2>
-          <v-chip :size="sectionChipSize" color="primary" variant="outlined">{{ fixturesList.length }}</v-chip>
-        </div>
-
-        <div class="filters-grid mb-4">
-          <v-text-field v-model="fixtureFilters.date" label="Date (YYYY-MM-DD)" clearable hide-details density="compact" />
-          <v-select v-model="fixtureFilters.group" :items="groupOptions" label="Groupe" hide-details density="compact" />
-          <v-select
-            v-model="fixtureFilters.team"
-            :items="teamOptions"
-            item-title="name"
-            item-value="id"
-            label="Équipe"
-            clearable
-            hide-details
-            density="compact"
-          />
-          <v-text-field v-model="fixtureFilters.status" label="Statut (NS/FT/1H...)" clearable hide-details density="compact" />
-          <v-btn color="primary" @click="fetchFixtures(true)">Appliquer</v-btn>
-        </div>
-
-        <v-alert v-if="fixturesLoading.fixtures" type="info" variant="tonal">Chargement des fixtures...</v-alert>
-        <v-alert v-else-if="fixturesError.fixtures" type="error" variant="tonal">
-          {{ isQuotaError(fixturesError.fixtures) ? quotaMessage : 'Impossible de charger les fixtures.' }}
-        </v-alert>
-        <v-table v-else :density="tableDensity" class="bg-transparent world-cup-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Match</th>
-              <th>Statut</th>
-              <th>Fixture ID</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="fixture in fixturesList" :key="fixture?.fixture?.id || fixture?.id" @click="selectFixture(fixture)">
-              <td>{{ formatDate(fixture?.fixture?.date) }}</td>
-              <td>
-                <div class="d-flex align-center ga-2">
-                  <FootballAvatar :src="fixture?.teams?.home?.logo" :alt="`Logo ${fixture?.teams?.home?.name || 'Home'}`" :size="20" icon="mdi-shield-outline" />
-                  <span class="text-body-2">{{ fixture?.teams?.home?.name || 'N/A' }}</span>
-                  <span class="text-medium-emphasis">vs</span>
-                  <FootballAvatar :src="fixture?.teams?.away?.logo" :alt="`Logo ${fixture?.teams?.away?.name || 'Away'}`" :size="20" icon="mdi-shield-outline" />
-                  <span class="text-body-2">{{ fixture?.teams?.away?.name || 'N/A' }}</span>
-                </div>
-              </td>
-              <td>{{ fixture?.fixture?.status?.short || 'N/A' }}</td>
-              <td>{{ fixture?.fixture?.id || 'N/A' }}</td>
-            </tr>
-          </tbody>
-        </v-table>
-          </v-card>
-        </div>
-
-        <aside class="world-cup-aside">
-          <v-card class="pa-4 section-card aside-sticky" variant="tonal">
-            <div class="text-subtitle-1 font-weight-bold mb-3">Détails</div>
-
-            <div class="aside-header mb-4">
-              <div class="d-flex align-center mb-2">
-                <FootballAvatar :src="selectedTeam?.logo" :alt="`Logo ${selectedTeam?.name}`" :size="36" icon="mdi-shield-outline" class="mr-3" />
-                <div>
-                  <div class="text-body-1 font-weight-medium">{{ selectedTeam?.name || 'Aucune équipe sélectionnée' }}</div>
-                  <div v-if="selectedTeam" class="text-caption text-medium-emphasis">ID {{ selectedTeam.id }} · Groupe {{ selectedTeam.group }}</div>
-                </div>
-              </div>
-
-              <v-card variant="outlined" class="pa-3">
-                <div class="text-caption text-medium-emphasis">Fixture sélectionnée</div>
-                <div class="text-body-2">{{ formatDate(selectedFixture?.fixture?.date) }}</div>
-                <div class="text-body-2 font-weight-medium d-flex align-center ga-2 flex-wrap">
-                  <FootballAvatar :src="selectedFixture?.teams?.home?.logo" :alt="`Logo ${selectedFixture?.teams?.home?.name || 'Home'}`" :size="18" icon="mdi-shield-outline" />
-                  <span>{{ selectedFixture?.teams?.home?.name || 'N/A' }}</span>
-                  <span>{{ selectedFixture?.goals?.home ?? '-' }} - {{ selectedFixture?.goals?.away ?? '-' }}</span>
-                  <FootballAvatar :src="selectedFixture?.teams?.away?.logo" :alt="`Logo ${selectedFixture?.teams?.away?.name || 'Away'}`" :size="18" icon="mdi-shield-outline" />
-                  <span>{{ selectedFixture?.teams?.away?.name || 'N/A' }}</span>
-                </div>
-                <div class="text-caption">Statut: {{ selectedFixture?.fixture?.status?.short || 'N/A' }} · ID {{ selectedFixtureId || 'N/A' }}</div>
-              </v-card>
-            </div>
-
-            <v-text-field v-model.number="selectedFixtureId" type="number" label="Fixture ID" density="compact" hide-details class="mb-3" />
-
-            <v-alert v-if="fixturesLoading.events || fixturesLoading.lineups || fixturesLoading.statistics || fixturesLoading.players" type="info" variant="tonal">
-              Chargement des détails du match...
-            </v-alert>
-            <v-alert
-              v-else-if="fixturesError.events || fixturesError.lineups || fixturesError.statistics || fixturesError.players"
-              type="error"
-              variant="tonal"
-            >
-              {{ isQuotaError(fixturesError.events || fixturesError.lineups || fixturesError.statistics || fixturesError.players) ? quotaMessage : 'Impossible de charger les détails du match.' }}
-            </v-alert>
-
-            <div v-else class="details-grid">
-              <MatchEventsTimeline :events="matchDetails.events" />
-              <MatchLineupsBoard :lineups="matchDetails.lineups" />
-              <MatchStatisticsCompare :statistics="matchDetails.statistics" />
-              <MatchPlayersTable :players="matchDetails.players" />
-            </div>
-
-            <v-alert v-if="selectedTeam" type="info" variant="tonal" class="mt-3">Fixtures filtrées pour l’équipe sélectionnée.</v-alert>
-            <v-list v-if="selectedTeam" density="compact">
-              <v-list-item
-                v-for="fixture in selectedTeamFixtures"
-                :key="fixture?.fixture?.id || fixture?.id"
-                :title="`${fixture?.teams?.home?.name || 'N/A'} vs ${fixture?.teams?.away?.name || 'N/A'}`"
-                :subtitle="formatDate(fixture?.fixture?.date)"
-                @click="selectFixture(fixture)"
-              />
-            </v-list>
-          </v-card>
-        </aside>
+    <template #layout-sidebar>
+      <div class="d-flex align-center justify-space-between mb-3">
+        <v-btn size="small" variant="text" @click="fetchStandings(true)">Refresh</v-btn>
       </div>
 
-      <v-card class="pa-4 pa-md-5 section-card" variant="tonal">
-        <div class="d-flex align-center justify-space-between mb-3">
-          <h2 class="text-h6 mb-0">5) Predictions / Odds (optionnel)</h2>
-          <v-switch v-model="showOddsAndPredictions" label="Activer" color="primary" hide-details inset @update:model-value="refreshOddsAndPredictions" />
-        </div>
+      <v-alert v-if="standingsLoading.standings || referenceLoading.seasons" type="info" variant="tonal">Loading...</v-alert>
+      <v-alert v-else-if="standingsError.standings || referenceError.seasons" type="error" variant="tonal">
+        {{ isQuotaError(standingsError.standings || referenceError.seasons) ? quotaMessage : 'Impossible de charger le classement.' }}
+      </v-alert>
 
-        <v-alert v-if="!showOddsAndPredictions" type="info" variant="tonal">Bloc optionnel désactivé (économie de quota API).</v-alert>
+      <div v-else class="standings-grid">
+        <v-card v-for="(rows, groupName) in groupedStandings" :key="groupName" variant="outlined" class="pa-1">
+          <div class="text-subtitle-1 font-weight-bold mb-2">{{ groupName }}</div>
+          <v-table :density="tableDensity" class="bg-transparent">
+            <thead>
+            <tr>
+              <th>#</th>
+              <th>Team</th>
+              <th>Pts</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="row in rows" :key="`${groupName}-${row.rank}-${row.team.id || row.team.name}`">
+              <td>{{ row.rank }}</td>
+              <td>
+                <v-btn
+                    variant="text"
+                    density="comfortable"
+                    class="team-link px-0 text-none"
+                    @click="selectStandingTeam({ id: row.team.id, name: row.team.name, logo: row.team.logo, group: String(groupName) })"
+                >
+                  <FootballAvatar :src="row.team.logo" :alt="`Logo ${row.team.name}`" :size="24" icon="mdi-shield-outline" class="mr-2" />
+                  <span>{{ row.team.name }}</span>
+                </v-btn>
+              </td>
+              <td>{{ row.points }}</td>
+            </tr>
+            </tbody>
+          </v-table>
+        </v-card>
+      </div>
+    </template>
+    <template #layout-aside>
+      <v-list v-if="selectedTeam" density="confortable" class="bg-transparent">
+        <v-list-item
+            class="d-flex align-center"
+            v-for="fixture in selectedTeamFixtures"
+            :key="fixture?.fixture?.id || fixture?.id"
+            :title="`${fixture?.teams?.home?.name || 'N/A'} vs ${fixture?.teams?.away?.name || 'N/A'}`"
+            :subtitle="formatDate(fixture?.fixture?.date)"
+            @click="selectFixture(fixture)"
+        />
+      </v-list>
+    </template>
+    <main  aria-label="World Cup dashboard">
 
-        <template v-else>
-          <v-alert v-if="oddsLoading.odds || predictionsLoading" type="info" variant="tonal">Chargement des cotes / prédictions...</v-alert>
-          <v-alert v-else-if="oddsError.odds || predictionsError" type="error" variant="tonal">
-            {{ isQuotaError(oddsError.odds || predictionsError) ? quotaMessage : 'Impossible de charger cotes / prédictions.' }}
-          </v-alert>
-
-          <div v-else class="details-grid">
-            <v-card variant="outlined" class="pa-3">
-              <div class="text-subtitle-2 mb-2">Odds</div>
-              <pre>{{ JSON.stringify(oddsByResource.odds, null, 2) }}</pre>
-              <v-pagination v-model="oddsPage" :length="oddsMeta.total" :total-visible="7" class="mt-3" />
-            </v-card>
-            <v-card variant="outlined" class="pa-3">
-              <div class="text-subtitle-2 mb-2">Predictions</div>
-              <pre>{{ JSON.stringify(predictions, null, 2) }}</pre>
-            </v-card>
+      <div class="aside-header mb-4">
+        <div class="d-flex align-center mb-2">
+          <FootballAvatar :src="selectedTeam?.logo" :alt="`Logo ${selectedTeam?.name}`" :size="36" icon="mdi-shield-outline" class="mr-3" />
+          <div>
+            <div class="text-body-1 font-weight-medium">{{ selectedTeam?.name || 'Aucune équipe sélectionnée' }}</div>
+            <div v-if="selectedTeam" class="text-caption text-medium-emphasis">Group {{ selectedTeam.group }}</div>
           </div>
-        </template>
-      </v-card>
-
-      <v-card class="pa-4 pa-md-5 section-card" variant="tonal">
-        <div class="d-flex align-center justify-space-between mb-3">
-          <h2 class="text-h6 mb-0">Pagination endpoint players</h2>
-          <v-chip :size="sectionChipSize" color="primary" variant="outlined">Page {{ playersMeta.current }} / {{ playersMeta.total }}</v-chip>
         </div>
 
-        <v-alert v-if="playersLoading.players" type="info" variant="tonal">Chargement des joueurs...</v-alert>
-        <v-alert v-else-if="playersError.players" type="error" variant="tonal">
-          {{ isQuotaError(playersError.players) ? quotaMessage : 'Impossible de charger les joueurs.' }}
-        </v-alert>
+        <v-card variant="outlined" class="pa-3">
+          <div class="text-body-2 d-flex text-center justify-center">{{ formatDate(selectedFixture?.fixture?.date) }}</div>
+          <div class="text-body-2 font-weight-medium d-flex align-center ga-2 flex-wrap">
+            <FootballAvatar :src="selectedFixture?.teams?.home?.logo" :alt="`Logo ${selectedFixture?.teams?.home?.name || 'Home'}`" :size="48" icon="mdi-shield-outline" />
+            <h1>{{ selectedFixture?.teams?.home?.name || 'N/A' }}</h1>
+            <h1>{{ selectedFixture?.goals?.home ?? '-' }} </h1>
+            <v-spacer></v-spacer>
+            <h1>{{ selectedFixture?.goals?.away ?? '-' }}</h1>
+            <h1>{{ selectedFixture?.teams?.away?.name || 'N/A' }}</h1>
+            <FootballAvatar :src="selectedFixture?.teams?.away?.logo" :alt="`Logo ${selectedFixture?.teams?.away?.name || 'Away'}`" :size="48" icon="mdi-shield-outline" />
+          </div>
+          <div class="text-caption d-flex text-center justify-center">{{ selectedFixture?.fixture?.status?.short || 'N/A' }}</div>
+        </v-card>
+      </div>
 
-        <div v-else>
-          <pre>{{ JSON.stringify(playersByResource.players, null, 2) }}</pre>
-          <v-pagination v-model="playersPage" :length="playersMeta.total" :total-visible="7" class="mt-3" />
-        </div>
-      </v-card>
+      <v-alert v-if="fixturesLoading.events || fixturesLoading.lineups || fixturesLoading.statistics || fixturesLoading.players" type="info" variant="tonal">
+        Chargement des détails du match...
+      </v-alert>
+      <v-alert
+          v-else-if="fixturesError.events || fixturesError.lineups || fixturesError.statistics || fixturesError.players"
+          type="error"
+          variant="tonal"
+      >
+        {{ isQuotaError(fixturesError.events || fixturesError.lineups || fixturesError.statistics || fixturesError.players) ? quotaMessage : 'Impossible de charger les détails du match.' }}
+      </v-alert>
+
+      <v-sheet v-else elevation="2">
+        <v-tabs v-model="tab" color="primary" grow>
+          <v-tab value="one">Timeline</v-tab>
+          <v-tab value="two">Lineups</v-tab>
+          <v-tab value="three">Statistics</v-tab>
+          <v-tab value="four">Players</v-tab>
+        </v-tabs>
+
+        <v-divider></v-divider>
+
+        <v-tabs-window v-model="tab">
+          <v-tabs-window-item value="one">
+            <MatchEventsTimeline :events="matchDetails.events" />
+          </v-tabs-window-item>
+          <v-tabs-window-item value="two">
+            <MatchLineupsBoard :lineups="matchDetails.lineups" />
+          </v-tabs-window-item>
+          <v-tabs-window-item value="three">
+            <MatchStatisticsCompare :statistics="matchDetails.statistics" />
+          </v-tabs-window-item>
+          <v-tabs-window-item value="four">
+            <MatchPlayersTable :players="matchDetails.players" />
+          </v-tabs-window-item>
+        </v-tabs-window>
+      </v-sheet>
     </main>
   </NuxtLayout>
 </template>
