@@ -13,7 +13,7 @@ import {
   type FixtureStatistics,
 } from '~/types/fifa'
 import MatchEventsTimeline from "~/components/football/MatchEventsTimeline.vue";
-import MatchLineupsBoard from "~/components/football/MatchLineupsBoard.vue";
+import MatchLineupPitch from "~/components/football/MatchLineupPitch.vue";
 import MatchStatisticsCompare from "~/components/football/MatchStatisticsCompare.vue";
 import MatchPlayersTable from "~/components/football/MatchPlayersTable.vue";
 import { iso3ToIso2 } from '~/utils/countryCode'
@@ -571,7 +571,7 @@ onMounted(async () => {
             />
           </v-tabs-window-item>
           <v-tabs-window-item value="two">
-            <MatchLineupsBoard :lineups="matchDetails.lineups" />
+            <MatchLineupPitch :lineups="matchDetails.lineups" :players="matchDetails.players" />
           </v-tabs-window-item>
           <v-tabs-window-item value="three">
             <MatchStatisticsCompare :statistics="matchDetails.statistics" />
