@@ -200,6 +200,19 @@ export const buildApiSportsRegistry = (): ApiSportsRegistry => {
           },
         },
       },
+      players: {
+        upstreamEndpoint: '/players',
+        querySchema: {
+          optional: {
+            id: 'number',
+            team: 'number',
+            league: 'number',
+            season: 'number',
+            search: 'string',
+            page: 'number',
+          },
+        },
+      },
     }, [
       '/timezone',
       '/countries',

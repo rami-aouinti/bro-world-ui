@@ -29,3 +29,19 @@ export interface SportTeamItem {
     image: string
   }
 }
+
+export interface SportPlayerItem {
+  id: string
+  name: string
+  photo: string
+  age: number | null
+  height: string
+  weight: string
+  team: string
+  teamLogo: string
+  position: string
+  league: string
+  appearances: number | null
+  goals: number | null
+  assists: number | null
+}
