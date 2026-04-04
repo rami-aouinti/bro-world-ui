@@ -16,6 +16,7 @@ import MatchEventsTimeline from "~/components/football/MatchEventsTimeline.vue";
 import MatchLineupsBoard from "~/components/football/MatchLineupsBoard.vue";
 import MatchStatisticsCompare from "~/components/football/MatchStatisticsCompare.vue";
 import MatchPlayersTable from "~/components/football/MatchPlayersTable.vue";
+import { iso3ToIso2 } from '~/utils/countryCode'
 
 definePageMeta({
   public: true,
@@ -74,12 +75,71 @@ const isQuotaError = (err: unknown) => {
 }
 
 const quotaMessage = 'Limite de quota API atteinte. Réessayez plus tard ou réduisez le volume de requêtes.'
+const flagPlaceholderSrc = '/images/placeholders/platform-media-fallback.svg'
+
+const TEAM_NAME_TO_ISO3: Record<string, string> = {
+  argentina: 'ARG',
+  australia: 'AUS',
+  belgium: 'BEL',
+  brazil: 'BRA',
+  cameroon: 'CMR',
+  canada: 'CAN',
+  chile: 'CHL',
+  colombia: 'COL',
+  costa rica: 'CRC',
+  croatia: 'HRV',
+  denmark: 'DNK',
+  ecuador: 'ECU',
+  egypt: 'EGY',
+  england: 'ENG',
+  france: 'FRA',
+  germany: 'GER',
+  ghana: 'GHA',
+  iran: 'IRN',
+  iraq: 'IRQ',
+  italy: 'ITA',
+  japan: 'JPN',
+  mexico: 'MEX',
+  morocco: 'MAR',
+  netherlands: 'NLD',
+  new zealand: 'NZL',
+  nigeria: 'NGA',
+  peru: 'PER',
+  poland: 'POL',
+  portugal: 'PRT',
+  qatar: 'QAT',
+  saudi arabia: 'SAU',
+  senegal: 'SEN',
+  serbia: 'SRB',
+  south korea: 'KOR',
+  spain: 'ESP',
+  sweden: 'SWE',
+  tunisia: 'TUN',
+  turkey: 'TUR',
+  ukraine: 'UKR',
+  united arab emirates: 'ARE',
+  united states: 'USA',
+  uruguay: 'URY',
+}
 
 const groupedTeams = computed(() => {
   return teams.value.reduce<Record<string, typeof teams.value>>((acc, team) => {
     const key = team.group || 'Sans groupe'
     acc[key] = acc[key] || []
     acc[key].push(team)
+    return acc
+  }, {})
+})
+
+const teamCodeByName = computed(() => {
+  return teams.value.reduce<Record<string, string>>((acc, team) => {
+    const key = String(team?.name || '').trim().toLowerCase()
+    const code = String(team?.code || '').trim()
+
+    if (key && code) {
+      acc[key] = code
+    }
+
     return acc
   }, {})
 })
@@ -202,6 +262,26 @@ const formatDate = (date?: string) => {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(parsed)
+}
+
+const teamFlagSrc = (teamNameOrCode?: string | null, fallbackLogo?: string | null) => {
+  const normalized = String(teamNameOrCode || '').trim()
+  if (!normalized) {
+    return fallbackLogo || flagPlaceholderSrc
+  }
+
+  const lookupKey = normalized.toLowerCase()
+  const storeCode = teamCodeByName.value[lookupKey] || ''
+  const mappedIso3 = TEAM_NAME_TO_ISO3[lookupKey] || ''
+  const codeCandidate = storeCode || mappedIso3 || normalized
+  const upperCode = codeCandidate.toUpperCase()
+  const iso2 = upperCode.length === 2 ? upperCode.toLowerCase() : iso3ToIso2(upperCode)
+
+  if (iso2) {
+    return `/images/flags/${iso2}.svg`
+  }
+
+  return fallbackLogo || flagPlaceholderSrc
 }
 
 const loadBaseData = async () => {
@@ -401,15 +481,36 @@ onMounted(async () => {
       </div>
     </template>
     <template #layout-aside>
-      <v-list v-if="selectedTeam" density="confortable" class="bg-transparent">
+      <v-list v-if="selectedTeam" density="comfortable" class="bg-transparent">
         <v-list-item
-            class="d-flex align-center"
             v-for="fixture in selectedTeamFixtures"
             :key="fixture?.fixture?.id || fixture?.id"
-            :title="`${fixture?.teams?.home?.name || 'N/A'} vs ${fixture?.teams?.away?.name || 'N/A'}`"
-            :subtitle="formatDate(fixture?.fixture?.date)"
+            :class="['aside-fixture-item', { 'aside-fixture-item--active': selectedFixtureId === toNumber(fixture?.fixture?.id ?? fixture?.id) }]"
             @click="selectFixture(fixture)"
-        />
+        >
+          <template #prepend>
+            <v-avatar size="28" rounded="0">
+              <img
+                  :src="teamFlagSrc(fixture?.teams?.home?.name, fixture?.teams?.home?.logo)"
+                  :alt="`Drapeau équipe domicile ${fixture?.teams?.home?.name || 'Home'}`"
+              >
+            </v-avatar>
+          </template>
+          <div class="aside-fixture-item__content">
+            <div class="text-body-2 font-weight-medium">
+              {{ `${fixture?.teams?.home?.name || 'N/A'} vs ${fixture?.teams?.away?.name || 'N/A'}` }}
+            </div>
+            <div class="text-caption text-medium-emphasis">{{ formatDate(fixture?.fixture?.date) }}</div>
+          </div>
+          <template #append>
+            <v-avatar size="28" rounded="0">
+              <img
+                  :src="teamFlagSrc(fixture?.teams?.away?.name, fixture?.teams?.away?.logo)"
+                  :alt="`Drapeau équipe extérieur ${fixture?.teams?.away?.name || 'Away'}`"
+              >
+            </v-avatar>
+          </template>
+        </v-list-item>
       </v-list>
     </template>
     <main  aria-label="World Cup dashboard">
@@ -546,6 +647,20 @@ pre {
 
 .team-link {
   justify-content: flex-start;
+}
+
+.aside-fixture-item {
+  justify-content: center;
+  text-align: center;
+}
+
+.aside-fixture-item__content {
+  flex: 1;
+  text-align: center;
+}
+
+.aside-fixture-item--active {
+  background: rgba(var(--v-theme-primary), 0.12);
 }
 
 .world-cup-main-layout.is-mobile {
