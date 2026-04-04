@@ -1,5 +1,10 @@
 export interface SportGameCardItem {
   id: string
+  gameId: string
+  leagueId: string | null
+  homeTeamId: string | null
+  awayTeamId: string | null
+  season: number | null
   status: string
   home: string
   away: string

@@ -79,7 +79,7 @@ watch(() => data.value?.date, (dateValue) => {
             :selected-status="dashboard.status"
             :selected-date="dashboard.date"
             :search="dashboard.search"
-            @update:selected-league="dashboard.league = $event"
+            @update:selected-league="dashboard.setLeague($event)"
             @update:selected-status="dashboard.status = $event"
             @update:selected-date="dashboard.date = $event"
             @update:search="dashboard.search = $event"
