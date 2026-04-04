@@ -20,6 +20,9 @@ export const useFifaPlayersStore = defineStore('fifaPlayers', () => {
   const cacheAt = ref<Record<PlayersResource, number>>({
     players: 0, squads: 0, transfers: 0, trophies: 0, sidelined: 0, injuries: 0, coachs: 0,
   })
+  const lastPaging = ref<Record<PlayersResource, { current: number, total: number } | null>>({
+    players: null, squads: null, transfers: null, trophies: null, sidelined: null, injuries: null, coachs: null,
+  })
 
   const isFresh = (resource: PlayersResource) => Date.now() - cacheAt.value[resource] < FIFA_PLAYERS_TTL_MS
 
@@ -33,6 +36,7 @@ export const useFifaPlayersStore = defineStore('fifaPlayers', () => {
     try {
       const result = await loader()
       byResource.value[resource] = result.items
+      lastPaging.value[resource] = result.paging
       cacheAt.value[resource] = Date.now()
       return byResource.value[resource]
     }
@@ -50,6 +54,7 @@ export const useFifaPlayersStore = defineStore('fifaPlayers', () => {
     loading,
     error,
     cacheAt,
+    lastPaging,
     fetchPlayers: (query: FifaQueryParams, force = false) => fetchResource('players', () => api.getPlayers(query, { bypassCache: force }), force),
     fetchSquads: (query: FifaQueryParams, force = false) => fetchResource('squads', () => api.getSquads(query, { bypassCache: force }), force),
     fetchTransfers: (query: FifaQueryParams, force = false) => fetchResource('transfers', () => api.getTransfers(query, { bypassCache: force }), force),
