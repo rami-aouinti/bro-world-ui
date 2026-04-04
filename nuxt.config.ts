@@ -223,6 +223,16 @@ export default defineNuxtConfig({
       apiKey: process.env.API_FOOTBALL_KEY || '',
       cacheTtlSeconds: Number(process.env.FOOTBALL_CACHE_TTL_SECONDS || '') || 86_400,
     },
+    basketballApi: {
+      baseUrl: process.env.API_BASKETBALL_BASE_URL || '',
+      apiKey: process.env.API_BASKETBALL_KEY || '',
+      cacheTtlSeconds: Number(process.env.BASKETBALL_CACHE_TTL_SECONDS || '') || 86_400,
+    },
+    baseballApi: {
+      baseUrl: process.env.API_BASEBALL_BASE_URL || '',
+      apiKey: process.env.API_BASEBALL_KEY || '',
+      cacheTtlSeconds: Number(process.env.BASEBALL_CACHE_TTL_SECONDS || '') || 86_400,
+    },
     session: {
       name: 'nuxt-session',
       password: sessionPassword,
