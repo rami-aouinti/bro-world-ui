@@ -13,17 +13,14 @@ const tabs = computed(() => [
   {
     label: t('app.navigation.players'),
     section: 'players' as const,
-    disabled: true,
   },
   {
     label: t('app.navigation.games'),
     section: 'games' as const,
-    disabled: false,
   },
   {
     label: t('app.navigation.teams'),
     section: 'teams' as const,
-    disabled: true,
   },
 ])
 </script>
@@ -41,21 +38,12 @@ const tabs = computed(() => [
       v-for="tab in tabs"
       :key="tab.section"
       :value="tab.section"
-      :to="tab.disabled ? undefined : buildSportSectionRoute(sportSlug, tab.section)"
-      :disabled="tab.disabled"
+      :to="buildSportSectionRoute(sportSlug, tab.section)"
       variant="text"
       class="text-none sport-segmented-nav__button"
+      :data-testid="`sport-tab-${tab.section}`"
     >
       <span>{{ tab.label }}</span>
-      <v-chip
-        v-if="tab.disabled"
-        size="x-small"
-        variant="tonal"
-        color="warning"
-        class="ml-2"
-      >
-        Coming soon
-      </v-chip>
     </v-btn>
   </v-btn-toggle>
 </template>
