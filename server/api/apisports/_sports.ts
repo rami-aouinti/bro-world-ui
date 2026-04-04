@@ -27,6 +27,7 @@ const buildApiSportsDefinitions = (): Record<string, ApiSportsDefinition> => {
         apiKey: runtimeConfig.footballApi?.apiKey?.trim() || '',
         host: footballHost,
         cacheTtlSeconds: runtimeConfig.footballApi?.cacheTtlSeconds,
+        scheduleCacheTtlSeconds: Number(process.env.FOOTBALL_SCHEDULE_CACHE_TTL_SECONDS || '') || 600,
         liveCacheTtlSeconds: Number(process.env.FOOTBALL_LIVE_CACHE_TTL_SECONDS || '') || 60,
         cacheResource: 'fifa',
         referenceEndpoints: [
