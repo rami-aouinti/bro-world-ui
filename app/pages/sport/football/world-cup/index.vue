@@ -44,6 +44,8 @@ const fixtureFilters = reactive({
 })
 
 const selectedFixtureId = ref<number | null>(null)
+const selectedTeam = ref<{ id: number, name: string, logo: string, group: string } | null>(null)
+const showTeamDetailsPanel = ref(false)
 
 const playersPage = ref(1)
 const playersMeta = ref({ current: 1, total: 1 })
@@ -116,7 +118,13 @@ const fixturesList = computed(() => {
 })
 
 const groupedStandings = computed(() => {
-  const rows: Array<{ group: string, rank: number, teamName: string, points: number, played: number }> = []
+  const rows: Array<{
+    group: string
+    rank: number
+    team: { id: number | null, name: string, logo: string }
+    points: number
+    played: number
+  }> = []
 
   for (const block of standings.value as GenericRecord[]) {
     const groups = block?.league?.standings || []
@@ -125,7 +133,11 @@ const groupedStandings = computed(() => {
         rows.push({
           group: String(row?.group || 'Sans groupe'),
           rank: Number(row?.rank || 0),
-          teamName: String(row?.team?.name || '-'),
+          team: {
+            id: row?.team?.id ? Number(row.team.id) : null,
+            name: String(row?.team?.name || '-'),
+            logo: String(row?.team?.logo || ''),
+          },
           points: Number(row?.points || 0),
           played: Number(row?.all?.played || 0),
         })
@@ -138,6 +150,18 @@ const groupedStandings = computed(() => {
     acc[row.group].push(row)
     return acc
   }, {})
+})
+
+const selectedTeamFixtures = computed(() => {
+  if (!selectedTeam.value?.id) {
+    return []
+  }
+
+  return fixturesList.value.filter((fixture) => {
+    const homeId = Number(fixture?.teams?.home?.id || 0)
+    const awayId = Number(fixture?.teams?.away?.id || 0)
+    return homeId === selectedTeam.value?.id || awayId === selectedTeam.value?.id
+  })
 })
 
 const formatDate = (date?: string) => {
@@ -246,6 +270,22 @@ const refreshOddsAndPredictions = async () => {
     fetchOddsPage(true),
     loadPredictions(),
   ])
+}
+
+const selectStandingTeam = async (payload: { id: number | null, name: string, logo: string, group: string }) => {
+  if (!payload.id) {
+    return
+  }
+
+  fixtureFilters.team = payload.id
+  selectedTeam.value = {
+    id: payload.id,
+    name: payload.name,
+    logo: payload.logo,
+    group: payload.group,
+  }
+  showTeamDetailsPanel.value = true
+  await fetchFixtures(true)
 }
 
 watch(() => playersPage.value, () => {
@@ -370,9 +410,22 @@ onMounted(async () => {
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="row in rows" :key="`${groupName}-${row.rank}-${row.teamName}`">
+                <tr v-for="row in rows" :key="`${groupName}-${row.rank}-${row.team.id || row.team.name}`">
                   <td>{{ row.rank }}</td>
-                  <td>{{ row.teamName }}</td>
+                  <td>
+                    <v-btn
+                      variant="text"
+                      density="comfortable"
+                      class="team-link px-0 text-none"
+                      @click="selectStandingTeam({ id: row.team.id, name: row.team.name, logo: row.team.logo, group: String(groupName) })"
+                    >
+                      <v-avatar size="24" class="mr-2">
+                        <v-img v-if="row.team.logo" :src="row.team.logo" :alt="`Logo ${row.team.name}`" cover />
+                        <span v-else class="text-caption">{{ row.team.name?.slice(0, 1) || '?' }}</span>
+                      </v-avatar>
+                      <span>{{ row.team.name }}</span>
+                    </v-btn>
+                  </td>
                   <td>{{ row.points }}</td>
                   <td>{{ row.played }}</td>
                 </tr>
@@ -381,6 +434,46 @@ onMounted(async () => {
           </v-card>
         </div>
       </v-card>
+
+      <v-navigation-drawer
+        v-model="showTeamDetailsPanel"
+        location="right"
+        temporary
+        width="420"
+      >
+        <div class="pa-4">
+          <div class="d-flex align-center justify-space-between mb-3">
+            <div class="text-subtitle-1 font-weight-bold">Détails équipe active</div>
+            <v-btn icon="mdi-close" variant="text" size="small" @click="showTeamDetailsPanel = false" />
+          </div>
+
+          <template v-if="selectedTeam">
+            <div class="d-flex align-center mb-3">
+              <v-avatar size="36" class="mr-3">
+                <v-img v-if="selectedTeam.logo" :src="selectedTeam.logo" :alt="`Logo ${selectedTeam.name}`" cover />
+                <span v-else class="text-caption">{{ selectedTeam.name.slice(0, 1) }}</span>
+              </v-avatar>
+              <div>
+                <div class="text-body-1 font-weight-medium">{{ selectedTeam.name }}</div>
+                <div class="text-caption text-medium-emphasis">ID {{ selectedTeam.id }} · Groupe {{ selectedTeam.group }}</div>
+              </div>
+            </div>
+            <v-alert type="info" variant="tonal" class="mb-3">
+              Fixtures filtrées pour l’équipe sélectionnée.
+            </v-alert>
+            <v-list density="compact">
+              <v-list-item
+                v-for="fixture in selectedTeamFixtures"
+                :key="fixture?.fixture?.id || fixture?.id"
+                :title="`${fixture?.teams?.home?.name || 'N/A'} vs ${fixture?.teams?.away?.name || 'N/A'}`"
+                :subtitle="formatDate(fixture?.fixture?.date)"
+                @click="selectedFixtureId = Number(fixture?.fixture?.id || fixture?.id)"
+              />
+            </v-list>
+          </template>
+          <v-alert v-else type="info" variant="tonal">Sélectionnez une équipe depuis le classement.</v-alert>
+        </div>
+      </v-navigation-drawer>
 
       <v-card class="pa-4 pa-md-5 section-card" variant="tonal">
         <div class="d-flex align-center justify-space-between mb-3">
@@ -503,5 +596,9 @@ pre {
 .world-cup-table :deep(th),
 .world-cup-table :deep(td) {
   white-space: nowrap;
+}
+
+.team-link {
+  justify-content: flex-start;
 }
 </style>
