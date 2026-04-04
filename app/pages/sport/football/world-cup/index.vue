@@ -16,6 +16,7 @@ import MatchEventsTimeline from "~/components/football/MatchEventsTimeline.vue";
 import MatchLineupPitch from "~/components/football/MatchLineupPitch.vue";
 import MatchStatisticsCompare from "~/components/football/MatchStatisticsCompare.vue";
 import MatchPlayersTable from "~/components/football/MatchPlayersTable.vue";
+import FootballAvatar from '~/components/football/FootballAvatar.vue'
 import { iso3ToIso2 } from '~/utils/countryCode'
 
 definePageMeta({
