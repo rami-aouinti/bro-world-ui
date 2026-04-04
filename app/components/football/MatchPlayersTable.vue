@@ -51,7 +51,6 @@ const showValue = (value: string | number | null | undefined) => value ?? placeh
 
     <template v-else>
       <v-tabs v-model="playersSubTab" color="primary" density="comfortable" class="mb-3">
-        <v-tab value="teams">Teams</v-tab>
         <v-tab
           v-for="team in teamsWithPlayers"
           :key="team.key"
@@ -62,33 +61,6 @@ const showValue = (value: string | number | null | undefined) => value ?? placeh
       </v-tabs>
 
       <v-tabs-window v-model="playersSubTab">
-        <v-tabs-window-item value="teams">
-          <v-row>
-            <v-col cols="12">
-              <v-card variant="tonal" class="mb-3">
-                <v-card-text class="d-flex align-center justify-space-between py-3">
-                  <span class="text-subtitle-2">Équipes</span>
-                  <v-chip size="small" label color="primary">{{ totalPlayers }} joueurs</v-chip>
-                </v-card-text>
-              </v-card>
-            </v-col>
-
-            <v-col
-              v-for="team in teamsWithPlayers"
-              :key="`overview-${team.key}`"
-              cols="12"
-              md="6"
-              lg="4"
-            >
-              <v-card variant="outlined" class="h-100">
-                <v-card-title class="text-body-1 d-flex align-center justify-space-between ga-2">
-                  <span>{{ team.name }}</span>
-                  <v-chip size="small" label>{{ team.players.length }}</v-chip>
-                </v-card-title>
-              </v-card>
-            </v-col>
-          </v-row>
-        </v-tabs-window-item>
 
         <v-tabs-window-item
           v-for="team in teamsWithPlayers"
@@ -98,7 +70,7 @@ const showValue = (value: string | number | null | undefined) => value ?? placeh
           <v-table density="compact" class="bg-transparent players-table">
             <thead>
             <tr>
-              <th>Joueur</th>
+              <th>Player</th>
               <th>Min</th>
               <th>Buts</th>
               <th>Passes</th>

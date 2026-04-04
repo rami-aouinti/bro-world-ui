@@ -21,14 +21,7 @@ const showImage = computed(() => Boolean(props.src) && !imageFailed.value)
 </script>
 
 <template>
-  <v-avatar
-    :size="size"
-    :width="size"
-    :height="size"
-    color="grey-lighten-3"
-    class="football-avatar"
-  >
-    <v-img
+  <v-img
       v-if="showImage"
       :src="props.src || ''"
       :alt="props.alt"
@@ -36,9 +29,9 @@ const showImage = computed(() => Boolean(props.src) && !imageFailed.value)
       :height="size"
       cover
       @error="imageFailed = true"
-    />
-    <v-icon v-else :icon="icon" size="60%" color="grey-darken-1" />
-  </v-avatar>
+      rounded="xl"
+  />
+  <v-icon v-else :icon="icon" size="60%" color="grey-darken-1" />
 </template>
 
 <style scoped>

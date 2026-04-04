@@ -475,10 +475,6 @@ onMounted(async () => {
 <template>
   <NuxtLayout name="default">
     <template #layout-sidebar>
-      <div class="d-flex align-center justify-space-between mb-3">
-        <v-btn size="small" variant="text" @click="fetchStandings(true)">Refresh</v-btn>
-      </div>
-
       <v-alert v-if="standingsLoading.standings || referenceLoading.seasons" type="info" variant="tonal">Loading...</v-alert>
       <v-alert v-else-if="standingsError.standings || referenceError.seasons" type="error" variant="tonal">
         {{ isQuotaError(standingsError.standings || referenceError.seasons) ? quotaMessage : 'Impossible de charger le classement.' }}
@@ -488,7 +484,7 @@ onMounted(async () => {
         <v-select
           v-model="selectedStandingsGroup"
           :items="standingsGroupOptions"
-          label="Groupe"
+          label="Group"
           density="compact"
           variant="outlined"
           hide-details
@@ -525,34 +521,32 @@ onMounted(async () => {
       </div>
     </template>
     <template #layout-aside>
+      <div class="d-flex align-center ga-2 flex-wrap">
+        <FootballAvatar :src="selectedTeam?.logo" :alt="`Logo ${selectedTeam?.name}`" :size="72" icon="mdi-shield-outline" class="mr-4" />
+        <div>
+          <div class="text-body-1 font-weight-medium">{{ selectedTeam?.name || 'Aucune équipe sélectionnée' }}</div>
+          <div v-if="selectedTeam" class="text-caption text-medium-emphasis">{{ selectedTeam.group }}</div>
+        </div>
+      </div>
       <v-list v-if="selectedTeam" density="comfortable" class="bg-transparent">
         <v-list-item
+            class="pa-2 py-2 mb-3"
             v-for="fixture in selectedTeamFixtures"
             :key="fixture?.fixture?.id || fixture?.id"
             :class="['aside-fixture-item', { 'aside-fixture-item--active': selectedFixtureId === toNumber(fixture?.fixture?.id ?? fixture?.id) }]"
             @click="selectFixture(fixture)"
         >
           <template #prepend>
-            <v-avatar size="28" rounded="0">
-              <img
-                  :src="teamFlagSrc(fixture?.teams?.home?.name, fixture?.teams?.home?.logo)"
-                  :alt="`Drapeau équipe domicile ${fixture?.teams?.home?.name || 'Home'}`"
-              >
-            </v-avatar>
+            <FootballAvatar :src="teamFlagSrc(fixture?.teams?.home?.name, fixture?.teams?.home?.logo)" :alt="`Drapeau équipe domicile ${fixture?.teams?.home?.name || 'Home'}`" :size="28" icon="mdi-shield-outline" />
           </template>
           <div class="aside-fixture-item__content">
             <div class="text-body-2 font-weight-medium">
               {{ `${fixture?.teams?.home?.name || 'N/A'} vs ${fixture?.teams?.away?.name || 'N/A'}` }}
             </div>
-            <div class="text-caption text-medium-emphasis">{{ formatDate(fixture?.fixture?.date) }}</div>
+            <div class="text-caption text-medium-emphasis text-sm">{{ formatDate(fixture?.fixture?.date) }}</div>
           </div>
           <template #append>
-            <v-avatar size="28" rounded="0">
-              <img
-                  :src="teamFlagSrc(fixture?.teams?.away?.name, fixture?.teams?.away?.logo)"
-                  :alt="`Drapeau équipe extérieur ${fixture?.teams?.away?.name || 'Away'}`"
-              >
-            </v-avatar>
+            <FootballAvatar :src="teamFlagSrc(fixture?.teams?.away?.name, fixture?.teams?.away?.logo)" :alt="`Drapeau équipe extérieur ${fixture?.teams?.away?.name || 'Away'}`" :size="28" icon="mdi-shield-outline" />
           </template>
         </v-list-item>
       </v-list>
@@ -560,24 +554,16 @@ onMounted(async () => {
     <main  aria-label="World Cup dashboard">
 
       <div class="aside-header mb-4">
-        <div class="d-flex align-center mb-2">
-          <FootballAvatar :src="selectedTeam?.logo" :alt="`Logo ${selectedTeam?.name}`" :size="36" icon="mdi-shield-outline" class="mr-3" />
-          <div>
-            <div class="text-body-1 font-weight-medium">{{ selectedTeam?.name || 'Aucune équipe sélectionnée' }}</div>
-            <div v-if="selectedTeam" class="text-caption text-medium-emphasis">{{ selectedTeam.group }}</div>
-          </div>
-        </div>
-
         <v-card variant="outlined" class="pa-3">
           <div class="text-body-2 d-flex text-center justify-center">{{ formatDate(selectedFixture?.fixture?.date) }}</div>
           <div class="text-body-2 font-weight-medium d-flex align-center ga-2 flex-wrap">
-            <FootballAvatar :src="selectedFixture?.teams?.home?.logo" :alt="`Logo ${selectedFixture?.teams?.home?.name || 'Home'}`" :size="48" icon="mdi-shield-outline" />
+            <FootballAvatar :src="selectedFixture?.teams?.home?.logo" :alt="`Logo ${selectedFixture?.teams?.home?.name || 'Home'}`" :size="28" icon="mdi-shield-outline" />
             <h1>{{ selectedFixture?.teams?.home?.name || 'N/A' }}</h1>
             <h1>{{ selectedFixture?.goals?.home ?? '-' }} </h1>
             <v-spacer></v-spacer>
             <h1>{{ selectedFixture?.goals?.away ?? '-' }}</h1>
             <h1>{{ selectedFixture?.teams?.away?.name || 'N/A' }}</h1>
-            <FootballAvatar :src="selectedFixture?.teams?.away?.logo" :alt="`Logo ${selectedFixture?.teams?.away?.name || 'Away'}`" :size="48" icon="mdi-shield-outline" />
+            <FootballAvatar :src="selectedFixture?.teams?.away?.logo" :alt="`Logo ${selectedFixture?.teams?.away?.name || 'Away'}`" :size="28" icon="mdi-shield-outline" />
           </div>
           <div class="text-caption d-flex text-center justify-center">{{ selectedFixture?.fixture?.status?.short || 'N/A' }}</div>
         </v-card>
@@ -701,6 +687,9 @@ pre {
 
 .aside-fixture-item {
   justify-content: center;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(var(--v-border-color), 0.2);
   text-align: center;
 }
 

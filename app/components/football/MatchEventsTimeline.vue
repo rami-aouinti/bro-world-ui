@@ -176,6 +176,7 @@ const unknownRows = computed(() => timelineEvents.value.filter(item => item.side
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   gap: 12px;
+  padding: 12px 0;
   align-items: center;
 }
 
