@@ -10,6 +10,30 @@ export type ApiSportsRouteQuerySchema = {
   atLeastOneOfGroups?: string[][]
 }
 
+const collectAllowedKeys = (schema: ApiSportsRouteQuerySchema): Set<string> => {
+  const allowed = new Set<string>()
+
+  for (const key of schema.required ?? []) {
+    allowed.add(key)
+  }
+
+  for (const key of Object.keys(schema.optional ?? {})) {
+    allowed.add(key)
+  }
+
+  for (const key of schema.atLeastOneOf ?? []) {
+    allowed.add(key)
+  }
+
+  for (const group of schema.atLeastOneOfGroups ?? []) {
+    for (const key of group) {
+      allowed.add(key)
+    }
+  }
+
+  return allowed
+}
+
 const readFirstQueryValue = (value: unknown): unknown => {
   if (Array.isArray(value)) {
     return value[0]
@@ -76,6 +100,37 @@ export const validateApiSportsRouteQuery = (
   schema: ApiSportsRouteQuerySchema,
 ) => {
   const query = getQuery(event)
+  const allowedKeys = collectAllowedKeys(schema)
+  const providedEntries = Object.entries(query).filter(([, value]) => isProvided(value))
+  const duplicateKeys = providedEntries
+    .filter(([, value]) => Array.isArray(value) && value.length > 1)
+    .map(([key]) => key)
+
+  if (duplicateKeys.length > 0) {
+    throw createValidationError(
+      sport,
+      route,
+      `Duplicate API-Sports query parameter(s) are not allowed: ${duplicateKeys.join(', ')}`,
+      { duplicate: duplicateKeys },
+    )
+  }
+
+  const unknownKeys = providedEntries
+    .map(([key]) => key)
+    .filter(key => !allowedKeys.has(key))
+
+  if (unknownKeys.length > 0) {
+    throw createValidationError(
+      sport,
+      route,
+      `Unsupported API-Sports query parameter(s): ${unknownKeys.join(', ')}`,
+      {
+        unsupported: unknownKeys,
+        allowed: Array.from(allowedKeys),
+      },
+    )
+  }
+
   const required = schema.required ?? []
   const missing = required.filter(key => !isProvided(query[key]))
 

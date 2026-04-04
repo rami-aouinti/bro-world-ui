@@ -68,9 +68,7 @@ export const createApiSportsRouteHandler = <T>(definition: ApiSportsRouteDefinit
       })
     }
 
-    if (endpointConfig.querySchema) {
-      validateApiSportsRouteQuery(event, normalizedSport, route, endpointConfig.querySchema)
-    }
+    validateApiSportsRouteQuery(event, normalizedSport, route, endpointConfig.querySchema)
 
     return proxyApiSportsRequest<T>(event, sportDefinition.proxy, endpointConfig.upstreamEndpoint)
   }

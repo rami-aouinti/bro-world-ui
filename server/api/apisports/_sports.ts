@@ -4,7 +4,7 @@ import { readApiSportsRegistrySport } from '~~/server/utils/apisportsRegistry'
 
 export type ApiSportsEndpointConfig = {
   upstreamEndpoint: string
-  querySchema?: ApiSportsRouteQuerySchema
+  querySchema: ApiSportsRouteQuerySchema
 }
 
 export type ApiSportsDefinition = {
