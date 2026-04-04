@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { getSportContext } from '~/components/sport/sportContext'
+import type { ApiSportsEndpointFilterMatrix } from '~~/lib/apisportsFilters'
 import { buildApiSportsQuery } from '~~/lib/apisportsFilters'
 import type { SportPlayerItem } from '~/components/sport/types'
 import { useSportDashboardStore } from '~/stores/sportDashboard'
@@ -60,6 +61,7 @@ const leagueFilter = ref(typeof route.query.league === 'string' ? route.query.le
 const teamFilter = ref(typeof route.query.team === 'string' ? route.query.team : (dashboardSelection.value.teamId || ''))
 const seasonFilter = ref(typeof route.query.season === 'string' ? route.query.season : (dashboardSelection.value.season ? String(dashboardSelection.value.season) : ''))
 const searchFilter = ref(typeof route.query.search === 'string' ? route.query.search : '')
+const gameIdFilter = ref(typeof route.query.gameId === 'string' ? route.query.gameId : '')
 const page = ref(Number.parseInt(typeof route.query.page === 'string' ? route.query.page : '1', 10) || 1)
 const selectedPlayerId = ref<string | null>(null)
 
@@ -69,27 +71,126 @@ const playersFiltersMatrix = {
   optional: {
     league: 'number',
     team: 'number',
+    gameId: 'number',
     search: 'string',
     season: 'number',
     page: 'number',
   },
-} as const
+} satisfies ApiSportsEndpointFilterMatrix
+
+const playersMetaKey = computed(() => `sport-players-meta-${sportSlug.value}`)
+const { data: playersMeta } = await useAsyncData(
+  playersMetaKey,
+  async () => {
+    if (!isSupportedSport.value) {
+      return null
+    }
+
+    return $fetch<{ filters: ApiSportsEndpointFilterMatrix }>(`/api/apisports/${sportSlug.value}/_meta/players`)
+  },
+  {
+    server: true,
+    default: () => null,
+    watch: [sportSlug],
+  },
+)
+
+const activeFiltersMatrix = computed<ApiSportsEndpointFilterMatrix>(() => playersMeta.value?.filters || playersFiltersMatrix)
+const allowedFilterKeys = computed(() => {
+  const optionalKeys = Object.keys(activeFiltersMatrix.value.optional || {})
+  const groupKeys = (activeFiltersMatrix.value.atLeastOneGroup || []).flat()
+  return new Set([...(activeFiltersMatrix.value.required || []), ...optionalKeys, ...groupKeys])
+})
+
+const supportsGameId = computed(() => allowedFilterKeys.value.has('gameId'))
+
+const hasValue = (value: string | number | null | undefined) => String(value || '').trim().length > 0
+const requiredCouples = [['league', 'season']] as const
+
+const ensureRequiredCouples = () => {
+  for (const [left, right] of requiredCouples) {
+    const pairAllowed = allowedFilterKeys.value.has(left) && allowedFilterKeys.value.has(right)
+    if (!pairAllowed) {
+      continue
+    }
+
+    const leftValue = left === 'league' ? leagueFilter.value : seasonFilter.value
+    const rightValue = right === 'season' ? seasonFilter.value : leagueFilter.value
+    const leftPresent = hasValue(leftValue)
+    const rightPresent = hasValue(rightValue)
+
+    if (leftPresent && !rightPresent && right === 'season' && dashboardSelection.value.season) {
+      seasonFilter.value = String(dashboardSelection.value.season)
+    }
+
+    if (rightPresent && !leftPresent && left === 'league' && dashboardSelection.value.leagueId) {
+      leagueFilter.value = dashboardSelection.value.leagueId
+    }
+  }
+}
+
+const isMinimumFiltersSatisfied = computed(() => {
+  const required = activeFiltersMatrix.value.required || []
+  const requiredOk = required.every((key) => {
+    if (key === 'league')
+      return hasValue(leagueFilter.value)
+    if (key === 'team')
+      return hasValue(teamFilter.value)
+    if (key === 'season')
+      return hasValue(seasonFilter.value)
+    if (key === 'search')
+      return hasValue(searchFilter.value)
+    if (key === 'gameId')
+      return hasValue(gameIdFilter.value)
+    if (key === 'page')
+      return page.value > 0
+    return true
+  })
+
+  if (!requiredOk) {
+    return false
+  }
+
+  return requiredCouples.every(([left, right]) => {
+    const pairAllowed = allowedFilterKeys.value.has(left) && allowedFilterKeys.value.has(right)
+    if (!pairAllowed) {
+      return true
+    }
+
+    const leftPresent = left === 'league' ? hasValue(leagueFilter.value) : hasValue(seasonFilter.value)
+    const rightPresent = right === 'season' ? hasValue(seasonFilter.value) : hasValue(leagueFilter.value)
+    return (leftPresent && rightPresent) || (!leftPresent && !rightPresent)
+  })
+})
+
+const appliedQuery = ref<Record<string, string | number | boolean>>({})
 
 const apiQuery = computed(() => {
-  return buildApiSportsQuery(playersFiltersMatrix, {
+  return buildApiSportsQuery(activeFiltersMatrix.value, {
     league: leagueFilter.value,
     team: teamFilter.value,
+    gameId: gameIdFilter.value,
     search: searchFilter.value,
     season: seasonFilter.value,
     page: Math.max(1, page.value),
   })
 })
 
+const applyFilters = () => {
+  ensureRequiredCouples()
+  if (!isMinimumFiltersSatisfied.value) {
+    return
+  }
+
+  appliedQuery.value = { ...apiQuery.value }
+}
+
 watch(
   () => route.query,
   (query) => {
     leagueFilter.value = typeof query.league === 'string' ? query.league : ''
     teamFilter.value = typeof query.team === 'string' ? query.team : ''
+    gameIdFilter.value = typeof query.gameId === 'string' ? query.gameId : ''
     searchFilter.value = typeof query.search === 'string' ? query.search : ''
     seasonFilter.value = typeof query.season === 'string' ? query.season : (dashboardSelection.value.season ? String(dashboardSelection.value.season) : '')
     page.value = Number.parseInt(typeof query.page === 'string' ? query.page : '1', 10) || 1
@@ -99,6 +200,7 @@ watch(
 watch([
   leagueFilter,
   teamFilter,
+  gameIdFilter,
   searchFilter,
   seasonFilter,
   page,
@@ -111,6 +213,10 @@ watch([
 
   if (teamFilter.value.trim()) {
     nextQuery.team = teamFilter.value.trim()
+  }
+
+  if (gameIdFilter.value.trim() && supportsGameId.value) {
+    nextQuery.gameId = gameIdFilter.value.trim()
   }
 
   if (searchFilter.value.trim()) {
@@ -126,27 +232,35 @@ watch([
   }
 
   const currentQuery = route.query
-  const hasChanged = ['league', 'team', 'search', 'season', 'page'].some(key => String(currentQuery[key] || '') !== String(nextQuery[key] || ''))
+  const hasChanged = ['league', 'team', 'gameId', 'search', 'season', 'page'].some(key => String(currentQuery[key] || '') !== String(nextQuery[key] || ''))
 
   if (hasChanged) {
     router.replace({ query: nextQuery })
   }
 })
 
+watch([sportSlug, isSupportedSport], () => {
+  if (isSupportedSport.value) {
+    applyFilters()
+  } else {
+    appliedQuery.value = {}
+  }
+}, { immediate: true })
+
 const { data, pending, error, refresh } = await useAsyncData(
-  () => `sport-players-${sportSlug.value}-${JSON.stringify(apiQuery.value)}`,
+  () => `sport-players-${sportSlug.value}-${JSON.stringify(appliedQuery.value)}`,
   async () => {
     if (!isSupportedSport.value) {
       return { response: [], paging: { current: 1, total: 1 } }
     }
 
     return $fetch<ApiSportsPlayersResponse>(`/api/apisports/${sportSlug.value}/players`, {
-      query: apiQuery.value,
+      query: appliedQuery.value,
     })
   },
   {
     server: true,
-    watch: [sportSlug, apiQuery],
+    watch: [sportSlug, appliedQuery],
     default: () => ({ response: [], paging: { current: 1, total: 1 } }),
   },
 )
@@ -239,6 +353,14 @@ watch(players, (nextPlayers) => {
               hide-details
             />
             <v-text-field
+              v-if="supportsGameId"
+              v-model="gameIdFilter"
+              label="Game ID"
+              density="comfortable"
+              variant="outlined"
+              hide-details
+            />
+            <v-text-field
               v-model="searchFilter"
               :label="t('sport.filters.search')"
               density="comfortable"
@@ -246,6 +368,14 @@ watch(players, (nextPlayers) => {
               prepend-inner-icon="mdi-magnify"
               hide-details
             />
+            <v-btn
+              color="primary"
+              variant="flat"
+              :disabled="pending || !isMinimumFiltersSatisfied"
+              @click="applyFilters"
+            >
+              Search
+            </v-btn>
           </v-card>
         </aside>
 
