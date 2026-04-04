@@ -1,15 +1,2 @@
-import { createFifaRouteHandler } from './_handler'
-
-export default defineEventHandler(createFifaRouteHandler({
-  route: '/venues',
-  upstreamEndpoint: '/venues',
-  querySchema: {
-    optional: {
-      id: 'number',
-      name: 'string',
-      city: 'string',
-      country: 'string',
-      search: 'string',
-    },
-  },
-}))
+// Deprecated legacy root alias. Prefer /api/fifa/reference/venues.
+export { default } from './reference/venues.get'
