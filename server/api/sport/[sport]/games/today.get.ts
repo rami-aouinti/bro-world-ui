@@ -1,5 +1,5 @@
 import { getQuery } from 'h3'
-import { readApiSportsRegistrySport } from '~~/server/utils/apisportsRegistry'
+import { listSupportedApiSports, readApiSportsRegistrySport, resolveCanonicalSport } from '~~/server/utils/apisportsRegistry'
 
 type ApiSportsFixtureTeam = {
   id?: number
@@ -126,6 +126,7 @@ const createUnsupportedSportError = (sport: string) => createError({
     code: 'SPORT_GAMES_UNSUPPORTED_SPORT',
     sport,
     allowed: Object.keys(TODAY_GAMES_BY_SPORT),
+    supportedSports: listSupportedApiSports(),
   },
 })
 
@@ -141,36 +142,41 @@ const createUnsupportedEndpointError = (sport: string, endpoint: string, allowed
 })
 
 export default defineEventHandler(async event => {
-  const sport = getRouterParam(event, 'sport')?.toLowerCase() || ''
+  const requestedSport = getRouterParam(event, 'sport') || ''
+  const canonicalSport = resolveCanonicalSport(requestedSport)
   const query = getQuery(event)
   const timezoneInput = typeof query.timezone === 'string' ? query.timezone.trim() : ''
   const timezonePolicy = timezoneInput && isValidTimeZone(timezoneInput) ? timezoneInput : 'UTC'
   const date = resolveDateForTimeZone(timezonePolicy)
 
-  const resolver = TODAY_GAMES_BY_SPORT[sport]
-
-  if (!resolver) {
-    throw createUnsupportedSportError(sport)
+  if (!canonicalSport) {
+    throw createUnsupportedSportError(requestedSport)
   }
 
-  const registrySport = readApiSportsRegistrySport(sport)
+  const resolver = TODAY_GAMES_BY_SPORT[canonicalSport]
+
+  if (!resolver) {
+    throw createUnsupportedSportError(requestedSport)
+  }
+
+  const registrySport = readApiSportsRegistrySport(canonicalSport)
 
   if (!registrySport) {
-    throw createUnsupportedSportError(sport)
+    throw createUnsupportedSportError(requestedSport)
   }
 
   const isWhitelistedEndpoint = Boolean(registrySport.endpoints[resolver.endpoint])
 
   if (!isWhitelistedEndpoint) {
-    throw createUnsupportedEndpointError(sport, resolver.endpoint, Object.keys(registrySport.endpoints))
+    throw createUnsupportedEndpointError(canonicalSport, resolver.endpoint, Object.keys(registrySport.endpoints))
   }
 
-  const payload = await $fetch<unknown>(`/api/apisports/${sport}/${resolver.endpoint}`, {
+  const payload = await $fetch<unknown>(`/api/apisports/${canonicalSport}/${resolver.endpoint}`, {
     query: resolver.query(date, timezonePolicy),
   })
 
   return {
-    sport,
+    sport: canonicalSport,
     date,
     timezonePolicy,
     games: resolver.normalize(payload),

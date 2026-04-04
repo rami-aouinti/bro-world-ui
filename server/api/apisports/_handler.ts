@@ -1,5 +1,6 @@
 import type { H3Event } from 'h3'
 import { proxyApiSportsRequest } from '~~/server/utils/apisportsProxy'
+import { listSupportedApiSports, resolveCanonicalSport } from '~~/server/utils/apisportsRegistry'
 import { readApiSportsDefinition } from './_sports'
 import { validateApiSportsRouteQuery } from './_schema'
 
@@ -10,21 +11,39 @@ export type ApiSportsRouteDefinition = {
 
 export const createApiSportsRouteHandler = <T>(definition: ApiSportsRouteDefinition) => {
   return async (event: H3Event): Promise<T> => {
-    const normalizedSport = definition.sport.trim().toLowerCase()
+    const requestedSport = definition.sport
+    const canonicalSport = resolveCanonicalSport(requestedSport)
     const normalizedEndpoint = definition.endpoint.replace(/^\/+|\/+$/g, '')
     const route = `/${normalizedEndpoint}`
 
+    if (!canonicalSport) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: `Unsupported API-Sports sport: ${requestedSport}`,
+        data: {
+          success: false,
+          error: {
+            code: 'API_SPORTS_PROXY_UNSUPPORTED_SPORT',
+            sport: requestedSport,
+            supportedSports: listSupportedApiSports(),
+          },
+        },
+      })
+    }
+
+    const normalizedSport = canonicalSport
     const sportDefinition = readApiSportsDefinition(normalizedSport)
 
     if (!sportDefinition) {
       throw createError({
         statusCode: 404,
-        statusMessage: `Unsupported API-Sports sport: ${normalizedSport}`,
+        statusMessage: `Unsupported API-Sports sport: ${requestedSport}`,
         data: {
           success: false,
           error: {
             code: 'API_SPORTS_PROXY_UNSUPPORTED_SPORT',
-            sport: normalizedSport,
+            sport: requestedSport,
+            supportedSports: listSupportedApiSports(),
           },
         },
       })
@@ -40,7 +59,8 @@ export const createApiSportsRouteHandler = <T>(definition: ApiSportsRouteDefinit
           success: false,
           error: {
             code: 'API_SPORTS_PROXY_UNSUPPORTED_ENDPOINT',
-            sport: normalizedSport,
+            sport: requestedSport,
+            supportedSports: listSupportedApiSports(),
             endpoint: normalizedEndpoint,
             allowed: Object.keys(sportDefinition.endpoints),
           },

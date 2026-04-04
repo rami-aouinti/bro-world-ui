@@ -28,7 +28,7 @@ export type ApiSportsRegistrySport = {
 
 export type ApiSportsRegistry = Record<string, ApiSportsRegistrySport>
 
-type ApiSportsCanonicalSport =
+export type ApiSportsCanonicalSport =
   | 'football'
   | 'basketball'
   | 'baseball'
@@ -41,7 +41,7 @@ type ApiSportsCanonicalSport =
   | 'formula-1'
   | 'moto-gp'
 
-const API_SPORTS_DEFAULT_BASE_URLS: Record<ApiSportsCanonicalSport, string> = {
+export const API_SPORTS_DEFAULT_BASE_URLS: Record<ApiSportsCanonicalSport, string> = {
   football: 'https://v3.football.api-sports.io',
   basketball: 'https://v1.basketball.api-sports.io',
   baseball: 'https://v1.baseball.api-sports.io',
@@ -56,13 +56,22 @@ const API_SPORTS_DEFAULT_BASE_URLS: Record<ApiSportsCanonicalSport, string> = {
 }
 
 const API_SPORTS_ALIASES: Record<string, ApiSportsCanonicalSport> = {
+  soccer: 'football',
+  football-soccer: 'football',
   nba: 'basketball',
   nfl: 'american-football',
+  americanfootball: 'american-football',
   mlb: 'baseball',
+  f1: 'formula-1',
+  motogp: 'moto-gp',
 }
 
-const resolveCanonicalSport = (sport: string): ApiSportsCanonicalSport | null => {
-  const normalizedSport = sport.trim().toLowerCase()
+export const normalizeApiSportsSlug = (sport: string): string => sport.trim().toLowerCase().replace(/[\s_]+/g, '-')
+
+export const listSupportedApiSports = (): ApiSportsCanonicalSport[] => Object.keys(API_SPORTS_DEFAULT_BASE_URLS) as ApiSportsCanonicalSport[]
+
+export const resolveCanonicalSport = (sport: string): ApiSportsCanonicalSport | null => {
+  const normalizedSport = normalizeApiSportsSlug(sport)
 
   if (!normalizedSport) {
     return null
