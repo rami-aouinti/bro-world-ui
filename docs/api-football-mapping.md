@@ -1,43 +1,89 @@
 # API-Football v3 mapping (Nuxt server routes)
 
-Ce document centralise le mapping entre les routes internes Nuxt (`/api/fifa/*`) et les endpoints API-Football v3 (API-Sports) afin d'aligner front/composables/stores avec le proxy serveur.
+Ce document centralise le mapping entre les routes internes Nuxt (`/api/fifa/*`) et les endpoints API-Football v3 (API-Sports), avec une convention de routing **par domaine**.
 
-## Source de vérité
+## Convention de routing (canonique)
 
-Le mapping runtime est défini dans `server/api/fifa/_mapping.ts`.
+Les nouvelles intégrations doivent utiliser uniquement ces préfixes:
 
-## Table de mapping
+- `reference/`
+- `fixtures/`
+- `teams/`
+- `players/`
+- `odds/`
+- `predictions/`
 
-| Route Nuxt interne | Endpoint API-Football v3 | Query params requis | Pagination |
+Les routes root historiques (`/api/fifa/<endpoint>`) et `stats/` sont conservées temporairement comme alias de compatibilité.
+
+## Routes canoniques exposées
+
+| Route interne | Endpoint upstream v3 | Paramètres requis | Pagination |
 | --- | --- | --- | --- |
+| `/api/fifa/reference/countries` | `/countries` | _aucun_ | non |
+| `/api/fifa/reference/leagues` | `/leagues` | _aucun_ | non |
+| `/api/fifa/reference/seasons` | `/leagues/seasons` | _aucun_ | non |
+| `/api/fifa/reference/timezone` | `/timezone` | _aucun_ | non |
+| `/api/fifa/reference/venues` | `/venues` | _aucun_ | non |
+| `/api/fifa/fixtures` | `/fixtures` | _aucun_ | non |
+| `/api/fifa/fixtures/events` | `/fixtures/events` | `fixture` | non |
+| `/api/fifa/fixtures/headtohead` | `/fixtures/headtohead` | `h2h` | non |
+| `/api/fifa/fixtures/lineups` | `/fixtures/lineups` | `fixture` | non |
+| `/api/fifa/fixtures/players` | `/fixtures/players` | `fixture` | non |
+| `/api/fifa/fixtures/statistics` | `/fixtures/statistics` | `fixture` | non |
+| `/api/fifa/fixtures/standings` | `/standings` | `league`, `season` | non |
 | `/api/fifa/teams` | `/teams` | _aucun_ | non |
-| `/api/fifa/standings` | `/standings` | `league`, `season` | non |
-| `/api/fifa/fixtures` | `/fixtures` | `league`, `season` | non |
-| `/api/fifa/players` | `/players` | `team`, `season` | oui (`page` propagé) |
-| `/api/fifa/odds` | `/odds` | `fixture` | oui (`page` propagé) |
-| `/api/fifa/stadiums` (legacy conservé) | `/venues` | _aucun_ | non |
+| `/api/fifa/teams/statistics` | `/teams/statistics` | `league`, `season`, `team` | non |
+| `/api/fifa/players` | `/players` | `season` + au moins un parmi `id`, `team`, `league`, `search` | oui (`page`) |
+| `/api/fifa/players/squads` | `/players/squads` | `team` | non |
+| `/api/fifa/players/coachs` | `/coachs` | au moins un parmi `id`, `team`, `search` | non |
+| `/api/fifa/players/injuries` | `/injuries` | _aucun_ | non |
+| `/api/fifa/players/sidelined` | `/sidelined` | au moins un parmi `player`, `coach` | non |
+| `/api/fifa/players/transfers` | `/transfers` | au moins un parmi `player`, `team` | non |
+| `/api/fifa/players/trophies` | `/trophies` | au moins un parmi `player`, `coach` | non |
+| `/api/fifa/odds` | `/odds` | _aucun_ | oui (`page`) |
+| `/api/fifa/odds/bets` | `/odds/bets` | _aucun_ | non |
+| `/api/fifa/odds/bookmakers` | `/odds/bookmakers` | _aucun_ | non |
+| `/api/fifa/odds/live` | `/odds/live` | _aucun_ | non |
+| `/api/fifa/odds/live/bets` | `/odds/live/bets` | _aucun_ | non |
+| `/api/fifa/predictions` | `/predictions` | `fixture` | non |
 
-## Règles de validation serveur
+## Aliases legacy encore exposés (dépréciés)
 
-- Chaque route valide les query params requis **avant** de proxifier vers API-Football.
-- Si un paramètre requis est manquant, l'API Nuxt renvoie une `400` avec le code `FIFA_PROXY_INVALID_QUERY`.
-- Les paramètres métiers sont conservés tels quels (pas de transformation destructive) par le proxy, y compris `page` sur les endpoints paginés.
+| Route legacy | Route canonique à utiliser | Endpoint upstream v3 |
+| --- | --- | --- |
+| `/api/fifa/countries` | `/api/fifa/reference/countries` | `/countries` |
+| `/api/fifa/leagues` | `/api/fifa/reference/leagues` | `/leagues` |
+| `/api/fifa/leagues/seasons` | `/api/fifa/reference/seasons` | `/leagues/seasons` |
+| `/api/fifa/timezone` | `/api/fifa/reference/timezone` | `/timezone` |
+| `/api/fifa/stadiums` | `/api/fifa/reference/venues` | `/venues` |
+| `/api/fifa/standings` | `/api/fifa/fixtures/standings` | `/standings` |
+| `/api/fifa/coachs` | `/api/fifa/players/coachs` | `/coachs` |
+| `/api/fifa/injuries` | `/api/fifa/players/injuries` | `/injuries` |
+| `/api/fifa/sidelined` | `/api/fifa/players/sidelined` | `/sidelined` |
+| `/api/fifa/transfers` | `/api/fifa/players/transfers` | `/transfers` |
+| `/api/fifa/trophies` | `/api/fifa/players/trophies` | `/trophies` |
+| `/api/fifa/stats/coachs` | `/api/fifa/players/coachs` | `/coachs` |
+| `/api/fifa/stats/injuries` | `/api/fifa/players/injuries` | `/injuries` |
+| `/api/fifa/stats/sidelined` | `/api/fifa/players/sidelined` | `/sidelined` |
+| `/api/fifa/stats/standings` | `/api/fifa/fixtures/standings` | `/standings` |
+| `/api/fifa/stats/teams-statistics` | `/api/fifa/teams/statistics` | `/teams/statistics` |
+| `/api/fifa/stats/transfers` | `/api/fifa/players/transfers` | `/transfers` |
+| `/api/fifa/stats/trophies` | `/api/fifa/players/trophies` | `/trophies` |
 
-## Stratégie de cache proxy FIFA
+## Note de migration
 
-- Les clés Redis FIFA sont construites via `buildCacheKey` avec une clé stable basée sur:
-  - le profil de cache (`reference` ou `live`),
-  - l'endpoint upstream normalisé,
-  - le hash des query params.
-- TTL **référence** (équipes, stades, etc.): `FOOTBALL_CACHE_TTL_SECONDS` (défaut `86400`).
-- TTL **live** (fixtures, standings, players, odds): `FOOTBALL_LIVE_CACHE_TTL_SECONDS` (défaut `60`).
-- Bypass manuel conservé:
-  - header recommandé: `x-football-refresh: 1`,
-  - header legacy toujours accepté: `x-fifa-refresh: 1`.
+- Les routes root legacy et `stats/*` ci-dessus sont **dépréciées**.
+- Date cible de retrait: **2026-09-30**.
+- Plan recommandé:
+  1. migrer les appels front/composables/stores vers les routes canoniques;
+  2. monitorer l'usage des aliases (logs/metrics) pendant une release cycle;
+  3. supprimer les aliases à la date cible.
 
-## Recommandations front/composables/stores
+## Validation & cache
 
-- Utiliser exclusivement les routes Nuxt listées ci-dessus (et non les endpoints API-Sports directement).
-- Pour les pages `players` et `odds`, transmettre `page` côté composable/store pour piloter la pagination sans logique serveur additionnelle.
-- Pour forcer un refresh depuis le front (sans attendre l'expiration TTL), envoyer `x-football-refresh: 1` (ou `x-fifa-refresh: 1` pour compatibilité legacy).
-- En cas d'ajout d'une nouvelle route FIFA, mettre à jour **d'abord** `server/api/fifa/_mapping.ts`, puis ce document.
+- La validation de query params est portée par chaque handler (`required` et/ou `atLeastOneOf`).
+- Les endpoints paginés exposent `page` côté proxy pour `/players` et `/odds`.
+- Le cache Redis FIFA repose sur:
+  - profil `reference` vs `live`,
+  - endpoint upstream normalisé,
+  - hash des query params.
